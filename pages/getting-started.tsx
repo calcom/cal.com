@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
@@ -14,6 +15,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
+import * as z from "zod";
 
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -71,6 +73,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const { status } = useSession();
   const loading = status === "loading";
   const [ready, setReady] = useState(false);
+  const [selectedImport, setSelectedImport] = useState("");
   const [error, setError] = useState<Error | null>(null);
 
   const updateUser = async (data: Prisma.UserUpdateInput) => {
@@ -229,6 +232,14 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     router.push("/event-types");
   };
 
+  const schema = z.object({
+    token: z.string(),
+  });
+
+  const formMethods = useForm<{
+    token: string;
+  }>({ resolver: zodResolver(schema), mode: "onSubmit" });
+
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
     {
@@ -236,44 +247,110 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       title: t("welcome_to_calcom"),
       description: t("welcome_instructions"),
       Component: (
-        <form className="sm:mx-auto sm:w-full">
-          <section className="space-y-8">
-            <fieldset>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                {t("full_name")}
-              </label>
-              <input
-                ref={nameRef}
-                type="text"
-                name="name"
-                id="name"
-                autoComplete="given-name"
-                placeholder={t("your_name")}
-                defaultValue={props.user.name ?? enteredName}
-                required
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
-              />
-            </fieldset>
-
-            <fieldset>
-              <section className="flex justify-between">
-                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                  {t("timezone")}
+        <>
+          {selectedImport == "" && (
+            <div className="grid grid-cols-2 mb-4 gap-x-4">
+              <Button color="secondary" onClick={() => setSelectedImport("calendly")}>
+                {t("import_from")} Calendly
+              </Button>
+              <Button color="secondary" onClick={() => setSelectedImport("savvycal")}>
+                {t("import_from")} SavvyCal
+              </Button>
+            </div>
+          )}
+          {selectedImport && (
+            <div>
+              <h2 className="text-2xl text-gray-900 font-cal">
+                {t("import_from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
+              </h2>
+              <p className="mb-2 text-sm text-gray-500">{t("you_will_need_to_generate")}</p>
+              <form
+                className="flex"
+                onSubmit={formMethods.handleSubmit(async (values) => {
+                  setSubmitting(true);
+                  const response = await fetch(`/api/import/${selectedImport}`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                      token: values.token,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  if (response.status === 201) {
+                    setSubmitting(false);
+                    handleSkipStep();
+                  } else {
+                    await response.json().catch((e) => {
+                      console.log("Error: response.json invalid: " + e);
+                      setSubmitting(false);
+                    });
+                  }
+                })}>
+                <input
+                  onChange={async (e) => {
+                    formMethods.setValue("token", e.target.value);
+                  }}
+                  type="text"
+                  name="token"
+                  id="token"
+                  placeholder={t("access_token")}
+                  required
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                />
+                <Button type="submit" className="h-10 mt-1 ml-4">
+                  {t("import")}
+                </Button>
+              </form>
+            </div>
+          )}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-2 text-sm text-gray-500 bg-white">or</span>
+            </div>
+          </div>
+          <form className="sm:mx-auto sm:w-full">
+            <section className="space-y-8">
+              <fieldset>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  {t("full_name")}
                 </label>
-                <Text variant="caption">
-                  {t("current_time")}:&nbsp;
-                  <span className="text-black">{dayjs().tz(selectedTimeZone).format("LT")}</span>
-                </Text>
-              </section>
-              <TimezoneSelect
-                id="timeZone"
-                value={selectedTimeZone}
-                onChange={({ value }) => setSelectedTimeZone(value)}
-                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </fieldset>
-          </section>
-        </form>
+                <input
+                  ref={nameRef}
+                  type="text"
+                  name="name"
+                  id="name"
+                  autoComplete="given-name"
+                  placeholder={t("your_name")}
+                  defaultValue={props.user.name ?? enteredName}
+                  required
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                />
+              </fieldset>
+
+              <fieldset>
+                <section className="flex justify-between">
+                  <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                    {t("timezone")}
+                  </label>
+                  <Text variant="caption">
+                    {t("current_time")}:&nbsp;
+                    <span className="text-black">{dayjs().tz(selectedTimeZone).format("LT")}</span>
+                  </Text>
+                </section>
+                <TimezoneSelect
+                  id="timeZone"
+                  value={selectedTimeZone}
+                  onChange={({ value }) => setSelectedTimeZone(value)}
+                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </fieldset>
+            </section>
+          </form>
+        </>
       ),
       hideConfirm: false,
       confirmText: t("continue"),
