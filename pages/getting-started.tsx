@@ -271,7 +271,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   // track the number of imports. Without personal data/payload
                   telemetry.withJitsu((jitsu) =>
-                    jitsu.track(telemetryEventTypes.importSubmitted, collectPageParameters())
+                    jitsu.track(telemetryEventTypes.importSubmitted, {
+                      ...collectPageParameters(),
+                      selectedImport,
+                    })
                   );
                   setSubmitting(true);
                   const response = await fetch(`/api/import/${selectedImport}`, {
