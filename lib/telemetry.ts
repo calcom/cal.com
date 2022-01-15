@@ -9,6 +9,7 @@ export const telemetryEventTypes = {
   pageView: "page_view",
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
+  importSubmitted: "import_submitted",
 };
 
 /**
