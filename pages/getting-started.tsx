@@ -268,18 +268,15 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   setSubmitting(true);
-                  const response = await fetch(
-                    `/api/import/${selectedImport}`,
-                    {
-                      method: "POST",
-                      body: JSON.stringify({
-                        token: values.token,
-                      }),
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    }
-                  );
+                  const response = await fetch(`/api/import/${selectedImport}`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                      token: values.token,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
                   if (response.status === 201) {
                     setSubmitting(false);
                     handleSkipStep();
