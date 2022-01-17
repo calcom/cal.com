@@ -550,6 +550,9 @@
   "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you've shared this link with will no longer be able to book using it.",
   "delete_event_type": "Delete Event Type",
   "confirm_delete_event_type": "Yes, delete event type",
+  "delete_account": "Delete account",
+  "confirm_delete_account": "Yes, delete account",
+  "delete_account_confirmation_message":"Are you sure you want to delete your Cal.com account? Anyone who you've shared your account link with will no longer be able to book using it and any preferences you have saved will be lost.",
   "integrations": "Integrations",
   "settings": "Settings",
   "event_type_moved_successfully": "Event type has been moved successfully",
@@ -591,5 +594,10 @@
   "saml_configuration_placeholder": "Please paste the SAML metadata from your Identity Provider here",
   "saml_configuration_update_failed": "SAML configuration update failed",
   "saml_configuration_delete_failed": "SAML configuration delete failed",
-  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider"
+  "saml_email_required": "Please enter an email so we can find your SAML Identity Provider",
+  "you_will_need_to_generate": "You will need to generate an access token from the integrations page.",
+  "import": "Import",
+  "import_from": "Import from",
+  "access_token": "Access token",
+  "visit_roadmap": "Roadmap"
 }

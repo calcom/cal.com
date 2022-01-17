@@ -1,28 +1,19 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-test("Test OAuth login buttons", async ({ page }) => {
-  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
+import { IS_GOOGLE_LOGIN_ENABLED, IS_SAML_LOGIN_ENABLED } from "../server/lib/constants";
 
-  // Check for Google login button, then click through and check for email field
-  await page.waitForSelector("[data-testid=google]");
-
-  await page.click("[data-testid=google]");
-
-  await page.waitForNavigation({
-    waitUntil: "domcontentloaded",
-  });
-  await page.waitForSelector('input[type="email"]');
+test("Should display Google Login button", async ({ page }) => {
+  test.skip(!IS_GOOGLE_LOGIN_ENABLED, "It should only run if Google Login is installed");
 
   await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
 
-  await page.waitForSelector("[data-testid=saml]");
+  await expect(page.locator(`[data-testid=google]`)).toBeVisible();
+});
 
-  // Check for SAML login button, then click through
-  await page.click("[data-testid=saml]");
+test("Should display SAML Login button", async ({ page }) => {
+  test.skip(!IS_SAML_LOGIN_ENABLED, "It should only run if SAML Login is installed");
 
-  await page.waitForNavigation({
-    waitUntil: "domcontentloaded",
-  });
+  await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL}/auth/login`);
 
-  await page.context().close();
+  await expect(page.locator(`[data-testid=saml]`)).toBeVisible();
 });
