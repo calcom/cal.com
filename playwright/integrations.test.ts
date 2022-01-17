@@ -24,14 +24,15 @@ test.describe("integrations", () => {
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
+
+    await expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
     // dialog is closed
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
+    await expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
     // page contains the url
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 

@@ -34,7 +34,8 @@ test("Can reset forgotten password", async ({ browser }) => {
   await page.waitForSelector("text=Success", {
     timeout: 3000,
   });
-  expect(page.locator(`text=Success`)).toBeTruthy();
+
+  await expect(page.locator(`text=Success`)).toBeVisible();
 
   // Click button:has-text("Login")
   await Promise.all([page.waitForNavigation({ url: "/auth/login" }), page.click('button:has-text("Login")')]);
@@ -44,6 +45,8 @@ test("Can reset forgotten password", async ({ browser }) => {
   await page.fill('input[name="password"]', "pro");
   await page.press('input[name="password"]', "Enter");
   await page.waitForSelector("[data-testid=dashboard-shell]");
-  expect(page.locator("[data-testid=dashboard-shell]")).toBeTruthy();
+
+  await expect(page.locator("[data-testid=dashboard-shell]")).toBeVisible();
+
   await context.close();
 });
