@@ -1,7 +1,13 @@
 {
   "index": "Home",
-  "get-started": "Get Started",
-  "features": "Features",
-  "themes": "Themes",
-  "advanced": "Advanced"
+  "self-hosting": "Self-hosting",
+  "availability": "Availability",
+  "bookings": "Bookings",
+  "event-types": "Event Types",
+  "teams": "Teams",
+  "integrations": "Integrations",
+  "webhooks": "Webhooks",
+  "settings": "Settings",
+  "billing": "Billing",
+  "developer": "Developer"
 }
