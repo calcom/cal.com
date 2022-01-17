@@ -12,7 +12,8 @@
     "plugin:@typescript-eslint/recommended",
     "prettier",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:playwright/playwright-test"
   ],
   "plugins": ["@typescript-eslint", "prettier", "react", "react-hooks"],
   "rules": {
