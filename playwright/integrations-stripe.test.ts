@@ -12,28 +12,24 @@ test.describe.serial("Stripe integration", () => {
     test("Can add Stripe integration", async ({ page }) => {
       await page.goto("/integrations");
       /** We should see the "Connect" button for Stripe */
-      expect(page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`))
-        .toContainText("Connect")
-        .catch(() => {
-          console.error(
-            `Make sure Stripe it's properly installed and that an integration hasn't been already added.`
-          );
-        });
+      await expect(
+        page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
+      ).toContainText("Connect");
 
       /** We start the Stripe flow */
       await Promise.all([
         page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-        await page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+        page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
       ]);
 
       await Promise.all([
         page.waitForNavigation({ url: "/integrations" }),
         /** We skip filling Stripe forms (testing mode only) */
-        await page.click('[id="skip-account-app"]'),
+        page.click('[id="skip-account-app"]'),
       ]);
 
       /** If Stripe is added correctly we should see the "Disconnect" button */
-      expect(
+      await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
       ).toContainText("Disconnect");
     });
@@ -51,10 +47,7 @@ test.describe.serial("Stripe integration", () => {
     await page.fill('[name="name"]', "Stripe Stripeson");
     await page.fill('[name="email"]', "test@example.com");
 
-    await Promise.all([
-      page.waitForNavigation({ url: "/payment/*" }),
-      await page.press('[name="email"]', "Enter"),
-    ]);
+    await Promise.all([page.waitForNavigation({ url: "/payment/*" }), page.press('[name="email"]', "Enter")]);
 
     await page.waitForSelector('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]');
 
