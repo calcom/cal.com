@@ -1,0 +1,221 @@
+# Configuration
+
+To configure the theme, edit or create
+the `theme.config.js` file in the root
+directory. The file looks something like this:
+
+```ts
+export default {
+  projectLink: 'https://gitlab.com/librewolf-community/browser',
+  titleSuffix: ' – Nextra',
+  footerText: `MIT ${new Date().getFullYear()} © Nextra.`,
+  // ...
+}
+```
+
+## `projectLink`
+
+The URL that the button in the top right will point to.
+
+**Type:** `string`\
+**Default:** `https://github.com/shuding/nextra`
+
+## `projectLinkIcon`
+
+Changes the icon that is shown in the top right.
+
+**Type:** `ReactNode`
+**Default:** GitHub icon
+
+**Example:**
+
+```jsx
+import Gitlab from '@geist-ui/react-icons/gitlab'
+
+export default {
+  projectLinkIcon: <Gitlab />,
+}
+```
+
+## `docsRepositoryBase`
+
+The base URL of the GitHub repository the docs are located in. This will be used for the `Edit this Page on GitHub` button.
+
+**Type:** `string`\
+**Default:** `https://github.com/shuding/nextra`
+
+## `titleSuffix`
+
+Suffix that will be added to page titles in the URL bar.
+
+**Type:** `string`\
+**Default:** `– Nextra`
+
+## `nextLinks` and `prevLinks`
+
+Specifies if arrows are being shown at the bottom
+of a page showing the next and previous page, like
+the ones at the bottom of this page.
+
+**Type:** `boolean`\
+**Default:** `true`
+
+## `search`
+
+Specifies if a search box should be shown in the top right.
+
+**Type:** `boolean`\
+**Default:** `true`
+
+## `customSearch`
+
+A custom component to display instead of the search bar in the top right, for example Algolia.
+
+**Type:** `ReactNode`
+
+## `darkMode`
+
+Specifies if the user can select a dark mode.
+
+**Type:** `boolean`\
+**Default:** `true`
+
+## `defaultMenuCollapsed`
+
+Specifies if the menu on the left is collapsed by default.
+
+**Type:** `boolean`\
+**Default:** `false`
+
+## `font`
+
+Specifies if nextra should load its own fonts. Disable this if you want to use a custom font.
+
+**Type:** `boolean`\
+**Default:** `true`
+
+## `footer`
+
+Specifies if the footer should be shown.
+
+**Type:** `boolean`\
+**Default:** `true`
+
+## `footerText`
+
+The text that is shown on the left of the footer.
+
+**Type:** `ReactNode`
+
+**Example:**
+
+```js
+export default {
+  footerText: `MIT ${new Date().getFullYear()} © Nextra.`,
+}
+```
+
+## `footerEditLink`
+
+The text that should be shown on the link that leads to the editable page on the repository.
+
+**Type:** `boolean`\
+**Default:** `Edit this page`
+
+**Example:** `Edit this page on GitHub`
+
+## `logo`
+
+The logo in the top left.
+
+**Type:** `ReactNode`\
+
+**Example:**
+
+```jsx
+export default {
+  logo: (
+    <React.Fragment>
+      <span className="mr-2 font-extrabold hidden md:inline">Nextra</span>
+      <span className="text-gray-600 font-normal hidden md:inline">
+        The Next Docs Builder
+      </span>
+    </React.Fragment>
+  ),
+}
+```
+
+## `head`
+
+The head that should be inserted into the html document.
+
+**Type:** `ReactNode`
+
+**Example:**
+
+```jsx
+export default {
+  head: (
+    <React.Fragment>
+      <meta name="msapplication-TileColor" content="#ffffff" />
+      <meta name="theme-color" content="#ffffff" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <meta httpEquiv="Content-Language" content="en" />
+      <meta name="description" content="Nextra: the next docs builder" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@shuding_" />
+      <meta property="og:title" content="Nextra: the next docs builder" />
+      <meta property="og:description" content="Nextra: the next docs builder" />
+      <meta name="apple-mobile-web-app-title" content="Nextra" />
+    </React.Fragment>
+  ),
+}
+```
+
+## `direction`
+
+The direction of the text on the page
+
+**Type:** `ltr` || `rtl`
+
+## `i18n`
+
+The internationalization (i18n) config. See more [here](/features/i18n).
+
+## `floatTOC`
+
+Specifies if the table of conents of a page
+(the headings) should be displayed floating
+on the right instead of being integrated in
+the menu on the left.
+
+**Type:** `boolean`\
+**Default:** `false`
+
+import Callout from 'nextra-theme-docs/callout'
+
+export const Unstable = () => (
+  <Callout type="error" emoji="">
+    This is an unstable and experimental feature and not recomended for general
+    use.
+  </Callout>
+)
+
+## `unstable_faviconGlyph`
+
+A glyph that should be used as a favicon.
+
+**Type:** `char`
+
+<Unstable />
+
+## `unstable_stork`
+
+Use [Stork Search](https://stork-search.net/) for the
+search bar, a library for fast full-text search powered
+by WebAssembly.
+
+**Type:** `boolean`\
+**Default:** `false`
+
+<Unstable />

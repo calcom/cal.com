@@ -1,0 +1,57 @@
+# Callout Component
+
+A built-in component provided by `nextra-theme-docs`.
+
+import Callout from 'nextra-theme-docs/callout'
+
+## Example
+
+<Callout>
+  A **callout** is a short piece of text intended to attract attention.
+</Callout>
+
+## Usage
+
+### Default
+
+<Callout emoji="👾">
+  **Space Invaders** is a 1978 shoot 'em up arcade game developed by Tomohiro
+  Nishikado.
+</Callout>
+
+```mdx
+import Callout from 'nextra-theme-docs/callout'
+
+<Callout emoji="👾">
+  **Space Invaders** is a 1978 shoot 'em up arcade game developed by Tomohiro
+  Nishikado.
+</Callout>
+```
+
+### Warning
+
+<Callout type="warning" emoji="⚠️">
+  This API will be deprecated soon.
+</Callout>
+
+```mdx
+import Callout from 'nextra-theme-docs/callout'
+
+<Callout type="warning" emoji="⚠️">
+  This API will be deprecated soon.
+</Callout>
+```
+
+### Error
+
+<Callout type="error" emoji="🚫">
+  This is a dangerous feature that can cause everything to explode.
+</Callout>
+
+```mdx
+import Callout from 'nextra-theme-docs/callout'
+
+<Callout type="error" emoji="️🚫">
+  This is a dangerous feature that can cause everything to explode.
+</Callout>
+```
