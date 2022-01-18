@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import { upgradeToFlexiblePro } from "@ee/lib/stripe/team-billing";
+
 import { BASE_URL } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
@@ -380,5 +382,13 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
 
       return availability;
+    },
+  })
+  .mutation("upgradeToFlexiblePro", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      await upgradeToFlexiblePro(ctx.user.id, input.teamId);
     },
   });
