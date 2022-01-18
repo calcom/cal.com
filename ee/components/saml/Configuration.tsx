@@ -67,7 +67,7 @@ export default function SAMLConfiguration({
     const rawMetadata = samlConfigRef.current.value;
 
     mutation.mutate({
-      rawMetadata: rawMetadata,
+      encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),
       teamId,
     });
   }
