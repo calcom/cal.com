@@ -276,10 +276,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMembers =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map((user) => ({
-        email: user.email || "",
-        name: user.name || "",
-        timeZone: user.timeZone,
-      }))
+          email: user.email || "",
+          name: user.name || "",
+          timeZone: user.timeZone,
+        }))
       : [];
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
