@@ -544,7 +544,7 @@
   "add_new_event_type": "Neuen Ereignistyp hinzufügen",
   "new_event_type_to_book_description": "Erstellen Sie einen neuen Ereignistyp, mit dem Personen Zeiten buchen können.",
   "length": "Länge",
-  "minimum_booking_notice": "Minimaler Abstand zwischen Terminen",
+  "minimum_booking_notice": "Mindester Vorlauf für eine Buchung",
   "slot_interval": "Zeit-Slot-Intervalle",
   "slot_interval_default": "Verwende Ereignislänge (Standard)",
   "delete_event_type_description": "Sind Sie sicher, dass Sie diesen Ereignistyp löschen möchten? Empfänger dieses Links können Sie nicht mehr buchen.",
@@ -595,5 +595,9 @@
   "saml_configuration_update_failed": "Aktualisieren der SAML-Konfiguration fehlgeschlagen",
   "saml_configuration_delete_failed": "Löschen der SAML-Konfiguration fehlgeschlagen",
   "saml_email_required": "Bitte geben Sie eine E-Mail ein, damit wir Ihren SAML Anbieter finden können",
+  "you_will_need_to_generate": "Sie müssen ein Zugriffstoken auf der Integrationsseite generieren.",
+  "import": "Importieren",
+  "import_from": "Importieren von",
+  "access_token": "Zugriffs-Token",
   "visit_roadmap": "Roadmap"
 }
