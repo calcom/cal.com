@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { GetServerSidePropsContext, NextApiRequest } from "next";
+import { GetServerSidePropsContext } from "next";
+import { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getSession, Session } from "@lib/auth";
+import { getSession } from "@lib/auth";
 import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
@@ -43,7 +43,10 @@ async function getUserFromSession({
       hideBranding: true,
       avatar: true,
       twoFactorEnabled: true,
+      identityProvider: true,
       brandColor: true,
+      plan: true,
+      away: true,
       credentials: {
         select: {
           id: true,
@@ -90,7 +93,7 @@ async function getUserFromSession({
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions) => {
+export const createContext = async ({ req }: CreateContextOptions) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await getSession({ req });
 

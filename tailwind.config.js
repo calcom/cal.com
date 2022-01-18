@@ -1,6 +1,5 @@
 module.exports = {
-  mode: "jit",
-  purge: [
+  content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
     "./ee/components/**/*.{js,ts,jsx,tsx}",
@@ -14,7 +13,7 @@ module.exports = {
       colors: {
         /* your primary brand color */
         brand: "var(--brand-color)",
-
+        brandcontrast: "var(--brand-text-color)",
         black: "#111111",
         gray: {
           50: "#F8F8F8",
@@ -131,9 +130,6 @@ module.exports = {
         screen: "100vw",
       }),
     },
-  },
-  variants: {
-    extend: {},
   },
   plugins: [require("@tailwindcss/forms")],
 };

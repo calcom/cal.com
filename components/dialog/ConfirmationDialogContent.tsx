@@ -1,7 +1,7 @@
 import { ExclamationIcon } from "@heroicons/react/outline";
 import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -9,12 +9,12 @@ import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
 export type ConfirmationDialogContentProps = {
+  confirmBtn?: ReactNode;
   confirmBtnText?: string;
   cancelBtnText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
-  variety?: "danger" | "warning" | "success" | "custom";
-  customIcon?: string;
+  variety?: "danger" | "warning" | "success";
 };
 
 export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
@@ -22,7 +22,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
   const {
     title,
     variety,
-    customIcon,
+    confirmBtn = null,
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
     onConfirm,
@@ -49,15 +49,12 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
                 <CheckIcon className="w-5 h-5 text-green-600" />
               </div>
             )}
-            {variety === "custom" && (
-              <div>
-                <img src={customIcon} className="w-12 h-12" />
-              </div>
-            )}
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="text-xl text-gray-900 font-cal">{title}</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="text-xl font-bold text-gray-900 font-cal">
+            {title}
+          </DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-sm text-neutral-500">
             {children}
           </DialogPrimitive.Description>
@@ -65,7 +62,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       </div>
       <div className="mt-5 sm:mt-8 sm:flex sm:flex-row-reverse gap-x-2">
         <DialogClose onClick={onConfirm} asChild>
-          <Button color="primary">{confirmBtnText}</Button>
+          {confirmBtn || <Button color="primary">{confirmBtnText}</Button>}
         </DialogClose>
         <DialogClose asChild>
           <Button color="secondary">{cancelBtnText}</Button>

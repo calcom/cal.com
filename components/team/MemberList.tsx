@@ -1,30 +1,20 @@
-import { Member } from "@lib/member";
+import { inferQueryOutput } from "@lib/trpc";
 
 import MemberListItem from "./MemberListItem";
 
-export default function MemberList(props: {
-  members: Member[];
-  onRemoveMember: (text: Member) => void;
-  onChange: (text: string) => void;
-}) {
-  const selectAction = (action: string, member: Member) => {
-    switch (action) {
-      case "remove":
-        props.onRemoveMember(member);
-        break;
-    }
-  };
+interface Props {
+  team: inferQueryOutput<"viewer.teams.get">;
+  members: inferQueryOutput<"viewer.teams.get">["members"];
+}
+
+export default function MemberList(props: Props) {
+  if (!props.members.length) return <></>;
 
   return (
     <div>
-      <ul className="px-6 mb-2 -mx-6 bg-white border divide-y divide-gray-200 rounded sm:px-4 sm:mx-0">
-        {props.members.map((member) => (
-          <MemberListItem
-            onChange={props.onChange}
-            key={member.id}
-            member={member}
-            onActionSelect={(action: string) => selectAction(action, member)}
-          />
+      <ul className="px-4 mb-2 -mx-4 bg-white border divide-y divide-gray-200 rounded sm:px-4 sm:mx-0">
+        {props.members?.map((member) => (
+          <MemberListItem key={member.id} member={member} team={props.team} />
         ))}
       </ul>
     </div>

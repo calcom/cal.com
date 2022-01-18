@@ -29,7 +29,7 @@ import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import CustomBranding from "@components/CustomBranding";
-import { Form } from "@components/form/fields";
+import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -96,11 +96,12 @@ const BookingPage = (props: BookingPageProps) => {
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
-  const [guestToggle, setGuestToggle] = useState(false);
+  const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
+  type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: { type: LocationType }[] = useMemo(
-    () => (props.eventType.locations as { type: LocationType }[]) || [],
+  const locations: Location[] = useMemo(
+    () => (props.eventType.locations as Location[]) || [],
     [props.eventType.locations]
   );
 
@@ -111,9 +112,6 @@ const BookingPage = (props: BookingPageProps) => {
   }, [router.query.guest]);
 
   const telemetry = useTelemetry();
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.timeSelected, collectPageParameters()));
-  }, [telemetry]);
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
@@ -138,20 +136,38 @@ const BookingPage = (props: BookingPageProps) => {
     };
   };
 
+  const defaultValues = () => {
+    if (!rescheduleUid) {
+      return {
+        name: (router.query.name as string) || "",
+        email: (router.query.email as string) || "",
+        notes: (router.query.notes as string) || "",
+        guests: ensureArray(router.query.guest) as string[],
+        customInputs: props.eventType.customInputs.reduce(
+          (customInputs, input) => ({
+            ...customInputs,
+            [input.id]: router.query[slugify(input.label)],
+          }),
+          {}
+        ),
+      };
+    }
+    if (!props.booking || !props.booking.attendees.length) {
+      return {};
+    }
+    const primaryAttendee = props.booking.attendees[0];
+    if (!primaryAttendee) {
+      return {};
+    }
+    return {
+      name: primaryAttendee.name || "",
+      email: primaryAttendee.email || "",
+      guests: props.booking.attendees.slice(1).map((attendee) => attendee.email),
+    };
+  };
+
   const bookingForm = useForm<BookingFormValues>({
-    defaultValues: {
-      name: (router.query.name as string) || "",
-      email: (router.query.email as string) || "",
-      notes: (router.query.notes as string) || "",
-      guests: ensureArray(router.query.guest),
-      customInputs: props.eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: router.query[slugify(input.label)],
-        }),
-        {}
-      ),
-    },
+    defaultValues: defaultValues(),
   });
 
   const selectedLocation = useWatch({
@@ -171,15 +187,23 @@ const BookingPage = (props: BookingPageProps) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
-        return booking.phone;
+        return booking.phone || "";
       }
       case LocationType.InPerson: {
-        return locationInfo(locationType).address;
+        return locationInfo(locationType)?.address || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
-        return selectedLocation;
+        return selectedLocation || "";
     }
+  };
+
+  const parseDate = (date: string | null) => {
+    if (!date) return "No date";
+    const parsedZone = parseZone(date);
+    if (!parsedZone?.isValid()) return "Invalid date";
+    const formattedTime = parsedZone?.format(timeFormat);
+    return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
   const bookEvent = (booking: BookingFormValues) => {
@@ -244,12 +268,12 @@ const BookingPage = (props: BookingPageProps) => {
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
                   size={14}
-                  items={[{ image: props.profile.image, alt: props.profile.name }].concat(
+                  items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
                     props.eventType.users
                       .filter((user) => user.name !== props.profile.name)
                       .map((user) => ({
-                        image: user.avatar,
-                        title: user.name,
+                        image: user.avatar || "",
+                        alt: user.name || "",
                       }))
                   )}
                 />
@@ -283,7 +307,7 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
-                  {parseZone(date).format(timeFormat + ", dddd DD MMMM YYYY")}
+                  {parseDate(date)}
                 </p>
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
@@ -312,12 +336,8 @@ const BookingPage = (props: BookingPageProps) => {
                       {t("email_address")}
                     </label>
                     <div className="mt-1">
-                      <input
+                      <EmailInput
                         {...bookingForm.register("email")}
-                        type="email"
-                        name="email"
-                        id="email"
-                        inputMode="email"
                         required
                         className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="you@example.com"

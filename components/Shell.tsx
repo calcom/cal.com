@@ -7,14 +7,17 @@ import {
   LinkIcon,
   LogoutIcon,
   ViewGridIcon,
+  MoonIcon,
+  MapIcon,
 } from "@heroicons/react/solid";
-import { signOut, useSession } from "next-auth/client";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
+import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
@@ -36,8 +39,9 @@ import Dropdown, {
 
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
+import Button from "./ui/Button";
 
-function useMeQuery() {
+export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
     retry(failureCount) {
       return failureCount > 3;
@@ -48,7 +52,8 @@ function useMeQuery() {
 }
 
 function useRedirectToLoginIfUnauthenticated() {
-  const [session, loading] = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {
@@ -119,6 +124,10 @@ export default function Shell(props: {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
+  HeadingLeftIcon?: ReactNode;
+  backPath?: string; // renders back button to specified path
+  // use when content needs to expand with flex
+  flexChildrenContainer?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -196,7 +205,9 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}>
+      <div
+        className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
+        data-testid="dashboard-shell">
         <div className="hidden md:flex lg:flex-shrink-0">
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
@@ -237,6 +248,7 @@ export default function Shell(props: {
                   ))}
                 </nav>
               </div>
+              <TrialBanner />
               <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
                 <span className="hidden lg:inline">
                   <UserDropdown />
@@ -250,7 +262,11 @@ export default function Shell(props: {
         </div>
 
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]">
+          <main
+            className={classNames(
+              "flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]",
+              props.flexChildrenContainer && "flex flex-col"
+            )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
               <Link href="/event-types">
@@ -270,19 +286,39 @@ export default function Shell(props: {
                 <UserDropdown small />
               </div>
             </nav>
-            <div className={classNames(props.centered && "md:max-w-5xl mx-auto", !props.large && "py-8")}>
-              <div
-                className={classNames(
-                  "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]",
-                  props.large && "bg-gray-100 pt-12 pb-4 mb-12"
-                )}>
+            <div
+              className={classNames(
+                props.centered && "md:max-w-5xl mx-auto",
+                props.flexChildrenContainer && "flex flex-col flex-1",
+                !props.large && "py-8"
+              )}>
+              {!!props.backPath && (
+                <div className="mx-3 mb-8 sm:mx-8">
+                  <Button
+                    onClick={() => router.push(props.backPath as string)}
+                    StartIcon={ArrowLeftIcon}
+                    color="secondary">
+                    Back
+                  </Button>
+                </div>
+              )}
+              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+                {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl tracking-wide text-gray-900 font-cal">{props.heading}</h1>
+                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                    {props.heading}
+                  </h1>
                   <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
-              <div className="px-4 sm:px-6 md:px-8">{props.children}</div>
+              <div
+                className={classNames(
+                  "px-4 sm:px-6 md:px-8",
+                  props.flexChildrenContainer && "flex flex-col flex-1"
+                )}>
+                {props.children}
+              </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
@@ -327,14 +363,29 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+  const mutation = trpc.useMutation("viewer.away", {
+    onSettled() {
+      utils.invalidateQueries("viewer.me");
+    },
+  });
+  const utils = trpc.useContext();
 
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center w-full space-x-2 cursor-pointer group">
           <span
-            className={classNames(small ? "w-8 h-8" : "w-10 h-10", "bg-gray-300 rounded-full flex-shrink-0")}>
+            className={classNames(
+              small ? "w-8 h-8" : "w-10 h-10",
+              "bg-gray-300 rounded-full flex-shrink-0 relative"
+            )}>
             <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+            {!user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            )}
+            {user?.away && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 border-2 border-white rounded-full"></div>
+            )}
           </span>
           {!small && (
             <span className="flex items-center flex-grow truncate">
@@ -355,6 +406,26 @@ function UserDropdown({ small }: { small?: boolean }) {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuItem>
+          <a
+            onClick={() => {
+              mutation.mutate({ away: !user?.away });
+              utils.invalidateQueries("viewer.me");
+            }}
+            className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+            <MoonIcon
+              className={classNames(
+                user?.away
+                  ? "text-purple-500 group-hover:text-purple-700"
+                  : "text-gray-500 group-hover:text-gray-700",
+                "mr-2 flex-shrink-0 h-5 w-5"
+              )}
+              aria-hidden="true"
+            />
+            {user?.away ? t("set_as_free") : t("set_as_away")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="h-px bg-gray-200" />
         {user?.username && (
           <DropdownMenuItem>
             <a
@@ -396,6 +467,15 @@ function UserDropdown({ small }: { small?: boolean }) {
               </g>
             </svg>
             {t("join_our_slack")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://cal.com/roadmap"
+            className="flex items-center px-4 py-2 text-sm text-gray-700">
+            <MapIcon className="w-5 h-5 mr-3 text-gray-500" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
         <HelpMenuItemDynamic />

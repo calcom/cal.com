@@ -2,9 +2,9 @@ import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent } from "@lib/calendarClient";
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
@@ -64,7 +64,11 @@ export async function handlePayment(
     data: {
       type: PaymentType.STRIPE,
       uid: uuidv4(),
-      bookingId: booking.id,
+      booking: {
+        connect: {
+          id: booking.id,
+        },
+      },
       amount: selectedEventType.price,
       fee: paymentFee,
       currency: selectedEventType.currency,
@@ -73,7 +77,7 @@ export async function handlePayment(
       data: Object.assign({}, paymentIntent, {
         stripe_publishable_key,
         stripeAccount: stripe_user_id,
-      }) as PaymentData as unknown as Prisma.JsonValue,
+      }) /* We should treat this */ as PaymentData /* but Prisma doesn't know how to handle it, so it we treat it */ as unknown /* and then */ as Prisma.InputJsonValue,
       externalId: paymentIntent.id,
     },
   });
@@ -162,6 +166,47 @@ async function handleRefundError(opts: { event: CalendarEvent; reason: string; p
     ...opts.event,
     paymentInfo: { reason: opts.reason, id: opts.paymentId },
   });
+}
+
+const userType = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    email: true,
+    metadata: true,
+  },
+});
+
+type UserType = Prisma.UserGetPayload<typeof userType>;
+export async function getStripeCustomerId(user: UserType): Promise<string | null> {
+  let customerId: string | null = null;
+
+  if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {
+    customerId = (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
+  } else {
+    /* We fallback to finding the customer by email (which is not optimal) */
+    const customersReponse = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+    if (customersReponse.data[0]?.id) {
+      customerId = customersReponse.data[0].id;
+    }
+  }
+
+  return customerId;
+}
+
+export async function deleteStripeCustomer(user: UserType): Promise<string | null> {
+  const customerId = await getStripeCustomerId(user);
+
+  if (!customerId) {
+    console.warn("No stripe customer found for user:" + user.email);
+    return null;
+  }
+
+  //delete stripe customer
+  const deletedCustomer = await stripe.customers.del(customerId);
+
+  return deletedCustomer.id;
 }
 
 export default stripe;

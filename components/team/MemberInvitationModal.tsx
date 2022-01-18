@@ -1,58 +1,50 @@
-import { UsersIcon } from "@heroicons/react/outline";
+import { UserIcon } from "@heroicons/react/outline";
+import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 import React, { SyntheticEvent } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { Team } from "@lib/team";
+import { TeamWithMembers } from "@lib/queries/teams";
+import { trpc } from "@lib/trpc";
 
+import { EmailInput } from "@components/form/fields";
 import Button from "@components/ui/Button";
 
-export default function MemberInvitationModal(props: { team: Team | undefined | null; onExit: () => void }) {
+export default function MemberInvitationModal(props: { team: TeamWithMembers | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
+  const utils = trpc.useContext();
 
-  const handleError = async (res: Response) => {
-    const responseData = await res.json();
+  const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      props.onExit();
+    },
+    async onError(err) {
+      setErrorMessage(err.message);
+    },
+  });
 
-    if (res.ok === false) {
-      setErrorMessage(responseData.message);
-      throw new Error(responseData.message);
-    }
-
-    return responseData;
-  };
-
-  const inviteMember = (e: SyntheticEvent) => {
+  function inviteMember(e: SyntheticEvent) {
     e.preventDefault();
+    if (!props.team) return;
 
     const target = e.target as typeof e.target & {
       elements: {
-        role: { value: string };
+        role: { value: MembershipRole };
         inviteUser: { value: string };
         sendInviteEmail: { checked: boolean };
       };
     };
 
-    const payload = {
+    inviteMemberMutation.mutate({
+      teamId: props.team.id,
       language: i18n.language,
       role: target.elements["role"].value,
       usernameOrEmail: target.elements["inviteUser"].value,
       sendEmailInvitation: target.elements["sendInviteEmail"].checked,
-    };
-
-    return fetch("/api/teams/" + props?.team?.id + "/invite", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(handleError)
-      .then(props.onExit)
-      .catch(() => {
-        // do nothing.
-      });
-  };
+    });
+  }
 
   return (
     <div
@@ -71,8 +63,8 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
 
         <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-brand rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-              <UsersIcon className="w-6 h-6 text-black" />
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-brand text-brandcontrast bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+              <UserIcon className="w-6 h-6 text-brandcontrast" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -89,7 +81,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                 <label htmlFor="inviteUser" className="block text-sm font-medium text-gray-700">
                   {t("email_or_username")}
                 </label>
-                <input
+                <EmailInput
                   type="text"
                   name="inviteUser"
                   id="inviteUser"
@@ -106,7 +98,7 @@ export default function MemberInvitationModal(props: { team: Team | undefined | 
                   id="role"
                   className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
-                  <option value="OWNER">{t("owner")}</option>
+                  <option value="ADMIN">{t("admin")}</option>
                 </select>
               </div>
               <div className="relative flex items-start">

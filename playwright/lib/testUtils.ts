@@ -1,13 +1,9 @@
+import { test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
-export function randomString(length = 12) {
-  let result = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
+export function todo(title: string) {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  test.skip(title, () => {});
 }
 
 type Request = IncomingMessage & { body?: unknown };

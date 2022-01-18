@@ -35,19 +35,19 @@ const TimeOptions: FC<Props> = (props) => {
   };
 
   return selectedTimeZone !== "" ? (
-    <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 dark:bg-gray-700 dark:border-0 bg-white px-4 py-2">
+    <div className="absolute z-10 w-full px-4 py-2 bg-white border border-gray-200 rounded-sm max-w-80 dark:bg-gray-700 dark:border-0">
       <div className="flex mb-4">
-        <div className="w-1/2 dark:text-white text-gray-600 font-medium">{t("time_options")}</div>
+        <div className="w-1/2 font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
         <div className="w-1/2">
           <Switch.Group as="div" className="flex items-center justify-end">
             <Switch.Label as="span" className="mr-3">
-              <span className="text-sm dark:text-white text-gray-500">{t("am_pm")}</span>
+              <span className="text-sm text-gray-500 dark:text-white">{t("am_pm")}</span>
             </Switch.Label>
             <Switch
               checked={is24hClock}
               onChange={handle24hClockToggle}
               className={classNames(
-                is24hClock ? "bg-brand" : "dark:bg-gray-600 bg-gray-200",
+                is24hClock ? "bg-brand text-brandcontrast" : "dark:bg-gray-600 bg-gray-200",
                 "relative inline-flex flex-shrink-0 h-5 w-8 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
               )}>
               <span className="sr-only">{t("use_setting")}</span>
@@ -60,7 +60,7 @@ const TimeOptions: FC<Props> = (props) => {
               />
             </Switch>
             <Switch.Label as="span" className="ml-3">
-              <span className="text-sm dark:text-white text-gray-500">{t("24_h")}</span>
+              <span className="text-sm text-gray-500 dark:text-white">{t("24_h")}</span>
             </Switch.Label>
           </Switch.Group>
         </div>
@@ -69,7 +69,7 @@ const TimeOptions: FC<Props> = (props) => {
         id="timeZone"
         value={selectedTimeZone}
         onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
-        className="mb-2 shadow-sm focus:ring-black focus:border-brand mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+        className="block w-full mt-1 mb-2 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
       />
     </div>
   ) : null;
