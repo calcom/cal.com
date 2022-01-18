@@ -121,7 +121,7 @@ model User {
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
   invitedTo           Int?
-  plan                UserPlan             @default(PRO)
+  plan                UserPlan             @default(TRIAL)
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")

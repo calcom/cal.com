@@ -4,7 +4,6 @@ const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   testDir: "playwright",
   timeout: 60_000,
-  retries: process.env.CI ? 3 : 0,
   reporter: "list",
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
   outputDir: "playwright/results",
@@ -19,12 +18,6 @@ const config: PlaywrightTestConfig = {
     locale: "en-US",
     trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
-    video: "on-first-retry",
-    contextOptions: {
-      recordVideo: {
-        dir: "playwright/videos",
-      },
-    },
   },
   projects: [
     {

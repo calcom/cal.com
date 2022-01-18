@@ -37,7 +37,7 @@ test.describe("pro user", () => {
 
     await page.goto("/event-types");
 
-    expect(page.locator(`text='${eventTitle}'`)).toBeTruthy();
+    await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
   });
 });
 

@@ -17,11 +17,13 @@ test("Can delete user account", async ({ page }) => {
 
   await page.goto(`/settings/profile`);
   await page.click("[data-testid=delete-account]");
-  expect(page.locator(`[data-testid=delete-account-confirm]`)).toBeVisible();
+
+  await expect(page.locator(`[data-testid=delete-account-confirm]`)).toBeVisible();
 
   await Promise.all([
     page.waitForNavigation({ url: "/auth/logout" }),
-    await page.click("[data-testid=delete-account-confirm]"),
+    page.click("[data-testid=delete-account-confirm]"),
   ]);
-  expect(page.locator(`[id="modal-title"]`)).toHaveText("You've been logged out");
+
+  await expect(page.locator(`[id="modal-title"]`)).toHaveText("You've been logged out");
 });
