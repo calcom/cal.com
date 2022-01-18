@@ -1,6 +1,7 @@
 import { EventType, PeriodType, SchedulingType } from "@prisma/client";
 import * as z from "zod";
 
+import * as imports from "../zod-utils";
 import {
   CompleteUser,
   UserModel,
@@ -32,7 +33,7 @@ export const _EventTypeModel = z.object({
   slug: z.string(),
   description: z.string().nullable(),
   position: z.number().int(),
-  locations: jsonSchema.nullable(),
+  locations: imports.eventTypeLocations.nullable(),
   length: z.number().int(),
   hidden: z.boolean(),
   userId: z.number().int().nullable(),

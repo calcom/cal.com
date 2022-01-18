@@ -1,6 +1,7 @@
 import type { Credential } from "@prisma/client";
 import * as z from "zod";
 
+import * as imports from "../zod-utils";
 import { CompleteUser, UserModel } from "./index";
 
 // Helper schema for JSON data

@@ -1,6 +1,7 @@
 import type { Availability } from "@prisma/client";
 import * as z from "zod";
 
+import * as imports from "../zod-utils";
 import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./index";
 
 export const _AvailabilityModel = z.object({

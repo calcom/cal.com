@@ -1,6 +1,7 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import * as z from "zod";
 
+import * as imports from "../zod-utils";
 import { CompleteEventType, EventTypeModel } from "./index";
 
 export const _EventTypeCustomInputModel = z.object({

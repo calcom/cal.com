@@ -1,6 +1,7 @@
 import type { BookingReference } from "@prisma/client";
 import * as z from "zod";
 
+import * as imports from "../zod-utils";
 import { CompleteBooking, BookingModel } from "./index";
 
 export const _BookingReferenceModel = z.object({

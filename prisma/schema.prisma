@@ -13,6 +13,7 @@ generator client {
 generator zod {
   provider      = "zod-prisma"
   output        = "./zod"
+  imports       = "./zod-utils"
   relationModel = "default"
 }
 
@@ -33,6 +34,7 @@ model EventType {
   slug                    String
   description             String?
   position                Int                    @default(0)
+  /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
