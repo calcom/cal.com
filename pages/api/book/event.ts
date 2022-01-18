@@ -181,7 +181,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
   const t = await getTranslation(reqBody.language ?? "en", "common");
-  const tOrganizer = await getTranslation(useViewerI18n().data?.locale ?? "en", "common");
+
   log.debug(`Booking eventType ${eventTypeId} started`);
 
   const isTimeInPast = (time: string): boolean => {
@@ -242,6 +242,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!eventTypeUser) return res.status(404).json({ message: "eventTypeUser.notFound" });
     users.push(eventTypeUser);
   }
+
+  const organizer = await prisma.user.findUnique({
+    where: {
+      id: users[0].id,
+    },
+    select:{
+      locale: true,
+    }
+  });
+
+  const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
