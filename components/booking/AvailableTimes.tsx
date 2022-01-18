@@ -3,8 +3,9 @@ import { SchedulingType } from "@prisma/client";
 import { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 
+import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
@@ -15,6 +16,7 @@ type AvailableTimesProps = {
   minimumBookingNotice: number;
   eventTypeId: number;
   eventLength: number;
+  slotInterval: number | null;
   date: Dayjs;
   users: {
     username: string | null;
@@ -26,17 +28,19 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
+  slotInterval,
   minimumBookingNotice,
   timeFormat,
   users,
   schedulingType,
 }) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
 
   const { slots, loading, error } = useSlots({
     date,
+    slotInterval,
     eventLength,
     schedulingType,
     users,
@@ -44,18 +48,24 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     eventTypeId,
   });
 
+  const [brand, setBrand] = useState("#292929");
+
+  useEffect(() => {
+    setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
+  }, []);
+
   return (
-    <div className="mt-8 text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:-mb-5">
+    <div className="flex flex-col mt-8 text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:-mb-5">
       <div className="mb-4 text-lg font-light text-left text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong>{t(date.format("dddd").toLowerCase())}</strong>
+          <strong>{date.toDate().toLocaleString(i18n.language, { weekday: "long" })}</strong>
           <span className="text-gray-500">
-            {date.format(", DD ")}
-            {t(date.format("MMMM").toLowerCase())}
+            {date.format(", D ")}
+            {date.toDate().toLocaleString(i18n.language, { month: "long" })}
           </span>
         </span>
       </div>
-      <div className="md:max-h-[364px] overflow-y-auto">
+      <div className="flex-grow md:h-[364px] overflow-y-auto">
         {!loading &&
           slots?.length > 0 &&
           slots.map((slot) => {
@@ -84,7 +94,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               <div key={slot.time.format()}>
                 <Link href={bookingUrl}>
                   <a
-                    className="block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:text-white hover:bg-brand dark:hover:border-black dark:hover:bg-black"
+                    className={classNames(
+                      "block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast",
+                      brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                    )}
                     data-testid="time">
                     {slot.time.format(timeFormat)}
                   </a>

@@ -10,8 +10,8 @@ export type HeadSeoProps = {
   description: string;
   siteName?: string;
   name?: string;
-  avatar?: string;
   url?: string;
+  username?: string;
   canonical?: string;
   nextSeoProps?: NextSeoProps;
 };
@@ -39,9 +39,6 @@ const buildSeoMeta = (pageProps: {
       images: [
         {
           url: image,
-          //width: 1077,
-          //height: 565,
-          //alt: "Alt image"
         },
       ],
     },
@@ -66,11 +63,14 @@ const buildSeoMeta = (pageProps: {
   };
 };
 
-const constructImage = (name: string, avatar: string, description: string): string => {
+const constructImage = (name: string, description: string, username: string): string => {
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
     ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
-    encodeURIComponent(avatar)
+    (process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL) +
+    "/" +
+    username +
+    "/avatar.png"
   );
 };
 
@@ -82,18 +82,31 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
     title,
     description,
     name = null,
-    avatar = null,
+    username = null,
     siteName,
     canonical = defaultUrl,
     nextSeoProps = {},
   } = props;
 
+  const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
   const pageTitle = title + " | Cal.com";
-  let seoObject = buildSeoMeta({ title: pageTitle, image, description, canonical, siteName });
+  let seoObject = buildSeoMeta({
+    title: pageTitle,
+    image,
+    description: truncatedDescription,
+    canonical,
+    siteName,
+  });
 
-  if (name && avatar) {
-    const pageImage = getSeoImage("ogImage") + constructImage(name, avatar, description);
-    seoObject = buildSeoMeta({ title: pageTitle, description, image: pageImage, canonical, siteName });
+  if (name && username) {
+    const pageImage = getSeoImage("ogImage") + constructImage(name, truncatedDescription, username);
+    seoObject = buildSeoMeta({
+      title: pageTitle,
+      description: truncatedDescription,
+      image: pageImage,
+      canonical,
+      siteName,
+    });
   }
 
   const seoProps: NextSeoProps = merge(nextSeoProps, seoObject);

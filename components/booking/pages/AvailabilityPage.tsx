@@ -61,7 +61,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   }, [telemetry]);
 
   const changeDate = (newDate: Dayjs) => {
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.dateSelected, collectPageParameters()));
     router.replace(
       {
         query: {
@@ -220,6 +219,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
                     users={eventType.users}

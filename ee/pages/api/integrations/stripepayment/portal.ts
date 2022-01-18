@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import stripe from "@ee/lib/stripe/server";
+import stripe, { getStripeCustomerId } from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         email: true,
         name: true,
+        metadata: true,
       },
     });
 
@@ -31,26 +32,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: "User email not found",
       });
 
-    /**
-     * TODO: We need to find a better way to get our users customer id from Stripe,
-     * since the email is not an unique field in Stripe and we don't save them
-     * in our DB as of now.
-     **/
-    const customersReponse = await stripe.customers.list({
-      email: user?.email || "",
-      limit: 1,
-    });
+    const customerId = await getStripeCustomerId(user);
 
-    const [customer] = customersReponse.data;
-
-    if (!customer?.id)
+    if (!customerId)
       return res.status(404).json({
         message: "Stripe customer id not found",
       });
 
     const return_url = `${process.env.BASE_URL}/settings/billing`;
     const stripeSession = await stripe.billingPortal.sessions.create({
-      customer: customer.id,
+      customer: customerId,
       return_url,
     });
 

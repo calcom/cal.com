@@ -10,13 +10,14 @@ import showToast from "@lib/notification";
 import { Alert } from "@components/ui/Alert";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
   return (
     <input
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm",
+        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -28,6 +29,14 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
     <label {...props} className={classNames("block text-sm font-medium text-gray-700", props.className)}>
       {props.children}
     </label>
+  );
+}
+
+export function InputLeading(props: JSX.IntrinsicElements["div"]) {
+  return (
+    <span className="inline-flex items-center flex-shrink-0 px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+      {props.children}
+    </span>
   );
 }
 
@@ -50,26 +59,28 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
-    ...passThroughToInput
+    ...passThrough
   } = props;
   return (
     <div>
-      <Label htmlFor={id} {...labelProps}>
-        {label}
-      </Label>
+      {!!props.name && (
+        <Label htmlFor={id} {...labelProps}>
+          {label}
+        </Label>
+      )}
       {addOnLeading ? (
         <div className="flex mt-1 rounded-md shadow-sm">
           {addOnLeading}
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0")}
-            {...passThroughToInput}
+            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            {...passThrough}
             ref={ref}
           />
         </div>
       ) : (
-        <Input id={id} placeholder={placeholder} className={className} {...passThroughToInput} ref={ref} />
+        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
       {methods?.formState?.errors[props.name] && (
         <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
@@ -89,8 +100,76 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   return <InputField type="password" placeholder="•••••••••••••" ref={ref} {...props} />;
 });
 
+export const EmailInput = forwardRef<HTMLInputElement, JSX.IntrinsicElements["input"]>(function EmailInput(
+  props,
+  ref
+) {
+  return (
+    <input
+      type="email"
+      autoCapitalize="none"
+      autoComplete="email"
+      autoCorrect="off"
+      inputMode="email"
+      ref={ref}
+      {...props}
+    />
+  );
+});
+
 export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
-  return <InputField type="email" inputMode="email" ref={ref} {...props} />;
+  return <EmailInput ref={ref} {...props} />;
+});
+
+type TextAreaProps = Omit<JSX.IntrinsicElements["textarea"], "name"> & { name: string };
+
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
+  return (
+    <textarea
+      ref={ref}
+      {...props}
+      className={classNames(
+        "block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm",
+        props.className
+      )}
+    />
+  );
+});
+
+type TextAreaFieldProps = {
+  label?: ReactNode;
+} & React.ComponentProps<typeof TextArea> & {
+    labelProps?: React.ComponentProps<typeof Label>;
+  };
+
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
+  props,
+  ref
+) {
+  const id = useId();
+  const { t } = useLocale();
+  const methods = useFormContext();
+  const {
+    label = t(props.name as string),
+    labelProps,
+    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
+      ? t(props.name + "_placeholder")
+      : "",
+    ...passThrough
+  } = props;
+  return (
+    <div>
+      {!!props.name && (
+        <Label htmlFor={id} {...labelProps}>
+          {label}
+        </Label>
+      )}
+      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+      {methods?.formState?.errors[props.name] && (
+        <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
+      )}
+    </div>
+  );
 });
 
 type FormProps<T> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<

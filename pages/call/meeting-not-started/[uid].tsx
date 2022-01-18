@@ -1,17 +1,19 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
-import { getSession } from "next-auth/client";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
 
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
-export default function MeetingUnavailable(props) {
+export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
 
   //if no booking redirectis to the 404 page
@@ -83,10 +85,10 @@ export default function MeetingUnavailable(props) {
   return null;
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: NextPageContext) {
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: context.query.uid,
+      uid: context.query.uid as string,
     },
     select: {
       uid: true,

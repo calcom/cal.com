@@ -80,9 +80,9 @@ export default function Bookings() {
               {query.status === "success" && isEmpty && (
                 <EmptyScreen
                   Icon={CalendarIcon}
-                  headline={t("no_status_bookings_yet", { status: status })}
+                  headline={t("no_status_bookings_yet", { status: t(status) })}
                   description={t("no_status_bookings_yet_description", {
-                    status: status,
+                    status: t(status),
                     description: descriptionByStatus[status],
                   })}
                 />

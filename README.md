@@ -2,7 +2,7 @@
 <p align="center">
   <a href="https://github.com/calendso/calendso">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-    
+
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -29,7 +29,7 @@
   <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
   <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
-  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>  
+  <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://cal.crowdin.com/Cal"><img src="https://badges.crowdin.net/e/5a55420475b48696779e30e0208a1899/localized.svg" alt="Translate Slack"></a>
 </p>
 
@@ -39,7 +39,7 @@
 
 <img width="100%" alt="booking-screen" src="https://user-images.githubusercontent.com/8019099/134363898-4b29e18f-3e61-42b7-95bc-10891056249d.gif">
 
-# Scheduling infrastructure for absolutely everyone.
+# Scheduling infrastructure for absolutely everyone
 
 The open source Calendly alternative. You are in charge
 of your own data, workflow and appearance.
@@ -48,7 +48,7 @@ Calendly and other scheduling tools are awesome. It made our lives massively eas
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
-### Product of the Month: April
+## Product of the Month: April
 
 #### Support us on [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
@@ -81,43 +81,55 @@ Here is what you need to be able to run Cal.
 - PostgreSQL
 - Yarn _(recommended)_
 
-You will also need Google API credentials. You can get this from the [Google API Console](https://console.cloud.google.com/apis/dashboard). More details on this can be found below under the [Obtaining the Google API Credentials section](#Obtaining-the-Google-API-Credentials).
+> If you want to enable any of the available integrations, you may want to obtain additional credentials for each one. More details on this can be found below under the [integrations section](#integrations).
 
 ## Development
 
 ### Setup
+
+1. Clone the repo
+
+   ```sh
+   git clone https://github.com/calendso/calendso.git
+   ```
+
+1. Go to the project folder
+
+   ```sh
+   cd calendso
+   ```
+
+1. Copy `.env.example` to `.env`
+
+   ```sh
+   cp .env.example .env
+   ```
+
+1. Install packages with yarn
+
+   ```sh
+   yarn
+   ```
+
 #### Quick start with `yarn dx`
 
 > - **Requires Docker and Docker Compose to be installed**
 > - Will start a local Postgres instance with a few test users - the credentials will be logged in the console
 
-```bash
-git clone git@github.com:calendso/calendso.git
-cd calendso
-yarn
+```sh
 yarn dx
 ```
 
-#### Manual
+#### Manual setup
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/calendso/calendso.git
-   ```
-2. Install packages with yarn
-   ```sh
-   yarn install
-   ```
-3. Copy `.env.example` to `.env`
-4. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
-   GOOGLE_API_CREDENTIALS='secret'
    ```
 
    <details>
-   <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here</summary>
+   <summary>If you don't know how to configure the DATABASE_URL, then follow the steps here to create a quick DB using Heroku</summary>
 
    1. Create a free account with [Heroku](https://www.heroku.com/).
 
@@ -143,26 +155,35 @@ yarn dx
    8. To view your DB, once you add new data in Prisma, you can use [Heroku Data Explorer](https://heroku-data-explorer.herokuapp.com/).
    </details>
 
-5. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
+1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
+1. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
+
    ```sh
    npx prisma migrate deploy
    ```
-6. Run (in development mode)
+
+1. Run (in development mode)
+
    ```sh
    yarn dev
    ```
-7. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
-   ```
+
+#### Setting up your first user
+
+1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
+
+   ```sh
    npx prisma studio
    ```
-8. Click on the `User` model to add a new user record.
-9. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-10. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
-11. Set a 32 character random string in your .env file for the CALENDSO_ENCRYPTION_KEY.
+
+1. Click on the `User` model to add a new user record.
+1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `prisma/schema.prisma` file.
+1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
 
-```bash
+```sh
 # In first terminal
 yarn dx
 # In second terminal
@@ -172,14 +193,16 @@ yarn test-playwright
 ### Upgrading from earlier versions
 
 1. Pull the current version:
-   ```
+
+   ```sh
    git pull
    ```
+
 2. Apply database migrations by running <b>one of</b> the following commands:
 
    In a development environment, run:
 
-   ```
+   ```sh
    npx prisma migrate dev
    ```
 
@@ -187,7 +210,7 @@ yarn test-playwright
 
    In a production environment, run:
 
-   ```
+   ```sh
    npx prisma migrate deploy
    ```
 
@@ -201,14 +224,18 @@ yarn test-playwright
    ```
 
 4. Start the server. In a development environment, just do:
-   ```
+
+   ```sh
    yarn dev
    ```
+
    For a production build, run for example:
-   ```
+
+   ```sh
    yarn build
    yarn start
    ```
+
 5. Enjoy the new version.
 <!-- DEPLOYMENT -->
 
@@ -217,11 +244,10 @@ yarn test-playwright
 ### Docker
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
-  
+
 If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
-  
 
 ### Railway
 
@@ -248,7 +274,9 @@ Contributions are what make the open source community such an amazing place to b
 5. Push to the branch (`git push origin feature/AmazingFeature`)
 6. Open a pull request
 
-## Obtaining the Google API Credentials
+## Integrations
+
+### Obtaining the Google API Credentials
 
 1. Open [Google API Console](https://console.cloud.google.com/apis/dashboard). If you don't have a project in your Google Cloud subscription, you'll need to create one before proceeding further. Under Dashboard pane, select Enable APIS and Services.
 2. In the search box, type calendar and select the Google Calendar API search result.
@@ -262,16 +290,16 @@ Contributions are what make the open source community such an amazing place to b
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
 
-## Obtaining Microsoft Graph Client ID and Secret
+### Obtaining Microsoft Graph Client ID and Secret
 
 1. Open [Azure App Registration](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps) and select New registration
 2. Name your application
 3. Set **Who can use this application or access this API?** to **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
-6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attriubte
+6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
-## Obtaining Zoom Client ID and Secret
+### Obtaining Zoom Client ID and Secret
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
 2. On the upper right, click "Develop" => "Build App".
@@ -287,13 +315,12 @@ Contributions are what make the open source community such an amazing place to b
 12. Click "Done".
 13. You're good to go. Now you can easily add your Zoom integration in the Cal.com settings.
 
-## Obtaining Daily API Credentials
+### Obtaining Daily API Credentials
 
- 1. Open [Daily](https://www.daily.co/) and sign into your account.
- 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
- 3. Copy your API key.
- 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
- 5. If you have a [Daily Scale Plan](https://www.daily.co/pricing)  can also enable the ability to record Daily video meetings. To do so, set the `DAILY_SCALE_PLAN` environment variable to `'true'` 
+1. Open [Daily](https://www.daily.co/) and sign into your account.
+2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
+3. Copy your API key.
+4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 
 <!-- LICENSE -->
 

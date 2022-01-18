@@ -110,7 +110,7 @@ export default function ImageUploader({
         (opened) => !opened && setFile(null) // unset file on close
       }>
       <DialogTrigger asChild>
-        <div className="flex items-center px-3">
+        <div className="flex items-center">
           <Button color="secondary" type="button" className="py-1 text-xs">
             {buttonMsg}
           </Button>
@@ -125,9 +125,9 @@ export default function ImageUploader({
           </div>
         </div>
         <div className="mb-4">
-          <div className="flex flex-col items-center justify-center p-8 mt-6 cropper bg-gray-50">
+          <div className="flex flex-col items-center justify-center p-8 mt-6 cropper">
             {!result && (
-              <div className="flex items-center justify-start w-20 h-20 bg-gray-500 rounded-full max-h-20">
+              <div className="flex items-center justify-start w-20 h-20 bg-gray-50 rounded-full max-h-20">
                 {!imageSrc && (
                   <p className="w-full text-sm text-center text-white sm:text-xs">
                     {t("no_target", { target })}
