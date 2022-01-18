@@ -1,28 +1,26 @@
-import { getApps } from "../../lib/getApps";
+import { appRegistry } from "pages/apps/appRegistry";
+
+import { useLocale } from "@lib/hooks/useLocale";
+
 import AppCard from "./AppCard";
 
-interface AllAppsProps {
-  showModalFunction: () => void;
-  setSelectedAppFunction: () => void;
-}
-
-export default function AllApps(props: AllAppsProps) {
-  const apps = getApps();
+export default function AllApps() {
+  const { t } = useLocale();
+  const apps = appRegistry();
 
   return (
     <div className="mb-16">
-      <h2 className="mb-2 text-lg font-semibold text-gray-900">All apps</h2>
-      <div className="grid grid-col-1 md:grid-cols-3 gap-3">
+      <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("all_apps")}</h2>
+      <div className="grid gap-3 grid-col-1 md:grid-cols-3">
         {apps.map((app) => (
           <AppCard
             key={app.name}
             name={app.name}
+            slug={app.slug}
             description={app.description}
             logo={app.logo}
             rating={app.rating}
             reviews={app.reviews}
-            showModalFunction={props.showModalFunction}
-            setSelectedAppFunction={props.setSelectedAppFunction}
           />
         ))}
       </div>

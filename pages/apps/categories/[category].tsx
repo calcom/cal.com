@@ -3,7 +3,6 @@ import { StarIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { getApps } from "@lib/getApps";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { Dialog } from "@components/Dialog";
@@ -11,6 +10,8 @@ import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Button from "@components/ui/Button";
+
+import { appRegistry } from "../appRegistry";
 
 interface AppProperties {
   logo: string;
@@ -23,7 +24,7 @@ interface AppProperties {
 export default function Apps() {
   const { t } = useLocale();
   const router = useRouter();
-  const apps = getApps();
+  const apps = appRegistry();
   const [showModal, setShowModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState({} as AppProperties);
 
@@ -49,8 +50,8 @@ export default function Apps() {
                   description={app.description}
                   logo={app.logo}
                   rating={app.rating}
-                  showModalFunction={setShowModal}
-                  setSelectedAppFunction={setSelectedApp}
+                  showModalFunction={() => setShowModal}
+                  setSelectedAppFunction={() => setSelectedApp}
                 />
               )
             );

@@ -1,19 +1,22 @@
-export function getApps() {
+// TODO: maybe we wanna do this dynamically later
+export function appRegistry() {
   return [
     {
       name: "Zoom",
+      slug: "zoom", // needs to be the same as the folder name
       category: "Video Conferencing",
       description:
         "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
       logo: "/integrations/zoom.svg",
-      rating: 4.3,
-      reviews: 69,
+      rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
+      reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
     },
     {
-      name: "Daily.co",
+      name: "Cal Video",
+      slug: "cal-video",
       category: "Video Conferencing",
       description:
-        "Daily is a web-based video conferencing platform, which is minimalistic and lightweight, but has most of the features you need.",
+        "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
       logo: "/integrations/daily.svg",
       rating: 4.8,
       trending: true,
@@ -21,6 +24,7 @@ export function getApps() {
     },
     {
       name: "Google Meet",
+      slug: "google-meet",
       category: "Video Conferencing",
       description:
         "Google Meet is Google's web-based video conferencing platform, designed to compete with major conferencing platforms.",
@@ -31,6 +35,7 @@ export function getApps() {
     },
     {
       name: "Stripe",
+      slug: "stripe",
       category: "Payments",
       description: "Stripe is the world's leading payment provider. Start charging for your bookings today.",
       logo: "/integrations/stripe.svg",
@@ -40,6 +45,7 @@ export function getApps() {
     },
     {
       name: "Google Calendar",
+      slug: "google-calendar",
       category: "Calendar",
       description:
         "Google Calendar is the most popular calendar platform for personal and business calendars.",
@@ -49,6 +55,7 @@ export function getApps() {
     },
     {
       name: "Microsoft 365/Outlook Calendar",
+      slug: "microsoft-365",
       category: "Calendar",
       description:
         "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
@@ -58,6 +65,7 @@ export function getApps() {
     },
     {
       name: "CalDAV",
+      slug: "caldav",
       category: "Calendar",
       description: "CalDAV is an open calendar standard which connects to virtually every calendar.",
       logo: "/integrations/caldav.svg",
@@ -66,6 +74,7 @@ export function getApps() {
     },
     {
       name: "iCloud Calendar",
+      slug: "icloud-calendar",
       category: "Calendar",
       description:
         "iCloud Calendar is Apple's calendar platform for users of iCloud, and is used in the Apple Calendar app on iOS and macOS.",

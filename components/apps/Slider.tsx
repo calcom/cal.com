@@ -1,19 +1,16 @@
 import Glide from "@glidejs/glide";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
+import { appRegistry } from "pages/apps/appRegistry";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import useMediaQuery from "@lib/hooks/useMediaQuery";
 
-import { getApps } from "../../lib/getApps";
 import AppCard from "./AppCard";
 
-interface SliderProps {
-  showModalFunction: () => void;
-  setSelectedAppFunction: () => void;
-}
-
-export default function Slider(props: SliderProps) {
-  const apps = getApps();
+export default function Slider() {
+  const apps = appRegistry();
+  const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [size, setSize] = useState(3);
 
@@ -37,7 +34,7 @@ export default function Slider(props: SliderProps) {
       <div className="glide">
         <div className="flex cursor-default">
           <div>
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">Trending apps</h2>
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("trending_apps")}</h2>
           </div>
           <div className="ml-auto glide__arrows" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
@@ -57,12 +54,11 @@ export default function Slider(props: SliderProps) {
                     <AppCard
                       key={app.name}
                       name={app.name}
+                      slug={app.slug}
                       description={app.description}
                       logo={app.logo}
                       rating={app.rating}
                       reviews={app.reviews}
-                      showModalFunction={props.showModalFunction}
-                      setSelectedAppFunction={props.setSelectedAppFunction}
                     />
                   </li>
                 )
