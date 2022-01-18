@@ -556,7 +556,7 @@
   "integrations": "Integrations",
   "apps": "Apps",
   "app_store": "App Store",
-  "app_store_description": "Connecting people, technology and the workplace - wherever that may be.",
+  "app_store_description": "Connecting people, technology and the workplace – wherever that may be.",
   "settings": "Settings",
   "event_type_moved_successfully": "Event type has been moved successfully",
   "next_step": "Skip step",
@@ -602,8 +602,7 @@
   "import": "Import",
   "import_from": "Import from",
   "access_token": "Access token",
-  "visit_roadmap": "Roadmap"
-  "error_required_field": "This field is required.",
+  "visit_roadmap": "Roadmap",
   "popular_categories": "Popular Categories",
   "trending_apps": "Trending Apps",
   "all_apps": "All Apps"

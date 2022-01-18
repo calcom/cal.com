@@ -9,6 +9,7 @@ import {
   ViewGridIcon,
   MoonIcon,
   MapIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -302,7 +303,11 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+              <div
+                className={classNames(
+                  props.large && "pt-16 pb-7 mb-8 bg-gray-100",
+                  "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]"
+                )}>
                 {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="w-full mb-8">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
