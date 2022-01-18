@@ -594,5 +594,10 @@
   "saml_configuration_placeholder": "Cole aqui os metadados de SAML do seu fornecedor de identidade",
   "saml_configuration_update_failed": "Configuração de SAML falhou ao atualizar",
   "saml_configuration_delete_failed": "Configuração de SAML falhou ao eliminar",
-  "saml_email_required": "Por favor insira um email para que seja possível encontrar o seu fornecedor de identidade de SAML"
+  "saml_email_required": "Por favor insira um email para que seja possível encontrar o seu fornecedor de identidade de SAML",
+  "you_will_need_to_generate": "Precisará de gerar um token de acesso na página das integrações.",
+  "import": "Importar",
+  "import_from": "Importar de",
+  "access_token": "Token de acesso",
+  "visit_roadmap": "Roadmap"
 }
