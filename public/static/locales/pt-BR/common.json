@@ -552,6 +552,7 @@
   "confirm_delete_event_type": "Sim, remover tipo de evento",
   "delete_account": "Apagar conta",
   "confirm_delete_account": "Sim, apagar conta",
+  "delete_account_confirmation_message": "Você tem certeza de que deseja apagar sua conta Cal.com? Qualquer pessoa que você compartilhou seu link de reservas não poderá mais utilizá-lo para agendar novos eventos e todas as suas preferências serão perdidas.",
   "integrations": "Integrações",
   "settings": "Configurações",
   "event_type_moved_successfully": "Tipo de evento atualizado com sucesso",
@@ -593,5 +594,10 @@
   "saml_configuration_placeholder": "Por favor cole o SAML metadata do seu Provedor de Identidade aqui",
   "saml_configuration_update_failed": "A atualização da configuração SAML falhou",
   "saml_configuration_delete_failed": "A remoção das configurações do SAML falhou",
-  "saml_email_required": "Por favor insira um endereço de e-mail para que possamos encontrar o seu Provedor de Identidade"
+  "saml_email_required": "Por favor insira um endereço de e-mail para que possamos encontrar o seu Provedor de Identidade",
+  "you_will_need_to_generate": "Você precisa gerar um token de acesso na página da integrações.",
+  "import": "Importar",
+  "import_from": "Importar de",
+  "access_token": "Token de acesso",
+  "visit_roadmap": "Roadmap"
 }
