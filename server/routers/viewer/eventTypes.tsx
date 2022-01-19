@@ -24,7 +24,6 @@ function handlePeriodType(periodType: string | undefined): PeriodType | undefine
 }
 
 function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
-  if (!customInputs || !customInputs?.length) return undefined;
   const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
   const cInputsToCreate = customInputs
     .filter((input) => input.id < 0)
