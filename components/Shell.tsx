@@ -336,7 +336,7 @@ export default function Shell(props: {
               )}
               <div
                 className={classNames(
-                  props.large && "pt-16 pb-7 mb-8 bg-gray-100",
+                  props.large && "lg:pt-16 py-8 lg:pb-7 lg:mb-8 bg-gray-100",
                   "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]"
                 )}>
                 {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}

@@ -556,7 +556,7 @@
   "integrations": "Integrations",
   "apps": "Apps",
   "app_store": "App Store",
-  "app_store_description": "Connecting people, technology and the workplace – wherever that may be.",
+  "app_store_description": "Connecting people, technology and the workplace.",
   "settings": "Settings",
   "event_type_moved_successfully": "Event type has been moved successfully",
   "next_step": "Skip step",
@@ -606,5 +606,6 @@
   "popular_categories": "Popular Categories",
   "trending_apps": "Trending Apps",
   "all_apps": "All Apps",
-  "installed_apps": "Installed Apps"
+  "installed_apps": "Installed Apps",
+  "manage_your_connected_apps": "Manage your connected apps"
 }

@@ -12,6 +12,7 @@ import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
+import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -547,13 +548,15 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")}>
-      <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
-        <CalendarListContainer />
-        <WebhookListContainer />
-        <IframeEmbedContainer />
-      </ClientSuspense>
+    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
+      <AppsShell>
+        <ClientSuspense fallback={<Loader />}>
+          <IntegrationsContainer />
+          <CalendarListContainer />
+          <WebhookListContainer />
+          <IframeEmbedContainer />
+        </ClientSuspense>
+      </AppsShell>
     </Shell>
   );
 }

@@ -67,7 +67,7 @@ export default function Bookings() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-center p-4" ref={buttonInView.ref}>
+                  <div className="p-4 text-center" ref={buttonInView.ref}>
                     <Button
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}
