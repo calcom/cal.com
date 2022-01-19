@@ -247,6 +247,13 @@ The Docker configuration for Cal is an effort powered by people within the commu
 If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
+  
+  
+### Heroku
+
+<a href="https://heroku.com/deploy?template=https://github.com/calendso/calendso">
+  <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
+</a>
 
 ### Railway
 
