@@ -186,7 +186,7 @@ export const eventTypesRouter = createProtectedRouter()
     return next();
   })
   .mutation("update", {
-    input: EventTypeUpdateInput,
+    input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
       const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
         input;

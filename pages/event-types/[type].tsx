@@ -12,7 +12,7 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import dayjs from "dayjs";
@@ -38,7 +38,6 @@ import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { WorkingHours } from "@lib/types/schedule";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
@@ -57,6 +56,8 @@ import * as RadioArea from "@components/ui/form/radio-area";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
   label: string;
@@ -259,7 +260,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm<{
     title: string;
-    eventTitle: string;
+    eventName: string;
     slug: string;
     length: number;
     description: string;
@@ -267,17 +268,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
-    isHidden: boolean;
+    hidden: boolean;
     locations: { type: LocationType; address?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
-    scheduler: {
-      enteredAvailability: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
-      selectedTimezone: string;
-    };
+    availability: { openingHours: AvailabilityInput[]; dateOverrides: AvailabilityInput[] };
+    timeZone: string;
     periodType: PeriodType;
     periodDays: number;
-    periodDaysType: string;
+    periodCountCalendarDays: "1" | "0";
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
     slotInterval: number | null;
@@ -512,8 +511,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <Form
                 form={formMethods}
                 handleSubmit={async (values) => {
+                  const { periodDates, periodCountCalendarDays, ...input } = values;
                   updateMutation.mutate({
-                    ...values,
+                    ...input,
+                    periodStartDate: periodDates.startDate,
+                    periodEndDate: periodDates.endDate,
+                    periodCountCalendarDays: periodCountCalendarDays === "1",
                     id: eventType.id,
                   });
                 }}
@@ -715,7 +718,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                               placeholder={t("meeting_with_user")}
                               defaultValue={eventType.eventName || ""}
-                              {...formMethods.register("eventTitle")}
+                              {...formMethods.register("eventName")}
                             />
                           </div>
                         </div>
@@ -936,7 +939,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <select
                                           id=""
                                           className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                          {...formMethods.register("periodDaysType")}
+                                          {...formMethods.register("periodCountCalendarDays")}
                                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                           <option value="1">{t("calendar_days")}</option>
                                           <option value="0">{t("business_days")}</option>
@@ -982,21 +985,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <div className="w-full">
                           <Controller
-                            name="scheduler"
+                            name="availability"
                             control={formMethods.control}
                             render={() => (
                               <Scheduler
-                                setAvailability={(val: {
-                                  openingHours: WorkingHours[];
-                                  dateOverrides: WorkingHours[];
-                                }) => {
-                                  formMethods.setValue("scheduler.enteredAvailability", {
+                                setAvailability={(val) => {
+                                  formMethods.setValue("availability", {
                                     openingHours: val.openingHours,
                                     dateOverrides: val.dateOverrides,
                                   });
                                 }}
                                 setTimeZone={(timeZone) => {
-                                  formMethods.setValue("scheduler.selectedTimezone", timeZone);
+                                  formMethods.setValue("timeZone", timeZone);
                                   setSelectedTimeZone(timeZone);
                                 }}
                                 timeZone={selectedTimeZone}
@@ -1100,7 +1100,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
                   </Button>
-                  <Button type="submit">{t("update")}</Button>
+                  <Button type="submit" disabled={updateMutation.isLoading}>
+                    {t("update")}
+                  </Button>
                 </div>
               </Form>
             </div>
@@ -1108,14 +1110,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
             <div className="px-2">
               <Controller
-                name="isHidden"
+                name="hidden"
                 control={formMethods.control}
                 defaultValue={eventType.hidden}
                 render={({ field }) => (
                   <Switch
                     defaultChecked={field.value}
                     onCheckedChange={(isChecked) => {
-                      formMethods.setValue("isHidden", isChecked);
+                      formMethods.setValue("hidden", isChecked);
                     }}
                     label={t("hide_event_type")}
                   />
