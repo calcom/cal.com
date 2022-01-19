@@ -484,6 +484,13 @@ function ConnectOrDisconnectIntegrationButton(props: {
       </div>
     );
   }
+  if (props.type === "jitsi_video") {
+    return (
+      <div className="px-3 py-2 truncate">
+        <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
+      </div>
+    );
+  }
   return (
     <ConnectIntegration
       type={props.type}

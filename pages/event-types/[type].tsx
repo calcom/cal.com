@@ -1450,6 +1450,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (hasIntegration(integrations, "daily_video")) {
     locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
   }
+  if (hasIntegration(integrations, "jitsi_video")) {
+    locationOptions.push({ value: LocationType.Jitsi, label: "Jitsi Meet" });
+  }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";

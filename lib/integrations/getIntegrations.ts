@@ -20,6 +20,7 @@ export type Integration = {
     | "office365_calendar"
     | "zoom_video"
     | "daily_video"
+    | "jitsi_video"
     | "caldav_calendar"
     | "apple_calendar"
     | "stripe_payment";
@@ -59,6 +60,14 @@ export const ALL_INTEGRATIONS = [
     type: "daily_video",
     title: "Daily.co Video",
     imageSrc: "integrations/daily.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: true,
+    type: "jitsi_video",
+    title: "Jitsi Meet",
+    imageSrc: "integrations/jitsi.svg",
     description: "Video Conferencing",
     variant: "conferencing",
   },
