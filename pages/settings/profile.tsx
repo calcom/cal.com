@@ -124,7 +124,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }).catch((e) => {
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
-    if (process.env.BASE_URL === "https://app.cal.com/") {
+    if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "https://cal.com/cancellation" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
