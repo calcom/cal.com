@@ -1,11 +1,9 @@
 import { MembershipRole, UserPlan } from "@prisma/client";
-import Stripe from "stripe";
 
 import { getStripeCustomerFromUser } from "@ee/lib/stripe/customer";
 
 import { HttpError } from "@lib/core/http/error";
 import prisma from "@lib/prisma";
-import { getTeamWithMembers } from "@lib/queries/teams";
 
 import stripe from "./server";
 
@@ -31,7 +29,7 @@ export async function getStripeSubscription(userId: number) {
 export async function upgradeToFlexiblePro(userId: number, teamId: number) {
   const subscription = await getStripeSubscription(userId);
 
-  const seats = await calculateTeamSeats(subscription, userId, teamId);
+  const seats = await calculateTeamSeats(teamId);
 
   // update the subscription with Stripe
   await stripe.subscriptions.update(subscription.id, {
@@ -44,31 +42,43 @@ export async function upgradeToFlexiblePro(userId: number, teamId: number) {
     ],
   });
 
-  // upgrade local accounts to pro
-  const team = await getTeamWithMembers(teamId);
-  if (!team?.members) throw new HttpError({ statusCode: 404, message: "No members to update" });
-  // loop through all members and update their account to pro
-  for (const member of team?.members) {
-    if (member.role != MembershipRole.OWNER)
-      await prisma.user.update({
-        where: { id: member.id },
-        data: { plan: UserPlan.PRO },
-      });
+  // upgrade all local accounts of team members to Pro
+  const memberships = await prisma.membership.findMany({
+    where: { teamId },
+    select: { role: true, accepted: true, user: { select: { id: true, plan: true } } },
+  });
+  // loop through all members and update their account to Pro
+  for (const member of memberships) {
+    // skip if the member is the owner, invitee or not Pro
+    if (member.role === MembershipRole.OWNER || !member.accepted || member.user.plan !== UserPlan.PRO)
+      continue;
+
+    await prisma.user.update({
+      where: { id: member.user.id },
+      data: { plan: UserPlan.PRO },
+    });
   }
 }
 
 // if a team has failed to pay for the pro plan, downgrade all team members to free
 export async function downgradeTeamMembers(teamId: number) {
-  const team = await getTeamWithMembers(teamId);
-  if (!team?.members) throw new HttpError({ statusCode: 404, message: "No members to update" });
-  for (const member of team?.members) {
+  const memberships = await prisma.membership.findMany({
+    where: { teamId },
+    select: { role: true, accepted: true, user: { select: { id: true, plan: true } } },
+  });
+
+  for (const member of memberships) {
+    // skip if the member is the owner, invitee or not Pro
+    if (member.role === MembershipRole.OWNER || !member.accepted || member.user.plan !== UserPlan.PRO)
+      continue;
+
     // check to see if this user has an active Stripe subscription
-    const subscription = await getStripeSubscription(member.id);
+    const subscription = await getStripeSubscription(member.user.id);
     // if they do we'll skip downgrading them
-    if (subscription.items.data[0].price.id === getProPlanPrice()) continue;
+    if (subscription.items.data[0]?.price?.id === getProPlanPrice()) continue;
     // otherwise we'll downgrade them
     await prisma.user.update({
-      where: { id: member.id },
+      where: { id: member.user.id },
       data: { plan: UserPlan.FREE },
     });
   }
@@ -76,7 +86,9 @@ export async function downgradeTeamMembers(teamId: number) {
 
 async function addOrRemoveSeat(userId: number, remove = false, memberUserId: number) {
   const subscription = await getStripeSubscription(userId);
-  const primarySubscriptionItem = subscription.items.data[0];
+  const primarySubscriptionItem = subscription.items.data[0]; // todo: convert to find()
+  if (!primarySubscriptionItem)
+    throw new HttpError({ statusCode: 404, message: "No pro subscription found" });
   // check if user already has pro
   const hasPro = primarySubscriptionItem.price.id === getProPlanPrice();
 
@@ -110,27 +122,23 @@ export async function removeSeat(userId: number, memberUserId: number) {
 //  freeSeats: the number of seats taken by the owner and any PRO members
 //  unpaidSeats: the number of seats needed to purchase, including trial members.
 export async function calculateTeamSeats(
-  subscription: Stripe.Subscription,
-  userId: number,
   teamId: number
 ): Promise<{ unpaidSeats: number; freeSeats: number }> {
   let freeSeats = 0;
   let unpaidSeats = 0;
-  // get all team members with account status
-  const team = await getTeamWithMembers(teamId);
-  if (!team?.members) throw new HttpError({ statusCode: 404, message: "No members found in team" });
+  // get all members of the team
+  const memberships = await prisma.membership.findMany({
+    where: { teamId },
+    select: { role: true, accepted: true, user: { select: { plan: true } } },
+  });
   // calculate numbers
-  for (const member of team?.members) {
-    const memberAccountPlan = await prisma.user.findFirst({
-      where: { id: member.id },
-      select: { plan: true },
-    });
-
-    // if the member is a PRO, the seat is considered free
-    if (memberAccountPlan?.plan === UserPlan.PRO) freeSeats++;
+  for (const member of memberships) {
+    // invitees don't count until accepted
+    if (!member.accepted) continue;
+    // if the member is already PRO or is the team's owner the seat is considered free
+    if (member.role === MembershipRole.OWNER || member.user.plan === UserPlan.PRO) freeSeats++;
     // otherwise for TRIAL and FREE, the seat is considered unpaid
-    else if (memberAccountPlan?.plan === UserPlan.TRIAL) unpaidSeats++;
-    else if (memberAccountPlan?.plan === UserPlan.FREE) unpaidSeats++;
+    else if (member.user.plan === UserPlan.TRIAL || member.user.plan === UserPlan.FREE) unpaidSeats++;
   }
   return { unpaidSeats, freeSeats };
 }
