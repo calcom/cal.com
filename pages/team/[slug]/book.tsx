@@ -1,5 +1,4 @@
 import { GetServerSidePropsContext } from "next";
-import "react-phone-number-input/style.css";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
