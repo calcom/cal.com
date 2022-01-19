@@ -1,4 +1,4 @@
-// TODO: maybe we wanna do this dynamically later
+// TODO: maybe we wanna do this dynamically later based on folder structure
 export function appRegistry() {
   return [
     {
@@ -8,6 +8,9 @@ export function appRegistry() {
       description:
         "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
       logo: "/integrations/zoom.svg",
+      publisher: "Cal.com",
+      url: "https://zoom.us/",
+      verified: true,
       rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
       reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
     },
@@ -18,6 +21,9 @@ export function appRegistry() {
       description:
         "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
       logo: "/integrations/daily.svg",
+      publisher: "Cal.com",
+      url: "https://cal.com",
+      verified: true,
       rating: 4.8,
       trending: true,
       reviews: 69,

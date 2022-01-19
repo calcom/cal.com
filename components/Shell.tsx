@@ -14,7 +14,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import LicenseBanner from "@ee/components/LicenseBanner";
@@ -161,6 +161,18 @@ export default function Shell(props: {
       href: "/apps",
       icon: ViewGridIcon,
       current: router.asPath.startsWith("/apps"),
+      child: [
+        {
+          name: t("app_store"),
+          href: "/apps",
+          current: router.asPath === "/apps",
+        },
+        {
+          name: t("installed_apps"),
+          href: "/apps/installed",
+          current: router.asPath === "/apps/installed",
+        },
+      ],
     },
     {
       name: t("settings"),
@@ -226,26 +238,45 @@ export default function Shell(props: {
                 </Link>
                 <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
                   {navigation.map((item) => (
-                    <Link key={item.name} href={item.href}>
-                      <a
-                        className={classNames(
-                          item.current
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                          "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
-                        )}>
-                        <item.icon
+                    <Fragment key={item.name}>
+                      <Link href={item.href}>
+                        <a
                           className={classNames(
                             item.current
-                              ? "text-neutral-500"
-                              : "text-neutral-400 group-hover:text-neutral-500",
-                            "mr-3 flex-shrink-0 h-5 w-5"
-                          )}
-                          aria-hidden="true"
-                        />
-                        <span className="hidden lg:inline">{item.name}</span>
-                      </a>
-                    </Link>
+                              ? "bg-neutral-100 text-neutral-900"
+                              : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                            "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                          )}>
+                          <item.icon
+                            className={classNames(
+                              item.current
+                                ? "text-neutral-500"
+                                : "text-neutral-400 group-hover:text-neutral-500",
+                              "mr-3 flex-shrink-0 h-5 w-5"
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span className="hidden lg:inline">{item.name}</span>
+                        </a>
+                      </Link>
+                      {item.child &&
+                        router.asPath.startsWith(item.href) &&
+                        item.child.map((item) => {
+                          return (
+                            <Link key={item.name} href={item.href}>
+                              <a
+                                className={classNames(
+                                  item.current
+                                    ? "text-neutral-900"
+                                    : "text-neutral-500 hover:text-neutral-900",
+                                  "pl-10 group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                                )}>
+                                <span className="hidden lg:inline">{item.name}</span>
+                              </a>
+                            </Link>
+                          );
+                        })}
+                    </Fragment>
                   ))}
                 </nav>
               </div>
