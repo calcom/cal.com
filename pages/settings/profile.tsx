@@ -125,7 +125,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
     // signout;
-    signOut({ callbackUrl: "https://cal.com/cancellation" });
+    signOut({ callbackUrl: "/cancellation" });
   };
 
   const localeOptions = useMemo(() => {
