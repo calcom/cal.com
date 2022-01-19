@@ -161,18 +161,10 @@ export default function CreateEventTypeButton(props: Props) {
         <Form
           form={form}
           handleSubmit={(values) => {
-            const payload: CreateEventType = {
-              title: values.title,
-              slug: values.slug,
-              description: values.description,
-              length: values.length,
-            };
             if (router.query.teamId) {
-              payload.teamId = parseInt(`${router.query.teamId}`, 10);
-              payload.schedulingType = values.schedulingType as SchedulingType;
+              values.teamId = parseInt(`${router.query.teamId}`, 10);
             }
-
-            createMutation.mutate(payload);
+            createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
@@ -202,7 +194,7 @@ export default function CreateEventTypeButton(props: Props) {
                 defaultValue={15}
                 label={t("length")}
                 className="pr-20"
-                {...register("length")}
+                {...register("length", { valueAsNumber: true })}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pt-4 mt-1.5 pr-3 text-sm text-gray-400">
                 {t("minutes")}
