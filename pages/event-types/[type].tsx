@@ -912,7 +912,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             render={() => (
                               <RadioGroup.Root
                                 defaultValue={periodType?.type}
-                                onValueChange={(val) => formMethods.setValue("periodType", val)}>
+                                onValueChange={(val) =>
+                                  formMethods.setValue("periodType", val as PeriodType)
+                                }>
                                 {PERIOD_TYPES.map((period) => (
                                   <div className="flex items-center mb-2 text-sm" key={period.type}>
                                     <RadioGroup.Item
