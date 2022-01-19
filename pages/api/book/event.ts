@@ -315,7 +315,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    language: tOrganizer,
+    organizerLanguage: tOrganizer,
+    attendeesLanguage: t,
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: users[0].destinationCalendar,
   };

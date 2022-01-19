@@ -71,12 +71,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: true,
       username: true,
       destinationCalendar: true,
+      locale: true,
     },
   });
 
   if (!currentUser) {
     return res.status(404).json({ message: "User not found" });
   }
+
+  const tOrganizer = await getTranslation(currentUser.locale ?? "en", "common");
 
   if (req.method === "PATCH") {
     const booking = await prisma.booking.findFirst({
@@ -125,7 +128,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       attendees: booking.attendees,
       location: booking.location ?? "",
       uid: booking.uid,
-      language: t,
+      organizerLanguage: tOrganizer,
+      attendeesLanguage: t,
     };
 
     if (reqBody.confirmed) {

@@ -78,7 +78,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const t = await getTranslation(user.locale ?? "en", "common");
 
-  const evt: Ensure<CalendarEvent, "language"> = {
+  const evt: Ensure<CalendarEvent, "organizerLanguage"> = {
     type: booking.title,
     title: booking.title,
     description: booking.description || undefined,
@@ -87,7 +87,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
     attendees: booking.attendees,
     uid: booking.uid,
-    language: t,
+    organizerLanguage: t,
+    attendeesLanguage: t,
   };
 
   if (booking.location) evt.location = booking.location;

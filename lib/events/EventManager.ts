@@ -118,7 +118,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
+  public async create(event: Ensure<CalendarEvent, "organizerLanguage">): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -159,7 +159,7 @@ export default class EventManager {
    * @param event
    */
   public async update(
-    event: Ensure<CalendarEvent, "language">,
+    event: Ensure<CalendarEvent, "organizerLanguage">,
     rescheduleUid: string
   ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
@@ -289,7 +289,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
+  private createVideoEvent(event: Ensure<CalendarEvent, "organizerLanguage">): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {

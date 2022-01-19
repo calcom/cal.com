@@ -87,7 +87,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: booking.attendees,
         uid: booking.uid,
-        language: t,
+        organizerLanguage: t,
+        attendeesLanguage: t,
       };
 
       await sendOrganizerRequestReminderEmail(evt);

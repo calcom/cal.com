@@ -46,7 +46,8 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
-  language: TFunction;
+  organizerLanguage: TFunction;
+  attendeesLanguage: TFunction;
   additionInformation?: AdditionInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;

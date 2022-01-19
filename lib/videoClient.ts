@@ -58,7 +58,7 @@ const getBusyVideoTimes = (withCredentials: Credential[]) =>
 
 const createMeeting = async (
   credential: Credential,
-  calEvent: Ensure<CalendarEvent, "language">
+  calEvent: Ensure<CalendarEvent, "organizerLanguage">
 ): Promise<EventResult> => {
   const uid: string = getUid(calEvent);
 
