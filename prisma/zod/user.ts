@@ -35,7 +35,7 @@ export const _UserModel = z.object({
   id: z.number().int(),
   username: z.string().nullable(),
   name: z.string().nullable(),
-  email: z.string(),
+  email: z.string().email(),
   emailVerified: z.date().nullable(),
   password: z.string().nullable(),
   bio: z.string().nullable(),

@@ -10,6 +10,7 @@ interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
   isLoading?: boolean;
   hidePlaceholder?: boolean;
+  /** The external Id of the connected calendar */
   value: string | undefined;
 }
 

@@ -31,6 +31,7 @@ enum PeriodType {
 model EventType {
   id                      Int                    @id @default(autoincrement())
   title                   String
+  /// @zod.custom(imports.eventTypeSlug)
   slug                    String
   description             String?
   position                Int                    @default(0)
@@ -101,6 +102,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
   name                String?
+  /// @zod.email()
   email               String               @unique
   emailVerified       DateTime?
   password            String?

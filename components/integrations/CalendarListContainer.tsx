@@ -202,7 +202,7 @@ export function CalendarListContainer(props: { heading?: false }) {
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const mutation = trpc.useMutation("viewer.setUserDestinationCalendar");
+  const mutation = trpc.useMutation("viewer.setDestinationCalendar");
 
   return (
     <>

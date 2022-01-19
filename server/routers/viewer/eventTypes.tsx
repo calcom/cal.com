@@ -1,11 +1,97 @@
-import { MembershipRole, Prisma } from "@prisma/client";
-import { EventTypeModel } from "prisma/zod";
+import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import {
+  _AvailabilityModel,
+  _DestinationCalendarModel,
+  _EventTypeCustomInputModel,
+  _EventTypeModel,
+} from "prisma/zod";
+import { stringOrNumber } from "prisma/zod-utils";
 import { z } from "zod";
 
-import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
-
 import { createProtectedRouter } from "@server/createRouter";
+import { viewerRouter } from "@server/routers/viewer";
 import { TRPCError } from "@trpc/server";
+
+function isPeriodType(keyInput: string): keyInput is PeriodType {
+  return Object.keys(PeriodType).includes(keyInput);
+}
+
+function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
+  if (typeof periodType !== "string") return undefined;
+  const passedPeriodType = periodType.toUpperCase();
+  if (!isPeriodType(passedPeriodType)) return undefined;
+  return PeriodType[passedPeriodType];
+}
+
+function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
+  if (!customInputs || !customInputs?.length) return undefined;
+  const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
+  const cInputsToCreate = customInputs
+    .filter((input) => input.id < 0)
+    .map((input) => ({
+      type: input.type,
+      label: input.label,
+      required: input.required,
+      placeholder: input.placeholder,
+    }));
+  const cInputsToUpdate = customInputs
+    .filter((input) => input.id > 0)
+    .map((input) => ({
+      data: {
+        type: input.type,
+        label: input.label,
+        required: input.required,
+        placeholder: input.placeholder,
+      },
+      where: {
+        id: input.id,
+      },
+    }));
+
+  return {
+    deleteMany: {
+      eventTypeId,
+      NOT: {
+        id: { in: cInputsIdsToDelete },
+      },
+    },
+    createMany: {
+      data: cInputsToCreate,
+    },
+    update: cInputsToUpdate,
+  };
+}
+
+const AvailabilityInput = _AvailabilityModel.pick({
+  days: true,
+  startTime: true,
+  endTime: true,
+});
+
+const EventTypeUpdateInput = _EventTypeModel
+  /** Optional fields */
+  .extend({
+    availability: z
+      .object({
+        openingHours: z.array(AvailabilityInput).optional(),
+        dateOverrides: z.array(AvailabilityInput).optional(),
+      })
+      .optional(),
+    customInputs: z.array(_EventTypeCustomInputModel),
+    destinationCalendar: _DestinationCalendarModel.pick({
+      integration: true,
+      externalId: true,
+    }),
+    users: z.array(stringOrNumber).optional(),
+  })
+  .partial()
+  .merge(
+    _EventTypeModel
+      /** Required fields */
+      .pick({
+        id: true,
+      })
+  );
 
 export const eventTypesRouter = createProtectedRouter()
   .query("list", {
@@ -18,10 +104,46 @@ export const eventTypesRouter = createProtectedRouter()
     },
   })
   .mutation("create", {
-    input: EventTypeModel,
+    input: _EventTypeModel
+      /** Required fields */
+      .pick({
+        title: true,
+        slug: true,
+        description: true,
+        length: true,
+      })
+      /** Optional fields */
+      .merge(
+        _EventTypeModel
+          .pick({
+            teamId: true,
+            schedulingType: true,
+          })
+          .partial()
+      ),
     async resolve({ ctx, input }) {
-      const data: Prisma.EventTypeCreateInput | Prisma.EventTypeUpdateInput = input;
-      console.log(`data`, data);
+      const { schedulingType, teamId, ...rest } = input;
+      const data: Prisma.EventTypeCreateInput = {
+        ...rest,
+        users: {
+          connect: {
+            id: ctx.user.id,
+          },
+        },
+      };
+
+      if (teamId) {
+        data.team = {
+          connect: {
+            id: teamId,
+          },
+        };
+        data.schedulingType = schedulingType ?? undefined;
+      }
+
+      const eventType = await ctx.prisma.eventType.create({ data });
+
+      return { eventType };
     },
   })
   // Prevent non-owners to update/delete a team event
@@ -64,17 +186,57 @@ export const eventTypesRouter = createProtectedRouter()
 
     return next();
   })
-  .mutation("edit", {
-    input: z.object({
-      id: z.string(),
-      subscriberUrl: z.string().url().optional(),
-      eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
-      active: z.boolean().optional(),
-      payloadTemplate: z.string().nullable(),
-    }),
+  .mutation("update", {
+    input: EventTypeUpdateInput,
     async resolve({ ctx, input }) {
-      const { id, ...data } = input;
-      return { id };
+      const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
+        input;
+      const data: Prisma.EventTypeUpdateInput = rest;
+      data.locations = locations ?? undefined;
+
+      if (periodType) {
+        data.periodType = handlePeriodType(periodType);
+      }
+
+      if (destinationCalendar) {
+        /** We connect or create a destination calendar to the event type instead of the user */
+        await viewerRouter.createCaller(ctx).mutation("setDestinationCalendar", {
+          ...destinationCalendar,
+          eventTypeId: id,
+        });
+      }
+
+      if (customInputs) {
+        data.customInputs = handleCustomInputs(customInputs, id);
+      }
+
+      if (users) {
+        data.users = {
+          set: [],
+          connect: users.map((userId) => ({ id: userId })),
+        };
+      }
+
+      if (availability?.openingHours) {
+        await ctx.prisma.availability.deleteMany({
+          where: {
+            eventTypeId: input.id,
+          },
+        });
+
+        data.availability = {
+          createMany: {
+            data: availability.openingHours,
+          },
+        };
+      }
+
+      const eventType = await ctx.prisma.eventType.update({
+        where: { id },
+        data,
+      });
+
+      return { eventType };
     },
   })
   .mutation("delete", {

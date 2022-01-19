@@ -30,7 +30,7 @@ const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
 export const _EventTypeModel = z.object({
   id: z.number().int(),
   title: z.string(),
-  slug: z.string(),
+  slug: imports.eventTypeSlug,
   description: z.string().nullable(),
   position: z.number().int(),
   locations: imports.eventTypeLocations.nullable(),

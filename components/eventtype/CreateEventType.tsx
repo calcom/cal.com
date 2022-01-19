@@ -3,13 +3,12 @@ import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
+import { trpc } from "@lib/trpc";
 import { CreateEventType } from "@lib/types/event-type";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
@@ -68,14 +67,16 @@ export default function CreateEventTypeButton(props: Props) {
 
   const hasTeams = !!props.options.find((option) => option.teamId);
 
-  const createMutation = useMutation(createEventType, {
+  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
-    onError: (err: HttpError) => {
-      const message = `${err.statusCode}: ${err.message}`;
-      showToast(message, "error");
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
     },
   });
 
