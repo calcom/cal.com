@@ -269,7 +269,7 @@ export default function Shell(props: {
                                   item.current
                                     ? "text-neutral-900"
                                     : "text-neutral-500 hover:text-neutral-900",
-                                  "pl-10 group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                                  "hidden pl-10 group lg:flex items-center px-2 py-2 text-sm font-medium rounded-sm"
                                 )}>
                                 <span className="hidden lg:inline">{item.name}</span>
                               </a>
