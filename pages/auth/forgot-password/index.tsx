@@ -98,6 +98,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
                 <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
 
                 <EmailField
+                  className="justify-center w-full"
                   onChange={handleChange}
                   id="email"
                   name="email"
