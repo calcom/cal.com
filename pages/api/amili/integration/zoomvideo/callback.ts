@@ -30,11 +30,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   ).then((res) => res.json());
 
-  const isEnabledUsingOneCredential = process.env.ENABLE_ONE_CREDENTIAL;
+  const isEnabledUsingOneCredential =
+    process.env.ENABLE_ONE_CREDENTIAL && process.env.ENABLE_ONE_CREDENTIAL.toLowerCase() === "true";
 
   const lastResult = { ...result };
 
-  if (isEnabledUsingOneCredential && isEnabledUsingOneCredential.toLowerCase() === "true") {
+  if (isEnabledUsingOneCredential) {
     const previousCredential = await prisma.credential.findFirst();
 
     if (previousCredential && previousCredential.key) {

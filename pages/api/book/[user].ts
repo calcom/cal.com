@@ -27,6 +27,8 @@ dayjs.extend(timezone);
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
+const isEnabledUsingOneCredential = process.env.ENABLE_ONE_CREDENTIAL;
+
 export type User = {
   id: number;
   credentials?: Credential[];
@@ -200,26 +202,32 @@ export const splitCredentials = async (props: PropsSplitCredentials): Promise<Re
     const hasCalendarIntegrations = calendarCredentials.length > 0;
     const hasVideoIntegrations = videoCredentials.length > 0;
 
-    const calendarAvailability = await getBusyCalendarTimes(
-      currentUser.credentials,
-      dayjs(start).startOf("day").utc().format(),
-      dayjs(end).endOf("day").utc().format(),
-      selectedCalendars
-    );
-    const videoAvailability = await getBusyVideoTimes(
-      currentUser.credentials,
-      dayjs(start).startOf("day").utc().format(),
-      dayjs(end).endOf("day").utc().format()
-    );
+    let calendarAvailability: any[] = [];
+    let videoAvailability: any[] = [];
+    if (!isEnabledUsingOneCredential) {
+      calendarAvailability = (await getBusyCalendarTimes(
+        currentUser.credentials,
+        dayjs(start).startOf("day").utc().format(),
+        dayjs(end).endOf("day").utc().format(),
+        selectedCalendars
+      )) as any[];
+
+      videoAvailability = (await getBusyVideoTimes(
+        currentUser.credentials,
+        dayjs(start).startOf("day").utc().format(),
+        dayjs(end).endOf("day").utc().format()
+      )) as any[];
+    }
+
     let commonAvailability = [];
 
-    if (hasCalendarIntegrations && hasVideoIntegrations) {
+    if (hasCalendarIntegrations && hasVideoIntegrations && !isEnabledUsingOneCredential) {
       commonAvailability = (calendarAvailability as []).filter((availability) =>
         videoAvailability.includes(availability)
       );
-    } else if (hasVideoIntegrations) {
+    } else if (hasVideoIntegrations && !isEnabledUsingOneCredential) {
       commonAvailability = videoAvailability;
-    } else if (hasCalendarIntegrations) {
+    } else if (hasCalendarIntegrations && !isEnabledUsingOneCredential) {
       commonAvailability = calendarAvailability as [];
     }
 
@@ -276,6 +284,7 @@ export const checkIsAvailableToBeBooked = (props: PropsCheckIsAvailableToBeBooke
 };
 
 export const checkTimeoutOfBounds = (props: PropsCheckTimeoutOfBounds): boolean => {
+  if (checkTimeoutOfBounds) return false;
   const { start, selectedEventType, organizerTimezone, organizerName, loggerInstance } = props;
   let timeOutOfBounds = false;
 
