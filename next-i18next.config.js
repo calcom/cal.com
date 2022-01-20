@@ -20,7 +20,7 @@ module.exports = {
       "ja",
       "pl",
       "ar",
-      "he",
+      "iw",
     ],
   },
   localePath: path.resolve("./public/static/locales"),
