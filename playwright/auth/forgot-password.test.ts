@@ -25,6 +25,8 @@ test("Can reset forgotten password", async ({ browser }) => {
     page.press('input[type="email"]', "Enter"),
   ]);
 
+  // Wait for page to fully load
+  await page.waitForSelector("text=Reset Password");
   // Fill input[name="password"]
   await page.fill('input[name="password"]', "pro");
 

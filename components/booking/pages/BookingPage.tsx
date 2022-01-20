@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import dayjs from "dayjs";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -32,10 +33,12 @@ import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { Button } from "@components/ui/Button";
-import PhoneInput from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+
+/** These are like 40kb that not every user needs */
+const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
