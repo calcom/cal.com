@@ -43,7 +43,7 @@ const authorized = async (
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const t = await getTranslation(req.body.language ?? "en", "common");
+  const tAttendees = await getTranslation(req.body.language ?? "en", "common");
 
   const session = await getSession({ req: req });
   if (!session?.user?.id) {
@@ -129,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: booking.location ?? "",
       uid: booking.uid,
       organizerLanguage: tOrganizer,
-      attendeesLanguage: t,
+      attendeesLanguage: tAttendees,
     };
 
     if (reqBody.confirmed) {

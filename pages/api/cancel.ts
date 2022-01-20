@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     rejectOnNotFound: true,
   });
 
-  const t = await getTranslation(req.body.language ?? "en", "common");
+  const tAttendees = await getTranslation(req.body.language ?? "en", "common");
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     organizerLanguage: tOrganizer,
-    attendeesLanguage: t,
+    attendeesLanguage: tAttendees,
     destinationCalendar: bookingToDelete?.user.destinationCalendar,
   };
 
@@ -169,7 +169,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       organizerLanguage: tOrganizer,
-      attendeesLanguage: t,
+      attendeesLanguage: tAttendees,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({

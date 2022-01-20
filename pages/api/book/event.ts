@@ -180,7 +180,7 @@ type User = Prisma.UserGetPayload<typeof userSelect>;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
-  const t = await getTranslation(reqBody.language ?? "en", "common");
+  const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
 
   log.debug(`Booking eventType ${eventTypeId} started`);
 
@@ -292,7 +292,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: users[0].name || "Nameless",
-    t,
+    t: tOrganizer,
   };
 
   const description =
@@ -316,7 +316,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
     organizerLanguage: tOrganizer,
-    attendeesLanguage: t,
+    attendeesLanguage: tAttendees,
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: users[0].destinationCalendar,
   };
