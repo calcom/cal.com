@@ -1855,14 +1855,13 @@
   dependencies:
     "@prisma/engines-version" "2.31.0-32.2452cc6313d52b8b9a96999ac0e974d0aedf88db"
 
-"@prisma/debug@3.8.1":
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-3.8.1.tgz#3c6717d6e0501651709714774ea6d90127c6a2d3"
-  integrity sha512-ft4VPTYME1UBJ7trfrBuF2w9jX1ipDy786T9fAEskNGb+y26gPDqz5fiEWc2kgHNeVdz/qTI/V3wXILRyEcgxQ==
+"@prisma/debug@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@prisma/debug/-/debug-3.7.0.tgz#eb4560cd14f4cf15186f057d712b7eb2042c309a"
+  integrity sha512-3FdQRGUt2zSe1D+RnCh2wmbCiMmhX+BKNRnC6Ic8KHayXMbEuRR4Ofgt0AZHRCdEQBwVFvM2Yep9zN3hNnWssw==
   dependencies:
     "@types/debug" "4.1.7"
     ms "2.1.3"
-    strip-ansi "6.0.1"
 
 "@prisma/engines-version@2.31.0-32.2452cc6313d52b8b9a96999ac0e974d0aedf88db":
   version "2.31.0-32.2452cc6313d52b8b9a96999ac0e974d0aedf88db"
@@ -1874,12 +1873,12 @@
   resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-2.31.0-32.2452cc6313d52b8b9a96999ac0e974d0aedf88db.tgz#b6cf70bc05dd2a62168a16f3ea58a1b011074621"
   integrity sha512-Q9CwN6e5E5Abso7J3A1fHbcF4NXGRINyMnf7WQ07fXaebxTTARY5BNUzy2Mo5uH82eRVO5v7ImNuR044KTjLJg==
 
-"@prisma/generator-helper@^3.3.0":
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-3.8.1.tgz#eb1dcc8382faa17c784a9d0e0d79fd207a222aa4"
-  integrity sha512-3zSy+XTEjmjLj6NO+/YPN1Cu7or3xA11TOoOnLRJ9G4pTT67RJXjK0L9Xy5n+3I0Xlb7xrWCgo8MvQQLMWzxPA==
+"@prisma/generator-helper@~3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-3.7.0.tgz#c688309bc0f665e140889aaca6b7d7e103e18515"
+  integrity sha512-jH5Sd9vXO+ER7yZrx7ah1gcUGcBW7ljk31t+TMMET6J8Wd7LOKgVWJ6O5IkPfw7KGuuFp8SolcivvGTsH4gsSA==
   dependencies:
-    "@prisma/debug" "3.8.1"
+    "@prisma/debug" "3.7.0"
     "@types/cross-spawn" "6.0.2"
     chalk "4.1.2"
     cross-spawn "7.0.3"
@@ -11255,11 +11254,12 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-"zod-prisma@github:calendso/zod-prisma#main":
-  version "0.3.2"
-  resolved "https://codeload.github.com/calendso/zod-prisma/tar.gz/526605e43267a57d32259663099108ba94bbe3e9"
+zod-prisma@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/zod-prisma/-/zod-prisma-0.5.1.tgz#f421fc575fb4209fde5cb6ecf5d3ddb9409e595f"
+  integrity sha512-Bfk+ch9/8LWzcpQXbZ0E5wFK65MjHVIRrDUQe9guc16xn3wGUmW2BRb35sXmWRC3EsUavq6j8n98MYOfvk7MDQ==
   dependencies:
-    "@prisma/generator-helper" "^3.3.0"
+    "@prisma/generator-helper" "~3.7.0"
     ts-morph "^13.0.2"
 
 zod@^3.8.2:

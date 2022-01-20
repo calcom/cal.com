@@ -1,4 +1,3 @@
-import type { Availability } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -6,16 +5,16 @@ import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./in
 
 export const _AvailabilityModel = z.object({
   id: z.number().int(),
-  label: z.string().nullable(),
-  userId: z.number().int().nullable(),
-  eventTypeId: z.number().int().nullable(),
+  label: z.string().nullish(),
+  userId: z.number().int().nullish(),
+  eventTypeId: z.number().int().nullish(),
   days: z.number().int().array(),
   startTime: z.date(),
   endTime: z.date(),
-  date: z.date().nullable(),
+  date: z.date().nullish(),
 });
 
-export interface CompleteAvailability extends Availability {
+export interface CompleteAvailability extends z.infer<typeof _AvailabilityModel> {
   user: CompleteUser | null;
   eventType: CompleteEventType | null;
 }
@@ -27,7 +26,7 @@ export interface CompleteAvailability extends Availability {
  */
 export const AvailabilityModel: z.ZodSchema<CompleteAvailability> = z.lazy(() =>
   _AvailabilityModel.extend({
-    user: UserModel.nullable(),
-    eventType: EventTypeModel.nullable(),
+    user: UserModel.nullish(),
+    eventType: EventTypeModel.nullish(),
   })
 );

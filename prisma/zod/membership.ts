@@ -1,6 +1,6 @@
-import { Membership, MembershipRole } from "@prisma/client";
 import * as z from "zod";
 
+import { MembershipRole } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteTeam, TeamModel, CompleteUser, UserModel } from "./index";
 
@@ -11,7 +11,7 @@ export const _MembershipModel = z.object({
   role: z.nativeEnum(MembershipRole),
 });
 
-export interface CompleteMembership extends Membership {
+export interface CompleteMembership extends z.infer<typeof _MembershipModel> {
   team: CompleteTeam;
   user: CompleteUser;
 }

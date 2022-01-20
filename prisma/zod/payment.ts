@@ -1,13 +1,13 @@
-import { Payment, PaymentType } from "@prisma/client";
 import * as z from "zod";
 
+import { PaymentType } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteBooking, BookingModel } from "./index";
 
-// Helper schema for JSON data
-type Literal = boolean | null | number | string;
+// Helper schema for JSON fields
+type Literal = boolean | number | string;
 type Json = Literal | { [key: string]: Json } | Json[];
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const literalSchema = z.union([z.string(), z.number(), z.boolean()]);
 const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
@@ -26,7 +26,7 @@ export const _PaymentModel = z.object({
   externalId: z.string(),
 });
 
-export interface CompletePayment extends Payment {
+export interface CompletePayment extends z.infer<typeof _PaymentModel> {
   booking: CompleteBooking | null;
 }
 
@@ -37,6 +37,6 @@ export interface CompletePayment extends Payment {
  */
 export const PaymentModel: z.ZodSchema<CompletePayment> = z.lazy(() =>
   _PaymentModel.extend({
-    booking: BookingModel.nullable(),
+    booking: BookingModel.nullish(),
   })
 );

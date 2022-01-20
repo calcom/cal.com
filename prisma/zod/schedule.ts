@@ -1,26 +1,25 @@
-import type { Schedule } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
 import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./index";
 
-// Helper schema for JSON data
-type Literal = boolean | null | number | string;
+// Helper schema for JSON fields
+type Literal = boolean | number | string;
 type Json = Literal | { [key: string]: Json } | Json[];
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const literalSchema = z.union([z.string(), z.number(), z.boolean()]);
 const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
 
 export const _ScheduleModel = z.object({
   id: z.number().int(),
-  userId: z.number().int().nullable(),
-  eventTypeId: z.number().int().nullable(),
-  title: z.string().nullable(),
-  freeBusyTimes: jsonSchema.nullable(),
+  userId: z.number().int().nullish(),
+  eventTypeId: z.number().int().nullish(),
+  title: z.string().nullish(),
+  freeBusyTimes: jsonSchema,
 });
 
-export interface CompleteSchedule extends Schedule {
+export interface CompleteSchedule extends z.infer<typeof _ScheduleModel> {
   user: CompleteUser | null;
   eventType: CompleteEventType | null;
 }
@@ -32,7 +31,7 @@ export interface CompleteSchedule extends Schedule {
  */
 export const ScheduleModel: z.ZodSchema<CompleteSchedule> = z.lazy(() =>
   _ScheduleModel.extend({
-    user: UserModel.nullable(),
-    eventType: EventTypeModel.nullable(),
+    user: UserModel.nullish(),
+    eventType: EventTypeModel.nullish(),
   })
 );

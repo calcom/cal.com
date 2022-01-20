@@ -1,4 +1,3 @@
-import type { Attendee } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -9,10 +8,10 @@ export const _AttendeeModel = z.object({
   email: z.string(),
   name: z.string(),
   timeZone: z.string(),
-  bookingId: z.number().int().nullable(),
+  bookingId: z.number().int().nullish(),
 });
 
-export interface CompleteAttendee extends Attendee {
+export interface CompleteAttendee extends z.infer<typeof _AttendeeModel> {
   booking: CompleteBooking | null;
 }
 
@@ -23,6 +22,6 @@ export interface CompleteAttendee extends Attendee {
  */
 export const AttendeeModel: z.ZodSchema<CompleteAttendee> = z.lazy(() =>
   _AttendeeModel.extend({
-    booking: BookingModel.nullable(),
+    booking: BookingModel.nullish(),
   })
 );

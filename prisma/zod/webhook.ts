@@ -1,6 +1,6 @@
-import { Webhook, WebhookTriggerEvents } from "@prisma/client";
 import * as z from "zod";
 
+import { WebhookTriggerEvents } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteUser, UserModel } from "./index";
 
@@ -8,13 +8,13 @@ export const _WebhookModel = z.object({
   id: z.string(),
   userId: z.number().int(),
   subscriberUrl: z.string(),
-  payloadTemplate: z.string().nullable(),
+  payloadTemplate: z.string().nullish(),
   createdAt: z.date(),
   active: z.boolean(),
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
 });
 
-export interface CompleteWebhook extends Webhook {
+export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
   user: CompleteUser;
 }
 

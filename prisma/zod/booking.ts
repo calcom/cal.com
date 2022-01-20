@@ -1,6 +1,6 @@
-import { Booking, BookingStatus } from "@prisma/client";
 import * as z from "zod";
 
+import { BookingStatus } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteUser,
@@ -22,22 +22,22 @@ import {
 export const _BookingModel = z.object({
   id: z.number().int(),
   uid: z.string(),
-  userId: z.number().int().nullable(),
-  eventTypeId: z.number().int().nullable(),
+  userId: z.number().int().nullish(),
+  eventTypeId: z.number().int().nullish(),
   title: z.string(),
-  description: z.string().nullable(),
+  description: z.string().nullish(),
   startTime: z.date(),
   endTime: z.date(),
-  location: z.string().nullable(),
+  location: z.string().nullish(),
   createdAt: z.date(),
-  updatedAt: z.date().nullable(),
+  updatedAt: z.date().nullish(),
   confirmed: z.boolean(),
   rejected: z.boolean(),
   status: z.nativeEnum(BookingStatus),
   paid: z.boolean(),
 });
 
-export interface CompleteBooking extends Booking {
+export interface CompleteBooking extends z.infer<typeof _BookingModel> {
   user: CompleteUser | null;
   references: CompleteBookingReference[];
   eventType: CompleteEventType | null;
@@ -54,12 +54,12 @@ export interface CompleteBooking extends Booking {
  */
 export const BookingModel: z.ZodSchema<CompleteBooking> = z.lazy(() =>
   _BookingModel.extend({
-    user: UserModel.nullable(),
+    user: UserModel.nullish(),
     references: BookingReferenceModel.array(),
-    eventType: EventTypeModel.nullable(),
+    eventType: EventTypeModel.nullish(),
     attendees: AttendeeModel.array(),
-    dailyRef: DailyEventReferenceModel.nullable(),
+    dailyRef: DailyEventReferenceModel.nullish(),
     payment: PaymentModel.array(),
-    destinationCalendar: DestinationCalendarModel.nullable(),
+    destinationCalendar: DestinationCalendarModel.nullish(),
   })
 );

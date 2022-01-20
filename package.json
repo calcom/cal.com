@@ -22,9 +22,8 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "prepare-zod-prisma": "cd node_modules/zod-prisma && yarn && cd ../../",
     "generate-schemas": "prisma generate && prettier --write ./prisma",
-    "postinstall": "yarn prepare-zod-prisma && yarn generate-schemas",
+    "postinstall": "yarn generate-schemas",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "prepare": "husky install",
@@ -148,7 +147,7 @@
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.5.2",
-    "zod-prisma": "github:calendso/zod-prisma#main"
+    "zod-prisma": "^0.5.1"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [

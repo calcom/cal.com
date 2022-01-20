@@ -1,4 +1,3 @@
-import type { DailyEventReference } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -8,10 +7,10 @@ export const _DailyEventReferenceModel = z.object({
   id: z.number().int(),
   dailyurl: z.string(),
   dailytoken: z.string(),
-  bookingId: z.number().int().nullable(),
+  bookingId: z.number().int().nullish(),
 });
 
-export interface CompleteDailyEventReference extends DailyEventReference {
+export interface CompleteDailyEventReference extends z.infer<typeof _DailyEventReferenceModel> {
   booking: CompleteBooking | null;
 }
 
@@ -22,6 +21,6 @@ export interface CompleteDailyEventReference extends DailyEventReference {
  */
 export const DailyEventReferenceModel: z.ZodSchema<CompleteDailyEventReference> = z.lazy(() =>
   _DailyEventReferenceModel.extend({
-    booking: BookingModel.nullable(),
+    booking: BookingModel.nullish(),
   })
 );

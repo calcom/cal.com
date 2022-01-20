@@ -1,4 +1,3 @@
-import type { Team } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -6,14 +5,14 @@ import { CompleteMembership, MembershipModel, CompleteEventType, EventTypeModel 
 
 export const _TeamModel = z.object({
   id: z.number().int(),
-  name: z.string().nullable(),
-  slug: z.string().nullable(),
-  logo: z.string().nullable(),
-  bio: z.string().nullable(),
+  name: z.string().nullish(),
+  slug: z.string().nullish(),
+  logo: z.string().nullish(),
+  bio: z.string().nullish(),
   hideBranding: z.boolean(),
 });
 
-export interface CompleteTeam extends Team {
+export interface CompleteTeam extends z.infer<typeof _TeamModel> {
   members: CompleteMembership[];
   eventTypes: CompleteEventType[];
 }

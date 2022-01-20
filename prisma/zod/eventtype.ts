@@ -1,6 +1,6 @@
-import { EventType, PeriodType, SchedulingType } from "@prisma/client";
 import * as z from "zod";
 
+import { PeriodType, SchedulingType } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteUser,
@@ -19,10 +19,10 @@ import {
   ScheduleModel,
 } from "./index";
 
-// Helper schema for JSON data
-type Literal = boolean | null | number | string;
+// Helper schema for JSON fields
+type Literal = boolean | number | string;
 type Json = Literal | { [key: string]: Json } | Json[];
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const literalSchema = z.union([z.string(), z.number(), z.boolean()]);
 const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
@@ -31,30 +31,30 @@ export const _EventTypeModel = z.object({
   id: z.number().int(),
   title: z.string(),
   slug: imports.eventTypeSlug,
-  description: z.string().nullable(),
+  description: z.string().nullish(),
   position: z.number().int(),
-  locations: imports.eventTypeLocations.nullable(),
+  locations: imports.eventTypeLocations,
   length: z.number().int(),
   hidden: z.boolean(),
-  userId: z.number().int().nullable(),
-  teamId: z.number().int().nullable(),
-  eventName: z.string().nullable(),
-  timeZone: z.string().nullable(),
+  userId: z.number().int().nullish(),
+  teamId: z.number().int().nullish(),
+  eventName: z.string().nullish(),
+  timeZone: z.string().nullish(),
   periodType: z.nativeEnum(PeriodType),
-  periodStartDate: z.date().nullable(),
-  periodEndDate: z.date().nullable(),
-  periodDays: z.number().int().nullable(),
-  periodCountCalendarDays: z.boolean().nullable(),
+  periodStartDate: z.date().nullish(),
+  periodEndDate: z.date().nullish(),
+  periodDays: z.number().int().nullish(),
+  periodCountCalendarDays: z.boolean().nullish(),
   requiresConfirmation: z.boolean(),
   disableGuests: z.boolean(),
   minimumBookingNotice: z.number().int(),
-  schedulingType: z.nativeEnum(SchedulingType).nullable(),
+  schedulingType: z.nativeEnum(SchedulingType).nullish(),
   price: z.number().int(),
   currency: z.string(),
-  slotInterval: z.number().int().nullable(),
+  slotInterval: z.number().int().nullish(),
 });
 
-export interface CompleteEventType extends EventType {
+export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
   users: CompleteUser[];
   team: CompleteTeam | null;
   bookings: CompleteBooking[];
@@ -72,10 +72,10 @@ export interface CompleteEventType extends EventType {
 export const EventTypeModel: z.ZodSchema<CompleteEventType> = z.lazy(() =>
   _EventTypeModel.extend({
     users: UserModel.array(),
-    team: TeamModel.nullable(),
+    team: TeamModel.nullish(),
     bookings: BookingModel.array(),
     availability: AvailabilityModel.array(),
-    destinationCalendar: DestinationCalendarModel.nullable(),
+    destinationCalendar: DestinationCalendarModel.nullish(),
     customInputs: EventTypeCustomInputModel.array(),
     Schedule: ScheduleModel.array(),
   })

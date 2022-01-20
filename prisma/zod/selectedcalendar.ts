@@ -1,4 +1,3 @@
-import type { SelectedCalendar } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -10,7 +9,7 @@ export const _SelectedCalendarModel = z.object({
   externalId: z.string(),
 });
 
-export interface CompleteSelectedCalendar extends SelectedCalendar {
+export interface CompleteSelectedCalendar extends z.infer<typeof _SelectedCalendarModel> {
   user: CompleteUser;
 }
 

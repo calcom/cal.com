@@ -1,4 +1,3 @@
-import type { DestinationCalendar } from "@prisma/client";
 import * as z from "zod";
 
 import * as imports from "../zod-utils";
@@ -15,12 +14,12 @@ export const _DestinationCalendarModel = z.object({
   id: z.number().int(),
   integration: z.string(),
   externalId: z.string(),
-  userId: z.number().int().nullable(),
-  bookingId: z.number().int().nullable(),
-  eventTypeId: z.number().int().nullable(),
+  userId: z.number().int().nullish(),
+  bookingId: z.number().int().nullish(),
+  eventTypeId: z.number().int().nullish(),
 });
 
-export interface CompleteDestinationCalendar extends DestinationCalendar {
+export interface CompleteDestinationCalendar extends z.infer<typeof _DestinationCalendarModel> {
   user: CompleteUser | null;
   booking: CompleteBooking | null;
   eventType: CompleteEventType | null;
@@ -33,8 +32,8 @@ export interface CompleteDestinationCalendar extends DestinationCalendar {
  */
 export const DestinationCalendarModel: z.ZodSchema<CompleteDestinationCalendar> = z.lazy(() =>
   _DestinationCalendarModel.extend({
-    user: UserModel.nullable(),
-    booking: BookingModel.nullable(),
-    eventType: EventTypeModel.nullable(),
+    user: UserModel.nullish(),
+    booking: BookingModel.nullish(),
+    eventType: EventTypeModel.nullish(),
   })
 );
