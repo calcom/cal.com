@@ -7,4 +7,5 @@ export const CALENDAR_INTEGRATIONS_TYPES = {
   caldav: "caldav_calendar",
   google: "google_calendar",
   office365: "office365_calendar",
+  lark: "lark-calendar",
 };

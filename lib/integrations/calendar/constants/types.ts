@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
 import ICAL from "ical.js";
 
-import AppleCalendarService from "../services/AppleCalendarService";
-import CalDavCalendarService from "../services/CalDavCalendarService";
-import GoogleCalendarService from "../services/GoogleCalendarService";
-import Office365CalendarService from "../services/Office365CalendarService";
+import AppleCalendarService from "@lib/integrations/calendar/services/AppleCalendarService";
+import CalDavCalendarService from "@lib/integrations/calendar/services/CalDavCalendarService";
+import GoogleCalendarService from "@lib/integrations/calendar/services/GoogleCalendarService";
+import LarkCalendarService from "@lib/integrations/calendar/services/LarkCalendarService";
+import Office365CalendarService from "@lib/integrations/calendar/services/Office365CalendarService";
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;
 
@@ -12,7 +13,8 @@ export type CalendarServiceType =
   | typeof AppleCalendarService
   | typeof CalDavCalendarService
   | typeof GoogleCalendarService
-  | typeof Office365CalendarService;
+  | typeof Office365CalendarService
+  | typeof LarkCalendarService;
 
 export type NewCalendarEventType = {
   uid: string;

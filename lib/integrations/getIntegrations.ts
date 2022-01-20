@@ -78,6 +78,15 @@ export const ALL_INTEGRATIONS = [
     description: "For personal and business calendars",
     variant: "calendar",
   },
+
+  {
+    installed: false,
+    type: "lark_calendar",
+    title: "Lark Suite Calendar",
+    imageSrc: "integrations/lark.svg",
+    description: "For personal and business calendars",
+    variant: "calendar",
+  },
   {
     installed: !!(
       process.env.STRIPE_CLIENT_ID &&

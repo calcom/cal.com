@@ -4,6 +4,11 @@ import _ from "lodash";
 import { getUid } from "@lib/CalEventParser";
 import { getErrorFromUnknown } from "@lib/errors";
 import { EventResult } from "@lib/events/EventManager";
+import AppleCalendarService from "@lib/integrations/calendar/services/AppleCalendarService";
+import CalDavCalendarService from "@lib/integrations/calendar/services/CalDavCalendarService";
+import GoogleCalendarService from "@lib/integrations/calendar/services/GoogleCalendarService";
+import LarkCalendarService from "@lib/integrations/calendar/services/LarkCalendarService";
+import Office365CalendarService from "@lib/integrations/calendar/services/Office365CalendarService";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 
@@ -11,16 +16,13 @@ import { ALL_INTEGRATIONS } from "../getIntegrations";
 import { CALENDAR_INTEGRATIONS_TYPES } from "./constants/generals";
 import { CalendarServiceType, EventBusyDate } from "./constants/types";
 import { Calendar, CalendarEvent } from "./interfaces/Calendar";
-import AppleCalendarService from "./services/AppleCalendarService";
-import CalDavCalendarService from "./services/CalDavCalendarService";
-import GoogleCalendarService from "./services/GoogleCalendarService";
-import Office365CalendarService from "./services/Office365CalendarService";
 
 const CALENDARS: Record<string, CalendarServiceType> = {
   [CALENDAR_INTEGRATIONS_TYPES.apple]: AppleCalendarService,
   [CALENDAR_INTEGRATIONS_TYPES.caldav]: CalDavCalendarService,
   [CALENDAR_INTEGRATIONS_TYPES.google]: GoogleCalendarService,
   [CALENDAR_INTEGRATIONS_TYPES.office365]: Office365CalendarService,
+  [CALENDAR_INTEGRATIONS_TYPES.lark]: LarkCalendarService,
 };
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
