@@ -11,7 +11,7 @@ export const _DailyEventReferenceModel = z.object({
 });
 
 export interface CompleteDailyEventReference extends z.infer<typeof _DailyEventReferenceModel> {
-  booking: CompleteBooking | null;
+  booking?: CompleteBooking | null;
 }
 
 /**

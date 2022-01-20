@@ -19,7 +19,7 @@ export const _CredentialModel = z.object({
 });
 
 export interface CompleteCredential extends z.infer<typeof _CredentialModel> {
-  user: CompleteUser | null;
+  user?: CompleteUser | null;
 }
 
 /**

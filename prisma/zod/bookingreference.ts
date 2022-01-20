@@ -14,7 +14,7 @@ export const _BookingReferenceModel = z.object({
 });
 
 export interface CompleteBookingReference extends z.infer<typeof _BookingReferenceModel> {
-  booking: CompleteBooking | null;
+  booking?: CompleteBooking | null;
 }
 
 /**

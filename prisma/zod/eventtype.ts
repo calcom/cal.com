@@ -56,10 +56,10 @@ export const _EventTypeModel = z.object({
 
 export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
   users: CompleteUser[];
-  team: CompleteTeam | null;
+  team?: CompleteTeam | null;
   bookings: CompleteBooking[];
   availability: CompleteAvailability[];
-  destinationCalendar: CompleteDestinationCalendar | null;
+  destinationCalendar?: CompleteDestinationCalendar | null;
   customInputs: CompleteEventTypeCustomInput[];
   Schedule: CompleteSchedule[];
 }

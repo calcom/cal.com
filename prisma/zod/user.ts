@@ -70,7 +70,7 @@ export interface CompleteUser extends z.infer<typeof _UserModel> {
   selectedCalendars: CompleteSelectedCalendar[];
   Schedule: CompleteSchedule[];
   webhooks: CompleteWebhook[];
-  destinationCalendar: CompleteDestinationCalendar | null;
+  destinationCalendar?: CompleteDestinationCalendar | null;
 }
 
 /**

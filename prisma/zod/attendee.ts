@@ -12,7 +12,7 @@ export const _AttendeeModel = z.object({
 });
 
 export interface CompleteAttendee extends z.infer<typeof _AttendeeModel> {
-  booking: CompleteBooking | null;
+  booking?: CompleteBooking | null;
 }
 
 /**

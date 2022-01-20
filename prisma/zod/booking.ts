@@ -38,13 +38,13 @@ export const _BookingModel = z.object({
 });
 
 export interface CompleteBooking extends z.infer<typeof _BookingModel> {
-  user: CompleteUser | null;
+  user?: CompleteUser | null;
   references: CompleteBookingReference[];
-  eventType: CompleteEventType | null;
+  eventType?: CompleteEventType | null;
   attendees: CompleteAttendee[];
-  dailyRef: CompleteDailyEventReference | null;
+  dailyRef?: CompleteDailyEventReference | null;
   payment: CompletePayment[];
-  destinationCalendar: CompleteDestinationCalendar | null;
+  destinationCalendar?: CompleteDestinationCalendar | null;
 }
 
 /**

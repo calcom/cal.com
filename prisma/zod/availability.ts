@@ -15,8 +15,8 @@ export const _AvailabilityModel = z.object({
 });
 
 export interface CompleteAvailability extends z.infer<typeof _AvailabilityModel> {
-  user: CompleteUser | null;
-  eventType: CompleteEventType | null;
+  user?: CompleteUser | null;
+  eventType?: CompleteEventType | null;
 }
 
 /**

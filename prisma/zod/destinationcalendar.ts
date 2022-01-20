@@ -20,9 +20,9 @@ export const _DestinationCalendarModel = z.object({
 });
 
 export interface CompleteDestinationCalendar extends z.infer<typeof _DestinationCalendarModel> {
-  user: CompleteUser | null;
-  booking: CompleteBooking | null;
-  eventType: CompleteEventType | null;
+  user?: CompleteUser | null;
+  booking?: CompleteBooking | null;
+  eventType?: CompleteEventType | null;
 }
 
 /**

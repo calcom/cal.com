@@ -27,7 +27,7 @@ export const _PaymentModel = z.object({
 });
 
 export interface CompletePayment extends z.infer<typeof _PaymentModel> {
-  booking: CompleteBooking | null;
+  booking?: CompleteBooking | null;
 }
 
 /**

@@ -20,8 +20,8 @@ export const _ScheduleModel = z.object({
 });
 
 export interface CompleteSchedule extends z.infer<typeof _ScheduleModel> {
-  user: CompleteUser | null;
-  eventType: CompleteEventType | null;
+  user?: CompleteUser | null;
+  eventType?: CompleteEventType | null;
 }
 
 /**
