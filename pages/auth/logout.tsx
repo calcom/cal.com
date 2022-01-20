@@ -1,14 +1,25 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Logout() {
+type Props = inferSSRProps<typeof getServerSideProps>;
+
+export default function Logout(props: Props) {
+  const router = useRouter();
+  useEffect(() => {
+    if (props.query?.survey === "true") {
+      router.push("https://cal.com/cancellation");
+    }
+  }, []);
   const { t } = useLocale();
 
   return (
@@ -55,6 +66,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       trpcState: ssr.dehydrate(),
+      query: context.query,
     },
   };
 }

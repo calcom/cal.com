@@ -124,8 +124,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }).catch((e) => {
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
-    // signout;
-    signOut({ callbackUrl: "/auth/logout" });
+    if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
+      signOut({ callbackUrl: "/auth/logout?survey=true" });
+    } else {
+      signOut({ callbackUrl: "/auth/logout" });
+    }
   };
 
   const localeOptions = useMemo(() => {
