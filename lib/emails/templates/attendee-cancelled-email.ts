@@ -19,6 +19,15 @@ dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
 export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
+  protected getCancellationReason(): string {
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.language("cancellation_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.cancellationReason}</p>
+    </div>`;
+  }
+
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
@@ -48,6 +57,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.getCancellationReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -95,6 +105,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCancellationReason()}
                             </div>
                           </td>
                         </tr>
