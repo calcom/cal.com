@@ -1030,7 +1030,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <div className="relative flex items-start">
                                       <div className="flex items-center h-5">
                                         <input
-                                          onChange={(event) => setRequirePayment(event.target.checked)}
+                                          onChange={(event) => {
+                                            setRequirePayment(event.target.checked);
+                                            if (!event.target.checked) {
+                                              formMethods.setValue("price", 0);
+                                            }
+                                          }}
                                           id="requirePayment"
                                           name="requirePayment"
                                           type="checkbox"
