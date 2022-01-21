@@ -1060,16 +1060,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="items-center block sm:flex">
                                     <div className="w-full">
                                       <div className="relative mt-1 rounded-sm shadow-sm">
-                                        <input
-                                          type="number"
-                                          step="0.01"
-                                          required
-                                          className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                          placeholder="Price"
-                                          defaultValue={
-                                            eventType.price > 0 ? eventType.price / 100.0 : undefined
-                                          }
-                                          {...formMethods.register("price")}
+                                        <Controller
+                                          defaultValue={eventType.price}
+                                          control={formMethods.control}
+                                          name="price"
+                                          render={({ field }) => (
+                                            <input
+                                              {...field}
+                                              step="0.01"
+                                              min="0.5"
+                                              type="number"
+                                              required
+                                              className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                              placeholder="Price"
+                                              onChange={(e) => {
+                                                field.onChange(e.target.valueAsNumber * 100);
+                                              }}
+                                              value={field.value > 0 ? field.value / 100 : 0}
+                                            />
+                                          )}
                                         />
                                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                           <span className="text-gray-500 sm:text-sm" id="duration">
