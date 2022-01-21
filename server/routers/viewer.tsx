@@ -62,45 +62,27 @@ const publicViewerRouter = createRouter()
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
   .query("me", {
-    resolve({ ctx }) {
-      const {
-        // pick only the part we want to expose in the API
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        identityProvider,
-        brandColor,
-        plan,
-        away,
-      } = ctx.user;
-      const me = {
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        identityProvider,
-        brandColor,
-        plan,
-        away,
+    resolve({ ctx: { user } }) {
+      // Destructuring here only makes it more illegible
+      // pick only the part we want to expose in the API
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        startTime: user.startTime,
+        endTime: user.endTime,
+        bufferTime: user.bufferTime,
+        locale: user.locale,
+        avatar: user.avatar,
+        createdDate: user.createdDate,
+        completedOnboarding: user.completedOnboarding,
+        twoFactorEnabled: user.twoFactorEnabled,
+        identityProvider: user.identityProvider,
+        brandColor: user.brandColor,
+        plan: user.plan,
+        away: user.away,
       };
-      return me;
     },
   })
   .mutation("deleteMe", {

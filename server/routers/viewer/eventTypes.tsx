@@ -6,6 +6,7 @@ import {
   _EventTypeModel,
 } from "prisma/zod";
 import { stringOrNumber } from "prisma/zod-utils";
+import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -103,23 +104,7 @@ export const eventTypesRouter = createProtectedRouter()
     },
   })
   .mutation("create", {
-    input: _EventTypeModel
-      /** Required fields */
-      .pick({
-        title: true,
-        slug: true,
-        description: true,
-        length: true,
-      })
-      /** Optional fields */
-      .merge(
-        _EventTypeModel
-          .pick({
-            teamId: true,
-            schedulingType: true,
-          })
-          .partial()
-      ),
+    input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
       const data: Prisma.EventTypeCreateInput = {
@@ -131,13 +116,13 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      if (teamId) {
+      if (teamId && schedulingType) {
         data.team = {
           connect: {
             id: teamId,
           },
         };
-        data.schedulingType = schedulingType ?? undefined;
+        data.schedulingType = schedulingType;
       }
 
       const eventType = await ctx.prisma.eventType.create({ data });

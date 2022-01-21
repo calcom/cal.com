@@ -30,6 +30,7 @@ enum PeriodType {
 
 model EventType {
   id                      Int                    @id @default(autoincrement())
+  /// @zod.nonempty()
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
