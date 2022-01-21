@@ -1,19 +1,20 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
+import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "react-query";
+import type { z } from "zod";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
-import { CreateEventType } from "@lib/types/event-type";
+import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import { TextField, InputLeading, TextAreaField, Form } from "@components/form/fields";
+import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 import Dropdown, {
@@ -47,8 +48,14 @@ export default function CreateEventTypeButton(props: Props) {
   const router = useRouter();
   const modalOpen = useToggleQuery("new");
 
-  const form = useForm<CreateEventType>({
-    defaultValues: { length: 15 },
+  // URL encoded params
+  const teamId: number | undefined = Number(router.query.teamId) || undefined;
+  const pageSlug = router.query.eventPage || props.options[0].slug;
+  const hasTeams = !!props.options.find((option) => option.teamId);
+
+  const form = useForm<z.infer<typeof createEventTypeInput>>({
+    resolver: zodResolver(createEventTypeInput),
+    defaultValues: { length: 15, teamId },
   });
   const { setValue, watch, register } = form;
 
@@ -62,20 +69,16 @@ export default function CreateEventTypeButton(props: Props) {
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  // URL encoded params
-  const teamId: number | null = Number(router.query.teamId) || null;
-  const pageSlug = router.query.eventPage || props.options[0].slug;
-
-  const hasTeams = !!props.options.find((option) => option.teamId);
-
-  const createMutation = useMutation(createEventType, {
+  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
-    onError: (err: HttpError) => {
-      const message = `${err.statusCode}: ${err.message}`;
-      showToast(message, "error");
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
     },
   });
 
@@ -83,19 +86,19 @@ export default function CreateEventTypeButton(props: Props) {
   const openModal = (option: EventTypeParent) => {
     // setTimeout fixes a bug where the url query params are removed immediately after opening the modal
     setTimeout(() => {
-      router.push({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          new: "1",
-          eventPage: option.slug,
-          ...(option.teamId
-            ? {
-                teamId: option.teamId,
-              }
-            : {}),
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            new: "1",
+            eventPage: option.slug,
+            teamId: option.teamId || undefined,
+          },
         },
-      });
+        undefined,
+        { shallow: true }
+      );
     });
   };
 
@@ -103,7 +106,7 @@ export default function CreateEventTypeButton(props: Props) {
   const closeModal = () => {
     router.replace({
       pathname: router.pathname,
-      query: { id: router.query.id },
+      query: { id: router.query.id || undefined },
     });
   };
 
@@ -160,20 +163,10 @@ export default function CreateEventTypeButton(props: Props) {
         <Form
           form={form}
           handleSubmit={(values) => {
-            const payload: CreateEventType = {
-              title: values.title,
-              slug: values.slug,
-              description: values.description,
-              length: values.length,
-            };
-            if (router.query.teamId) {
-              payload.teamId = parseInt(`${router.query.teamId}`, 10);
-              payload.schedulingType = values.schedulingType as SchedulingType;
-            }
-
-            createMutation.mutate(payload);
+            createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
+            {teamId && <input type="hidden" {...register("teamId", { valueAsNumber: true })} />}
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
 
             <TextField
@@ -201,7 +194,7 @@ export default function CreateEventTypeButton(props: Props) {
                 defaultValue={15}
                 label={t("length")}
                 className="pr-20"
-                {...register("length")}
+                {...register("length", { valueAsNumber: true })}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pt-4 mt-1.5 pr-3 text-sm text-gray-400">
                 {t("minutes")}

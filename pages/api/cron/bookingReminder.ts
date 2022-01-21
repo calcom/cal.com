@@ -44,10 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             username: true,
             locale: true,
             timeZone: true,
+            destinationCalendar: true,
           },
         },
         id: true,
         uid: true,
+        destinationCalendar: true,
       },
     });
 
@@ -88,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         attendees: booking.attendees,
         uid: booking.uid,
         language: t,
+        destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 
       await sendOrganizerRequestReminderEmail(evt);

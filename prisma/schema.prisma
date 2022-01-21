@@ -10,6 +10,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider      = "zod-prisma"
+  output        = "./zod"
+  imports       = "./zod-utils"
+  relationModel = "default"
+}
+
 enum SchedulingType {
   ROUND_ROBIN  @map("roundRobin")
   COLLECTIVE   @map("collective")
@@ -23,10 +30,13 @@ enum PeriodType {
 
 model EventType {
   id                      Int                    @id @default(autoincrement())
+  /// @zod.nonempty()
   title                   String
+  /// @zod.custom(imports.eventTypeSlug)
   slug                    String
   description             String?
   position                Int                    @default(0)
+  /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
@@ -36,7 +46,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
-  destinationCalendar     DestinationCalendar[]
+  destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
@@ -93,6 +103,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
   name                String?
+  /// @zod.email()
   email               String               @unique
   emailVerified       DateTime?
   password            String?
