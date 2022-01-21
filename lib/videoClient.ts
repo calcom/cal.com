@@ -8,6 +8,7 @@ import { PartialReference } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
+import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
 import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 
@@ -43,6 +44,9 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
         break;
       case "daily_video":
         acc.push(DailyVideoApiAdapter(cred));
+        break;
+      case "tandem_video":
+        acc.push(TandemVideoApiAdapter(cred));
         break;
       default:
         break;

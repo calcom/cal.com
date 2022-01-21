@@ -20,6 +20,7 @@ export type Integration = {
     | "office365_calendar"
     | "zoom_video"
     | "daily_video"
+    | "tandem_video"
     | "caldav_calendar"
     | "apple_calendar"
     | "stripe_payment";
@@ -59,6 +60,14 @@ export const ALL_INTEGRATIONS = [
     type: "daily_video",
     title: "Daily.co Video",
     imageSrc: "integrations/daily.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: true,
+    type: "tandem_video",
+    title: "Tandem Video",
+    imageSrc: "integrations/tandem.svg",
     description: "Video Conferencing",
     variant: "conferencing",
   },

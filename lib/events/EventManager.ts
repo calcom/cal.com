@@ -48,15 +48,20 @@ export const isDaily = (location: string): boolean => {
   return location === "integrations:daily";
 };
 
+export const isTandem = (location: string): boolean => {
+  return location === "integrations:tandem";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location);
+  return isZoom(location) || isDaily(location) || isTandem(location);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
   if (
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
-    location === LocationType.Daily.valueOf()
+    location === LocationType.Daily.valueOf() ||
+    location === LocationType.Tandem.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 
