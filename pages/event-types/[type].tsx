@@ -679,8 +679,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </span>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-6">
-                      {/* Only display calendar selector if user has connected calendars */}
-                      {!!connectedCalendarsQuery.data?.connectedCalendars.length && (
+                      {/**
+                       * Only display calendar selector if user has connected calendars AND if it's not
+                       * a team event. Since we don't have logic to handle each attende calendar (for now).
+                       * This will fallback to each user selected destination calendar.
+                       */}
+                      {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
                             <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
