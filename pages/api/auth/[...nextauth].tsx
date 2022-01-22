@@ -9,7 +9,7 @@ import { ErrorCode, verifyPassword } from "@lib/auth";
 import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
-import { isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
+import { isSAMLLoginEnabled, samlLoginUrl, hostedCal } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -151,8 +151,28 @@ export default NextAuth({
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
-      if (!user) {
+      const autoMergeIdentities = async () => {
+        if (!hostedCal) {
+          const existingUser = await prisma.user.findFirst({
+            where: { email: token.email! },
+          });
+
+          if (!existingUser) {
+            return token;
+          }
+
+          return {
+            id: existingUser.id,
+            username: existingUser.username,
+            email: existingUser.email,
+          };
+        }
+
         return token;
+      };
+
+      if (!user) {
+        return await autoMergeIdentities();
       }
 
       if (account && account.type === "credentials") {
@@ -185,7 +205,7 @@ export default NextAuth({
         });
 
         if (!existingUser) {
-          return token;
+          return await autoMergeIdentities();
         }
 
         return {
@@ -274,6 +294,11 @@ export default NextAuth({
         });
 
         if (existingUserWithEmail) {
+          // if self-hosted then we can allow auto-merge of identity providers if email is verified
+          if (!hostedCal && existingUserWithEmail.emailVerified) {
+            return true;
+          }
+
           // check if user was invited
           if (
             !existingUserWithEmail.password &&
