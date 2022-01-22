@@ -1,8 +1,6 @@
 import { v4 } from "uuid";
 import { z } from "zod";
 
-import { upgradeToFlexiblePro } from "@ee/lib/stripe/team-billing";
-
 import { getErrorFromUnknown } from "@lib/errors";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import sendPayload from "@lib/webhooks/sendPayload";
