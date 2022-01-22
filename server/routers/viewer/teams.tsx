@@ -1,4 +1,4 @@
-import { MembershipRole } from "@prisma/client";
+import { MembershipRole, UserPlan } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
@@ -28,7 +28,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-      return { ...team, membership: { role: membership?.role as MembershipRole } };
+      return {
+        ...team,
+        membership: {
+          role: membership?.role as MembershipRole,
+          isMissingSeat: membership?.plan === UserPlan.FREE,
+        },
+      };
     },
   })
   // Returns teams I a member of

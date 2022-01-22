@@ -37,7 +37,7 @@ export function TeamSettingsPage() {
     <Shell
       backPath={!errorMessage ? `/settings/teams` : undefined}
       heading={team?.name}
-      subtitle={team && "Manage this team"}
+      subtitle={team && t("manage_this_team")}
       HeadingLeftIcon={
         team && (
           <Avatar
@@ -54,12 +54,20 @@ export function TeamSettingsPage() {
         <>
           <div className="block sm:flex md:max-w-5xl">
             <div className="w-full mr-2 sm:w-9/12">
+              {team.membership.isMissingSeat && (
+                <Alert
+                  severity="warning"
+                  title={t("hidden_team_member_title")}
+                  message={t("hidden_team_member_message")}
+                  className="mb-4 "
+                />
+              )}
               <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (
                   <div className="py-5">
-                    <span className="mb-1 font-bold">Team Info</span>
+                    <span className="mb-1 font-bold">{t("team_info")}</span>
                     <p className="text-sm text-gray-700">{team.bio}</p>
                   </div>
                 )}
@@ -79,7 +87,7 @@ export function TeamSettingsPage() {
                 )}
               </div>
               <MemberList team={team} members={team.members || []} />
-              {isAdmin ? <SAMLConfiguration teamsView={true} teamId={team.id} /> : null}
+              {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
             </div>
             <div className="w-full px-2 mt-8 ml-2 md:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />

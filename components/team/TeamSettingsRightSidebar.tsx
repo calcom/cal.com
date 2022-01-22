@@ -15,8 +15,6 @@ import LinkIconButton from "@components/ui/LinkIconButton";
 
 import { MembershipRole } from ".prisma/client";
 
-// import Switch from "@components/ui/Switch";
-
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -50,19 +48,20 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
 
   return (
     <div className="px-2 space-y-6">
-      <CreateEventTypeButton
-        isIndividualTeam
-        canAddEvents={true}
-        options={[
-          { teamId: props.team?.id, name: props.team?.name, slug: props.team?.slug, image: props.team?.logo },
-        ]}
-      />
-      {/* <Switch
-        name="isHidden"
-        defaultChecked={hidden}
-        onCheckedChange={setHidden}
-        label={"Hide team from view"}
-      /> */}
+      {(props.role === MembershipRole.OWNER || props.role === MembershipRole.ADMIN) && (
+        <CreateEventTypeButton
+          isIndividualTeam
+          canAddEvents={true}
+          options={[
+            {
+              teamId: props.team?.id,
+              name: props.team?.name,
+              slug: props.team?.slug,
+              image: props.team?.logo,
+            },
+          ]}
+        />
+      )}
       <div className="space-y-1">
         <Link href={permalink} passHref={true}>
           <a target="_blank">

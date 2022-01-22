@@ -6,6 +6,7 @@ import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { TextArea } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
@@ -83,19 +84,18 @@ export default function SAMLConfiguration({
   const { t } = useLocale();
   return (
     <>
-      <hr className="mt-8" />
-
       {isSAMLLoginEnabled ? (
         <>
+          <hr className="mt-8" />
           <div className="mt-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
+            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">
               {t("saml_configuration")}
-              <Badge className="text-xs ml-2" variant={samlConfig ? "success" : "gray"}>
+              <Badge className="ml-2 text-xs" variant={samlConfig ? "success" : "gray"}>
                 {samlConfig ? t("enabled") : t("disabled")}
               </Badge>
               {samlConfig ? (
                 <>
-                  <Badge className="text-xs ml-2" variant={"success"}>
+                  <Badge className="ml-2 text-xs" variant={"success"}>
                     {samlConfig ? samlConfig : ""}
                   </Badge>
                 </>
@@ -104,7 +104,7 @@ export default function SAMLConfiguration({
           </div>
 
           {samlConfig ? (
-            <div className="mt-2 flex">
+            <div className="flex mt-2">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -135,21 +135,20 @@ export default function SAMLConfiguration({
           <form className="mt-3 divide-y divide-gray-200 lg:col-span-9" onSubmit={updateSAMLConfigHandler}>
             {hasErrors && <Alert severity="error" title={errorMessage} />}
 
-            <textarea
+            <TextArea
               data-testid="saml_config"
               ref={samlConfigRef}
               name="saml_config"
               id="saml_config"
               required={true}
               rows={10}
-              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
               placeholder={t("saml_configuration_placeholder")}
             />
 
             <div className="flex justify-end py-8">
               <button
                 type="submit"
-                className="ml-2 bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="inline-flex justify-center px-4 py-2 ml-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("save")}
               </button>
             </div>

@@ -91,7 +91,7 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="hidden w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:block">
+              className="items-center justify-center hidden w-10 h-10 px-0 py-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>

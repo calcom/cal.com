@@ -15,6 +15,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     email: true,
     name: true,
     id: true,
+    plan: true,
     bio: true,
   });
 
