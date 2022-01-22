@@ -24,7 +24,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
-import TeamRole from "./TeamRole";
+import TeamPill, { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";
 
 interface Props {
@@ -75,8 +75,14 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
           <div className="flex mt-2 mr-2 sm:mt-0 sm:justify-center">
-            {!props.member.accepted && <TeamRole invitePending />}
-            <TeamRole role={props.member.role} />
+            {/* Tooltip doesn't show... WHY????? */}
+            {props.member.isMissingSeat && (
+              <Tooltip content={t("hidden_team_member_message")}>
+                <TeamPill color="red" text={t("hidden")} />
+              </Tooltip>
+            )}
+            {!props.member.accepted && <TeamPill color="yellow" text={t("invitee")} />}
+            {props.member.role && <TeamRole role={props.member.role} />}
           </div>
         </div>
         <div className="flex">
