@@ -22,6 +22,7 @@ export type Integration = {
     | "daily_video"
     | "caldav_calendar"
     | "apple_calendar"
+    | "exchange_calendar"
     | "stripe_payment";
   title: string;
   imageSrc: string;
@@ -75,6 +76,14 @@ export const ALL_INTEGRATIONS = [
     type: "apple_calendar",
     title: "Apple Calendar",
     imageSrc: "integrations/apple-calendar.svg",
+    description: "For personal and business calendars",
+    variant: "calendar",
+  },
+  {
+    installed: true,
+    type: "exchange_calendar",
+    title: "Exchange Calendar",
+    imageSrc: "integrations/outlook.svg",
     description: "For personal and business calendars",
     variant: "calendar",
   },

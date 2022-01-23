@@ -4,6 +4,7 @@ import { useMutation } from "react-query";
 
 import { AddAppleIntegrationModal } from "@lib/integrations/calendar/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/calendar/components/AddCalDavIntegration";
+import { AddExchangeIntegrationModal } from "@lib/integrations/calendar/components/AddExchangeIntegration";
 
 import { ButtonBaseProps } from "@components/ui/Button";
 
@@ -40,7 +41,7 @@ export default function ConnectIntegration(props: {
     <>
       {props.render({
         onClick() {
-          if (["caldav_calendar", "apple_calendar"].includes(type)) {
+          if (["caldav_calendar", "apple_calendar", "exchange_calendar"].includes(type)) {
             // special handlers
             setIsModalOpen(true);
             return;
@@ -57,6 +58,10 @@ export default function ConnectIntegration(props: {
 
       {type === "apple_calendar" && (
         <AddAppleIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      )}
+
+      {type === "exchange_calendar" && (
+        <AddExchangeIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
       )}
     </>
   );

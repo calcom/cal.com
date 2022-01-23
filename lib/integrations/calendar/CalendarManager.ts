@@ -13,6 +13,7 @@ import { CalendarServiceType, EventBusyDate } from "./constants/types";
 import { Calendar, CalendarEvent } from "./interfaces/Calendar";
 import AppleCalendarService from "./services/AppleCalendarService";
 import CalDavCalendarService from "./services/CalDavCalendarService";
+import ExchangeCalendarService from "./services/ExchangeCalendarService";
 import GoogleCalendarService from "./services/GoogleCalendarService";
 import Office365CalendarService from "./services/Office365CalendarService";
 
@@ -21,6 +22,7 @@ const CALENDARS: Record<string, CalendarServiceType> = {
   [CALENDAR_INTEGRATIONS_TYPES.caldav]: CalDavCalendarService,
   [CALENDAR_INTEGRATIONS_TYPES.google]: GoogleCalendarService,
   [CALENDAR_INTEGRATIONS_TYPES.office365]: Office365CalendarService,
+  [CALENDAR_INTEGRATIONS_TYPES.exchange]: ExchangeCalendarService,
 };
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
