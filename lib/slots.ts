@@ -17,12 +17,12 @@ export type GetSlots = {
   minimumBookingNotice: number;
 };
 
-const getMinuteOffset = (date: Dayjs, frequency: number) => {
-  // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
-  const minuteOffset = Math.min(date.diff(dayjs().utc(), "minute"), 1440) % 1440;
-  // round down to nearest step
-  return Math.ceil(minuteOffset / frequency) * frequency;
-};
+// const getMinuteOffset = (date: Dayjs, frequency: number) => {
+//   // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
+//   const minuteOffset = Math.min(date.diff(dayjs().utc(), "minute"), 1440) % 1440;
+//   // round down to nearest step
+//   return Math.ceil(minuteOffset / frequency) * frequency;
+// };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
@@ -43,7 +43,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
-  for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
+  for (let minutes = 0; minutes < 1440; minutes += frequency) {
     const slot = dayjs(inviteeDate).startOf("day").add(minutes, "minute");
     // check if slot happened already
     if (slot.isBefore(startDate)) {
