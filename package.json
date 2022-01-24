@@ -8,7 +8,7 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
-    "db-migrate": "yarn prisma migrate dev",
+    "db-migrate": "yarn prisma migrate dev && yarn format-schemas",
     "db-deploy": "yarn prisma migrate deploy",
     "db-seed": "yarn prisma db seed",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
@@ -22,7 +22,9 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate",
+    "format-schemas": "prettier --write ./prisma",
+    "generate-schemas": "prisma generate && yarn format-schemas",
+    "postinstall": "yarn generate-schemas",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "prepare": "husky install",
@@ -145,7 +147,8 @@
     "tailwindcss": "^3.0.0",
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "zod-prisma": "^0.5.2"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [

@@ -64,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endTime: true,
       uid: true,
       eventTypeId: true,
+      destinationCalendar: true,
     },
   });
 
@@ -111,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     language: t,
-    destinationCalendar: bookingToDelete?.user.destinationCalendar,
+    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
   };
 
   // Hook up the webhook logic here
@@ -171,6 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       language: t,
+      destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
