@@ -8,6 +8,7 @@ import { ErrorCode, getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -43,6 +44,8 @@ export default function Login({
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
+
+  const telemetry = useTelemetry();
 
   const callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
 
@@ -198,7 +201,14 @@ export default function Login({
             <div style={{ marginTop: "12px" }}>
               <button
                 data-testid={"google"}
-                onClick={async () => await signIn("google")}
+                onClick={async () => {
+                  // track Google logins. Without personal data/payload
+                  telemetry.withJitsu((jitsu) =>
+                    jitsu.track(telemetryEventTypes.googleLogin, collectPageParameters())
+                  );
+
+                  await signIn("google");
+                }}
                 className="flex justify-center w-full px-4 py-2 text-sm font-medium text-black border border-transparent rounded-sm shadow-sm bg-secondary-50 hover:bg-secondary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("signin_with_google")}
               </button>
@@ -210,6 +220,11 @@ export default function Login({
                 data-testid={"saml"}
                 onClick={async (event) => {
                   event.preventDefault();
+
+                  // track SAML logins. Without personal data/payload
+                  telemetry.withJitsu((jitsu) =>
+                    jitsu.track(telemetryEventTypes.samlLogin, collectPageParameters())
+                  );
 
                   if (!hostedCal) {
                     await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
