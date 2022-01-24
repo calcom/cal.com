@@ -125,7 +125,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <Button type="submit" color="primary" className="ml-2">
+              <Button type="submit" color="primary" className="ml-2" data-testid="invite-new-member-button">
                 {t("invite")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
