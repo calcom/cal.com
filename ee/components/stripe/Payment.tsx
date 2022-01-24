@@ -6,7 +6,6 @@ import React, { SyntheticEvent, useEffect, useState } from "react";
 
 import { PaymentData } from "@ee/lib/stripe/server";
 
-import useDarkMode from "@lib/core/browser/useDarkMode";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
@@ -18,8 +17,8 @@ const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   },
   style: {
     base: {
-      color: "#000",
-      iconColor: "#000",
+      color: "#666",
+      iconColor: "#666",
       fontFamily: "ui-sans-serif, system-ui",
       fontSmoothing: "antialiased",
       fontSize: "16px",
@@ -53,17 +52,9 @@ export default function PaymentComponent(props: Props) {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { isDarkMode } = useDarkMode();
-
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
-
-  if (isDarkMode) {
-    CARD_OPTIONS.style!.base!.color = "#fff";
-    CARD_OPTIONS.style!.base!.iconColor = "#fff";
-    CARD_OPTIONS.style!.base!["::placeholder"]!.color = "#fff";
-  }
 
   const handleChange = async (event: StripeCardElementChangeEvent) => {
     // Listen for changes in the CardElement

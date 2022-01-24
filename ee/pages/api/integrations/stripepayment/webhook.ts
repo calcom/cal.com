@@ -50,6 +50,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
           id: true,
           uid: true,
           paid: true,
+          destinationCalendar: true,
           user: {
             select: {
               id: true,
@@ -87,8 +88,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
     attendees: booking.attendees,
     uid: booking.uid,
-    organizerLanguage: t,
-    attendeesLanguage: t,
+    destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
   };
 
   if (booking.location) evt.location = booking.location;

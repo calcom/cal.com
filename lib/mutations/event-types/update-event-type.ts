@@ -7,6 +7,9 @@ type EventTypeResponse = {
   eventType: EventType;
 };
 
+/**
+ * @deprecated Use `trpc.useMutation("viewer.eventTypes.update")` instead.
+ */
 const updateEventType = async (data: EventTypeInput) => {
   const response = await fetch.patch<EventTypeInput, EventTypeResponse>("/api/availability/eventtype", data);
   return response;
