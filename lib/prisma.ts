@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-import { IS_PRODUCTION } from "./config/constants";
+import { IS_PRODUCTION } from "@lib/config/constants";
 
 declare global {
   // eslint-disable-next-line no-var
