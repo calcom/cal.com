@@ -54,11 +54,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       payment: true,
       paid: true,
       title: true,
+      eventType: {
+        select: {
+          title: true,
+        },
+      },
       description: true,
       startTime: true,
       endTime: true,
       uid: true,
       eventTypeId: true,
+      destinationCalendar: true,
     },
   });
 
@@ -89,11 +95,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const t = await getTranslation(req.body.language ?? "en", "common");
 
   const evt: CalendarEvent = {
-    type: bookingToDelete?.title,
     title: bookingToDelete?.title,
+    type: bookingToDelete?.eventType?.title as string,
     description: bookingToDelete?.description || "",
-    startTime: bookingToDelete?.startTime.toString(),
-    endTime: bookingToDelete?.endTime.toString(),
+    startTime: bookingToDelete?.startTime.toISOString(),
+    endTime: bookingToDelete?.endTime.toISOString(),
     organizer: {
       email: organizer.email,
       name: organizer.name ?? "Nameless",
@@ -106,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     language: t,
-    destinationCalendar: bookingToDelete?.user.destinationCalendar,
+    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
   };
 
   // Hook up the webhook logic here
@@ -152,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
-      type: bookingToDelete.title,
+      type: bookingToDelete?.eventType?.title as string,
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
       startTime: bookingToDelete.startTime.toISOString(),
@@ -166,6 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       language: t,
+      destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({

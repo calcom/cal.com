@@ -20,6 +20,12 @@ export type AdvancedOptions = {
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
   customInputs?: EventTypeCustomInput[];
   timeZone?: string;
+  destinationCalendar?: {
+    userId?: number;
+    eventTypeId?: number;
+    integration: string;
+    externalId: string;
+  };
 };
 
 export type EventTypeCustomInput = {
@@ -49,6 +55,7 @@ export type EventTypeInput = AdvancedOptions & {
   slug: string;
   description: string;
   length: number;
+  teamId?: number;
   hidden: boolean;
   locations: unknown;
   availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };

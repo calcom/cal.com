@@ -16,7 +16,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
   // 24h in a day.
   expect(
     getSlots({
-      inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
+      inviteeDate: dayjs.utc().add(1, "day"),
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours: [

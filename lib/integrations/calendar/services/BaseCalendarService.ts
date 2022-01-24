@@ -116,10 +116,11 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<unknown> {
     try {
       const events = await this.getEventsByUID(uid);
 
+      /** We generate the ICS files */
       const { error, value: iCalString } = createEvent({
         uid,
         startInputType: "utc",
@@ -138,15 +139,15 @@ export default abstract class BaseCalendarService implements Calendar {
         return {};
       }
 
-      const eventsToUpdate = events.filter((event) => event.uid === uid);
+      const eventsToUpdate = events.filter((e) => e.uid === uid);
 
       return Promise.all(
-        eventsToUpdate.map((event) => {
+        eventsToUpdate.map((e) => {
           return updateCalendarObject({
             calendarObject: {
-              url: event.url,
+              url: e.url,
               data: iCalString,
-              etag: event?.etag,
+              etag: e?.etag,
             },
             headers: this.headers,
           });
