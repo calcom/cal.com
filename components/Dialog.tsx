@@ -32,7 +32,7 @@ type DialogHeaderProps = {
 export function DialogHeader(props: DialogHeaderProps) {
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
+      <h3 className="text-xl text-gray-900 leading-16 font-cal" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}

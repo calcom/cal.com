@@ -22,8 +22,6 @@ export async function getStripeCustomerFromUser(userId: number) {
 
   const customerId = await getStripeCustomerId(user);
 
-  if (!customerId) throw new Error("Stripe customer id not found");
-
   return customerId;
 }
 

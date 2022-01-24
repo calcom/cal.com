@@ -1,7 +1,6 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
@@ -10,14 +9,9 @@ import Button from "@components/ui/Button";
 export default function Billing() {
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation(["viewer.teams.upgradeToFlexiblePro"]);
-
   return (
     <Shell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
       <SettingsShell>
-        <Button onClick={() => mutation.mutate({ teamId: 2 })} className="mt-5">
-          Upgrade to Flexible Pro
-        </Button>
         <div className="py-6 lg:pb-8 lg:col-span-9">
           <div className="bg-white border sm:rounded-sm">
             <div className="px-4 py-5 sm:p-6">

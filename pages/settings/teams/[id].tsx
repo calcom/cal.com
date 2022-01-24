@@ -1,4 +1,5 @@
 import { PlusIcon } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -14,6 +15,7 @@ import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
 import TeamSettingsRightSidebar from "@components/team/TeamSettingsRightSidebar";
+import { UpgradeToFlexibleProModal } from "@components/team/UpgradeToFlexibleProModal";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
@@ -31,7 +33,8 @@ export function TeamSettingsPage() {
     },
   });
 
-  const isAdmin = team && (team.membership.role === "OWNER" || team.membership.role === "ADMIN");
+  const isAdmin =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   return (
     <Shell
@@ -60,6 +63,19 @@ export function TeamSettingsPage() {
                   title={t("hidden_team_member_title")}
                   message={t("hidden_team_member_message")}
                   className="mb-4 "
+                />
+              )}
+              {team.membership.role === MembershipRole.OWNER && team.requiresUpgradeToFlexiblePro && (
+                <Alert
+                  severity="warning"
+                  title={t("upgrade_to_flexible_pro_title")}
+                  message={
+                    <span>
+                      {t("upgrade_to_flexible_pro_message")} <br />
+                      <UpgradeToFlexibleProModal teamId={team.id} />
+                    </span>
+                  }
+                  className="mb-4"
                 />
               )}
               <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">

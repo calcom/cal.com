@@ -1,4 +1,5 @@
 import { UserIcon } from "@heroicons/react/outline";
+import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 import React, { SyntheticEvent } from "react";
@@ -116,6 +117,16 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                     {t("send_invite_email")}
                   </label>
                 </div>
+              </div>
+              <div className="flex flex-row px-3 py-2 mt-4 rounded-sm bg-gray-50">
+                <InformationCircleIcon className="flex-shrink-0 w-5 h-5 fill-gray-400" aria-hidden="true" />
+                <span className="ml-2 text-sm leading-tight text-gray-500">
+                  Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not
+                  have a pro account.{" "}
+                  <a href="#" className="underline">
+                    Learn More
+                  </a>
+                </span>
               </div>
             </div>
             {errorMessage && (

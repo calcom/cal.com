@@ -3,7 +3,13 @@ import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import { upgradeToFlexiblePro } from "@ee/lib/stripe/team-billing";
+import {
+  addSeat,
+  calculateTeamSeats,
+  downgradeTeamMembers,
+  removeSeat,
+  upgradeToPerSeatPricing,
+} from "@ee/lib/stripe/team-billing";
 
 import { BASE_URL } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
@@ -34,6 +40,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
         },
+        requiresUpgradeToFlexiblePro: !!team.members.find((m) => m.plan !== UserPlan.PRO),
       };
     },
   })
@@ -140,6 +147,8 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+      await downgradeTeamMembers(input.teamId);
+
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
         where: {
@@ -202,6 +211,13 @@ export const viewerTeamsRouter = createProtectedRouter()
           OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
         },
       });
+
+      try {
+        // TODO: disable if not hosted by Cal
+        await addSeat(ctx.user.id, team.id, invitee?.id);
+      } catch (e) {
+        console.log(e);
+      }
 
       if (!invitee) {
         // liberal email match
@@ -299,6 +315,18 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
         });
       } else {
+        try {
+          //get team owner so we can alter their subscription seat count
+          const teamOwner = await ctx.prisma.membership.findFirst({
+            where: { teamId: input.teamId, role: MembershipRole.OWNER },
+          });
+          console.log({ teamOwner });
+
+          // TODO: disable if not hosted by Cal
+          if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
+        } catch (e) {
+          console.log(e);
+        }
         await ctx.prisma.membership.delete({
           where: {
             userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
@@ -390,11 +418,19 @@ export const viewerTeamsRouter = createProtectedRouter()
       return availability;
     },
   })
-  .mutation("upgradeToFlexiblePro", {
+  .mutation("upgradeToPerSeatPricing", {
     input: z.object({
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      await upgradeToFlexiblePro(ctx.user.id, input.teamId);
+      await upgradeToPerSeatPricing(ctx.user.id, input.teamId);
+    },
+  })
+  .query("getTeamSeats", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ input }) {
+      return await calculateTeamSeats(input.teamId);
     },
   });

@@ -25,6 +25,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
+      router.push(`/settings/teams`);
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
