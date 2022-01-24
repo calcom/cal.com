@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { randomString } from "./lib/testUtils";
+import { randomString } from "../lib/random";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/event-types");
@@ -37,7 +37,7 @@ test.describe("pro user", () => {
 
     await page.goto("/event-types");
 
-    expect(page.locator(`text='${eventTitle}'`)).toBeTruthy();
+    await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
   });
 });
 

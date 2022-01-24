@@ -225,6 +225,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       price: true,
       currency: true,
       smartContractAddress: true,
+      destinationCalendar: true,
     },
   });
 
@@ -307,7 +308,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     language: t,
     /** For team events, we will need to handle each member destinationCalendar eventually */
-    destinationCalendar: users[0].destinationCalendar,
+    destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -351,6 +352,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id: users[0].id,
           },
         },
+        destinationCalendar: evt.destinationCalendar
+          ? {
+              connect: { id: evt.destinationCalendar.id },
+            }
+          : undefined,
       },
     });
   }

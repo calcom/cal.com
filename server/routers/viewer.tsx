@@ -7,9 +7,20 @@ import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
+import jackson from "@lib/jackson";
+import {
+  isSAMLLoginEnabled,
+  samlTenantID,
+  samlProductID,
+  isSAMLAdmin,
+  hostedCal,
+  tenantPrefix,
+  samlTenantProduct,
+} from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
+import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -35,48 +46,56 @@ const publicViewerRouter = createRouter()
         locale,
       };
     },
+  })
+  .mutation("samlTenantProduct", {
+    input: z.object({
+      email: z.string().email(),
+    }),
+    async resolve({ input, ctx }) {
+      const { prisma } = ctx;
+      const { email } = input;
+
+      return await samlTenantProduct(prisma, email);
+    },
   });
 
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
   .query("me", {
-    resolve({ ctx }) {
-      const {
-        // pick only the part we want to expose in the API
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        brandColor,
-        plan,
-        away,
-      } = ctx.user;
-      const me = {
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        brandColor,
-        plan,
-        away,
+    resolve({ ctx: { user } }) {
+      // Destructuring here only makes it more illegible
+      // pick only the part we want to expose in the API
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        startTime: user.startTime,
+        endTime: user.endTime,
+        bufferTime: user.bufferTime,
+        locale: user.locale,
+        avatar: user.avatar,
+        createdDate: user.createdDate,
+        completedOnboarding: user.completedOnboarding,
+        twoFactorEnabled: user.twoFactorEnabled,
+        identityProvider: user.identityProvider,
+        brandColor: user.brandColor,
+        plan: user.plan,
+        away: user.away,
       };
-      return me;
+    },
+  })
+  .mutation("deleteMe", {
+    async resolve({ ctx }) {
+      // Remove me from Stripe
+
+      // Remove my account
+      await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      return;
     },
   })
   .mutation("away", {
@@ -406,34 +425,40 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .mutation("setUserDestinationCalendar", {
+  .mutation("setDestinationCalendar", {
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
+      eventTypeId: z.number().optional(),
+      bookingId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const userId = ctx.user.id;
+      const { integration, externalId, eventTypeId, bookingId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-      if (
-        !allCals.find((cal) => cal.externalId === input.externalId && cal.integration === input.integration)
-      ) {
+      if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
+
+      let where;
+
+      if (eventTypeId) where = { eventTypeId };
+      else if (bookingId) where = { bookingId };
+      else where = { userId: user.id };
+
       await ctx.prisma.destinationCalendar.upsert({
-        where: {
-          userId,
-        },
+        where,
         update: {
-          ...input,
-          userId,
+          integration,
+          externalId,
         },
         create: {
-          ...input,
-          userId,
+          ...where,
+          integration,
+          externalId,
         },
       });
     },
@@ -481,7 +506,6 @@ const loggedInViewerRouter = createProtectedRouter()
           userId: user.id,
         },
       });
-
       const schedule = availabilityQuery.reduce(
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
@@ -650,10 +674,103 @@ const loggedInViewerRouter = createProtectedRouter()
         });
       }
     },
+  })
+  .query("showSAMLView", {
+    input: z.object({
+      teamsView: z.boolean(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input, ctx }) {
+      const { user } = ctx;
+      const { teamsView, teamId } = input;
+
+      if ((teamsView && !hostedCal) || (!teamsView && hostedCal)) {
+        return {
+          isSAMLLoginEnabled: false,
+          hostedCal,
+        };
+      }
+
+      let enabled = isSAMLLoginEnabled;
+
+      // in teams view we already check for isAdmin
+      if (teamsView) {
+        enabled = enabled && user.plan === "PRO";
+      } else {
+        enabled = enabled && isSAMLAdmin(user.email);
+      }
+
+      let provider;
+      if (enabled) {
+        const { apiController } = await jackson();
+
+        try {
+          const resp = await apiController.getConfig({
+            tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+            product: samlProductID,
+          });
+          provider = resp.provider;
+        } catch (err) {
+          console.error("Error getting SAML config", err);
+          throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
+        }
+      }
+
+      return {
+        isSAMLLoginEnabled: enabled,
+        hostedCal,
+        provider,
+      };
+    },
+  })
+  .mutation("updateSAMLConfig", {
+    input: z.object({
+      rawMetadata: z.string(),
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input }) {
+      const { rawMetadata, teamId } = input;
+
+      const { apiController } = await jackson();
+
+      try {
+        return await apiController.config({
+          rawMetadata,
+          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error setting SAML config", err);
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+    },
+  })
+  .mutation("deleteSAMLConfig", {
+    input: z.object({
+      teamId: z.union([z.number(), z.null(), z.undefined()]),
+    }),
+    async resolve({ input }) {
+      const { teamId } = input;
+
+      const { apiController } = await jackson();
+
+      try {
+        return await apiController.deleteConfig({
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+        });
+      } catch (err) {
+        console.error("Error deleting SAML configuration", err);
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+    },
   });
 
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("eventTypes.", eventTypesRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

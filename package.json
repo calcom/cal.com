@@ -8,9 +8,9 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
-    "db-migrate": "yarn prisma migrate dev",
+    "db-migrate": "yarn prisma migrate dev && yarn format-schemas",
     "db-deploy": "yarn prisma migrate deploy",
-    "db-seed": "ts-node scripts/seed.ts",
+    "db-seed": "yarn prisma db seed",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
     "db-setup": "run-s db-up db-migrate db-seed",
     "db-reset": "run-s db-nuke db-setup",
@@ -22,7 +22,9 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate",
+    "format-schemas": "prettier --write ./prisma",
+    "generate-schemas": "prisma generate && yarn format-schemas",
+    "postinstall": "yarn generate-schemas",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "prepare": "husky install",
@@ -33,6 +35,7 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
+    "@boxyhq/saml-jackson": "0.3.3",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
@@ -132,6 +135,7 @@
     "env-cmd": "10.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-playwright": "^0.7.1",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
@@ -146,7 +150,8 @@
     "tailwindcss": "^3.0.0",
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "zod-prisma": "^0.5.2"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
@@ -156,5 +161,8 @@
     "./prisma/schema.prisma": [
       "prisma format"
     ]
+  },
+  "prisma": {
+    "seed": "ts-node ./prisma/seed.ts"
   }
 }

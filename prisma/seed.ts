@@ -156,6 +156,17 @@ async function createTeamAndAddUsers(
 async function main() {
   await createUserAndEventType({
     user: {
+      email: "delete-me@example.com",
+      password: "delete-me",
+      username: "delete-me",
+      name: "delete-me",
+      plan: "FREE",
+    },
+    eventTypes: [],
+  });
+
+  await createUserAndEventType({
+    user: {
       email: "onboarding@example.com",
       password: "onboarding",
       username: "onboarding",

@@ -17,11 +17,11 @@ export type GetSlots = {
   minimumBookingNotice: number;
 };
 
-const getMinuteOffset = (date: Dayjs, step: number) => {
+const getMinuteOffset = (date: Dayjs, frequency: number) => {
   // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
-  const minuteOffset = Math.min(date.diff(dayjs.utc().startOf("day"), "minute"), 1440) % 1440;
+  const minuteOffset = Math.min(date.diff(dayjs().utc(), "minute"), 1440) % 1440;
   // round down to nearest step
-  return Math.ceil(minuteOffset / step) * step;
+  return Math.ceil(minuteOffset / frequency) * frequency;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

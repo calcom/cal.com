@@ -9,6 +9,7 @@ export const telemetryEventTypes = {
   pageView: "page_view",
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
+  importSubmitted: "import_submitted",
 };
 
 /**
@@ -70,7 +71,15 @@ function createTelemetryClient(): TelemetryClient {
         if (!window) {
           console.warn("Jitsu has been called during SSR, this scenario isn't supported yet");
           return;
-        } else if (!window["jitsu"]) {
+        } else if (
+          // FIXME
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          !window["jitsu"]
+        ) {
+          // FIXME
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           window["jitsu"] = jitsuClient({
             log_level: "ERROR",
             tracking_host: "https://t.calendso.com",
@@ -79,6 +88,9 @@ function createTelemetryClient(): TelemetryClient {
             capture_3rd_party_cookies: false,
           });
         }
+        // FIXME
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const res = callback(window["jitsu"]);
         if (res && typeof res["catch"] === "function") {
           res.catch((e) => {
