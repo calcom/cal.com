@@ -124,12 +124,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: currentUser.email,
         name: currentUser.name || "Unnamed",
         timeZone: currentUser.timeZone,
+        language: tOrganizer,
       },
-      attendees: booking.attendees,
+      attendees: booking.attendees.map((attendee) => {
+        const retObj = {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          language: tAttendees,
+        };
+        return retObj;
+      }),
       location: booking.location ?? "",
       uid: booking.uid,
-      organizerLanguage: tOrganizer,
-      attendeesLanguage: tAttendees,
     };
 
     if (reqBody.confirmed) {

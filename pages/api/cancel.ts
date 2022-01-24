@@ -100,15 +100,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
+      language: tOrganizer,
     },
     attendees: bookingToDelete?.attendees.map((attendee) => {
-      const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+      const retObj = {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: tAttendees,
+      };
       return retObj;
     }),
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
-    organizerLanguage: tOrganizer,
-    attendeesLanguage: tAttendees,
     destinationCalendar: bookingToDelete?.user.destinationCalendar,
   };
 
@@ -164,12 +168,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
+        language: tOrganizer,
       },
-      attendees: bookingToDelete.attendees,
+      attendees: bookingToDelete.attendees.map((attendee) => {
+        const retObj = {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          language: tAttendees,
+        };
+        return retObj;
+      }),
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
-      organizerLanguage: tOrganizer,
-      attendeesLanguage: tAttendees,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
