@@ -144,7 +144,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
           name="username"
           id="username"
           placeholder="rickroll"
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
         />
       </div>
       <div className="mb-2">
@@ -157,7 +157,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
           name="password"
           id="password"
           placeholder="•••••••••••••"
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
         />
       </div>
     </form>

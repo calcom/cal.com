@@ -55,7 +55,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           <DialogPrimitive.Title className="text-xl font-bold text-gray-900 font-cal">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-sm text-neutral-500">
+          <DialogPrimitive.Description className="text-sm text-gray-500">
             {children}
           </DialogPrimitive.Description>
         </div>

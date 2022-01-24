@@ -305,7 +305,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="token"
                   placeholder={t("access_token")}
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                 />
                 <Button type="submit" className="h-10 mt-1 ml-4">
                   {t("import")}
@@ -336,7 +336,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   placeholder={t("your_name")}
                   defaultValue={props.user.name ?? enteredName}
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                 />
               </fieldset>
 
@@ -447,7 +447,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -460,7 +460,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 name="bio"
                 id="bio"
                 required
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                 defaultValue={props.user.bio || undefined}
               />
               <Text variant="caption" className="mt-2">

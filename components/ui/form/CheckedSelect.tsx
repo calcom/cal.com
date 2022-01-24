@@ -35,7 +35,7 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
       {label}
       {disabled && (
         <div className="flex-grow">
-          <CheckIcon className="text-neutral-500 w-6 h-6 float-right" />
+          <CheckIcon className="text-gray-500 w-6 h-6 float-right" />
         </div>
       )}
     </div>
@@ -87,7 +87,7 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
           {option.label}
           <XIcon
             onClick={() => changeHandler([option])}
-            className="cursor-pointer h-5 w-5 mt-0.5 text-neutral-500 float-right"
+            className="cursor-pointer h-5 w-5 mt-0.5 text-gray-500 float-right"
           />
         </div>
       ))}

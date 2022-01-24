@@ -128,7 +128,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             type="checkbox"
             checked={fields.length > 0}
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
-            className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
+            className="inline-block border-gray-300 rounded-sm focus:ring-gray-500 text-gray-900"
           />
           <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>

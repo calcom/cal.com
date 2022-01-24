@@ -93,7 +93,7 @@ function BookingListItem(booking: BookingItem) {
         </div>
         <div
           title={booking.title}
-          className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-56 md:max-w-max">
+          className="text-sm font-medium leading-6 truncate text-gray-900 max-w-56 md:max-w-max">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!!booking?.eventType?.price && !booking.paid && (

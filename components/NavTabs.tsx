@@ -25,7 +25,7 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
               <a
                 className={classNames(
                   isCurrent
-                    ? "border-neutral-900 text-neutral-900"
+                    ? "border-gray-900 text-gray-900"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
                   "group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm"
                 )}
@@ -33,7 +33,7 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
                 {tab.icon && (
                   <tab.icon
                     className={classNames(
-                      isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
+                      isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
                       "-ml-0.5 mr-2 h-5 w-5 hidden sm:inline-block"
                     )}
                     aria-hidden="true"

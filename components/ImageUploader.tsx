@@ -137,7 +137,7 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="px-3 py-1 mt-8 text-xs font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900">
+            <label className="px-3 py-1 mt-8 text-xs font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900">
               <input
                 onInput={onInputFile}
                 type="file"

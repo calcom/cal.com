@@ -17,7 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm",
+        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-gray-800 focus:border-gray-800 sm:text-sm",
         props.className
       )}
     />
@@ -129,7 +129,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm",
+        "block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-gray-900 focus:border-gray-900 sm:text-sm",
         props.className
       )}
     />

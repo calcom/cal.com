@@ -16,12 +16,9 @@ const HelpMenuItem = () => {
           boot();
           show();
         }}
-        className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
+        className="flex w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
         <ChatAltIcon
-          className={classNames(
-            "text-neutral-400 group-hover:text-neutral-500",
-            "mr-2 flex-shrink-0 h-5 w-5"
-          )}
+          className={classNames("text-gray-400 group-hover:text-gray-500", "mr-2 flex-shrink-0 h-5 w-5")}
           aria-hidden="true"
         />
         {t("help")}

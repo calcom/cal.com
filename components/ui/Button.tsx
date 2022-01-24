@@ -55,7 +55,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
         size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
         size === "icon" &&
-          "group p-2 border rounded-sm border-transparent text-neutral-400 hover:border-gray-200 transition",
+          "group p-2 border rounded-sm border-transparent text-gray-400 hover:border-gray-200 transition",
         // turn button into a floating action button (fab)
         size === "fab" ? "fixed" : "relative",
         size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
@@ -64,15 +64,15 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         color === "primary" &&
           (disabled
             ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent dark:text-brandcontrast text-brandcontrast bg-brand dark:bg-brand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            : "border border-transparent dark:text-brandcontrast text-brandcontrast bg-brand dark:bg-brand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-900"),
         color === "secondary" &&
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900"),
+            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
-            : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500"),
+            : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-gray-500"),
         color === "warn" &&
           (disabled
             ? "text-gray-400 bg-transparent"

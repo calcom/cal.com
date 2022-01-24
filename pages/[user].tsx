@@ -44,24 +44,24 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 className="w-24 h-24 mx-auto mb-4 rounded-full"
                 alt={nameOrUsername}
               />
-              <h1 className="mb-1 text-3xl font-bold font-cal text-neutral-900 dark:text-white">
+              <h1 className="mb-1 text-3xl font-bold font-cal text-gray-900 dark:text-white">
                 {nameOrUsername}
               </h1>
-              <p className="text-neutral-500 dark:text-white">{user.bio}</p>
+              <p className="text-gray-500 dark:text-white">{user.bio}</p>
             </div>
             <div className="space-y-6" data-testid="event-types">
               {user.away && (
-                <div className="relative px-6 py-4 bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 border-neutral-200">
-                  <MoonIcon className="w-8 h-8 mb-4 text-neutral-800" />
-                  <h2 className="font-semibold text-neutral-900 dark:text-white">{t("user_away")}</h2>
-                  <p className="text-neutral-500 dark:text-white">{t("user_away_description")}</p>
+                <div className="relative px-6 py-4 bg-white border rounded-sm group dark:bg-gray-900 dark:border-0 border-gray-200">
+                  <MoonIcon className="w-8 h-8 mb-4 text-gray-800" />
+                  <h2 className="font-semibold text-gray-900 dark:text-white">{t("user_away")}</h2>
+                  <p className="text-gray-500 dark:text-white">{t("user_away_description")}</p>
                 </div>
               )}
               {!user.away &&
                 eventTypes.map((type) => (
                   <div
                     key={type.id}
-                    className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
+                    className="relative bg-white border rounded-sm group dark:bg-gray-900 dark:border-0 dark:hover:border-gray-600 hover:bg-gray-50 border-gray-200 hover:border-brand">
                     <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
                     <Link
                       href={{
@@ -69,7 +69,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                         query,
                       }}>
                       <a className="block px-6 py-4" data-testid="event-type-link">
-                        <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                        <h2 className="font-semibold text-gray-900 dark:text-white">{type.title}</h2>
                         <EventTypeDescription eventType={type} />
                       </a>
                     </Link>

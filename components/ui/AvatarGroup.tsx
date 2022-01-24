@@ -41,7 +41,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
         <li className="relative inline-block">
           <Tooltip.Tooltip delayDuration="300">
             <Tooltip.TooltipTrigger className="cursor-default">
-              <span className="w-16 absolute bottom-1.5 border-2 border-gray-300 flex-inline items-center text-white pt-4 text-2xl top-0 rounded-full block bg-neutral-600">+1</span>
+              <span className="w-16 absolute bottom-1.5 border-2 border-gray-300 flex-inline items-center text-white pt-4 text-2xl top-0 rounded-full block bg-gray-600">+1</span>
             </Tooltip.TooltipTrigger>
             {truncatedAvatars.length !== 0 && (
               <Tooltip.Content className="p-2 text-sm text-white rounded-sm shadow-sm bg-brand">

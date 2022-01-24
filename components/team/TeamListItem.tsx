@@ -63,7 +63,7 @@ export default function TeamListItem(props: Props) {
         className="rounded-full w-9 h-9 min-w-9 min-h-9"
       />
       <div className="inline-block ml-3">
-        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
+        <span className="text-sm font-bold text-gray-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
         </span>
@@ -74,10 +74,7 @@ export default function TeamListItem(props: Props) {
   return (
     <li className="divide-y">
       <div
-        className={classNames(
-          "flex justify-between  items-center",
-          !isInvitee && "group hover:bg-neutral-50"
-        )}>
+        className={classNames("flex justify-between  items-center", !isInvitee && "group hover:bg-gray-50")}>
         {!isInvitee ? (
           <Link href={"/settings/teams/" + team.id}>
             <a className="flex-grow text-sm truncate cursor-pointer" title={`${team.name}`}>
@@ -116,7 +113,7 @@ export default function TeamListItem(props: Props) {
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 ">
+                <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-gray-400 hover:border-gray-200 ">
                   <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>

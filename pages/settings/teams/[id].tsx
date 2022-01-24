@@ -54,7 +54,7 @@ export function TeamSettingsPage() {
         <>
           <div className="block sm:flex md:max-w-5xl">
             <div className="w-full mr-2 sm:w-9/12">
-              <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
+              <div className="px-4 -mx-0 bg-white border rounded-sm border-gray-200 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (

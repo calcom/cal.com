@@ -12,7 +12,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       className={
         props.asChild
           ? className
-          : `relative inline-flex items-center px-3 py-2 ml-2 text-sm font-medium text-gray-700 bg-transparent rounded-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500 group-hover:text-black ${className}`
+          : `relative inline-flex items-center px-3 py-2 ml-2 text-sm font-medium text-gray-700 bg-transparent rounded-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-gray-500 group-hover:text-black ${className}`
       }
       ref={forwardedRef}
     />
@@ -37,7 +37,7 @@ DropdownMenuContent.displayName = "DropdownMenuContent";
 
 type DropdownMenuLabelProps = ComponentProps<typeof DropdownMenuPrimitive["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
-  <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-neutral-500" />
+  <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-gray-500" />
 );
 
 type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["CheckboxItem"]>;

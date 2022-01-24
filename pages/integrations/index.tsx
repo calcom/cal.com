@@ -48,7 +48,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             <span
               className={classNames(
                 "text-sm truncate",
-                props.webhook.active ? "text-neutral-700" : "text-neutral-200"
+                props.webhook.active ? "text-gray-700" : "text-gray-200"
               )}>
               {props.webhook.subscriberUrl}
             </span>
@@ -119,7 +119,7 @@ function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className={"cursor-pointer flex w-full"}>
-        <ChevronRightIcon className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-neutral-500`} />
+        <ChevronRightIcon className={`${open ? "transform rotate-90" : ""} w-5 h-5 text-gray-500`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -250,7 +250,7 @@ function WebhookDialogForm(props: {
         <div className="space-x-3 text-sm">
           <label>
             <input
-              className="text-neutral-900 focus:ring-neutral-500"
+              className="text-gray-900 focus:ring-gray-500"
               type="radio"
               name="useCustomPayloadTemplate"
               onChange={(value) => setUseCustomPayloadTemplate(!value.target.checked)}
@@ -260,7 +260,7 @@ function WebhookDialogForm(props: {
           </label>
           <label>
             <input
-              className="text-neutral-900 focus:ring-neutral-500"
+              className="text-gray-900 focus:ring-gray-500"
               onChange={(value) => setUseCustomPayloadTemplate(value.target.checked)}
               name="useCustomPayloadTemplate"
               type="radio"

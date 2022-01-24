@@ -97,7 +97,7 @@ export default function Login({
   });
 
   return (
-    <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8">
       <HeadSeo title={t("login")} description={t("login")} />
 
       {isSubmitting && (
@@ -108,17 +108,15 @@ export default function Login({
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
-        <h2 className="mt-6 text-3xl font-bold text-center font-cal text-neutral-900">
-          {t("sign_in_account")}
-        </h2>
+        <h2 className="mt-6 text-3xl font-bold text-center font-cal text-gray-900">{t("sign_in_account")}</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
+        <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-gray-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <input name="csrfToken" type="hidden" defaultValue={csrfToken || undefined} hidden />
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 {t("email_address")}
               </label>
               <div className="mt-1">
@@ -128,7 +126,7 @@ export default function Login({
                   required
                   value={email}
                   onInput={(e) => setEmail(e.currentTarget.value)}
-                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-gray-300 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm"
                 />
               </div>
             </div>
@@ -136,7 +134,7 @@ export default function Login({
             <div>
               <div className="flex">
                 <div className="w-1/2">
-                  <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     {t("password")}
                   </label>
                 </div>
@@ -157,14 +155,14 @@ export default function Login({
                   required
                   value={password}
                   onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                  className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-gray-300 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm"
                 />
               </div>
             </div>
 
             {secondFactorRequired && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   {t("2fa_code")}
                 </label>
                 <div className="mt-1">
@@ -177,7 +175,7 @@ export default function Login({
                     inputMode="numeric"
                     value={code}
                     onInput={(e) => setCode(e.currentTarget.value)}
-                    className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-neutral-300 focus:outline-none focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm"
+                    className="block w-full px-3 py-2 placeholder-gray-400 border rounded-sm shadow-sm appearance-none border-gray-300 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm"
                   />
                 </div>
               </div>
@@ -187,7 +185,7 @@ export default function Login({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                 {t("sign_in")}
               </button>
             </div>
@@ -231,9 +229,9 @@ export default function Login({
             </div>
           )}
         </div>
-        <div className="mt-4 text-sm text-center text-neutral-600">
+        <div className="mt-4 text-sm text-center text-gray-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
-          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
+          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-gray-900">
             {t("create_an_account")}
           </a>
         </div>

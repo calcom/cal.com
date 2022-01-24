@@ -141,7 +141,7 @@ export default function CreateEventTypeButton(props: Props) {
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
+                className="px-3 py-2 cursor-pointer hover:bg-gray-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
                 <Avatar alt={option.name || ""} imageSrc={option.image} size={6} className="inline mr-2" />
                 {option.name ? option.name : option.slug}

@@ -30,7 +30,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
 
   return (
     <>
-      <div className={classNames("text-neutral-500 dark:text-white", className)}>
+      <div className={classNames("text-gray-500 dark:text-white", className)}>
         {eventType.description && (
           <h2 className="opacity-60 text-ellipsis overflow-hidden max-w-[280px] sm:max-w-[500px]">
             {eventType.description.substring(0, 100)}
@@ -39,24 +39,24 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         )}
         <ul className="flex mt-2 space-x-4 ">
           <li className="flex whitespace-nowrap">
-            <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+            <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-gray-400" aria-hidden="true" />
             {eventType.length}m
           </li>
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
-              <UsersIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+              <UsersIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-gray-400" aria-hidden="true" />
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
           ) : (
             <li className="flex whitespace-nowrap">
-              <UserIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+              <UserIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-gray-400" aria-hidden="true" />
               {t("1_on_1")}
             </li>
           )}
           {eventType.price > 0 && (
             <li className="flex whitespace-nowrap">
-              <CreditCardIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
+              <CreditCardIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-gray-400" aria-hidden="true" />
               <IntlProvider locale="en">
                 <FormattedNumber
                   value={eventType.price / 100.0}

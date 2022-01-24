@@ -4,7 +4,7 @@ import React from "react";
 import { TextProps } from "../Text";
 
 const Subtitle: React.FunctionComponent<TextProps> = (props: TextProps) => {
-  const classes = classnames("text-sm font-normal text-neutral-500 dark:text-white", props?.className);
+  const classes = classnames("text-sm font-normal text-gray-500 dark:text-white", props?.className);
 
   return <p className={classes}>{props?.text || props.children}</p>;
 };

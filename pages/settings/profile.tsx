@@ -44,9 +44,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
         type="checkbox"
         ref={props.hideBrandingRef}
         defaultChecked={isBrandingHidden(props.user)}
-        className={
-          "focus:ring-neutral-800 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
-        }
+        className={"focus:ring-gray-800 h-4 w-4 text-gray-900 border-gray-300 rounded-sm disabled:opacity-50"}
         onClick={(e) => {
           if (!e.currentTarget.checked || props.user.plan !== "FREE") {
             return;
@@ -237,7 +235,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   autoComplete="given-name"
                   placeholder={t("your_name")}
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   defaultValue={props.user.name || undefined}
                 />
               </div>
@@ -253,7 +251,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -274,7 +272,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("little_something_about")}
                   rows={3}
                   defaultValue={props.user.bio || undefined}
-                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"></textarea>
+                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-gray-800 focus:border-gray-800 sm:text-sm"></textarea>
               </div>
             </div>
             <div>
@@ -291,7 +289,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="avatar"
                   id="avatar"
                   placeholder="URL"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   defaultValue={imageSrc}
                 />
                 <div className="flex items-center px-5">
@@ -327,7 +325,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedLanguage || props.localeProp}
                   onChange={(v) => v && setSelectedLanguage(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   options={localeOptions}
                 />
               </div>
@@ -342,7 +340,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedTimeZone}
                   onChange={(v) => v && setSelectedTimeZone(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                 />
               </div>
             </div>
@@ -356,7 +354,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedWeekStartDay}
                   onChange={(v) => v && setSelectedWeekStartDay(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
@@ -375,7 +373,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
                   onChange={(v) => v && setSelectedTheme(v)}
-                  className="shadow-sm | { value: string } focus:ring-neutral-800 focus:border-neutral-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="shadow-sm | { value: string } focus:ring-gray-800 focus:border-gray-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
                   options={themeOptions}
                 />
               </div>
@@ -387,7 +385,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     type="checkbox"
                     onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
-                    className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
+                    className="w-4 h-4 border-gray-300 rounded-sm focus:ring-gray-800 text-gray-900"
                   />
                 </div>
                 <div className="ml-3 text-sm">
@@ -408,7 +406,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="brandColor"
                   id="brandColor"
                   placeholder="#hex-code"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
                   defaultValue={props.user.brandColor}
                 />
               </div>

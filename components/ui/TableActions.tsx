@@ -42,7 +42,7 @@ const TableActions: FC<Props> = ({ actions }) => {
         {({ open }) => (
           <>
             <div>
-              <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+              <Menu.Button className="text-gray-400 mt-1 p-2 border border-transparent hover:border-gray-200">
                 <span className="sr-only">{t("open_options")}</span>
                 <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
               </Menu.Button>
@@ -59,7 +59,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               leaveTo="transform opacity-0 scale-95">
               <Menu.Items
                 static
-                className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100">
                 <div className="py-1">
                   {actions.map((action) => {
                     const Element = typeof action.onClick === "function" ? "span" : "a";
@@ -70,11 +70,11 @@ const TableActions: FC<Props> = ({ actions }) => {
                             href={action.href}
                             onClick={action.onClick}
                             className={classNames(
-                              active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                              active ? "bg-gray-100 text-gray-900" : "text-gray-700",
                               "group flex items-center px-4 py-2 text-sm font-medium"
                             )}>
                             <action.icon
-                              className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                              className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
                               aria-hidden="true"
                             />
                             {action.label}

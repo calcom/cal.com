@@ -26,7 +26,7 @@ export function ListItem(props: ListItemProps) {
         "items-center bg-white min-w-0 flex-1 flex border-gray-200",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
         props.className,
-        (props.onClick || href) && "hover:bg-neutral-50"
+        (props.onClick || href) && "hover:bg-gray-50"
       ),
     },
     props.children
@@ -50,7 +50,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-neutral-900 truncate", props.className),
+      className: classNames("text-sm font-medium text-gray-900 truncate", props.className),
     },
     props.children
   );

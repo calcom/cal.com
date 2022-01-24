@@ -70,7 +70,7 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
       <div className="flex flex-col space-y-4 lg:inline-flex">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button
-          className="px-3 py-2 text-sm rounded-sm bg-neutral-100"
+          className="px-3 py-2 text-sm rounded-sm bg-gray-100"
           type="button"
           onClick={() => setEditSchedule(idx)}>
           {item.startTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}

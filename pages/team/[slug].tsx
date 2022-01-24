@@ -31,12 +31,12 @@ function TeamPage({ team }: TeamPageProps) {
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
+          className="relative bg-white border rounded-sm group dark:bg-gray-900 dark:border-0 dark:hover:border-gray-600 hover:bg-gray-50 border-gray-200 hover:border-brand">
           <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
               <div className="flex-shrink">
-                <h2 className="font-semibold font-cal text-neutral-900 dark:text-white">{type.title}</h2>
+                <h2 className="font-semibold font-cal text-gray-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">

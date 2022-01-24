@@ -266,7 +266,7 @@ const BookingPage = (props: BookingPageProps) => {
       <CustomBranding val={props.profile.brandColor} />
       <main className="max-w-3xl mx-auto my-0 rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
-          <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
+          <div className="overflow-hidden bg-white border border-gray-200 dark:bg-gray-900 dark:border-0 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup

@@ -50,7 +50,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 className="w-10 h-10 mt-1 rounded-full min-w-10 min-h-10"
               />
               <div className="inline-block pt-1 ml-3 overflow-hidden">
-                <span className="text-lg font-bold truncate text-neutral-700">{member?.name}</span>
+                <span className="text-lg font-bold truncate text-gray-700">{member?.name}</span>
                 <span className="block -mt-1 text-sm text-gray-400 truncate">{member?.email}</span>
               </div>
             </div>
@@ -61,10 +61,10 @@ export default function TeamAvailabilityScreen(props: Props) {
   };
 
   return (
-    <div className="flex flex-col flex-1 bg-white border rounded-sm border-neutral-200">
+    <div className="flex flex-col flex-1 bg-white border rounded-sm border-gray-200">
       <div className="flex w-full p-4 space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-700">Date</span>
+          <span className="text-sm font-medium text-gray-700">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
             className="p-1.5"
@@ -74,17 +74,17 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-700">Timezone</span>
+          <span className="text-sm font-medium text-gray-700">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+            className="w-full border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
           />
         </div>
         <div className="hidden sm:block">
-          <span className="text-sm font-medium text-neutral-700">Slot Length</span>
+          <span className="text-sm font-medium text-gray-700">Slot Length</span>
           <Select
             options={[
               { value: 15, label: "15 minutes" },

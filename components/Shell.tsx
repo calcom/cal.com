@@ -110,7 +110,7 @@ export function ShellSubHeading(props: {
         <h2 className="flex items-center content-center space-x-2 text-base font-bold leading-6 text-gray-900">
           {props.title}
         </h2>
-        {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
+        {props.subtitle && <p className="mr-4 text-sm text-gray-500">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
@@ -227,15 +227,13 @@ export default function Shell(props: {
                       <a
                         className={classNames(
                           item.current
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                            ? "bg-gray-100 text-gray-900"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
                         )}>
                         <item.icon
                           className={classNames(
-                            item.current
-                              ? "text-neutral-500"
-                              : "text-neutral-400 group-hover:text-neutral-500",
+                            item.current ? "text-gray-500" : "text-gray-400 group-hover:text-gray-500",
                             "mr-3 flex-shrink-0 h-5 w-5"
                           )}
                           aria-hidden="true"
@@ -306,7 +304,7 @@ export default function Shell(props: {
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
                   </h1>
-                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
+                  <p className="mr-4 text-sm text-gray-500">{props.subtitle}</p>
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
@@ -327,7 +325,7 @@ export default function Shell(props: {
                     <Link key={item.name} href={item.href}>
                       <a
                         className={classNames(
-                          item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
+                          item.current ? "text-gray-900" : "text-gray-400 hover:text-gray-700",
                           itemIdx === 0 ? "rounded-l-lg" : "",
                           itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
                           "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
@@ -391,7 +389,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <span className="block font-medium text-gray-900 truncate">
                   {user?.username || "Nameless User"}
                 </span>
-                <span className="block font-normal truncate text-neutral-500">
+                <span className="block font-normal truncate text-gray-500">
                   {user?.username ? `cal.com/${user.username}` : "No public page"}
                 </span>
               </span>
