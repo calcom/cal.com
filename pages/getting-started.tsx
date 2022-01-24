@@ -373,7 +373,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             timeZone: selectedTimeZone,
           });
           setEnteredName(nameRef.current?.value || "");
-          setSubmitting(true);
+          setSubmitting(false);
         } catch (error) {
           setError(error as Error);
           setSubmitting(false);
