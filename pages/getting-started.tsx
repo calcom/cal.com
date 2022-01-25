@@ -356,6 +356,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                     type="text"
                     name="username"
                     id="username"
+                    data-testid="username"
                     placeholder={t("username")}
                     defaultValue={props.usernameParam ?? ""}
                     required
