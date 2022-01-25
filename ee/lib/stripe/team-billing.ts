@@ -21,8 +21,7 @@ export async function getProPlanSubscription(userId: number) {
     expand: ["subscriptions.data.plan"],
   });
   if (customer.deleted) throw new HttpError({ statusCode: 404, message: "Stripe customer not found" });
-
-  // get the first subscription item which should be the Pro Plan
+  // get the first subscription item which is the Pro Plan TODO: change to find()
   return customer.subscriptions?.data[0];
 }
 
@@ -60,10 +59,8 @@ export async function getTeamSeatStats(teamId: number) {
   };
 }
 
-// depending on the state of the owner's Stripe subscription we either create a new subscription or update the existing one
 async function updatePerSeatQuantity(subscription: Stripe.Subscription, quantity: number) {
   const perSeatProPlan = subscription.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice());
-
   // if their subscription does not contain Per Seat Pro, add it—otherwise, update the existing one
   return await stripe.subscriptions.update(subscription.id, {
     items: [
@@ -84,12 +81,12 @@ export async function upgradeToPerSeatPricing(userId: number, teamId: number) {
       where: { id: userId },
       select: { plan: true },
     });
+
     if (ownerUser?.plan !== UserPlan.PRO)
       throw new HttpError({ statusCode: 400, message: "User is not a pro" });
 
     const customer = await getStripeCustomerFromUser(userId);
     if (!customer) throw new HttpError({ statusCode: 400, message: "User has no Stripe customer" });
-
     // create a checkout session with the quantity of missing seats
     const session = await createPerSeatProCheckoutSession(customer, membersMissingSeats.length);
     // return checkout session url for redirect
@@ -161,7 +158,6 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
     subscription?.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice())?.quantity ?? 0;
 
   const { membersMissingSeats } = await getMembersMissingSeats(teamId);
-
   // correct the quantity if missing seats is out of sync with subscription quantity
   if (subscription && membersMissingSeats.length !== stripeQuantity) {
     await updatePerSeatQuantity(subscription, membersMissingSeats.length);
@@ -184,7 +180,7 @@ export async function downgradeTeamMembers(teamId: number) {
   });
 
   for (const member of members) {
-    //skip if user had their own Pro subscription
+    // skip if user had their own Pro subscription
     const subscription = await getProPlanSubscription(member.user.id);
     if (subscription?.items.data.length) continue;
 
