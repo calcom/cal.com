@@ -77,6 +77,16 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   if (!user) throw new Error("No user found");
 
   const t = await getTranslation(user.locale ?? "en", "common");
+  const attendeesListPromises = booking.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: await getTranslation(attendee.locale ?? "en", "common"),
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
 
   const evt: CalendarEvent = {
     type: booking.title,
@@ -85,7 +95,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone, language: t },
-    attendees: booking.attendees,
+    attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
   };

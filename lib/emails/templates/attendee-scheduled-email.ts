@@ -61,7 +61,7 @@ export default class AttendeeScheduledEmail {
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
-      title: this.calEvent.attendeesLanguage("ics_event_title", {
+      title: this.calEvent.attendees[0].language("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       }),
@@ -89,14 +89,14 @@ export default class AttendeeScheduledEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.attendeesLanguage("confirmed_event_type_subject", {
+      subject: `${this.calEvent.attendees[0].language("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
           "h:mma"
-        )}, ${this.calEvent.attendeesLanguage(
+        )}, ${this.calEvent.attendees[0].language(
           this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.attendeesLanguage(
+        )}, ${this.calEvent.attendees[0].language(
           this.getInviteeStart().format("MMMM").toLowerCase()
         )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
       })}`,
@@ -114,8 +114,8 @@ export default class AttendeeScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.attendeesLanguage("your_event_has_been_scheduled")}
-${this.calEvent.attendeesLanguage("emailed_you_and_any_other_attendees")}
+${this.calEvent.attendees[0].language("your_event_has_been_scheduled")}
+${this.calEvent.attendees[0].language("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
 `.trim();
@@ -126,14 +126,14 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.attendeesLanguage("confirmed_event_type_subject", {
+    const headerContent = this.calEvent.attendees[0].language("confirmed_event_type_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
         "h:mma"
-      )}, ${this.calEvent.attendeesLanguage(
+      )}, ${this.calEvent.attendees[0].language(
         this.getInviteeStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.attendeesLanguage(
+      )}, ${this.calEvent.attendees[0].language(
         this.getInviteeStart().format("MMMM").toLowerCase()
       )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
     });
@@ -146,8 +146,8 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.attendeesLanguage("your_event_has_been_scheduled"),
-          this.calEvent.attendeesLanguage("emailed_you_and_any_other_attendees")
+          this.calEvent.attendees[0].language("your_event_has_been_scheduled"),
+          this.calEvent.attendees[0].language("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -219,8 +219,8 @@ ${getRichDescription(this.calEvent)}
     // Only the original attendee can make changes to the event
     // Guests cannot
     if (this.attendee === this.calEvent.attendees[0]) {
-      const manageText = this.calEvent.attendeesLanguage("manage_this_event");
-      return `<p>${this.calEvent.attendeesLanguage(
+      const manageText = this.calEvent.attendees[0].language("manage_this_event");
+      return `<p>${this.calEvent.attendees[0].language(
         "need_to_reschedule_or_cancel"
       )}</p><p style="font-weight: 400; line-height: 24px;"><a href="${getCancelLink(
         this.calEvent
@@ -233,7 +233,7 @@ ${getRichDescription(this.calEvent)}
   protected getWhat(): string {
     return `
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendeesLanguage("what")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language("what")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.type}</p>
     </div>`;
   }
@@ -242,11 +242,11 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendeesLanguage("when")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language("when")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
-      ${this.calEvent.attendeesLanguage(
+      ${this.calEvent.attendees[0].language(
         this.getInviteeStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.attendeesLanguage(
+      )}, ${this.calEvent.attendees[0].language(
       this.getInviteeStart().format("MMMM").toLowerCase()
     )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format(
       "YYYY"
@@ -261,7 +261,7 @@ ${getRichDescription(this.calEvent)}
     const attendees = this.calEvent.attendees
       .map((attendee) => {
         return `<div style="color: #494949; font-weight: 400; line-height: 24px;">${
-          attendee?.name || `${this.calEvent.attendeesLanguage("guest")}`
+          attendee?.name || `${this.calEvent.attendees[0].language("guest")}`
         } <span style="color: #888888"><a href="mailto:${attendee.email}" style="color: #888888;">${
           attendee.email
         }</a></span></div>`;
@@ -270,14 +270,14 @@ ${getRichDescription(this.calEvent)}
 
     const organizer = `<div style="color: #494949; font-weight: 400; line-height: 24px;">${
       this.calEvent.organizer.name
-    } - ${this.calEvent.attendeesLanguage("organizer")} <span style="color: #888888"><a href="mailto:${
+    } - ${this.calEvent.attendees[0].language("organizer")} <span style="color: #888888"><a href="mailto:${
       this.calEvent.organizer.email
     }" style="color: #888888;">${this.calEvent.organizer.email}</a></span></div>`;
 
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendeesLanguage("who")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language("who")}</p>
       ${organizer + attendees}
     </div>`;
   }
@@ -286,7 +286,7 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendeesLanguage("additional_notes")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language("additional_notes")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.description}</p>
     </div>
     `;
@@ -308,30 +308,30 @@ ${getRichDescription(this.calEvent)}
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
-        <p style="color: #494949;">${this.calEvent.attendeesLanguage("where")}</p>
+        <p style="color: #494949;">${this.calEvent.attendees[0].language("where")}</p>
         <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
         meetingUrl &&
-        `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.attendeesLanguage(
+        `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.attendees[0].language(
           "meeting_url"
         )}"><img src="${linkIcon()}" width="12px"></img></a>`
       }</p>
         ${
           meetingId &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendeesLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendees[0].language(
             "meeting_id"
           )}: <span>${meetingId}</span></div>`
         }
         ${
           meetingPassword &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendeesLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendees[0].language(
             "meeting_password"
           )}: <span>${meetingPassword}</span></div>`
         }
         ${
           meetingUrl &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendeesLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.attendees[0].language(
             "meeting_url"
-          )}: <a href="${meetingUrl}" alt="${this.calEvent.attendeesLanguage(
+          )}: <a href="${meetingUrl}" alt="${this.calEvent.attendees[0].language(
             "meeting_url"
           )}" style="color: #3E3E3E" target="_blank">${meetingUrl}</a></div>`
         }
@@ -345,14 +345,14 @@ ${getRichDescription(this.calEvent)}
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
-        <p style="color: #494949;">${this.calEvent.attendeesLanguage("where")}</p>
+        <p style="color: #494949;">${this.calEvent.attendees[0].language("where")}</p>
         <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
         hangoutLink &&
-        `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.attendeesLanguage(
+        `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.attendees[0].language(
           "meeting_url"
         )}"><img src="${linkIcon()}" width="12px"></img></a>`
       }</p>
-        <div style="color: #494949; font-weight: 400; line-height: 24px;"><a href="${hangoutLink}" alt="${this.calEvent.attendeesLanguage(
+        <div style="color: #494949; font-weight: 400; line-height: 24px;"><a href="${hangoutLink}" alt="${this.calEvent.attendees[0].language(
         "meeting_url"
       )}" style="color: #3E3E3E" target="_blank">${hangoutLink}</a></div>
       </div>
@@ -362,7 +362,7 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendeesLanguage("where")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language("where")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
       }</p>

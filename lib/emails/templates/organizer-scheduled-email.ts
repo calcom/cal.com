@@ -59,7 +59,7 @@ export default class OrganizerScheduledEmail {
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
-      title: this.calEvent.organizerLanguage("ics_event_title", {
+      title: this.calEvent.organizer.language("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       }),
@@ -96,14 +96,14 @@ export default class OrganizerScheduledEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizerLanguage("confirmed_event_type_subject", {
+      subject: `${this.calEvent.organizer.language("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
-        )}, ${this.calEvent.organizerLanguage(
+        )}, ${this.calEvent.organizer.language(
           this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.organizerLanguage(
+        )}, ${this.calEvent.organizer.language(
           this.getOrganizerStart().format("MMMM").toLowerCase()
         )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
@@ -121,8 +121,8 @@ export default class OrganizerScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.organizerLanguage("new_event_scheduled")}
-${this.calEvent.organizerLanguage("emailed_you_and_any_other_attendees")}
+${this.calEvent.organizer.language("new_event_scheduled")}
+${this.calEvent.organizer.language("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
 `.trim();
@@ -133,14 +133,14 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.organizerLanguage("confirmed_event_type_subject", {
+    const headerContent = this.calEvent.organizer.language("confirmed_event_type_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,
       date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
         "h:mma"
-      )}, ${this.calEvent.organizerLanguage(
+      )}, ${this.calEvent.organizer.language(
         this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.organizerLanguage(
+      )}, ${this.calEvent.organizer.language(
         this.getOrganizerStart().format("MMMM").toLowerCase()
       )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
     });
@@ -153,8 +153,8 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizerLanguage("new_event_scheduled"),
-          this.calEvent.organizerLanguage("emailed_you_and_any_other_attendees")
+          this.calEvent.organizer.language("new_event_scheduled"),
+          this.calEvent.organizer.language("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -223,8 +223,8 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getManageLink(): string {
-    const manageText = this.calEvent.organizerLanguage("manage_this_event");
-    return `<p>${this.calEvent.organizerLanguage(
+    const manageText = this.calEvent.organizer.language("manage_this_event");
+    return `<p>${this.calEvent.organizer.language(
       "need_to_reschedule_or_cancel"
     )}</p><p style="font-weight: 400; line-height: 24px;"><a href="${getCancelLink(
       this.calEvent
@@ -234,7 +234,7 @@ ${getRichDescription(this.calEvent)}
   protected getWhat(): string {
     return `
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizerLanguage("what")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language("what")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.type}</p>
     </div>`;
   }
@@ -243,11 +243,11 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizerLanguage("when")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language("when")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
-      ${this.calEvent.organizerLanguage(
+      ${this.calEvent.organizer.language(
         this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.organizerLanguage(
+      )}, ${this.calEvent.organizer.language(
       this.getOrganizerStart().format("MMMM").toLowerCase()
     )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format(
       "YYYY"
@@ -262,7 +262,7 @@ ${getRichDescription(this.calEvent)}
     const attendees = this.calEvent.attendees
       .map((attendee) => {
         return `<div style="color: #494949; font-weight: 400; line-height: 24px;">${
-          attendee?.name || `${this.calEvent.organizerLanguage("guest")}`
+          attendee?.name || `${this.calEvent.organizer.language("guest")}`
         } <span style="color: #888888"><a href="mailto:${attendee.email}" style="color: #888888;">${
           attendee.email
         }</a></span></div>`;
@@ -271,14 +271,14 @@ ${getRichDescription(this.calEvent)}
 
     const organizer = `<div style="color: #494949; font-weight: 400; line-height: 24px;">${
       this.calEvent.organizer.name
-    } - ${this.calEvent.organizerLanguage("organizer")} <span style="color: #888888"><a href="mailto:${
+    } - ${this.calEvent.organizer.language("organizer")} <span style="color: #888888"><a href="mailto:${
       this.calEvent.organizer.email
     }" style="color: #888888;">${this.calEvent.organizer.email}</a></span></div>`;
 
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizerLanguage("who")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language("who")}</p>
       ${organizer + attendees}
     </div>`;
   }
@@ -287,7 +287,7 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizerLanguage("additional_notes")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language("additional_notes")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.description}</p>
     </div>
     `;
@@ -309,30 +309,30 @@ ${getRichDescription(this.calEvent)}
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
-        <p style="color: #494949;">${this.calEvent.organizerLanguage("where")}</p>
+        <p style="color: #494949;">${this.calEvent.organizer.language("where")}</p>
         <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
         meetingUrl &&
-        `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.organizerLanguage(
+        `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.organizer.language(
           "meeting_url"
         )}"><img src="${linkIcon()}" width="12px"></img></a>`
       }</p>
         ${
           meetingId &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizerLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizer.language(
             "meeting_id"
           )}: <span>${meetingId}</span></div>`
         }
         ${
           meetingPassword &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizerLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizer.language(
             "meeting_password"
           )}: <span>${meetingPassword}</span></div>`
         }
         ${
           meetingUrl &&
-          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizerLanguage(
+          `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizer.language(
             "meeting_url"
-          )}: <a href="${meetingUrl}" alt="${this.calEvent.organizerLanguage(
+          )}: <a href="${meetingUrl}" alt="${this.calEvent.organizer.language(
             "meeting_url"
           )}" style="color: #3E3E3E" target="_blank">${meetingUrl}</a></div>`
         }
@@ -346,14 +346,14 @@ ${getRichDescription(this.calEvent)}
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
-        <p style="color: #494949;">${this.calEvent.organizerLanguage("where")}</p>
+        <p style="color: #494949;">${this.calEvent.organizer.language("where")}</p>
         <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
         hangoutLink &&
-        `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.organizerLanguage(
+        `<a href="${hangoutLink}" target="_blank" alt="${this.calEvent.organizer.language(
           "meeting_url"
         )}"><img src="${linkIcon()}" width="12px"></img></a>`
       }</p>
-        <div style="color: #494949; font-weight: 400; line-height: 24px;"><a href="${hangoutLink}" alt="${this.calEvent.organizerLanguage(
+        <div style="color: #494949; font-weight: 400; line-height: 24px;"><a href="${hangoutLink}" alt="${this.calEvent.organizer.language(
         "meeting_url"
       )}" style="color: #3E3E3E" target="_blank">${hangoutLink}</a></div>
       </div>
@@ -363,7 +363,7 @@ ${getRichDescription(this.calEvent)}
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizerLanguage("where")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language("where")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
       }</p>
