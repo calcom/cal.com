@@ -88,7 +88,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   return (
     (isReady && (
-      <div className="h-screen bg-neutral-50 dark:bg-neutral-900" data-testid="success-page">
+      <div className="h-screen bg-neutral-100 dark:bg-neutral-900" data-testid="success-page">
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}

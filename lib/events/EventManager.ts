@@ -257,6 +257,10 @@ export default class EventManager {
       return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
     }
 
+    /**
+     *  Not ideal but, if we don't find a destination calendar,
+     * fallback to the first connected calendar
+     */
     const [credential] = this.calendarCredentials;
     if (!credential) {
       return [];

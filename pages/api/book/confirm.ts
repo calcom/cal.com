@@ -96,6 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: true,
         uid: true,
         payment: true,
+        destinationCalendar: true,
       },
     });
 
@@ -126,6 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: booking.location ?? "",
       uid: booking.uid,
       language: t,
+      destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
     };
 
     if (reqBody.confirmed) {

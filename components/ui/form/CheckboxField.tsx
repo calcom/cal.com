@@ -1,7 +1,7 @@
 import React, { forwardRef, InputHTMLAttributes } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
+  label: React.ReactNode;
   description: string;
 };
 
