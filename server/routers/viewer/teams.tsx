@@ -5,10 +5,9 @@ import { z } from "zod";
 
 import {
   addSeat,
+  removeSeat,
   getTeamSeatStats,
   downgradeTeamMembers,
-  ensureSubscriptionQuantityCorrectness,
-  removeSeat,
   upgradeToPerSeatPricing,
 } from "@ee/lib/stripe/team-billing";
 
