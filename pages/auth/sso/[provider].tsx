@@ -8,8 +8,6 @@ import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID, samlTenantProduct } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { ssrInit } from "@server/lib/ssr";
-
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: SSOProviderPageProps) {
@@ -50,7 +48,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
 
   const session = await getSession({ req });
-  const ssr = await ssrInit(context);
 
   if (session) {
     return {
@@ -91,7 +88,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      trpcState: ssr.dehydrate(),
       provider: providerParam,
       isSAMLLoginEnabled,
       hostedCal,
