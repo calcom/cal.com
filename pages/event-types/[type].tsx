@@ -24,6 +24,7 @@ import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
+import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -58,10 +59,6 @@ import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-// TODO @danfesi we need to get this boolean from user_settings
-// we should also disable the other API calls for web3 if it's disabled
-const web3App = true;
 
 interface Token {
   name?: string;
@@ -781,7 +778,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       </div>
-                      {web3App && (
+                      {eventType.isWeb3Active && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
                             <label
@@ -792,13 +789,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                           <div className="w-full">
                             <div className="relative mt-1 rounded-sm shadow-sm">
-                              <input
-                                type="text"
-                                className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                                placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                defaultValue={eventType.smartContractAddress || ""}
-                                {...formMethods.register("smartContractAddress")}
-                              />
+                              {
+                                <input
+                                  type="text"
+                                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                  defaultValue={eventType.smartContractAddress || ""}
+                                  {...formMethods.register("smartContractAddress")}
+                                />
+                              }
                             </div>
                           </div>
                         </div>
@@ -1502,10 +1501,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     address?: string;
   };
 
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     locations: locations as unknown as Location[],
+    isWeb3Active:
+      web3Credentials && web3Credentials.key
+        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+        : false,
   };
 
   // backwards compat
@@ -1519,17 +1534,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
 
   const integrations = getIntegrations(credentials);
 

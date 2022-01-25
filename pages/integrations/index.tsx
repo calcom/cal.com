@@ -4,6 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import Image from "next/image";
 import React, { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import Web3 from "web3";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -30,6 +31,8 @@ import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
 type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
+
+type TWindow = (Window | typeof globalThis) & { ethereum: any; web3: Web3 | null };
 
 function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }) {
   const { t } = useLocale();
@@ -558,14 +561,45 @@ function Web3Container() {
                 <ListItemTitle component="h3">MetaMask</ListItemTitle>
                 <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
               </div>
-              <Button color="secondary" onClick={() => alert("activate web3 app")} data-testid="new_webhook">
-                {t("connect")}
-              </Button>
+              <Web3ConnectBtn />
             </div>
           </ListItem>
         </List>
       </div>
     </>
+  );
+}
+
+function Web3ConnectBtn() {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+
+  const { data = { isWeb3Active: false } } = trpc.useQuery(["viewer.web3Integration"], { suspense: true });
+
+  const mutation = trpc.useMutation("viewer.enableOrDisableWeb3");
+
+  const enableOrDisableWeb3 = async (mutation: any) => {
+    const currentWindow: TWindow = { ethereum: null, web3: null, ...window };
+
+    if (currentWindow.ethereum) {
+      await currentWindow.ethereum.request({ method: "eth_requestAccounts" });
+      currentWindow.web3 = new Web3(currentWindow.ethereum);
+
+      await mutation.mutate({});
+      handleConnectionChange();
+    }
+  };
+
+  const handleConnectionChange = () => {
+    utils.invalidateQueries(["viewer.web3Integration"]);
+  };
+  return (
+    <Button
+      color="secondary"
+      onClick={async () => await enableOrDisableWeb3(mutation)}
+      data-testid="new_webhook">
+      {data.isWeb3Active ? t("disconnect") : t("connect")}
+    </Button>
   );
 }
 

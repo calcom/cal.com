@@ -22,11 +22,12 @@ export type Integration = {
     | "daily_video"
     | "caldav_calendar"
     | "apple_calendar"
-    | "stripe_payment";
+    | "stripe_payment"
+    | "metamask_web3";
   title: string;
   imageSrc: string;
   description: string;
-  variant: "calendar" | "conferencing" | "payment";
+  variant: "calendar" | "conferencing" | "payment" | "web3";
 };
 
 export const ALL_INTEGRATIONS = [
@@ -89,6 +90,14 @@ export const ALL_INTEGRATIONS = [
     imageSrc: "integrations/stripe.svg",
     description: "Collect payments",
     variant: "payment",
+  },
+  {
+    installed: true,
+    type: "metamask_web3",
+    title: "Metamask",
+    imageSrc: "integrations/apple-calendar.svg",
+    description: "For personal and business calendars",
+    variant: "web3",
   },
 ] as Integration[];
 

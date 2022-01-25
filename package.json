@@ -27,6 +27,7 @@
     "postinstall": "yarn generate-schemas",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "prepare": "husky install",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },

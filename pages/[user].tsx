@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
+import { JSONObject } from "superjson/dist/types";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
@@ -87,7 +88,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>
-                  {type.smartContractAddress && (
+                  {type.isWeb3Active && type.smartContractAddress && (
                     <CryptoSection
                       id={type.id}
                       smartContractAddress={type.smartContractAddress}
@@ -163,6 +164,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+
   const eventTypesWithHidden = await prisma.eventType.findMany({
     where: {
       AND: [
@@ -208,7 +222,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     take: user.plan === "FREE" ? 1 : undefined,
   });
 
-  const eventTypes = eventTypesWithHidden.filter((evt) => !evt.hidden);
+  const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
+  const eventTypes = eventTypesRaw.map((eventType) => ({
+    ...eventType,
+    isWeb3Active:
+      web3Credentials && web3Credentials.key
+        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+        : false,
+  }));
 
   return {
     props: {

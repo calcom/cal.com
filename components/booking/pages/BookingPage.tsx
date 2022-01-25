@@ -115,6 +115,8 @@ const BookingPage = (props: BookingPageProps) => {
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
+  const eventType = { isWeb3Active: false, smartContractAddress: "", ...props.eventType };
+
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
@@ -314,10 +316,10 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseDate(date)}
                 </p>
-                {props.eventType.smartContractAddress && (
+                {eventType.isWeb3Active && eventType.smartContractAddress && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     Requires ownership of a token belonging to the following address:{" "}
-                    {props.eventType.smartContractAddress}
+                    {eventType.smartContractAddress}
                   </p>
                 )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
