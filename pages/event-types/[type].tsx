@@ -47,6 +47,7 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
+import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
@@ -763,7 +764,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                            {t("event_name")}
+                            {t("event_name")} <InfoBadge content={t("event_name_tooltip")} />
                           </label>
                         </div>
                         <div className="w-full">

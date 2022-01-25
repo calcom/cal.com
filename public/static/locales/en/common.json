@@ -509,6 +509,7 @@
   "add_attendees": "Add attendees",
   "show_advanced_settings": "Show advanced settings",
   "event_name": "Event Name",
+  "event_name_tooltip": "The name that will appear in calendars",
   "meeting_with_user": "Meeting with {USER}",
   "additional_inputs": "Additional Inputs",
   "label": "Label",
