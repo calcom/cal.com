@@ -124,10 +124,10 @@ if (isSAMLLoginEnabled) {
     profile: (profile) => {
       return {
         id: profile.id || "",
-        firstName: profile.first_name || "",
-        lastName: profile.last_name || "",
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
         email: profile.email || "",
-        name: `${profile.firstName} ${profile.lastName}`,
+        name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
       };
     },
