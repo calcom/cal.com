@@ -5,8 +5,9 @@ import { z } from "zod";
 
 import {
   addSeat,
-  calculateTeamSeats,
+  getTeamSeatStats,
   downgradeTeamMembers,
+  ensureSubscriptionQuantityCorrectness,
   removeSeat,
   upgradeToPerSeatPricing,
 } from "@ee/lib/stripe/team-billing";
@@ -212,12 +213,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
-      try {
-        // TODO: disable if not hosted by Cal
-        await addSeat(ctx.user.id, team.id, invitee?.id);
-      } catch (e) {
-        console.log(e);
-      }
+      let inviteeUserId: number | undefined = invitee?.id;
 
       if (!invitee) {
         // liberal email match
@@ -230,7 +226,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           });
 
         // valid email given, create User and add to team
-        await ctx.prisma.user.create({
+        const user = await ctx.prisma.user.create({
           data: {
             email: input.usernameOrEmail,
             invitedTo: input.teamId,
@@ -242,6 +238,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             },
           },
         });
+        inviteeUserId = user.id;
 
         const token: string = randomBytes(32).toString("hex");
 
@@ -296,6 +293,12 @@ export const viewerTeamsRouter = createProtectedRouter()
 
           await sendTeamInviteEmail(teamInviteEvent);
         }
+      }
+      try {
+        // TODO: disable if not hosted by Cal
+        await addSeat(ctx.user.id, team.id, inviteeUserId);
+      } catch (e) {
+        console.log(e);
       }
     },
   })
@@ -423,7 +426,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      await upgradeToPerSeatPricing(ctx.user.id, input.teamId);
+      return await upgradeToPerSeatPricing(ctx.user.id, input.teamId);
     },
   })
   .query("getTeamSeats", {
@@ -431,6 +434,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ input }) {
-      return await calculateTeamSeats(input.teamId);
+      return await getTeamSeatStats(input.teamId);
     },
   });
