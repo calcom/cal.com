@@ -349,3 +349,8 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
+
+[<img src="https://jitsu.com/img/powered-by-jitsu.png">](https://jitsu.com/?utm_source=cal.com-gihub)
+
+Cal.com is an [open startup](https://jitsu.com) helps us to track most of the usage metrics  
+  
