@@ -60,49 +60,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
             <div className="space-y-6" data-testid="event-types">
-              {eventTypes.map((type) => (
-                <div
-                  key={type.id}
-                  style={{ display: "flex" }}
-                  className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
-                  <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
-                  <Link
-                    href={{
-                      pathname: `/${user.username}/${type.slug}`,
-                      query,
-                    }}>
-                    <a
-                      onClick={(e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.smartContractAddress && !evtsToVerify[type.id]) {
-                          e.preventDefault();
-                          showToast(
-                            "You must verify a wallet with a token belonging to the specified smart contract first",
-                            "error"
-                          );
-                        }
-                      }}
-                      className="block px-6 py-4"
-                      data-testid="event-type-link">
-                      <h2 className="font-semibold grow text-neutral-900 dark:text-white">{type.title}</h2>
-                      <EventTypeDescription eventType={type} />
-                    </a>
-                  </Link>
-                  {type.isWeb3Active && type.smartContractAddress && (
-                    <CryptoSection
-                      id={type.id}
-                      smartContractAddress={type.smartContractAddress}
-                      verified={evtsToVerify[type.id]}
-                      setEvtsToVerify={setEvtsToVerify}
-                      oneStep
-                    />
-                  )}
-                </div>
-              ))}
               {!user.away &&
                 eventTypes.map((type) => (
                   <div
                     key={type.id}
+                    style={{ display: "flex" }}
                     className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
                     <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
                     <Link
@@ -110,11 +72,32 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                         pathname: `/${user.username}/${type.slug}`,
                         query,
                       }}>
-                      <a className="block px-6 py-4" data-testid="event-type-link">
-                        <h2 className="font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                      <a
+                        onClick={(e) => {
+                          // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
+                          if (type.smartContractAddress && !evtsToVerify[type.id]) {
+                            e.preventDefault();
+                            showToast(
+                              "You must verify a wallet with a token belonging to the specified smart contract first",
+                              "error"
+                            );
+                          }
+                        }}
+                        className="block px-6 py-4"
+                        data-testid="event-type-link">
+                        <h2 className="font-semibold grow text-neutral-900 dark:text-white">{type.title}</h2>
                         <EventTypeDescription eventType={type} />
                       </a>
                     </Link>
+                    {type.isWeb3Active && type.smartContractAddress && (
+                      <CryptoSection
+                        id={type.id}
+                        smartContractAddress={type.smartContractAddress}
+                        verified={evtsToVerify[type.id]}
+                        setEvtsToVerify={setEvtsToVerify}
+                        oneStep
+                      />
+                    )}
                   </div>
                 ))}
             </div>
