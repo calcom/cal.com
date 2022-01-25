@@ -9,6 +9,7 @@ import {
   getTeamSeatStats,
   downgradeTeamMembers,
   upgradeToPerSeatPricing,
+  ensureSubscriptionQuantityCorrectness,
 } from "@ee/lib/stripe/team-billing";
 
 import { BASE_URL } from "@lib/config/constants";
@@ -183,6 +184,8 @@ export const viewerTeamsRouter = createProtectedRouter()
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
         },
       });
+
+      await removeSeat(ctx.user.id, input.teamId, input.memberId);
     },
   })
   .mutation("inviteMember", {
@@ -434,5 +437,13 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ input }) {
       return await getTeamSeatStats(input.teamId);
+    },
+  })
+  .mutation("ensureSubscriptionQuantityCorrectness", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
     },
   });

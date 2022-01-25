@@ -115,6 +115,8 @@ async function addOrRemoveSeat(remove: boolean, userId: number, teamId: number, 
   console.log(remove ? "removing member" : "adding member", { userId, teamId, memberUserId });
 
   const subscription = await getProPlanSubscription(userId);
+  if (!subscription) return;
+
   // get the per seat plan from the subscription
   const perSeatProPlanPrice = subscription?.items.data.find(
     (item) => item.plan.id === getPerSeatProPlanPrice()
@@ -124,17 +126,12 @@ async function addOrRemoveSeat(remove: boolean, userId: number, teamId: number, 
     where: { id: memberUserId },
     select: { plan: true, metadata: true },
   });
-  // check if user already has pro
-  const memberHasPro = memberUser?.plan === UserPlan.PRO;
-
-  if (subscription && !memberHasPro) {
-    // takes care of either adding per seat pricing, or updating the existing one's quantity
-    await updatePerSeatQuantity(
-      subscription,
-      remove ? (perSeatProPlanPrice?.quantity ?? 1) - 1 : (perSeatProPlanPrice?.quantity ?? 0) + 1
-    );
-  }
-  if (subscription && memberUser) {
+  // takes care of either adding per seat pricing, or updating the existing one's quantity
+  await updatePerSeatQuantity(
+    subscription,
+    remove ? (perSeatProPlanPrice?.quantity ?? 1) - 1 : (perSeatProPlanPrice?.quantity ?? 0) + 1
+  );
+  if (memberUser) {
     // add or remove proPaidForByTeamId from metadata
     const metadata: Record<string, unknown> = {
       proPaidForByTeamId: teamId,
