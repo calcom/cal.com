@@ -10,7 +10,6 @@ import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import { Ensure } from "@lib/types/utils";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -79,13 +78,13 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   const t = await getTranslation(user.locale ?? "en", "common");
 
-  const evt: Ensure<CalendarEvent, "organizerLanguage"> = {
+  const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
-    organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
+    organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone, language: t },
     attendees: booking.attendees,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
