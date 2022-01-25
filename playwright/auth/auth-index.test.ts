@@ -22,27 +22,18 @@ test.describe("Can signup from a team invite", async () => {
 
     await page.goto("/settings/teams");
 
-    // If team does not exist, create it
-    try {
-      await page.waitForSelector(`a[title="${team}"]`, { timeout: 3000 });
-    } catch (error) {
-      // Create New Team
-      await page.click('button[type="button"]');
-      await page.fill('input[name="name"]', team);
-      await page.click('button[type="submit"]');
-    }
+    // Create New Team
+    await page.click('button[type="button"]');
+    await page.fill('input[name="name"]', team);
+    await page.click('button[type="submit"]');
 
     // Click the team link
     await page.click(`a[title="${team}"]`);
 
-    try {
-      await page.waitForSelector(`[data-testid="member-email"][data-email="${email}"]`, { timeout: 3000 });
-    } catch (error) {
-      // Send invite to team
-      await page.click('[data-testid="new-member-button"]');
-      await page.fill('input[id="inviteUser"]', email);
-      await page.click('[data-testid="invite-new-member-button"]');
-    }
+    // Send invite to team
+    await page.click('[data-testid="new-member-button"]');
+    await page.fill('input[id="inviteUser"]', email);
+    await page.click('[data-testid="invite-new-member-button"]');
 
     const tokenObj = await prisma.verificationRequest.findFirst({
       where: { identifier: email },
@@ -53,14 +44,40 @@ test.describe("Can signup from a team invite", async () => {
   });
 
   test.afterAll(async () => {
-    // Delete user with email
+    // Delete test user
     await prisma.user.delete({
       where: { email },
     });
-    // Delete verification request with token
+    // Delete verification request
     await prisma.verificationRequest.delete({
       where: { token },
     });
+    // Delete membership of pro user with the "test-team" team
+    // First, let's find the userId of the pro user
+    const proUserId = (
+      await prisma.user.findUnique({
+        where: { username: usernameAlreadyTaken },
+        select: { id: true },
+      })
+    )?.id;
+    if (!proUserId) return;
+    // Then, let's find the teamId of the "test-team" team
+    const teamId = (
+      await prisma.team.findUnique({
+        where: { slug: team },
+        select: { id: true },
+      })
+    )?.id;
+    if (!teamId) return;
+
+    // Now, let's delete the membership
+    await prisma.membership.delete({
+      where: {
+        userId_teamId: { userId: proUserId, teamId },
+      },
+    });
+    // And finally, delete the team
+    await prisma.team.delete({ where: { slug: team } });
   });
 
   test("Username already taken", async ({ page }) => {
