@@ -48,6 +48,8 @@ type ScheduleFormValues = {
   schedule: ScheduleType;
 };
 
+let mutationComplete: ((err: Error | null) => void) | null;
+
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
@@ -57,10 +59,17 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     onSuccess: async () => {
       setSubmitting(true);
       setEnteredName(nameRef.current?.value || "");
+      if (mutationComplete) {
+        mutationComplete(null);
+        mutationComplete = null;
+      }
       setSubmitting(false);
     },
     onError: (err) => {
       setError(new Error(err.message));
+      if (mutationComplete) {
+        mutationComplete(new Error(err.message));
+      }
       setSubmitting(false);
     },
   });
@@ -185,7 +194,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       incrementStep();
       setSubmitting(false);
     } catch (error) {
-      console.log("handleConfirmStep", error);
       setSubmitting(false);
       setError(error as Error);
     }
@@ -399,11 +407,27 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       showCancel: true,
       cancelText: t("set_up_later"),
       onComplete: async () => {
+        mutationComplete = null;
+        setError(null);
+        const mutationAsync = new Promise((resolve, reject) => {
+          mutationComplete = (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(null);
+          };
+        });
+
         mutation.mutate({
           username: usernameRef.current?.value,
           name: nameRef.current?.value,
           timeZone: selectedTimeZone,
         });
+
+        if (mutationComplete) {
+          await mutationAsync;
+        }
       },
     },
     {
@@ -503,7 +527,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       onComplete: async () => {
         try {
           setSubmitting(true);
-          console.log("updating");
           await updateUser({
             bio: bioRef.current?.value,
           });
@@ -554,9 +577,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
-
-              {error && <Alert severity="error" {...error} />}
-
+              {error && <Alert severity="error" message={error?.message} />}
               <section className="flex w-full space-x-2">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
