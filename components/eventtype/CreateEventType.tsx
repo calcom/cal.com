@@ -51,7 +51,9 @@ export default function CreateEventTypeButton(props: Props) {
 
   // URL encoded params
   const teamId: number | undefined =
-    typeof router.query.teamId === "string" ? parseInt(router.query.teamId) : undefined;
+    typeof router.query.teamId === "string" && router.query.teamId
+      ? parseInt(router.query.teamId)
+      : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
 
@@ -123,13 +125,7 @@ export default function CreateEventTypeButton(props: Props) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={PlusIcon}
-          {...(props.canAddEvents
-            ? {
-                href: modalOpen.hrefOn,
-              }
-            : {
-                disabled: true,
-              })}>
+          {...(props.canAddEvents ? { href: modalOpen.hrefOn } : { disabled: true })}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
