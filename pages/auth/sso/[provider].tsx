@@ -10,7 +10,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type(props: SSOProviderPageProps) {
+export default function Provider(props: SSOProviderPageProps) {
   const router = useRouter();
 
   if (props.provider === "saml") {
