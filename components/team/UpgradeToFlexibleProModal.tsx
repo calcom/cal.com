@@ -22,13 +22,12 @@ export function UpgradeToFlexibleProModal(props: Props) {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
+  const utils = trpc.useContext();
   const { data } = trpc.useQuery(["viewer.teams.getTeamSeats", { teamId: props.teamId }], {
     onError: (err) => {
       setErrorMessage(err.message);
     },
   });
-
   const mutation = trpc.useMutation(["viewer.teams.upgradeToPerSeatPricing"], {
     onSuccess: (data) => {
       // if the user does not already have a Stripe subscription, this wi
@@ -36,6 +35,7 @@ export function UpgradeToFlexibleProModal(props: Props) {
         window.location.href = data.url;
       }
       if (data?.success) {
+        utils.invalidateQueries(["viewer.teams.get"]);
         setSuccessMessage(t("team_upgrade_success"));
       }
     },
