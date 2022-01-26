@@ -58,6 +58,10 @@ function useRedirectToLoginIfUnauthenticated() {
   const router = useRouter();
 
   useEffect(() => {
+    if (router.pathname.startsWith("/apps")) {
+      return;
+    }
+
     if (!loading && !session) {
       router.replace({
         pathname: "/auth/login",
@@ -194,6 +198,7 @@ export default function Shell(props: {
   const user = query.data;
 
   const i18n = useViewerI18n();
+  const { status } = useSession();
 
   if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
@@ -221,77 +226,79 @@ export default function Shell(props: {
       <div
         className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
         data-testid="dashboard-shell">
-        <div className="hidden md:flex lg:flex-shrink-0">
-          <div className="flex flex-col w-14 lg:w-56">
-            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
-                <Link href="/event-types">
-                  <a className="px-4 md:hidden lg:inline">
-                    <Logo small />
-                  </a>
-                </Link>
-                {/* logo icon for tablet */}
-                <Link href="/event-types">
-                  <a className="md:inline lg:hidden">
-                    <Logo small icon />
-                  </a>
-                </Link>
-                <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
-                  {navigation.map((item) => (
-                    <Fragment key={item.name}>
-                      <Link href={item.href}>
-                        <a
-                          className={classNames(
-                            item.current
-                              ? "bg-neutral-100 text-neutral-900"
-                              : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                            "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
-                          )}>
-                          <item.icon
+        {status === "authenticated" && (
+          <div className="hidden md:flex lg:flex-shrink-0">
+            <div className="flex flex-col w-14 lg:w-56">
+              <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
+                <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
+                  <Link href="/event-types">
+                    <a className="px-4 md:hidden lg:inline">
+                      <Logo small />
+                    </a>
+                  </Link>
+                  {/* logo icon for tablet */}
+                  <Link href="/event-types">
+                    <a className="md:inline lg:hidden">
+                      <Logo small icon />
+                    </a>
+                  </Link>
+                  <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
+                    {navigation.map((item) => (
+                      <Fragment key={item.name}>
+                        <Link href={item.href}>
+                          <a
                             className={classNames(
                               item.current
-                                ? "text-neutral-500"
-                                : "text-neutral-400 group-hover:text-neutral-500",
-                              "mr-3 flex-shrink-0 h-5 w-5"
-                            )}
-                            aria-hidden="true"
-                          />
-                          <span className="hidden lg:inline">{item.name}</span>
-                        </a>
-                      </Link>
-                      {item.child &&
-                        router.asPath.startsWith(item.href) &&
-                        item.child.map((item) => {
-                          return (
-                            <Link key={item.name} href={item.href}>
-                              <a
-                                className={classNames(
-                                  item.current
-                                    ? "text-neutral-900"
-                                    : "text-neutral-500 hover:text-neutral-900",
-                                  "hidden pl-10 group lg:flex items-center px-2 py-2 text-sm font-medium rounded-sm"
-                                )}>
-                                <span className="hidden lg:inline">{item.name}</span>
-                              </a>
-                            </Link>
-                          );
-                        })}
-                    </Fragment>
-                  ))}
-                </nav>
-              </div>
-              <TrialBanner />
-              <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
-                <span className="hidden lg:inline">
-                  <UserDropdown />
-                </span>
-                <span className="hidden md:inline lg:hidden">
-                  <UserDropdown small />
-                </span>
+                                ? "bg-neutral-100 text-neutral-900"
+                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                              "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                            )}>
+                            <item.icon
+                              className={classNames(
+                                item.current
+                                  ? "text-neutral-500"
+                                  : "text-neutral-400 group-hover:text-neutral-500",
+                                "mr-3 flex-shrink-0 h-5 w-5"
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="hidden lg:inline">{item.name}</span>
+                          </a>
+                        </Link>
+                        {item.child &&
+                          router.asPath.startsWith(item.href) &&
+                          item.child.map((item) => {
+                            return (
+                              <Link key={item.name} href={item.href}>
+                                <a
+                                  className={classNames(
+                                    item.current
+                                      ? "text-neutral-900"
+                                      : "text-neutral-500 hover:text-neutral-900",
+                                    "hidden pl-10 group lg:flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                                  )}>
+                                  <span className="hidden lg:inline">{item.name}</span>
+                                </a>
+                              </Link>
+                            );
+                          })}
+                      </Fragment>
+                    ))}
+                  </nav>
+                </div>
+                <TrialBanner />
+                <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
+                  <span className="hidden lg:inline">
+                    <UserDropdown />
+                  </span>
+                  <span className="hidden md:inline lg:hidden">
+                    <UserDropdown small />
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
           <main
