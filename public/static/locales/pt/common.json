@@ -509,6 +509,7 @@
   "add_attendees": "Adicionar Participantes",
   "show_advanced_settings": "Mostrar Configurações Avançadas",
   "event_name": "Nome do Evento",
+  "event_name_tooltip": "O nome que será mostrado nos calendários",
   "meeting_with_user": "Reunião com {USER}",
   "additional_inputs": "Campos adicionais",
   "label": "Etiqueta",
