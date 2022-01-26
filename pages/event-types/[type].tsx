@@ -45,7 +45,6 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
-import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -473,15 +472,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       </div>
     );
   };
-  const nameOrUsername = eventType.users[0].name || eventType.users[0].username || "";
+
   return (
     <div>
-      <HeadSeo
-        title={nameOrUsername}
-        description={(eventType.description as string) || ""}
-        name={nameOrUsername}
-        username={(eventType.users[0].username as string) || ""}
-      />
       <Shell
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
