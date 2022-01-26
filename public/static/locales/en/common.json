@@ -424,6 +424,8 @@
   "confirm_remove_member": "Yes, remove member",
   "remove_member": "Remove member",
   "manage_your_team": "Manage your team",
+  "no_teams": "You don't have any teams yet.",
+  "no_teams_description": "Teams allow others to book events shared between your coworkers.",
   "submit": "Submit",
   "delete": "Delete",
   "update": "Update",

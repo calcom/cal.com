@@ -1,29 +1,39 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Next.js: debug server-side",
-        "type": "node-terminal",
-        "request": "launch",
-        "command": "yarn dev"
-      },
-      {
-        "name": "Next.js: debug client-side",
-        "type": "pwa-chrome",
-        "request": "launch",
-        "url": "http://localhost:3000"
-      },
-      {
-        "name": "Next.js: debug full stack",
-        "type": "node-terminal",
-        "request": "launch",
-        "command": "yarn dev",
-        "console": "integratedTerminal",
-        "serverReadyAction": {
-          "pattern": "started server on .+, url: (https?://.+)",
-          "uriFormat": "%s",
-          "action": "debugWithChrome"
-        }
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: Server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": [
+        "${workspaceFolder}/**/*.js",
+        "!**/node_modules/**"
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "name": "Next.js: Client",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Next.js: Full Stack",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
       }
-    ]
-  }
+    }
+  ]
+}
