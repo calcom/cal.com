@@ -199,6 +199,7 @@ export default function CreateEventTypeButton(props: Props) {
               <TextField
                 type="number"
                 required
+                min="10"
                 placeholder="15"
                 defaultValue={15}
                 label={t("length")}
