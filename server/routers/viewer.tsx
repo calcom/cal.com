@@ -489,6 +489,8 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
         });
+
+        return !(web3Credential.key as JSONObject).isWeb3Active;
       } else {
         await ctx.prisma.credential.create({
           data: {
@@ -499,6 +501,8 @@ const loggedInViewerRouter = createProtectedRouter()
             userId: user.id,
           },
         });
+
+        return true;
       }
     },
   })
