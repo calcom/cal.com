@@ -93,7 +93,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        avatar={profile.image || undefined}
+        username={profile.slug || undefined}
+        // avatar={profile.image || undefined}
       />
       <CustomBranding val={profile.brandColor} />
       <div>
