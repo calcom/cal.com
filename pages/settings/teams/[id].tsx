@@ -72,7 +72,8 @@ export function TeamSettingsPage() {
                       type="button"
                       color="secondary"
                       StartIcon={PlusIcon}
-                      onClick={() => setShowMemberInvitationModal(true)}>
+                      onClick={() => setShowMemberInvitationModal(true)}
+                      data-testid="new-member-button">
                       {t("new_member")}
                     </Button>
                   </div>
