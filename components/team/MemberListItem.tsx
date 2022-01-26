@@ -71,7 +71,12 @@ export default function MemberListItem(props: Props) {
             />
             <div className="inline-block ml-3">
               <span className="text-sm font-bold text-neutral-700">{name}</span>
-              <span className="block -mt-1 text-xs text-gray-400">{props.member.email}</span>
+              <span
+                className="block -mt-1 text-xs text-gray-400"
+                data-testid="member-email"
+                data-email={props.member.email}>
+                {props.member.email}
+              </span>
             </div>
           </div>
           <div className="flex mt-2 mr-2 sm:mt-0 sm:justify-center">
