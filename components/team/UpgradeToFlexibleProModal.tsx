@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
 import {
@@ -21,7 +22,6 @@ interface Props {
 export function UpgradeToFlexibleProModal(props: Props) {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const utils = trpc.useContext();
   const { data } = trpc.useQuery(["viewer.teams.getTeamSeats", { teamId: props.teamId }], {
     onError: (err) => {
@@ -36,7 +36,7 @@ export function UpgradeToFlexibleProModal(props: Props) {
       }
       if (data?.success) {
         utils.invalidateQueries(["viewer.teams.get"]);
-        setSuccessMessage(t("team_upgrade_success"));
+        showToast(t("team_upgraded_successfully"), "success");
       }
     },
     onError: (err) => {
@@ -55,41 +55,34 @@ export function UpgradeToFlexibleProModal(props: Props) {
       <DialogContent>
         <DialogHeader title={t("Purchase missing seats")} />
 
-        {successMessage && <Alert severity="success" title={successMessage} className="my-4" />}
-        {!successMessage && (
-          <>
-            <p className="-mt-4 text-sm text-gray-600">{t("changed_team_billing_info")}</p>
-            {data && (
-              <p className="mt-2 text-sm italic text-gray-700">
-                Of the <span className="font-bold text-black">{data.totalMembers}</span> members in your team,{" "}
-                <span className="font-bold text-black">{data.missingSeats}</span> seat(s) are unpaid. At{" "}
-                <span className="font-bold text-black">$12</span>/m per seat the estimated total cost of your
-                membership is{" "}
-                <span className="font-bold text-black">
-                  ${(data.totalMembers - data.freeSeats) * 12 + 12}
-                </span>
-                /m.
-              </p>
-            )}
-          </>
+        <p className="-mt-4 text-sm text-gray-600">{t("changed_team_billing_info")}</p>
+        {data && (
+          <p className="mt-2 text-sm italic text-gray-700">
+            {t("team_upgrade_seats_details", {
+              memberCount: data.totalMembers,
+              unpaidCount: data.missingSeats,
+              seatPrice: 12,
+              totalCost: (data.totalMembers - data.freeSeats) * 12 + 12,
+            })}
+          </p>
         )}
+
         {errorMessage && (
           <Alert severity="error" title={errorMessage} message={t("further_billing_help")} className="my-4" />
         )}
         <DialogFooter>
           <DialogClose>
-            <Button color="secondary">Close</Button>
+            <Button color="secondary">{t("close")}</Button>
           </DialogClose>
-          {!successMessage && (
-            <Button
-              disabled={mutation.isLoading}
-              onClick={() => {
-                setErrorMessage(null);
-                mutation.mutate({ teamId: props.teamId });
-              }}>
-              Upgrade to Per-Seat
-            </Button>
-          )}
+
+          <Button
+            disabled={mutation.isLoading}
+            onClick={() => {
+              setErrorMessage(null);
+              mutation.mutate({ teamId: props.teamId });
+            }}>
+            {t("upgrade_to_per_seat")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
