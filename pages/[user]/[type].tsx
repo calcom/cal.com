@@ -180,6 +180,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       profile: {
         name: user.name,
+        username: user.username,
         image: user.avatar,
         slug: user.username,
         theme: user.theme,
