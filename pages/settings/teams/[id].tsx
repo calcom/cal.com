@@ -1,12 +1,13 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
@@ -23,6 +24,15 @@ import { Button } from "@components/ui/Button";
 export function TeamSettingsPage() {
   const { t } = useLocale();
   const router = useRouter();
+
+  const upgraded = router.query.upgraded as string;
+
+  useEffect(() => {
+    if (upgraded) {
+      showToast(t("team_upgraded_successfully"), "success");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");

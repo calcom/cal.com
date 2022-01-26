@@ -1,7 +1,3 @@
-// TODO:
-// - stripe quantity does not decrease when a member leaves
-// - nothing happens after going through billing portal, callback handling is not implemented
-//
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
@@ -88,7 +84,7 @@ export async function upgradeToPerSeatPricing(userId: number, teamId: number) {
     const customer = await getStripeCustomerFromUser(userId);
     if (!customer) throw new HttpError({ statusCode: 400, message: "User has no Stripe customer" });
     // create a checkout session with the quantity of missing seats
-    const session = await createPerSeatProCheckoutSession(customer, membersMissingSeats.length);
+    const session = await createPerSeatProCheckoutSession(customer, membersMissingSeats.length, teamId);
     // return checkout session url for redirect
     return { url: session.url };
   }
@@ -194,7 +190,7 @@ export async function downgradeTeamMembers(teamId: number) {
   }
 }
 
-async function createPerSeatProCheckoutSession(customerId: string, quantity: number) {
+async function createPerSeatProCheckoutSession(customerId: string, quantity: number, teamId: number) {
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_types: ["card"],
@@ -205,8 +201,8 @@ async function createPerSeatProCheckoutSession(customerId: string, quantity: num
         quantity: quantity ?? 1,
       },
     ],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: process.env.NEXT_PUBLIC_APP_URL ?? "/",
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
     allow_promotion_codes: true,
   };
 

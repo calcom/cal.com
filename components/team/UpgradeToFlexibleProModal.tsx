@@ -65,7 +65,9 @@ export function UpgradeToFlexibleProModal(props: Props) {
                 <span className="font-bold text-black">{data.missingSeats}</span> seat(s) are unpaid. At{" "}
                 <span className="font-bold text-black">$12</span>/m per seat the estimated total cost of your
                 membership is{" "}
-                <span className="font-bold text-black">${data.totalMembers - data.freeSeats * 12 + 12}</span>
+                <span className="font-bold text-black">
+                  ${(data.totalMembers - data.freeSeats) * 12 + 12}
+                </span>
                 /m.
               </p>
             )}
