@@ -284,7 +284,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return g;
   });
 
-  // const teamMembers =
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
