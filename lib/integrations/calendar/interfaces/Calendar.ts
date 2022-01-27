@@ -13,7 +13,7 @@ export type Person = {
   name: string;
   email: string;
   timeZone: string;
-  language: TFunction;
+  language: { translate: TFunction; locale: string };
 };
 
 export interface EntryPoint {

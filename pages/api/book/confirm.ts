@@ -43,7 +43,7 @@ const authorized = async (
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const tAttendees = await getTranslation(req.body.language ?? "en", "common");
+  // const tAttendees = await getTranslation(req.body.language ?? "en", "common");
 
   const session = await getSession({ req: req });
   if (!session?.user?.id) {
@@ -115,6 +115,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "booking already confirmed" });
     }
 
+    const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+    });
+
+    const attendeesList = await Promise.all(attendeesListPromises);
+
     const evt: CalendarEvent = {
       type: booking.title,
       title: booking.title,
@@ -125,17 +139,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: currentUser.email,
         name: currentUser.name || "Unnamed",
         timeZone: currentUser.timeZone,
-        language: tOrganizer,
+        language: { translate: tOrganizer, locale: currentUser.locale ?? "en" },
       },
-      attendees: booking.attendees.map((attendee) => {
-        const retObj = {
-          name: attendee.name,
-          email: attendee.email,
-          timeZone: attendee.timeZone,
-          language: tAttendees,
-        };
-        return retObj;
-      }),
+      attendees: attendeesList,
       location: booking.location ?? "",
       uid: booking.uid,
       destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,

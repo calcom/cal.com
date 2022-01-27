@@ -183,7 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
-
+  const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 
   const isTimeInPast = (time: string): boolean => {
@@ -271,7 +271,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: reqBody.email,
       name: reqBody.name,
       timeZone: reqBody.timeZone,
-      language: tAttendees,
+      language: { translate: tAttendees, locale: reqBody.language ?? "en" },
     },
   ];
   const guests = (reqBody.guests || []).map((guest) => {
@@ -279,7 +279,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: guest,
       name: "",
       timeZone: reqBody.timeZone,
-      language: tAttendees,
+      language: { translate: tGuests, locale: "en" },
     };
     return g;
   });
@@ -292,7 +292,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: user.email || "",
             name: user.name || "",
             timeZone: user.timeZone,
-            language: await getTranslation(user.locale ?? "en", "common"), //figure this out
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
           };
         })
       : [];
@@ -321,7 +324,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(eventNameObject),
+    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description,
     startTime: reqBody.start,
     endTime: reqBody.end,
@@ -329,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: users[0].name || "Nameless",
       email: users[0].email || "Email-less",
       timeZone: users[0].timeZone,
-      language: tOrganizer,
+      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
@@ -377,7 +380,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 name: attendee.name,
                 email: attendee.email,
                 timeZone: attendee.timeZone,
-                locale: attendee.language.lng,
+                locale: attendee.language.locale,
               };
               return retObj;
             }),

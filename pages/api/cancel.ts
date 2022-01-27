@@ -94,7 +94,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     rejectOnNotFound: true,
   });
 
-  const tAttendees = await getTranslation(req.body.language ?? "en", "common");
+  const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
@@ -107,17 +119,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
-      language: tOrganizer,
+      language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
-    attendees: bookingToDelete?.attendees.map((attendee) => {
-      const retObj = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: tAttendees,
-      };
-      return retObj;
-    }),
+    attendees: attendeesList,
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
@@ -175,17 +179,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
-        language: tOrganizer,
+        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
       },
-      attendees: bookingToDelete.attendees.map((attendee) => {
-        const retObj = {
-          name: attendee.name,
-          email: attendee.email,
-          timeZone: attendee.timeZone,
-          language: tAttendees,
-        };
-        return retObj;
-      }),
+      attendees: attendeesList,
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,

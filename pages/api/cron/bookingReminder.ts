@@ -80,7 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: attendee.name,
           email: attendee.email,
           timeZone: attendee.timeZone,
-          language: await getTranslation(attendee.locale ?? "en", "common"),
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
         };
       });
 
@@ -97,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email: user.email,
           name,
           timeZone: user.timeZone,
-          language: tOrganizer,
+          language: { translate: tOrganizer, locale: user.locale ?? "en" },
         },
         attendees: attendeesList,
         uid: booking.uid,

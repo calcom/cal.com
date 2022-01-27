@@ -82,7 +82,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
-      language: await getTranslation(attendee.locale ?? "en", "common"),
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
     };
   });
 
@@ -94,7 +97,12 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
-    organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone, language: t },
+    organizer: {
+      email: user.email!,
+      name: user.name!,
+      timeZone: user.timeZone,
+      language: { translate: t, locale: user.locale ?? "en" },
+    },
     attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
