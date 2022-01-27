@@ -44,7 +44,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
 
   const slots: Dayjs[] = [];
   for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
-    const slot = dayjs.utc(inviteeDate).startOf("day").add(minutes, "minute");
+    const slot = dayjs(inviteeDate).startOf("day").add(minutes, "minute");
     // check if slot happened already
     if (slot.isBefore(startDate)) {
       continue;
@@ -60,7 +60,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
         )
       )
     ) {
-      slots.push(slot.local());
+      slots.push(slot);
     }
   }
 
