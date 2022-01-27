@@ -488,7 +488,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].updatedEvent?.conferenceData;
         metadata.entryPoints = results[0].updatedEvent?.entryPoints;
       }
-
       await sendRescheduledEmails({ ...evt, additionInformation: metadata });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,

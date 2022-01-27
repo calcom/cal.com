@@ -15,7 +15,6 @@ import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend = [];
-
   emailsToSend.push(
     calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
