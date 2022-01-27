@@ -43,8 +43,6 @@ const authorized = async (
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const t = await getTranslation(req.body.language ?? "en", "common");
-
   const session = await getSession({ req: req });
   if (!session?.user?.id) {
     return res.status(401).json({ message: "Not authenticated" });
@@ -71,12 +69,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: true,
       username: true,
       destinationCalendar: true,
+      locale: true,
     },
   });
 
   if (!currentUser) {
     return res.status(404).json({ message: "User not found" });
   }
+
+  const tOrganizer = await getTranslation(currentUser.locale ?? "en", "common");
 
   if (req.method === "PATCH") {
     const booking = await prisma.booking.findFirst({
@@ -112,6 +113,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "booking already confirmed" });
     }
 
+    const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      };
+    });
+
+    const attendeesList = await Promise.all(attendeesListPromises);
+
     const evt: CalendarEvent = {
       type: booking.title,
       title: booking.title,
@@ -122,11 +137,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: currentUser.email,
         name: currentUser.name || "Unnamed",
         timeZone: currentUser.timeZone,
+        language: { translate: tOrganizer, locale: currentUser.locale ?? "en" },
       },
-      attendees: booking.attendees,
+      attendees: attendeesList,
       location: booking.location ?? "",
       uid: booking.uid,
-      language: t,
       destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
     };
 

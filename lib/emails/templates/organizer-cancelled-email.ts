@@ -33,14 +33,14 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.language("event_cancelled_subject", {
+      subject: `${this.calEvent.organizer.language.translate("event_cancelled_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("MMMM").toLowerCase()
         )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
@@ -51,8 +51,8 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.language("event_request_cancelled")}
-${this.calEvent.language("emailed_you_and_any_other_attendees")}
+${this.calEvent.organizer.language.translate("event_request_cancelled")}
+${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -61,14 +61,14 @@ ${this.getAdditionalNotes()}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.language("event_cancelled_subject", {
+    const headerContent = this.calEvent.organizer.language.translate("event_cancelled_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,
       date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
         "h:mma"
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("MMMM").toLowerCase()
       )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
     });
@@ -81,8 +81,8 @@ ${this.getAdditionalNotes()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("xCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.language("event_request_cancelled"),
-          this.calEvent.language("emailed_you_and_any_other_attendees")
+          this.calEvent.organizer.language.translate("event_request_cancelled"),
+          this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
