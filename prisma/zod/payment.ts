@@ -1,6 +1,6 @@
+import { PaymentType } from "@prisma/client";
 import * as z from "zod";
 
-import { PaymentType } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteBooking, BookingModel } from "./index";
 

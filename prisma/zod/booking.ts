@@ -1,6 +1,6 @@
+import { BookingStatus } from "@prisma/client";
 import * as z from "zod";
 
-import { BookingStatus } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteUser,
