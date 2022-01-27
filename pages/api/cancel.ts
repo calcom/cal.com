@@ -99,8 +99,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     title: bookingToDelete?.title,
     type: bookingToDelete?.eventType?.title as string,
     description: bookingToDelete?.description || "",
-    startTime: bookingToDelete?.startTime.toISOString(),
-    endTime: bookingToDelete?.endTime.toISOString(),
+    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
+    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
       email: organizer.email,
       name: organizer.name ?? "Nameless",
