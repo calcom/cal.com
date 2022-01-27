@@ -51,7 +51,7 @@ export default function Custom404() {
             </h1>
             {isSubpage ? (
               <span className="inline-block mt-2 text-lg ">{t("check_spelling_mistakes_or_go_back")}</span>
-            ) : process.env.NEXT_PUBLIC_BASE_URL !== "https://app.cal.com" ? (
+            ) : process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com" ? (
               <a
                 href={"https://cal.com/signup?username=" + username.replace("/", "")}
                 className="inline-block mt-2 text-lg ">
@@ -73,7 +73,7 @@ export default function Custom404() {
             <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
               {t("popular_pages")}
             </h2>
-            {!isSubpage && process.env.NEXT_PUBLIC_BASE_URL !== "https://app.cal.com" && (
+            {!isSubpage && process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com" && (
               <ul role="list" className="mt-4">
                 <li className="px-4 py-2 border-2 border-green-500">
                   <a
