@@ -10,7 +10,6 @@ import { getErrorFromUnknown } from "@lib/errors";
 import EventManager from "@lib/events/EventManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import { Ensure } from "@lib/types/utils";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -78,18 +77,35 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   if (!user) throw new Error("No user found");
 
   const t = await getTranslation(user.locale ?? "en", "common");
+  const attendeesListPromises = booking.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
 
-  const evt: Ensure<CalendarEvent, "language"> = {
+  const attendeesList = await Promise.all(attendeesListPromises);
+
+  const evt: CalendarEvent = {
     type: booking.title,
     title: booking.title,
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
-    organizer: { email: user.email!, name: user.name!, timeZone: user.timeZone },
-    attendees: booking.attendees,
+    organizer: {
+      email: user.email!,
+      name: user.name!,
+      timeZone: user.timeZone,
+      language: { translate: t, locale: user.locale ?? "en" },
+    },
+    attendees: attendeesList,
     uid: booking.uid,
     destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
-    language: t,
   };
 
   if (booking.location) evt.location = booking.location;

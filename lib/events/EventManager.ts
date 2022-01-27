@@ -8,7 +8,6 @@ import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarMan
 import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
-import { Ensure } from "@lib/types/utils";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
@@ -118,7 +117,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
+  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -158,10 +157,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(
-    event: Ensure<CalendarEvent, "language">,
-    rescheduleUid: string
-  ): Promise<CreateUpdateResult> {
+  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -293,7 +289,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {
