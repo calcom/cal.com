@@ -28,7 +28,7 @@ export function UpgradeToFlexibleProModal(props: Props) {
       setErrorMessage(err.message);
     },
   });
-  const mutation = trpc.useMutation(["viewer.teams.upgradeToPerSeatPricing"], {
+  const mutation = trpc.useMutation(["viewer.teams.upgradeTeam"], {
     onSuccess: (data) => {
       // if the user does not already have a Stripe subscription, this wi
       if (data?.url) {

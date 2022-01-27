@@ -1,4 +1,5 @@
 import { DefaultSeo } from "next-seo";
+import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
@@ -23,6 +24,7 @@ function MyApp(props: AppProps) {
       <DefaultSeo {...seoConfig.defaultNextSeo} />
       <I18nLanguageHandler />
       <Component {...pageProps} err={err} />
+      <ReactQueryDevtools position="bottom-right" />
     </AppProviders>
   );
 }

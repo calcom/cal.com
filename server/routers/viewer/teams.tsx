@@ -8,7 +8,7 @@ import {
   removeSeat,
   getTeamSeatStats,
   downgradeTeamMembers,
-  upgradeToPerSeatPricing,
+  upgradeTeam,
   ensureSubscriptionQuantityCorrectness,
 } from "@ee/lib/stripe/team-billing";
 
@@ -41,7 +41,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
         },
-        requiresUpgradeToFlexiblePro: !!team.members.find((m) => m.plan !== UserPlan.PRO),
+        requiresUpgrade: !!team.members.find((m) => m.plan !== UserPlan.PRO),
       };
     },
   })
@@ -413,22 +413,20 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
 
       // get availability for this member
-      const availability = await getUserAvailability({
+      return await getUserAvailability({
         username: member.user.username,
         timezone: input.timezone,
         dateFrom: input.dateFrom,
         dateTo: input.dateTo,
       });
-
-      return availability;
     },
   })
-  .mutation("upgradeToPerSeatPricing", {
+  .mutation("upgradeTeam", {
     input: z.object({
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      return await upgradeToPerSeatPricing(ctx.user.id, input.teamId);
+      return await upgradeTeam(ctx.user.id, input.teamId);
     },
   })
   .query("getTeamSeats", {

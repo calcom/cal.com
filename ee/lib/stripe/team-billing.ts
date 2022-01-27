@@ -27,17 +27,20 @@ async function getMembersMissingSeats(teamId: number) {
     select: { role: true, accepted: true, user: { select: { id: true, plan: true, metadata: true } } },
   });
   const membersMissingSeats = members.filter((m) => {
-    const metadata = (m.user.metadata as Prisma.JsonObject) ?? {};
+    // const metadata = (m.user.metadata as Prisma.JsonObject) ?? {};
     // if user is the owner of the team
     if (m.role === MembershipRole.OWNER) return false;
-    // if user has Pro paid for by another team
-    if (m.user.plan === UserPlan.PRO && metadata.proPaidForByTeamId !== teamId) return false;
+    // if user has Pro they're not missing a seat
+    if (m.user.plan === UserPlan.PRO) return false;
     // all other Free & Trial users are missing seats
     return true;
   });
   return {
     members,
     membersMissingSeats,
+    ownerIsMissingSeat: !!members.find(
+      (m) => m.role === MembershipRole.OWNER && m.user.plan === UserPlan.FREE
+    ),
   };
 }
 
@@ -67,26 +70,49 @@ async function updatePerSeatQuantity(subscription: Stripe.Subscription, quantity
 
 // called by the team owner when they are ready to upgrade their team to Per Seat Pro
 // if user has no subscription, this will be called again after successful stripe checkout callback, with subscription now present
-export async function upgradeToPerSeatPricing(userId: number, teamId: number) {
+export async function upgradeTeam(userId: number, teamId: number) {
+  const ownerUser = await prisma.membership.findFirst({
+    where: { userId, teamId },
+    select: { role: true, user: true },
+  });
+
+  if (ownerUser?.role !== MembershipRole.OWNER)
+    throw new HttpError({ statusCode: 400, message: "User is not an owner" });
+
   const subscription = await getProPlanSubscription(userId);
-  const { membersMissingSeats } = await getMembersMissingSeats(teamId);
+  const { membersMissingSeats, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
 
   if (!subscription) {
-    // in this case, the user already has Pro without a Stripe subscription, eg: they're in another team sponsoring their Pro membership
-    const ownerUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true },
-    });
-
-    if (ownerUser?.plan !== UserPlan.PRO)
-      throw new HttpError({ statusCode: 400, message: "User is not a pro" });
-
     const customer = await getStripeCustomerFromUser(userId);
     if (!customer) throw new HttpError({ statusCode: 400, message: "User has no Stripe customer" });
     // create a checkout session with the quantity of missing seats
-    const session = await createPerSeatProCheckoutSession(customer, membersMissingSeats.length, teamId);
+    const session = await createCheckoutSession(
+      customer,
+      membersMissingSeats.length,
+      teamId,
+      ownerIsMissingSeat
+    );
     // return checkout session url for redirect
     return { url: session.url };
+  }
+
+  // if the owner has a subscription but does not have an individual Pro account
+  if (ownerIsMissingSeat) {
+    const ownerHasProPlan = !!subscription.items.data.find((item) => item.plan.id === getProPlanPrice());
+    if (!ownerHasProPlan)
+      await stripe.subscriptions.update(subscription.id, {
+        items: [
+          {
+            price: getProPlanPrice(),
+            quantity: 1,
+          },
+        ],
+      });
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { plan: UserPlan.PRO },
+    });
   }
 
   // update the subscription with Stripe
@@ -117,30 +143,38 @@ async function addOrRemoveSeat(remove: boolean, userId: number, teamId: number, 
   const perSeatProPlanPrice = subscription?.items.data.find(
     (item) => item.plan.id === getPerSeatProPlanPrice()
   );
+
   // find the member's local user account
   const memberUser = await prisma.user.findUnique({
     where: { id: memberUserId },
-    select: { plan: true, metadata: true },
+    select: { id: true, plan: true, metadata: true },
   });
+  // in the rare event there is no account, return
+  if (!memberUser) return;
+
+  // check if this user is paying for their own Pro account, if so return.
+  const memberSubscription = await getProPlanSubscription(memberUser.id);
+  const proPlanPrice = memberSubscription?.items.data.find((item) => item.plan.id === getProPlanPrice());
+  if (proPlanPrice) return;
+
   // takes care of either adding per seat pricing, or updating the existing one's quantity
   await updatePerSeatQuantity(
     subscription,
     remove ? (perSeatProPlanPrice?.quantity ?? 1) - 1 : (perSeatProPlanPrice?.quantity ?? 0) + 1
   );
-  if (memberUser) {
-    // add or remove proPaidForByTeamId from metadata
-    const metadata: Record<string, unknown> = {
-      proPaidForByTeamId: teamId,
-      ...((memberUser.metadata as Prisma.JsonObject) ?? {}),
-    };
-    // entirely remove property if removing member from team and proPaidForByTeamId is this team
-    if (remove && metadata.proPaidForByTeamId === teamId) delete metadata.proPaidForByTeamId;
 
-    await prisma.user.update({
-      where: { id: memberUserId },
-      data: { plan: remove ? UserPlan.FREE : UserPlan.PRO, metadata: metadata as Prisma.JsonObject },
-    });
-  }
+  // add or remove proPaidForByTeamId from metadata
+  const metadata: Record<string, unknown> = {
+    proPaidForByTeamId: teamId,
+    ...((memberUser.metadata as Prisma.JsonObject) ?? {}),
+  };
+  // entirely remove property if removing member from team and proPaidForByTeamId is this team
+  if (remove && metadata.proPaidForByTeamId === teamId) delete metadata.proPaidForByTeamId;
+
+  await prisma.user.update({
+    where: { id: memberUserId },
+    data: { plan: remove ? UserPlan.FREE : UserPlan.PRO, metadata: metadata as Prisma.JsonObject },
+  });
 }
 
 // this function verifies that the subscription's quantity is correct for the number of members the team has
@@ -161,6 +195,7 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
 export async function addSeat(userId: number, teamId: number, memberUserId?: number) {
   return await addOrRemoveSeat(false, userId, teamId, memberUserId);
 }
+
 export async function removeSeat(userId: number, teamId: number, memberUserId?: number) {
   return await addOrRemoveSeat(true, userId, teamId, memberUserId);
 }
@@ -190,17 +225,29 @@ export async function downgradeTeamMembers(teamId: number) {
   }
 }
 
-async function createPerSeatProCheckoutSession(customerId: string, quantity: number, teamId: number) {
+async function createCheckoutSession(
+  customerId: string,
+  quantity: number,
+  teamId: number,
+  includeBaseProPlan?: boolean
+) {
+  // if the user is missing the base plan, we should include it agnostic of the seat quantity
+  const line_items: Stripe.Checkout.SessionCreateParams["line_items"] =
+    quantity === 0
+      ? []
+      : [
+          {
+            price: getPerSeatProPlanPrice(),
+            quantity: quantity ?? 1,
+          },
+        ];
+  if (includeBaseProPlan) line_items.push({ price: getProPlanPrice(), quantity: 1 });
+
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_types: ["card"],
     customer: customerId,
-    line_items: [
-      {
-        price: getPerSeatProPlanPrice(),
-        quantity: quantity ?? 1,
-      },
-    ],
+    line_items,
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
     allow_promotion_codes: true,
@@ -210,17 +257,13 @@ async function createPerSeatProCheckoutSession(customerId: string, quantity: num
 }
 
 export function getPerSeatProPlanPrice(): string {
-  const proPlanPrice =
-    process.env.NODE_ENV === "production"
-      ? "price_1KHkoeH8UDiwIftkkUbiggsM"
-      : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
-  return proPlanPrice;
+  return process.env.NODE_ENV === "production"
+    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
+    : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
 }
 
 export function getProPlanPrice(): string {
-  const proPlanPrice =
-    process.env.NODE_ENV === "production"
-      ? "price_1Isw0bH8UDiwIftkETa8lRcj"
-      : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
-  return proPlanPrice;
+  return process.env.NODE_ENV === "production"
+    ? "price_1Isw0bH8UDiwIftkETa8lRcj"
+    : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
 }

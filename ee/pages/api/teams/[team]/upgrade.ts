@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { upgradeToPerSeatPricing } from "@ee/lib/stripe/team-billing";
+import { upgradeTeam } from "@ee/lib/stripe/team-billing";
 
 import { getSession } from "@lib/auth";
 
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    await upgradeToPerSeatPricing(session.user.id, Number(req.query.team));
+    await upgradeTeam(session.user.id, Number(req.query.team));
 
     // redirect to team screen
     res.redirect(302, `${process.env.NEXT_PUBLIC_APP_URL}/settings/teams/${req.query.team}?upgraded=true`);
