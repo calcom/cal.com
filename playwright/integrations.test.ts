@@ -68,7 +68,7 @@ test.describe("integrations", () => {
     body.payload.organizer.timeZone = dynamic;
     body.payload.organizer.language.locale = dynamic;
     body.payload.uid = dynamic;
-    body.payload.additionInformation = dynamic;
+    // body.payload.additionInformation = dynamic;
 
     // if we change the shape of our webhooks, we can simply update this by clicking `u`
     // console.log("BODY", body);
