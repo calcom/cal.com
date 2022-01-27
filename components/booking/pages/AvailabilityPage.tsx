@@ -1,6 +1,7 @@
 // Get router variables
 import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
+import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
@@ -36,6 +37,13 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const { rescheduleUid } = router.query;
   const { isReady } = useTheme(profile.theme);
   const { t } = useLocale();
+  const { contracts } = useContracts();
+
+  useEffect(() => {
+    if (eventType.smartContractAddress) {
+      if (!contracts[eventType.smartContractAddress]) router.replace("/");
+    }
+  }, [contracts, eventType.smartContractAddress, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
