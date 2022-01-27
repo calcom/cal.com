@@ -100,18 +100,15 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   return <InputField type="password" placeholder="•••••••••••••" ref={ref} {...props} />;
 });
 
-export const EmailInput = forwardRef<HTMLInputElement, JSX.IntrinsicElements["input"]>(function EmailInput(
-  props,
-  ref
-) {
+export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
   return (
-    <input
+    <Input
+      ref={ref}
       type="email"
       autoCapitalize="none"
       autoComplete="email"
       autoCorrect="off"
       inputMode="email"
-      ref={ref}
       {...props}
     />
   );
