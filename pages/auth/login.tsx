@@ -150,23 +150,17 @@ export default function Login({
           </div>
 
           {secondFactorRequired && (
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
-                {t("2fa_code")}
-              </label>
-              <div className="mt-1">
-                <TextField
-                  id="totpCode"
-                  name="totpCode"
-                  type="text"
-                  maxLength={6}
-                  minLength={6}
-                  inputMode="numeric"
-                  value={code}
-                  onInput={(e) => setCode(e.currentTarget.value)}
-                />
-              </div>
-            </div>
+            <TextField
+              className="mt-1"
+              id="totpCode"
+              name={t("2fa_code")}
+              type="text"
+              maxLength={6}
+              minLength={6}
+              inputMode="numeric"
+              value={code}
+              onInput={(e) => setCode(e.currentTarget.value)}
+            />
           )}
 
           <div className="flex space-y-2">
