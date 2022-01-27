@@ -150,7 +150,7 @@
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.5.2",
-    "zod-prisma": "^0.5.2"
+    "zod-prisma": "^0.5.4"
   },
   "lint-staged": {
     "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
