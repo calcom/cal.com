@@ -1,11 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
+import React from "react";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
+import verifyAccount from "web3/utils/verifyAccount";
 
 import showToast from "@lib/notification";
 
 import { Button } from "@components/ui/Button";
 
+import { useContracts } from "../contexts/contractsContext";
 import genericAbi from "../web3/abis/abiWithGetBalance.json";
 
 interface Window {
@@ -31,6 +34,7 @@ interface CryptoSectionProps {
 const CryptoSection = (props: CryptoSectionProps) => {
   // Crypto section which should be shown on booking page if event type requires a smart contract token.
   const [ethEnabled, toggleEthEnabled] = useState<boolean>(false);
+  const { addContract } = useContracts();
 
   const connectMetamask = useCallback(async () => {
     if (window.ethereum) {
@@ -49,17 +53,25 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
       const hasToken = balance > 0;
 
-      props.setEvtsToVerify((prevState: EvtsToVerify) => {
-        const changedEvt = { [props.id]: hasToken };
-        return { ...prevState, ...changedEvt };
-      });
-
-      if (!hasToken)
+      if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
+      } else {
+        const account = (await web3.eth.getAccounts())[0];
+
+        const signature = await web3.eth.personal.sign(process.env.NEXT_PUBLIC_WEB3_AUTH_MSG, account);
+        addContract({ address: props.smartContractAddress, signature });
+
+        await verifyAccount(signature, account);
+
+        props.setEvtsToVerify((prevState: EvtsToVerify) => {
+          const changedEvt = { [props.id]: hasToken };
+          return { ...prevState, ...changedEvt };
+        });
+      }
     } catch (err) {
       err instanceof Error ? showToast(err.message, "error") : showToast("An error has occurred", "error");
     }
-  }, [props]);
+  }, [props, addContract]);
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {

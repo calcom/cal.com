@@ -6,6 +6,7 @@ import {
   LocationMarkerIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
+import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -54,6 +55,14 @@ type BookingFormValues = {
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
+  const { contracts } = useContracts();
+
+  const { eventType } = props;
+  useEffect(() => {
+    if (eventType.smartContractAddress) {
+      if (!contracts[eventType.smartContractAddress]) router.replace("/");
+    }
+  }, [contracts, eventType.smartContractAddress, router]);
 
   /*
    * This was too optimistic
@@ -215,6 +224,8 @@ const BookingPage = (props: BookingPageProps) => {
 
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
+
+    // @TODO: move to metadata
     const metadata = Object.keys(router.query)
       .filter((key) => key.startsWith("metadata"))
       .reduce(
@@ -225,8 +236,17 @@ const BookingPage = (props: BookingPageProps) => {
         {}
       );
 
+    let web3Details;
+    if (props.eventType.smartContractAddress) {
+      web3Details = {
+        userWallet: web3.currentProvider.selectedAddress,
+        userSignature: contracts[props.eventType.smartContractAddress],
+      };
+    }
+
     mutation.mutate({
       ...booking,
+      web3Details,
       start: dayjs(date).format(),
       end: dayjs(date).add(props.eventType.length, "minute").format(),
       eventTypeId: props.eventType.id,
