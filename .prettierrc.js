@@ -9,4 +9,5 @@ module.exports = {
   arrowParens: "always",
   importOrder: ["^@ee/(.*)$", "^@lib/(.*)$", "^@components/(.*)$", "^@(server|trpc)/(.*)$", "^[./]"],
   importOrderSeparation: true,
+  tailwindConfig: "./tailwind.config.js",
 };
