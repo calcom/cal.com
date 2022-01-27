@@ -4,11 +4,7 @@ import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
-function applyTemplate(
-  template: string,
-  data: Omit<CalendarEvent, "organizerLanguage" | "attendeesLanguage">,
-  contentType: ContentType
-) {
+function applyTemplate(template: string, data: CalendarEvent, contentType: ContentType) {
   const compiled = compile(template)(data);
   if (contentType === "application/json") {
     return jsonParse(compiled);
