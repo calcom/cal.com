@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -15,24 +16,25 @@ export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Provider(props: SSOProviderPageProps) {
   const router = useRouter();
 
-  if (props.provider === "saml") {
-    const email = typeof router.query?.email === "string" ? router.query?.email : null;
+  useEffect(() => {
+    if (props.provider === "saml") {
+      const email = typeof router.query?.email === "string" ? router.query?.email : null;
 
-    if (!email) {
-      router.push("/auth/error?error=" + "Email not provided");
-      return null;
+      if (!email) {
+        router.push("/auth/error?error=" + "Email not provided");
+        return;
+      }
+
+      if (!props.isSAMLLoginEnabled) {
+        router.push("/auth/error?error=" + "SAML login not enabled");
+        return;
+      }
+
+      signIn("saml", {}, { tenant: props.tenant, product: props.product });
+    } else {
+      signIn(props.provider);
     }
-
-    if (!props.isSAMLLoginEnabled) {
-      router.push("/auth/error?error=" + "SAML login not enabled");
-      return null;
-    }
-
-    signIn("saml", {}, { tenant: props.tenant, product: props.product });
-  } else {
-    signIn(props.provider);
-  }
-
+  }, []);
   return null;
 }
 
