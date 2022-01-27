@@ -31,21 +31,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  // There is actually an existingUser if username matches
+  // OR if email matches and both username and password are set
   const existingUser = await prisma.user.findFirst({
     where: {
       OR: [
+        { username },
         {
-          username: username,
-        },
-        {
-          email: userEmail,
-        },
-      ],
-      AND: [
-        {
-          emailVerified: {
-            not: null,
-          },
+          AND: [{ email: userEmail }, { password: { not: null } }, { username: { not: null } }],
         },
       ],
     },
