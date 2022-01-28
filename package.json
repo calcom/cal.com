@@ -30,6 +30,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "^4.6.2",
     "lodash.throttle": "^4.1.1",
+    "moment-timezone": "^0.5.34",
     "next": "^10.2.0",
     "next-auth": "^3.13.2",
     "next-transpile-modules": "^7.0.0",
