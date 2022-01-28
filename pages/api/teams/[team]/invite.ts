@@ -52,15 +52,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!invitee) {
-    if (!isEmail(usernameOrEmail)) {
+    const email = isEmail(usernameOrEmail) ? usernameOrEmail : undefined;
+    if (!email) {
       return res.status(400).json({
         message: `Invite failed because there is no corresponding user for ${usernameOrEmail}`,
       });
     }
-    // valid email given, create User
     await prisma.user.create({
       data: {
-        email: usernameOrEmail,
+        email,
         teams: {
           create: {
             team: {

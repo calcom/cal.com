@@ -150,7 +150,7 @@ export default NextAuth({
   },
   providers,
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account }) {
       if (!user) {
         return token;
       }
@@ -165,7 +165,7 @@ export default NextAuth({
 
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
-      if (account && profile && account.type === "oauth" && account.provider) {
+      if (account && account.type === "oauth" && account.provider && account.providerAccountId) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
@@ -178,7 +178,7 @@ export default NextAuth({
                 identityProvider: idP,
               },
               {
-                identityProviderId: profile.id as string,
+                identityProviderId: account.providerAccountId as string,
               },
             ],
           },

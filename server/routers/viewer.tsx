@@ -20,6 +20,7 @@ import {
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
 
+import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -61,45 +62,27 @@ const publicViewerRouter = createRouter()
 // routes only available to authenticated users
 const loggedInViewerRouter = createProtectedRouter()
   .query("me", {
-    resolve({ ctx }) {
-      const {
-        // pick only the part we want to expose in the API
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        identityProvider,
-        brandColor,
-        plan,
-        away,
-      } = ctx.user;
-      const me = {
-        id,
-        name,
-        username,
-        email,
-        startTime,
-        endTime,
-        bufferTime,
-        locale,
-        avatar,
-        createdDate,
-        completedOnboarding,
-        twoFactorEnabled,
-        identityProvider,
-        brandColor,
-        plan,
-        away,
+    resolve({ ctx: { user } }) {
+      // Destructuring here only makes it more illegible
+      // pick only the part we want to expose in the API
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        startTime: user.startTime,
+        endTime: user.endTime,
+        bufferTime: user.bufferTime,
+        locale: user.locale,
+        avatar: user.avatar,
+        createdDate: user.createdDate,
+        completedOnboarding: user.completedOnboarding,
+        twoFactorEnabled: user.twoFactorEnabled,
+        identityProvider: user.identityProvider,
+        brandColor: user.brandColor,
+        plan: user.plan,
+        away: user.away,
       };
-      return me;
     },
   })
   .mutation("deleteMe", {
@@ -442,34 +425,40 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .mutation("setUserDestinationCalendar", {
+  .mutation("setDestinationCalendar", {
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
+      eventTypeId: z.number().optional(),
+      bookingId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const userId = ctx.user.id;
+      const { integration, externalId, eventTypeId, bookingId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-      if (
-        !allCals.find((cal) => cal.externalId === input.externalId && cal.integration === input.integration)
-      ) {
+      if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
       }
+
+      let where;
+
+      if (eventTypeId) where = { eventTypeId };
+      else if (bookingId) where = { bookingId };
+      else where = { userId: user.id };
+
       await ctx.prisma.destinationCalendar.upsert({
-        where: {
-          userId,
-        },
+        where,
         update: {
-          ...input,
-          userId,
+          integration,
+          externalId,
         },
         create: {
-          ...input,
-          userId,
+          ...where,
+          integration,
+          externalId,
         },
       });
     },
@@ -782,5 +771,6 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("eventTypes.", eventTypesRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

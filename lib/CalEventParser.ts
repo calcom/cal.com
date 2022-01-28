@@ -13,14 +13,14 @@ const translator = short();
 
 export const getWhat = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("what")}:
+${calEvent.organizer.language.translate("what")}:
 ${calEvent.type}
   `;
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("invitee_timezone")}:
+${calEvent.organizer.language.translate("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
 };
@@ -29,26 +29,26 @@ export const getWho = (calEvent: CalendarEvent) => {
   const attendees = calEvent.attendees
     .map((attendee) => {
       return `
-${attendee?.name || calEvent.language("guest")}
+${attendee?.name || calEvent.organizer.language.translate("guest")}
 ${attendee.email}
       `;
     })
     .join("");
 
   const organizer = `
-${calEvent.organizer.name} - ${calEvent.language("organizer")}
+${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer")}
 ${calEvent.organizer.email}
   `;
 
   return `
-${calEvent.language("who")}:
+${calEvent.organizer.language.translate("who")}:
 ${organizer + attendees}
   `;
 };
 
 export const getAdditionalNotes = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("additional_notes")}:
+${calEvent.organizer.language.translate("additional_notes")}:
 ${calEvent.description}
   `;
 };
@@ -74,7 +74,7 @@ export const getLocation = (calEvent: CalendarEvent) => {
 
 export const getManageLink = (calEvent: CalendarEvent) => {
   return `
-${calEvent.language("need_to_reschedule_or_cancel")}
+${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
 ${getCancelLink(calEvent)}
   `;
 };
@@ -96,7 +96,7 @@ export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) =
 ${getWhat(calEvent)}
 ${getWhen(calEvent)}
 ${getWho(calEvent)}
-${calEvent.language("where")}:
+${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getAdditionalNotes(calEvent)}
   `.trim();
@@ -106,7 +106,7 @@ ${getAdditionalNotes(calEvent)}
 ${getWhat(calEvent)}
 ${getWhen(calEvent)}
 ${getWho(calEvent)}
-${calEvent.language("where")}:
+${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getManageLink(calEvent)}
