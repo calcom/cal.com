@@ -52,6 +52,7 @@ export interface CalendarEvent {
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   destinationCalendar?: DestinationCalendar | null;
+  cancellationReason?: string | null;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
