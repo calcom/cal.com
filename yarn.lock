@@ -12231,10 +12231,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zod-prisma@^0.5.2:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/zod-prisma/-/zod-prisma-0.5.3.tgz#15b90df84ae2cb2141b6d274d91f3aa1a94cf67e"
-  integrity sha512-cAsaZKH9yzFZ6ViRiBnY5e1Yw+EPDSqufOjfUFOHvURlw8mGHuIHbdNCUAJBezbfGyyNd6U+xZ+46qtu4nau9Q==
+zod-prisma@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/zod-prisma/-/zod-prisma-0.5.4.tgz#f1c4d107cb9e4c666e2432017e6dcc390ef23700"
+  integrity sha512-5Ca4Qd1a1jy1T/NqCEpbr0c+EsbjJfJ/7euEHob3zDvtUK2rTuD1Rc/vfzH8q8PtaR2TZbysD88NHmrLwpv3Xg==
   dependencies:
     "@prisma/generator-helper" "~3.8.1"
     parenthesis "^3.1.8"

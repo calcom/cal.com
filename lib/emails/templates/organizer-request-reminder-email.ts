@@ -34,14 +34,14 @@ export default class OrganizerRequestReminderEmail extends OrganizerScheduledEma
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.language("event_awaiting_approval_subject", {
+      subject: `${this.calEvent.organizer.language.translate("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("MMMM").toLowerCase()
         )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
@@ -52,26 +52,26 @@ export default class OrganizerRequestReminderEmail extends OrganizerScheduledEma
 
   protected getTextBody(): string {
     return `
-${this.calEvent.language("event_still_awaiting_approval")}
-${this.calEvent.language("someone_requested_an_event")}
+${this.calEvent.organizer.language.translate("event_still_awaiting_approval")}
+${this.calEvent.organizer.language.translate("someone_requested_an_event")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
-${this.calEvent.language("confirm_or_reject_request")}
+${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.BASE_URL} + "/bookings/upcoming"
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.language("event_awaiting_approval_subject", {
+    const headerContent = this.calEvent.organizer.language.translate("event_awaiting_approval_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,
       date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
         "h:mma"
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("MMMM").toLowerCase()
       )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
     });
@@ -84,8 +84,8 @@ ${process.env.BASE_URL} + "/bookings/upcoming"
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.language("event_still_awaiting_approval"),
-          this.calEvent.language("someone_requested_an_event")
+          this.calEvent.organizer.language.translate("event_still_awaiting_approval"),
+          this.calEvent.organizer.language.translate("someone_requested_an_event")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -165,7 +165,7 @@ ${process.env.BASE_URL} + "/bookings/upcoming"
   }
 
   protected getManageLink(): string {
-    const manageText = this.calEvent.language("confirm_or_reject_request");
+    const manageText = this.calEvent.organizer.language.translate("confirm_or_reject_request");
     const manageLink = process.env.BASE_URL + "/bookings/upcoming";
     return `<a style="color: #FFFFFF; text-decoration: none;" href="${manageLink}" target="_blank">${manageText} <img src="${linkIcon()}" width="12px"></img></a>`;
   }

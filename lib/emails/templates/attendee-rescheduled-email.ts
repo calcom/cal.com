@@ -30,14 +30,14 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.language("rescheduled_event_type_subject", {
+      subject: `${this.calEvent.attendees[0].language.translate("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
           "h:mma"
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.attendees[0].language.translate(
           this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.attendees[0].language.translate(
           this.getInviteeStart().format("MMMM").toLowerCase()
         )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
       })}`,
@@ -51,20 +51,20 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
     // Guests cannot
     if (this.attendee === this.calEvent.attendees[0]) {
       return `
-  ${this.calEvent.language("event_has_been_rescheduled")}
-  ${this.calEvent.language("emailed_you_and_any_other_attendees")}
+  ${this.calEvent.attendees[0].language.translate("event_has_been_rescheduled")}
+  ${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")}
   ${this.getWhat()}
   ${this.getWhen()}
   ${this.getLocation()}
   ${this.getAdditionalNotes()}
-  ${this.calEvent.language("need_to_reschedule_or_cancel")}
+  ${this.calEvent.attendees[0].language.translate("need_to_reschedule_or_cancel")}
   ${getCancelLink(this.calEvent)}
   `.replace(/(<([^>]+)>)/gi, "");
     }
 
     return `
-${this.calEvent.language("event_has_been_rescheduled")}
-${this.calEvent.language("emailed_you_and_any_other_attendees")}
+${this.calEvent.attendees[0].language.translate("event_has_been_rescheduled")}
+${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -73,14 +73,14 @@ ${this.getAdditionalNotes()}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.language("rescheduled_event_type_subject", {
+    const headerContent = this.calEvent.attendees[0].language.translate("rescheduled_event_type_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
         "h:mma"
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("MMMM").toLowerCase()
       )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
     });
@@ -93,8 +93,8 @@ ${this.getAdditionalNotes()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.language("event_has_been_rescheduled"),
-          this.calEvent.language("emailed_you_and_any_other_attendees")
+          this.calEvent.attendees[0].language.translate("event_has_been_rescheduled"),
+          this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
