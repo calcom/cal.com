@@ -89,11 +89,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: true,
       email: true,
       timeZone: true,
+      locale: true,
     },
     rejectOnNotFound: true,
   });
 
-  const t = await getTranslation(req.body.language ?? "en", "common");
+  const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
+  const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
@@ -105,14 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
+      language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
-    attendees: bookingToDelete?.attendees.map((attendee) => {
-      const retObj = { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-      return retObj;
-    }),
+    attendees: attendeesList,
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
-    language: t,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
   };
 
@@ -168,11 +179,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: bookingToDelete.user?.email ?? "dev@calendso.com",
         name: bookingToDelete.user?.name ?? "no user",
         timeZone: bookingToDelete.user?.timeZone ?? "",
+        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
       },
-      attendees: bookingToDelete.attendees,
+      attendees: attendeesList,
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
-      language: t,
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     };
     await refund(bookingToDelete, evt);

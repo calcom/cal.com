@@ -136,6 +136,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     credentials: true,
     bufferTime: true,
     destinationCalendar: true,
+    locale: true,
   },
 });
 
@@ -152,6 +153,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
     select: {
       id: true,
       username: true,
+      locale: true,
     },
   });
 
@@ -180,8 +182,8 @@ type User = Prisma.UserGetPayload<typeof userSelect>;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
-  const t = await getTranslation(reqBody.language ?? "en", "common");
-
+  const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
+  const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 
   const isTimeInPast = (time: string): boolean => {
@@ -244,6 +246,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     users.push(eventTypeUser);
   }
 
+  const organizer = await prisma.user.findUnique({
+    where: {
+      id: users[0].id,
+    },
+    select: {
+      locale: true,
+    },
+  });
+
+  const tOrganizer = await getTranslation(organizer?.locale ?? "en", "common");
+
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const bookingCounts = await getUserNameWithBookingCounts(
       eventTypeId,
@@ -253,24 +266,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     users = getLuckyUsers(users, bookingCounts);
   }
 
-  const invitee = [{ email: reqBody.email, name: reqBody.name, timeZone: reqBody.timeZone }];
+  const invitee = [
+    {
+      email: reqBody.email,
+      name: reqBody.name,
+      timeZone: reqBody.timeZone,
+      language: { translate: tAttendees, locale: reqBody.language ?? "en" },
+    },
+  ];
   const guests = (reqBody.guests || []).map((guest) => {
     const g = {
       email: guest,
       name: "",
       timeZone: reqBody.timeZone,
+      language: { translate: tGuests, locale: "en" },
     };
     return g;
   });
 
-  const teamMembers =
+  const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
-      ? users.slice(1).map((user) => ({
-          email: user.email || "",
-          name: user.name || "",
-          timeZone: user.timeZone,
-        }))
+      ? users.slice(1).map(async function (user) {
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
       : [];
+
+  const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
@@ -282,7 +311,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: users[0].name || "Nameless",
-    t,
+    t: tOrganizer,
   };
 
   const description =
@@ -294,7 +323,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const evt: CalendarEvent = {
     type: eventType.title,
-    title: getEventName(eventNameObject),
+    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description,
     startTime: reqBody.start,
     endTime: reqBody.end,
@@ -302,10 +331,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       name: users[0].name || "Nameless",
       email: users[0].email || "Email-less",
       timeZone: users[0].timeZone,
+      language: { translate: tOrganizer, locale: organizer?.locale ?? "en" },
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    language: t,
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
   };
@@ -343,7 +372,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: {
           createMany: {
-            data: evt.attendees,
+            data: evt.attendees.map((attendee) => {
+              //if attendee is team member, it should fetch their locale not booker's locale
+              //perhaps make email fetch request to see if his locale is stored, else
+              const retObj = {
+                name: attendee.name,
+                email: attendee.email,
+                timeZone: attendee.timeZone,
+                locale: attendee.language.locale,
+              };
+              return retObj;
+            }),
           },
         },
         user: {

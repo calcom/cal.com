@@ -1,6 +1,6 @@
+import { WebhookTriggerEvents } from "@prisma/client";
 import * as z from "zod";
 
-import { WebhookTriggerEvents } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteUser, UserModel } from "./index";
 

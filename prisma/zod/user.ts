@@ -1,6 +1,6 @@
+import { IdentityProvider, UserPlan } from "@prisma/client";
 import * as z from "zod";
 
-import { IdentityProvider, UserPlan } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteEventType,
