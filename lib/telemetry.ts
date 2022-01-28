@@ -7,7 +7,6 @@ import React, { useContext } from "react";
  */
 export const telemetryEventTypes = {
   pageView: "page_view",
-  bookingAttempted: "booking_attempted",
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
   importSubmitted: "import_submitted",

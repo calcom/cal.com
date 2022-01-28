@@ -211,7 +211,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
-      jitsu.track(telemetryEventTypes.bookingAttempted, collectPageParameters())
+      jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );
 
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
