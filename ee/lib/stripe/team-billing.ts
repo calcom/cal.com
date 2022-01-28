@@ -26,27 +26,24 @@ async function getMembersMissingSeats(teamId: number) {
     where: { teamId },
     select: { role: true, accepted: true, user: { select: { id: true, plan: true, metadata: true } } },
   });
-  const membersMissingSeats = members.filter((m) => {
-    // const metadata = (m.user.metadata as Prisma.JsonObject) ?? {};
-    // if user is the owner of the team
-    if (m.role === MembershipRole.OWNER) return false;
-    // if user has Pro they're not missing a seat
-    if (m.user.plan === UserPlan.PRO) return false;
-    // all other Free & Trial users are missing seats
-    return true;
-  });
+  // any member that is not Pro is missing a seat excluding the owner
+  const membersMissingSeats = members.filter(
+    (m) => m.role !== MembershipRole.OWNER || m.user.plan !== UserPlan.PRO
+  );
+  // as owner's billing is handled by a different Price, we count this separately
+  const ownerIsMissingSeat = !!members.find(
+    (m) => m.role === MembershipRole.OWNER && m.user.plan === UserPlan.FREE
+  );
   return {
     members,
     membersMissingSeats,
-    ownerIsMissingSeat: !!members.find(
-      (m) => m.role === MembershipRole.OWNER && m.user.plan === UserPlan.FREE
-    ),
+    ownerIsMissingSeat,
   };
 }
 
 // a helper for the upgrade dialog
 export async function getTeamSeatStats(teamId: number) {
-  const { membersMissingSeats, members } = await getMembersMissingSeats(teamId);
+  const { membersMissingSeats, members, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
   return {
     totalMembers: members.length,
     // members we need not pay for
@@ -55,6 +52,7 @@ export async function getTeamSeatStats(teamId: number) {
     missingSeats: membersMissingSeats.length,
     // members who have been hidden from view
     hiddenMembers: members.filter((m) => m.user.plan === UserPlan.FREE).length,
+    ownerIsMissingSeat,
   };
 }
 
@@ -177,20 +175,6 @@ async function addOrRemoveSeat(remove: boolean, userId: number, teamId: number, 
   });
 }
 
-// this function verifies that the subscription's quantity is correct for the number of members the team has
-// this is a fallback just in case a member leaves without triggering the downgrade process
-export async function ensureSubscriptionQuantityCorrectness(userId: number, teamId: number) {
-  const subscription = await getProPlanSubscription(userId);
-  const stripeQuantity =
-    subscription?.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice())?.quantity ?? 0;
-
-  const { membersMissingSeats } = await getMembersMissingSeats(teamId);
-  // correct the quantity if missing seats is out of sync with subscription quantity
-  if (subscription && membersMissingSeats.length !== stripeQuantity) {
-    await updatePerSeatQuantity(subscription, membersMissingSeats.length);
-  }
-}
-
 // aliased helpers for more verbose usage
 export async function addSeat(userId: number, teamId: number, memberUserId?: number) {
   return await addOrRemoveSeat(false, userId, teamId, memberUserId);
@@ -254,6 +238,20 @@ async function createCheckoutSession(
   };
 
   return await stripe.checkout.sessions.create(params);
+}
+
+// this function verifies that the subscription's quantity is correct for the number of members the team has
+// this is a fallback just in case a member leaves without triggering the downgrade process
+export async function ensureSubscriptionQuantityCorrectness(userId: number, teamId: number) {
+  const subscription = await getProPlanSubscription(userId);
+  const stripeQuantity =
+    subscription?.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice())?.quantity ?? 0;
+
+  const { membersMissingSeats } = await getMembersMissingSeats(teamId);
+  // correct the quantity if missing seats is out of sync with subscription quantity
+  if (subscription && membersMissingSeats.length !== stripeQuantity) {
+    await updatePerSeatQuantity(subscription, membersMissingSeats.length);
+  }
 }
 
 export function getPerSeatProPlanPrice(): string {
