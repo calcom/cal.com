@@ -13,6 +13,7 @@ export type Person = {
   name: string;
   email: string;
   timeZone: string;
+  language: { translate: TFunction; locale: string };
 };
 
 export interface EntryPoint {
@@ -46,7 +47,6 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
-  language: TFunction;
   additionInformation?: AdditionInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
