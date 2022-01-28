@@ -113,8 +113,8 @@ interface Person {
 export interface CalendarEvent {
   type: string;
   title: string;
-  startTime: string;
-  endTime: string;
+  startTime: string | Date;
+  endTime: string | Date;
   description?: string;
   location?: string;
   organizer: Person;

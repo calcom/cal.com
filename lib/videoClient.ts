@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { v5 as uuidv5 } from "uuid";
 import * as jwt from "jsonwebtoken";
+import moment from "moment-timezone";
 
 import prisma from "./prisma";
 import { CalendarEvent } from "./calendarClient";
@@ -120,12 +121,15 @@ const ZoomVideo = (credential): VideoApiAdapter => {
   const auth = zoomAuth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
+    const tz = event.attendees[0].timeZone;
+    const newStartTime = moment(event.startTime).tz(tz).format("YYYY-MM-DDTHH:mm:ss");
+    const newEndTime = moment(event.endTime).tz(tz).format("YYYY-MM-DDTHH:mm:ss");
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
-    return {
+    const eventTranslated = {
       topic: event.title,
       type: 2, // Means that this is a scheduled meeting
-      start_time: event.startTime,
-      duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
+      start_time: newStartTime,
+      duration: (new Date(newEndTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.attendees[0].timeZone,
       //password: "string",       TODO: Should we use a password? Maybe generate a random one?
@@ -146,6 +150,10 @@ const ZoomVideo = (credential): VideoApiAdapter => {
         registrants_email_notification: true,
       },
     };
+
+    // console.log({ eventTranslated });
+
+    return eventTranslated;
   };
 
   return {
