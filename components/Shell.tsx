@@ -30,7 +30,6 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
-import Avatar from "@components/ui/Avatar";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -377,7 +376,16 @@ function UserDropdown({ small }: { small?: boolean }) {
               small ? "w-8 h-8" : "w-10 h-10",
               "bg-gray-300 rounded-full flex-shrink-0 relative"
             )}>
-            <Avatar imageSrc={user?.avatar || ""} alt={user?.username || "Nameless User"} />
+            <img
+              className="rounded-full"
+              src={
+                (process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL) +
+                "/" +
+                user?.username +
+                "/avatar.png"
+              }
+              alt={user?.username || "Nameless User"}
+            />
             {!user?.away && (
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
             )}

@@ -8,6 +8,7 @@ import {
   LinkIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
@@ -329,12 +330,13 @@ const EventTypesPage = () => {
                   severity="warning"
                   title={<>{t("plan_upgrade")}</>}
                   message={
-                    <>
-                      {t("to_upgrade_go_to")}{" "}
-                      <a href={"https://cal.com/upgrade"} className="underline">
-                        {"https://cal.com/upgrade"}
+                    <Trans i18nKey="plan_upgrade_instructions">
+                      You can
+                      <a href="/api/upgrade" className="underline">
+                        upgrade here
                       </a>
-                    </>
+                      .
+                    </Trans>
                   }
                   className="mb-4"
                 />
