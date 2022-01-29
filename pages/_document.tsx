@@ -9,10 +9,11 @@ class MyDocument extends Document<Props> {
   }
 
   render() {
-    const dir = "rtl"; // if locale === "ar" or "he" then dir = "rtl" else dir = "ltr"
+    const { locale } = this.props.__NEXT_DATA__;
+    const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
 
     return (
-      <Html>
+      <Html lang={locale} dir={dir}>
         <Head>
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -22,7 +23,7 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
         </Head>
-        <body dir={dir} className="bg-gray-100 dark:bg-black">
+        <body className="bg-gray-100 dark:bg-black">
           <Main />
           <NextScript />
         </body>
