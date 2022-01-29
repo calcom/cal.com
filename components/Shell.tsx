@@ -370,7 +370,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center w-full space-x-2 cursor-pointer group">
+        <div className="flex items-center w-full space-x-2 cursor-pointer group appearance-none">
           <span
             className={classNames(
               small ? "w-8 h-8" : "w-10 h-10",
