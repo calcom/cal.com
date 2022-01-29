@@ -1,5 +1,6 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { ReactNode } from "react";
+import { useIntercom } from "react-use-intercom";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -24,6 +25,7 @@ export default function Billing() {
   const { t } = useLocale();
   const query = useMeQuery();
   const { data } = query;
+  const { boot, show } = useIntercom();
 
   return (
     <Shell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
@@ -44,7 +46,7 @@ export default function Billing() {
 
           <Card title={t("view_and_manage_billing_details")} description={t("view_and_edit_billing_details")}>
             <form method="POST" action={`/api/integrations/stripepayment/portal`}>
-              <Button type="submit">
+              <Button type="submit" color="secondary">
                 {t("go_to_billing_portal")} <ExternalLinkIcon className="w-4 h-4 ml-1" />
               </Button>
             </form>
@@ -56,7 +58,12 @@ export default function Billing() {
                 <p>{t("further_billing_help")}</p>
               </div>
               <div className="mt-5">
-                <Button href="mailto:help@cal.com" color="secondary" type="submit">
+                <Button
+                  onClick={() => {
+                    boot();
+                    show();
+                  }}
+                  color="secondary">
                   {t("contact_our_support_team")}
                 </Button>
               </div>
