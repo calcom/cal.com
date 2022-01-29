@@ -90,7 +90,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
   } = props;
 
   const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
-  const pageTitle = title + (isBrandingHidden?"":" | Cal.com");
+  const pageTitle = title + (isBrandingHidden ? "" : " | Cal.com");
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,
