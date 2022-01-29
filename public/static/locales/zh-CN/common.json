@@ -352,7 +352,6 @@
   "readonly": "只读",
   "plan_upgrade": "您需要升级您的套餐才能有多个事件类型.",
   "plan_upgrade_teams": "您需要升级您的套餐才能创建一个团队。",
-  "plan_upgrade_instructions": "升级请访问 <a href=\"https://cal.com/upgrade\" className=\"underline\">https://cal.com/upgrade</a>",
   "event_types_page_title": "事件类型",
   "event_types_page_subtitle": "创建事件，让人们在您的日历上预约。",
   "new_event_type_btn": "新事件类型",
