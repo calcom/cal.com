@@ -289,7 +289,9 @@ ${getRichDescription(this.calEvent)}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("additional_notes")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.description}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.description
+      }</p>
     </div>
     `;
   }
