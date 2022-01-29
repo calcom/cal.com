@@ -602,5 +602,7 @@
   "import": "Import",
   "import_from": "Import from",
   "access_token": "Access token",
-  "visit_roadmap": "Roadmap"
+  "visit_roadmap": "Roadmap",
+  "remove": "Remove",
+  "add": "Add"
 }

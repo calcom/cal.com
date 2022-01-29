@@ -555,7 +555,13 @@ function Web3Container() {
             <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
               <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
-                <ListItemTitle component="h3">MetaMask</ListItemTitle>
+                <ListItemTitle component="h3">
+                  MetaMask (
+                  <a className="text-blue-500" target="_blank" href="https://cal.com/web3" rel="noreferrer">
+                    Read more
+                  </a>
+                  )
+                </ListItemTitle>
                 <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
               </div>
               <Web3ConnectBtn />
@@ -581,10 +587,10 @@ function Web3ConnectBtn() {
 
   return (
     <Button
-      color="secondary"
+      color={connectionBtn ? "warn" : "secondary"}
       onClick={async () => await enableOrDisableWeb3(mutation)}
-      data-testid="new_webhook">
-      {connectionBtn ? t("disconnect") : t("connect")}
+      data-testid="metamask">
+      {connectionBtn ? t("remove") : t("add")}
     </Button>
   );
 }
