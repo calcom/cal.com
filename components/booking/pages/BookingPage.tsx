@@ -124,6 +124,7 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Phone]: t("phone_call"),
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
+    [LocationType.Jitsi]: "Jitsi Meet",
     [LocationType.Daily]: "Daily.co Video",
   };
 
@@ -306,6 +307,12 @@ const BookingPage = (props: BookingPageProps) => {
                   <p className="mb-2 text-gray-500">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {getLocationValue({ locationType: selectedLocation })}
+                  </p>
+                )}
+                {selectedLocation === LocationType.Jitsi && (
+                  <p className="mb-2 text-gray-500">
+                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    Jitsi Meet
                   </p>
                 )}
                 <p className="mb-4 text-green-500">
