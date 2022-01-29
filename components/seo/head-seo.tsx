@@ -4,6 +4,7 @@ import React from "react";
 
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
 import { getBrowserInfo } from "@lib/core/browser/browser.utils";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 export type HeadSeoProps = {
   title: string;
@@ -89,7 +90,7 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
   } = props;
 
   const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
-  const pageTitle = title + " | Cal.com";
+  const pageTitle = title + (isBrandingHidden?"":" | Cal.com");
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,
