@@ -23,7 +23,7 @@ const TrialBanner = () => {
       data-testid="trial-banner">
       <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
       <Button
-        href="/settings/billing"
+        href="/api/upgrade"
         color="minimal"
         className="justify-center w-full border-2 border-gray-600 hover:bg-yellow-100">
         {t("upgrade_now")}
