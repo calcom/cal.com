@@ -56,6 +56,7 @@ export const getLocationRequestFromIntegration = (location: string) => {
   if (
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
+    location === LocationType.Jitsi.valueOf() ||
     location === LocationType.Daily.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);

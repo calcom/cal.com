@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import { PartialReference } from "@lib/events/EventManager";
+import JitsiVideoApiAdapter from "@lib/integrations/Jitsi/JitsiVideoApiAdapter";
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
@@ -43,6 +44,9 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
         break;
       case "daily_video":
         acc.push(DailyVideoApiAdapter(cred));
+        break;
+      case "jitsi_video":
+        acc.push(JitsiVideoApiAdapter());
         break;
       default:
         break;
