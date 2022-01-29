@@ -3,6 +3,7 @@ import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
@@ -72,14 +73,14 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           </div>
           <div className="flex flex-col space-y-3">
             <p>{t("remove_cal_branding_description")}</p>
-
             <p>
-              {" "}
-              {t("to_upgrade_go_to")}{" "}
-              <a href="https://cal.com/upgrade" className="underline">
-                cal.com/upgrade
-              </a>
-              .
+              <Trans i18nKey="plan_upgrade_instructions">
+                You can
+                <a href="/api/upgrade" className="underline">
+                  upgrade here
+                </a>
+                .
+              </Trans>
             </p>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
