@@ -1,6 +1,7 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
+import { Trans } from "next-i18next";
 import { useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -44,12 +45,13 @@ export default function Teams() {
             severity="warning"
             title={<>{t("plan_upgrade_teams")}</>}
             message={
-              <>
-                {t("to_upgrade_go_to")}{" "}
-                <a href={"https://cal.com/upgrade"} className="underline">
-                  {"https://cal.com/upgrade"}
+              <Trans i18nKey="plan_upgrade_instructions">
+                You can
+                <a href="/api/upgrade" className="underline">
+                  upgrade here
                 </a>
-              </>
+                .
+              </Trans>
             }
             className="my-4"
           />
