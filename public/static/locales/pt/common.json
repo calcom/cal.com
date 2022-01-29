@@ -13,6 +13,8 @@
   "event_request_cancelled": "O seu evento agendado foi cancelado",
   "organizer": "Organizador",
   "need_to_reschedule_or_cancel": "Precisa reagendar ou cancelar?",
+  "cancellation_reason": "Motivo do cancelamento",
+  "cancellation_reason_placeholder": "Porque está a cancelar? (opcional)",
   "manage_this_event": "Gerir este evento",
   "your_event_has_been_scheduled": "O seu evento foi agendado",
   "accept_our_license": "Aceite a nossa licença, através de alterar a variável de .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> para '{{agree}}'.",
