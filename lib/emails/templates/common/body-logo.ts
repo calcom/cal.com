@@ -1,8 +1,8 @@
-import { IS_PRODUCTION, BASE_URL } from "@lib/config/constants";
+import { IS_PRODUCTION, BASE_URL, BRAND_LOGO_URL } from "@lib/config/constants";
 
 export const emailBodyLogo = (): string => {
-  const image = IS_PRODUCTION
-    ? BASE_URL + "/emails/CalLogo@2x.png"
+  const image = IS_PRODUCTION && BRAND_LOGO_URL
+    ? BRAND_LOGO_URL
     : "https://app.cal.com/emails/CalLogo@2x.png";
 
   return `
