@@ -41,6 +41,16 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
   }, []);
 
   useEffect(() => {
+    const convertTimeZone = (date: Date, tzString: string) => {
+      return new Date(
+        (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString })
+      );
+    };
+    openingHours.map((openingHour) => {
+      openingHour.startTime = convertTimeZone(openingHour.startTime, timeZone);
+      openingHour.endTime = convertTimeZone(openingHour.endTime, timeZone);
+    });
+    console.log(openingHours);
     setAvailability({ openingHours, dateOverrides: [] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openingHours]);
