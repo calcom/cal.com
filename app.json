@@ -1,7 +1,15 @@
 {
-  "name": "Cal.com",
+  "name": "FirewoodBooking.com",
   "description": "Open Source Scheduling",
   "repository": "https://github.com/calendso/calendso",
   "logo": "https://cal.com/android-chrome-512x512.png",
-  "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"]
+  "keywords": [
+    "react",
+    "typescript",
+    "node",
+    "nextjs",
+    "prisma",
+    "postgres",
+    "trpc"
+  ]
 }
