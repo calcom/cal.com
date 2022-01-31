@@ -6,6 +6,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
+import Button from "@components/ui/Button";
 
 export default function App({
   name,
@@ -13,12 +14,17 @@ export default function App({
   description,
   category,
   author,
+  price,
+  monthly,
 }: {
   name: string;
   logo: string;
   description: React.ReactNode;
   category: string;
   author: string;
+  pro?: boolean;
+  price: number;
+  monthly?: boolean;
 }) {
   const { t } = useLocale();
   const tabs = [
@@ -50,14 +56,30 @@ export default function App({
                 <ChevronLeftIcon className="w-5 h-5" /> {t("browse_apps")}
               </a>
             </Link>
-            <div className="flex py-8">
-              <img src={logo} />
-              <header className="p-4">
-                <h1 className="text-xl text-gray-900 font-cal">{name}</h1>
-                <h2 className="text-sm text-gray-500">
-                  <span className="capitalize">{category}</span> • {t("build_by", { author })}
-                </h2>
-              </header>
+            <div className="flex items-center justify-between py-8">
+              <div className="flex">
+                <img src={logo} />
+                <header className="p-4">
+                  <h1 className="text-xl text-gray-900 font-cal">{name}</h1>
+                  <h2 className="text-sm text-gray-500">
+                    <span className="capitalize">{category}</span> • {t("build_by", { author })}
+                  </h2>
+                </header>
+              </div>
+
+              <div>
+                <Button>{price !== 0 ? (monthly ? "Subscribe" : "Buy") : "Install App"}</Button>
+                {price !== 0 && (
+                  <small className="block text-right">
+                    {Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                      useGrouping: false,
+                    }).format(price)}
+                    {monthly && "/" + t("month")}
+                  </small>
+                )}
+              </div>
             </div>
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
           </div>

@@ -7,6 +7,8 @@ export default function Zoom() {
       logo="/apps/zoom.svg"
       category="video"
       author="Cal.com"
+      price={10}
+      monthly={true}
       description={
         <>
           Start Zoom Meetings and make Zoom Phone calls with flawless video, crystal clear audio, and instant
