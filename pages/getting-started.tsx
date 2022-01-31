@@ -265,7 +265,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <h2 className="text-2xl text-gray-900 font-cal">
                 {t("import_from")} {selectedImport === "calendly" ? "Calendly" : "SavvyCal"}
               </h2>
-              <p className="mb-2 text-sm text-gray-500">{t("you_will_need_to_generate")}</p>
+              <p className="mb-2 text-sm text-gray-500">
+                {t("you_will_need_to_generate")}. Find out how to do this{" "}
+                <a href="https://docs.cal.com/import">here</a>.
+              </p>
               <form
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
