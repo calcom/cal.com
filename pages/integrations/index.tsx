@@ -549,10 +549,10 @@ export default function IntegrationsPage() {
   return (
     <Shell heading={t("integrations")} subtitle={t("connect_your_favourite_apps")}>
       <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
+        {/*<IntegrationsContainer />*/}
         <CalendarListContainer />
-        <WebhookListContainer />
-        <IframeEmbedContainer />
+        {/*<WebhookListContainer />*/}
+        {/*<IframeEmbedContainer />*/}
       </ClientSuspense>
     </Shell>
   );

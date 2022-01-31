@@ -92,6 +92,16 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/bookings/upcoming",
         permanent: true,
       },
+      {
+        source: "/settings/:path",
+        destination: "/400",
+        permanent: true,
+      },
+      {
+        source: "/:user(\\d{1,})",
+        destination: "/400",
+        permanent: true,
+      },
     ];
   },
 });

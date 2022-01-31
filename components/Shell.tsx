@@ -161,12 +161,12 @@ export default function Shell(props: {
       icon: PuzzleIcon,
       current: router.asPath.startsWith("/integrations"),
     },
-    {
+/*    {
       name: t("settings"),
       href: "/settings/profile",
       icon: CogIcon,
       current: router.asPath.startsWith("/settings"),
-    },
+    },*/
   ];
 
   useEffect(() => {
