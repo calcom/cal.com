@@ -93,13 +93,23 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         permanent: true,
       },
       {
+        source: "/auth/forgot-password",
+        destination: "/404",
+        permanent: true,
+      },
+      {
+        source: "/auth/forgot-password/:id(\\d{1,})",
+        destination: "/404",
+        permanent: true,
+      },
+      {
         source: "/settings/:path",
-        destination: "/400",
+        destination: "/404",
         permanent: true,
       },
       {
         source: "/:user(\\d{1,})",
-        destination: "/400",
+        destination: "/404",
         permanent: true,
       },
     ];
