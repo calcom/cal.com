@@ -600,7 +600,7 @@
   "saml_configuration_update_failed": "SAML configuration update failed",
   "saml_configuration_delete_failed": "SAML configuration delete failed",
   "saml_email_required": "Please enter an email so we can find your SAML Identity Provider",
-  "you_will_need_to_generate": "You will need to generate an access token from the integrations page.",
+  "you_will_need_to_generate": "You will need to generate an access token from your old scheduling tool.",
   "import": "Import",
   "import_from": "Import from",
   "access_token": "Access token",
