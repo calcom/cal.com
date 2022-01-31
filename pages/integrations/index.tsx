@@ -4,9 +4,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { JSONObject } from "superjson/dist/types";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -578,7 +580,23 @@ function Web3ConnectBtn() {
   const utils = trpc.useContext();
   const [connectionBtn, setConnection] = useState(false);
   const result = trpc.useQuery(["viewer.web3Integration"]);
-  const mutation = trpc.useMutation("viewer.enableOrDisableWeb3");
+  const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
+    onSuccess: async (result) => {
+      const { key = {} } = result as JSONObject;
+
+      if ((key as JSONObject).isWeb3Active) {
+        showToast(t("web3_metamask_added"), "success");
+      } else {
+        showToast(t("web3_metamask_disconnected"), "success");
+      }
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   useEffect(() => {
     if (result.data) {
@@ -591,6 +609,10 @@ function Web3ConnectBtn() {
     setConnection(result.key.isWeb3Active);
     utils.invalidateQueries("viewer.web3Integration");
   };
+
+  if (mutation.isLoading) {
+    return <Loader />;
+  }
 
   return (
     <Button

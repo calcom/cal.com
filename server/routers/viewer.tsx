@@ -490,7 +490,7 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         });
       } else {
-        await ctx.prisma.credential.create({
+        return ctx.prisma.credential.create({
           data: {
             type: "metamask_web3",
             key: {
@@ -499,8 +499,6 @@ const loggedInViewerRouter = createProtectedRouter()
             userId: user.id,
           },
         });
-
-        return true;
       }
     },
   })

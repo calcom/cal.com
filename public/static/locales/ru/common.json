@@ -462,6 +462,8 @@
   "event_type_created_successfully": "{{eventTypeTitle}} тип мероприятия успешно создан",
   "event_type_updated_successfully": "Шаблон события успешно обновлён",
   "event_type_deleted_successfully": "Тип события успешно удален",
+  "web3_metamask_added": "Metamask added successfully",
+  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "Часы",
   "your_email": "Ваш адрес электронной почты",
   "change_avatar": "Изменить аватар",
