@@ -1,3 +1,11 @@
+import {
+  BookOpenIcon,
+  DocumentTextIcon,
+  ExternalLinkIcon,
+  FlagIcon,
+  MailIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React from "react";
@@ -17,6 +25,11 @@ export default function App({
   author,
   price,
   monthly,
+  docs,
+  website,
+  email,
+  tos,
+  privacy,
 }: {
   name: string;
   logo: string;
@@ -26,6 +39,11 @@ export default function App({
   pro?: boolean;
   price: number;
   monthly?: boolean;
+  docs: string;
+  website: string;
+  email: string;
+  tos: string;
+  privacy: string;
 }) {
   const { t } = useLocale();
   const tabs = [
@@ -87,19 +105,19 @@ export default function App({
 
           <div className="flex justify-between px-10 py-10">
             <div className="prose-sm prose">{description}</div>
-            <div className="flex-1 max-w-96">
-              <h4 className="font-medium text-gray-900 ">Categories</h4>
-              <div className="mb-8 space-x-2">
+            <div className="flex-1 max-w-80">
+              <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
+              <div className="space-x-2">
                 {categories.map((category) => (
                   <Link href={"/apps/categories/" + category} key={category}>
                     <a>
-                      <Badge variant="gray">{category}</Badge>
+                      <Badge variant="success">{category}</Badge>
                     </a>
                   </Link>
                 ))}
               </div>
-              <h4 className="font-medium text-gray-900 ">Pricing</h4>
-              <small className="block">
+              <h4 className="mt-8 font-medium text-gray-900 ">{t("pricing")}</h4>
+              <small>
                 {price === 0 ? (
                   "Free"
                 ) : (
@@ -113,6 +131,68 @@ export default function App({
                   </>
                 )}
               </small>
+              <h4 className="mt-8 mb-2 font-medium text-gray-900 ">{t("learn_more")}</h4>
+              <ul className="-ml-1 -mr-1 text-xs leading-5 prose">
+                <li>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-500 no-underline hover:underline"
+                    href={docs}>
+                    <BookOpenIcon className="inline w-4 h-4 mr-1 -mt-1" />
+                    {t("documentation")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-500 no-underline hover:underline"
+                    href={website}>
+                    <ExternalLinkIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                    {website.replace("https://", "")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-500 no-underline hover:underline"
+                    href={"mailto:" + email}>
+                    <MailIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                    {email}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-500 no-underline hover:underline"
+                    href={tos}>
+                    <DocumentTextIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                    {t("terms_of_service")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-500 no-underline hover:underline"
+                    href={privacy}>
+                    <ShieldCheckIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                    {t("privacy_policy")}
+                  </a>
+                </li>
+              </ul>
+              <hr className="my-6" />
+              <small className="block text-gray-500 leading-1">
+                Every app published on the Cal.com App Store is open source and thoroughly tested via peer
+                reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are
+                published by Cal.com. If you encounter inappropriate content or behaviour please report it.
+              </small>
+              <a className="block mt-2 text-xs text-red-500" href="mailto:help@cal.com">
+                <FlagIcon className="inline w-3 h-3" /> Report App
+              </a>
             </div>
           </div>
         </div>

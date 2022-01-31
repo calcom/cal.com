@@ -9,6 +9,11 @@ export default function Zoom() {
       author="Cal.com"
       price={10}
       monthly={true}
+      docs="https://zoom.us/download"
+      website="https://zoom.us"
+      email="support@zoom.us"
+      tos="https://zoom.us/terms"
+      privacy="https://zoom.us/privacy"
       description={
         <>
           Start Zoom Meetings and make Zoom Phone calls with flawless video, crystal clear audio, and instant
