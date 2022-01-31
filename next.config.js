@@ -103,6 +103,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         permanent: true,
       },
       {
+        source: "/bookings/:path",
+        destination: "/404",
+        permanent: true,
+      },
+      {
         source: "/settings/:path",
         destination: "/404",
         permanent: true,
