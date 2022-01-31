@@ -45,15 +45,18 @@ type TimeRangeFieldProps = {
   name: string;
 };
 
+let initialValueforSelectStart: Option;
+
+// const { i18n } = useLocale();
+const getOption = (time: ConfigType) => ({
+  value: dayjs(time).toDate().valueOf(),
+  label: dayjs(time).utc().format("HH:mm"),
+  // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
+});
+
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
-  // const { i18n } = useLocale();
-  const getOption = (time: ConfigType) => ({
-    value: dayjs(time).toDate().valueOf(),
-    label: dayjs(time).utc().format("HH:mm"),
-    // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
-  });
 
   const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
     const { limit, offset } = offsetOrLimit;
@@ -61,6 +64,41 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
       (t) => getOption(t)
     );
   }, []);
+
+  const [valueSelectStart, setValueStart] = useState<Option>(initialValueforSelectStart);
+
+  const customOnChange = (onChange: any, option: any) => {
+    onChange(new Date(option?.value as number));
+    setValueStart(option);
+  };
+
+  const calculateRange = (value: Option) => {
+    const earlyMorningHours = [{ open: "00:00", close: "04:45" }];
+    let opened = false;
+    earlyMorningHours.forEach((item) => {
+      const open = new Date("1/1/1999 " + item.open);
+      const close = new Date("1/1/1999 " + item.close);
+      const hourDate = new Date(`1/1/1999 ${value.label}`);
+      opened = opened || (hourDate >= open && close >= hourDate);
+    });
+    return opened;
+  };
+
+  const calculateValue = (value: Option) => {
+    if (calculateRange(value)) {
+      if (calculateRange(valueSelectStart)) {
+        if (value.value < valueSelectStart.value) {
+          return valueSelectStart;
+        }
+      }
+      return value;
+    }
+
+    if (value.value < valueSelectStart.value) {
+      return valueSelectStart;
+    }
+    return value;
+  };
 
   return (
     <>
@@ -73,7 +111,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option) => onChange(new Date(option?.value as number))}
+            onChange={(option) => customOnChange(onChange, option)}
           />
         )}
       />
@@ -84,10 +122,11 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           <Select
             className="w-[6rem]"
             options={options}
-            onFocus={() => setOptions(timeOptions())}
+            onFocus={() => setOptions(timeOptions({ offset: valueSelectStart.value }))}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
             onChange={(option) => onChange(new Date(option?.value as number))}
+            value={calculateValue(getOption(value))}
           />
         )}
       />
@@ -106,6 +145,8 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const { fields, append, remove, replace } = useFieldArray({
     name: `${name}.${day}`,
   });
+
+  initialValueforSelectStart = getOption(dayjs((fields[0] as unknown as TimeRange)?.start));
 
   const handleAppend = () => {
     // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
