@@ -307,24 +307,26 @@ export default function Shell(props: {
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
-              <Link href="/event-types">
-                <a>
-                  <Logo />
-                </a>
-              </Link>
-              <div className="flex items-center self-center gap-3">
-                <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                  <span className="sr-only">{t("view_notifications")}</span>
-                  <Link href="/settings/profile">
-                    <a>
-                      <CogIcon className="w-6 h-6" aria-hidden="true" />
-                    </a>
-                  </Link>
-                </button>
-                <UserDropdown small />
-              </div>
-            </nav>
+            {status === "authenticated" && (
+              <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
+                <Link href="/event-types">
+                  <a>
+                    <Logo />
+                  </a>
+                </Link>
+                <div className="flex items-center self-center gap-3">
+                  <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                    <span className="sr-only">{t("view_notifications")}</span>
+                    <Link href="/settings/profile">
+                      <a>
+                        <CogIcon className="w-6 h-6" aria-hidden="true" />
+                      </a>
+                    </Link>
+                  </button>
+                  <UserDropdown small />
+                </div>
+              </nav>
+            )}
             <div
               className={classNames(
                 props.centered && "md:max-w-5xl mx-auto",
@@ -363,34 +365,36 @@ export default function Shell(props: {
                 {props.children}
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
-                {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                {navigation.flatMap((item, itemIdx) =>
-                  item.href === "/settings/profile" ? (
-                    []
-                  ) : (
-                    <Link key={item.name} href={item.href}>
-                      <a
-                        className={classNames(
-                          item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                          itemIdx === 0 ? "rounded-l-lg" : "",
-                          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
-                        )}
-                        aria-current={item.current ? "page" : undefined}>
-                        <item.icon
+              {status === "authenticated" && (
+                <nav className="fixed bottom-0 flex w-full bg-white shadow bottom-nav md:hidden">
+                  {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
+                  {navigation.flatMap((item, itemIdx) =>
+                    item.href === "/settings/profile" ? (
+                      []
+                    ) : (
+                      <Link key={item.name} href={item.href}>
+                        <a
                           className={classNames(
-                            item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                            "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
+                            item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
+                            itemIdx === 0 ? "rounded-l-lg" : "",
+                            itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
                           )}
-                          aria-hidden="true"
-                        />
-                        <span className="truncate">{item.name}</span>
-                      </a>
-                    </Link>
-                  )
-                )}
-              </nav>
+                          aria-current={item.current ? "page" : undefined}>
+                          <item.icon
+                            className={classNames(
+                              item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                              "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">{item.name}</span>
+                        </a>
+                      </Link>
+                    )
+                  )}
+                </nav>
+              )}
               {/* add padding to content for mobile navigation*/}
               <div className="block pt-12 md:hidden" />
             </div>

@@ -7,8 +7,7 @@ export default function Zoom() {
   return (
     <Shell
       heading="Zoom"
-      subtitle="Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps."
-      large>
+      subtitle="Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.">
       <div className="mb-8">
         <Button color="secondary" href="/apps">
           <ChevronLeftIcon className="w-5 h-5" />
