@@ -23,6 +23,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -48,6 +49,7 @@ type ScheduleFormValues = {
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
+  const telemetry = useTelemetry();
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -267,6 +269,13 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <form
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
+                  // track the number of imports. Without personal data/payload
+                  telemetry.withJitsu((jitsu) =>
+                    jitsu.track(telemetryEventTypes.importSubmitted, {
+                      ...collectPageParameters(),
+                      selectedImport,
+                    })
+                  );
                   setSubmitting(true);
                   const response = await fetch(`/api/import/${selectedImport}`, {
                     method: "POST",

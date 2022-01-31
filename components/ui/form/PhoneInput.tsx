@@ -1,10 +1,11 @@
 import React from "react";
-import { default as BasePhoneInput, PhoneInputProps } from "react-phone-number-input";
+import BasePhoneInput, { Props as PhoneInputProps } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import classNames from "@lib/classNames";
+import { Optional } from "@lib/types/utils";
 
-export const PhoneInput = (props: PhoneInputProps) => (
+export const PhoneInput = (props: Optional<PhoneInputProps, "onChange">) => (
   <BasePhoneInput
     {...props}
     className={classNames(

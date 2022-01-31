@@ -7,7 +7,6 @@ import React, { useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { WorkingHours } from "@lib/types/schedule";
 
 import Button from "@components/ui/Button";
 
@@ -17,11 +16,16 @@ import SetTimesModal from "./modal/SetTimesModal";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
+
 type Props = {
   timeZone: string;
   availability: Availability[];
   setTimeZone: (timeZone: string) => void;
-  setAvailability: (schedule: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] }) => void;
+  setAvailability: (schedule: {
+    openingHours: AvailabilityInput[];
+    dateOverrides: AvailabilityInput[];
+  }) => void;
 };
 
 /**
