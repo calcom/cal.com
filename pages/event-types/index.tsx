@@ -108,16 +108,21 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 type.$disabled && "pointer-events-none"
               )}>
               <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50">
-                <button
-                  className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, -1)}>
-                  <ArrowUpIcon />
-                </button>
-                <button
-                  className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, 1)}>
-                  <ArrowDownIcon />
-                </button>
+                {sortableTypes.length > 1 && (
+                  <>
+                    <button
+                      className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, -1)}>
+                      <ArrowUpIcon />
+                    </button>
+
+                    <button
+                      className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, 1)}>
+                      <ArrowDownIcon />
+                    </button>
+                  </>
+                )}
                 <Link href={"/event-types/" + type.id}>
                   <a
                     className="flex-grow text-sm truncate"
