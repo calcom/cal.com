@@ -1,11 +1,11 @@
 <!-- PROJECT LOGO -->
 <div align="right">
-  <a href="https://github.com/calendso/calendso">
+  <a href="https://github.com/calcom/cal.com">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
   </a>
   <a href="https://cal.com">Website</a>
   ·
-  <a href="https://github.com/calendso/docs/issues">Community Support</a>
+  <a href="https://github.com/calcom/docs/issues">Community Support</a>
 </div>
 
 # Cal.com Documentation
@@ -20,7 +20,7 @@ The official product, support and developer documentation, containing informatio
 ## Installation
 Firstly, clone the repository using Git:
 ```console
-git clone https://github.com/calendso/docs.git
+git clone https://github.com/calcom/docs.git
 ```
 
 Now, you can install the dependencies with yarn:

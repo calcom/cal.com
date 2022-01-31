@@ -1,6 +1,6 @@
 export default {
-  github: 'https://github.com/calendso/docs',
-  docsRepositoryBase: 'https://github.com/calendso/docs/blob/master',
+  github: 'https://github.com/calcom/docs',
+  docsRepositoryBase: 'https://github.com/calcom/docs/blob/master',
   titleSuffix: ' | Cal.com',
   logo: (
     <h4 className="m-0">
