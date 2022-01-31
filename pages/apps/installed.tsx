@@ -307,7 +307,7 @@ function WebhookListContainer() {
           <List>
             <ListItem className={classNames("flex-col")}>
               <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+                <Image width={40} height={40} src="/apps/webhooks.svg" alt="Webhooks" />
                 <div className="flex-grow pl-2 truncate">
                   <ListItemTitle component="h3">Webhooks</ListItemTitle>
                   <ListItemText component="p">{t("automation")}</ListItemText>
@@ -380,7 +380,7 @@ function IframeEmbedContainer() {
         <List>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
@@ -405,7 +405,7 @@ function IframeEmbedContainer() {
           </ListItem>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
                 <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>

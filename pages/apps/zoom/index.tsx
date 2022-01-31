@@ -1,21 +1,23 @@
-import { ChevronLeftIcon } from "@heroicons/react/solid";
-
-import Shell from "@components/Shell";
-import Button from "@components/ui/Button";
+import App from "@components/App";
 
 export default function Zoom() {
   return (
-    <Shell
-      heading="Zoom"
-      subtitle="Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.">
-      <div className="mb-8">
-        <Button color="secondary" href="/apps">
-          <ChevronLeftIcon className="w-5 h-5" />
-        </Button>
-      </div>
-      <div className="mb-16">
-        <div className="grid grid-cols-3 gap-3"></div>
-      </div>
-    </Shell>
+    <App
+      name="Zoom"
+      logo="/apps/zoom.svg"
+      category="video"
+      author="Cal.com"
+      description={
+        <>
+          Start Zoom Meetings and make Zoom Phone calls with flawless video, crystal clear audio, and instant
+          screen sharing from any Slack channel, private group, or direct message using the /zoom slash
+          command.
+          <br />
+          <br />
+          The Zoom app for Slack can be installed individually by any Slack user with a Zoom account or be
+          deployed to the whole organization centrally by the Zoom account admin with a few simple steps.
+        </>
+      }
+    />
   );
 }

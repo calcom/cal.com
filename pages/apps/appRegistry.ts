@@ -7,7 +7,7 @@ export function appRegistry() {
       category: "Video Conferencing",
       description:
         "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
-      logo: "/integrations/zoom.svg",
+      logo: "/apps/zoom.svg",
       publisher: "Cal.com",
       url: "https://zoom.us/",
       verified: true,
@@ -20,7 +20,7 @@ export function appRegistry() {
       category: "Video Conferencing",
       description:
         "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
-      logo: "/integrations/daily.svg",
+      logo: "/apps/daily.svg",
       publisher: "Cal.com",
       url: "https://cal.com",
       verified: true,
@@ -44,7 +44,7 @@ export function appRegistry() {
       slug: "stripe",
       category: "Payments",
       description: "Stripe is the world's leading payment provider. Start charging for your bookings today.",
-      logo: "/integrations/stripe.svg",
+      logo: "/apps/stripe.svg",
       rating: 4.6,
       trending: true,
       reviews: 69,
@@ -55,7 +55,7 @@ export function appRegistry() {
       category: "Calendar",
       description:
         "Google Calendar is the most popular calendar platform for personal and business calendars.",
-      logo: "/integrations/google-calendar.svg",
+      logo: "/apps/google-calendar.svg",
       rating: 4.9,
       reviews: 69,
     },
@@ -65,7 +65,7 @@ export function appRegistry() {
       category: "Calendar",
       description:
         "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
-      logo: "/integrations/outlook.svg",
+      logo: "/apps/outlook.svg",
       rating: 4.2,
       reviews: 69,
     },
@@ -74,7 +74,7 @@ export function appRegistry() {
       slug: "caldav",
       category: "Calendar",
       description: "CalDAV is an open calendar standard which connects to virtually every calendar.",
-      logo: "/integrations/caldav.svg",
+      logo: "/apps/caldav.svg",
       rating: 3.6,
       reviews: 69,
     },
@@ -84,7 +84,7 @@ export function appRegistry() {
       category: "Calendar",
       description:
         "iCloud Calendar is Apple's calendar platform for users of iCloud, and is used in the Apple Calendar app on iOS and macOS.",
-      logo: "/integrations/apple-calendar.svg",
+      logo: "/apps/apple-calendar.svg",
       rating: 3.8,
       reviews: 69,
     },

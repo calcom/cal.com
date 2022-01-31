@@ -110,6 +110,7 @@
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.17.1",
     "@tailwindcss/forms": "^0.4.0",
+    "@tailwindcss/typography": "^0.5.1",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.10",

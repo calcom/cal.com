@@ -124,7 +124,7 @@ export function ShellSubHeading(props: {
 export default function Shell(props: {
   centered?: boolean;
   title?: string;
-  heading: ReactNode;
+  heading?: ReactNode;
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
@@ -343,20 +343,22 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div
-                className={classNames(
-                  props.large && "lg:pt-16 py-8 lg:pb-7 lg:mb-8 bg-gray-100",
-                  "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]"
-                )}>
-                {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
-                <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
-                    {props.heading}
-                  </h1>
-                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
+              {props.heading && props.subtitle && (
+                <div
+                  className={classNames(
+                    props.large && "lg:pt-16 py-8 lg:pb-7 lg:mb-8 bg-gray-100",
+                    "block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]"
+                  )}>
+                  {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
+                  <div className="w-full mb-8">
+                    <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                      {props.heading}
+                    </h1>
+                    <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
+                  </div>
+                  {props.CTA && <div className="flex-shrink-0 mb-4">{props.CTA}</div>}
                 </div>
-                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
-              </div>
+              )}
               <div
                 className={classNames(
                   "px-4 sm:px-6 md:px-8",

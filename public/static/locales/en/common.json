@@ -608,5 +608,10 @@
   "trending_apps": "Trending Apps",
   "all_apps": "All Apps",
   "installed_apps": "Installed Apps",
-  "manage_your_connected_apps": "Manage your connected apps"
+  "manage_your_connected_apps": "Manage your connected apps",
+  "browse_apps": "Browse Apps",
+  "features": "Features",
+  "permissions": "Permissions",
+  "terms_and_privacy": "Terms and Privacy",
+  "build_by": "Build by {{author}}"
 }
