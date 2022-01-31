@@ -106,10 +106,10 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-base font-bold leading-6 text-gray-900">
+        <h2 className="flex items-center content-center rtl:space-x-reverse space-x-2 text-base font-bold leading-6 text-gray-900">
           {props.title}
         </h2>
-        {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
+        {props.subtitle && <p className="ltr:mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
@@ -300,7 +300,7 @@ export default function Shell(props: {
                 </div>
               )}
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
+                {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="w-full mb-8">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}

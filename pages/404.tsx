@@ -78,7 +78,7 @@ export default function Custom404() {
                 <li className="px-4 py-2 border-2 border-green-500">
                   <a
                     href={"https://cal.com/signup?username=" + username.replace("/", "")}
-                    className="relative flex items-start py-6 space-x-4">
+                    className="relative flex items-start py-6 rtl:space-x-reverse space-x-4">
                     <div className="flex-shrink-0">
                       <span className="flex items-center justify-center w-12 h-12 rounded-lg bg-green-50">
                         <CheckIcon className="w-6 h-6 text-green-500" aria-hidden="true" />
@@ -107,7 +107,7 @@ export default function Custom404() {
               {links.map((link, linkIdx) => (
                 <li key={linkIdx} className="px-4 py-2">
                   <Link href={link.href}>
-                    <a className="relative flex items-start py-6 space-x-4">
+                    <a className="relative flex items-start py-6 rtl:space-x-reverse space-x-4">
                       <div className="flex-shrink-0">
                         <span className="flex items-center justify-center w-12 h-12 rounded-lg bg-gray-50">
                           <link.icon className="w-6 h-6 text-gray-700" aria-hidden="true" />
@@ -130,7 +130,9 @@ export default function Custom404() {
                 </li>
               ))}
               <li className="px-4 py-2">
-                <a href="https://cal.com/slack" className="relative flex items-start py-6 space-x-4">
+                <a
+                  href="https://cal.com/slack"
+                  className="relative flex items-start py-6 rtl:space-x-reverse space-x-4">
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center w-12 h-12 rounded-lg bg-gray-50">
                       <svg viewBox="0 0 2447.6 2452.5" className="w-6 h-6" xmlns="http://www.w3.org/2000/svg">

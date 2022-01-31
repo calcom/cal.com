@@ -33,7 +33,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     <DialogContent>
       <div className="flex">
         {variety && (
-          <div className="mr-3 mt-0.5">
+          <div className="ltr:mr-3 mt-0.5">
             {variety === "danger" && (
               <div className="p-2 mx-auto text-center bg-red-100 rounded-full">
                 <ExclamationIcon className="w-5 h-5 text-red-600" />

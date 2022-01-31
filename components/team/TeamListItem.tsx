@@ -93,13 +93,13 @@ export default function TeamListItem(props: Props) {
               <Button type="button" color="secondary" onClick={declineInvite}>
                 {t("reject")}
               </Button>
-              <Button type="button" color="primary" className="ml-2" onClick={acceptInvite}>
+              <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
                 {t("accept")}
               </Button>
             </>
           )}
           {!isInvitee && (
-            <div className="flex space-x-2">
+            <div className="flex rtl:space-x-reverse space-x-2">
               <TeamRole role={team.role as MembershipRole} />
 
               <Tooltip content={t("copy_link_team")}>

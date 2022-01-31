@@ -27,7 +27,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       : [];*/
 
   return (
-    <ul className={classNames("flex -space-x-2 overflow-hidden", props.className)}>
+    <ul className={classNames("flex -rtl:space-x-reverse space-x-2 overflow-hidden", props.className)}>
       {props.items.slice(0, props.truncateAfter).map((item, idx) => {
         if (item.image != null) {
           return (
