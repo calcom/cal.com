@@ -52,7 +52,8 @@ export const _EventTypeModel = z.object({
   price: z.number().int(),
   currency: z.string(),
   slotInterval: z.number().int().nullish(),
-  smartContractAddress: z.string().nullish(),
+  metadata: jsonSchema,
+  smartContractAddress: z.string(),
 });
 
 export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {

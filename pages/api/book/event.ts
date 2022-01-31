@@ -228,7 +228,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: true,
       price: true,
       currency: true,
-      smartContractAddress: true,
+      metadata: true,
       destinationCalendar: true,
     },
   });

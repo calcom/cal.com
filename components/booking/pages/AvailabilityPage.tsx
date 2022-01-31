@@ -40,10 +40,10 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const { contracts } = useContracts();
 
   useEffect(() => {
-    if (eventType.smartContractAddress) {
-      if (!contracts[eventType.smartContractAddress]) router.replace("/");
+    if (eventType.metadata.smartContractAddress) {
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number]) router.replace("/");
     }
-  }, [contracts, eventType.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);

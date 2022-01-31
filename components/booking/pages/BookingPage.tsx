@@ -62,10 +62,10 @@ const BookingPage = (props: BookingPageProps) => {
 
   const { eventType } = props;
   useEffect(() => {
-    if (eventType.smartContractAddress) {
-      if (!contracts[eventType.smartContractAddress]) router.replace("/");
+    if (eventType.metadata.smartContractAddress) {
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number]) router.replace("/");
     }
-  }, [contracts, eventType.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   /*
    * This was too optimistic
@@ -124,7 +124,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
-  const eventType = { isWeb3Active: false, smartContractAddress: "", ...props.eventType };
+  const eventTypeDetail = { isWeb3Active: false, ...props.eventType };
 
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
@@ -242,10 +242,10 @@ const BookingPage = (props: BookingPageProps) => {
       );
 
     let web3Details;
-    if (props.eventType.smartContractAddress) {
+    if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
         userWallet: web3.currentProvider.selectedAddress,
-        userSignature: contracts[props.eventType.smartContractAddress],
+        userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
       };
     }
 
@@ -336,10 +336,10 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseDate(date)}
                 </p>
-                {eventType.isWeb3Active && eventType.smartContractAddress && (
+                {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
                     Requires ownership of a token belonging to the following address:{" "}
-                    {eventType.smartContractAddress}
+                    {eventType.metadata.smartContractAddress}
                   </p>
                 )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>

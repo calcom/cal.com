@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from "next";
+import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
@@ -40,6 +41,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       disableGuests: true,
       price: true,
       currency: true,
+      metadata: true,
       team: {
         select: {
           slug: true,
@@ -61,6 +63,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
+      metadata: (eventType.metadata || {}) as JSONObject,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
     };

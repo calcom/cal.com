@@ -57,7 +57,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,
-      smartContractAddress: true,
+      metadata: true,
       periodCountCalendarDays: true,
       price: true,
       currency: true,
@@ -92,6 +92,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    metadata: (eventTypeRaw.metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)

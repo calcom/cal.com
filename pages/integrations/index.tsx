@@ -2,7 +2,7 @@ import { ChevronRightIcon, PencilAltIcon, SwitchHorizontalIcon, TrashIcon } from
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -575,19 +575,27 @@ function Web3Container() {
 
 function Web3ConnectBtn() {
   const { t } = useLocale();
-  const { data = { isWeb3Active: false } } = trpc.useQuery(["viewer.web3Integration"], { suspense: true });
-  const [connectionBtn, setConnection] = useState(data.isWeb3Active);
-
+  const utils = trpc.useContext();
+  const [connectionBtn, setConnection] = useState(false);
+  const result = trpc.useQuery(["viewer.web3Integration"]);
   const mutation = trpc.useMutation("viewer.enableOrDisableWeb3");
 
+  useEffect(() => {
+    if (result.data) {
+      setConnection(result.data.isWeb3Active as boolean);
+    }
+  }, [result]);
+
   const enableOrDisableWeb3 = async (mutation: any) => {
-    await mutation.mutate({});
-    setConnection(mutation.data);
+    const result = await mutation.mutateAsync({});
+    setConnection(result.key.isWeb3Active);
+    utils.invalidateQueries("viewer.web3Integration");
   };
 
   return (
     <Button
       color={connectionBtn ? "warn" : "secondary"}
+      disabled={result.isLoading || mutation.isLoading}
       onClick={async () => await enableOrDisableWeb3(mutation)}
       data-testid="metamask">
       {connectionBtn ? t("remove") : t("add")}

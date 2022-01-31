@@ -75,7 +75,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       <a
                         onClick={(e) => {
                           // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                          if (type.smartContractAddress && !evtsToVerify[type.id]) {
+                          if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
                             e.preventDefault();
                             showToast(
                               "You must verify a wallet with a token belonging to the specified smart contract first",
@@ -89,10 +89,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                         <EventTypeDescription eventType={type} />
                       </a>
                     </Link>
-                    {type.isWeb3Active && type.smartContractAddress && (
+                    {type.isWeb3Active && type.metadata.smartContractAddress && (
                       <CryptoSection
                         id={type.id}
-                        smartContractAddress={type.smartContractAddress}
+                        smartContractAddress={type.metadata.smartContractAddress as string}
                         verified={evtsToVerify[type.id]}
                         setEvtsToVerify={setEvtsToVerify}
                         oneStep
@@ -200,14 +200,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       schedulingType: true,
       price: true,
       currency: true,
-      smartContractAddress: true,
+      metadata: true,
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });
 
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
+
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
+    metadata: (eventType.metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)

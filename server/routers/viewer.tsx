@@ -479,7 +479,7 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        await ctx.prisma.credential.update({
+        return ctx.prisma.credential.update({
           where: {
             id: web3Credential.id,
           },
@@ -489,8 +489,6 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
         });
-
-        return !(web3Credential.key as JSONObject).isWeb3Active;
       } else {
         await ctx.prisma.credential.create({
           data: {
@@ -555,7 +553,7 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       return {
-        isWeb3Active: web3Credential ? !(web3Credential.key as JSONObject).isWeb3Active : false,
+        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
       };
     },
   })

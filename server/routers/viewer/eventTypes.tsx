@@ -173,8 +173,17 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
-        input;
+      const {
+        availability,
+        periodType,
+        locations,
+        destinationCalendar,
+        customInputs,
+        users,
+        id,
+        smartContractAddress,
+        ...rest
+      } = input;
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
 
@@ -214,6 +223,10 @@ export const eventTypesRouter = createProtectedRouter()
           },
         };
       }
+
+      data.metadata = {
+        smartContractAddress: smartContractAddress,
+      };
 
       const eventType = await ctx.prisma.eventType.update({
         where: { id },
