@@ -538,6 +538,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </span>
                         <input
                           type="text"
+                          readOnly
+                          disabled
                           required
                           className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                           defaultValue={eventType.slug}
@@ -568,23 +570,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       />
                     )}
                   />
-                </div>
-                <hr />
-                <div className="space-y-3">
-                  <div className="block sm:flex">
-                    <div className="min-w-48 sm:mb-0">
-                      <label htmlFor="location" className="flex mt-2.5 text-sm font-medium text-neutral-700">
-                        <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
-                        {t("location")}
-                      </label>
-                    </div>
-                    <Controller
-                      name="locations"
-                      control={formMethods.control}
-                      defaultValue={eventType.locations || []}
-                      render={() => <Locations />}
-                    />
-                  </div>
                 </div>
                 <hr className="border-neutral-200" />
                 <div className="space-y-3">
@@ -1162,7 +1147,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
                 {t("copy_link")}
               </button>
-              <Dialog>
+              {/*<Dialog>
                 <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
                   <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
                   {t("delete")}
@@ -1174,7 +1159,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   onConfirm={deleteEventTypeHandler}>
                   {t("delete_event_type_description")}
                 </ConfirmationDialogContent>
-              </Dialog>
+              </Dialog>*/}
             </div>
           </div>
         </div>
@@ -1220,6 +1205,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                   setShowLocationModal(false);
                 }}>
+
                 <Controller
                   name="locationType"
                   control={locationFormMethods.control}
