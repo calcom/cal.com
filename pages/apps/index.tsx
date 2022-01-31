@@ -15,7 +15,7 @@ export default function Apps() {
       count: 1,
     },
     {
-      name: "Video Conferencing",
+      name: "Video",
       count: 3,
     },
     {

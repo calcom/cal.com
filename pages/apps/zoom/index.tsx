@@ -5,7 +5,7 @@ export default function Zoom() {
     <App
       name="Zoom"
       logo="/apps/zoom.svg"
-      category="video"
+      categories={["video", "communication"]}
       author="Cal.com"
       price={10}
       monthly={true}
