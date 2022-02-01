@@ -246,6 +246,7 @@ const BookingPage = (props: BookingPageProps) => {
     });
   };
 
+  console.log(bookingForm, bookingForm.register("email"));
   return (
     <div>
       <Head>
@@ -342,6 +343,7 @@ const BookingPage = (props: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
+                        disabled
                         className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
                         placeholder="you@example.com"
                       />

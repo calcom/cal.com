@@ -36,7 +36,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { rescheduleUid } = router.query;
+  const { rescheduleUid, isPreview } = router.query;
 
   const { slots, loading, error } = useSlots({
     date,
@@ -54,6 +54,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
 
+  const readOnlyMode = isPreview === "true";
   return (
     <div className="flex flex-col mt-8 text-center sm:pl-4 sm:mt-0 sm:w-1/3 md:-mb-5">
       <div className="mb-4 text-lg font-light text-left text-gray-600">
@@ -92,7 +93,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             return (
               <div key={slot.time.format()}>
-                <Link href={bookingUrl}>
+                <Link href={readOnlyMode ? "#" : bookingUrl}>
                   <a
                     className={classNames(
                       "block py-4 mb-2 font-medium bg-white border rounded-sm dark:bg-gray-600 text-primary-500 dark:text-neutral-200 dark:border-transparent hover:text-white hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast",
