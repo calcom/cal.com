@@ -609,5 +609,7 @@
   "access_token": "Access token",
   "visit_roadmap": "Roadmap",
   "remove": "Remove",
-  "add": "Add"
+  "add": "Add",
+  "verify_wallet": "Verify wallet",
+  "connect_metamask": "Connect Metamask"
 }

@@ -5,6 +5,7 @@ import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import verifyAccount, { AUTH_MESSAGE } from "web3/utils/verifyAccount";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
 import { Button } from "@components/ui/Button";
@@ -37,6 +38,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   // Crypto section which should be shown on booking page if event type requires a smart contract token.
   const [ethEnabled, toggleEthEnabled] = useState<boolean>(false);
   const { addContract } = useContracts();
+  const { t } = useLocale();
 
   const connectMetamask = useCallback(async () => {
     if (window.ethereum) {
@@ -94,32 +96,36 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyButton = useMemo(() => {
     return (
-      <Button onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
-        Verify wallet
+      <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
+        <img className="h-5 mr-1" src="/integrations/metamask.svg" />
+        {t("verify_wallet")}
       </Button>
     );
-  }, [verifyWallet]);
+  }, [verifyWallet, t]);
 
   const connectButton = useMemo(() => {
     return (
-      <Button onClick={connectMetamask} type="button">
-        Connect Metamask
+      <Button color="secondary" onClick={connectMetamask} type="button">
+        <img className="h-5 mr-1" src="/integrations/metamask.svg" />
+        {t("connect_metamask")}
       </Button>
     );
-  }, [connectMetamask]);
+  }, [connectMetamask, t]);
 
   const oneStepButton = useMemo(() => {
     return (
       <Button
+        color="secondary"
         type="button"
         onClick={async () => {
           await connectMetamask();
           await verifyWallet();
         }}>
-        Verify wallet
+        <img className="h-5 mr-1" src="/integrations/metamask.svg" />
+        {t("verify_wallet")}
       </Button>
     );
-  }, [connectMetamask, verifyWallet]);
+  }, [connectMetamask, verifyWallet, t]);
 
   const determineButton = useCallback(() => {
     // Did it in an extra function for some added readability, but this can be done in a ternary depending on preference
@@ -136,13 +142,8 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   return (
     <div
-      id={`crypto-${props.id}`}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "2.5%",
-      }}>
+      className="absolute transition-opacity transform -translate-x-1/2 -translate-y-1/2 opacity-0 top-1/2 left-1/2 group-hover:opacity-100"
+      id={`crypto-${props.id}`}>
       {determineButton()}
     </div>
   );
