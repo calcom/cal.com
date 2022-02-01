@@ -80,7 +80,7 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
       {selectedOptions.map((option) => (
         <div key={option.value} className="border border-1 p-2 font-medium">
           <Avatar
-            className="w-6 h-6 rounded-full inline mr-2"
+            className="w-6 h-6 rounded-full inline ltr:mr-2 rtl:ml-2"
             imageSrc={option.avatar}
             displayName={option.label}
           />

@@ -13,17 +13,20 @@ import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
 
+import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps, err } = props;
   return (
-    <AppProviders {...props}>
-      <DefaultSeo {...seoConfig.defaultNextSeo} />
-      <I18nLanguageHandler />
-      <Component {...pageProps} err={err} />
-    </AppProviders>
+    <ContractsProvider>
+      <AppProviders {...props}>
+        <DefaultSeo {...seoConfig.defaultNextSeo} />
+        <I18nLanguageHandler />
+        <Component {...pageProps} err={err} />
+      </AppProviders>
+    </ContractsProvider>
   );
 }
 

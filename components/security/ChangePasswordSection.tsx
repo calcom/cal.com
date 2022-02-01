@@ -57,12 +57,12 @@ const ChangePasswordSection = () => {
   return (
     <>
       <div className="mt-6">
-        <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">{t("change_password")}</h2>
+        <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("change_password")}</h2>
       </div>
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-8">
           <div className="flex">
-            <div className="w-1/2 mr-2">
+            <div className="w-1/2 ltr:mr-2 rtl:ml-2">
               <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
                 {t("current_password")}
               </label>
@@ -74,7 +74,7 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
@@ -91,14 +91,14 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="shadow-sm focus:ring-black focus:border-brand block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>
             </div>
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-          <div className="py-8 flex justify-end">
+          <div className="flex justify-end py-8">
             <Button type="submit">{t("save")}</Button>
           </div>
           <hr className="mt-4" />

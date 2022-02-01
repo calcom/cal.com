@@ -581,8 +581,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <Text variant="footnote">
                 Step {currentStep + 1} of {steps.length}
               </Text>
+
               {error && <Alert severity="error" message={error?.message} />}
-              <section className="flex w-full space-x-2">
+
+              <section className="flex w-full space-x-2 rtl:space-x-reverse">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div

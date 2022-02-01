@@ -174,7 +174,10 @@ function DatePicker({
         <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
           <button
             onClick={decrementMonth}
-            className={classNames("group mr-2 p-1", isFirstMonth && "text-gray-400 dark:text-gray-600")}
+            className={classNames(
+              "group ltr:mr-2 rtl:ml-2 p-1",
+              isFirstMonth && "text-gray-400 dark:text-gray-600"
+            )}
             disabled={isFirstMonth}
             data-testid="decrementMonth">
             <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />

@@ -106,10 +106,10 @@ export function ShellSubHeading(props: {
   return (
     <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-base font-bold leading-6 text-gray-900">
+        <h2 className="flex items-center content-center rtl:space-x-reverse space-x-2 text-base font-bold leading-6 text-gray-900">
           {props.title}
         </h2>
-        {props.subtitle && <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
+        {props.subtitle && <p className="ltr:mr-4 text-sm text-neutral-500">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
@@ -235,7 +235,7 @@ export default function Shell(props: {
                             item.current
                               ? "text-neutral-500"
                               : "text-neutral-400 group-hover:text-neutral-500",
-                            "mr-3 flex-shrink-0 h-5 w-5"
+                            "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
                           )}
                           aria-hidden="true"
                         />
@@ -300,12 +300,12 @@ export default function Shell(props: {
                 </div>
               )}
               <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                {props.HeadingLeftIcon && <div className="mr-4">{props.HeadingLeftIcon}</div>}
+                {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="w-full mb-8">
                   <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
                     {props.heading}
                   </h1>
-                  <p className="mr-4 text-sm text-neutral-500">{props.subtitle}</p>
+                  <p className="text-sm ltr:mr-4 rtl:ml-4 text-neutral-500">{props.subtitle}</p>
                 </div>
                 <div className="flex-shrink-0 mb-4">{props.CTA}</div>
               </div>
@@ -370,11 +370,11 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center w-full space-x-2 cursor-pointer group appearance-none">
+        <div className="flex items-center w-full appearance-none cursor-pointer group">
           <span
             className={classNames(
               small ? "w-8 h-8" : "w-10 h-10",
-              "bg-gray-300 rounded-full flex-shrink-0 relative"
+              "bg-gray-300 rounded-full flex-shrink-0 relative  ltr:mr-3 rtl:ml-3"
             )}>
             <img
               className="rounded-full"
@@ -424,7 +424,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 user?.away
                   ? "text-purple-500 group-hover:text-purple-700"
                   : "text-gray-500 group-hover:text-gray-700",
-                "mr-2 flex-shrink-0 h-5 w-5"
+                "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
               )}
               aria-hidden="true"
             />
@@ -439,7 +439,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               rel="noopener noreferrer"
               href={`${process.env.NEXT_PUBLIC_APP_URL}/${user.username}`}
               className="flex items-center px-4 py-2 text-sm text-gray-700">
-              <ExternalLinkIcon className="w-5 h-5 mr-3 text-gray-500" /> {t("view_public_page")}
+              <ExternalLinkIcon className="w-5 h-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("view_public_page")}
             </a>
           </DropdownMenuItem>
         )}
@@ -454,22 +454,22 @@ function UserDropdown({ small }: { small?: boolean }) {
               viewBox="0 0 2447.6 2452.5"
               className={classNames(
                 "text-gray-500 group-hover:text-gray-700",
-                "mt-0.5 mr-3 flex-shrink-0 h-4 w-4"
+                "mt-0.5 ltr:mr-2 rtl:ml-2 flex-shrink-0 h-4 w-4"
               )}
               xmlns="http://www.w3.org/2000/svg">
               <g clipRule="evenodd" fillRule="evenodd">
                 <path
                   d="m897.4 0c-135.3.1-244.8 109.9-244.7 245.2-.1 135.3 109.5 245.1 244.8 245.2h244.8v-245.1c.1-135.3-109.5-245.1-244.9-245.3.1 0 .1 0 0 0m0 654h-652.6c-135.3.1-244.9 109.9-244.8 245.2-.2 135.3 109.4 245.1 244.7 245.3h652.7c135.3-.1 244.9-109.9 244.8-245.2.1-135.4-109.5-245.2-244.8-245.3z"
-                  fill="#9BA6B6"></path>
+                  fill="currentColor"></path>
                 <path
                   d="m2447.6 899.2c.1-135.3-109.5-245.1-244.8-245.2-135.3.1-244.9 109.9-244.8 245.2v245.3h244.8c135.3-.1 244.9-109.9 244.8-245.3zm-652.7 0v-654c.1-135.2-109.4-245-244.7-245.2-135.3.1-244.9 109.9-244.8 245.2v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.3z"
-                  fill="#9BA6B6"></path>
+                  fill="currentColor"></path>
                 <path
                   d="m1550.1 2452.5c135.3-.1 244.9-109.9 244.8-245.2.1-135.3-109.5-245.1-244.8-245.2h-244.8v245.2c-.1 135.2 109.5 245 244.8 245.2zm0-654.1h652.7c135.3-.1 244.9-109.9 244.8-245.2.2-135.3-109.4-245.1-244.7-245.3h-652.7c-135.3.1-244.9 109.9-244.8 245.2-.1 135.4 109.4 245.2 244.7 245.3z"
-                  fill="#9BA6B6"></path>
+                  fill="currentColor"></path>
                 <path
                   d="m0 1553.2c-.1 135.3 109.5 245.1 244.8 245.2 135.3-.1 244.9-109.9 244.8-245.2v-245.2h-244.8c-135.3.1-244.9 109.9-244.8 245.2zm652.7 0v654c-.2 135.3 109.4 245.1 244.7 245.3 135.3-.1 244.9-109.9 244.8-245.2v-653.9c.2-135.3-109.4-245.1-244.7-245.3-135.4 0-244.9 109.8-244.8 245.1 0 0 0 .1 0 0"
-                  fill="#9BA6B6"></path>
+                  fill="currentColor"></path>
               </g>
             </svg>
             {t("join_our_slack")}
@@ -481,7 +481,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             rel="noopener noreferrer"
             href="https://cal.com/roadmap"
             className="flex items-center px-4 py-2 text-sm text-gray-700">
-            <MapIcon className="w-5 h-5 mr-3 text-gray-500" /> {t("visit_roadmap")}
+            <MapIcon className="w-5 h-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
         <HelpMenuItemDynamic />
@@ -491,7 +491,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             onClick={() => signOut({ callbackUrl: "/auth/logout" })}
             className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
             <LogoutIcon
-              className={classNames("text-gray-500 group-hover:text-gray-700", "mr-2 flex-shrink-0 h-5 w-5")}
+              className={classNames(
+                "text-gray-500 group-hover:text-gray-700",
+                "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
+              )}
               aria-hidden="true"
             />
             {t("sign_out")}
