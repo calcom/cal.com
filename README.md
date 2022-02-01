@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/calendso/calendso">
+  <a href="https://github.com/calcom/cal.com">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
 
   </a>
@@ -17,18 +17,18 @@
     ·
     <a href="https://cal.com">Website</a>
     ·
-    <a href="https://github.com/calendso/calendso/issues">Issues</a>
+    <a href="https://github.com/calcom/cal.com/issues">Issues</a>
   </p>
 </p>
 
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://github.com/calendso/calendso/stargazers"><img src="https://img.shields.io/github/stars/calendso/calendso" alt="Github Stars"></a>
+  <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calendso/calendso" alt="Github Stars"></a>
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
-  <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
+  <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
   <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
-  <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
+  <a href="https://github.com/calcom/cal.com/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
   <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://jitsu.com?utm_source=github/calendso/calendso"><img src="https://img.shields.io/badge/Metrics_tracked_by-JITSU-AA00FF?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACKSURBVHgBrZDRCYAwDEQv6gCOoKO4hOCXI9QVnEZwiY5iF5GaVClaBNtioCSUvCR3tMJaxIfZgW4AGUoEPVwgPZoS0Dmgg3NBVDFNbMIsmYCak3J1jDk9iCQvsKJvkzr71N81Gj6vDT/LU2P6RhY63jcafk3YJEbgeZpiFyc/5HJKv8Ef273NSfABGbQfUZhnOSAAAAAASUVORK5CYII=" alt="Jitsu Tracked"></a>
   
@@ -91,7 +91,7 @@ Here is what you need to be able to run Cal.
 1. Clone the repo
 
    ```sh
-   git clone https://github.com/calendso/calendso.git
+   git clone https://github.com/calcom/cal.com.git
    ```
 
 1. Go to the project folder
@@ -246,14 +246,13 @@ yarn test-playwright
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
-If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
+If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
-The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
-  
-  
+The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
 ### Heroku
 
-<a href="https://heroku.com/deploy?template=https://github.com/calendso/calendso">
+<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
   <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
 </a>
 
@@ -267,7 +266,7 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 ## Roadmap
 
-See the [open issues](https://github.com/calendso/calendso/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/calcom/cal.com/issues) for a list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
 
@@ -352,5 +351,4 @@ Special thanks to these amazing projects which help power Cal.com:
 
 [<img src="https://jitsu.com/img/powered-by-jitsu.png?gh=true">](https://jitsu.com/?utm_source=cal.com-gihub)
 
-Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.  
-  
+Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.
