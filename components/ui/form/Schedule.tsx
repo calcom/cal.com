@@ -48,6 +48,9 @@ type TimeRangeFieldProps = {
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
+  const [selected, setSelected] = useState<number | undefined>(
+    dayjs(defaultDayRange.start).toDate().valueOf()
+  );
   // const { i18n } = useLocale();
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).toDate().valueOf(),
@@ -55,12 +58,18 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
     // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
   });
 
-  const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
-    const { limit, offset } = offsetOrLimit;
-    return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t)
-    );
-  }, []);
+  const timeOptions = useCallback(
+    (offsetOrLimitorSelected: { offset?: number; limit?: number; selected?: number } = {}) => {
+      const { limit, offset, selected } = offsetOrLimitorSelected;
+      return TIMES.filter(
+        (time) =>
+          (!limit || time.isBefore(limit)) &&
+          (!offset || time.isAfter(offset)) &&
+          (!selected || time.isAfter(selected))
+      ).map((t) => getOption(t));
+    },
+    []
+  );
 
   return (
     <>
@@ -73,7 +82,12 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
             onFocus={() => setOptions(timeOptions())}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
-            onChange={(option) => onChange(new Date(option?.value as number))}
+            onChange={(option) =>
+              onChange(() => {
+                setSelected(option?.value);
+                new Date(option?.value as number);
+              })
+            }
           />
         )}
       />
@@ -84,7 +98,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           <Select
             className="w-[6rem]"
             options={options}
-            onFocus={() => setOptions(timeOptions())}
+            onFocus={() => setOptions(timeOptions({ selected }))}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
             onChange={(option) => onChange(new Date(option?.value as number))}
