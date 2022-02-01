@@ -63,7 +63,10 @@ const BookingPage = (props: BookingPageProps) => {
   const { eventType } = props;
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number]) router.replace("/");
+      const eventOwner = eventType.users[0];
+
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
+        router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 

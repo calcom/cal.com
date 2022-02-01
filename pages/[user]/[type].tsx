@@ -120,6 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         notFound: true,
       };
     }
+
     eventTypeBackwardsCompat.users.push({
       avatar: user.avatar,
       name: user.name,
@@ -128,6 +129,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       plan: user.plan,
       timeZone: user.timeZone,
     });
+
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
 
