@@ -123,7 +123,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   return (
     <fieldset className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row justify-between py-5 min-h-[86px]">
       <div className="w-1/3">
-        <label className="flex items-center space-x-2">
+        <label className="flex items-center rtl:space-x-reverse space-x-2">
           <input
             type="checkbox"
             checked={fields.length > 0}
@@ -136,7 +136,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
       <div className="flex-grow">
         {fields.map((field, index) => (
           <div key={field.id} className="flex justify-between mb-1">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center rtl:space-x-reverse space-x-2">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
             <Button

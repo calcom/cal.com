@@ -99,7 +99,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           onChange={(e) => setCancellationReason(e.target.value)}
                           className="mb-5 sm:mb-6"
                         />
-                        <div className="text-center space-x-2">
+                        <div className="text-center rtl:space-x-reverse space-x-2">
                           <Button
                             color="secondary"
                             data-testid="cancel"

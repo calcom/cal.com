@@ -534,7 +534,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
               {error && <Alert severity="error" {...error} />}
 
-              <section className="flex w-full space-x-2">
+              <section className="flex w-full rtl:space-x-reverse space-x-2">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div

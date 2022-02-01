@@ -389,12 +389,12 @@ const BookingPage = (props: BookingPageProps) => {
                         <label key={i} className="block">
                           <input
                             type="radio"
-                            className="w-4 h-4 mr-2 text-black border-gray-300 location focus:ring-black"
+                            className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-black border-gray-300 location focus:ring-black"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
                           />
-                          <span className="ml-2 text-sm dark:text-gray-500">
+                          <span className="ltr:ml-2 rtl:mr-2text-sm dark:text-gray-500">
                             {locationLabels[location.type]}
                           </span>
                         </label>
@@ -465,7 +465,7 @@ const BookingPage = (props: BookingPageProps) => {
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="w-4 h-4 mr-2 text-black border-gray-300 rounded focus:ring-black"
+                              className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-black border-gray-300 rounded focus:ring-black"
                               placeholder=""
                             />
                             <label
@@ -539,7 +539,7 @@ const BookingPage = (props: BookingPageProps) => {
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start rtl:space-x-reverse space-x-2">
                     <Button type="submit" loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
@@ -554,7 +554,7 @@ const BookingPage = (props: BookingPageProps) => {
                       <div className="flex-shrink-0">
                         <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
                       </div>
-                      <div className="ml-3">
+                      <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
                           {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
                         </p>

@@ -134,7 +134,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="ml-3">
+                  <div className="ltr:ml-3 rtl:mr-3">
                     <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {eventType.title}

@@ -56,7 +56,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="flex mt-2">
-            <span className="flex flex-col space-y-1 text-xs sm:space-y-0 sm:flex-row sm:space-x-2">
+            <span className="flex flex-col space-y-1 text-xs sm:space-y-0 sm:flex-row sm:rtl:space-x-reverse space-x-2">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -249,7 +249,7 @@ function WebhookDialogForm(props: {
       </fieldset>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("payload_template")}</FieldsetLegend>
-        <div className="space-x-3 text-sm">
+        <div className="rtl:space-x-reverse space-x-3 text-sm">
           <label>
             <input
               className="text-neutral-900 focus:ring-neutral-500"
@@ -307,7 +307,8 @@ function WebhookListContainer() {
           <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
           <List>
             <ListItem className={classNames("flex-col")}>
-              <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+              <div
+                className={classNames("flex flex-1 rtl:space-x-reverse space-x-2 w-full p-3 items-center")}>
                 <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
                 <div className="flex-grow pl-2 truncate">
                   <ListItemTitle component="h3">Webhooks</ListItemTitle>
@@ -380,7 +381,7 @@ function IframeEmbedContainer() {
       <div className="lg:pb-8 lg:col-span-9">
         <List>
           <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+            <div className={classNames("flex flex-1 rtl:space-x-reverse space-x-2 w-full p-3 items-center")}>
               <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
@@ -399,13 +400,13 @@ function IframeEmbedContainer() {
                     navigator.clipboard.writeText(iframeTemplate);
                     showToast("Copied to clipboard", "success");
                   }}>
-                  <ClipboardIcon className="w-4 h-4 -mb-0.5 mr-2 text-gray-800" />
+                  <ClipboardIcon className="w-4 h-4 -mb-0.5 ltr:mr-2 rtl:ml-2 text-gray-800" />
                 </button>
               </div>
             </div>
           </ListItem>
           <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+            <div className={classNames("flex flex-1 rtl:space-x-reverse space-x-2 w-full p-3 items-center")}>
               <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
@@ -424,13 +425,13 @@ function IframeEmbedContainer() {
                     navigator.clipboard.writeText(htmlTemplate);
                     showToast("Copied to clipboard", "success");
                   }}>
-                  <ClipboardIcon className="w-4 h-4 -mb-0.5 mr-2 text-gray-800" />
+                  <ClipboardIcon className="w-4 h-4 -mb-0.5 ltr:mr-2 rtl:ml-2 text-gray-800" />
                 </button>
               </div>
             </div>
           </ListItem>
         </List>
-        <div className="grid grid-cols-2 space-x-4">
+        <div className="grid grid-cols-2 rtl:space-x-reverse space-x-4">
           <div>
             <label htmlFor="iframe" className="block text-sm font-medium text-gray-700"></label>
             <div className="mt-1"></div>

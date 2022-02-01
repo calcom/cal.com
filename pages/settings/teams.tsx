@@ -63,7 +63,7 @@ export default function Teams() {
             type="button"
             className="btn btn-white"
             onClick={() => setShowCreateTeamModal(true)}>
-            <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 mr-2 inline-block" />
+            <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 ltr:mr-2 rtl:ml-2 inline-block" />
             {t("new_team")}
           </Button>
         </div>
