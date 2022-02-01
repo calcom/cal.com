@@ -610,12 +610,9 @@ function Web3ConnectBtn() {
     utils.invalidateQueries("viewer.web3Integration");
   };
 
-  if (mutation.isLoading) {
-    return <Loader />;
-  }
-
   return (
     <Button
+      loading={mutation.isLoading}
       color={connectionBtn ? "warn" : "secondary"}
       disabled={result.isLoading || mutation.isLoading}
       onClick={async () => await enableOrDisableWeb3(mutation)}
