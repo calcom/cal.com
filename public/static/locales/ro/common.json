@@ -425,8 +425,6 @@
   "event_type_created_successfully": "{{eventTypeTitle}} tip de eveniment creat cu succes",
   "event_type_updated_successfully": "{{eventTypeTitle}} tip de eveniment actualizat cu succes",
   "event_type_deleted_successfully": "Tipul de eveniment șters cu succes",
-  "web3_metamask_added": "Metamask added successfully",
-  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "Ore",
   "your_email": "E-mailul tău",
   "change_avatar": "Schimbă avatarul",

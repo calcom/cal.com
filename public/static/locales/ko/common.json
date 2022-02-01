@@ -447,8 +447,6 @@
   "event_type_created_successfully": "{{eventTypeTitle}} 이벤트 타입이 성공적으로 생성되었습니다.",
   "event_type_updated_successfully": "{{eventTypeTitle}} 이벤트 타입이 성공적으로 업데이트되었습니다.",
   "event_type_deleted_successfully": "이벤트 타입이 성공적으로 삭제되었습니다.",
-  "web3_metamask_added": "Metamask added successfully",
-  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "시간",
   "your_email": "이메일 주소",
   "change_avatar": "아바타 변경하기",
