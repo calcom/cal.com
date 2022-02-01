@@ -75,6 +75,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {
+    // TODO: @edward: instead of showing success, route into the selected event-type
     return (
       <Button type="button" disabled>
         Success!
