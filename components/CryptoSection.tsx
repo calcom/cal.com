@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import React from "react";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import verifyAccount from "web3/utils/verifyAccount";
+import verifyAccount, { AUTH_MESSAGE } from "web3/utils/verifyAccount";
 
 import showToast from "@lib/notification";
 
@@ -11,7 +11,6 @@ import { Button } from "@components/ui/Button";
 import { useContracts } from "../contexts/contractsContext";
 import genericAbi from "../web3/abis/abiWithGetBalance.json";
 
-const NEXT_PUBLIC_WEB3_AUTH_MSG = process.env.NEXT_PUBLIC_WEB3_AUTH_MSG || "";
 interface Window {
   ethereum: any;
   web3: Web3;
@@ -57,9 +56,9 @@ const CryptoSection = (props: CryptoSectionProps) => {
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await window.web3.eth.getAccounts())[0];
+        const account = (await web3.eth.getAccounts())[0];
 
-        const signature = await window.web3.eth.personal.sign(NEXT_PUBLIC_WEB3_AUTH_MSG, account);
+        const signature = await web3.eth.personal.sign(AUTH_MESSAGE, account);
         addContract({ address: props.smartContractAddress, signature });
 
         await verifyAccount(signature, account);
