@@ -563,9 +563,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <Form
                 form={formMethods}
                 handleSubmit={async (values) => {
-                  const { periodDates, periodCountCalendarDays, ...input } = values;
+                  const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
+                  const metadata = {
+                    smartContractAddress: smartContractAddress,
+                  };
                   updateMutation.mutate({
                     ...input,
+                    metadata,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
