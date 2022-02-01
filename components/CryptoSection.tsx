@@ -11,7 +11,6 @@ import { Button } from "@components/ui/Button";
 import { useContracts } from "../contexts/contractsContext";
 import genericAbi from "../web3/abis/abiWithGetBalance.json";
 
-const NEXT_PUBLIC_WEB3_AUTH_MSG = process.env.NEXT_PUBLIC_WEB3_AUTH_MSG || "";
 interface Window {
   ethereum: any;
   web3: Web3;
@@ -59,7 +58,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       } else {
         const account = (await window.web3.eth.getAccounts())[0];
 
-        const signature = await window.web3.eth.personal.sign(NEXT_PUBLIC_WEB3_AUTH_MSG, account);
+        const signature = await window.web3.eth.personal.sign(process.env.NEXT_PUBLIC_WEB3_AUTH_MSG, account);
         addContract({ address: props.smartContractAddress, signature });
 
         await verifyAccount(signature, account);
