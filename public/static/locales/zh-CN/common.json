@@ -468,6 +468,8 @@
   "event_type_created_successfully": "{{eventTypeTitle}} 事件类型创建成功",
   "event_type_updated_successfully": "{{eventTypeTitle}} 事件类型更新成功",
   "event_type_deleted_successfully": "事件类型删除成功",
+  "web3_metamask_added": "Metamask added successfully",
+  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "小时数",
   "your_email": "您的邮箱",
   "change_avatar": "修改头像",

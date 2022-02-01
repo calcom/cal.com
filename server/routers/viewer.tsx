@@ -1,5 +1,6 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
+import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
@@ -463,6 +464,44 @@ const loggedInViewerRouter = createProtectedRouter()
       });
     },
   })
+  .mutation("enableOrDisableWeb3", {
+    input: z.object({}),
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      const where = { userId: user.id, type: "metamask_web3" };
+
+      const web3Credential = await ctx.prisma.credential.findFirst({
+        where,
+        select: {
+          id: true,
+          key: true,
+        },
+      });
+
+      if (web3Credential) {
+        return ctx.prisma.credential.update({
+          where: {
+            id: web3Credential.id,
+          },
+          data: {
+            key: {
+              isWeb3Active: !(web3Credential.key as JSONObject).isWeb3Active,
+            },
+          },
+        });
+      } else {
+        return ctx.prisma.credential.create({
+          data: {
+            type: "metamask_web3",
+            key: {
+              isWeb3Active: true,
+            } as unknown as Prisma.InputJsonObject,
+            userId: user.id,
+          },
+        });
+      }
+    },
+  })
   .query("integrations", {
     async resolve({ ctx }) {
       const { user } = ctx;
@@ -495,6 +534,24 @@ const loggedInViewerRouter = createProtectedRouter()
           items: payment,
           numActive: countActive(payment),
         },
+      };
+    },
+  })
+  .query("web3Integration", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+
+      const where = { userId: user.id, type: "metamask_web3" };
+
+      const web3Credential = await ctx.prisma.credential.findFirst({
+        where,
+        select: {
+          key: true,
+        },
+      });
+
+      return {
+        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
       };
     },
   })

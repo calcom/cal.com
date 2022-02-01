@@ -2,11 +2,13 @@ import { ChevronRightIcon, PencilAltIcon, SwitchHorizontalIcon, TrashIcon } from
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { JSONObject } from "superjson/dist/types";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -543,6 +545,86 @@ function IntegrationsContainer() {
   );
 }
 
+function Web3Container() {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
+      <div className="lg:pb-8 lg:col-span-9">
+        <List>
+          <ListItem className={classNames("flex-col")}>
+            <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
+              <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
+              <div className="flex-grow pl-2 truncate">
+                <ListItemTitle component="h3">
+                  MetaMask (
+                  <a className="text-blue-500" target="_blank" href="https://cal.com/web3" rel="noreferrer">
+                    Read more
+                  </a>
+                  )
+                </ListItemTitle>
+                <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
+              </div>
+              <Web3ConnectBtn />
+            </div>
+          </ListItem>
+        </List>
+      </div>
+    </>
+  );
+}
+
+function Web3ConnectBtn() {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+  const [connectionBtn, setConnection] = useState(false);
+  const result = trpc.useQuery(["viewer.web3Integration"]);
+  const mutation = trpc.useMutation("viewer.enableOrDisableWeb3", {
+    onSuccess: async (result) => {
+      const { key = {} } = result as JSONObject;
+
+      if ((key as JSONObject).isWeb3Active) {
+        showToast(t("web3_metamask_added"), "success");
+      } else {
+        showToast(t("web3_metamask_disconnected"), "success");
+      }
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (result.data) {
+      setConnection(result.data.isWeb3Active as boolean);
+    }
+  }, [result]);
+
+  const enableOrDisableWeb3 = async (mutation: any) => {
+    const result = await mutation.mutateAsync({});
+    setConnection(result.key.isWeb3Active);
+    utils.invalidateQueries("viewer.web3Integration");
+  };
+
+  if (mutation.isLoading) {
+    return <Loader />;
+  }
+
+  return (
+    <Button
+      color={connectionBtn ? "warn" : "secondary"}
+      disabled={result.isLoading || mutation.isLoading}
+      onClick={async () => await enableOrDisableWeb3(mutation)}
+      data-testid="metamask">
+      {connectionBtn ? t("remove") : t("add")}
+    </Button>
+  );
+}
+
 export default function IntegrationsPage() {
   const { t } = useLocale();
 
@@ -553,6 +635,7 @@ export default function IntegrationsPage() {
         <CalendarListContainer />
         <WebhookListContainer />
         <IframeEmbedContainer />
+        <Web3Container />
       </ClientSuspense>
     </Shell>
   );

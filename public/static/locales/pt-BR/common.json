@@ -462,6 +462,8 @@
   "event_type_created_successfully": "{{eventTypeTitle}} evento criado com sucesso",
   "event_type_updated_successfully": "Tipo de evento atualizado com sucesso",
   "event_type_deleted_successfully": "Tipo de evento removido com sucesso",
+  "web3_metamask_added": "Metamask added successfully",
+  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "Horas",
   "your_email": "Seu Email",
   "change_avatar": "Alterar Avatar",

@@ -24,6 +24,7 @@ import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
+import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -55,9 +56,21 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 
+import bloxyApi from "../../web3/dummyResps/bloxyApi";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+interface Token {
+  name?: string;
+  address: string;
+  symbol: string;
+}
+
+interface NFT extends Token {
+  // Some OpenSea NFTs have several contracts
+  contracts: Array<Token>;
+}
 type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
@@ -145,6 +158,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
+  const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -152,6 +166,41 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchTokens = async () => {
+      // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
+      try {
+        const erc20sList: Array<Token> =
+          //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
+          // ).data
+          bloxyApi.slice(0, 100).map((erc20: Token) => {
+            const { name, address, symbol } = erc20;
+            return { name, address, symbol };
+          });
+
+        const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
+
+        const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
+          const { name, contracts } = nft;
+          if (nft.contracts[0]) {
+            const { address, symbol } = contracts[0];
+            return { name, address, symbol };
+          }
+        });
+
+        const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
+
+        setTokensList(unifiedList);
+      } catch (err) {
+        showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
+      }
+    };
+
+    console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
+
+    fetchTokens();
+  }, []);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || "");
@@ -261,6 +310,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm<{
     title: string;
+    eventTitle: string;
+    smartContractAddress: string;
     eventName: string;
     slug: string;
     length: number;
@@ -512,9 +563,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <Form
                 form={formMethods}
                 handleSubmit={async (values) => {
-                  const { periodDates, periodCountCalendarDays, ...input } = values;
+                  const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
+                  const metadata = {
+                    smartContractAddress: smartContractAddress,
+                  };
                   updateMutation.mutate({
                     ...input,
+                    metadata,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -728,6 +783,30 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       </div>
+                      {eventType.isWeb3Active && (
+                        <div className="items-center block sm:flex">
+                          <div className="mb-4 min-w-48 sm:mb-0">
+                            <label
+                              htmlFor="smartContractAddress"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("Smart Contract Address")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="relative mt-1 rounded-sm shadow-sm">
+                              {
+                                <input
+                                  type="text"
+                                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
+                                  {...formMethods.register("smartContractAddress")}
+                                />
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label
@@ -1385,6 +1464,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       customInputs: true,
       timeZone: true,
       periodType: true,
+      metadata: true,
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,
@@ -1426,10 +1506,27 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     address?: string;
   };
 
-  const { locations, ...restEventType } = rawEventType;
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+  const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     locations: locations as unknown as Location[],
+    metadata: (metadata || {}) as JSONObject,
+    isWeb3Active:
+      web3Credentials && web3Credentials.key
+        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+        : false,
   };
 
   // backwards compat
@@ -1443,17 +1540,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
 
   const integrations = getIntegrations(credentials);
 

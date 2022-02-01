@@ -468,6 +468,8 @@
   "event_type_created_successfully": "{{eventTypeTitle}} event type created successfully",
   "event_type_updated_successfully": "{{eventTypeTitle}} event type updated successfully",
   "event_type_deleted_successfully": "Event type deleted successfully",
+  "web3_metamask_added": "Metamask added successfully",
+  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "Hours",
   "your_email": "Your Email",
   "change_avatar": "Change Avatar",
@@ -583,7 +585,8 @@
   "set_as_free": "Disable away status",
   "user_away": "This user is currently away.",
   "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings.",
-  "saml_config_updated_successfully": "SAML configuration updated successfully",
+  "meet_people_with_the_same_tokens": "Meet people with the same tokens",
+  "only_book_people_and_allow": "Only book and allow bookings from people who share the same tokens, DAOs, or NFTs.",
   "saml_config_deleted_successfully": "SAML configuration deleted successfully",
   "account_created_with_identity_provider": "Your account was created using an Identity Provider.",
   "account_managed_by_identity_provider": "Your account is managed by {{provider}}",
@@ -604,5 +607,9 @@
   "import": "Import",
   "import_from": "Import from",
   "access_token": "Access token",
-  "visit_roadmap": "Roadmap"
+  "visit_roadmap": "Roadmap",
+  "remove": "Remove",
+  "add": "Add",
+  "verify_wallet": "Verify wallet",
+  "connect_metamask": "Connect Metamask"
 }

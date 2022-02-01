@@ -8,6 +8,7 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import verifyAccount from "web3/utils/verifyAccount";
 
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -102,6 +103,7 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number)
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
 ): boolean {
   const date = dayjs(time);
@@ -226,6 +228,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: true,
       price: true,
       currency: true,
+      metadata: true,
       destinationCalendar: true,
     },
   });
@@ -349,7 +352,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
 
-  function createBooking() {
+  async function createBooking() {
+    // @TODO: check as metadata
+    if (req.body.web3Details) {
+      const { web3Details } = req.body;
+      await verifyAccount(web3Details.userSignature, web3Details.userWallet);
+    }
+
     return prisma.booking.create({
       include: {
         user: {
