@@ -1,8 +1,10 @@
 import { EventType, SchedulingType } from "@prisma/client";
+import { JSONObject } from "superjson/dist/types";
 
 import { WorkingHours } from "./schedule";
 
 export type AdvancedOptions = {
+  metadata?: JSONObject;
   eventName?: string;
   periodType?: string;
   periodDays?: number;

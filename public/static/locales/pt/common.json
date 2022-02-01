@@ -583,7 +583,6 @@
   "set_as_free": "Desactivar estado de ausência",
   "user_away": "Este utilizador está ausente de momento.",
   "user_away_description": "A pessoa com quem está a tentar fazer uma reserva está ausente, pelo que não está a aceitar novas reservas.",
-  "saml_config_updated_successfully": "Configuração de SAML atualizada com sucesso",
   "saml_config_deleted_successfully": "Configuração de SAML eliminada com sucesso",
   "account_created_with_identity_provider": "A sua conta foi criada através de um fornecedor de identidade.",
   "account_managed_by_identity_provider": "A sua conta é gerida por {{provider}}",

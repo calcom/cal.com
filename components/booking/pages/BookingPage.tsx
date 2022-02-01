@@ -6,11 +6,12 @@ import {
   LocationMarkerIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
+import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
@@ -42,9 +43,33 @@ const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
+type BookingFormValues = {
+  name: string;
+  email: string;
+  notes?: string;
+  locationType?: LocationType;
+  guests?: string[];
+  phone?: string;
+  customInputs?: {
+    [key: string]: string;
+  };
+};
+
 const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
+  const { contracts } = useContracts();
+
+  const { eventType } = props;
+  useEffect(() => {
+    if (eventType.metadata.smartContractAddress) {
+      const eventOwner = eventType.users[0];
+
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
+        router.replace(`/${eventOwner.username}`);
+    }
+  }, [contracts, eventType.metadata.smartContractAddress, router]);
+
   /*
    * This was too optimistic
    * I started, then I remembered what a beast book/event.ts is
@@ -55,6 +80,7 @@ const BookingPage = (props: BookingPageProps) => {
       // go to success page.
     },
   });*/
+
   const mutation = useMutation(createBooking, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
@@ -101,6 +127,8 @@ const BookingPage = (props: BookingPageProps) => {
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
+  const eventTypeDetail = { isWeb3Active: false, ...props.eventType };
+
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
@@ -125,18 +153,6 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Daily]: "Daily.co Video",
-  };
-
-  type BookingFormValues = {
-    name: string;
-    email: string;
-    notes?: string;
-    locationType?: LocationType;
-    guests?: string[];
-    phone?: string;
-    customInputs?: {
-      [key: string]: string;
-    };
   };
 
   const defaultValues = () => {
@@ -216,6 +232,8 @@ const BookingPage = (props: BookingPageProps) => {
 
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
+
+    // @TODO: move to metadata
     const metadata = Object.keys(router.query)
       .filter((key) => key.startsWith("metadata"))
       .reduce(
@@ -226,8 +244,17 @@ const BookingPage = (props: BookingPageProps) => {
         {}
       );
 
+    let web3Details;
+    if (eventTypeDetail.metadata.smartContractAddress) {
+      web3Details = {
+        userWallet: web3.currentProvider.selectedAddress,
+        userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
+      };
+    }
+
     mutation.mutate({
       ...booking,
+      web3Details,
       start: dayjs(date).format(),
       end: dayjs(date).add(props.eventType.length, "minute").format(),
       eventTypeId: props.eventType.id,
@@ -312,6 +339,12 @@ const BookingPage = (props: BookingPageProps) => {
                   <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                   {parseDate(date)}
                 </p>
+                {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
+                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                    Requires ownership of a token belonging to the following address:{" "}
+                    {eventType.metadata.smartContractAddress}
+                  </p>
+                )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
