@@ -83,16 +83,13 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {
+    console.log(props);
     if (props.verified) {
       Router.push(props.pathname);
     }
 
-    return (
-      <Button type="button" disabled>
-        Success!
-      </Button>
-    );
-  }, []);
+    return <div />;
+  }, [props.verified]);
 
   const verifyButton = useMemo(() => {
     return (
