@@ -418,8 +418,6 @@
   "event_type_created_successfully": "{{eventTypeTitle}} evenement met succes aangemaakt",
   "event_type_updated_successfully": "Evenement is bijgewerkt",
   "event_type_deleted_successfully": "Evenement is verwijderd",
-  "web3_metamask_added": "Metamask added successfully",
-  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "Uren",
   "your_email": "Uw E-mailadres",
   "change_avatar": "Wijzig avatar",

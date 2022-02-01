@@ -425,8 +425,6 @@
   "event_type_created_successfully": "{{eventTypeTitle}} イベント種別が正常に作成されました",
   "event_type_updated_successfully": "{{eventTypeTitle}} イベント種別が正常に更新されました",
   "event_type_deleted_successfully": "イベント種別が正常に削除されました",
-  "web3_metamask_added": "Metamask added successfully",
-  "web3_metamask_disconnected": "Metamask disconnected successfully",
   "hours": "時間",
   "your_email": "あなたのメールアドレス",
   "change_avatar": "アバターを変更",
