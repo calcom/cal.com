@@ -36,6 +36,7 @@ import { Button } from "@components/ui/Button";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import { v4 as uuidv4 } from "uuid";
 
 /** These are like 40kb that not every user needs */
 const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
@@ -72,7 +73,10 @@ const BookingPage = (props: BookingPageProps) => {
         if (!location) {
           return;
         }
-        if (location.includes("integration")) {
+        if (location.includes("integrations:")) {
+          if (location === "integrations:jitsi") {
+            return "https://meet.jit.si/cal/" + uuidv4();
+          }
           return t("web_conferencing_details_to_follow");
         }
         return location;
@@ -187,7 +191,12 @@ const BookingPage = (props: BookingPageProps) => {
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<
+      BookingFormValues,
+      "locationType" | "phone" | "integrations:jitsi"
+    >
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
