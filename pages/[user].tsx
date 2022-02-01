@@ -18,7 +18,7 @@ import Avatar from "@components/ui/Avatar";
 
 import { ssrInit } from "@server/lib/ssr";
 
-import CryptoSection from "../components/CryptoSection";
+import CryptoSection from "../ee/components/web3/CryptoSection";
 
 interface EvtsToVerify {
   [evtId: string]: boolean;

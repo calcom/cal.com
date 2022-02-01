@@ -10,8 +10,8 @@ import showToast from "@lib/notification";
 
 import { Button } from "@components/ui/Button";
 
-import { useContracts } from "../contexts/contractsContext";
-import genericAbi from "../web3/abis/abiWithGetBalance.json";
+import { useContracts } from "../../../contexts/contractsContext";
+import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
 
 interface Window {
   ethereum: any;
