@@ -56,7 +56,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await web3.eth.getAccounts())[0];
+        const account = (await window.web3.eth.getAccounts())[0];
 
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
         addContract({ address: props.smartContractAddress, signature });
