@@ -53,7 +53,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const verifyWallet = useCallback(async () => {
     try {
       if (!window.web3) {
-        throw new Error("Metamask is not installed");
+        throw new Error("MetaMask Chrome extension is not installed");
       }
 
       const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
