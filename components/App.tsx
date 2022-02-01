@@ -96,9 +96,7 @@ export default function App({
 
               <div className="text-right">
                 {type === "free" && (
-                  <Button color="warn" onClick={() => alert("TODO: installed free app")}>
-                    {t("Remove")}
-                  </Button>
+                  <Button onClick={() => alert("TODO: installed free app")}>{t("install_app")}</Button>
                 )}
 
                 {type === "usage-based" && (
