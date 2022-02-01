@@ -62,7 +62,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await web3.eth.getAccounts())[0];
+        const account = (await window.web3.eth.getAccounts())[0];
 
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
         addContract({ address: props.smartContractAddress, signature });
@@ -81,8 +81,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {
-    console.log("here");
-    console.log(props);
+    // TODO: @edward: instead of showing success, route into the selected event-type
     return (
       <Link
         href={{
