@@ -600,7 +600,7 @@
   "saml_configuration_update_failed": "Aktualisieren der SAML-Konfiguration fehlgeschlagen",
   "saml_configuration_delete_failed": "Löschen der SAML-Konfiguration fehlgeschlagen",
   "saml_email_required": "Bitte geben Sie eine E-Mail ein, damit wir Ihren SAML Anbieter finden können",
-  "you_will_need_to_generate": "Sie müssen ein Zugriffstoken auf der Integrationsseite generieren.",
+  "you_will_need_to_generate": "Sie müssen ein Zugriffstoken in ihrem alten Kalender-Tool erzeugen.",
   "import": "Importieren",
   "import_from": "Importieren von",
   "access_token": "Zugriffs-Token",
