@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import React from "react";
 import Web3 from "web3";
@@ -24,6 +25,7 @@ declare const window: Window;
 
 interface CryptoSectionProps {
   id: number | string;
+  pathname: string;
   smartContractAddress: string;
   /** When set to true, there will be only 1 button which will both connect Metamask and verify the user's wallet. Otherwise, it will be in 2 steps with 2 buttons. */
   oneStep: boolean;
@@ -48,6 +50,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyWallet = useCallback(async () => {
     try {
+      if (!window.web3) {
+        throw new Error("Metamask is not installed");
+      }
+
       const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
       const balance = await contract.methods.balanceOf(window.ethereum.selectedAddress).call();
 
@@ -75,10 +81,15 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {
+    console.log("here");
+    console.log(props);
     return (
-      <Button type="button" disabled>
+      <Link
+        href={{
+          pathname: `${props.pathname}`,
+        }}>
         Success!
-      </Button>
+      </Link>
     );
   }, []);
 

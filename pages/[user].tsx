@@ -92,6 +92,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                     {type.isWeb3Active && type.metadata.smartContractAddress && (
                       <CryptoSection
                         id={type.id}
+                        pathname={`/${user.username}/${type.slug}`}
                         smartContractAddress={type.metadata.smartContractAddress as string}
                         verified={evtsToVerify[type.id]}
                         setEvtsToVerify={setEvtsToVerify}
