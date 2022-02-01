@@ -58,7 +58,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       } else {
         const account = (await web3.eth.getAccounts())[0];
 
-        const signature = await web3.eth.personal.sign(AUTH_MESSAGE, account);
+        const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
         addContract({ address: props.smartContractAddress, signature });
 
         await verifyAccount(signature, account);
