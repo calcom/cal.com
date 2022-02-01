@@ -11,7 +11,7 @@ export default function LicenseBanner() {
   const { t } = useLocale();
   /*
     Set this value to 'agree' to accept our license:
-    LICENSE: https://github.com/calendso/calendso/blob/main/LICENSE
+    LICENSE: https://github.com/calcom/cal.com/blob/main/LICENSE
 
     Summary of terms:
     - The codebase has to stay open source, whether it was modified or not

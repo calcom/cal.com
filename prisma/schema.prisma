@@ -242,6 +242,7 @@ model Booking {
   paid                Boolean              @default(false)
   payment             Payment[]
   destinationCalendar DestinationCalendar?
+  cancellationReason  String?
 }
 
 model Schedule {

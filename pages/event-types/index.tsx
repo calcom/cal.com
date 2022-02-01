@@ -8,6 +8,7 @@ import {
   LinkIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
@@ -107,16 +108,21 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 type.$disabled && "pointer-events-none"
               )}>
               <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50">
-                <button
-                  className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, -1)}>
-                  <ArrowUpIcon />
-                </button>
-                <button
-                  className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, 1)}>
-                  <ArrowDownIcon />
-                </button>
+                {sortableTypes.length > 1 && (
+                  <>
+                    <button
+                      className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, -1)}>
+                      <ArrowUpIcon />
+                    </button>
+
+                    <button
+                      className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, 1)}>
+                      <ArrowDownIcon />
+                    </button>
+                  </>
+                )}
                 <Link href={"/event-types/" + type.id}>
                   <a
                     className="flex-grow text-sm truncate"
@@ -156,7 +162,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="btn-icon">
+                        className="btn-icon appearance-none">
                         <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -329,12 +335,13 @@ const EventTypesPage = () => {
                   severity="warning"
                   title={<>{t("plan_upgrade")}</>}
                   message={
-                    <>
-                      {t("to_upgrade_go_to")}{" "}
-                      <a href={"https://cal.com/upgrade"} className="underline">
-                        {"https://cal.com/upgrade"}
+                    <Trans i18nKey="plan_upgrade_instructions">
+                      You can
+                      <a href="/api/upgrade" className="underline">
+                        upgrade here
                       </a>
-                    </>
+                      .
+                    </Trans>
                   }
                   className="mb-4"
                 />

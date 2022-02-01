@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const uid = asStringOrNull(req.body.uid) || "";
+  const cancellationReason = asStringOrNull(req.body.reason) || "";
   const session = await getSession({ req: req });
 
   const bookingToDelete = await prisma.booking.findUnique({
@@ -125,6 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     uid: bookingToDelete?.uid,
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+    cancellationReason: cancellationReason,
   };
 
   // Hook up the webhook logic here
@@ -148,6 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     data: {
       status: BookingStatus.CANCELLED,
+      cancellationReason: cancellationReason,
     },
   });
 
