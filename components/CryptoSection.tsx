@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Router from "next/router";
 import { useCallback, useMemo, useState } from "react";
 import React from "react";
 import Web3 from "web3";
@@ -62,7 +62,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await window.web3.eth.getAccounts())[0];
+        const account = (await web3.eth.getAccounts())[0];
 
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
         addContract({ address: props.smartContractAddress, signature });
@@ -81,14 +81,14 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   // @TODO: Show error on either of buttons if fails. Yup schema already contains the error message.
   const successButton = useMemo(() => {
-    // TODO: @edward: instead of showing success, route into the selected event-type
+    if (props.verified) {
+      Router.push(props.pathname);
+    }
+
     return (
-      <Link
-        href={{
-          pathname: `${props.pathname}`,
-        }}>
+      <Button type="button" disabled>
         Success!
-      </Link>
+      </Button>
     );
   }, []);
 
