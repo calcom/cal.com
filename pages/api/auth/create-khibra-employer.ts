@@ -46,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title: "Default title",
       slug: "default-book",
       length: 60,
+      disableGuests: true,
     },
   });
 
