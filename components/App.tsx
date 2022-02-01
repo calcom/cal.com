@@ -20,11 +20,12 @@ import Button from "@components/ui/Button";
 export default function App({
   name,
   logo,
-  description,
+  body,
   categories,
   author,
   price,
-  monthly,
+  commission,
+  type,
   docs,
   website,
   email,
@@ -33,17 +34,18 @@ export default function App({
 }: {
   name: string;
   logo: string;
-  description: React.ReactNode;
+  body: React.ReactNode;
   categories: string[];
   author: string;
   pro?: boolean;
   price: number;
-  monthly?: boolean;
-  docs: string;
-  website: string;
-  email: string;
-  tos: string;
-  privacy: string;
+  commission?: number;
+  type?: "monthly" | "usage-based" | "one-time" | "free";
+  docs?: string;
+  website?: string;
+  email: string; // required
+  tos?: string;
+  privacy?: string;
 }) {
   const { t } = useLocale();
   const tabs = [
@@ -65,6 +67,12 @@ export default function App({
     },
   ];
 
+  const priceInDollar = Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    useGrouping: false,
+  }).format(price);
+
   return (
     <>
       <Shell large>
@@ -77,8 +85,8 @@ export default function App({
             </Link>
             <div className="flex items-center justify-between py-8">
               <div className="flex">
-                <img src={logo} />
-                <header className="p-4">
+                <img className="w-16 h-16" src={logo} />
+                <header className="px-4 py-2">
                   <h1 className="text-xl text-gray-900 font-cal">{name}</h1>
                   <h2 className="text-sm text-gray-500">
                     <span className="capitalize">{categories[0]}</span> • {t("build_by", { author })}
@@ -86,16 +94,29 @@ export default function App({
                 </header>
               </div>
 
-              <div>
-                <Button>{price !== 0 ? (monthly ? t("subscribe") : t("buy")) : t("install_app")}</Button>
+              <div className="text-right">
+                {type === "free" && (
+                  <Button color="warn" onClick={() => alert("TODO: installed free app")}>
+                    {t("Remove")}
+                  </Button>
+                )}
+
+                {type === "usage-based" && (
+                  <Button onClick={() => alert("TODO: installed usage based app")}>{t("install_app")}</Button>
+                )}
+
+                {type === "monthly" && (
+                  <Button onClick={() => alert("TODO: installed monthly billed app")}>
+                    {t("subscribe")}
+                  </Button>
+                )}
+
                 {price !== 0 && (
                   <small className="block text-right">
-                    {Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      useGrouping: false,
-                    }).format(price)}
-                    {monthly && "/" + t("month")}
+                    {type === "usage-based"
+                      ? commission + "% + " + priceInDollar + "/booking"
+                      : priceInDollar}
+                    {type === "monthly" && "/" + t("month")}
                   </small>
                 )}
               </div>
@@ -104,7 +125,7 @@ export default function App({
           </div>
 
           <div className="flex justify-between px-10 py-10">
-            <div className="prose-sm prose">{description}</div>
+            <div className="prose-sm prose">{body}</div>
             <div className="flex-1 max-w-80">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
@@ -127,62 +148,72 @@ export default function App({
                       currency: "USD",
                       useGrouping: false,
                     }).format(price)}
-                    {monthly && "/" + t("month")}
+                    {type === "monthly" && "/" + t("month")}
                   </>
                 )}
               </small>
               <h4 className="mt-8 mb-2 font-medium text-gray-900 ">{t("learn_more")}</h4>
               <ul className="-ml-1 -mr-1 text-xs leading-5 prose">
-                <li>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-500 no-underline hover:underline"
-                    href={docs}>
-                    <BookOpenIcon className="inline w-4 h-4 mr-1 -mt-1" />
-                    {t("documentation")}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-500 no-underline hover:underline"
-                    href={website}>
-                    <ExternalLinkIcon className="inline w-4 h-4 mr-1 -mt-px" />
-                    {website.replace("https://", "")}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-500 no-underline hover:underline"
-                    href={"mailto:" + email}>
-                    <MailIcon className="inline w-4 h-4 mr-1 -mt-px" />
-                    {email}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-500 no-underline hover:underline"
-                    href={tos}>
-                    <DocumentTextIcon className="inline w-4 h-4 mr-1 -mt-px" />
-                    {t("terms_of_service")}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-500 no-underline hover:underline"
-                    href={privacy}>
-                    <ShieldCheckIcon className="inline w-4 h-4 mr-1 -mt-px" />
-                    {t("privacy_policy")}
-                  </a>
-                </li>
+                {docs && (
+                  <li>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 no-underline hover:underline"
+                      href={docs}>
+                      <BookOpenIcon className="inline w-4 h-4 mr-1 -mt-1" />
+                      {t("documentation")}
+                    </a>
+                  </li>
+                )}
+                {website && (
+                  <li>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 no-underline hover:underline"
+                      href={website}>
+                      <ExternalLinkIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      {website.replace("https://", "")}
+                    </a>
+                  </li>
+                )}
+                {email && (
+                  <li>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 no-underline hover:underline"
+                      href={"mailto:" + email}>
+                      <MailIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      {email}
+                    </a>
+                  </li>
+                )}
+                {tos && (
+                  <li>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 no-underline hover:underline"
+                      href={tos}>
+                      <DocumentTextIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      {t("terms_of_service")}
+                    </a>
+                  </li>
+                )}
+                {privacy && (
+                  <li>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-500 no-underline hover:underline"
+                      href={privacy}>
+                      <ShieldCheckIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      {t("privacy_policy")}
+                    </a>
+                  </li>
+                )}
               </ul>
               <hr className="my-6" />
               <small className="block text-gray-500 leading-1">
