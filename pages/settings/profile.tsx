@@ -250,7 +250,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </label>
                 <input
                   ref={emailRef}
-                  type="text"
+                  type="email"
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
