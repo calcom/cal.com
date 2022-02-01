@@ -22,7 +22,8 @@ export type Integration = {
     | "daily_video"
     | "caldav_calendar"
     | "apple_calendar"
-    | "stripe_payment";
+    | "stripe_payment"
+    | "huddle01_video";
   title: string;
   imageSrc: string;
   description: string;
@@ -59,6 +60,14 @@ export const ALL_INTEGRATIONS = [
     type: "daily_video",
     title: "Daily.co Video",
     imageSrc: "integrations/daily.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: true,
+    type: "huddle01_video",
+    title: "Huddle01",
+    imageSrc: "integrations/huddle.svg",
     description: "Video Conferencing",
     variant: "conferencing",
   },
@@ -116,7 +125,10 @@ export type IntegrationMeta = ReturnType<typeof getIntegrations>;
 
 export function hasIntegration(integrations: IntegrationMeta, type: string): boolean {
   return !!integrations.find(
-    (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
+    (i) =>
+      i.type === type &&
+      !!i.installed &&
+      (type === "daily_video" || type === "huddle01_video" || i.credentials.length > 0)
   );
 }
 export function hasIntegrationInstalled(type: Integration["type"]): boolean {
