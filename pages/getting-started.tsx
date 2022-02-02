@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -24,6 +25,7 @@ import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
@@ -46,10 +48,31 @@ type ScheduleFormValues = {
   schedule: ScheduleType;
 };
 
+let mutationComplete: ((err: Error | null) => void) | null;
+
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
+
+  const mutation = trpc.useMutation("viewer.updateProfile", {
+    onSuccess: async () => {
+      setSubmitting(true);
+      setEnteredName(nameRef.current?.value || "");
+      if (mutationComplete) {
+        mutationComplete(null);
+        mutationComplete = null;
+      }
+      setSubmitting(false);
+    },
+    onError: (err) => {
+      setError(new Error(err.message));
+      if (mutationComplete) {
+        mutationComplete(new Error(err.message));
+      }
+      setSubmitting(false);
+    },
+  });
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -128,6 +151,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
@@ -138,7 +162,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
     let step = 0;
-    const hasSetUserNameOrTimeZone = props.user?.name && props.user?.timeZone;
+    const hasSetUserNameOrTimeZone = props.user?.name && props.user?.timeZone && !props.usernameParam;
     if (hasSetUserNameOrTimeZone) {
       step = 1;
     }
@@ -170,7 +194,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       incrementStep();
       setSubmitting(false);
     } catch (error) {
-      console.log("handleConfirmStep", error);
       setSubmitting(false);
       setError(error as Error);
     }
@@ -326,6 +349,25 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </div>
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
+              {props.usernameParam && (
+                <fieldset>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    {t("username")}
+                  </label>
+                  <input
+                    ref={usernameRef}
+                    type="text"
+                    name="username"
+                    id="username"
+                    data-testid="username"
+                    placeholder={t("username")}
+                    defaultValue={props.usernameParam ?? ""}
+                    required
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+                  />
+                </fieldset>
+              )}
+
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -369,17 +411,26 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       showCancel: true,
       cancelText: t("set_up_later"),
       onComplete: async () => {
-        try {
-          setSubmitting(true);
-          await updateUser({
-            name: nameRef.current?.value,
-            timeZone: selectedTimeZone,
-          });
-          setEnteredName(nameRef.current?.value || "");
-          setSubmitting(true);
-        } catch (error) {
-          setError(error as Error);
-          setSubmitting(false);
+        mutationComplete = null;
+        setError(null);
+        const mutationAsync = new Promise((resolve, reject) => {
+          mutationComplete = (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(null);
+          };
+        });
+
+        mutation.mutate({
+          username: usernameRef.current?.value,
+          name: nameRef.current?.value,
+          timeZone: selectedTimeZone,
+        });
+
+        if (mutationComplete) {
+          await mutationAsync;
         }
       },
     },
@@ -480,7 +531,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       onComplete: async () => {
         try {
           setSubmitting(true);
-          console.log("updating");
           await updateUser({
             bio: bioRef.current?.value,
           });
@@ -532,7 +582,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 Step {currentStep + 1} of {steps.length}
               </Text>
 
-              {error && <Alert severity="error" {...error} />}
+              {error && <Alert severity="error" message={error?.message} />}
 
               <section className="flex w-full space-x-2 rtl:space-x-reverse">
                 {steps.map((s, index) => {
@@ -591,6 +641,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 }
 
 export async function getServerSideProps(context: NextPageContext) {
+  const usernameParam = asStringOrNull(context.query.username);
+
   const session = await getSession(context);
 
   let integrations = [];
@@ -693,6 +745,7 @@ export async function getServerSideProps(context: NextPageContext) {
       connectedCalendars,
       eventTypes,
       schedules,
+      usernameParam,
     },
   };
 }
