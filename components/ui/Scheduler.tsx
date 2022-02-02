@@ -41,16 +41,6 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
   }, []);
 
   useEffect(() => {
-    const convertTimeZone = (date: Date, tzString: string) => {
-      return new Date(
-        (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString })
-      );
-    };
-    openingHours.map((openingHour) => {
-      openingHour.startTime = convertTimeZone(openingHour.startTime, timeZone);
-      openingHour.endTime = convertTimeZone(openingHour.endTime, timeZone);
-    });
-    console.log(openingHours);
     setAvailability({ openingHours, dateOverrides: [] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openingHours]);
@@ -83,9 +73,15 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
           className="px-3 py-2 text-sm rounded-sm bg-neutral-100"
           type="button"
           onClick={() => setEditSchedule(idx)}>
-          {item.startTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
+          {item.startTime.toLocaleTimeString(i18n.language, {
+            hour: "numeric",
+            minute: "2-digit",
+          })}
           &nbsp;{t("until")}&nbsp;
-          {item.endTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
+          {item.endTime.toLocaleTimeString(i18n.language, {
+            hour: "numeric",
+            minute: "2-digit",
+          })}
         </button>
       </div>
       <button

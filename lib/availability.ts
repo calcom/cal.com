@@ -65,7 +65,8 @@ export function getWorkingHours(
     timeZone?: string;
     utcOffset?: number;
   },
-  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
+  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[],
+  fixOffset: boolean
 ) {
   // clearly bail when availability is not set, set everything available.
   if (!availability.length) {
@@ -79,7 +80,9 @@ export function getWorkingHours(
     ];
   }
 
-  const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
+  const utcOffset =
+    relativeTimeUnit.utcOffset ??
+    dayjs().tz(relativeTimeUnit.timeZone).utcOffset() + (fixOffset ? 0 : -dayjs().utcOffset());
 
   const workingHours = availability.reduce((workingHours: WorkingHours[], schedule) => {
     // Get times localised to the given utcOffset/timeZone

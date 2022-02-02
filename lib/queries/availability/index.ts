@@ -77,7 +77,8 @@ export async function getUserAvailability(query: {
   const timeZone = query.timezone || eventType?.timeZone || currentUser.timeZone;
   const workingHours = getWorkingHours(
     { timeZone },
-    eventType?.availability.length ? eventType.availability : currentUser.availability
+    eventType?.availability.length ? eventType.availability : currentUser.availability,
+    false
   );
 
   return {

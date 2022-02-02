@@ -81,7 +81,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     {
       timeZone: eventType.timeZone || undefined,
     },
-    eventType.availability
+    eventType.availability,
+    false
   );
 
   const eventTypeObject = Object.assign({}, eventType, {

@@ -32,14 +32,14 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   if (inviteeDate.isBefore(startDate, "day")) {
     return [];
   }
-
   const localWorkingHours = getWorkingHours(
     { utcOffset: -inviteeDate.utcOffset() },
     workingHours.map((schedule) => ({
       days: schedule.days,
       startTime: dayjs.utc().startOf("day").add(schedule.startTime, "minute"),
       endTime: dayjs.utc().startOf("day").add(schedule.endTime, "minute"),
-    }))
+    })),
+    false
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];

@@ -995,8 +995,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             render={() => (
                               <Scheduler
                                 setAvailability={(val) => {
+                                  const openingHours = [];
+                                  for (const openingHour of val.openingHours) {
+                                    openingHours.push({
+                                      days: openingHour?.days,
+                                      startTime: openingHour?.startTime,
+                                      endTime: openingHour?.endTime,
+                                    });
+                                  }
                                   formMethods.setValue("availability", {
-                                    openingHours: val.openingHours,
+                                    openingHours: openingHours,
                                     dateOverrides: val.dateOverrides,
                                   });
                                 }}

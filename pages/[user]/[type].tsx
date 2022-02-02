@@ -171,7 +171,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     {
       timeZone: eventType.timeZone || user.timeZone,
     },
-    eventType.availability.length ? eventType.availability : user.availability
+    eventType.availability.length ? eventType.availability : user.availability,
+    eventType.availability.length ? true : false
   );
 
   eventTypeObject.availability = [];
