@@ -142,7 +142,7 @@ export default function SetTimesModal(props) {
             <Button onClick={updateStartEndTimesHandler} type="submit">
               {t("save")}
             </Button>
-            <Button onClick={props.onExit} type="button" color="secondary" className="mr-2">
+            <Button onClick={props.onExit} type="button" color="secondary" className="ltr:mr-2">
               {t("cancel")}
             </Button>
           </div>

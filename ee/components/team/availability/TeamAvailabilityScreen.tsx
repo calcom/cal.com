@@ -62,7 +62,7 @@ export default function TeamAvailabilityScreen(props: Props) {
 
   return (
     <div className="flex flex-col flex-1 bg-white border rounded-sm border-neutral-200">
-      <div className="flex w-full p-4 space-x-5 border-b border-gray-200">
+      <div className="flex w-full p-4 rtl:space-x-reverse space-x-5 border-b border-gray-200">
         <div className="flex flex-col">
           <span className="text-sm font-medium text-neutral-700">Date</span>
           <DatePicker

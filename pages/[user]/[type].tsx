@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
+import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -44,6 +45,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     schedulingType: true,
     minimumBookingNotice: true,
     timeZone: true,
+    metadata: true,
     slotInterval: true,
     users: {
       select: {
@@ -118,6 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         notFound: true,
       };
     }
+
     eventTypeBackwardsCompat.users.push({
       avatar: user.avatar,
       name: user.name,
@@ -126,6 +129,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       plan: user.plan,
       timeZone: user.timeZone,
     });
+
     user.eventTypes.push(eventTypeBackwardsCompat);
   }
 
@@ -163,6 +167,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }*/
 
   const eventTypeObject = Object.assign({}, eventType, {
+    metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });

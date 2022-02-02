@@ -577,7 +577,6 @@
   "set_as_free": "Отключить статус \"отошел\"",
   "user_away": "Этот пользователь в настоящее время отсутствует.",
   "user_away_description": "Человек, с которым вы пытаетесь забронировать встречу - недоступен, поэтому он не принимает новых записей.",
-  "saml_config_updated_successfully": "Конфигурация SAML успешно обновлена",
   "saml_config_deleted_successfully": "Конфигурация SAML удалена",
   "account_created_with_identity_provider": "Ваша учетная запись была создана с помощью идентификатора провайдера.",
   "account_managed_by_identity_provider": "Ваш аккаунт управляется {{provider}}",
