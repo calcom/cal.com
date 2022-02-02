@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
@@ -534,7 +534,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
               {error && <Alert severity="error" {...error} />}
 
-              <section className="flex w-full rtl:space-x-reverse space-x-2">
+              <section className="flex w-full space-x-2 rtl:space-x-reverse">
                 {steps.map((s, index) => {
                   return index <= currentStep ? (
                     <div

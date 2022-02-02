@@ -8,7 +8,6 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import verifyAccount from "web3/utils/verifyAccount";
 
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -33,6 +32,8 @@ import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
+
+import verifyAccount from "../../../web3/utils/verifyAccount";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);
