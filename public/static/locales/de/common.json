@@ -468,6 +468,8 @@
   "event_type_created_successfully": "{{eventTypeTitle}} Ereignistyp erfolgreich erstellt",
   "event_type_updated_successfully": "Ereignistyp erfolgreich aktualisiert",
   "event_type_deleted_successfully": "Event-Typ erfolgreich gelöscht",
+  "web3_metamask_added": "Metamask erfolgreich hinzugefügt",
+  "web3_metamask_disconnected": "Metamask erfolgreich getrennt",
   "hours": "Stunden",
   "your_email": "Ihre Emailadresse",
   "change_avatar": "Profilbild ändern",
@@ -583,6 +585,7 @@
   "set_as_free": "Abwesenheitsstatus deaktivieren",
   "user_away": "Dieser Benutzer ist derzeit abwesend.",
   "user_away_description": "Die Person, die Sie zu Buchen versuchen, ist zur Zeit abwesend und akzeptiert daher keine neuen Buchungen.",
+  "only_book_people_and_allow": "Nur buchen und Buchungen von Personen erlauben, die die gleichen Token, DAOs oder NFTs teilen.",
   "saml_config_deleted_successfully": "SAML-Konfiguration wurde erfolgreich gelöscht",
   "account_created_with_identity_provider": "Ihr Konto wurde mit einem Identitäts-Anbieter erstellt.",
   "account_managed_by_identity_provider": "Ihr Konto wird verwaltet von {{provider}}",
@@ -603,5 +606,9 @@
   "import": "Importieren",
   "import_from": "Importieren von",
   "access_token": "Zugriffs-Token",
-  "visit_roadmap": "Roadmap"
+  "visit_roadmap": "Roadmap",
+  "remove": "Entfernen",
+  "add": "Hinzufügen",
+  "verify_wallet": "Wallet verifizieren",
+  "connect_metamask": "Metamask verbinden"
 }

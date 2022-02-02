@@ -468,6 +468,8 @@
   "event_type_created_successfully": "Tipo de evento {{eventTypeTitle}} criado com sucesso",
   "event_type_updated_successfully": "Tipo de evento atualizado com sucesso",
   "event_type_deleted_successfully": "Tipo de evento eliminado com sucesso",
+  "web3_metamask_added": "Metamask adicionada com sucesso",
+  "web3_metamask_disconnected": "Metamask desligada com sucesso",
   "hours": "Horas",
   "your_email": "Seu Email",
   "change_avatar": "Alterar Avatar",
@@ -583,6 +585,8 @@
   "set_as_free": "Desactivar estado de ausência",
   "user_away": "Este utilizador está ausente de momento.",
   "user_away_description": "A pessoa com quem está a tentar fazer uma reserva está ausente, pelo que não está a aceitar novas reservas.",
+  "meet_people_with_the_same_tokens": "Conheça pessoas com os mesmos tokens",
+  "only_book_people_and_allow": "Apenas reserve e permita reservas com pessoas que partilhem os mesmos tokens, DAO ou NFT.",
   "saml_config_deleted_successfully": "Configuração de SAML eliminada com sucesso",
   "account_created_with_identity_provider": "A sua conta foi criada através de um fornecedor de identidade.",
   "account_managed_by_identity_provider": "A sua conta é gerida por {{provider}}",
@@ -603,5 +607,9 @@
   "import": "Importar",
   "import_from": "Importar de",
   "access_token": "Token de acesso",
-  "visit_roadmap": "Roadmap"
+  "visit_roadmap": "Roadmap",
+  "remove": "Remover",
+  "add": "Adicionar",
+  "verify_wallet": "Verificar carteira",
+  "connect_metamask": "Ligar Metamask"
 }
