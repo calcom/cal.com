@@ -138,7 +138,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   return (
     <div
-      className="absolute transition-opacity transform -translate-x-1/2 -translate-y-1/2 opacity-0 top-1/2 left-1/2 group-hover:opacity-100"
+      className="absolute transition-opacity transform -translate-x-1/2 -translate-y-1/2 opacity-0 dark:bg-gray-900 top-1/2 left-1/2 group-hover:opacity-100"
       id={`crypto-${props.id}`}>
       {determineButton()}
     </div>
