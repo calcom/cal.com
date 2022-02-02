@@ -95,7 +95,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <input
           id="required"
           type="checkbox"
-          className="w-4 h-4 mr-2 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+          className="w-4 h-4 ltr:mr-2 rtl:ml-2 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
           defaultChecked={selectedCustomInput?.required ?? true}
           {...register("required")}
         />
@@ -117,7 +117,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       />
       <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
         <Button type="submit">{t("save")}</Button>
-        <Button onClick={onCancel} type="button" color="secondary" className="mr-2">
+        <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
       </div>

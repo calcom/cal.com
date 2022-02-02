@@ -576,7 +576,6 @@
   "set_as_free": "Wyłącz status Nieobecny",
   "user_away": "Ten użytkownik jest obecnie nieobecny.",
   "user_away_description": "Osoba, którą próbujesz zarezerwować, jest teraz nieobecna i dlatego nie akceptuje nowych rezerwacji.",
-  "saml_config_updated_successfully": "Konfiguracja SAML została zaktualizowana",
   "saml_config_deleted_successfully": "Konfiguracja SAML usunięta pomyślnie",
   "account_created_with_identity_provider": "Twoje konto zostało utworzone przy użyciu dostawcy tożsamości.",
   "account_managed_by_identity_provider": "Twoje konto jest zarządzane przez {{provider}}",

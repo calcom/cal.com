@@ -27,6 +27,7 @@
     "postinstall": "yarn generate-schemas",
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "prepare": "husky install",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
@@ -39,8 +40,10 @@
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
-    "@hookform/resolvers": "^2.8.3",
+    "@hookform/error-message": "^2.0.0",
+    "@hookform/resolvers": "^2.8.5",
     "@jitsu/sdk-js": "^2.2.4",
+    "@metamask/providers": "^8.1.1",
     "@next/bundle-analyzer": "11.1.2",
     "@prisma/client": "3.0.2",
     "@radix-ui/react-avatar": "^0.1.0",
@@ -103,6 +106,7 @@
     "tsdav": "2.0.0-rc.3",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
+    "web3": "^1.6.1",
     "zod": "^3.8.2"
   },
   "devDependencies": {

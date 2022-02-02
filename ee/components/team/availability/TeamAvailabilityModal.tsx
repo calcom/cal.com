@@ -32,7 +32,7 @@ export default function TeamAvailabilityModal(props: Props) {
   }, [utils, selectedTimeZone, selectedDate]);
 
   return (
-    <div className="flex flex-row max-h-[500px] min-h-[500px]  space-x-8">
+    <div className="flex flex-row max-h-[500px] min-h-[500px]  rtl:space-x-reverse space-x-8">
       <div className="w-64 p-5 pr-0 space-y-5 min-w-64">
         <div className="flex">
           <Avatar

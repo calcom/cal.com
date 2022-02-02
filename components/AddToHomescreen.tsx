@@ -29,12 +29,12 @@ export default function AddToHomescreen() {
                   <path d="M35 40H15c-1.7 0-3-1.3-3-3V19c0-1.7 1.3-3 3-3h7v2h-7c-.6 0-1 .4-1 1v18c0 .6.4 1 1 1h20c.6 0 1-.4 1-1V19c0-.6-.4-1-1-1h-7v-2h7c1.7 0 3 1.3 3 3v18c0 1.7-1.3 3-3 3z" />
                 </svg>
               </span>
-              <p className="ml-3 text-xs font-medium text-white">
+              <p className="text-xs font-medium text-white ltr:ml-3 rtl:mr-3">
                 <span className="inline">{t("add_to_homescreen")}</span>
               </p>
             </div>
 
-            <div className="flex-shrink-0 order-2 sm:order-3 sm:ml-2">
+            <div className="flex-shrink-0 order-2 sm:order-3">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"
