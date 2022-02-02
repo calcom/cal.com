@@ -94,14 +94,14 @@ export default function SAMLConfiguration({
       {isSAMLLoginEnabled ? (
         <>
           <div className="mt-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
+            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">
               {t("saml_configuration")}
-              <Badge className="text-xs ml-2" variant={samlConfig ? "success" : "gray"}>
+              <Badge className="ml-2 text-xs" variant={samlConfig ? "success" : "gray"}>
                 {samlConfig ? t("enabled") : t("disabled")}
               </Badge>
               {samlConfig ? (
                 <>
-                  <Badge className="text-xs ml-2" variant={"success"}>
+                  <Badge className="ml-2 text-xs" variant={"success"}>
                     {samlConfig ? samlConfig : ""}
                   </Badge>
                 </>
@@ -110,7 +110,7 @@ export default function SAMLConfiguration({
           </div>
 
           {samlConfig ? (
-            <div className="mt-2 flex">
+            <div className="flex mt-2">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -153,11 +153,7 @@ export default function SAMLConfiguration({
             />
 
             <div className="flex justify-end py-8">
-              <button
-                type="submit"
-                className="ltr:ml-2 rtl:mr-2bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                {t("save")}
-              </button>
+              <Button type="submit">{t("save")}</Button>
             </div>
             <hr className="mt-4" />
           </form>
