@@ -490,6 +490,7 @@
   "cal_provide_google_meet_location": "Cal fournira un lien Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal fournira une URL de réunion Zoom.",
   "cal_provide_video_meeting_url": "Cal fournira une URL de réunion Daily video.",
+  "cal_provide_huddle01_meeting_url": "Cal fournira une URL de réunion Huddle01 web3 video.",
   "require_payment": "Exiger un paiement",
   "commission_per_transaction": "commission par transaction",
   "event_type_updated_successfully_description": "Votre type d'événement a été mis à jour avec succès.",

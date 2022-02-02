@@ -213,7 +213,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       case LocationType.Daily:
         return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
       case LocationType.Huddle01:
-        return <p className="text-sm">{t("cal_provide_huddle_meeting_url")}</p>;
+        return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
       default:
         return null;
     }

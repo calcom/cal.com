@@ -534,6 +534,7 @@
   "cal_provide_google_meet_location": "Cal 将提供 Google Meet 位置。",
   "cal_provide_zoom_meeting_url": "Cal 将提供Zoom会议 URL",
   "cal_provide_video_meeting_url": "Cal 将提供Daily视频会议 URL",
+  "cal_provide_huddle01_meeting_url": "Cal 将提供Huddle01 Web3视频会议 URL",
   "require_payment": "需要付款",
   "commission_per_transaction": "每笔交易的佣金",
   "event_type_updated_successfully_description": "您的事件类型更新成功。",

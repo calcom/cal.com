@@ -527,6 +527,7 @@
   "cal_provide_google_meet_location": "Cal zapewni lokalizację Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal zapewni URL spotkania Zoom.",
   "cal_provide_video_meeting_url": "Kal poda adres URL spotkania wideo platformy Daily.",
+  "cal_provide_huddle01_meeting_url": "Cal zapewni URL spotkania Huddle01 Web3.",
   "require_payment": "Wymagaj płatności",
   "commission_per_transaction": "prowizja za transakcję",
   "event_type_updated_successfully_description": "Twój typ wydarzenia został pomyślnie zaktualizowany.",

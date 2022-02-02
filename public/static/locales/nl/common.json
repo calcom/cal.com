@@ -481,6 +481,7 @@
   "cal_provide_google_meet_location": "Cal zal een Google Meet meeting-URL meegeven in de afspraak bevestiging.",
   "cal_provide_zoom_meeting_url": "Cal zal een Zoom meeting-URL meegeven in de afspraak bevestiging.",
   "cal_provide_video_meeting_url": "Cal zal een Daily meeting-URL meegeven in de afspraak bevestiging.",
+  "cal_provide_huddle01_meeting_url": "Cal zal een Huddle01 web3 meeting-URL meegeven in de afspraak bevestiging.",
   "require_payment": "Betaling vereisen",
   "commission_per_transaction": "commissie per transactie",
   "event_type_updated_successfully_description": "Uw evenement is met succes bijgewerkt.",
