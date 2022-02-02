@@ -781,17 +781,17 @@ const loggedInViewerRouter = createProtectedRouter()
   })
   .mutation("updateSAMLConfig", {
     input: z.object({
-      rawMetadata: z.string(),
+      encodedRawMetadata: z.string(),
       teamId: z.union([z.number(), z.null(), z.undefined()]),
     }),
     async resolve({ input }) {
-      const { rawMetadata, teamId } = input;
+      const { encodedRawMetadata, teamId } = input;
 
       const { apiController } = await jackson();
 
       try {
         return await apiController.config({
-          rawMetadata,
+          encodedRawMetadata,
           defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
           redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,

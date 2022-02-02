@@ -10,6 +10,9 @@ export const telemetryEventTypes = {
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
   importSubmitted: "import_submitted",
+  googleLogin: "google_login",
+  samlLogin: "saml_login",
+  samlConfig: "saml_config",
 };
 
 /**

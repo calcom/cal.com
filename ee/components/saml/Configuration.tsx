@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -21,6 +22,8 @@ export default function SAMLConfiguration({
   const [samlConfig, setSAMLConfig] = useState<string | null>(null);
 
   const query = trpc.useQuery(["viewer.showSAMLView", { teamsView, teamId }]);
+
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     const data = query.data;
@@ -66,8 +69,11 @@ export default function SAMLConfiguration({
 
     const rawMetadata = samlConfigRef.current.value;
 
+    // track Google logins. Without personal data/payload
+    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.samlConfig, collectPageParameters()));
+
     mutation.mutate({
-      rawMetadata: rawMetadata,
+      encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),
       teamId,
     });
   }
@@ -88,14 +94,14 @@ export default function SAMLConfiguration({
       {isSAMLLoginEnabled ? (
         <>
           <div className="mt-6">
-            <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
+            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">
               {t("saml_configuration")}
-              <Badge className="text-xs ml-2" variant={samlConfig ? "success" : "gray"}>
+              <Badge className="ml-2 text-xs" variant={samlConfig ? "success" : "gray"}>
                 {samlConfig ? t("enabled") : t("disabled")}
               </Badge>
               {samlConfig ? (
                 <>
-                  <Badge className="text-xs ml-2" variant={"success"}>
+                  <Badge className="ml-2 text-xs" variant={"success"}>
                     {samlConfig ? samlConfig : ""}
                   </Badge>
                 </>
@@ -104,7 +110,7 @@ export default function SAMLConfiguration({
           </div>
 
           {samlConfig ? (
-            <div className="mt-2 flex">
+            <div className="flex mt-2">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -147,11 +153,7 @@ export default function SAMLConfiguration({
             />
 
             <div className="flex justify-end py-8">
-              <button
-                type="submit"
-                className="ltr:ml-2 rtl:mr-2bg-neutral-900 border border-transparent rounded-sm shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                {t("save")}
-              </button>
+              <Button type="submit">{t("save")}</Button>
             </div>
             <hr className="mt-4" />
           </form>
