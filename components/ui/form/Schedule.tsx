@@ -48,9 +48,7 @@ type TimeRangeFieldProps = {
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
-  const [selected, setSelected] = useState<number | undefined>(
-    dayjs(defaultDayRange.start).toDate().valueOf()
-  );
+  const [selected, setSelected] = useState<number | undefined>();
   // const { i18n } = useLocale();
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).toDate().valueOf(),
@@ -75,21 +73,22 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
     <>
       <Controller
         name={`${name}.start`}
-        render={({ field: { onChange, value } }) => (
-          <Select
-            className="w-[6rem]"
-            options={options}
-            onFocus={() => setOptions(timeOptions())}
-            onBlur={() => setOptions([])}
-            defaultValue={getOption(value)}
-            onChange={(option) =>
-              onChange(() => {
+        render={({ field: { onChange, value } }) => {
+          setSelected(value);
+          return (
+            <Select
+              className="w-[6rem]"
+              options={options}
+              onFocus={() => setOptions(timeOptions())}
+              onBlur={() => setOptions([])}
+              defaultValue={getOption(value)}
+              onChange={(option) => {
+                onChange(new Date(option?.value as number));
                 setSelected(option?.value);
-                new Date(option?.value as number);
-              })
-            }
-          />
-        )}
+              }}
+            />
+          );
+        }}
       />
       <span>-</span>
       <Controller
