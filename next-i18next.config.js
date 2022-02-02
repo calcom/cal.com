@@ -22,7 +22,7 @@ module.exports = {
       "ar",
       "iw",
       "zh-CN",
-      "cz",
+      "cs",
     ],
   },
   localePath: path.resolve("./public/static/locales"),
