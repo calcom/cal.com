@@ -564,16 +564,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 form={formMethods}
                 handleSubmit={async (values) => {
                   const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
-                  const metadata = {
-                    smartContractAddress: smartContractAddress,
-                  };
                   updateMutation.mutate({
                     ...input,
-                    metadata,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
                     id: eventType.id,
+                    metadata: smartContractAddress
+                      ? {
+                          smartContractAddress,
+                        }
+                      : undefined,
                   });
                 }}
                 className="space-y-6">
@@ -1034,7 +1035,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     )}
                                     {period.type === "RANGE" && (
-                                      <div className="inline-flex rtl:space-x-reverse space-x-2 ltr:ml-2 rtl:mr-2">
+                                      <div className="inline-flex space-x-2 rtl:space-x-reverse ltr:ml-2 rtl:mr-2">
                                         <Controller
                                           name="periodDates"
                                           control={formMethods.control}
@@ -1130,7 +1131,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           defaultChecked={requirePayment}
                                         />
                                       </div>
-                                      <div className="ltr:ml-3 rtl:mr-3 text-sm">
+                                      <div className="text-sm ltr:ml-3 rtl:mr-3">
                                         <p className="text-neutral-900">
                                           {t("require_payment")} (0.5% +{" "}
                                           <IntlProvider locale="en">
@@ -1197,7 +1198,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </>
                   {/* )} */}
                 </Collapsible>
-                <div className="flex justify-end mt-4 rtl:space-x-reverse space-x-2">
+                <div className="flex justify-end mt-4 space-x-2 rtl:space-x-reverse">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
                   </Button>

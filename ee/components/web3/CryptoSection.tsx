@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import React from "react";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import verifyAccount, { AUTH_MESSAGE } from "web3/utils/verifyAccount";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
@@ -12,6 +11,7 @@ import { Button } from "@components/ui/Button";
 
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
+import verifyAccount, { AUTH_MESSAGE } from "../../../web3/utils/verifyAccount";
 
 interface Window {
   ethereum: any;

@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
