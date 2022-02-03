@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { checkEmail } from "@lib/core/checkEmail";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
@@ -616,6 +617,13 @@ const loggedInViewerRouter = createProtectedRouter()
       const data: Prisma.UserUpdateInput = {
         ...input,
       };
+      if (!input.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Email is required" });
+      if (input.email !== user.email) {
+        const response = await checkEmail(input.email);
+        if (!response.available) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+        }
+      }
       if (input.username) {
         const username = slugify(input.username);
         // Only validate if we're changing usernames
