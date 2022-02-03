@@ -74,7 +74,7 @@ export const ALL_INTEGRATIONS = [
     variant: "conferencing",
   },
   {
-    installed: true,
+    installed: !!(process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET),
     type: "tandem_video",
     title: "Tandem Video",
     imageSrc: "integrations/tandem.svg",

@@ -1,5 +1,6 @@
-import * as z from "zod"
-import * as imports from "../zod-utils"
+import * as z from "zod";
+
+import * as imports from "../zod-utils";
 
 export const _ResetPasswordRequestModel = z.object({
   id: z.string(),
@@ -7,4 +8,4 @@ export const _ResetPasswordRequestModel = z.object({
   updatedAt: z.date(),
   email: z.string(),
   expires: z.date(),
-})
+});

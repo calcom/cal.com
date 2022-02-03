@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-
-import prisma from "../../../../lib/prisma";
+import prisma from "@lib/prisma";
 
 const client_id = process.env.TANDEM_CLIENT_ID as string;
 const client_secret = process.env.TANDEM_CLIENT_SECRET as string;
