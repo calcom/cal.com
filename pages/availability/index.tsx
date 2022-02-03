@@ -1,4 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { QueryCell } from "@lib/QueryCell";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -9,8 +14,12 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Shell from "@components/Shell";
 import { Form } from "@components/form/fields";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Schedule from "@components/ui/form/Schedule";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 type FormValues = {
   schedule: ScheduleType;
@@ -36,10 +45,41 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
     return responseData.data;
   };
 
+  const schema = z.object({
+    schedule: z
+      .object({
+        start: z.date(),
+        end: z.date(),
+      })
+      .superRefine((val, ctx) => {
+        if (dayjs(val.end).isBefore(dayjs(val.start))) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Invalid entry: End time can not be before start time",
+            path: ["end"],
+          });
+        }
+      })
+      .optional()
+      .array()
+      .array(),
+  });
+
+  const days = [
+    t("sunday_time_error"),
+    t("monday_time_error"),
+    t("tuesday_time_error"),
+    t("wednesday_time_error"),
+    t("thursday_time_error"),
+    t("friday_time_error"),
+    t("saturday_time_error"),
+  ];
+
   const form = useForm({
     defaultValues: {
       schedule: props.schedule || DEFAULT_SCHEDULE,
     },
+    resolver: zodResolver(schema),
   });
 
   return (
@@ -54,6 +94,15 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
           <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
           <Schedule name="schedule" />
         </div>
+        {form.formState.errors.schedule && (
+          <Alert
+            className="mt-1"
+            severity="error"
+            message={
+              days[form.formState.errors.schedule.length - 1] + " : " + t("error_end_time_before_start_time")
+            }
+          />
+        )}
         <div className="text-right">
           <Button>{t("save")}</Button>
         </div>
