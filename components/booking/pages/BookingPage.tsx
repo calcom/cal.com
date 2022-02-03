@@ -59,7 +59,28 @@ const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
+
   const { eventType } = props;
+  useEffect(() => {
+    if (eventType.metadata.smartContractAddress) {
+      const eventOwner = eventType.users[0];
+
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
+        router.replace(`/${eventOwner.username}`);
+    }
+  }, [contracts, eventType.metadata.smartContractAddress, router]);
+
+  /*
+   * This was too optimistic
+   * I started, then I remembered what a beast book/event.ts is
+   * Gave up shortly after. One day. Maybe.
+   *
+  const mutation = trpc.useMutation("viewer.bookEvent", {
+    onSuccess: ({ booking }) => {
+      // go to success page.
+    },
+  });*/
+
   const mutation = useMutation(createBooking, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
@@ -227,9 +248,7 @@ const BookingPage = (props: BookingPageProps) => {
     let web3Details;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        userWallet: window.web3.currentProvider.selectedAddress,
+        userWallet: web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
       };
     }
@@ -371,7 +390,7 @@ const BookingPage = (props: BookingPageProps) => {
                         <label key={i} className="block">
                           <input
                             type="radio"
-                            className="w-4 h-4 text-black border-gray-300 ltr:mr-2 rtl:ml-2 location focus:ring-black"
+                            className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-black border-gray-300 location focus:ring-black"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
@@ -391,8 +410,6 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                        {/* @ts-ignore */}
                         <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
                     </div>
@@ -449,7 +466,7 @@ const BookingPage = (props: BookingPageProps) => {
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="w-4 h-4 text-black border-gray-300 rounded ltr:mr-2 rtl:ml-2 focus:ring-black"
+                              className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-black border-gray-300 rounded focus:ring-black"
                               placeholder=""
                             />
                             <label
@@ -523,7 +540,7 @@ const BookingPage = (props: BookingPageProps) => {
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
-                  <div className="flex items-start space-x-2 rtl:space-x-reverse">
+                  <div className="flex items-start rtl:space-x-reverse space-x-2">
                     <Button type="submit" loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
