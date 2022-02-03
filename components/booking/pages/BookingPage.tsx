@@ -227,7 +227,9 @@ const BookingPage = (props: BookingPageProps) => {
     let web3Details;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        userWallet: web3.currentProvider.selectedAddress,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
       };
     }
@@ -389,6 +391,8 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
+                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                        {/* @ts-ignore */}
                         <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
                     </div>
