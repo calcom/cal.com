@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import { PartialReference } from "@lib/events/EventManager";
+import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
@@ -43,6 +44,9 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
         break;
       case "daily_video":
         acc.push(DailyVideoApiAdapter(cred));
+        break;
+      case "huddle01_video":
+        acc.push(Huddle01VideoApiAdapter());
         break;
       default:
         break;
