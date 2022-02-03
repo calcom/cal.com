@@ -33,7 +33,7 @@ async function globalSetup(/* config: FullConfig */) {
   await loginAsUser("free", browser);
   //   await loginAsUser("usa", browser);
   //   await loginAsUser("teamfree", browser);
-  //   await loginAsUser("teampro", browser);
+  await loginAsUser("teampro", browser);
   await browser.close();
 }
 

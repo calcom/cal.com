@@ -12,7 +12,7 @@ import React from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-import NavTabs from "@components/NavTabs";
+//import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
@@ -48,7 +48,8 @@ export default function App({
   privacy?: string;
 }) {
   const { t } = useLocale();
-  const tabs = [
+
+  /*const tabs = [
     {
       name: t("description"),
       href: "?description",
@@ -61,11 +62,7 @@ export default function App({
       name: t("permissions"),
       href: "?permissions",
     },
-    {
-      name: t("terms_and_privacy"),
-      href: "?terms",
-    },
-  ];
+  ];*/
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -119,7 +116,8 @@ export default function App({
                 )}
               </div>
             </div>
-            <NavTabs tabs={tabs} linkProps={{ shallow: true }} />
+            {/* reintroduce once we show permissions and features 
+            <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
           <div className="flex justify-between px-10 py-10">

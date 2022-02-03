@@ -74,16 +74,20 @@ function BookingListItem(booking: BookingItem) {
 
   return (
     <tr className="flex">
-      <td className="hidden py-4 pl-6 align-top sm:table-cell whitespace-nowrap">
+      <td className="hidden py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell whitespace-nowrap">
         <div className="text-sm leading-6 text-gray-900">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
       </td>
-      <td className={"pl-4 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
+      <td className={"ltr:pl-4 rtl:pr-4 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
-          {!booking.confirmed && !booking.rejected && <Tag className="mb-2 mr-2">{t("unconfirmed")}</Tag>}
-          {!!booking?.eventType?.price && !booking.paid && <Tag className="mb-2 mr-2">Pending payment</Tag>}
+          {!booking.confirmed && !booking.rejected && (
+            <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
+          )}
+          {!!booking?.eventType?.price && !booking.paid && (
+            <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
+          )}
           <div className="text-sm font-medium text-gray-900">
             {startTime}:{" "}
             <small className="text-sm text-gray-500">
@@ -97,10 +101,10 @@ function BookingListItem(booking: BookingItem) {
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!!booking?.eventType?.price && !booking.paid && (
-            <Tag className="hidden ml-2 sm:inline-flex">Pending payment</Tag>
+            <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
           )}
           {!booking.confirmed && !booking.rejected && (
-            <Tag className="hidden ml-2 sm:inline-flex">{t("unconfirmed")}</Tag>
+            <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
           )}
         </div>
         {booking.description && (
@@ -115,7 +119,7 @@ function BookingListItem(booking: BookingItem) {
         )}
       </td>
 
-      <td className="py-4 pr-4 text-sm font-medium text-right whitespace-nowrap">
+      <td className="py-4 text-sm font-medium text-right ltr:pr-4 rtl:pl-4 whitespace-nowrap">
         {isUpcoming && !isCancelled ? (
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}

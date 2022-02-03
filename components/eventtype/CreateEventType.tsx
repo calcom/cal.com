@@ -51,7 +51,9 @@ export default function CreateEventTypeButton(props: Props) {
 
   // URL encoded params
   const teamId: number | undefined =
-    typeof router.query.teamId === "string" ? parseInt(router.query.teamId) : undefined;
+    typeof router.query.teamId === "string" && router.query.teamId
+      ? parseInt(router.query.teamId)
+      : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
 
@@ -123,13 +125,7 @@ export default function CreateEventTypeButton(props: Props) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={PlusIcon}
-          {...(props.canAddEvents
-            ? {
-                href: modalOpen.hrefOn,
-              }
-            : {
-                disabled: true,
-              })}>
+          {...(props.canAddEvents ? { href: modalOpen.hrefOn } : { disabled: true })}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
@@ -145,7 +141,12 @@ export default function CreateEventTypeButton(props: Props) {
                 key={option.slug}
                 className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
-                <Avatar alt={option.name || ""} imageSrc={option.image} size={6} className="inline mr-2" />
+                <Avatar
+                  alt={option.name || ""}
+                  imageSrc={option.image}
+                  size={6}
+                  className="inline ltr:mr-2 rtl:ml-2"
+                />
                 {option.name ? option.name : option.slug}
               </DropdownMenuItem>
             ))}
@@ -199,6 +200,7 @@ export default function CreateEventTypeButton(props: Props) {
               <TextField
                 type="number"
                 required
+                min="10"
                 placeholder="15"
                 defaultValue={15}
                 label={t("length")}
@@ -225,7 +227,7 @@ export default function CreateEventTypeButton(props: Props) {
                 <RadioArea.Group
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
+                  className="relative flex mt-1 rtl:space-x-reverse space-x-6 rounded-sm shadow-sm">
                   <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
                     <strong className="block mb-1">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>

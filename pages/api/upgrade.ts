@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (req.method !== "GET") {
+  if (!["GET", "POST"].includes(req.method!)) {
     throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
   }
 
@@ -41,6 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     });
     const data = await response.json();
+
+    if (!data.url) throw new HttpCode({ statusCode: 401, message: data.message });
 
     res.redirect(303, data.url);
   } catch (error) {

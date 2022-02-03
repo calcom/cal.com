@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
@@ -22,12 +23,12 @@ export default function Book(props: BookPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-
   const user = await prisma.user.findUnique({
     where: {
       username: asStringOrThrow(context.query.user),
     },
     select: {
+      id: true,
       username: true,
       name: true,
       email: true,
@@ -40,7 +41,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!user) return { notFound: true };
 
-  const eventType = await prisma.eventType.findUnique({
+  const eventTypeRaw = await prisma.eventType.findUnique({
     where: {
       id: parseInt(asStringOrThrow(context.query.type)),
     },
@@ -56,6 +57,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,
+      metadata: true,
       periodCountCalendarDays: true,
       price: true,
       currency: true,
@@ -73,7 +75,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!eventType) return { notFound: true };
+  if (!eventTypeRaw) return { notFound: true };
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+
+  const eventType = {
+    ...eventTypeRaw,
+    metadata: (eventTypeRaw.metadata || {}) as JSONObject,
+    isWeb3Active:
+      web3Credentials && web3Credentials.key
+        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+        : false,
+  };
 
   const eventTypeObject = [eventType].map((e) => {
     return {
