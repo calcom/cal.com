@@ -60,6 +60,18 @@ const BookingPage = (props: BookingPageProps) => {
   const router = useRouter();
   const { contracts } = useContracts();
   const { eventType } = props;
+
+  useEffect(() => {
+    if (eventType.metadata.smartContractAddress) {
+      const eventOwner = eventType.users[0];
+
+      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        /* @ts-ignore */
+        router.replace(`/${eventOwner.username}`);
+    }
+  }, [contracts, eventType.metadata.smartContractAddress, router]);
+
   const mutation = useMutation(createBooking, {
     onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
       if (paymentUid) {
