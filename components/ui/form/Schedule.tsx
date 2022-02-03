@@ -48,34 +48,52 @@ type TimeRangeFieldProps = {
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
+  const [selected, setSelected] = useState<number | undefined>();
   // const { i18n } = useLocale();
+
+  const handleSelected = (value: number | undefined) => {
+    setSelected(value);
+  };
+
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).toDate().valueOf(),
     label: dayjs(time).utc().format("HH:mm"),
     // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
   });
 
-  const timeOptions = useCallback((offsetOrLimit: { offset?: number; limit?: number } = {}) => {
-    const { limit, offset } = offsetOrLimit;
-    return TIMES.filter((time) => (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset))).map(
-      (t) => getOption(t)
-    );
-  }, []);
+  const timeOptions = useCallback(
+    (offsetOrLimitorSelected: { offset?: number; limit?: number; selected?: number } = {}) => {
+      const { limit, offset, selected } = offsetOrLimitorSelected;
+      return TIMES.filter(
+        (time) =>
+          (!limit || time.isBefore(limit)) &&
+          (!offset || time.isAfter(offset)) &&
+          (!selected || time.isAfter(selected))
+      ).map((t) => getOption(t));
+    },
+    []
+  );
 
   return (
     <>
       <Controller
         name={`${name}.start`}
-        render={({ field: { onChange, value } }) => (
-          <Select
-            className="w-[6rem]"
-            options={options}
-            onFocus={() => setOptions(timeOptions())}
-            onBlur={() => setOptions([])}
-            defaultValue={getOption(value)}
-            onChange={(option) => onChange(new Date(option?.value as number))}
-          />
-        )}
+        render={({ field: { onChange, value } }) => {
+          handleSelected(value);
+          return (
+            <Select
+              className="w-[6rem]"
+              options={options}
+              onFocus={() => setOptions(timeOptions())}
+              onBlur={() => setOptions([])}
+              defaultValue={getOption(value)}
+              onChange={(option) => {
+                onChange(new Date(option?.value as number));
+                handleSelected(option?.value);
+              }}
+            />
+          );
+        }}
       />
       <span>-</span>
       <Controller
@@ -84,7 +102,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           <Select
             className="w-[6rem]"
             options={options}
-            onFocus={() => setOptions(timeOptions())}
+            onFocus={() => setOptions(timeOptions({ selected }))}
             onBlur={() => setOptions([])}
             defaultValue={getOption(value)}
             onChange={(option) => onChange(new Date(option?.value as number))}
@@ -123,7 +141,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   return (
     <fieldset className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row justify-between py-5 min-h-[86px]">
       <div className="w-1/3">
-        <label className="flex items-center rtl:space-x-reverse space-x-2">
+        <label className="flex items-center space-x-2 rtl:space-x-reverse">
           <input
             type="checkbox"
             checked={fields.length > 0}
@@ -136,7 +154,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
       <div className="flex-grow">
         {fields.map((field, index) => (
           <div key={field.id} className="flex justify-between mb-1">
-            <div className="flex items-center rtl:space-x-reverse space-x-2">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
             <Button
