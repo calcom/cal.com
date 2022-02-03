@@ -1,12 +1,14 @@
 import { BanIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
+import { useState } from "react";
 import { useMutation } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { TextField } from "@components/form/fields";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
@@ -14,12 +16,17 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 function BookingListItem(booking: BookingItem) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
-
+  const [rejectionReason, setRejectionReason] = useState<string>("");
   const mutation = useMutation(
     async (confirm: boolean) => {
       const res = await fetch("/api/book/confirm", {
         method: "PATCH",
-        body: JSON.stringify({ id: booking.id, confirmed: confirm, language: i18n.language }),
+        body: JSON.stringify({
+          id: booking.id,
+          confirmed: confirm,
+          language: i18n.language,
+          reason: rejectionReason,
+        }),
         headers: {
           "Content-Type": "application/json",
         },
