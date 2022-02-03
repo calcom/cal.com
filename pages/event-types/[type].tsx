@@ -24,6 +24,7 @@ import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
+import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
@@ -55,9 +56,21 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 
+import bloxyApi from "../../web3/dummyResps/bloxyApi";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+interface Token {
+  name?: string;
+  address: string;
+  symbol: string;
+}
+
+interface NFT extends Token {
+  // Some OpenSea NFTs have several contracts
+  contracts: Array<Token>;
+}
 type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
@@ -145,6 +158,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
+  const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -152,6 +166,41 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchTokens = async () => {
+      // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
+      try {
+        const erc20sList: Array<Token> =
+          //   await axios.get(`https://api.bloxy.info/token/list?key=${process.env.BLOXY_API_KEY}`)
+          // ).data
+          bloxyApi.slice(0, 100).map((erc20: Token) => {
+            const { name, address, symbol } = erc20;
+            return { name, address, symbol };
+          });
+
+        const exodiaList = await (await fetch(`https://exodia.io/api/trending?page=1`)).json();
+
+        const nftsList: Array<Token> = exodiaList.map((nft: NFT) => {
+          const { name, contracts } = nft;
+          if (nft.contracts[0]) {
+            const { address, symbol } = contracts[0];
+            return { name, address, symbol };
+          }
+        });
+
+        const unifiedList: Array<Token> = [...erc20sList, ...nftsList];
+
+        setTokensList(unifiedList);
+      } catch (err) {
+        showToast("Failed to load ERC20s & NFTs list. Please enter an address manually.", "error");
+      }
+    };
+
+    console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
+
+    fetchTokens();
+  }, []);
 
   useEffect(() => {
     setSelectedTimeZone(eventType.timeZone || "");
@@ -263,6 +312,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm<{
     title: string;
+    eventTitle: string;
+    smartContractAddress: string;
     eventName: string;
     slug: string;
     length: number;
@@ -331,13 +382,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.InPerson && (
                     <div className="flex items-center flex-grow">
                       <LocationMarkerIcon className="w-6 h-6" />
-                      <span className="ml-2 text-sm">{location.address}</span>
+                      <span className="ltr:ml-2 rtl:mr-2text-sm">{location.address}</span>
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
                     <div className="flex items-center flex-grow">
                       <PhoneIcon className="w-6 h-6" />
-                      <span className="ml-2 text-sm">{t("phone_call")}</span>
+                      <span className="ltr:ml-2 rtl:mr-2text-sm">{t("phone_call")}</span>
                     </div>
                   )}
                   {location.type === LocationType.GoogleMeet && (
@@ -368,7 +419,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <path d="M0 16H16V37.3333H0" fill="#2684FC" />
                       </svg>
 
-                      <span className="ml-2 text-sm">Google Meet</span>
+                      <span className="ltr:ml-2 rtl:mr-2text-sm">Google Meet</span>
                     </div>
                   )}
                   {location.type === LocationType.Huddle01 && (
@@ -441,7 +492,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             fillRule="evenodd"></path>
                         </g>
                       </svg>
-                      <span className="ml-2 text-sm">Daily.co Video</span>
+                      <span className="ltr:ml-2 rtl:mr-2text-sm">Daily.co Video</span>
                     </div>
                   )}
                   {location.type === LocationType.Zoom && (
@@ -468,7 +519,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           fill="white"
                         />
                       </svg>
-                      <span className="ml-2 text-sm">Zoom Video</span>
+                      <span className="ltr:ml-2 rtl:mr-2text-sm">Zoom Video</span>
                     </div>
                   )}
                   <div className="flex">
@@ -537,18 +588,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }
         subtitle={eventType.description || ""}>
         <div className="block mx-auto sm:flex md:max-w-5xl">
-          <div className="w-full mr-2 sm:w-9/12">
+          <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
             <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
               <Form
                 form={formMethods}
                 handleSubmit={async (values) => {
-                  const { periodDates, periodCountCalendarDays, ...input } = values;
+                  const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
                   updateMutation.mutate({
                     ...input,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
                     id: eventType.id,
+                    metadata: smartContractAddress
+                      ? {
+                          smartContractAddress,
+                        }
+                      : undefined,
                   });
                 }}
                 className="space-y-6">
@@ -556,7 +612,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="items-center block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0">
                       <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
-                        <LinkIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        <LinkIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 mt-0.5 text-neutral-500" />
                         {t("url")}
                       </label>
                     </div>
@@ -584,7 +640,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <MinutesField
                         label={
                           <>
-                            <ClockIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" /> {t("duration")}
+                            <ClockIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 mt-0.5 text-neutral-500" />{" "}
+                            {t("duration")}
                           </>
                         }
                         id="length"
@@ -604,7 +661,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="block sm:flex">
                     <div className="min-w-48 sm:mb-0">
                       <label htmlFor="location" className="flex mt-2.5 text-sm font-medium text-neutral-700">
-                        <LocationMarkerIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        <LocationMarkerIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 mt-0.5 text-neutral-500" />
                         {t("location")}
                       </label>
                     </div>
@@ -621,7 +678,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="block sm:flex">
                     <div className="mb-4 min-w-48 sm:mb-0 mt-2.5">
                       <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
-                        <DocumentIcon className="w-4 h-4 mr-2 mt-0.5 text-neutral-500" />
+                        <DocumentIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 mt-0.5 text-neutral-500" />
                         {t("description")}
                       </label>
                     </div>
@@ -643,7 +700,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="schedulingType"
                           className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UsersIcon className="w-5 h-5 mr-2 text-neutral-500" /> {t("scheduling_type")}
+                          <UsersIcon className="w-5 h-5 ltr:mr-2 rtl:ml-2 text-neutral-500" />{" "}
+                          {t("scheduling_type")}
                         </label>
                       </div>
                       <Controller
@@ -668,7 +726,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="block sm:flex">
                       <div className="mb-4 min-w-48 sm:mb-0">
                         <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="w-5 h-5 mr-2 text-neutral-500" /> {t("attendees")}
+                          <UserAddIcon className="w-5 h-5 ltr:mr-2 rtl:ml-2 text-neutral-500" />{" "}
+                          {t("attendees")}
                         </label>
                       </div>
                       <div className="w-full space-y-2">
@@ -758,6 +817,30 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       </div>
+                      {eventType.isWeb3Active && (
+                        <div className="items-center block sm:flex">
+                          <div className="mb-4 min-w-48 sm:mb-0">
+                            <label
+                              htmlFor="smartContractAddress"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("Smart Contract Address")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="relative mt-1 rounded-sm shadow-sm">
+                              {
+                                <input
+                                  type="text"
+                                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
+                                  {...formMethods.register("smartContractAddress")}
+                                />
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="items-center block sm:flex">
                         <div className="mb-4 min-w-48 sm:mb-0">
                           <label
@@ -774,7 +857,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="flex-1 w-0">
                                     <div className="truncate">
                                       <span
-                                        className="ml-2 text-sm"
+                                        className="ltr:ml-2 rtl:mr-2text-sm"
                                         title={`${t("label")}: ${customInput.label}`}>
                                         {t("label")}: {customInput.label}
                                       </span>
@@ -782,19 +865,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     {customInput.placeholder && (
                                       <div className="truncate">
                                         <span
-                                          className="ml-2 text-sm"
+                                          className="ltr:ml-2 rtl:mr-2text-sm"
                                           title={`${t("placeholder")}: ${customInput.placeholder}`}>
                                           {t("placeholder")}: {customInput.placeholder}
                                         </span>
                                       </div>
                                     )}
                                     <div>
-                                      <span className="ml-2 text-sm">
+                                      <span className="ltr:ml-2 rtl:mr-2text-sm">
                                         {t("type")}: {customInput.type}
                                       </span>
                                     </div>
                                     <div>
-                                      <span className="ml-2 text-sm">
+                                      <span className="ltr:ml-2 rtl:mr-2text-sm">
                                         {customInput.required ? t("required") : t("optional")}
                                       </span>
                                     </div>
@@ -958,7 +1041,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <RadioGroup.Item
                                       id={period.type}
                                       value={period.type}
-                                      className="flex items-center w-4 h-4 mr-2 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none">
+                                      className="flex items-center w-4 h-4 bg-white border border-black rounded-full cursor-pointer ltr:mr-2 rtl:ml-2 focus:border-2 focus:outline-none">
                                       <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:bg-black after:block after:w-2 after:h-2 after:rounded-full" />
                                     </RadioGroup.Item>
                                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
@@ -966,7 +1049,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <div className="inline-flex">
                                         <input
                                           type="number"
-                                          className="block w-12 mr-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm [appearance:textfield]"
+                                          className="block w-12 ltr:mr-2 rtl:ml-2 border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm [appearance:textfield]"
                                           placeholder="30"
                                           {...formMethods.register("periodDays", { valueAsNumber: true })}
                                           defaultValue={eventType.periodDays || 30}
@@ -982,7 +1065,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     )}
                                     {period.type === "RANGE" && (
-                                      <div className="inline-flex ml-2 space-x-2">
+                                      <div className="inline-flex space-x-2 rtl:space-x-reverse ltr:ml-2 rtl:mr-2">
                                         <Controller
                                           name="periodDates"
                                           control={formMethods.control}
@@ -1000,7 +1083,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       </div>
                                     )}
                                     {period.suffix ? (
-                                      <span className="ml-2">&nbsp;{period.suffix}</span>
+                                      <span className="ltr:ml-2 rtl:mr-2">&nbsp;{period.suffix}</span>
                                     ) : null}
                                   </div>
                                 ))}
@@ -1078,7 +1161,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           defaultChecked={requirePayment}
                                         />
                                       </div>
-                                      <div className="ml-3 text-sm">
+                                      <div className="text-sm ltr:ml-3 rtl:mr-3">
                                         <p className="text-neutral-900">
                                           {t("require_payment")} (0.5% +{" "}
                                           <IntlProvider locale="en">
@@ -1145,7 +1228,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </>
                   {/* )} */}
                 </Collapsible>
-                <div className="flex justify-end mt-4 space-x-2">
+                <div className="flex justify-end mt-4 space-x-2 rtl:space-x-reverse">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
                   </Button>
@@ -1156,7 +1239,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </Form>
             </div>
           </div>
-          <div className="w-full px-2 mt-8 ml-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
+          <div className="w-full px-2 mt-8 ltr:ml-2 rtl:mr-2 sm:w-3/12 sm:mt-0 min-w-[177px] ">
             <div className="px-2">
               <Controller
                 name="hidden"
@@ -1179,7 +1262,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
-                <ExternalLinkIcon className="w-4 h-4 mr-2 text-neutral-500" aria-hidden="true" />
+                <ExternalLinkIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-neutral-500" aria-hidden="true" />
                 {t("preview")}
               </a>
               <button
@@ -1189,12 +1272,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 }}
                 type="button"
                 className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 rounded-sm text-md hover:text-gray-900 hover:bg-gray-200">
-                <LinkIcon className="w-4 h-4 mr-2 text-neutral-500" />
+                <LinkIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-neutral-500" />
                 {t("copy_link")}
               </button>
               <Dialog>
                 <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:text-gray-900 hover:bg-gray-200">
-                  <TrashIcon className="w-4 h-4 mr-2 text-neutral-500" />
+                  <TrashIcon className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-neutral-500" />
                   {t("delete")}
                 </DialogTrigger>
                 <ConfirmationDialogContent
@@ -1278,7 +1361,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     onClick={() => setShowLocationModal(false)}
                     type="button"
                     color="secondary"
-                    className="mr-2">
+                    className="ltr:mr-2">
                     {t("cancel")}
                   </Button>
                 </div>
@@ -1415,6 +1498,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       customInputs: true,
       timeZone: true,
       periodType: true,
+      metadata: true,
       periodDays: true,
       periodStartDate: true,
       periodEndDate: true,
@@ -1456,10 +1540,27 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     address?: string;
   };
 
-  const { locations, ...restEventType } = rawEventType;
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+    },
+  });
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+  const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     locations: locations as unknown as Location[],
+    metadata: (metadata || {}) as JSONObject,
+    isWeb3Active:
+      web3Credentials && web3Credentials.key
+        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+        : false,
   };
 
   // backwards compat
@@ -1473,17 +1574,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
 
   const integrations = getIntegrations(credentials);
 

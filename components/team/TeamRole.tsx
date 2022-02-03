@@ -13,12 +13,15 @@ export default function TeamRole(props: Props) {
 
   return (
     <span
-      className={classNames("self-center px-3 py-1 mr-2 text-xs  capitalize border  rounded-md", {
-        "bg-blue-50 border-blue-200 text-blue-700": props.role === "MEMBER",
-        "bg-gray-50 border-gray-200 text-gray-700": props.role === "OWNER",
-        "bg-red-50 border-red-200 text-red-700": props.role === "ADMIN",
-        "bg-yellow-50 border-yellow-200 text-yellow-700": props.invitePending,
-      })}>
+      className={classNames(
+        "self-center px-3 py-1 ltr:mr-2 rtl:ml-2 text-xs  capitalize border  rounded-md",
+        {
+          "bg-blue-50 border-blue-200 text-blue-700": props.role === "MEMBER",
+          "bg-gray-50 border-gray-200 text-gray-700": props.role === "OWNER",
+          "bg-red-50 border-red-200 text-red-700": props.role === "ADMIN",
+          "bg-yellow-50 border-yellow-200 text-yellow-700": props.invitePending,
+        }
+      )}>
       {(() => {
         if (props.invitePending) return t("invitee");
         switch (props.role) {

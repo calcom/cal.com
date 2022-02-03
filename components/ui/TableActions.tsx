@@ -24,7 +24,7 @@ const TableActions: FC<Props> = ({ actions }) => {
   const { t } = useLocale();
   return (
     <>
-      <div className="space-x-2 hidden lg:block">
+      <div className="rtl:space-x-reverse space-x-2 hidden lg:block">
         {actions.map((action) => (
           <Button
             key={action.id}
@@ -74,7 +74,7 @@ const TableActions: FC<Props> = ({ actions }) => {
                               "group flex items-center px-4 py-2 text-sm font-medium"
                             )}>
                             <action.icon
-                              className="mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                              className="ltr:mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
                               aria-hidden="true"
                             />
                             {action.label}

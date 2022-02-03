@@ -90,7 +90,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     },
     <>
       {StartIcon && (
-        <StartIcon className={classNames("inline", size === "icon" ? "w-5 h-5 " : "w-5 h-5 mr-2 -ml-1")} />
+        <StartIcon
+          className={classNames(
+            "inline",
+            size === "icon" ? "w-5 h-5 " : "w-5 h-5 ltr:mr-2 rtl:ml-2 rtl:ml-2 rtl:-mr-1 -ml-1"
+          )}
+        />
       )}
       {props.children}
       {loading && (
@@ -117,7 +122,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="inline w-5 h-5 ml-2 -mr-1" />}
+      {EndIcon && <EndIcon className="inline w-5 h-5 ltr:ml-2 rtl:mr-2 -mr-1" />}
     </>
   );
   return props.href ? (

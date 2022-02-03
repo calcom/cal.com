@@ -63,6 +63,7 @@ model EventType {
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
+  metadata                Json?
 
   @@unique([userId, slug])
 }
@@ -216,7 +217,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  bookingId  Int?     @unique
 }
 
 model Booking {

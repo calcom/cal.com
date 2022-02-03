@@ -213,8 +213,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       <div className="py-6 lg:pb-8">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow space-y-6">
-            <div className="block sm:flex">
-              <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+            <div className="block space-x-2 sm:flex rtl:space-x-reverse">
+              <div className="w-full mb-6 sm:w-1/2">
                 <TextField
                   name="username"
                   addOnLeading={
@@ -226,7 +226,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={props.user.username || undefined}
                 />
               </div>
-              <div className="w-full sm:w-1/2 sm:ml-2">
+              <div className="w-full sm:w-1/2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
                 </label>
@@ -244,7 +244,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div className="block sm:flex">
-              <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+              <div className="w-full mb-6 sm:w-1/2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   {t("email")}
                 </label>
@@ -391,7 +391,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
                   />
                 </div>
-                <div className="ml-3 text-sm">
+                <div className="text-sm ltr:ml-3 rtl:mr-3">
                   <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
                     {t("automatically_adjust_theme")}
                   </label>
@@ -420,7 +420,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <div className="flex items-center h-5">
                   <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
                 </div>
-                <div className="ml-3 text-sm">
+                <div className="text-sm ltr:ml-3 rtl:mr-3">
                   <label htmlFor="hide-branding" className="font-medium text-gray-700">
                     {t("disable_cal_branding")}{" "}
                     {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}

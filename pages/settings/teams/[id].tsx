@@ -53,7 +53,7 @@ export function TeamSettingsPage() {
       {team && (
         <>
           <div className="block sm:flex md:max-w-5xl">
-            <div className="w-full mr-2 sm:w-9/12">
+            <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
               <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
@@ -82,7 +82,7 @@ export function TeamSettingsPage() {
               <MemberList team={team} members={team.members || []} />
               {isAdmin ? <SAMLConfiguration teamsView={true} teamId={team.id} /> : null}
             </div>
-            <div className="w-full px-2 mt-8 ml-2 md:w-3/12 sm:mt-0 min-w-32">
+            <div className="w-full px-2 mt-8 ltr:ml-2 rtl:mr-2 md:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />
             </div>
           </div>
