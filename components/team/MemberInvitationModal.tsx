@@ -111,7 +111,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                     className="text-black border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
                   />
                 </div>
-                <div className="ml-2 text-sm">
+                <div className="ltr:ml-2 rtl:mr-2text-sm">
                   <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
                     {t("send_invite_email")}
                   </label>
@@ -125,7 +125,11 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <Button type="submit" color="primary" className="ml-2" data-testid="invite-new-member-button">
+              <Button
+                type="submit"
+                color="primary"
+                className="ltr:ml-2 rtl:mr-2"
+                data-testid="invite-new-member-button">
                 {t("invite")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>
