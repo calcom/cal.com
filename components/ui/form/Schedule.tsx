@@ -50,6 +50,11 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   const [options, setOptions] = useState<Option[]>([]);
   const [selected, setSelected] = useState<number | undefined>();
   // const { i18n } = useLocale();
+
+  const handleSelected = (value: number | undefined) => {
+    setSelected(value);
+  };
+
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).toDate().valueOf(),
     label: dayjs(time).utc().format("HH:mm"),
@@ -74,7 +79,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
-          setSelected(value);
+          handleSelected(value);
           return (
             <Select
               className="w-[6rem]"
@@ -84,7 +89,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
               defaultValue={getOption(value)}
               onChange={(option) => {
                 onChange(new Date(option?.value as number));
-                setSelected(option?.value);
+                handleSelected(option?.value);
               }}
             />
           );
@@ -136,7 +141,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   return (
     <fieldset className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row justify-between py-5 min-h-[86px]">
       <div className="w-1/3">
-        <label className="flex items-center rtl:space-x-reverse space-x-2">
+        <label className="flex items-center space-x-2 rtl:space-x-reverse">
           <input
             type="checkbox"
             checked={fields.length > 0}
@@ -149,7 +154,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
       <div className="flex-grow">
         {fields.map((field, index) => (
           <div key={field.id} className="flex justify-between mb-1">
-            <div className="flex items-center rtl:space-x-reverse space-x-2">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>
             <Button
