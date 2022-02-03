@@ -153,6 +153,7 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Daily]: "Daily.co Video",
+    [LocationType.Huddle01]: "Huddle01 Video",
   };
 
   const defaultValues = () => {
