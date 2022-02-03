@@ -595,7 +595,7 @@ paths:
                           credential: null
                           title: Tandem
                           imageSrc: integrations/tandem.svg
-                          description: Video Conferencing
+                          description: Virtual Office | Video Conferencing
                         - installed: true
                           type: caldav_calendar
                           credential: null

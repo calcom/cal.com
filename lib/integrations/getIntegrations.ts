@@ -68,7 +68,7 @@ export const ALL_INTEGRATIONS = [
     type: "tandem_video",
     title: "Tandem Video",
     imageSrc: "integrations/tandem.svg",
-    description: "Video Conferencing",
+    description: "Virtual Office | Video Conferencing",
     variant: "conferencing",
   },
   {
