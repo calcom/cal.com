@@ -81,7 +81,7 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
           <Button
             type="submit"
-            className="ml-2"
+            className="ltr:ml-2 rtl:mr-2"
             onClick={handleDisable}
             disabled={password.length === 0 || isDisabling}>
             {t("disable")}

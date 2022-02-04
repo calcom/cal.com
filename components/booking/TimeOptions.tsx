@@ -40,7 +40,7 @@ const TimeOptions: FC<Props> = (props) => {
         <div className="w-1/2 font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
         <div className="w-1/2">
           <Switch.Group as="div" className="flex items-center justify-end">
-            <Switch.Label as="span" className="mr-3">
+            <Switch.Label as="span" className="ltr:mr-3">
               <span className="text-sm text-gray-500 dark:text-white">{t("am_pm")}</span>
             </Switch.Label>
             <Switch
@@ -59,7 +59,7 @@ const TimeOptions: FC<Props> = (props) => {
                 )}
               />
             </Switch>
-            <Switch.Label as="span" className="ml-3">
+            <Switch.Label as="span" className="ltr:ml-3 rtl:mr-3">
               <span className="text-sm text-gray-500 dark:text-white">{t("24_h")}</span>
             </Switch.Label>
           </Switch.Group>

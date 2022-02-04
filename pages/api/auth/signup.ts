@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hashedPassword = await hashPassword(password);
 
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email: userEmail },
     update: {
       username,
@@ -68,6 +68,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       identityProvider: IdentityProvider.CAL,
     },
   });
+
+  // If user has been invitedTo a team, we accept the membership
+  if (user.invitedTo) {
+    await prisma.membership.update({
+      where: {
+        userId_teamId: { userId: user.id, teamId: user.invitedTo },
+      },
+      data: {
+        accepted: true,
+      },
+    });
+  }
 
   res.status(201).json({ message: "Created user" });
 }

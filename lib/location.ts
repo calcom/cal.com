@@ -4,4 +4,5 @@ export enum LocationType {
   GoogleMeet = "integrations:google:meet",
   Zoom = "integrations:zoom",
   Daily = "integrations:daily",
+  Huddle01 = "integrations:huddle01",
 }

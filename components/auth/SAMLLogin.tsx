@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import Button from "@components/ui/Button";
@@ -18,6 +19,7 @@ interface Props {
 export default function SAMLLogin(props: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
+  const telemetry = useTelemetry();
 
   const mutation = trpc.useMutation("viewer.samlTenantProduct", {
     onSuccess: async (data) => {
@@ -36,6 +38,11 @@ export default function SAMLLogin(props: Props) {
         className="flex justify-center w-full"
         onClick={async (event) => {
           event.preventDefault();
+
+          // track Google logins. Without personal data/payload
+          telemetry.withJitsu((jitsu) =>
+            jitsu.track(telemetryEventTypes.googleLogin, collectPageParameters())
+          );
 
           if (!props.hostedCal) {
             await signIn("saml", {}, { tenant: props.samlTenantID, product: props.samlProductID });

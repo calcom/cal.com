@@ -14,6 +14,8 @@ export function getIntegrationName(name: string) {
       return "Apple Calendar";
     case "daily_video":
       return "Daily";
+    case "huddle01_video":
+      return "Huddle01";
   }
 }
 

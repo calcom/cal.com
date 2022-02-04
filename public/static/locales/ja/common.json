@@ -488,6 +488,7 @@
   "cal_provide_google_meet_location": "CalはGoogleMeetの場所を提供します。",
   "cal_provide_zoom_meeting_url": "カルはZoomミーティングURLを提供します。",
   "cal_provide_video_meeting_url": "カルは毎日のビデオミーティングのURLを提供します。",
+  "cal_provide_huddle01_meeting_url": "カルはHuddle01 Web3ミーティングURLを提供します。",
   "require_payment": "お支払いが必要です",
   "commission_per_transaction": "取引あたりの手数料",
   "event_type_updated_successfully_description": "イベント種別の更新が完了しました。",
