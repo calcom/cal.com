@@ -17,7 +17,6 @@ interface Window {
   ethereum: any;
   web3: Web3;
 }
-
 interface EvtsToVerify {
   [eventId: string]: boolean;
 }
@@ -53,7 +52,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const verifyWallet = useCallback(async () => {
     try {
       if (!window.web3) {
-        throw new Error("MetaMask Chrome extension is not installed");
+        throw new Error("MetaMask browser extension is not installed");
       }
 
       const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
@@ -64,9 +63,13 @@ const CryptoSection = (props: CryptoSectionProps) => {
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await web3.eth.getAccounts())[0];
+        const account = (await window.web3.eth.getAccounts())[0];
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         addContract({ address: props.smartContractAddress, signature });
 
         await verifyAccount(signature, account);

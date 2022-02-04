@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext } from "react";
 
 type contractsContextType = Record<string, string>;
 
@@ -20,22 +20,26 @@ interface addContractsPayload {
 }
 
 export function ContractsProvider({ children }: Props) {
-  const [contracts, setContracts] = useState<Record<string, string>>({});
-
   const addContract = (payload: addContractsPayload) => {
-    setContracts((prevContracts) => ({
-      ...prevContracts,
-      [payload.address]: payload.signature,
-    }));
+    window.localStorage.setItem(
+      "contracts",
+      JSON.stringify({
+        ...JSON.parse(window.localStorage.getItem("contracts") || "{}"),
+        [payload.address]: payload.signature,
+      })
+    );
   };
 
   const value = {
-    contracts,
+    contracts:
+      typeof window !== "undefined" ? JSON.parse(window.localStorage.getItem("contracts") || "{}") : {},
     addContract,
   };
 
   return (
     <>
+      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+      {/* @ts-ignore */}
       <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
     </>
   );
