@@ -9635,6 +9635,11 @@ react-date-picker@^8.3.6:
     react-fit "^1.0.3"
     update-input-width "^1.2.2"
 
+react-digit-input@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-digit-input/-/react-digit-input-2.1.0.tgz#8b0be6d3ea247fd361855483f21d0aafba341196"
+  integrity sha512-pGv0CtSmu3Mf4cD79LoYtJI7Wq4dpPiLiY1wvKsNaR+X2sJyk1ETiIxjq6G8i+XJqNXExM6vuytzDqblkkSaFw==
+
 react-dom@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
