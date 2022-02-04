@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { v4 } from "uuid";
 
 import { hashPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
+import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
 import { IdentityProvider } from ".prisma/client";
 
@@ -49,6 +51,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       disableGuests: true,
     },
   });
+
+  const webhookUrl = process.env.KHIBRA_WEBHOOK_API_URL;
+
+  webhookUrl &&
+    (await prisma.webhook.create({
+      data: {
+        id: v4(),
+        userId: user.id,
+        subscriberUrl: webhookUrl,
+        eventTriggers: WEBHOOK_TRIGGER_EVENTS,
+      },
+    }));
 
   res.status(201).json({
     calUserId: user.id,
