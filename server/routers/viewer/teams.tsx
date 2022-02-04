@@ -42,7 +42,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
         },
-        requiresUpgrade: !!team.members.find((m) => m.plan !== UserPlan.PRO),
+        requiresUpgrade: hostedCal ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     },
   })
