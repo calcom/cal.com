@@ -20,6 +20,7 @@ export type Integration = {
     | "office365_calendar"
     | "zoom_video"
     | "daily_video"
+    | "tandem_video"
     | "caldav_calendar"
     | "apple_calendar"
     | "stripe_payment"
@@ -70,6 +71,14 @@ export const ALL_INTEGRATIONS = [
     title: "Huddle01",
     imageSrc: "integrations/huddle.svg",
     description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: !!(process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET),
+    type: "tandem_video",
+    title: "Tandem Video",
+    imageSrc: "integrations/tandem.svg",
+    description: "Virtual Office | Video Conferencing",
     variant: "conferencing",
   },
   {
