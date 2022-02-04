@@ -86,6 +86,7 @@
     "qrcode": "^1.5.0",
     "react": "^17.0.2",
     "react-date-picker": "^8.3.6",
+    "react-digit-input": "^2.1.0",
     "react-dom": "^17.0.2",
     "react-easy-crop": "^3.5.2",
     "react-hook-form": "^7.20.4",

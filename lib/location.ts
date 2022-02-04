@@ -5,4 +5,5 @@ export enum LocationType {
   Zoom = "integrations:zoom",
   Daily = "integrations:daily",
   Huddle01 = "integrations:huddle01",
+  Tandem = "integrations:tandem",
 }

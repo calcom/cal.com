@@ -510,6 +510,7 @@
   "cal_invitee_phone_number_scheduling": "Cal은 일정을 잡기 전에 초대받은 사람에게 전화번호를 요청합니다.",
   "cal_provide_google_meet_location": "Cal은 Google Meet 위치를 제공합니다.",
   "cal_provide_zoom_meeting_url": "Cal은 Zoom 회의 URL을 제공합니다.",
+  "cal_provide_tandem_meeting_url": "Cal은 Tandem 회의 URL을 제공합니다.",
   "cal_provide_video_meeting_url": "Cal은 일일 화상 회의 URL을 제공합니다.",
   "cal_provide_huddle01_meeting_url": "Cal은 Huddle01 Web3 회의 URL을 제공합니다.",
   "require_payment": "지불 요청",
