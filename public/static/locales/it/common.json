@@ -517,6 +517,7 @@
   "cal_provide_zoom_meeting_url": "Cal fornirà un URL di riunione Zoom.",
   "cal_provide_video_meeting_url": "Cal fornirà un URL di riunione Daily video.",
   "cal_provide_huddle01_meeting_url": "Cal fornirà un URL di riunione Huddle01 web3 video.",
+  "cal_provide_tandem_meeting_url": "Cal fornirà un URL di riunione Tandem.",
   "require_payment": "Richiedi Pagamento",
   "commission_per_transaction": "commissione per transazione",
   "event_type_updated_successfully_description": "Il tuo team è stato aggiornato con successo.",

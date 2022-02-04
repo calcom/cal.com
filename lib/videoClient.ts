@@ -9,6 +9,7 @@ import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApi
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
+import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
 import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 
@@ -47,6 +48,9 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
         break;
       case "huddle01_video":
         acc.push(Huddle01VideoApiAdapter());
+        break;
+      case "tandem_video":
+        acc.push(TandemVideoApiAdapter(cred));
         break;
       default:
         break;

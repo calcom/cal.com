@@ -53,8 +53,12 @@ export const isHuddle01 = (location: string): boolean => {
   return location === "integrations:huddle01";
 };
 
+export const isTandem = (location: string): boolean => {
+  return location === "integrations:tandem";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location) || isHuddle01(location);
+  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -62,7 +66,8 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
     location === LocationType.Daily.valueOf() ||
-    location === LocationType.Huddle01.valueOf()
+    location === LocationType.Huddle01.valueOf() ||
+    location === LocationType.Tandem.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 
