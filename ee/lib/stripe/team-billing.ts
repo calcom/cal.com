@@ -5,6 +5,7 @@ import { getStripeCustomerFromUser } from "@ee/lib/stripe/customer";
 
 import { HttpError } from "@lib/core/http/error";
 import prisma from "@lib/prisma";
+import { hostedCal } from "@lib/saml";
 
 import stripe from "./server";
 
@@ -48,11 +49,11 @@ export async function getTeamSeatStats(teamId: number) {
     totalMembers: members.length,
     // members we need not pay for
     freeSeats: members.length - membersMissingSeats.length,
-    // members we need to pay for
-    missingSeats: membersMissingSeats.length,
+    // members we need to pay for (if not hosted cal, team billing is disabled)
+    missingSeats: hostedCal ? membersMissingSeats.length : 0,
     // members who have been hidden from view
     hiddenMembers: members.filter((m) => m.user.plan === UserPlan.FREE).length,
-    ownerIsMissingSeat,
+    ownerIsMissingSeat: hostedCal ? ownerIsMissingSeat : false,
   };
 }
 
@@ -262,6 +263,6 @@ export function getPerSeatProPlanPrice(): string {
 
 export function getProPlanPrice(): string {
   return process.env.NODE_ENV === "production"
-    ? "price_1Isw0bH8UDiwIftkETa8lRcj"
+    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
     : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
 }

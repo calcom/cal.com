@@ -17,6 +17,7 @@ import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
+import { hostedCal } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -185,7 +186,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
-      await removeSeat(ctx.user.id, input.teamId, input.memberId);
+      if (hostedCal) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     },
   })
   .mutation("inviteMember", {
@@ -297,8 +298,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         }
       }
       try {
-        // TODO: disable if not hosted by Cal
-        await addSeat(ctx.user.id, team.id, inviteeUserId);
+        if (hostedCal) await addSeat(ctx.user.id, team.id, inviteeUserId);
       } catch (e) {
         console.log(e);
       }
@@ -325,7 +325,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           const teamOwner = await ctx.prisma.membership.findFirst({
             where: { teamId: input.teamId, role: MembershipRole.OWNER },
           });
-          console.log({ teamOwner });
 
           // TODO: disable if not hosted by Cal
           if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
