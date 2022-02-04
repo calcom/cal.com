@@ -646,7 +646,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         }
                         id="length"
                         required
-                        min="10"
+                        min="1"
                         placeholder="15"
                         defaultValue={eventType.length || 15}
                         onChange={(e) => {
