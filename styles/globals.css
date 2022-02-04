@@ -180,7 +180,7 @@
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 ltr:mr-2 rtl:ml-2 text-sm font-medium text-gray-900 border border-transparent rounded-md dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 text-sm font-medium text-gray-900 border border-transparent rounded-md ltr:mr-2 rtl:ml-2 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email > span[data-placeholder] {
@@ -208,7 +208,7 @@
 }
 
 .react-multi-email [data-tag] {
-  @apply inline-flex items-center px-2 py-1 my-1 ltr:mr-2 rtl:ml-2 text-sm font-medium text-gray-900 border border-transparent rounded-md shadow-sm dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 text-sm font-medium text-gray-900 border border-transparent rounded-md shadow-sm ltr:mr-2 rtl:ml-2 dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {
@@ -383,4 +383,96 @@ hr {
 /* react-date-picker forces a border upon us, cast it away */
 .react-date-picker__wrapper {
   border: none !important;
+}
+
+.nft {
+  filter: drop-shadow(0px 0px 0px 5px #000000);
+  -webkit-clip-path: polygon(
+    92.32051% 40%,
+    93.79385% 43.1596%,
+    94.69616% 46.52704%,
+    95% 50%,
+    94.69616% 53.47296%,
+    93.79385% 56.8404%,
+    92.32051% 60%,
+    79.82051% 81.65064%,
+    77.82089% 84.50639%,
+    75.35575% 86.97152%,
+    72.5% 88.97114%,
+    69.3404% 90.44449%,
+    65.97296% 91.34679%,
+    62.5% 91.65064%,
+    37.5% 91.65064%,
+    34.02704% 91.34679%,
+    30.6596% 90.44449%,
+    27.5% 88.97114%,
+    24.64425% 86.97152%,
+    22.17911% 84.50639%,
+    20.17949% 81.65064%,
+    7.67949% 60%,
+    6.20615% 56.8404%,
+    5.30384% 53.47296%,
+    5% 50%,
+    5.30384% 46.52704%,
+    6.20615% 43.1596%,
+    7.67949% 40%,
+    20.17949% 18.34936%,
+    22.17911% 15.49361%,
+    24.64425% 13.02848%,
+    27.5% 11.02886%,
+    30.6596% 9.55551%,
+    34.02704% 8.65321%,
+    37.5% 8.34936%,
+    62.5% 8.34936%,
+    65.97296% 8.65321%,
+    69.3404% 9.55551%,
+    72.5% 11.02886%,
+    75.35575% 13.02848%,
+    77.82089% 15.49361%,
+    79.82051% 18.34936%
+  );
+  clip-path: polygon(
+    92.32051% 40%,
+    93.79385% 43.1596%,
+    94.69616% 46.52704%,
+    95% 50%,
+    94.69616% 53.47296%,
+    93.79385% 56.8404%,
+    92.32051% 60%,
+    79.82051% 81.65064%,
+    77.82089% 84.50639%,
+    75.35575% 86.97152%,
+    72.5% 88.97114%,
+    69.3404% 90.44449%,
+    65.97296% 91.34679%,
+    62.5% 91.65064%,
+    37.5% 91.65064%,
+    34.02704% 91.34679%,
+    30.6596% 90.44449%,
+    27.5% 88.97114%,
+    24.64425% 86.97152%,
+    22.17911% 84.50639%,
+    20.17949% 81.65064%,
+    7.67949% 60%,
+    6.20615% 56.8404%,
+    5.30384% 53.47296%,
+    5% 50%,
+    5.30384% 46.52704%,
+    6.20615% 43.1596%,
+    7.67949% 40%,
+    20.17949% 18.34936%,
+    22.17911% 15.49361%,
+    24.64425% 13.02848%,
+    27.5% 11.02886%,
+    30.6596% 9.55551%,
+    34.02704% 8.65321%,
+    37.5% 8.34936%,
+    62.5% 8.34936%,
+    65.97296% 8.65321%,
+    69.3404% 9.55551%,
+    72.5% 11.02886%,
+    75.35575% 13.02848%,
+    77.82089% 15.49361%,
+    79.82051% 18.34936%
+  );
 }
