@@ -115,7 +115,7 @@ export default function Signup({ email }: Props) {
                   className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
                 />
               </div>
-              <div className="flex rtl:space-x-reverse space-x-2">
+              <div className="flex space-x-2 rtl:space-x-reverse">
                 <Button loading={isSubmitting} className="justify-center w-7/12">
                   {t("create_account")}
                 </Button>
@@ -141,52 +141,57 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const token = asStringOrNull(ctx.query.token);
   if (!token) {
     return {
-      notFound: true,
+      props: {
+        isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+        isSAMLLoginEnabled,
+        trpcState: ssr.dehydrate(),
+      },
     };
-  }
-  const verificationRequest = await prisma.verificationRequest.findUnique({
-    where: {
-      token,
-    },
-  });
+  } else {
+    const verificationRequest = await prisma.verificationRequest.findUnique({
+      where: {
+        token,
+      },
+    });
 
-  // for now, disable if no verificationRequestToken given or token expired
-  if (!verificationRequest || verificationRequest.expires < new Date()) {
-    return {
-      notFound: true,
-    };
-  }
+    // for now, disable if no verificationRequestToken given or token expired
+    if (!verificationRequest || verificationRequest.expires < new Date()) {
+      return {
+        notFound: true,
+      };
+    }
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationRequest.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        AND: [
+          {
+            email: verificationRequest.identifier,
           },
-        },
-      ],
-    },
-  });
+          {
+            emailVerified: {
+              not: null,
+            },
+          },
+        ],
+      },
+    });
 
-  if (existingUser) {
+    if (existingUser) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+        },
+      };
+    }
+
     return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+      props: {
+        isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+        isSAMLLoginEnabled,
+        email: verificationRequest.identifier,
+        trpcState: ssr.dehydrate(),
       },
     };
   }
-
-  return {
-    props: {
-      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-      isSAMLLoginEnabled,
-      email: verificationRequest.identifier,
-      trpcState: ssr.dehydrate(),
-    },
-  };
 };
