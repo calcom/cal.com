@@ -214,7 +214,7 @@
   "emailed_you_and_any_other_attendees": "Poslali jsme vám a ostatním účastníkům e-mail s těmito informacemi.",
   "needs_to_be_confirmed_or_rejected": "Vaše rezervace bude teprve schválena nebo zamítnuta.",
   "user_needs_to_confirm_or_reject_booking": "{{user}} teprve tuto rezervaci schválí nebo zamítne.",
-  "meeting_is_scheduled": "Tato schůzka je naplánována",
+  "meeting_is_scheduled": "Schůzka naplánována",
   "submitted": "Vaše rezervace byla odeslána",
   "booking_submitted": "Vaše rezervace byla odeslána",
   "booking_confirmed": "Vaše rezervace byla schválena",
