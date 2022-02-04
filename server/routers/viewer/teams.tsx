@@ -13,11 +13,11 @@ import {
 } from "@ee/lib/stripe/team-billing";
 
 import { BASE_URL } from "@lib/config/constants";
+import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
-import { hostedCal } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { createProtectedRouter } from "@server/createRouter";
@@ -42,7 +42,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
         },
-        requiresUpgrade: hostedCal ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
+        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     },
   })
@@ -186,7 +186,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
-      if (hostedCal) await removeSeat(ctx.user.id, input.teamId, input.memberId);
+      if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     },
   })
   .mutation("inviteMember", {
@@ -298,7 +298,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         }
       }
       try {
-        if (hostedCal) await addSeat(ctx.user.id, team.id, inviteeUserId);
+        if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
       } catch (e) {
         console.log(e);
       }
@@ -425,6 +425,8 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
+      if (!HOSTED_CAL_FEATURES)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
       return await upgradeTeam(ctx.user.id, input.teamId);
     },
   })
