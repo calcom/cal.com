@@ -20,8 +20,16 @@ import logger from "@lib/logger";
 
 import { TIMEZONE_FORMAT } from "../constants/formats";
 import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
-import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
-import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import {
+  CalendarEventType,
+  EventBusyDate,
+  NewCalendarEventType,
+} from "../constants/types";
+import {
+  Calendar,
+  CalendarEvent,
+  IntegrationCalendar,
+} from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -40,14 +48,18 @@ export default abstract class BaseCalendarService implements Calendar {
       username,
       password,
       url: credentialURL,
-    } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+    } = JSON.parse(
+      symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY)
+    );
 
     this.url = url || credentialURL;
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getChildLogger({
+      prefix: [`[[lib] ${this.integrationName}`],
+    });
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -97,7 +109,9 @@ export default abstract class BaseCalendarService implements Calendar {
 
       if (responses.some((r) => !r.ok)) {
         throw new Error(
-          `Error creating event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
+          `Error creating event: ${(
+            await Promise.all(responses.map((r) => r.text()))
+          ).join(", ")}`
         );
       }
 
@@ -192,7 +206,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const objects = (
       await Promise.all(
         selectedCalendars
-          .filter((sc) => sc.integration === 'caldav_calendar')
+          .filter((sc) => sc.integration === "caldav_calendar")
           .map((sc) =>
             fetchCalendarObjects({
               calendar: {
@@ -206,8 +220,8 @@ export default abstract class BaseCalendarService implements Calendar {
               },
             })
           )
-        )
-      ).flat();
+      )
+    ).flat();
 
     const events = objects
       .filter((e) => !!e.data)
@@ -217,7 +231,9 @@ export default abstract class BaseCalendarService implements Calendar {
         const vevent = vcalendar.getFirstSubcomponent("vevent");
         const event = new ICAL.Event(vevent);
         const calendarTimezone =
-          vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
+          vcalendar
+            .getFirstSubcomponent("vtimezone")
+            ?.getFirstPropertyValue("tzid") || "";
 
         const startDate = calendarTimezone
           ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
@@ -245,19 +261,22 @@ export default abstract class BaseCalendarService implements Calendar {
         headers: this.headers,
       });
 
-      return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
-        if (!calendar.components?.includes("VEVENT")) return newCalendars;
+      return calendars.reduce<IntegrationCalendar[]>(
+        (newCalendars, calendar) => {
+          if (!calendar.components?.includes("VEVENT")) return newCalendars;
 
-        newCalendars.push({
-          externalId: calendar.url,
-          name: calendar.displayName ?? "",
-          primary: event?.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId === calendar.url
-            : false,
-          integration: this.integrationName,
-        });
-        return newCalendars;
-      }, []);
+          newCalendars.push({
+            externalId: calendar.url,
+            name: calendar.displayName ?? "",
+            primary: event?.destinationCalendar?.externalId
+              ? event.destinationCalendar.externalId === calendar.url
+              : false,
+            integration: this.integrationName,
+          });
+          return newCalendars;
+        },
+        []
+      );
     } catch (reason) {
       logger.error(reason);
 
@@ -298,7 +317,9 @@ export default abstract class BaseCalendarService implements Calendar {
           const event = new ICAL.Event(vevent);
 
           const calendarTimezone =
-            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
+            vcalendar
+              .getFirstSubcomponent("vtimezone")
+              ?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
             ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
@@ -346,7 +367,9 @@ export default abstract class BaseCalendarService implements Calendar {
     const calendars = await this.listCalendars();
 
     for (const cal of calendars) {
-      const calEvents = await this.getEvents(cal.externalId, null, null, [`${cal.externalId}${uid}.ics`]);
+      const calEvents = await this.getEvents(cal.externalId, null, null, [
+        `${cal.externalId}${uid}.ics`,
+      ]);
 
       for (const ev of calEvents) {
         events.push(ev);
