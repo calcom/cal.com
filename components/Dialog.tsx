@@ -43,7 +43,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="flex justify-end mt-5 space-x-2">{props.children}</div>
+      <div className="flex justify-end mt-5 rtl:space-x-reverse space-x-2">{props.children}</div>
     </div>
   );
 }

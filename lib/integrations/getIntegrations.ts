@@ -22,11 +22,13 @@ export type Integration = {
     | "daily_video"
     | "caldav_calendar"
     | "apple_calendar"
-    | "stripe_payment";
+    | "stripe_payment"
+    | "huddle01_video"
+    | "metamask_web3";
   title: string;
   imageSrc: string;
   description: string;
-  variant: "calendar" | "conferencing" | "payment";
+  variant: "calendar" | "conferencing" | "payment" | "web3";
 };
 
 export const ALL_INTEGRATIONS = [
@@ -64,6 +66,14 @@ export const ALL_INTEGRATIONS = [
   },
   {
     installed: true,
+    type: "huddle01_video",
+    title: "Huddle01",
+    imageSrc: "integrations/huddle.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: true,
     type: "caldav_calendar",
     title: "CalDav Server",
     imageSrc: "integrations/caldav.svg",
@@ -89,6 +99,14 @@ export const ALL_INTEGRATIONS = [
     imageSrc: "integrations/stripe.svg",
     description: "Collect payments",
     variant: "payment",
+  },
+  {
+    installed: true,
+    type: "metamask_web3",
+    title: "Metamask",
+    imageSrc: "integrations/apple-calendar.svg",
+    description: "For personal and business calendars",
+    variant: "web3",
   },
 ] as Integration[];
 
@@ -116,7 +134,10 @@ export type IntegrationMeta = ReturnType<typeof getIntegrations>;
 
 export function hasIntegration(integrations: IntegrationMeta, type: string): boolean {
   return !!integrations.find(
-    (i) => i.type === type && !!i.installed && (type === "daily_video" || i.credentials.length > 0)
+    (i) =>
+      i.type === type &&
+      !!i.installed &&
+      (type === "daily_video" || type === "huddle01_video" || i.credentials.length > 0)
   );
 }
 export function hasIntegrationInstalled(type: Integration["type"]): boolean {

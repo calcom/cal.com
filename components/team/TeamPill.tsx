@@ -13,7 +13,7 @@ interface Props {
 export default function TeamPill(props: Props) {
   return (
     <div
-      className={classNames("self-center px-3 py-1 mr-2 text-xs capitalize border rounded-md", {
+      className={classNames("self-center px-3 py-1 ltr:mr-2 rtl:ml-2 text-xs capitalize border rounded-md", {
         "bg-gray-50 border-gray-200 text-gray-700": !props.color,
         "bg-blue-50 border-blue-200 text-blue-700": props.color === "blue",
         "bg-red-50 border-red-200 text-red-700": props.color === "red",

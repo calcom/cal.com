@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
@@ -22,6 +23,8 @@ export default function SAMLConfiguration({
   const [samlConfig, setSAMLConfig] = useState<string | null>(null);
 
   const query = trpc.useQuery(["viewer.showSAMLView", { teamsView, teamId }]);
+
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     const data = query.data;
@@ -67,8 +70,11 @@ export default function SAMLConfiguration({
 
     const rawMetadata = samlConfigRef.current.value;
 
+    // track Google logins. Without personal data/payload
+    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.samlConfig, collectPageParameters()));
+
     mutation.mutate({
-      rawMetadata: rawMetadata,
+      encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),
       teamId,
     });
   }
@@ -146,11 +152,7 @@ export default function SAMLConfiguration({
             />
 
             <div className="flex justify-end py-8">
-              <button
-                type="submit"
-                className="inline-flex justify-center px-4 py-2 ml-2 text-sm font-medium text-white border border-transparent rounded-sm shadow-sm bg-neutral-900 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
-                {t("save")}
-              </button>
+              <Button type="submit">{t("save")}</Button>
             </div>
             <hr className="mt-4" />
           </form>
