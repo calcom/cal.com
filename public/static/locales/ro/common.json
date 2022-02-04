@@ -489,6 +489,7 @@
   "cal_provide_zoom_meeting_url": "Cal va oferi un URL pentru ședința de Zoom.",
   "cal_provide_video_meeting_url": "Cal va oferi un URL pentru ședința de Daily.",
   "cal_provide_huddle01_meeting_url": "Cal va oferi un URL pentru ședința de Huddle01 Web3.",
+  "cal_provide_tandem_meeting_url": "Cal va oferi un URL pentru ședința de Tandem.",
   "require_payment": "Solicită plata",
   "commission_per_transaction": "comision per tranzacție",
   "event_type_updated_successfully_description": "Tipul de eveniment a fost actualizat cu succes.",

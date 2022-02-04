@@ -543,6 +543,7 @@
   "cal_invitee_phone_number_scheduling": "Cal solicitará ao seu convidado que insira um número de telefone antes de agendar.",
   "cal_provide_google_meet_location": "Cal fornecerá um local para o Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal fornecerá uma URL de reunião Zoom .",
+  "cal_provide_tandem_meeting_url": "Cal fornecerá uma URL de reunião Tandem .",
   "cal_provide_video_meeting_url": "O Cal irá fornecer um URL de reunião do Daily video.",
   "cal_provide_huddle01_meeting_url": "O Cal irá fornecer um URL de reunião vídeo do Huddle01 Web3.",
   "require_payment": "Requer Pagamento",

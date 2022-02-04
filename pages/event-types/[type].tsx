@@ -263,6 +263,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
       case LocationType.Huddle01:
         return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
+      case LocationType.Tandem:
+        return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
       default:
         return null;
     }
@@ -520,6 +522,30 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
                       </svg>
                       <span className="ltr:ml-2 rtl:mr-2text-sm">Zoom Video</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Tandem && (
+                    <div className="flex items-center flex-grow">
+                      <svg
+                        width="1.25em"
+                        height="1.25em"
+                        viewBox="0 0 400 400"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M167.928 256.163L64 324V143.835L167.928 76V256.163Z"
+                          fill="#4341DC"
+                        />
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M335.755 256.163L231.827 324V143.835L335.755 76V256.163Z"
+                          fill="#00B6B6"
+                        />
+                      </svg>
+                      <span className="ml-2 text-sm">Tandem Video</span>
                     </div>
                   )}
                   <div className="flex">
@@ -1591,6 +1617,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   if (hasIntegration(integrations, "huddle01_video")) {
     locationOptions.push({ value: LocationType.Huddle01, label: "Huddle01 Video" });
+  }
+  if (hasIntegration(integrations, "tandem_video")) {
+    locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });
   }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)

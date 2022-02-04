@@ -591,6 +591,12 @@ paths:
                           imageSrc: integrations/zoom.svg
                           description: Video Conferencing
                         - installed: true
+                          type: tandem_video
+                          credential: null
+                          title: Tandem
+                          imageSrc: integrations/tandem.svg
+                          description: Virtual Office | Video Conferencing
+                        - installed: true
                           type: caldav_calendar
                           credential: null
                           title: CalDav Server
@@ -750,6 +756,18 @@ paths:
   /api/integrations/zoomvideo/callback:
     post:
       description: Gets and stores the OAuth token for a Zoom integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/tandemvideo/add:
+    get:
+      description: Gets the OAuth URL for a Tandem integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/tandemvideo/callback:
+    post:
+      description: Gets and stores the OAuth token for a Tandem integration.
       summary: Gets and stores the OAuth token
       tags:
         - Integrations
