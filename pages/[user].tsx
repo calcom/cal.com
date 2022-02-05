@@ -35,7 +35,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
-  const verified = true; // user.verified TODO: needs to be added to schema and migration
+  const verified = user.verified;
 
   return (
     <>
@@ -141,6 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       away: true,
+      verified: true,
     },
   });
 
