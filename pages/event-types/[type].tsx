@@ -1670,6 +1670,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       label: "Daily.co Video",
     });
   }
+  if (hasIntegration(integrations, "jitsi_video")) {
+    locationOptions.push({
+      value: LocationType.Jitsi,
+      label: "Jitsi Meet",
+    });
+  }
   if (hasIntegration(integrations, "huddle01_video")) {
     locationOptions.push({
       value: LocationType.Huddle01,
