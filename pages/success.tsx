@@ -141,7 +141,21 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         {location && (
                           <>
                             <div className="font-medium">{t("where")}</div>
-                            <div className="col-span-2">{location}</div>
+                            {location.includes("http") && (
+                              <>
+                                <div className="col-span-2">
+                                  <a title="Meeting Link" href={location}>
+                                    {location}
+                                  </a>
+                                </div>
+                                {/* <div className="col-span-2">{location}</div> */}
+                              </>
+                            )}
+                            {!location.includes("http") && (
+                              <>
+                                <div className="col-span-2">{location}</div>
+                              </>
+                            )}
                           </>
                         )}
                       </div>
