@@ -8,6 +8,10 @@ export type BookingConfirmBody = {
 export type BookingCreateBody = {
   email: string;
   end: string;
+  web3Details?: {
+    userWallet: string;
+    userSignature: unknown;
+  };
   eventTypeId: number;
   guests?: string[];
   location: string;

@@ -25,14 +25,14 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.attendees[0].language.translate("awaiting_payment_subject", {
+      subject: `${this.attendee.language.translate("awaiting_payment_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
           "h:mma"
-        )}, ${this.calEvent.attendees[0].language.translate(
+        )}, ${this.attendee.language.translate(
           this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.attendees[0].language.translate(
+        )}, ${this.attendee.language.translate(
           this.getInviteeStart().format("MMMM").toLowerCase()
         )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
       })}`,
@@ -43,8 +43,8 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
 
   protected getTextBody(): string {
     return `
-${this.calEvent.attendees[0].language.translate("meeting_awaiting_payment")}
-${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")}
+${this.attendee.language.translate("meeting_awaiting_payment")}
+${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -53,14 +53,14 @@ ${this.getAdditionalNotes()}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.attendees[0].language.translate("awaiting_payment_subject", {
+    const headerContent = this.attendee.language.translate("awaiting_payment_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
         "h:mma"
-      )}, ${this.calEvent.attendees[0].language.translate(
+      )}, ${this.attendee.language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.attendees[0].language.translate(
+      )}, ${this.attendee.language.translate(
         this.getInviteeStart().format("MMMM").toLowerCase()
       )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
     });
@@ -73,8 +73,8 @@ ${this.getAdditionalNotes()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.attendees[0].language.translate("meeting_awaiting_payment"),
-          this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")
+          this.attendee.language.translate("meeting_awaiting_payment"),
+          this.attendee.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -148,7 +148,7 @@ ${this.getAdditionalNotes()}
   }
 
   protected getManageLink(): string {
-    const manageText = this.calEvent.attendees[0].language.translate("pay_now");
+    const manageText = this.attendee.language.translate("pay_now");
 
     if (this.calEvent.paymentInfo) {
       return `

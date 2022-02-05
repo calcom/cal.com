@@ -35,11 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             schedulingType: true,
             slug: true,
             hidden: true,
+            metadata: true,
           },
         },
       },
     });
 
-    return res.status(200).json({ message: "Events.", data: user.eventTypes });
+    return res.status(200).json({ message: "Events.", data: user?.eventTypes });
   }
 }

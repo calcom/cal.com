@@ -23,7 +23,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description,
               className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
             />
           </div>
-          <div className="ml-3 text-sm">
+          <div className="ltr:ml-3 rtl:mr-3 text-sm">
             <p className="text-neutral-900">{description}</p>
           </div>
         </div>

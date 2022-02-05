@@ -3,13 +3,13 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-import { createEvent, DateArray, Person } from "ics";
+import { createEvent, DateArray } from "ics";
 import nodemailer from "nodemailer";
 
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
 
 import {
@@ -289,7 +289,9 @@ ${getRichDescription(this.calEvent)}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("additional_notes")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.description}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.description
+      }</p>
     </div>
     `;
   }

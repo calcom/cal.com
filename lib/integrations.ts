@@ -16,6 +16,10 @@ export function getIntegrationName(name: string) {
       return "Daily";
     case "jitsi_video":
       return "Jitsi Meet";
+    case "huddle01_video":
+      return "Huddle01";
+    case "tandem_video":
+      return "Tandem";
   }
 }
 

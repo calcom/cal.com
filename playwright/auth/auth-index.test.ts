@@ -94,11 +94,25 @@ test.describe("Can signup from a team invite", async () => {
 
     const createdUser = await prisma.user.findUnique({
       where: { email: testUser.email },
+      include: {
+        teams: {
+          include: {
+            team: true,
+          },
+        },
+      },
     });
+    // Check that the user was created
     expect(createdUser).not.toBeNull();
     expect(createdUser?.username).toBe(testUser.validUsername);
     expect(createdUser?.password).not.toBeNull();
     expect(createdUser?.emailVerified).not.toBeNull();
+    // Check that the user accepted the team invite
+    expect(createdUser?.teams).toHaveLength(1);
+    expect(createdUser?.teams[0].team.name).toBe(team.name);
+    expect(createdUser?.teams[0].team.slug).toBe(team.slug);
+    expect(createdUser?.teams[0].role).toBe("MEMBER");
+    expect(createdUser?.teams[0].accepted).toBe(true);
   });
 });
 
