@@ -175,7 +175,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                               props.eventType.description
-                            }` + (typeof location === "string" ? encodeURIComponent(location) : "")
+                            }` +
+                            (typeof location === "string" ? "&location=" + encodeURIComponent(location) : "")
                           }>
                           <a className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white">
                             <svg
