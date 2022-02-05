@@ -1,13 +1,14 @@
-import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent } from "../calendar/interfaces/Calendar";
+import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {
   return {
-    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+    createMeeting: async (): Promise<VideoCallData> => {
+      const meetingID = uuidv4();
       return Promise.resolve({
         type: "jitsi_video",
-        id: "udb7p84HW98xHIeQZOAoCjhJSofUh9X3pVmO1YvaOhGuUEBiiL",
+        id: meetingID,
         password: "",
         url: "https://meet.jit.si/cal/LwX3btM3zFyrrYshsy44fyG8bGQLiVPejGSDBMJLFSlAx7wzRP",
       });
