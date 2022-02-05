@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "EventType" DROP COLUMN "smartContractAddress";
+ALTER TABLE "EventType" DROP COLUMN IF EXISTS "smartContractAddress";
 
 -- AlterTable
 ALTER TABLE "users" ADD COLUMN "verified" BOOLEAN DEFAULT false;
