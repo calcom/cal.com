@@ -148,7 +148,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                                     {location}
                                   </a>
                                 </div>
-                                {/* <div className="col-span-2">{location}</div> */}
                               </>
                             )}
                             {!location.includes("http") && (
