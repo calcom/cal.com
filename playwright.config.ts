@@ -17,7 +17,10 @@ const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   testDir: "playwright",
   timeout: 60_000,
-  reporter: "list",
+  reporter: [
+    [process.env.CI ? "github" : "list"],
+    ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
+  ],
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
   outputDir: "playwright/results",
   webServer: {
