@@ -100,3 +100,4 @@ jobs:
             playwright/screenshots
             playwright/videos
             playwright/results
+            playwright/reports
