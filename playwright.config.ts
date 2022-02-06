@@ -20,6 +20,7 @@ const config: PlaywrightTestConfig = {
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
+    ["junit", { outputFile: "./playwright/reports/results.xml" }],
   ],
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
   outputDir: "playwright/results",
