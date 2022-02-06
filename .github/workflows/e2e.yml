@@ -101,11 +101,3 @@ jobs:
             playwright/videos
             playwright/results
             playwright/reports/*
-
-      - name: Upload Report Artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Reports
-          path: |
-            playwright/reports/*
