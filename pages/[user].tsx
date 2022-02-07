@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -33,7 +34,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   delete query.user; // So it doesn't display in the Link (and make tests fail)
 
   const nameOrUsername = user.name || user.username || "";
-
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
 
   return (
@@ -56,6 +56,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               />
               <h1 className="mb-1 text-3xl font-bold font-cal text-neutral-900 dark:text-white">
                 {nameOrUsername}
+                {user.verified && (
+                  <BadgeCheckIcon className="inline w-6 h-6 -mt-1 text-blue-500 dark:text-white" />
+                )}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
@@ -139,6 +142,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       away: true,
+      verified: true,
     },
   });
 
