@@ -116,10 +116,11 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<unknown> {
     try {
       const events = await this.getEventsByUID(uid);
 
+      /** We generate the ICS files */
       const { error, value: iCalString } = createEvent({
         uid,
         startInputType: "utc",
@@ -138,15 +139,15 @@ export default abstract class BaseCalendarService implements Calendar {
         return {};
       }
 
-      const eventsToUpdate = events.filter((event) => event.uid === uid);
+      const eventsToUpdate = events.filter((e) => e.uid === uid);
 
       return Promise.all(
-        eventsToUpdate.map((event) => {
+        eventsToUpdate.map((e) => {
           return updateCalendarObject({
             calendarObject: {
-              url: event.url,
+              url: e.url,
               data: iCalString,
-              etag: event?.etag,
+              etag: e?.etag,
             },
             headers: this.headers,
           });
@@ -183,18 +184,54 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  getAvailability(
+  async getAvailability(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    this.log.warn(
-      `Method not implemented. dateFrom: ${dateFrom}, dateTo: ${dateTo}, selectedCalendars: ${selectedCalendars}`
-    );
+    const objects = (
+      await Promise.all(
+        selectedCalendars.map((sc) =>
+          fetchCalendarObjects({
+            calendar: {
+              url: sc.externalId,
+            },
+            headers: this.headers,
+            expand: true,
+            timeRange: {
+              start: new Date(dateFrom).toISOString(),
+              end: new Date(dateTo).toISOString(),
+            },
+          })
+        )
+      )
+    ).flat();
 
-    const eventsBusyDate: EventBusyDate[] = [];
+    const events = objects
+      .filter((e) => !!e.data)
+      .map((object) => {
+        const jcalData = ICAL.parse(object.data);
+        const vcalendar = new ICAL.Component(jcalData);
+        const vevent = vcalendar.getFirstSubcomponent("vevent");
+        const event = new ICAL.Event(vevent);
+        const calendarTimezone =
+          vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
-    return Promise.resolve(eventsBusyDate);
+        const startDate = calendarTimezone
+          ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
+          : new Date(event.startDate.toUnixTime() * 1000);
+
+        const endDate = calendarTimezone
+          ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
+          : new Date(event.endDate.toUnixTime() * 1000);
+
+        return {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+        };
+      });
+
+    return Promise.resolve(events);
   }
 
   async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {

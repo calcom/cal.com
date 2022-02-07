@@ -28,6 +28,7 @@ export type NewCalendarEventType = {
 export type CalendarEventType = {
   uid: string;
   etag: string;
+  /** This is the actual caldav event url, not the location url. */
   url: string;
   summary: string;
   description: string;

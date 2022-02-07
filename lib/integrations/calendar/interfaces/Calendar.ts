@@ -13,6 +13,7 @@ export type Person = {
   name: string;
   email: string;
   timeZone: string;
+  language: { translate: TFunction; locale: string };
 };
 
 export interface EntryPoint {
@@ -46,12 +47,12 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
-  language: TFunction;
   additionInformation?: AdditionInformation;
   uid?: string | null;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   destinationCalendar?: DestinationCalendar | null;
+  cancellationReason?: string | null;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
@@ -64,7 +65,7 @@ type EventBusyDate = Record<"start" | "end", Date | string>;
 export interface Calendar {
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
-  updateEvent(uid: string, event: CalendarEvent): Promise<any>;
+  updateEvent(uid: string, event: CalendarEvent): Promise<unknown>;
 
   deleteEvent(uid: string, event: CalendarEvent): Promise<unknown>;
 

@@ -74,7 +74,7 @@ export default function TeamCreate(props: Props) {
               <button type="submit" className="btn btn-primary">
                 {t("create_team")}
               </button>
-              <button onClick={props.onClose} type="button" className="mr-2 btn btn-white">
+              <button onClick={props.onClose} type="button" className="ltr:mr-2 btn btn-white">
                 {t("cancel")}
               </button>
             </div>

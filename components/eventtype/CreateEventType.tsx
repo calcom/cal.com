@@ -1,19 +1,21 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
+import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "react-query";
+import type { z } from "zod";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import createEventType from "@lib/mutations/event-types/create-event-type";
 import showToast from "@lib/notification";
-import { CreateEventType } from "@lib/types/event-type";
+import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import { TextField, InputLeading, TextAreaField, Form } from "@components/form/fields";
+import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
+import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 import Dropdown, {
@@ -47,7 +49,16 @@ export default function CreateEventTypeButton(props: Props) {
   const router = useRouter();
   const modalOpen = useToggleQuery("new");
 
-  const form = useForm<CreateEventType>({
+  // URL encoded params
+  const teamId: number | undefined =
+    typeof router.query.teamId === "string" && router.query.teamId
+      ? parseInt(router.query.teamId)
+      : undefined;
+  const pageSlug = router.query.eventPage || props.options[0].slug;
+  const hasTeams = !!props.options.find((option) => option.teamId);
+
+  const form = useForm<z.infer<typeof createEventTypeInput>>({
+    resolver: zodResolver(createEventTypeInput),
     defaultValues: { length: 15 },
   });
   const { setValue, watch, register } = form;
@@ -62,20 +73,16 @@ export default function CreateEventTypeButton(props: Props) {
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  // URL encoded params
-  const teamId: number | null = Number(router.query.teamId) || null;
-  const pageSlug = router.query.eventPage || props.options[0].slug;
-
-  const hasTeams = !!props.options.find((option) => option.teamId);
-
-  const createMutation = useMutation(createEventType, {
+  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
-    onError: (err: HttpError) => {
-      const message = `${err.statusCode}: ${err.message}`;
-      showToast(message, "error");
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
     },
   });
 
@@ -83,19 +90,19 @@ export default function CreateEventTypeButton(props: Props) {
   const openModal = (option: EventTypeParent) => {
     // setTimeout fixes a bug where the url query params are removed immediately after opening the modal
     setTimeout(() => {
-      router.push({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          new: "1",
-          eventPage: option.slug,
-          ...(option.teamId
-            ? {
-                teamId: option.teamId,
-              }
-            : {}),
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            new: "1",
+            eventPage: option.slug,
+            teamId: option.teamId || undefined,
+          },
         },
-      });
+        undefined,
+        { shallow: true }
+      );
     });
   };
 
@@ -103,7 +110,7 @@ export default function CreateEventTypeButton(props: Props) {
   const closeModal = () => {
     router.replace({
       pathname: router.pathname,
-      query: { id: router.query.id },
+      query: { id: router.query.id || undefined },
     });
   };
 
@@ -118,13 +125,7 @@ export default function CreateEventTypeButton(props: Props) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={PlusIcon}
-          {...(props.canAddEvents
-            ? {
-                href: modalOpen.hrefOn,
-              }
-            : {
-                disabled: true,
-              })}>
+          {...(props.canAddEvents ? { href: modalOpen.hrefOn } : { disabled: true })}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
@@ -140,7 +141,12 @@ export default function CreateEventTypeButton(props: Props) {
                 key={option.slug}
                 className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
-                <Avatar alt={option.name || ""} imageSrc={option.image} size={6} className="inline mr-2" />
+                <Avatar
+                  alt={option.name || ""}
+                  imageSrc={option.image}
+                  size={6}
+                  className="inline ltr:mr-2 rtl:ml-2"
+                />
                 {option.name ? option.name : option.slug}
               </DropdownMenuItem>
             ))}
@@ -160,20 +166,17 @@ export default function CreateEventTypeButton(props: Props) {
         <Form
           form={form}
           handleSubmit={(values) => {
-            const payload: CreateEventType = {
-              title: values.title,
-              slug: values.slug,
-              description: values.description,
-              length: values.length,
-            };
-            if (router.query.teamId) {
-              payload.teamId = parseInt(`${router.query.teamId}`, 10);
-              payload.schedulingType = values.schedulingType as SchedulingType;
-            }
-
-            createMutation.mutate(payload);
+            createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
+            {teamId && (
+              <TextField
+                type="hidden"
+                labelProps={{ style: { display: "none" } }}
+                {...register("teamId", { valueAsNumber: true })}
+                value={teamId}
+              />
+            )}
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
 
             <TextField
@@ -197,11 +200,12 @@ export default function CreateEventTypeButton(props: Props) {
               <TextField
                 type="number"
                 required
+                min="10"
                 placeholder="15"
                 defaultValue={15}
                 label={t("length")}
                 className="pr-20"
-                {...register("length")}
+                {...register("length", { valueAsNumber: true })}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pt-4 mt-1.5 pr-3 text-sm text-gray-400">
                 {t("minutes")}
@@ -213,10 +217,17 @@ export default function CreateEventTypeButton(props: Props) {
                 <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
                   {t("scheduling_type")}
                 </label>
+                {form.formState.errors.schedulingType && (
+                  <Alert
+                    className="mt-1"
+                    severity="error"
+                    message={form.formState.errors.schedulingType.message}
+                  />
+                )}
                 <RadioArea.Group
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
+                  className="relative flex mt-1 rtl:space-x-reverse space-x-6 rounded-sm shadow-sm">
                   <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
                     <strong className="block mb-1">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
