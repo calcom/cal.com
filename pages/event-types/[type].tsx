@@ -1381,15 +1381,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                 />
                 <LocationOptions />
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ">
-                  <Button type="submit">{t("update")}</Button>
-                  <Button
-                    onClick={() => setShowLocationModal(false)}
-                    type="button"
-                    color="secondary"
-                    className="ltr:mr-2">
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
                     {t("cancel")}
                   </Button>
+                  <Button type="submit">{t("update")}</Button>
                 </div>
               </Form>
             </div>
