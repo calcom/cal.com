@@ -1,4 +1,5 @@
 import { DefaultSeo } from "next-seo";
+// import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
 import AppProviders, { AppProps } from "@lib/app-providers";

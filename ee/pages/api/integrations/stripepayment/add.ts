@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
     const query = stringify(stripeConnectParams);
     /**
-     * Choose Express or Stantard Stripe accounts
+     * Choose Express or Standard Stripe accounts
      * @url https://stripe.com/docs/connect/accounts
      */
     // const url = `https://connect.stripe.com/express/oauth/authorize?${query}`;
