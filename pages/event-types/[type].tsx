@@ -263,6 +263,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
       case LocationType.Huddle01:
         return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
+      case LocationType.Tandem:
+        return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
       default:
         return null;
     }
@@ -522,6 +524,30 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <span className="ltr:ml-2 rtl:mr-2text-sm">Zoom Video</span>
                     </div>
                   )}
+                  {location.type === LocationType.Tandem && (
+                    <div className="flex items-center flex-grow">
+                      <svg
+                        width="1.25em"
+                        height="1.25em"
+                        viewBox="0 0 400 400"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M167.928 256.163L64 324V143.835L167.928 76V256.163Z"
+                          fill="#4341DC"
+                        />
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M335.755 256.163L231.827 324V143.835L335.755 76V256.163Z"
+                          fill="#00B6B6"
+                        />
+                      </svg>
+                      <span className="ml-2 text-sm">Tandem Video</span>
+                    </div>
+                  )}
                   <div className="flex">
                     <button
                       type="button"
@@ -768,7 +794,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         {t("show_advanced_settings")}
                       </span>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-6">
+                    <CollapsibleContent className="mt-4 space-y-6">
                       {/**
                        * Only display calendar selector if user has connected calendars AND if it's not
                        * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -777,8 +803,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
-                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                              Create events on:
+                            <label
+                              htmlFor="createEventsOn"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("create_events_on")}
                             </label>
                           </div>
                           <div className="w-full">
@@ -1355,15 +1383,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                 />
                 <LocationOptions />
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ">
-                  <Button type="submit">{t("update")}</Button>
-                  <Button
-                    onClick={() => setShowLocationModal(false)}
-                    type="button"
-                    color="secondary"
-                    className="ltr:mr-2">
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
                     {t("cancel")}
                   </Button>
+                  <Button type="submit">{t("update")}</Button>
                 </div>
               </Form>
             </div>
@@ -1591,6 +1615,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   if (hasIntegration(integrations, "huddle01_video")) {
     locationOptions.push({ value: LocationType.Huddle01, label: "Huddle01 Video" });
+  }
+  if (hasIntegration(integrations, "tandem_video")) {
+    locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });
   }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)

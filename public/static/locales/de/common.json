@@ -543,6 +543,7 @@
   "cal_invitee_phone_number_scheduling": "Cal wird Ihren Teilnehmer bitten, vor der Planung eine Telefonnummer einzugeben.",
   "cal_provide_google_meet_location": "Cal wird einen Google Meet Termin zur Verfügung stellen.",
   "cal_provide_zoom_meeting_url": "Cal stellt eine Zoom Meeting-URL zur Verfügung.",
+  "cal_provide_tandem_meeting_url": "Cal stellt eine Tandem Meeting-URL zur Verfügung.",
   "cal_provide_video_meeting_url": "Cal stellt eine tägliche Video-Meeting-URL zur Verfügung.",
   "cal_provide_huddle01_meeting_url": "Cal stellt eine tägliche Huddle01-Web3-Meeting-URL zur Verfügung.",
   "require_payment": "Zahlung erforderlich",
@@ -594,6 +595,7 @@
   "set_as_free": "Abwesenheitsstatus deaktivieren",
   "user_away": "Dieser Benutzer ist derzeit abwesend.",
   "user_away_description": "Die Person, die Sie zu Buchen versuchen, ist zur Zeit abwesend und akzeptiert daher keine neuen Buchungen.",
+  "meet_people_with_the_same_tokens": "Triff Leute mit den selben Token",
   "only_book_people_and_allow": "Nur buchen und Buchungen von Personen erlauben, die die gleichen Token, DAOs oder NFTs teilen.",
   "saml_config_deleted_successfully": "SAML-Konfiguration wurde erfolgreich gelöscht",
   "account_created_with_identity_provider": "Ihr Konto wurde mit einem Identitäts-Anbieter erstellt.",
@@ -619,5 +621,6 @@
   "remove": "Entfernen",
   "add": "Hinzufügen",
   "verify_wallet": "Wallet verifizieren",
-  "connect_metamask": "Metamask verbinden"
+  "connect_metamask": "Metamask verbinden",
+  "create_events_on": "Erstelle Termine in:"
 }

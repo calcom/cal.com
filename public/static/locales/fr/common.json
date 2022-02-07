@@ -489,6 +489,7 @@
   "cal_invitee_phone_number_scheduling": "Cal demandera à votre invité. e d'entrer un numéro de téléphone avant de faire une réservation.",
   "cal_provide_google_meet_location": "Cal fournira un lien Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal fournira une URL de réunion Zoom.",
+  "cal_provide_tandem_meeting_url": "Cal fournira une URL de réunion Tandem.",
   "cal_provide_video_meeting_url": "Cal fournira une URL de réunion Daily video.",
   "cal_provide_huddle01_meeting_url": "Cal fournira une URL de réunion Huddle01 web3 video.",
   "require_payment": "Exiger un paiement",

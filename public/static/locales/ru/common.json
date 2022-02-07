@@ -527,6 +527,7 @@
   "cal_invitee_phone_number_scheduling": "Cal попросит участника указать номер телефона перед началом бронирования.",
   "cal_provide_google_meet_location": "Cal создаст ссылку на встречу в Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal создаст ссылку на встречу в Zoom.",
+  "cal_provide_tandem_meeting_url": "Cal создаст ссылку на встречу в Tandem.",
   "cal_provide_video_meeting_url": "Cal создаст ссылку на встречу в Daily.",
   "cal_provide_huddle01_meeting_url": "Cal создаст ссылку на встречу в Huddle01 Web3.",
   "require_payment": "Требуется оплата",

@@ -487,6 +487,7 @@
   "cal_invitee_phone_number_scheduling": "Calは、予約する前に招待者に電話番号を入力するように依頼します。",
   "cal_provide_google_meet_location": "CalはGoogleMeetの場所を提供します。",
   "cal_provide_zoom_meeting_url": "カルはZoomミーティングURLを提供します。",
+  "cal_provide_tandem_meeting_url": "カルはTandemミーティングURLを提供します。",
   "cal_provide_video_meeting_url": "カルは毎日のビデオミーティングのURLを提供します。",
   "cal_provide_huddle01_meeting_url": "カルはHuddle01 Web3ミーティングURLを提供します。",
   "require_payment": "お支払いが必要です",
