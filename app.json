@@ -11,6 +11,7 @@
   ],
   "env": {
     "BASE_URL": "https://${HEROKU_APP_NAME}.herokuapp.com",
+    "CALENDSO_ENCRYPTION_KEY": "32-random-string",
     "JWT_SECRET": "secret"
   },
   "scripts": {
