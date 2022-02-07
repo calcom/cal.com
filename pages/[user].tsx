@@ -35,7 +35,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
-  const verified = user.verified;
 
   return (
     <>
@@ -56,8 +55,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 alt={nameOrUsername}
               />
               <h1 className="mb-1 text-3xl font-bold font-cal text-neutral-900 dark:text-white">
-                {nameOrUsername}{" "}
-                {verified && <BadgeCheckIcon className="inline w-6 h-6 text-blue-500 dark:text-white" />}
+                {nameOrUsername}
+                {user.verified && (
+                  <BadgeCheckIcon className="inline w-6 h-6 -mt-1 text-blue-500 dark:text-white" />
+                )}
               </h1>
               <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
