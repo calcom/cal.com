@@ -147,51 +147,50 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         trpcState: ssr.dehydrate(),
       },
     };
-  } else {
-    const verificationRequest = await prisma.verificationRequest.findUnique({
-      where: {
-        token,
-      },
-    });
+  }
+  const verificationRequest = await prisma.verificationRequest.findUnique({
+    where: {
+      token,
+    },
+  });
 
-    // for now, disable if no verificationRequestToken given or token expired
-    if (!verificationRequest || verificationRequest.expires < new Date()) {
-      return {
-        notFound: true,
-      };
-    }
-
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        AND: [
-          {
-            email: verificationRequest.identifier,
-          },
-          {
-            emailVerified: {
-              not: null,
-            },
-          },
-        ],
-      },
-    });
-
-    if (existingUser) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
-        },
-      };
-    }
-
+  // for now, disable if no verificationRequestToken given or token expired
+  if (!verificationRequest || verificationRequest.expires < new Date()) {
     return {
-      props: {
-        isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-        isSAMLLoginEnabled,
-        email: verificationRequest.identifier,
-        trpcState: ssr.dehydrate(),
+      notFound: true,
+    };
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      AND: [
+        {
+          email: verificationRequest.identifier,
+        },
+        {
+          emailVerified: {
+            not: null,
+          },
+        },
+      ],
+    },
+  });
+
+  if (existingUser) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
       },
     };
   }
+
+  return {
+    props: {
+      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isSAMLLoginEnabled,
+      email: verificationRequest.identifier,
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
