@@ -141,6 +141,7 @@ model User {
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
   metadata            Json?
+  verified            Boolean?             @default(false)
 
   @@map(name: "users")
 }
