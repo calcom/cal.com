@@ -595,6 +595,7 @@
   "set_as_free": "Abwesenheitsstatus deaktivieren",
   "user_away": "Dieser Benutzer ist derzeit abwesend.",
   "user_away_description": "Die Person, die Sie zu Buchen versuchen, ist zur Zeit abwesend und akzeptiert daher keine neuen Buchungen.",
+  "meet_people_with_the_same_tokens": "Triff Leute mit den selben Token",
   "only_book_people_and_allow": "Nur buchen und Buchungen von Personen erlauben, die die gleichen Token, DAOs oder NFTs teilen.",
   "saml_config_deleted_successfully": "SAML-Konfiguration wurde erfolgreich gelöscht",
   "account_created_with_identity_provider": "Ihr Konto wurde mit einem Identitäts-Anbieter erstellt.",
@@ -620,5 +621,6 @@
   "remove": "Entfernen",
   "add": "Hinzufügen",
   "verify_wallet": "Wallet verifizieren",
-  "connect_metamask": "Metamask verbinden"
+  "connect_metamask": "Metamask verbinden",
+  "create_events_on": "Erstelle Termine in:"
 }
