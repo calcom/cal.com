@@ -10,6 +10,7 @@
     }
   ],
   "env": {
-    "BASE_URL": "https://${HEROKU_APP_NAME}.herokuapp.com"
+    "BASE_URL": "https://${HEROKU_APP_NAME}.herokuapp.com",
+    "JWT_SECRET": "secret"
   }
 }
