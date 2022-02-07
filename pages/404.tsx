@@ -31,7 +31,7 @@ export default function Custom404() {
   ];
 
   const isSubpage = router.asPath.includes("/", 2);
-  const isSignup = router.asPath === "/signup";
+  const isSignup = router.asPath.includes("/signup");
 
   return (
     <>
