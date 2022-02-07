@@ -624,7 +624,7 @@
   "connect_metamask": "Connect Metamask",
   "create_events_on": "Create events on:",
   "missing_license": "Missing License",
-  "signup_requires": "Signup requires a commercial license",
+  "signup_requires": "Commercial license required",
   "signup_requires_description": "Cal.com, Inc. currently does not offer a free open source version of the sign up page. To receive full access to the signup components you need to acquire a commercial license. For persoanl use we recommend the Prisma Data Platform or any other Postgres interface to create accounts.",
   "next_steps": "Next Steps",
   "acquire_commercial_license": "Acquire a commercial license",
