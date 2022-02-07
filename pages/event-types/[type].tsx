@@ -794,7 +794,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         {t("show_advanced_settings")}
                       </span>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-6">
+                    <CollapsibleContent className="mt-4 space-y-6">
                       {/**
                        * Only display calendar selector if user has connected calendars AND if it's not
                        * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -803,8 +803,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
                         <div className="items-center block sm:flex">
                           <div className="mb-4 min-w-48 sm:mb-0">
-                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                              Create events on:
+                            <label
+                              htmlFor="createEventsOn"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("create_events_on")}
                             </label>
                           </div>
                           <div className="w-full">
