@@ -27,8 +27,6 @@ function TeamPage({ team }: TeamPageProps) {
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
 
-  console.log({ team });
-
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (

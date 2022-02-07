@@ -97,7 +97,9 @@ export async function upgradeTeam(userId: number, teamId: number) {
 
   // if the owner has a subscription but does not have an individual Pro account
   if (ownerIsMissingSeat) {
-    const ownerHasProPlan = !!subscription.items.data.find((item) => item.plan.id === getProPlanPrice());
+    const ownerHasProPlan = !!subscription.items.data.find(
+      (item) => item.plan.id === getProPlanPrice() || item.plan.id === getPremiumPlanPrice()
+    );
     if (!ownerHasProPlan)
       await stripe.subscriptions.update(subscription.id, {
         items: [
@@ -241,8 +243,8 @@ async function createCheckoutSession(
   return await stripe.checkout.sessions.create(params);
 }
 
-// this function verifies that the subscription's quantity is correct for the number of members the team has
-// this is a fallback just in case a member leaves without triggering the downgrade process
+// verifies that the subscription's quantity is correct for the number of members the team has
+// this is a function is a dev util, but could be utilized as a sync technique in the future
 export async function ensureSubscriptionQuantityCorrectness(userId: number, teamId: number) {
   const subscription = await getProPlanSubscription(userId);
   const stripeQuantity =
@@ -255,14 +257,19 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
   }
 }
 
+// TODO: these should be moved to env vars
 export function getPerSeatProPlanPrice(): string {
   return process.env.NODE_ENV === "production"
     ? "price_1KHkoeH8UDiwIftkkUbiggsM"
     : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
 }
-
 export function getProPlanPrice(): string {
   return process.env.NODE_ENV === "production"
     ? "price_1KHkoeH8UDiwIftkkUbiggsM"
     : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
+}
+export function getPremiumPlanPrice(): string {
+  return process.env.NODE_ENV === "production"
+    ? "price_1Jv3CMH8UDiwIftkFgyXbcHN"
+    : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
 }
