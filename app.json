@@ -8,5 +8,8 @@
     {
       "plan": "heroku-postgresql:hobby-dev"
     }
-  ]
+  ],
+  "env": {
+    "BASE_URL": "https://${HEROKU_APP_NAME}.herokuapp.com"
+  }
 }
