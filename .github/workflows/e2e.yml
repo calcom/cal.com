@@ -1,17 +1,19 @@
 name: E2E test
-on: [push]
+on:
+  pull_request_target:
+    branches:
+      - main
 jobs:
   test:
     timeout-minutes: 10
     name: ${{ matrix.node }} and ${{ matrix.os }}
-
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
       PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
-      GOOGLE_API_CREDENTIALS: "{}"
-      # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
@@ -20,6 +22,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
       PAYMENT_FEE_PERCENTAGE: 0.005
       PAYMENT_FEE_FIXED: 10
+      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
       # EMAIL_FROM: xxx
       # EMAIL_SERVER_HOST: xxx
@@ -46,6 +50,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1

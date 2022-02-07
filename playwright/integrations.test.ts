@@ -24,14 +24,15 @@ test.describe("integrations", () => {
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
+
+    await expect(page.locator(`[data-testid='WebhookDialogForm']`)).toBeVisible();
 
     await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
 
     await page.click("[type=submit]");
 
     // dialog is closed
-    expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
+    await expect(page.locator(`[data-testid='WebhookDialogForm']`)).not.toBeVisible();
     // page contains the url
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
@@ -62,8 +63,10 @@ test.describe("integrations", () => {
     body.payload.location = dynamic;
     for (const attendee of body.payload.attendees) {
       attendee.timeZone = dynamic;
+      attendee.language = dynamic;
     }
     body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
     body.payload.uid = dynamic;
     body.payload.additionInformation = dynamic;
 

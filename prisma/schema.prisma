@@ -10,6 +10,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider      = "zod-prisma"
+  output        = "./zod"
+  imports       = "./zod-utils"
+  relationModel = "default"
+}
+
 enum SchedulingType {
   ROUND_ROBIN  @map("roundRobin")
   COLLECTIVE   @map("collective")
@@ -23,10 +30,13 @@ enum PeriodType {
 
 model EventType {
   id                      Int                    @id @default(autoincrement())
+  /// @zod.nonempty()
   title                   String
+  /// @zod.custom(imports.eventTypeSlug)
   slug                    String
   description             String?
   position                Int                    @default(0)
+  /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
@@ -36,7 +46,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
-  destinationCalendar     DestinationCalendar[]
+  destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
@@ -53,6 +63,7 @@ model EventType {
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
+  metadata                Json?
 
   @@unique([userId, slug])
 }
@@ -61,7 +72,7 @@ model Credential {
   id     Int    @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
 }
 
@@ -69,6 +80,12 @@ enum UserPlan {
   FREE
   TRIAL
   PRO
+}
+
+enum IdentityProvider {
+  CAL
+  GOOGLE
+  SAML
 }
 
 model DestinationCalendar {
@@ -87,6 +104,7 @@ model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
   name                String?
+  /// @zod.email()
   email               String               @unique
   emailVerified       DateTime?
   password            String?
@@ -112,7 +130,10 @@ model User {
   locale              String?
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
-  plan                UserPlan             @default(PRO)
+  identityProvider    IdentityProvider     @default(CAL)
+  identityProviderId  String?
+  invitedTo           Int?
+  plan                UserPlan             @default(TRIAL)
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
@@ -147,7 +168,7 @@ model Membership {
   accepted Boolean        @default(false)
   role     MembershipRole
   team     Team           @relation(fields: [teamId], references: [id])
-  user     User           @relation(fields: [userId], references: [id])
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
 }
@@ -179,6 +200,7 @@ model Attendee {
   email     String
   name      String
   timeZone  String
+  locale    String?  @default("en")
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId Int?
 }
@@ -195,7 +217,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  bookingId  Int?     @unique
 }
 
 model Booking {
@@ -221,11 +243,12 @@ model Booking {
   paid                Boolean              @default(false)
   payment             Payment[]
   destinationCalendar DestinationCalendar?
+  cancellationReason  String?
 }
 
 model Schedule {
   id            Int        @id @default(autoincrement())
-  user          User?      @relation(fields: [userId], references: [id])
+  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        Int?
   eventType     EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId   Int?
@@ -236,7 +259,7 @@ model Schedule {
 model Availability {
   id          Int        @id @default(autoincrement())
   label       String?
-  user        User?      @relation(fields: [userId], references: [id])
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
@@ -247,7 +270,7 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user        User   @relation(fields: [userId], references: [id])
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   integration String
   externalId  String
@@ -325,5 +348,5 @@ model Webhook {
   createdAt       DateTime               @default(now())
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
-  user            User                   @relation(fields: [userId], references: [id])
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

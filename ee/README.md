@@ -11,9 +11,9 @@
 
 Welcome to the Enterprise Edition ("/ee") of Cal.com.
 
-The [/ee](https://github.com/calendso/calendso/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
+The [/ee](https://github.com/calcom/cal.com/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
 
-> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calendso/calendso)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/enterprise) first❗_
+> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calcom/cal.com)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/enterprise) first❗_
 
 ## Setting up Stripe
 
@@ -25,3 +25,14 @@ The [/ee](https://github.com/calendso/calendso/tree/main/ee) subfolder is the pl
 6. Open [Stripe Webhooks](https://dashboard.stripe.com/webhooks) and add `<CALENDSO URL>/api/integrations/stripepayment/webhook` as webhook for connected applications.
 7. Select all `payment_intent` events for the webhook.
 8. Copy the webhook secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET` in the .env file.
+
+## Setting up SAML login
+
+1. Set SAML_DATABASE_URL to a postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`
+2. Set SAML_ADMINS to a comma separated list of admin emails from where the SAML metadata can be uploaded and configured.
+3. Create a SAML application with your Identity Provider (IdP) using the instructions here - [SAML Setup](../docs/saml-setup.md)
+4. Remember to configure access to the IdP SAML app for all your users (who need access to Cal).
+5. You will need the XML metadata from your IdP later, so keep it accessible.
+6. Log in to one of the admin accounts configured in SAML_ADMINS and then navigate to Settings -> Security.
+7. You should see a SAML configuration section, copy and paste the XML metadata from step 5 and click on Save.
+8. Your provisioned users can now log into Cal using SAML.

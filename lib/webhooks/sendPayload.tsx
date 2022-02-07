@@ -4,7 +4,7 @@ import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
-function applyTemplate(template: string, data: Omit<CalendarEvent, "language">, contentType: ContentType) {
+function applyTemplate(template: string, data: CalendarEvent, contentType: ContentType) {
   const compiled = compile(template)(data);
   if (contentType === "application/json") {
     return jsonParse(compiled);
@@ -25,7 +25,9 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   subscriberUrl: string,
-  data: Omit<CalendarEvent, "language"> & { metadata?: { [key: string]: string } },
+  data: CalendarEvent & {
+    metadata?: { [key: string]: string };
+  },
   template?: string | null
 ) => {
   if (!subscriberUrl || !data) {

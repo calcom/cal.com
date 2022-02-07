@@ -20,7 +20,7 @@ const HelpMenuItem = () => {
         <ChatAltIcon
           className={classNames(
             "text-neutral-400 group-hover:text-neutral-500",
-            "mr-2 flex-shrink-0 h-5 w-5"
+            "ltr:mr-2 flex-shrink-0 h-5 w-5"
           )}
           aria-hidden="true"
         />

@@ -119,7 +119,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               <div className="flex-shrink-0">
                 <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
               </div>
-              <div className="ml-3">
+              <div className="ltr:ml-3 rtl:mr-3">
                 <p className="text-sm text-yellow-700">{t("slots_load_fail")}</p>
               </div>
             </div>

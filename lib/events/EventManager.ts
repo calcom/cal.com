@@ -4,11 +4,11 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
+import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
 import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
-import { Ensure } from "@lib/types/utils";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
@@ -49,15 +49,25 @@ export const isDaily = (location: string): boolean => {
   return location === "integrations:daily";
 };
 
+export const isHuddle01 = (location: string): boolean => {
+  return location === "integrations:huddle01";
+};
+
+export const isTandem = (location: string): boolean => {
+  return location === "integrations:tandem";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location);
+  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
   if (
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
-    location === LocationType.Daily.valueOf()
+    location === LocationType.Daily.valueOf() ||
+    location === LocationType.Huddle01.valueOf() ||
+    location === LocationType.Tandem.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -109,6 +119,7 @@ export default class EventManager {
     if (hasDailyIntegration) {
       this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
+    this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
   }
 
   /**
@@ -118,7 +129,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async create(event: Ensure<CalendarEvent, "language">): Promise<CreateUpdateResult> {
+  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -158,10 +169,7 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(
-    event: Ensure<CalendarEvent, "language">,
-    rescheduleUid: string
-  ): Promise<CreateUpdateResult> {
+  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -257,6 +265,10 @@ export default class EventManager {
       return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
     }
 
+    /**
+     *  Not ideal but, if we don't find a destination calendar,
+     * fallback to the first connected calendar
+     */
     const [credential] = this.calendarCredentials;
     if (!credential) {
       return [];
@@ -289,7 +301,7 @@ export default class EventManager {
    * @param event
    * @private
    */
-  private createVideoEvent(event: Ensure<CalendarEvent, "language">): Promise<EventResult> {
+  private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
     const credential = this.getVideoCredential(event);
 
     if (credential) {

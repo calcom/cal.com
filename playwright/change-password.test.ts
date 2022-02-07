@@ -17,12 +17,12 @@ test("change password", async ({ page }) => {
   await page.fill('[name="new_password"]', "pro1");
   await page.press('[name="new_password"]', "Enter");
 
-  expect(page.locator(`text=Your password has been successfully changed.`)).toBeTruthy();
+  await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
 
   // Let's revert back to prevent errors on other tests
   await page.fill('[name="current_password"]', "pro1");
   await page.fill('[name="new_password"]', "pro");
   await page.press('[name="new_password"]', "Enter");
 
-  expect(page.locator(`text=Your password has been successfully changed.`)).toBeTruthy();
+  await expect(page.locator(`text=Your password has been successfully changed.`)).toBeVisible();
 });

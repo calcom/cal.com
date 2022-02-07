@@ -1,10 +1,22 @@
 import { PlaywrightTestConfig, devices } from "@playwright/test";
+import { addAliases } from "module-alias";
+
+// Add aliases for the paths specified in the tsconfig.json file.
+// This is needed because playwright does not consider tsconfig.json
+// For more info, see:
+// https://stackoverflow.com/questions/69023682/typescript-playwright-error-cannot-find-module
+// https://github.com/microsoft/playwright/issues/7066#issuecomment-983984496
+addAliases({
+  "@components": __dirname + "/components",
+  "@lib": __dirname + "/lib",
+  "@server": __dirname + "/server",
+  "@ee": __dirname + "/ee",
+});
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   testDir: "playwright",
   timeout: 60_000,
-  retries: process.env.CI ? 3 : 0,
   reporter: "list",
   globalSetup: require.resolve("./playwright/lib/globalSetup"),
   outputDir: "playwright/results",
@@ -19,12 +31,6 @@ const config: PlaywrightTestConfig = {
     locale: "en-US",
     trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
-    video: "on-first-retry",
-    contextOptions: {
-      recordVideo: {
-        dir: "playwright/videos",
-      },
-    },
   },
   projects: [
     {

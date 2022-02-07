@@ -71,10 +71,15 @@ export default function MemberListItem(props: Props) {
             />
             <div className="inline-block ml-3">
               <span className="text-sm font-bold text-neutral-700">{name}</span>
-              <span className="block -mt-1 text-xs text-gray-400">{props.member.email}</span>
+              <span
+                className="block -mt-1 text-xs text-gray-400"
+                data-testid="member-email"
+                data-email={props.member.email}>
+                {props.member.email}
+              </span>
             </div>
           </div>
-          <div className="flex mt-2 mr-2 sm:mt-0 sm:justify-center">
+          <div className="flex mt-2 ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
             {!props.member.accepted && <TeamRole invitePending />}
             <TeamRole role={props.member.role} />
           </div>
@@ -162,7 +167,7 @@ export default function MemberListItem(props: Props) {
       {showTeamAvailabilityModal && (
         <ModalContainer wide noPadding>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="p-5 space-x-2 border-t">
+          <div className="p-5 rtl:space-x-reverse space-x-2 border-t">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
               <Link href={`/settings/teams/${props.team.id}/availability`}>

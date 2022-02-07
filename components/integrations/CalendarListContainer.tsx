@@ -1,12 +1,12 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 import { useMutation } from "react-query";
-import Select from "react-select";
 
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
+import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
@@ -161,76 +161,6 @@ function ConnectedCalendarsList(props: Props) {
   );
 }
 
-function PrimaryCalendarSelector() {
-  const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"], {
-    suspense: true,
-  });
-  const [selectedOption, setSelectedOption] = useState(() => {
-    const selected = query.data?.connectedCalendars
-      .map((connected) => connected.calendars ?? [])
-      .flat()
-      .find((cal) => cal.externalId === query.data.destinationCalendar?.externalId);
-
-    if (!selected) {
-      return null;
-    }
-
-    return {
-      value: `${selected.integration}:${selected.externalId}`,
-      label: selected.name,
-    };
-  });
-
-  const mutation = trpc.useMutation("viewer.setUserDestinationCalendar");
-
-  if (!query.data?.connectedCalendars.length) {
-    return null;
-  }
-  const options =
-    query.data.connectedCalendars.map((selectedCalendar) => ({
-      key: selectedCalendar.credentialId,
-      label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
-      options: (selectedCalendar.calendars ?? []).map((cal) => ({
-        label: cal.name || "",
-        value: `${cal.integration}:${cal.externalId}`,
-      })),
-    })) ?? [];
-  return (
-    <div className="relative">
-      {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
-      <div className="absolute z-10 pointer-events-none">
-        <Button size="sm" color="secondary" className="border-transparent m-[1px] rounded-sm">
-          {t("select_destination_calendar")}: {selectedOption?.label || ""}
-        </Button>
-      </div>
-      <Select
-        name={"primarySelectedCalendar"}
-        placeholder={`${t("select_destination_calendar")}:`}
-        options={options}
-        isSearchable={false}
-        className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
-        onChange={(option) => {
-          setSelectedOption(option);
-          if (!option) {
-            return;
-          }
-
-          /* Split only the first `:`, since Apple uses the full URL as externalId */
-          const [integration, externalId] = option.value.split(/:(.+)/);
-
-          mutation.mutate({
-            integration,
-            externalId,
-          });
-        }}
-        isLoading={mutation.isLoading}
-        value={selectedOption}
-      />
-    </div>
-  );
-}
-
 function CalendarList(props: Props) {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations"]);
@@ -272,6 +202,8 @@ export function CalendarListContainer(props: { heading?: false }) {
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  const mutation = trpc.useMutation("viewer.setDestinationCalendar");
+
   return (
     <>
       {heading && (
@@ -286,7 +218,11 @@ export function CalendarListContainer(props: { heading?: false }) {
           subtitle={t("configure_how_your_event_types_interact")}
           actions={
             <div className="block max-w-full sm:min-w-80">
-              <PrimaryCalendarSelector />
+              <DestinationCalendarSelector
+                onChange={mutation.mutate}
+                isLoading={mutation.isLoading}
+                value={query.data?.destinationCalendar?.externalId}
+              />
             </div>
           }
         />
