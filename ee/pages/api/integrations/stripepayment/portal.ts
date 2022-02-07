@@ -17,6 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const customerId = await getStripeCustomerFromUser(session.user.id);
 
+    if (!customerId) {
+      res.status(500).json({ message: "Missing customer id" });
+      return;
+    }
+
     const return_url = `${process.env.BASE_URL}/settings/billing`;
     const stripeSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
