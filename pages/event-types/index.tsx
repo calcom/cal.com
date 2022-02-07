@@ -146,7 +146,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 </Link>
 
                 <div className="flex-shrink-0 hidden mt-4 sm:flex sm:mt-0 sm:ml-5">
-                  <div className="flex items-center rtl:space-x-reverse space-x-2 overflow-hidden">
+                  <div className="flex items-center space-x-2 overflow-hidden rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         size={8}
@@ -162,7 +162,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="btn-icon appearance-none">
+                        className="appearance-none btn-icon">
                         <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -281,7 +281,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         <a className="font-bold">{profile?.name || ""}</a>
       </Link>
       {membershipCount && (
-        <span className="relative ltr:ml-2 rtl:mr-2 text-xs text-neutral-500 -top-px">
+        <span className="relative text-xs ltr:ml-2 rtl:mr-2 text-neutral-500 -top-px">
           <Link href="/settings/teams">
             <a>
               <Badge variant="gray">
