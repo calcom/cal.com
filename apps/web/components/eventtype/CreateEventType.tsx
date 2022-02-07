@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+import { slugify } from "@lib/slugify";
 
 import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 
@@ -67,7 +68,7 @@ export default function CreateEventTypeButton(props: Props) {
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
       if (name === "title" && type === "change") {
-        if (value.title) setValue("slug", value.title.replace(/\s+/g, "-").toLowerCase());
+        if (value.title) setValue("slug", slugify(value.title));
         else setValue("slug", "");
       }
     });
@@ -145,7 +146,7 @@ export default function CreateEventTypeButton(props: Props) {
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
@@ -233,20 +234,20 @@ export default function CreateEventTypeButton(props: Props) {
                 <RadioArea.Group
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative mt-1 flex space-x-6 rounded-sm shadow-sm rtl:space-x-reverse">
+                  className="relative flex mt-1 space-x-6 rounded-sm shadow-sm rtl:space-x-reverse">
                   <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
-                    <strong className="mb-1 block">{t("collective")}</strong>
+                    <strong className="block mb-1">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
                   <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
-                    <strong className="mb-1 block">{t("round_robin")}</strong>
+                    <strong className="block mb-1">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
                 </RadioArea.Group>
               </div>
             )}
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <div className="flex flex-row-reverse mt-8 gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
