@@ -1,11 +1,13 @@
 import { PlusIcon } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
@@ -14,6 +16,7 @@ import MemberInvitationModal from "@components/team/MemberInvitationModal";
 import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
 import TeamSettingsRightSidebar from "@components/team/TeamSettingsRightSidebar";
+import { UpgradeToFlexibleProModal } from "@components/team/UpgradeToFlexibleProModal";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
@@ -21,6 +24,15 @@ import { Button } from "@components/ui/Button";
 export function TeamSettingsPage() {
   const { t } = useLocale();
   const router = useRouter();
+
+  const upgraded = router.query.upgraded as string;
+
+  useEffect(() => {
+    if (upgraded) {
+      showToast(t("team_upgraded_successfully"), "success");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -31,13 +43,14 @@ export function TeamSettingsPage() {
     },
   });
 
-  const isAdmin = team && (team.membership.role === "OWNER" || team.membership.role === "ADMIN");
+  const isAdmin =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   return (
     <Shell
       backPath={!errorMessage ? `/settings/teams` : undefined}
       heading={team?.name}
-      subtitle={team && "Manage this team"}
+      subtitle={team && t("manage_this_team")}
       HeadingLeftIcon={
         team && (
           <Avatar
@@ -54,12 +67,54 @@ export function TeamSettingsPage() {
         <>
           <div className="block sm:flex md:max-w-5xl">
             <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
+              {team.membership.role === MembershipRole.OWNER &&
+              team.membership.isMissingSeat &&
+              team.requiresUpgrade ? (
+                <Alert
+                  severity="warning"
+                  title={t("hidden_team_member_title")}
+                  message={
+                    <>
+                      {t("hidden_team_owner_message")} <UpgradeToFlexibleProModal teamId={team.id} />
+                      {/* <a href={"https://cal.com/upgrade"} className="underline">
+                        {"https://cal.com/upgrade"}
+                      </a> */}
+                    </>
+                  }
+                  className="mb-4 "
+                />
+              ) : (
+                <>
+                  {team.membership.isMissingSeat && (
+                    <Alert
+                      severity="warning"
+                      title={t("hidden_team_member_title")}
+                      message={t("hidden_team_member_message")}
+                      className="mb-4 "
+                    />
+                  )}
+                  {team.membership.role === MembershipRole.OWNER && team.requiresUpgrade && (
+                    <Alert
+                      severity="warning"
+                      title={t("upgrade_to_flexible_pro_title")}
+                      message={
+                        <span>
+                          {t("upgrade_to_flexible_pro_message")} <br />
+                          <UpgradeToFlexibleProModal teamId={team.id} />
+                        </span>
+                      }
+                      className="mb-4"
+                    />
+                  )}
+                </>
+              )}
+
               <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (
                   <div className="py-5">
-                    <span className="mb-1 font-bold">Team Info</span>
+                    <span className="mb-1 font-bold">{t("team_info")}</span>
                     <p className="text-sm text-gray-700">{team.bio}</p>
                   </div>
                 )}
@@ -80,7 +135,7 @@ export function TeamSettingsPage() {
                 )}
               </div>
               <MemberList team={team} members={team.members || []} />
-              {isAdmin ? <SAMLConfiguration teamsView={true} teamId={team.id} /> : null}
+              {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
             </div>
             <div className="w-full px-2 mt-8 ltr:ml-2 rtl:mr-2 md:w-3/12 sm:mt-0 min-w-32">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />

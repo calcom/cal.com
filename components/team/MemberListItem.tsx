@@ -24,7 +24,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "../ui/Dropdown";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
-import TeamRole from "./TeamRole";
+import TeamPill, { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";
 
 interface Props {
@@ -80,8 +80,14 @@ export default function MemberListItem(props: Props) {
             </div>
           </div>
           <div className="flex mt-2 ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
-            {!props.member.accepted && <TeamRole invitePending />}
-            <TeamRole role={props.member.role} />
+            {/* Tooltip doesn't show... WHY????? */}
+            {props.member.isMissingSeat && (
+              <Tooltip content={t("hidden_team_member_message")}>
+                <TeamPill color="red" text={t("hidden")} />
+              </Tooltip>
+            )}
+            {!props.member.accepted && <TeamPill color="yellow" text={t("invitee")} />}
+            {props.member.role && <TeamRole role={props.member.role} />}
           </div>
         </div>
         <div className="flex">
@@ -96,7 +102,7 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="hidden w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:block">
+              className="items-center justify-center hidden w-10 h-10 px-0 py-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
               <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
@@ -167,7 +173,7 @@ export default function MemberListItem(props: Props) {
       {showTeamAvailabilityModal && (
         <ModalContainer wide noPadding>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="p-5 rtl:space-x-reverse space-x-2 border-t">
+          <div className="p-5 space-x-2 border-t rtl:space-x-reverse">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
               <Link href={`/settings/teams/${props.team.id}/availability`}>

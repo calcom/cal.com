@@ -7,6 +7,7 @@ import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { TextArea } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
@@ -89,10 +90,9 @@ export default function SAMLConfiguration({
   const { t } = useLocale();
   return (
     <>
-      <hr className="mt-8" />
-
       {isSAMLLoginEnabled ? (
         <>
+          <hr className="mt-8" />
           <div className="mt-6">
             <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">
               {t("saml_configuration")}
@@ -141,14 +141,13 @@ export default function SAMLConfiguration({
           <form className="mt-3 divide-y divide-gray-200 lg:col-span-9" onSubmit={updateSAMLConfigHandler}>
             {hasErrors && <Alert severity="error" title={errorMessage} />}
 
-            <textarea
+            <TextArea
               data-testid="saml_config"
               ref={samlConfigRef}
               name="saml_config"
               id="saml_config"
               required={true}
               rows={10}
-              className="block w-full border-gray-300 rounded-md shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-black sm:text-sm"
               placeholder={t("saml_configuration_placeholder")}
             />
 
