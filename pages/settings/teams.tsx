@@ -1,4 +1,4 @@
-import { PlusIcon } from "@heroicons/react/solid";
+import { PlusIcon, UserGroupIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell, { useMeQuery } from "@components/Shell";
@@ -24,7 +25,7 @@ export default function Teams() {
 
   const me = useMeQuery();
 
-  const { data } = trpc.useQuery(["viewer.teams.list"], {
+  const { data, isLoading } = trpc.useQuery(["viewer.teams.list"], {
     onError: (e) => {
       setErrorMessage(e.message);
     },
@@ -67,11 +68,19 @@ export default function Teams() {
             {t("new_team")}
           </Button>
         </div>
+
         {invites.length > 0 && (
           <div className="mb-4">
             <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
             <TeamList teams={invites}></TeamList>
           </div>
+        )}
+        {!isLoading && !teams.length && (
+          <EmptyScreen
+            Icon={UserGroupIcon}
+            headline={t("no_teams")}
+            description={t("no_teams_description")}
+          />
         )}
         {teams.length > 0 && <TeamList teams={teams}></TeamList>}
       </SettingsShell>
