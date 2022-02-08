@@ -85,6 +85,7 @@
     "otplib": "^12.0.1",
     "qrcode": "^1.5.0",
     "react": "^17.0.2",
+    "react-colorful": "^5.5.1",
     "react-date-picker": "^8.3.6",
     "react-digit-input": "^2.1.0",
     "react-dom": "^17.0.2",
