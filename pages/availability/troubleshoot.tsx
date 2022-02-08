@@ -16,14 +16,14 @@ type User = inferQueryOutput<"viewer.me">;
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState([]);
+  const [availability, setAvailability] = useState<{ end: string; start: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
     let m = mins % 60;
-    h = h < 10 ? "0" + h : h;
-    m = m < 10 ? "0" + m : m;
+    h = h < 10 ? 0 + h : h;
+    m = m < 10 ? 0 + m : m;
     return `${h}:${m}`;
   }
 
