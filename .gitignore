@@ -16,6 +16,7 @@ playwright/videos
 playwright/screenshots
 playwright/artifacts
 playwright/results
+playwright/reports/*
 
 # next.js
 /.next/
@@ -57,5 +58,5 @@ yarn-error.log*
 # Local History for Visual Studio Code
 .history/
 
-# Typescript 
+# Typescript
 tsconfig.tsbuildinfo
