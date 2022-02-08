@@ -5,31 +5,21 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
 
-export default function SetTimesModal(props) {
+interface SetTimesModalProps {
+  startTime: number;
+  endTime: number;
+  onChange: (times: { startTime: number; endTime: number }) => void;
+  onExit: (...p: unknown[]) => void;
+}
+
+export default function SetTimesModal(props: SetTimesModalProps) {
   const { t } = useLocale();
   const [startHours, startMinutes] = [Math.floor(props.startTime / 60), props.startTime % 60];
   const [endHours, endMinutes] = [Math.floor(props.endTime / 60), props.endTime % 60];
-
-  const startHoursRef = useRef<HTMLInputElement>();
-  const startMinsRef = useRef<HTMLInputElement>();
-  const endHoursRef = useRef<HTMLInputElement>();
-  const endMinsRef = useRef<HTMLInputElement>();
-
-  function updateStartEndTimesHandler(event) {
-    event.preventDefault();
-
-    const enteredStartHours = parseInt(startHoursRef.current.value);
-    const enteredStartMins = parseInt(startMinsRef.current.value);
-    const enteredEndHours = parseInt(endHoursRef.current.value);
-    const enteredEndMins = parseInt(endMinsRef.current.value);
-
-    props.onChange({
-      startTime: enteredStartHours * 60 + enteredStartMins,
-      endTime: enteredEndHours * 60 + enteredEndMins,
-    });
-
-    props.onExit(0);
-  }
+  const startHoursRef = useRef<HTMLInputElement>(null!);
+  const startMinsRef = useRef<HTMLInputElement>(null!);
+  const endHoursRef = useRef<HTMLInputElement>(null!);
+  const endMinsRef = useRef<HTMLInputElement>(null!);
 
   return (
     <div
@@ -71,7 +61,7 @@ export default function SetTimesModal(props) {
                 type="number"
                 min="0"
                 max="23"
-                maxLength="2"
+                maxLength={2}
                 name="hours"
                 id="startHours"
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
@@ -90,7 +80,7 @@ export default function SetTimesModal(props) {
                 min="0"
                 max="59"
                 step="15"
-                maxLength="2"
+                maxLength={2}
                 name="minutes"
                 id="startMinutes"
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
@@ -110,7 +100,7 @@ export default function SetTimesModal(props) {
                 type="number"
                 min="0"
                 max="24"
-                maxLength="2"
+                maxLength={2}
                 name="hours"
                 id="endHours"
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
@@ -128,7 +118,7 @@ export default function SetTimesModal(props) {
                 type="number"
                 min="0"
                 max="59"
-                maxLength="2"
+                maxLength={2}
                 step="15"
                 name="minutes"
                 id="endMinutes"
@@ -139,7 +129,23 @@ export default function SetTimesModal(props) {
             </div>
           </div>
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <Button onClick={updateStartEndTimesHandler} type="submit">
+            <Button
+              onClick={(event) => {
+                event.preventDefault();
+
+                const enteredStartHours = parseInt(startHoursRef.current.value);
+                const enteredStartMins = parseInt(startMinsRef.current.value);
+                const enteredEndHours = parseInt(endHoursRef.current.value);
+                const enteredEndMins = parseInt(endMinsRef.current.value);
+
+                props.onChange({
+                  startTime: enteredStartHours * 60 + enteredStartMins,
+                  endTime: enteredEndHours * 60 + enteredEndMins,
+                });
+
+                props.onExit(0);
+              }}
+              type="submit">
               {t("save")}
             </Button>
             <Button onClick={props.onExit} type="button" color="secondary" className="ltr:mr-2">
