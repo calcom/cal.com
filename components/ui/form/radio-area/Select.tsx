@@ -7,9 +7,10 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
-type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement> & {
+interface OptionProps
+  extends Pick<React.OptionHTMLAttributes<HTMLOptionElement>, "value" | "label" | "className"> {
   description?: string;
-};
+}
 
 interface RadioAreaSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   options: OptionProps[]; // allow options to be passed programmatically, like options={}
@@ -42,7 +43,10 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
       <CollapsibleContent>
         <RadioAreaGroup className="space-y-2 text-sm" name={props.name} onChange={props.onChange}>
           {options.map((option) => (
-            <RadioArea {...option} key={option.value} defaultChecked={props.value === option.value}>
+            <RadioArea
+              {...option}
+              key={Array.isArray(option.value) ? option.value.join(",") : `${option.value}`}
+              defaultChecked={props.value === option.value}>
               <strong className="mb-1 block">{option.label}</strong>
               <p>{option.description}</p>
             </RadioArea>
