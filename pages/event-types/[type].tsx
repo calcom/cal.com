@@ -781,9 +781,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             value={asStringOrUndefined(eventType.schedulingType)}
                             options={schedulingTypeOptions}
                             onChange={(val) => {
-                              // FIXME
-                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                              // @ts-ignore
                               formMethods.setValue("schedulingType", val);
                             }}
                           />

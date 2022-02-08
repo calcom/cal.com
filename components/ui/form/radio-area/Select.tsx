@@ -11,9 +11,10 @@ type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement> & {
   description?: string;
 };
 
-type RadioAreaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+interface RadioAreaSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   options: OptionProps[]; // allow options to be passed programmatically, like options={}
-};
+  onChange?: (value: string) => void;
+}
 
 export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
   const { t } = useLocale();
@@ -23,7 +24,7 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
     placeholder = t("select"),
   } = props;
 
-  const getLabel = (value: string | ReadonlyArray<string> | number) =>
+  const getLabel = (value: string | ReadonlyArray<string> | number | undefined) =>
     options.find((option: OptionProps) => option.value === value)?.label;
 
   return (
