@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-const ColorPicker = ({
-  defaultValue = "#292929",
-  onColorChange,
-}: {
+export type ColorPickerProps = {
   defaultValue: string;
-  onColorChange: (text: string) => void;
-}) => {
-  const [color, setColor] = useState(defaultValue);
+  onChange: (text: string) => void;
+};
+
+const ColorPicker = (props: ColorPickerProps) => {
+  const [color, setColor] = useState(props.defaultValue);
 
   return (
     <>
@@ -17,7 +16,7 @@ const ColorPicker = ({
         color={color}
         onChange={(val) => {
           setColor(val);
-          onColorChange(val);
+          props.onChange(val);
         }}
       />
       <HexColorInput
@@ -25,7 +24,7 @@ const ColorPicker = ({
         color={color}
         onChange={(val) => {
           setColor(val);
-          onColorChange(val);
+          props.onChange(val);
         }}
         type="text"
       />

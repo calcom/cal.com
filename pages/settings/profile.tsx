@@ -403,7 +403,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                 {t("brand_color")}
               </label>
-              <ColorPicker defaultValue={props.user.brandColor} onColorChange={setBrandColor} />
+              <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
               <hr className="mt-6" />
             </div>
             <div>
