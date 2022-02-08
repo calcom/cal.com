@@ -115,6 +115,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
   ];
 
@@ -125,7 +126,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types");
-      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
+      showToast(
+        t("event_type_updated_successfully", {
+          eventTypeTitle: eventType.title,
+        }),
+        "success"
+      );
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -261,6 +267,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">{t("cal_provide_zoom_meeting_url")}</p>;
       case LocationType.Daily:
         return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
+      case LocationType.Jitsi:
+        return <p className="text-sm">{t("cal_provide_jitsi_meeting_url")}</p>;
       case LocationType.Huddle01:
         return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
       case LocationType.Tandem:
@@ -276,7 +284,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setCustomInputs([...customInputs]);
   };
 
-  const schedulingTypeOptions: { value: SchedulingType; label: string; description: string }[] = [
+  const schedulingTypeOptions: {
+    value: SchedulingType;
+    label: string;
+    description: string;
+  }[] = [
     {
       value: SchedulingType.COLLECTIVE,
       label: t("collective"),
@@ -328,7 +340,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locations: { type: LocationType; address?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
-    availability: { openingHours: AvailabilityInput[]; dateOverrides: AvailabilityInput[] };
+    availability: {
+      openingHours: AvailabilityInput[];
+      dateOverrides: AvailabilityInput[];
+    };
     timeZone: string;
     periodType: PeriodType;
     periodDays: number;
@@ -546,6 +561,33 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
                       </svg>
                       <span className="ml-2 text-sm">Tandem Video</span>
+                    </div>
+                  )}
+                  {location.type === LocationType.Jitsi && (
+                    <div className="flex items-center flex-grow">
+                      <svg
+                        className="w-6 h-6"
+                        viewBox="0 0 64 64"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M32 0C49.6733 0 64 14.3267 64 32C64 49.6733 49.6733 64 32 64C14.3267 64 0 49.6733 0 32C0 14.3267 14.3267 0 32 0Z"
+                          fill="#E5E5E4"
+                        />
+                        <path
+                          d="M32.0002 0.623047C49.3292 0.623047 63.3771 14.6709 63.3771 31.9999C63.3771 49.329 49.3292 63.3768 32.0002 63.3768C14.6711 63.3768 0.623291 49.329 0.623291 31.9999C0.623291 14.6709 14.6716 0.623047 32.0002 0.623047Z"
+                          fill="white"
+                        />
+                        <path
+                          d="M31.9998 3.14014C47.9386 3.14014 60.8597 16.0612 60.8597 32C60.8597 47.9389 47.9386 60.8599 31.9998 60.8599C16.0609 60.8599 3.13989 47.9389 3.13989 32C3.13989 16.0612 16.0609 3.14014 31.9998 3.14014Z"
+                          fill="#4A8CFF"
+                        />
+                        <path
+                          d="M13.1711 22.9581V36.5206C13.1832 39.5875 15.6881 42.0558 18.743 42.0433H38.5125C39.0744 42.0433 39.5266 41.5911 39.5266 41.0412V27.4788C39.5145 24.4119 37.0096 21.9435 33.9552 21.956H14.1857C13.6238 21.956 13.1716 22.4082 13.1716 22.9581H13.1711ZM40.7848 28.2487L48.9469 22.2864C49.6557 21.6998 50.2051 21.8462 50.2051 22.9095V41.0903C50.2051 42.2999 49.5329 42.1536 48.9469 41.7134L40.7848 35.7631V28.2487Z"
+                          fill="white"
+                        />
+                      </svg>
+                      <span className="ml-2 text-sm">Jitsi Meet</span>
                     </div>
                   )}
                   <div className="flex">
@@ -1350,7 +1392,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     .findIndex((loc) => values.locationType === loc.type);
                   if (existingIdx !== -1) {
                     const copy = formMethods.getValues("locations");
-                    copy[existingIdx] = { ...formMethods.getValues("locations")[existingIdx], ...details };
+                    copy[existingIdx] = {
+                      ...formMethods.getValues("locations")[existingIdx],
+                      ...details,
+                    };
                     formMethods.setValue("locations", copy);
                   } else {
                     formMethods.setValue(
@@ -1604,17 +1649,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const locationOptions: OptionTypeBase[] = [];
 
   if (hasIntegration(integrations, "zoom_video")) {
-    locationOptions.push({ value: LocationType.Zoom, label: "Zoom Video", disabled: true });
+    locationOptions.push({
+      value: LocationType.Zoom,
+      label: "Zoom Video",
+      disabled: true,
+    });
   }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
-    locationOptions.push({ value: LocationType.GoogleMeet, label: "Google Meet" });
+    locationOptions.push({
+      value: LocationType.GoogleMeet,
+      label: "Google Meet",
+    });
   }
   if (hasIntegration(integrations, "daily_video")) {
-    locationOptions.push({ value: LocationType.Daily, label: "Daily.co Video" });
+    locationOptions.push({
+      value: LocationType.Daily,
+      label: "Daily.co Video",
+    });
+  }
+  if (hasIntegration(integrations, "jitsi_video")) {
+    locationOptions.push({
+      value: LocationType.Jitsi,
+      label: "Jitsi Meet",
+    });
   }
   if (hasIntegration(integrations, "huddle01_video")) {
-    locationOptions.push({ value: LocationType.Huddle01, label: "Huddle01 Video" });
+    locationOptions.push({
+      value: LocationType.Huddle01,
+      label: "Huddle01 Video",
+    });
   }
   if (hasIntegration(integrations, "tandem_video")) {
     locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });

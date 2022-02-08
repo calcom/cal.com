@@ -16,6 +16,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { v4 as uuidv4 } from "uuid";
 
 import { createPaymentLink } from "@ee/lib/stripe/client";
 
@@ -89,6 +90,9 @@ const BookingPage = (props: BookingPageProps) => {
         if (!location) {
           return;
         }
+        if (location === "integrations:jitsi") {
+          return "https://meet.jit.si/cal/" + uuidv4();
+        }
         if (location.includes("integration")) {
           return t("web_conferencing_details_to_follow");
         }
@@ -143,6 +147,7 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Phone]: t("phone_call"),
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
+    [LocationType.Jitsi]: "Jitsi Meet",
     [LocationType.Daily]: "Daily.co Video",
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
@@ -328,6 +333,12 @@ const BookingPage = (props: BookingPageProps) => {
                   <p className="mb-2 text-gray-500">
                     <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
                     {getLocationValue({ locationType: selectedLocation })}
+                  </p>
+                )}
+                {selectedLocation === LocationType.Jitsi && (
+                  <p className="mb-2 text-gray-500">
+                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    Jitsi Meet
                   </p>
                 )}
                 <p className="mb-4 text-green-500">
