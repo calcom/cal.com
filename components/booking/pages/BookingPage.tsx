@@ -200,9 +200,7 @@ const BookingPage = (props: BookingPageProps) => {
     })(),
   });
 
-  const getLocationValue = (
-    booking: Pick<BookingFormValues, "locationType" | "phone" | "integrations:jitsi">
-  ) => {
+  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
