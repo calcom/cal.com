@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-          ref: staging
+        ref: staging
       - run: |
           git reset --hard origin/main
           git push --force
