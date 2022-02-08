@@ -1,11 +1,7 @@
 import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
-/**
- *  We can't use aliases in playwright tests (yet)
- * https://github.com/microsoft/playwright/issues/7121
- */
-import { validJson } from "../../lib/jsonUtils";
+import { validJson } from "@lib/jsonUtils";
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
@@ -24,6 +20,7 @@ export type Integration = {
     | "caldav_calendar"
     | "apple_calendar"
     | "stripe_payment"
+    | "jitsi_video"
     | "huddle01_video"
     | "metamask_web3";
   title: string;
@@ -62,6 +59,14 @@ export const ALL_INTEGRATIONS = [
     type: "daily_video",
     title: "Daily.co Video",
     imageSrc: "integrations/daily.svg",
+    description: "Video Conferencing",
+    variant: "conferencing",
+  },
+  {
+    installed: true,
+    type: "jitsi_video",
+    title: "Jitsi Meet",
+    imageSrc: "integrations/jitsi.svg",
     description: "Video Conferencing",
     variant: "conferencing",
   },
@@ -146,7 +151,10 @@ export function hasIntegration(integrations: IntegrationMeta, type: string): boo
     (i) =>
       i.type === type &&
       !!i.installed &&
-      (type === "daily_video" || type === "huddle01_video" || i.credentials.length > 0)
+      (type === "daily_video" ||
+        type === "jitsi_video" ||
+        type === "huddle01_video" ||
+        i.credentials.length > 0)
   );
 }
 export function hasIntegrationInstalled(type: Integration["type"]): boolean {

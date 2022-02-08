@@ -553,6 +553,7 @@
   "cal_provide_zoom_meeting_url": "Cal poskytne URL Zoom meetingu.",
   "cal_provide_tandem_meeting_url": "Cal poskytne URL Tandem meetingu.",
   "cal_provide_video_meeting_url": "Cal poskytne URL Daily video meetingu.",
+  "cal_provide_jitsi_meeting_url": "Cal poskytne URL Jitsi Meet video meetingu.",
   "cal_provide_huddle01_meeting_url": "Cal poskytne URL Huddle01 web3 video meetingu.",
   "require_payment": "Vyžadovat platbu",
   "commission_per_transaction": "provize za transakci",
