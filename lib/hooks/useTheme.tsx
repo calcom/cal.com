@@ -1,11 +1,14 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Maybe } from "@trpc/server";
 
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
-  const [isReady] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
   function Theme() {
     const themeString = theme ? `"${theme}"` : null;
     return (
