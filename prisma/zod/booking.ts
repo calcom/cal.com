@@ -1,6 +1,6 @@
+import { BookingStatus } from "@prisma/client";
 import * as z from "zod";
 
-import { BookingStatus } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteUser,
@@ -35,6 +35,7 @@ export const _BookingModel = z.object({
   rejected: z.boolean(),
   status: z.nativeEnum(BookingStatus),
   paid: z.boolean(),
+  cancellationReason: z.string().nullish(),
 });
 
 export interface CompleteBooking extends z.infer<typeof _BookingModel> {

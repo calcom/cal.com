@@ -15,6 +15,7 @@ import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
+import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 import Dropdown, {
@@ -49,13 +50,16 @@ export default function CreateEventTypeButton(props: Props) {
   const modalOpen = useToggleQuery("new");
 
   // URL encoded params
-  const teamId: number | undefined = Number(router.query.teamId) || undefined;
+  const teamId: number | undefined =
+    typeof router.query.teamId === "string" && router.query.teamId
+      ? parseInt(router.query.teamId)
+      : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
-    defaultValues: { length: 15, teamId },
+    defaultValues: { length: 15 },
   });
   const { setValue, watch, register } = form;
 
@@ -121,13 +125,7 @@ export default function CreateEventTypeButton(props: Props) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={PlusIcon}
-          {...(props.canAddEvents
-            ? {
-                href: modalOpen.hrefOn,
-              }
-            : {
-                disabled: true,
-              })}>
+          {...(props.canAddEvents ? { href: modalOpen.hrefOn } : { disabled: true })}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
@@ -143,7 +141,12 @@ export default function CreateEventTypeButton(props: Props) {
                 key={option.slug}
                 className="px-3 py-2 cursor-pointer hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
-                <Avatar alt={option.name || ""} imageSrc={option.image} size={6} className="inline mr-2" />
+                <Avatar
+                  alt={option.name || ""}
+                  imageSrc={option.image}
+                  size={6}
+                  className="inline ltr:mr-2 rtl:ml-2"
+                />
                 {option.name ? option.name : option.slug}
               </DropdownMenuItem>
             ))}
@@ -166,7 +169,14 @@ export default function CreateEventTypeButton(props: Props) {
             createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
-            {teamId && <input type="hidden" {...register("teamId", { valueAsNumber: true })} />}
+            {teamId && (
+              <TextField
+                type="hidden"
+                labelProps={{ style: { display: "none" } }}
+                {...register("teamId", { valueAsNumber: true })}
+                value={teamId}
+              />
+            )}
             <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
 
             <TextField
@@ -190,6 +200,7 @@ export default function CreateEventTypeButton(props: Props) {
               <TextField
                 type="number"
                 required
+                min="10"
                 placeholder="15"
                 defaultValue={15}
                 label={t("length")}
@@ -206,10 +217,17 @@ export default function CreateEventTypeButton(props: Props) {
                 <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
                   {t("scheduling_type")}
                 </label>
+                {form.formState.errors.schedulingType && (
+                  <Alert
+                    className="mt-1"
+                    severity="error"
+                    message={form.formState.errors.schedulingType.message}
+                  />
+                )}
                 <RadioArea.Group
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative flex mt-1 space-x-6 rounded-sm shadow-sm">
+                  className="relative flex mt-1 rtl:space-x-reverse space-x-6 rounded-sm shadow-sm">
                   <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
                     <strong className="block mb-1">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>

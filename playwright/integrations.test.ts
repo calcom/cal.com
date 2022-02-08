@@ -63,8 +63,10 @@ test.describe("integrations", () => {
     body.payload.location = dynamic;
     for (const attendee of body.payload.attendees) {
       attendee.timeZone = dynamic;
+      attendee.language = dynamic;
     }
     body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
     body.payload.uid = dynamic;
     body.payload.additionInformation = dynamic;
 

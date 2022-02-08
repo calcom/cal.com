@@ -188,7 +188,7 @@ export default function TeamSettings(props: Props) {
                       className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
                     />
                   </div>
-                  <div className="ml-3 text-sm">
+                  <div className="text-sm ltr:ml-3 rtl:mr-3">
                     <label htmlFor="hide-branding" className="font-medium text-gray-700">
                       {t("disable_cal_branding")}
                     </label>

@@ -180,7 +180,7 @@
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 ltr:mr-2 rtl:ml-2 text-sm font-medium text-gray-900 border border-transparent rounded-md dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email > span[data-placeholder] {
@@ -208,7 +208,7 @@
 }
 
 .react-multi-email [data-tag] {
-  @apply inline-flex items-center px-2 py-1 my-1 mr-2 text-sm font-medium text-gray-900 border border-transparent rounded-md shadow-sm dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
+  @apply inline-flex items-center px-2 py-1 my-1 ltr:mr-2 rtl:ml-2 text-sm font-medium text-gray-900 border border-transparent rounded-md shadow-sm dark:text-white bg-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-500;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {

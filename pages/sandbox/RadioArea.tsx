@@ -33,7 +33,7 @@ export default function RadioAreaPage() {
         <form onSubmit={onSubmit} className="space-y-4 mb-2">
           <RadioArea.Group
             onChange={(radioGroup_1: string) => setFormData({ ...formData, radioGroup_1 })}
-            className="flex space-x-4 max-w-screen-md"
+            className="flex rtl:space-x-reverse space-x-4 max-w-screen-md"
             name="radioGroup_1">
             <RadioArea.Item value="radioGroup_1_radio_1" className="flex-grow bg-white">
               <strong className="mb-1">radioGroup_1_radio_1</strong>
@@ -50,7 +50,7 @@ export default function RadioAreaPage() {
           </RadioArea.Group>
           <RadioArea.Group
             onChange={(radioGroup_2: string) => setFormData({ ...formData, radioGroup_2 })}
-            className="flex space-x-4 max-w-screen-md"
+            className="flex rtl:space-x-reverse space-x-4 max-w-screen-md"
             name="radioGroup_2">
             <RadioArea.Item value="radioGroup_2_radio_1" className="flex-grow bg-white">
               <strong className="mb-1">radioGroup_1_radio_1</strong>

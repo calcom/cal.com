@@ -5,12 +5,13 @@ import { v5 as uuidv5 } from "uuid";
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import { PartialReference } from "@lib/events/EventManager";
+import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
+import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
 import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
 import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
-import { Ensure } from "./types/utils";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -45,6 +46,12 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
       case "daily_video":
         acc.push(DailyVideoApiAdapter(cred));
         break;
+      case "huddle01_video":
+        acc.push(Huddle01VideoApiAdapter());
+        break;
+      case "tandem_video":
+        acc.push(TandemVideoApiAdapter(cred));
+        break;
       default:
         break;
     }
@@ -56,10 +63,7 @@ const getBusyVideoTimes = (withCredentials: Credential[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [])
   );
 
-const createMeeting = async (
-  credential: Credential,
-  calEvent: Ensure<CalendarEvent, "language">
-): Promise<EventResult> => {
+const createMeeting = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {

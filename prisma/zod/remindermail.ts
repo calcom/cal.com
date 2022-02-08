@@ -1,6 +1,6 @@
+import { ReminderType } from "@prisma/client";
 import * as z from "zod";
 
-import { ReminderType } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 
 export const _ReminderMailModel = z.object({
