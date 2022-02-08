@@ -480,7 +480,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   /** We don't need to "Connect", just show that it's installed */
-  if (props.type === "daily_video" || props.type === "huddle01_video") {
+  if (["daily_video", "huddle01_video", "jitsi_video"].includes(props.type)) {
     return (
       <div className="px-3 py-2 truncate">
         <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
