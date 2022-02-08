@@ -32,7 +32,8 @@ dayjs.extend(timezone);
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location, name, reschedule } = router.query;
+  const { location: _location, name, reschedule } = router.query;
+  const location = Array.isArray(_location) ? _location[0] : _location;
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
@@ -58,7 +59,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   function eventLink(): string {
     const optional: { location?: string } = {};
     if (location) {
-      optional["location"] = Array.isArray(location) ? location[0] : location;
+      optional["location"] = location;
     }
 
     const event = createEvent({
@@ -141,7 +142,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         {location && (
                           <>
                             <div className="font-medium">{t("where")}</div>
-                            <div className="col-span-2">{location}</div>
+                            <div className="col-span-2">
+                              {location.startsWith("http") ? (
+                                <a title="Meeting Link" href={location}>
+                                  {location}
+                                </a>
+                              ) : (
+                                location
+                              )}
+                            </div>
                           </>
                         )}
                       </div>
@@ -162,7 +171,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                               props.eventType.description
-                            }` + (typeof location === "string" ? encodeURIComponent(location) : "")
+                            }` +
+                            (typeof location === "string" ? "&location=" + encodeURIComponent(location) : "")
                           }>
                           <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
                             <svg
