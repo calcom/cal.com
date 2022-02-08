@@ -1,0 +1,14 @@
+name: Cron - Reset staging to main
+on:
+  schedule:
+    # Runs “At midnight daily.” (see https://crontab.guru)
+    - cron: "0 0 * * *"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+          ref: staging
+      - run: |
+          git reset --hard origin/main
+          git push --force
