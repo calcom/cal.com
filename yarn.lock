@@ -9603,6 +9603,11 @@ react-calendar@^3.3.1:
     merge-class-names "^1.1.1"
     prop-types "^15.6.0"
 
+react-colorful@^5.5.1:
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.5.1.tgz#29d9c4e496f2ca784dd2bb5053a3a4340cfaf784"
+  integrity sha512-M1TJH2X3RXEt12sWkpa6hLc/bbYS0H6F4rIqjQZ+RxNBstpY67d9TrFXtqdZwhpmBXcCwEi7stKqFue3ZRkiOg==
+
 react-date-picker@^8.3.3:
   version "8.3.5"
   resolved "https://registry.yarnpkg.com/react-date-picker/-/react-date-picker-8.3.5.tgz#3972db3fc1f37cfd6b09c09bf4988817b4d2be72"
