@@ -13,7 +13,7 @@ const khibraPassword = process.env.KHIBRA_EMPLOYER_PASSWORD || "123456";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
-    return;
+    return res.status(405).end();
   }
 
   const { employerId, employerName } = req.body;
