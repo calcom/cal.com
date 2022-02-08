@@ -35,7 +35,7 @@ type Props = {
   };
   eventType: { id: number };
   user: { username: string | null };
-  location: string;
+  location?: string | null;
 };
 
 type States =
