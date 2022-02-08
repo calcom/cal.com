@@ -73,9 +73,17 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
           className="px-3 py-2 text-sm rounded-sm bg-neutral-100"
           type="button"
           onClick={() => setEditSchedule(idx)}>
-          {item.startTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
+          {item.startTime.toLocaleTimeString(i18n.language, {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "UTC",
+          })}
           &nbsp;{t("until")}&nbsp;
-          {item.endTime.toLocaleTimeString(i18n.language, { hour: "numeric", minute: "2-digit" })}
+          {item.endTime.toLocaleTimeString(i18n.language, {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "UTC",
+          })}
         </button>
       </div>
       <button
@@ -118,24 +126,24 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
         <SetTimesModal
           startTime={
             openingHours[editSchedule]
-              ? new Date(openingHours[editSchedule].startTime).getHours() * 60 +
-                new Date(openingHours[editSchedule].startTime).getMinutes()
+              ? new Date(openingHours[editSchedule].startTime).getUTCHours() * 60 +
+                new Date(openingHours[editSchedule].startTime).getUTCMinutes()
               : 540
           }
           endTime={
             openingHours[editSchedule]
-              ? new Date(openingHours[editSchedule].endTime).getHours() * 60 +
-                new Date(openingHours[editSchedule].endTime).getMinutes()
+              ? new Date(openingHours[editSchedule].endTime).getUTCHours() * 60 +
+                new Date(openingHours[editSchedule].endTime).getUTCMinutes()
               : 1020
           }
           onChange={(times: { startTime: number; endTime: number }) =>
             applyEditSchedule({
               ...(openingHours[editSchedule] || {}),
               startTime: new Date(
-                new Date().setHours(Math.floor(times.startTime / 60), times.startTime % 60, 0, 0)
+                new Date().setUTCHours(Math.floor(times.startTime / 60), times.startTime % 60, 0, 0)
               ),
               endTime: new Date(
-                new Date().setHours(Math.floor(times.endTime / 60), times.endTime % 60, 0, 0)
+                new Date().setUTCHours(Math.floor(times.endTime / 60), times.endTime % 60, 0, 0)
               ),
             })
           }

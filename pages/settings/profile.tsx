@@ -30,6 +30,7 @@ import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
+import ColorPicker from "@components/ui/colorpicker";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
@@ -151,7 +152,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const brandColorRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
@@ -167,6 +167,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [brandColor, setBrandColor] = useState(props.user.brandColor);
 
   useEffect(() => {
     if (!props.user.theme) return;
@@ -184,7 +185,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredEmail = emailRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
-    const enteredBrandColor = brandColorRef.current.value;
+    const enteredBrandColor = brandColor;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
@@ -213,8 +214,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       <div className="py-6 lg:pb-8">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow space-y-6">
-            <div className="block sm:flex">
-              <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+            <div className="block space-x-2 sm:flex rtl:space-x-reverse">
+              <div className="w-full mb-6 sm:w-1/2">
                 <TextField
                   name="username"
                   addOnLeading={
@@ -226,7 +227,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={props.user.username || undefined}
                 />
               </div>
-              <div className="w-full sm:w-1/2 sm:ml-2">
+              <div className="w-full sm:w-1/2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
                 </label>
@@ -244,13 +245,13 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div className="block sm:flex">
-              <div className="w-full mb-6 sm:w-1/2 sm:mr-2">
+              <div className="w-full mb-6 sm:w-1/2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   {t("email")}
                 </label>
                 <input
                   ref={emailRef}
-                  type="text"
+                  type="email"
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
@@ -391,7 +392,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
                   />
                 </div>
-                <div className="ml-3 text-sm">
+                <div className="text-sm ltr:ml-3 rtl:mr-3">
                   <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
                     {t("automatically_adjust_theme")}
                   </label>
@@ -402,17 +403,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                 {t("brand_color")}
               </label>
-              <div className="flex mt-1">
-                <input
-                  ref={brandColorRef}
-                  type="text"
-                  name="brandColor"
-                  id="brandColor"
-                  placeholder="#hex-code"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                  defaultValue={props.user.brandColor}
-                />
-              </div>
+              <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
               <hr className="mt-6" />
             </div>
             <div>
@@ -420,7 +411,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <div className="flex items-center h-5">
                   <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
                 </div>
-                <div className="ml-3 text-sm">
+                <div className="text-sm ltr:ml-3 rtl:mr-3">
                   <label htmlFor="hide-branding" className="font-medium text-gray-700">
                     {t("disable_cal_branding")}{" "}
                     {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}

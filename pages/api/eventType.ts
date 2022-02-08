@@ -7,7 +7,7 @@ import prisma from "@lib/prisma";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
 
-  if (!session) {
+  if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });
     return;
   }
@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     hidden: true,
     price: true,
     currency: true,
+    metadata: true,
     users: {
       select: {
         id: true,
@@ -109,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
   const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
     ...et,
-    $disabled: user.plan === "FREE" && index > 0,
+    $disabled: user?.plan === "FREE" && index > 0,
   }));
 
   return res.status(200).json({ eventTypes: mergedEventTypes });

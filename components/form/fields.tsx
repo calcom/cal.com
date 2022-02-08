@@ -115,7 +115,17 @@ export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function
 });
 
 export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
-  return <EmailInput ref={ref} {...props} />;
+  return (
+    <InputField
+      ref={ref}
+      type="email"
+      autoCapitalize="none"
+      autoComplete="email"
+      autoCorrect="off"
+      inputMode="email"
+      {...props}
+    />
+  );
 });
 
 type TextAreaProps = Omit<JSX.IntrinsicElements["textarea"], "name"> & { name: string };

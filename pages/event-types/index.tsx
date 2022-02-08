@@ -108,16 +108,21 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 type.$disabled && "pointer-events-none"
               )}>
               <div className="flex items-center justify-between w-full px-4 py-4 group sm:px-6 hover:bg-neutral-50">
-                <button
-                  className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, -1)}>
-                  <ArrowUpIcon />
-                </button>
-                <button
-                  className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
-                  onClick={() => moveEventType(index, 1)}>
-                  <ArrowDownIcon />
-                </button>
+                {sortableTypes.length > 1 && (
+                  <>
+                    <button
+                      className="hidden sm:block absolute -mt-4 mb-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, -1)}>
+                      <ArrowUpIcon />
+                    </button>
+
+                    <button
+                      className="hidden sm:block absolute mt-4 left-1/2 -ml-4 sm:ml-0 sm:left-[19px] border hover:border-transparent text-gray-400 transition-all hover:text-black hover:shadow group-hover:scale-100 scale-0 w-7 h-7 p-1 invisible group-hover:visible bg-white rounded-full"
+                      onClick={() => moveEventType(index, 1)}>
+                      <ArrowDownIcon />
+                    </button>
+                  </>
+                )}
                 <Link href={"/event-types/" + type.id}>
                   <a
                     className="flex-grow text-sm truncate"
@@ -126,12 +131,12 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                       <span className="font-medium truncate text-neutral-900">{type.title} </span>
                       <small className="hidden sm:inline text-neutral-500">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
-                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span className="ltr:ml-2 rtl:mr-2inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                           {t("hidden")}
                         </span>
                       )}
                       {readOnly && (
-                        <span className="ml-2 inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="ltr:ml-2 rtl:mr-2inline items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
                           {t("readonly")}
                         </span>
                       )}
@@ -141,7 +146,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 </Link>
 
                 <div className="flex-shrink-0 hidden mt-4 sm:flex sm:mt-0 sm:ml-5">
-                  <div className="flex items-center space-x-2 overflow-hidden">
+                  <div className="flex items-center rtl:space-x-reverse space-x-2 overflow-hidden">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         size={8}
@@ -267,7 +272,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
           alt={profile?.name || ""}
           imageSrc={profile?.image || undefined}
           size={8}
-          className="inline mt-1 mr-2"
+          className="inline mt-1 ltr:mr-2 rtl:ml-2"
         />
       </a>
     </Link>
@@ -276,7 +281,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         <a className="font-bold">{profile?.name || ""}</a>
       </Link>
       {membershipCount && (
-        <span className="relative ml-2 text-xs text-neutral-500 -top-px">
+        <span className="relative ltr:ml-2 rtl:mr-2 text-xs text-neutral-500 -top-px">
           <Link href="/settings/teams">
             <a>
               <Badge variant="gray">

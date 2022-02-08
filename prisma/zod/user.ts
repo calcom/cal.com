@@ -58,6 +58,7 @@ export const _UserModel = z.object({
   brandColor: z.string(),
   away: z.boolean(),
   metadata: jsonSchema,
+  verified: z.boolean().nullish(),
 });
 
 export interface CompleteUser extends z.infer<typeof _UserModel> {
