@@ -18,6 +18,7 @@
     "dx": "env-cmd run-s db-setup dev",
     "test": "jest",
     "test-playwright": "playwright test",
+    "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
@@ -113,7 +114,7 @@
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
-    "@playwright/test": "^1.17.1",
+    "@playwright/test": "^1.18.1",
     "@tailwindcss/forms": "^0.4.0",
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "@types/accept-language-parser": "1.5.2",
