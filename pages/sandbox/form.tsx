@@ -10,10 +10,10 @@ const page = sandboxPage(() => (
       <Label>Label</Label>
     </div>
     <div>
-      <Input placeholder="Input" />
+      <Input name="test-01" placeholder="Input" />
     </div>
     <div>
-      <TextField label="TextField" placeholder="it has an input baked in" />
+      <TextField name="test-02" label="TextField" placeholder="it has an input baked in" />
     </div>
   </div>
 ));

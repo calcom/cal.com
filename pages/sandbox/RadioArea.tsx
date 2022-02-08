@@ -19,10 +19,6 @@ const selectOptions = [
 export default function RadioAreaPage() {
   const [formData, setFormData] = useState({});
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-  };
-
   return (
     <>
       <Head>
@@ -30,7 +26,11 @@ export default function RadioAreaPage() {
       </Head>
       <div className="w-full p-4">
         <h1 className="mb-4 text-4xl">RadioArea component</h1>
-        <form onSubmit={onSubmit} className="mb-2 space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+          className="mb-2 space-y-4">
           <RadioArea.Group
             onChange={(radioGroup_1: string) => setFormData({ ...formData, radioGroup_1 })}
             className="flex max-w-screen-md space-x-4 rtl:space-x-reverse"
