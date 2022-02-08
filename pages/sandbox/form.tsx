@@ -5,7 +5,7 @@ import { Label, Input, TextField } from "@components/form/fields";
 import { sandboxPage } from ".";
 
 const page = sandboxPage(() => (
-  <div className="p-4 space-y-6">
+  <div className="space-y-6 p-4">
     <div>
       <Label>Label</Label>
     </div>

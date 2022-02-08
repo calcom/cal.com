@@ -139,7 +139,7 @@ export default function Login({
           {errorMessage && <Alert severity="error" title={errorMessage} />}
           <div className="flex space-y-2">
             <Button
-              className="flex justify-center w-full"
+              className="flex w-full justify-center"
               type="submit"
               disabled={form.formState.isSubmitting}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
@@ -153,7 +153,7 @@ export default function Login({
               <div className="mt-5">
                 <Button
                   color="secondary"
-                  className="flex justify-center w-full"
+                  className="flex w-full justify-center"
                   data-testid={"google"}
                   onClick={async (e) => {
                     e.preventDefault();

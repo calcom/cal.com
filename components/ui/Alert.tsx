@@ -15,10 +15,10 @@ export function Alert(props: AlertProps) {
   return (
     <div
       className={classNames(
-        "rounded-sm p-3 border border-opacity-20",
+        "rounded-sm border border-opacity-20 p-3",
         props.className,
-        severity === "error" && "bg-red-50 text-red-800 border-red-900",
-        severity === "warning" && "bg-yellow-50 text-yellow-700 border-yellow-700",
+        severity === "error" && "border-red-900 bg-red-50 text-red-800",
+        severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",
         severity === "success" && "bg-gray-900 text-white"
       )}>
       <div className="flex">
@@ -33,7 +33,7 @@ export function Alert(props: AlertProps) {
             <CheckCircleIcon className={classNames("h-5 w-5 text-gray-400")} aria-hidden="true" />
           )}
         </div>
-        <div className="flex-grow ml-3">
+        <div className="ml-3 flex-grow">
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>

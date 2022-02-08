@@ -74,13 +74,13 @@ function BookingListItem(booking: BookingItem) {
 
   return (
     <tr className="flex">
-      <td className="hidden py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell whitespace-nowrap">
+      <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell">
         <div className="text-sm leading-6 text-gray-900">{startTime}</div>
         <div className="text-sm text-gray-500">
           {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
         </div>
       </td>
-      <td className={"ltr:pl-4 rtl:pr-4 py-4 flex-1" + (booking.rejected ? " line-through" : "")}>
+      <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
         <div className="sm:hidden">
           {!booking.confirmed && !booking.rejected && (
             <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
@@ -97,7 +97,7 @@ function BookingListItem(booking: BookingItem) {
         </div>
         <div
           title={booking.title}
-          className="text-sm font-medium leading-6 truncate text-neutral-900 max-w-56 md:max-w-max">
+          className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
           {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
           {booking.title}
           {!!booking?.eventType?.price && !booking.paid && (
@@ -108,7 +108,7 @@ function BookingListItem(booking: BookingItem) {
           )}
         </div>
         {booking.description && (
-          <div className="text-sm text-gray-500 truncate max-w-52 md:max-w-96" title={booking.description}>
+          <div className="max-w-52 truncate text-sm text-gray-500 md:max-w-96" title={booking.description}>
             &quot;{booking.description}&quot;
           </div>
         )}
@@ -119,7 +119,7 @@ function BookingListItem(booking: BookingItem) {
         )}
       </td>
 
-      <td className="py-4 text-sm font-medium text-right ltr:pr-4 rtl:pl-4 whitespace-nowrap">
+      <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
         {isUpcoming && !isCancelled ? (
           <>
             {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
@@ -137,7 +137,7 @@ function BookingListItem(booking: BookingItem) {
 const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
   return (
     <span
-      className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800 ${className}`}>
+      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
       {children}
     </span>
   );

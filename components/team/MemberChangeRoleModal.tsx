@@ -51,14 +51,14 @@ export default function MemberChangeRoleModal(props: {
         </div>
         <form onSubmit={changeRole}>
           <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
+            <label className="mb-2 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
               {t("role")}
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as MembershipRole)}
               id="role"
-              className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm">
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm">
               <option value="MEMBER">{t("member")}</option>
               <option value="ADMIN">{t("admin")}</option>
               {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}

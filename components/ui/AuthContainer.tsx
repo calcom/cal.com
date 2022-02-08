@@ -14,26 +14,26 @@ interface Props {
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
   return (
-    <div className="flex flex-col justify-center min-h-screen py-12 bg-neutral-50 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col justify-center bg-neutral-50 py-12 sm:px-6 lg:px-8">
       <HeadSeo title={props.title} description={props.description} />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {props.showLogo && (
-          <img className="h-6 mx-auto" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
+          <img className="mx-auto h-6" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
         )}
         {props.heading && (
-          <h2 className="mt-6 text-3xl font-bold text-center font-cal text-neutral-900">{props.heading}</h2>
+          <h2 className="mt-6 text-center font-cal text-3xl font-bold text-neutral-900">{props.heading}</h2>
         )}
       </div>
       {props.loading && (
-        <div className="absolute z-50 flex items-center w-full h-screen bg-gray-50">
+        <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
           <Loader />
         </div>
       )}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="px-4 py-8 mx-2 bg-white border rounded-sm sm:px-10 border-neutral-200">
+        <div className="mx-2 rounded-sm border border-neutral-200 bg-white px-4 py-8 sm:px-10">
           {props.children}
         </div>
-        <div className="mt-4 text-sm text-center text-neutral-600">{props.footerText}</div>
+        <div className="mt-4 text-center text-sm text-neutral-600">{props.footerText}</div>
       </div>
     </div>
   );

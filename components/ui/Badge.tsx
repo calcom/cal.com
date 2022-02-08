@@ -13,7 +13,7 @@ export const Badge = function Badge(props: BadgeProps) {
     <span
       {...passThroughProps}
       className={classNames(
-        "font-bold px-2 py-0.5 inline-block rounded-sm text-xs",
+        "inline-block rounded-sm px-2 py-0.5 text-xs font-bold",
         variant === "default" && "bg-yellow-100 text-yellow-800",
         variant === "success" && "bg-green-100 text-green-800",
         variant === "gray" && "bg-gray-200 text-gray-800",

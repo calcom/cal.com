@@ -57,7 +57,7 @@ const ChangePasswordSection = () => {
   return (
     <>
       <div className="mt-6">
-        <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">{t("change_password")}</h2>
+        <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
       </div>
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-8">
@@ -74,12 +74,12 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-brand sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
             </div>
-            <div className="w-1/2 ml-2">
+            <div className="ml-2 w-1/2">
               <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
                 {t("new_password")}
               </label>
@@ -91,7 +91,7 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-black focus:border-brand sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>

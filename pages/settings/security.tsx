@@ -22,7 +22,7 @@ export default function Security() {
         {user && user.identityProvider !== IdentityProvider.CAL ? (
           <>
             <div className="mt-6">
-              <h2 className="font-cal text-lg leading-6 font-medium text-gray-900">
+              <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
                 {t("account_managed_by_identity_provider", {
                   provider: identityProviderNameMap[user.identityProvider],
                 })}

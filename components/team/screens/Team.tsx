@@ -44,7 +44,7 @@ const Team = ({ team }: TeamPageProps) => {
               "absolute top-4 right-4",
               "h-4 w-4",
               "transition-opacity",
-              "opacity-0 group-hover:opacity-100 group-hover:block"
+              "opacity-0 group-hover:block group-hover:opacity-100"
             )}
           />
 
@@ -52,9 +52,9 @@ const Team = ({ team }: TeamPageProps) => {
             <Avatar
               alt={member.name || ""}
               imageSrc={getPlaceholderAvatar(member.avatar, member.username)}
-              className="w-12 h-12 -mt-4"
+              className="-mt-4 h-12 w-12"
             />
-            <section className="w-full mt-2 space-y-1">
+            <section className="mt-2 w-full space-y-1">
               <Text variant="title">{member.name}</Text>
               <Text variant="subtitle" className="">
                 {member.bio || t("user_from_team", { user: member.name, team: team.name })}
@@ -72,7 +72,7 @@ const Team = ({ team }: TeamPageProps) => {
     }
 
     return (
-      <section className="flex flex-wrap justify-center max-w-5xl min-w-full mx-auto lg:min-w-lg gap-x-6 gap-y-6">
+      <section className="lg:min-w-lg mx-auto flex min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
         {members.map((member) => {
           return member.username !== null && <Member key={member.id} member={member} />;
         })}

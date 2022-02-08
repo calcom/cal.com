@@ -111,7 +111,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
             />
             <div className="space-y-2">
               <Button
-                className="justify-center w-full"
+                className="w-full justify-center"
                 type="submit"
                 disabled={loading}
                 aria-label={t("request_password_reset")}

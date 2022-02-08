@@ -32,12 +32,12 @@ function TeamPage({ team }: TeamPageProps) {
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="relative bg-white border rounded-sm group dark:bg-neutral-900 dark:border-0 dark:hover:border-neutral-600 hover:bg-gray-50 border-neutral-200 hover:border-brand">
-          <ArrowRightIcon className="absolute w-4 h-4 text-black transition-opacity opacity-0 right-3 top-3 dark:text-white group-hover:opacity-100" />
+          className="group relative rounded-sm border border-neutral-200 bg-white hover:border-brand hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+          <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
               <div className="flex-shrink">
-                <h2 className="font-semibold font-cal text-neutral-900 dark:text-white">{type.title}</h2>
+                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1">
@@ -65,11 +65,11 @@ function TeamPage({ team }: TeamPageProps) {
       <div>
         <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
-          <div className="mx-auto mb-8 text-center max-w-96">
+          <div className="mx-auto mb-8 max-w-96 text-center">
             <Avatar
               alt={teamName}
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
-              className="w-20 h-20 mx-auto mb-4 rounded-full"
+              className="mx-auto mb-4 h-20 w-20 rounded-full"
             />
             <Text variant="largetitle">{teamName}</Text>
             <Text variant="subtitle" className="mt-2">
@@ -78,7 +78,7 @@ function TeamPage({ team }: TeamPageProps) {
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length > 0 && (
-            <div className="max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl">
               {eventTypes}
 
               <div className="relative mt-12">
@@ -86,7 +86,7 @@ function TeamPage({ team }: TeamPageProps) {
                   <div className="w-full border-t border-gray-200 dark:border-gray-900" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-2 text-sm text-gray-500 bg-gray-100 dark:bg-brand dark:text-brandcontrast">
+                  <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-brand dark:text-brandcontrast">
                     {t("or")}
                   </span>
                 </div>

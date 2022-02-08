@@ -31,11 +31,11 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
 
   const formatOptionLabel = ({ label, avatar, disabled }) => (
     <div className="flex">
-      <Avatar className="h-6 w-6 rounded-full mr-3" displayName={label} imageSrc={avatar} />
+      <Avatar className="mr-3 h-6 w-6 rounded-full" displayName={label} imageSrc={avatar} />
       {label}
       {disabled && (
         <div className="flex-grow">
-          <CheckIcon className="text-neutral-500 w-6 h-6 float-right" />
+          <CheckIcon className="float-right h-6 w-6 text-neutral-500" />
         </div>
       )}
     </div>
@@ -78,16 +78,16 @@ export const CheckedSelect = React.forwardRef((props: CheckedSelectProps, ref: F
         onChange={changeHandler}
       />
       {selectedOptions.map((option) => (
-        <div key={option.value} className="border border-1 p-2 font-medium">
+        <div key={option.value} className="border-1 border p-2 font-medium">
           <Avatar
-            className="w-6 h-6 rounded-full inline ltr:mr-2 rtl:ml-2"
+            className="inline h-6 w-6 rounded-full ltr:mr-2 rtl:ml-2"
             imageSrc={option.avatar}
             displayName={option.label}
           />
           {option.label}
           <XIcon
             onClick={() => changeHandler([option])}
-            className="cursor-pointer h-5 w-5 mt-0.5 text-neutral-500 float-right"
+            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
           />
         </div>
       ))}

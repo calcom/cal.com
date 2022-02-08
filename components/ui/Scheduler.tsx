@@ -66,11 +66,11 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
   };
 
   const OpeningHours = ({ idx, item }: { idx: number; item: Availability }) => (
-    <li className="flex justify-between py-2 border-b">
+    <li className="flex justify-between border-b py-2">
       <div className="flex flex-col space-y-4 lg:inline-flex">
         <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
         <button
-          className="px-3 py-2 text-sm rounded-sm bg-neutral-100"
+          className="rounded-sm bg-neutral-100 px-3 py-2 text-sm"
           type="button"
           onClick={() => setEditSchedule(idx)}>
           {item.startTime.toLocaleTimeString(i18n.language, {
@@ -89,8 +89,8 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
       <button
         type="button"
         onClick={() => removeScheduleAt(idx)}
-        className="px-2 py-1 ml-1 bg-transparent btn-sm">
-        <TrashIcon className="inline w-5 h-5 -mt-1 text-gray-400" />
+        className="btn-sm ml-1 bg-transparent px-2 py-1">
+        <TrashIcon className="-mt-1 inline h-5 w-5 text-gray-400" />
       </button>
     </li>
   );
@@ -108,7 +108,7 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
                 id="timeZone"
                 value={timeZone}
                 onChange={(tz: ITimezoneOption) => setTimeZone(tz.value)}
-                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-brand sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
               />
             </div>
           </div>
