@@ -601,6 +601,7 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       username: z.string().optional(),
       name: z.string().optional(),
+      email: z.string().optional(),
       bio: z.string().optional(),
       avatar: z.string().optional(),
       timeZone: z.string().optional(),
