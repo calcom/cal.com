@@ -636,5 +636,15 @@
   "add": "Add",
   "verify_wallet": "Verify Wallet",
   "connect_metamask": "Connect Metamask",
-  "create_events_on": "Create events on:"
+  "create_events_on": "Create events on:",
+  "missing_license": "Missing License",
+  "signup_requires": "Commercial license required",
+  "signup_requires_description": "Cal.com, Inc. currently does not offer a free open source version of the sign up page. To receive full access to the signup components you need to acquire a commercial license. For personal use we recommend the Prisma Data Platform or any other Postgres interface to create accounts.",
+  "next_steps": "Next Steps",
+  "acquire_commercial_license": "Acquire a commercial license",
+  "the_infrastructure_plan": "The infrastructure plan is usage-based and has startup-friendly discounts.",
+  "prisma_studio_tip": "Create an account via Prisma Studio",
+  "prisma_studio_tip_description": "Learn how to set up your first user",
+  "contact_sales": "Contact Sales",
+  "error_404": "Error 404"
 }
