@@ -89,6 +89,7 @@
   "hidden_team_member_message": "Ihre Teammitgliedschaft ist nicht bezahlt, entweder upgraden Sie Ihren Account auf Pro oder lassen den Team-Organisator wissen, dass er für Ihren Platz im Team bezahlen kann.",
   "hidden_team_owner_message": "Sie benötigen einen Pro-Account um die Teamfunktionen zu verweden. Sie werden dem Team nicht angezeigt, bis der Account upgegradet wurde.",
   "link_expires": "p.s. Es läuft in {{expiresIn}} Stunden ab.",
+  "upgrade_to_per_seat": "Upgrade auf Pro-Mitglied lizensierung",
   "team_upgrade_seats_details": "Von den {{memberCount}} Mitgliedern in Ihrem Team sind {{unpaidCount}} Sitze(n) unbezahlt. Bei ${{seatPrice}}/m pro Sitzplatz betragen die geschätzten Gesamtkosten Ihrer Mitgliedschaft ${{totalCost}}/m.",
   "team_upgraded_successfully": "Das Update für Ihr Team war erfolgreich!",
   "use_link_to_reset_password": "Benutzen Sie den Link, um Ihr Passwort zurückzusetzen",
@@ -506,6 +507,7 @@
   "teams": "Teams",
   "team_billing": "Abrechnung der Teams",
   "upgrade_to_flexible_pro_title": "Wir haben die Abrechnung für Teams geändert",
+  "upgrade_to_flexible_pro_message": "Es gibt Mitglieder in Ihrem Team ohne Lizenz. Upgraden Sie Ihren Pro-Plan um fehlende Lizenzen abzudecken.",
   "create_manage_teams_collaborative": "Erstellen und verwalten Sie Teams, um kollaborative Funktionen zu nutzen.",
   "only_available_on_pro_plan": "Diese Funktion ist nur im Pro Plan verfügbar",
   "remove_cal_branding_description": "Um die Cal Werbung von Ihren Buchungsseiten zu entfernen, müssen Sie auf ein Pro-Konto upgraden.",
@@ -632,5 +634,13 @@
   "add": "Hinzufügen",
   "verify_wallet": "Wallet verifizieren",
   "connect_metamask": "Metamask verbinden",
-  "create_events_on": "Erstelle Termine in:"
+  "create_events_on": "Erstelle Termine in:",
+  "missing_license": "Lizenz fehlt",
+  "signup_requires": "Kommerzielle Lizenz erforderlich",
+  "next_steps": "Nächste Schritte",
+  "acquire_commercial_license": "Eine kommerzielle Lizenz erwerben",
+  "prisma_studio_tip": "Erstellen Sie ein Konto über Prisma Studio",
+  "prisma_studio_tip_description": "Erfahren Sie, wie Sie Ihren ersten Benutzer einrichten können",
+  "contact_sales": "Vertrieb kontaktieren",
+  "error_404": "Fehler 404"
 }

@@ -636,5 +636,15 @@
   "add": "Adicionar",
   "verify_wallet": "Verificar carteira",
   "connect_metamask": "Ligar Metamask",
-  "create_events_on": "Criar eventos em:"
+  "create_events_on": "Criar eventos em:",
+  "missing_license": "Licença em falta",
+  "signup_requires": "Necessita de licença comercial",
+  "signup_requires_description": "De momento a Cal.com, Inc. não oferece uma versão gratuita de código aberto da página de registo. Para aceder completamente aos componentes de registo tem de adquirir uma licença comercial. Para uso pessoal, recomendamos a Prisma Data Platform ou qualquer outra interface Postgres para criar contas.",
+  "next_steps": "Passos seguintes",
+  "acquire_commercial_license": "Adquira uma licença comercial",
+  "the_infrastructure_plan": "O plano de infraestrutura é baseado em utilização e tem descontos para quem está a começar.",
+  "prisma_studio_tip": "Crie uma conta via Prisma Studio",
+  "prisma_studio_tip_description": "Saiba como configurar o seu primeiro utilizador",
+  "contact_sales": "Contacte as vendas",
+  "error_404": "Erro 404"
 }
