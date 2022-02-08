@@ -3,6 +3,8 @@ on:
   pull_request_target:
     branches:
       - main
+    paths-ignore:
+      - public/static/locales/**
 jobs:
   test:
     timeout-minutes: 10
