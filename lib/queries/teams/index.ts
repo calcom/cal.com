@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, UserPlan } from "@prisma/client";
 
 import prisma from "@lib/prisma";
 
@@ -15,6 +15,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     email: true,
     name: true,
     id: true,
+    plan: true,
     bio: true,
   });
 
@@ -69,6 +70,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     const membership = memberships.find((membership) => obj.user.id === membership.userId);
     return {
       ...obj.user,
+      isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: membership?.role,
       accepted: membership?.role === "OWNER" ? true : membership?.accepted,
     };

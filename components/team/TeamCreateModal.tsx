@@ -1,8 +1,10 @@
 import { UsersIcon } from "@heroicons/react/outline";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
+
+import { Alert } from "@components/ui/Alert";
 
 interface Props {
   onClose: () => void;
@@ -11,13 +13,16 @@ interface Props {
 export default function TeamCreate(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-
+  const [errorMessage, setErrorMessage] = useState<null | string>(null);
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
   const createTeamMutation = trpc.useMutation("viewer.teams.create", {
     onSuccess: () => {
       utils.invalidateQueries(["viewer.teams.list"]);
       props.onClose();
+    },
+    onError: (e) => {
+      setErrorMessage(e?.message || t("something_went_wrong"));
     },
   });
 
@@ -70,6 +75,7 @@ export default function TeamCreate(props: Props) {
                 className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
               />
             </div>
+            {errorMessage && <Alert severity="error" title={errorMessage} />}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
               <button type="submit" className="btn btn-primary">
                 {t("create_team")}

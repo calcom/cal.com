@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
@@ -114,6 +115,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const team = await getTeamWithMembers(undefined, slug);
 
   if (!team) return { notFound: true };
+
+  const members = team.members.filter((member) => member.plan !== UserPlan.FREE);
+
+  team.members = members ?? [];
 
   team.eventTypes = team.eventTypes.map((type) => ({
     ...type,
