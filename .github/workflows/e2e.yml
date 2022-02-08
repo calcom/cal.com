@@ -96,8 +96,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: videos
-          path: |
-            playwright/screenshots
-            playwright/videos
-            playwright/results
-            playwright/reports/playwright-html-report
+          path: playwright/reports/playwright-html-report
