@@ -32,7 +32,6 @@ type Props = {
  * @deprecated
  */
 export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone }: Props) => {
-  console.log(availability);
   const { t, i18n } = useLocale();
   const [editSchedule, setEditSchedule] = useState(-1);
   const [openingHours, setOpeningHours] = useState<Availability[]>([]);
