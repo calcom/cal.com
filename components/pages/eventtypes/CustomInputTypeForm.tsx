@@ -1,11 +1,16 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
+
+interface OptionTypeBase {
+  label: string;
+  value: EventTypeCustomInputType;
+}
 
 interface Props {
   onSubmit: SubmitHandler<IFormInput>;
@@ -51,7 +56,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               options={inputOptions}
               isSearchable={false}
               className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-              onChange={(option) => field.onChange(option.value)}
+              onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
               name={field.name}
