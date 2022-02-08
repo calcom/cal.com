@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 
+const brandColor = "#292929";
+const brandTextColor = "#ffffff";
+
 function computeContrastRatio(a: number[], b: number[]) {
   const lum1 = computeLuminance(a[0], a[1], a[2]);
   const lum2 = computeLuminance(b[0], b[1], b[2]);
@@ -22,14 +25,30 @@ function hexToRGB(hex: string) {
 }
 
 function getContrastingTextColor(bgColor: string | null): string {
-  bgColor = bgColor == "" || bgColor == null ? "#292929" : bgColor;
+  bgColor = bgColor == "" || bgColor == null ? brandColor : bgColor;
   const rgb = hexToRGB(bgColor);
   const whiteContrastRatio = computeContrastRatio(rgb, [255, 255, 255]);
   const blackContrastRatio = computeContrastRatio(rgb, [41, 41, 41]); //#292929
-  return whiteContrastRatio > blackContrastRatio ? "#ffffff" : "#292929";
+  return whiteContrastRatio > blackContrastRatio ? brandTextColor : brandColor;
 }
 
-const BrandColor = ({ val = "#292929" }: { val: string | undefined | null }) => {
+function isValidHexCode(val: string | null) {
+  if (val) {
+    val = val.indexOf("#") === 0 ? val : "#" + val;
+    const regex = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+    console.log("regex=>", regex.test(val));
+    return regex.test(val);
+  }
+  return false;
+}
+
+function fallBackHex(): string {
+  return brandColor;
+}
+
+const BrandColor = ({ val = brandColor }: { val: string | undefined | null }) => {
+  // ensure acceptable hex-code
+  val = isValidHexCode(val) ? (val?.indexOf("#") === 0 ? val : "#" + val) : fallBackHex();
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-color", val);
     document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(val));
