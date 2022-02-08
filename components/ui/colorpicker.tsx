@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useEffect } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
+import { isValidHexCode, fallBackHex } from "@components/CustomBranding";
 import Swatch from "@components/Swatch";
 
 type Handler = (event: MouseEvent | Event) => void;
@@ -61,12 +62,12 @@ export type ColorPickerProps = {
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
-  const [color, setColor] = useState(props.defaultValue);
+  const init = !isValidHexCode(props.defaultValue) ? fallBackHex(props.defaultValue) : props.defaultValue;
+  const [color, setColor] = useState(init);
   const [isOpen, toggle] = useState(false);
   const popover = useRef() as React.MutableRefObject<HTMLInputElement>;
   const close = useCallback(() => toggle(false), []);
   useOnClickOutside(popover, close);
-
   return (
     <div className="relative flex items-center justify-center mt-1">
       <Swatch size="sm" backgroundColor={color} onClick={() => toggle(!isOpen)} />
