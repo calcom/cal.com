@@ -101,3 +101,11 @@ jobs:
             playwright/videos
             playwright/results
             playwright/reports/*
+      - run: ls
+
+      - name: Upload HTML Report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2.3.1
+        with:
+          name: Playwright HTML Report
+          path: playwright/reports/
