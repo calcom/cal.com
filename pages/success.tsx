@@ -36,7 +36,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
-  const { isReady } = useTheme(props.profile.theme);
+  const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -89,6 +89,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   return (
     (isReady && (
       <div className="h-screen bg-neutral-100 dark:bg-neutral-900" data-testid="success-page">
+        <Theme></Theme>
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
