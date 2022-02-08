@@ -529,6 +529,7 @@
   "cal_provide_zoom_meeting_url": "Cal создаст ссылку на встречу в Zoom.",
   "cal_provide_tandem_meeting_url": "Cal создаст ссылку на встречу в Tandem.",
   "cal_provide_video_meeting_url": "Cal создаст ссылку на встречу в Daily.",
+  "cal_provide_jitsi_meeting_url": "Cal создаст ссылку на встречу в Jitsi Meet.",
   "cal_provide_huddle01_meeting_url": "Cal создаст ссылку на встречу в Huddle01 Web3.",
   "require_payment": "Требуется оплата",
   "commission_per_transaction": "комиссия за сделку",
