@@ -1,6 +1,7 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
 import { PeriodType, SchedulingType } from "@prisma/client";
+import * as z from "zod";
+
+import * as imports from "../zod-utils";
 import {
   CompleteUser,
   UserModel,
