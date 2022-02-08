@@ -152,7 +152,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const emailRef = useRef<HTMLInputElement>(null!);
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const brandColorRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
