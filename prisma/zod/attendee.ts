@@ -8,6 +8,7 @@ export const _AttendeeModel = z.object({
   email: z.string(),
   name: z.string(),
   timeZone: z.string(),
+  locale: z.string().nullish(),
   bookingId: z.number().int().nullish(),
 });
 

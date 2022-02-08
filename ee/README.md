@@ -11,9 +11,9 @@
 
 Welcome to the Enterprise Edition ("/ee") of Cal.com.
 
-The [/ee](https://github.com/calendso/calendso/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
+The [/ee](https://github.com/calcom/cal.com/tree/main/ee) subfolder is the place for all the **Pro** features from our [hosted](https://cal.com/pricing) plan and [enterprise-grade](https://cal.com/enterprise) features such as SSO, SAML, ADFS, OIDC, SCIM, SIEM, HRIS and much more.
 
-> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calendso/calendso)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/enterprise) first❗_
+> _❗ WARNING: This repository is copyrighted (unlike our [main repo](https://github.com/calcom/cal.com)). You are not allowed to use this code to host your own version of app.cal.com without obtaining a proper [license](https://cal.com/enterprise) first❗_
 
 ## Setting up Stripe
 

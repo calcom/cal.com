@@ -24,14 +24,14 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.language("event_cancelled_subject", {
+      subject: `${this.attendee.language.translate("event_cancelled_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
           "h:mma"
-        )}, ${this.calEvent.language(
+        )}, ${this.attendee.language.translate(
           this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
+        )}, ${this.attendee.language.translate(
           this.getInviteeStart().format("MMMM").toLowerCase()
         )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
       })}`,
@@ -42,24 +42,25 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.language("event_request_cancelled")}
-${this.calEvent.language("emailed_you_and_any_other_attendees")}
+${this.attendee.language.translate("event_request_cancelled")}
+${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.calEvent.cancellationReason && this.getCancellationReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.language("event_cancelled_subject", {
+    const headerContent = this.attendee.language.translate("event_cancelled_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
         "h:mma"
-      )}, ${this.calEvent.language(
+      )}, ${this.attendee.language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.language(
+      )}, ${this.attendee.language.translate(
         this.getInviteeStart().format("MMMM").toLowerCase()
       )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
     });
@@ -73,8 +74,8 @@ ${this.getAdditionalNotes()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("xCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.language("event_request_cancelled"),
-          this.calEvent.language("emailed_you_and_any_other_attendees")
+          this.attendee.language.translate("event_request_cancelled"),
+          this.attendee.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
@@ -95,6 +96,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
+                              ${this.calEvent.cancellationReason && this.getCancellationReason()}
                             </div>
                           </td>
                         </tr>
@@ -125,5 +127,14 @@ ${this.getAdditionalNotes()}
     </body>
     </html>
     `;
+  }
+
+  protected getCancellationReason(): string {
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.attendee.language.translate("cancellation_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.cancellationReason}</p>
+    </div>`;
   }
 }

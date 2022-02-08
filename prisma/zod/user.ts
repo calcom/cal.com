@@ -1,6 +1,6 @@
+import { IdentityProvider, UserPlan } from "@prisma/client";
 import * as z from "zod";
 
-import { IdentityProvider, UserPlan } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteEventType,
@@ -59,6 +59,7 @@ export const _UserModel = z.object({
   brandColor: z.string(),
   away: z.boolean(),
   metadata: jsonSchema,
+  verified: z.boolean().nullish(),
 });
 
 export interface CompleteUser extends z.infer<typeof _UserModel> {

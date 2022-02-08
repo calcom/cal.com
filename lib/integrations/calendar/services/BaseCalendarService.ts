@@ -184,18 +184,54 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  getAvailability(
+  async getAvailability(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    this.log.warn(
-      `Method not implemented. dateFrom: ${dateFrom}, dateTo: ${dateTo}, selectedCalendars: ${selectedCalendars}`
-    );
+    const objects = (
+      await Promise.all(
+        selectedCalendars.map((sc) =>
+          fetchCalendarObjects({
+            calendar: {
+              url: sc.externalId,
+            },
+            headers: this.headers,
+            expand: true,
+            timeRange: {
+              start: new Date(dateFrom).toISOString(),
+              end: new Date(dateTo).toISOString(),
+            },
+          })
+        )
+      )
+    ).flat();
 
-    const eventsBusyDate: EventBusyDate[] = [];
+    const events = objects
+      .filter((e) => !!e.data)
+      .map((object) => {
+        const jcalData = ICAL.parse(object.data);
+        const vcalendar = new ICAL.Component(jcalData);
+        const vevent = vcalendar.getFirstSubcomponent("vevent");
+        const event = new ICAL.Event(vevent);
+        const calendarTimezone =
+          vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
-    return Promise.resolve(eventsBusyDate);
+        const startDate = calendarTimezone
+          ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
+          : new Date(event.startDate.toUnixTime() * 1000);
+
+        const endDate = calendarTimezone
+          ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
+          : new Date(event.endDate.toUnixTime() * 1000);
+
+        return {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+        };
+      });
+
+    return Promise.resolve(events);
   }
 
   async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {

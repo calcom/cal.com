@@ -73,7 +73,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         continue;
       }
 
-      const t = await getTranslation(user.locale ?? "en", "common");
+      const tOrganizer = await getTranslation(user.locale ?? "en", "common");
+
+      const attendeesListPromises = booking.attendees.map(async (attendee) => {
+        return {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
+        };
+      });
+
+      const attendeesList = await Promise.all(attendeesListPromises);
 
       const evt: CalendarEvent = {
         type: booking.title,
@@ -86,10 +100,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email: user.email,
           name,
           timeZone: user.timeZone,
+          language: { translate: tOrganizer, locale: user.locale ?? "en" },
         },
-        attendees: booking.attendees,
+        attendees: attendeesList,
         uid: booking.uid,
-        language: t,
         destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 

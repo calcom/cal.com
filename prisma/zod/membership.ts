@@ -1,6 +1,6 @@
+import { MembershipRole } from "@prisma/client";
 import * as z from "zod";
 
-import { MembershipRole } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import { CompleteTeam, TeamModel, CompleteUser, UserModel } from "./index";
 

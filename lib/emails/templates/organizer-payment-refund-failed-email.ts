@@ -27,14 +27,14 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.language("refund_failed_subject", {
+      subject: `${this.calEvent.organizer.language.translate("refund_failed_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
           "h:mma"
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.language(
+        )}, ${this.calEvent.organizer.language.translate(
           this.getOrganizerStart().format("MMMM").toLowerCase()
         )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
@@ -45,11 +45,15 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
 
   protected getTextBody(): string {
     return `
-${this.calEvent.language("a_refund_failed")}
-${this.calEvent.language("check_with_provider_and_user", { user: this.calEvent.attendees[0].name })}
+${this.calEvent.organizer.language.translate("a_refund_failed")}
+${this.calEvent.organizer.language.translate("check_with_provider_and_user", {
+  user: this.calEvent.attendees[0].name,
+})}
 ${
   this.calEvent.paymentInfo &&
-  this.calEvent.language("error_message", { errorMessage: this.calEvent.paymentInfo.reason })
+  this.calEvent.organizer.language.translate("error_message", {
+    errorMessage: this.calEvent.paymentInfo.reason,
+  })
 }
 ${this.getWhat()}
 ${this.getWhen()}
@@ -59,14 +63,14 @@ ${this.getAdditionalNotes()}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.language("refund_failed_subject", {
+    const headerContent = this.calEvent.organizer.language.translate("refund_failed_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,
       date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
         "h:mma"
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.language(
+      )}, ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("MMMM").toLowerCase()
       )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
     });
@@ -91,14 +95,14 @@ ${this.getAdditionalNotes()}
                       <tbody>
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;padding-top:24px;padding-bottom:0px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:24px;font-weight:700;line-height:24px;text-align:center;color:#292929;">${this.calEvent.language(
+                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:24px;font-weight:700;line-height:24px;text-align:center;color:#292929;">${this.calEvent.organizer.language.translate(
                               "a_refund_failed"
                             )}</div>
                           </td>
                         </tr>
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.language(
+                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.organizer.language.translate(
                               "check_with_provider_and_user",
                               { user: this.calEvent.attendees[0].name }
                             )}</div>
@@ -174,7 +178,7 @@ ${this.getAdditionalNotes()}
         refundInformation = `
         <tr>
           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.language(
+            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#494949;">${this.calEvent.organizer.language.translate(
               "error_message",
               { errorMessage: paymentInfo.reason }
             )}</div>

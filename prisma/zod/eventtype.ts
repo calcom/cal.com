@@ -1,6 +1,6 @@
+import { PeriodType, SchedulingType } from "@prisma/client";
 import * as z from "zod";
 
-import { PeriodType, SchedulingType } from "../../node_modules/@prisma/client";
 import * as imports from "../zod-utils";
 import {
   CompleteUser,
@@ -52,6 +52,7 @@ export const _EventTypeModel = z.object({
   price: z.number().int(),
   currency: z.string(),
   slotInterval: z.number().int().nullish(),
+  metadata: jsonSchema,
 });
 
 export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
