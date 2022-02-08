@@ -36,6 +36,11 @@ import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegratio
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
+<<<<<<< HEAD:apps/web/pages/event-types/[type].tsx
+=======
+import { defaultAvatarSrc } from "@lib/profile";
+import { slugify } from "@lib/slugify";
+>>>>>>> Implement slugify:pages/event-types/[type].tsx
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { slugify } from "@lib/slugify";
@@ -705,7 +710,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                           defaultValue={eventType.slug}
                           onKeyUp={(event) => {
+<<<<<<< HEAD:apps/web/pages/event-types/[type].tsx
                             formMethods.setValue("slug", slugify(String(event.target.value)));
+=======
+                            formMethods.setValue("slug", slugify(event.target.value));
+>>>>>>> Implement slugify:pages/event-types/[type].tsx
                           }}
                           {...formMethods.register("slug")}
                         />

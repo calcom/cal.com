@@ -13,6 +13,7 @@ import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import showToast from "@lib/notification";
+import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
