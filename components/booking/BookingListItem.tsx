@@ -109,7 +109,7 @@ function BookingListItem(booking: BookingItem) {
         </div>
         {booking.description && (
           <div className="text-sm text-gray-500 truncate max-w-52 md:max-w-96" title={booking.description}>
-            &quot;{booking.description}&quot;
+            &quot;{booking.description && booking.description.replace(/(<([^>]+)>)/gi, "")}&quot;
           </div>
         )}
         {booking.attendees.length !== 0 && (
