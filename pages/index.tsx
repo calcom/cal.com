@@ -10,7 +10,7 @@ export async function getServerSideProps(context) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  return { redirect: { permanent: false, destination: "/event-types" } };
+  return { redirect: { permanent: false, destination: "/dashboard" } };
 }
 
 export default RedirectPage;

@@ -10,6 +10,7 @@ import {
   PuzzleIcon,
   MoonIcon,
   MapIcon,
+  HomeIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -119,7 +120,7 @@ export function ShellSubHeading(props: {
 export default function Shell(props: {
   centered?: boolean;
   title?: string;
-  heading: ReactNode;
+  heading?: ReactNode;
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
@@ -127,6 +128,7 @@ export default function Shell(props: {
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
+  headless?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -136,6 +138,12 @@ export default function Shell(props: {
   const telemetry = useTelemetry();
 
   const navigation = [
+    {
+      name: t("dashboard"),
+      href: "/dashboard",
+      icon: HomeIcon,
+      current: router.asPath.startsWith("/dashboard"),
+    },
     {
       name: t("event_types_page_title"),
       href: "/event-types",
@@ -209,13 +217,13 @@ export default function Shell(props: {
           <div className="flex flex-col w-14 lg:w-56">
             <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
               <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
-                <Link href="/event-types">
+                <Link href="/dashboard">
                   <a className="px-4 md:hidden lg:inline">
                     <Logo small />
                   </a>
                 </Link>
                 {/* logo icon for tablet */}
-                <Link href="/event-types">
+                <Link href="/dashboard">
                   <a className="md:inline lg:hidden">
                     <Logo small icon />
                   </a>
@@ -299,16 +307,18 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
-                {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-                <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
-                    {props.heading}
-                  </h1>
-                  <p className="text-sm ltr:mr-4 rtl:ml-4 text-neutral-500">{props.subtitle}</p>
+              {!props.headless && (
+                <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+                  {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+                  <div className="w-full mb-8">
+                    <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                      {props.heading}
+                    </h1>
+                    <p className="text-sm ltr:mr-4 rtl:ml-4 text-neutral-500">{props.subtitle}</p>
+                  </div>
+                  <div className="flex-shrink-0 mb-4">{props.CTA}</div>
                 </div>
-                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
-              </div>
+              )}
               <div
                 className={classNames(
                   "px-4 sm:px-6 md:px-8",

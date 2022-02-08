@@ -1,6 +1,6 @@
 {
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
-  "day": "{{count}} day", 
+  "day": "{{count}} day",
   "day_plural": "{{count}} days",
   "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
@@ -646,5 +646,6 @@
   "prisma_studio_tip": "Create an account via Prisma Studio",
   "prisma_studio_tip_description": "Learn how to set up your first user",
   "contact_sales": "Contact Sales",
-  "error_404": "Error 404"
+  "error_404": "Error 404",
+  "dashboard": "Dashboard"
 }
