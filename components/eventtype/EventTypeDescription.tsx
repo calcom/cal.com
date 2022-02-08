@@ -37,7 +37,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             {eventType.description.length > 100 && "..."}
           </h2>
         )}
-        <ul className="flex mt-2 rtl:space-x-reverse space-x-4 ">
+        <ul className="flex mt-2 space-x-4 rtl:space-x-reverse ">
           <li className="flex whitespace-nowrap">
             <ClockIcon className="inline mt-0.5 mr-1.5 h-4 w-4 text-neutral-400" aria-hidden="true" />
             {eventType.length}m

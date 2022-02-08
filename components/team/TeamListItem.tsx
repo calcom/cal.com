@@ -20,7 +20,7 @@ import Dropdown, {
   DropdownMenuSeparator,
 } from "@components/ui/Dropdown";
 
-import TeamRole from "./TeamRole";
+import { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";
 
 interface Props {
@@ -99,8 +99,8 @@ export default function TeamListItem(props: Props) {
             </>
           )}
           {!isInvitee && (
-            <div className="flex rtl:space-x-reverse space-x-2">
-              <TeamRole role={team.role as MembershipRole} />
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <TeamRole role={team.role} />
 
               <Tooltip content={t("copy_link_team")}>
                 <Button
