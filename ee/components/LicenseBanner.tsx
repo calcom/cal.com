@@ -35,7 +35,7 @@ export default function LicenseBanner() {
               <p className="ml-3 truncate font-medium text-white">
                 <span className="inline">
                   <Trans i18nKey="accept_our_license" values={{ agree: "agree" }}>
-                    Accept our license by changing the .env variable{" "}
+                    Accept our license by changing the .env variable
                     <span className="bg-gray-50 bg-opacity-20 px-1">NEXT_PUBLIC_LICENSE_CONSENT</span> to
                     &apos;agree&apos;.
                   </Trans>
@@ -77,10 +77,10 @@ export default function LicenseBanner() {
         confirmBtnText={t("env_changed")}
         cancelBtnText={t("cancel")}>
         <Trans i18nKey="remove_banner_instructions" values={{ agree: "agree" }}>
-          To remove this banner, please open your .env file and change the{" "}
+          To remove this banner, please open your .env file and change the
           <span className="bg-green-400 bg-opacity-20 p-[2px] text-green-500">
             NEXT_PUBLIC_LICENSE_CONSENT
-          </span>{" "}
+          </span>
           variable to &apos;agreeapos;.
         </Trans>
         <h2 className="mt-8 mb-2 font-cal text-black">{t("terms_summary")}:</h2>
