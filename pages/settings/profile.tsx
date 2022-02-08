@@ -30,6 +30,7 @@ import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
+import ColorPicker from "@components/ui/colorpicker";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
@@ -167,6 +168,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [brandColor, setBrandColor] = useState(props.user.brandColor);
 
   useEffect(() => {
     if (!props.user.theme) return;
@@ -176,6 +178,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    console.log("brand=>", brandColor);
+  }, [brandColor]);
+
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -184,7 +190,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredEmail = emailRef.current.value;
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
-    const enteredBrandColor = brandColorRef.current.value;
+    const enteredBrandColor = brandColor;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
@@ -402,17 +408,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                 {t("brand_color")}
               </label>
-              <div className="flex mt-1">
-                <input
-                  ref={brandColorRef}
-                  type="text"
-                  name="brandColor"
-                  id="brandColor"
-                  placeholder="#hex-code"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
-                  defaultValue={props.user.brandColor}
-                />
-              </div>
+              <ColorPicker defaultValue={props.user.brandColor} onColorChange={setBrandColor} />
               <hr className="mt-6" />
             </div>
             <div>

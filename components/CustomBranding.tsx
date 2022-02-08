@@ -36,7 +36,6 @@ function isValidHexCode(val: string | null) {
   if (val) {
     val = val.indexOf("#") === 0 ? val : "#" + val;
     const regex = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
-    console.log("regex=>", regex.test(val));
     return regex.test(val);
   }
   return false;
