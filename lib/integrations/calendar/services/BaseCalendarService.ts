@@ -191,19 +191,21 @@ export default abstract class BaseCalendarService implements Calendar {
   ): Promise<EventBusyDate[]> {
     const objects = (
       await Promise.all(
-        selectedCalendars.map((sc) =>
-          fetchCalendarObjects({
-            calendar: {
-              url: sc.externalId,
-            },
-            headers: this.headers,
-            expand: true,
-            timeRange: {
-              start: new Date(dateFrom).toISOString(),
-              end: new Date(dateTo).toISOString(),
-            },
-          })
-        )
+        selectedCalendars
+          .filter((sc) => sc.integration === "caldav_calendar")
+          .map((sc) =>
+            fetchCalendarObjects({
+              calendar: {
+                url: sc.externalId,
+              },
+              headers: this.headers,
+              expand: true,
+              timeRange: {
+                start: new Date(dateFrom).toISOString(),
+                end: new Date(dateTo).toISOString(),
+              },
+            })
+          )
       )
     ).flat();
 
