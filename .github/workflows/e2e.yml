@@ -76,15 +76,6 @@ jobs:
       - run: yarn test
       - run: yarn build
 
-      - name: Cache playwright binaries
-        uses: actions/cache@v2
-        id: playwright-cache
-        with:
-          path: |
-            ~/Library/Caches/ms-playwright
-            ~/.cache/ms-playwright
-            **/node_modules/playwright
-          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
@@ -96,4 +87,8 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: videos
-          path: playwright/reports/playwright-html-report
+          path: |
+            playwright/screenshots
+            playwright/videos
+            playwright/results
+            playwright/reports/playwright-html-report
