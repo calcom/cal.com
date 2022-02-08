@@ -24,8 +24,8 @@ const increment = 15;
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 const TIMES = (() => {
-  const end = dayjs().endOf("day");
-  let t: Dayjs = dayjs().startOf("day");
+  const end = dayjs().utc().endOf("day");
+  let t: Dayjs = dayjs().utc().startOf("day");
 
   const times = [];
   while (t.isBefore(end)) {
