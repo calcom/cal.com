@@ -1,9 +1,19 @@
-import { MembershipRole } from "@prisma/client";
+import { MembershipRole, UserPlan } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import {
+  addSeat,
+  removeSeat,
+  getTeamSeatStats,
+  downgradeTeamMembers,
+  upgradeTeam,
+  ensureSubscriptionQuantityCorrectness,
+} from "@ee/lib/stripe/team-billing";
+
 import { BASE_URL } from "@lib/config/constants";
+import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import { getUserAvailability } from "@lib/queries/availability";
@@ -26,7 +36,14 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-      return { ...team, membership: { role: membership?.role as MembershipRole } };
+      return {
+        ...team,
+        membership: {
+          role: membership?.role as MembershipRole,
+          isMissingSeat: membership?.plan === UserPlan.FREE,
+        },
+        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
+      };
     },
   })
   // Returns teams I a member of
@@ -132,6 +149,8 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+      await downgradeTeamMembers(input.teamId);
+
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
         where: {
@@ -166,6 +185,8 @@ export const viewerTeamsRouter = createProtectedRouter()
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
         },
       });
+
+      if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     },
   })
   .mutation("inviteMember", {
@@ -195,6 +216,8 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
+      let inviteeUserId: number | undefined = invitee?.id;
+
       if (!invitee) {
         // liberal email match
         const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -206,7 +229,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           });
 
         // valid email given, create User and add to team
-        await ctx.prisma.user.create({
+        const user = await ctx.prisma.user.create({
           data: {
             email: input.usernameOrEmail,
             invitedTo: input.teamId,
@@ -218,6 +241,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             },
           },
         });
+        inviteeUserId = user.id;
 
         const token: string = randomBytes(32).toString("hex");
 
@@ -273,6 +297,11 @@ export const viewerTeamsRouter = createProtectedRouter()
           await sendTeamInviteEmail(teamInviteEvent);
         }
       }
+      try {
+        if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
+      } catch (e) {
+        console.log(e);
+      }
     },
   })
   .mutation("acceptOrLeave", {
@@ -291,6 +320,17 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
         });
       } else {
+        try {
+          //get team owner so we can alter their subscription seat count
+          const teamOwner = await ctx.prisma.membership.findFirst({
+            where: { teamId: input.teamId, role: MembershipRole.OWNER },
+          });
+
+          // TODO: disable if not hosted by Cal
+          if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
+        } catch (e) {
+          console.log(e);
+        }
         await ctx.prisma.membership.delete({
           where: {
             userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
@@ -372,13 +412,37 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
 
       // get availability for this member
-      const availability = await getUserAvailability({
+      return await getUserAvailability({
         username: member.user.username,
         timezone: input.timezone,
         dateFrom: input.dateFrom,
         dateTo: input.dateTo,
       });
-
-      return availability;
+    },
+  })
+  .mutation("upgradeTeam", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      if (!HOSTED_CAL_FEATURES)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+      return await upgradeTeam(ctx.user.id, input.teamId);
+    },
+  })
+  .query("getTeamSeats", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ input }) {
+      return await getTeamSeatStats(input.teamId);
+    },
+  })
+  .mutation("ensureSubscriptionQuantityCorrectness", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
     },
   });

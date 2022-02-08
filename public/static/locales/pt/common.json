@@ -621,5 +621,6 @@
   "remove": "Remover",
   "add": "Adicionar",
   "verify_wallet": "Verificar carteira",
-  "connect_metamask": "Ligar Metamask"
+  "connect_metamask": "Ligar Metamask",
+  "create_events_on": "Criar eventos em:"
 }
