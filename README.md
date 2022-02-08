@@ -189,6 +189,9 @@ yarn dx
 yarn dx
 # In second terminal
 yarn test-playwright
+
+# To open last HTML report run:
+yarn playwright-report
 ```
 
 ### Upgrading from earlier versions
