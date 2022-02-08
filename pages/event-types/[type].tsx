@@ -781,7 +781,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             value={asStringOrUndefined(eventType.schedulingType)}
                             options={schedulingTypeOptions}
                             onChange={(val) => {
-                              formMethods.setValue("schedulingType", val);
+                              // FIXME: Better types are needed
+                              formMethods.setValue("schedulingType", val as SchedulingType);
                             }}
                           />
                         )}
