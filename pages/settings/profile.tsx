@@ -177,10 +177,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    console.log("brand=>", brandColor);
-  }, [brandColor]);
-
   async function updateProfileHandler(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 

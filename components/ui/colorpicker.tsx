@@ -9,6 +9,7 @@ const ColorPicker = ({
   onColorChange: (text: string) => void;
 }) => {
   const [color, setColor] = useState(defaultValue);
+
   return (
     <>
       <HexColorPicker
