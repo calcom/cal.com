@@ -10,8 +10,10 @@
     "build": "turbo run build",
     "clean": "turbo run clean && rm -rf node_modules",
     "dev": "turbo run dev --parallel",
+    "dx": "turbo run dx",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
