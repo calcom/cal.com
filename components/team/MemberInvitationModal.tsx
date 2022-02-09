@@ -106,7 +106,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                     className="rounded-sm border-gray-300 text-black shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                   />
                 </div>
-                <div className="rtl:mr-2text-sm ltr:ml-2">
+                <div className="text-sm ltr:ml-2 rtl:mr-2">
                   <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
                     {t("send_invite_email")}
                   </label>

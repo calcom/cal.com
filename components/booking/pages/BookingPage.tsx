@@ -400,7 +400,7 @@ const BookingPage = (props: BookingPageProps) => {
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
                           />
-                          <span className="rtl:mr-2text-sm ltr:ml-2 dark:text-gray-500">
+                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
                           </span>
                         </label>
