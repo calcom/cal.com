@@ -6,6 +6,7 @@
     "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
     "db-up": "docker-compose up -d",
     "db-migrate": "yarn prisma migrate dev && yarn format-schemas",

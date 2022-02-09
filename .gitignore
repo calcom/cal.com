@@ -4,26 +4,17 @@
 .env
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
-/.yarn
 
 # testing
-/coverage
-.nyc_output
-playwright/videos
-playwright/screenshots
-playwright/artifacts
-playwright/results
-playwright/reports/*
+coverage
 
 # next.js
-/.next/
-/out/
-
-# production
-/build
+.next/
+out/
+build
 
 # misc
 .DS_Store
@@ -33,6 +24,7 @@ playwright/reports/*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # local env files
 .env.local
@@ -40,7 +32,6 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env.*
-
 # vercel
 .vercel
 
@@ -60,3 +51,5 @@ yarn-error.log*
 
 # Typescript
 tsconfig.tsbuildinfo
+# turbo
+.turbo
