@@ -12,6 +12,7 @@
     "dev": "turbo run dev --parallel",
     "dx": "turbo run dx",
     "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky install"
   },
