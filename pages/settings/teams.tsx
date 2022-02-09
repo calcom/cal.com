@@ -58,13 +58,13 @@ export default function Teams() {
           />
         )}
         {showCreateTeamModal && <TeamCreateModal onClose={() => setShowCreateTeamModal(false)} />}
-        <div className={classNames("flex justify-end my-4", isFreePlan && "opacity-50")}>
+        <div className={classNames("my-4 flex justify-end", isFreePlan && "opacity-50")}>
           <Button
             disabled={isFreePlan}
             type="button"
             className="btn btn-white"
             onClick={() => setShowCreateTeamModal(true)}>
-            <PlusIcon className="group-hover:text-black text-gray-700 w-3.5 h-3.5 ltr:mr-2 rtl:ml-2 inline-block" />
+            <PlusIcon className="inline-block h-3.5 w-3.5 text-gray-700 group-hover:text-black ltr:mr-2 rtl:ml-2" />
             {t("new_team")}
           </Button>
         </div>

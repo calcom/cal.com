@@ -61,25 +61,25 @@ export default function MemberListItem(props: Props) {
 
   return (
     <li className="divide-y">
-      <div className="flex justify-between my-4">
-        <div className="flex flex-col justify-between w-full sm:flex-row">
+      <div className="my-4 flex justify-between">
+        <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
             <Avatar
               imageSrc={getPlaceholderAvatar(props.member?.avatar, name)}
               alt={name || ""}
-              className="rounded-full w-9 h-9"
+              className="h-9 w-9 rounded-full"
             />
-            <div className="inline-block ml-3">
+            <div className="ml-3 inline-block">
               <span className="text-sm font-bold text-neutral-700">{name}</span>
               <span
-                className="block -mt-1 text-xs text-gray-400"
+                className="-mt-1 block text-xs text-gray-400"
                 data-testid="member-email"
                 data-email={props.member.email}>
                 {props.member.email}
               </span>
             </div>
           </div>
-          <div className="flex mt-2 ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
+          <div className="mt-2 flex ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
             {/* Tooltip doesn't show... WHY????? */}
             {props.member.isMissingSeat && (
               <Tooltip content={t("hidden_team_member_message")}>
@@ -102,13 +102,13 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="items-center justify-center hidden w-10 h-10 px-0 py-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
-              <ClockIcon className="w-5 h-5 group-hover:text-gray-800" />
+              className="group hidden h-10 w-10 items-center justify-center border border-transparent px-0 py-0 text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
+              <ClockIcon className="h-5 w-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
           <Dropdown>
-            <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 hover:bg-white">
-              <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-800" />
+            <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 hover:bg-white">
+              <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
@@ -129,7 +129,7 @@ export default function MemberListItem(props: Props) {
                       onClick={() => setShowChangeMemberRoleModal(true)}
                       color="minimal"
                       StartIcon={PencilIcon}
-                      className="flex-shrink-0 w-full font-normal">
+                      className="w-full flex-shrink-0 font-normal">
                       {t("edit_role")}
                     </Button>
                   </DropdownMenuItem>
@@ -173,7 +173,7 @@ export default function MemberListItem(props: Props) {
       {showTeamAvailabilityModal && (
         <ModalContainer wide noPadding>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="p-5 space-x-2 border-t rtl:space-x-reverse">
+          <div className="space-x-2 border-t p-5 rtl:space-x-reverse">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
               <Link href={`/settings/teams/${props.team.id}/availability`}>

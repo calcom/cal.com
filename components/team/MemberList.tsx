@@ -12,7 +12,7 @@ export default function MemberList(props: Props) {
 
   return (
     <div>
-      <ul className="px-4 mb-2 -mx-4 bg-white border divide-y divide-gray-200 rounded sm:px-4 sm:mx-0">
+      <ul className="-mx-4 mb-2 divide-y divide-gray-200 rounded border bg-white px-4 sm:mx-0 sm:px-4">
         {props.members?.map((member) => (
           <MemberListItem key={member.id} member={member} team={props.team} />
         ))}

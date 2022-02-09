@@ -95,26 +95,26 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding val={props.profile.brandColor} />
-        <main className="max-w-3xl py-24 mx-auto">
+        <main className="mx-auto max-w-3xl py-24">
           <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                   &#8203;
                 </span>
                 <div
-                  className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm dark:bg-gray-800 border-neutral-200 dark:border-neutral-700 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
+                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
                   <div>
-                    <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
-                      {!needsConfirmation && <CheckIcon className="w-8 h-8 text-green-600" />}
-                      {needsConfirmation && <ClockIcon className="w-8 h-8 text-green-600" />}
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                      {!needsConfirmation && <CheckIcon className="h-8 w-8 text-green-600" />}
+                      {needsConfirmation && <ClockIcon className="h-8 w-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
-                        className="text-2xl font-semibold leading-6 dark:text-white text-neutral-900"
+                        className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                         id="modal-headline">
                         {needsConfirmation ? t("submitted") : t("meeting_is_scheduled")}
                       </h3>
@@ -127,7 +127,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             : t("emailed_you_and_attendees")}
                         </p>
                       </div>
-                      <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b dark:text-gray-300 dark:border-gray-900">
+                      <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
@@ -157,11 +157,11 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   </div>
                   {!needsConfirmation && (
-                    <div className="flex pt-2 pb-4 mt-5 text-center border-b dark:border-gray-900 sm:mt-0 sm:pt-4">
+                    <div className="mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
-                      <div className="flex justify-center flex-grow text-center">
+                      <div className="flex flex-grow justify-center text-center">
                         <Link
                           href={
                             `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -174,9 +174,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             }` +
                             (typeof location === "string" ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white">
+                          <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
                             <svg
-                              className="inline-block w-4 h-4 -mt-1"
+                              className="-mt-1 inline-block h-4 w-4"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24">
@@ -199,10 +199,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
-                              className="inline-block w-4 h-4 mr-1 -mt-1"
+                              className="mr-1 -mt-1 inline-block h-4 w-4"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24">
@@ -225,10 +225,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
                             target="_blank">
                             <svg
-                              className="inline-block w-4 h-4 mr-1 -mt-1"
+                              className="mr-1 -mt-1 inline-block h-4 w-4"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24">
@@ -239,14 +239,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-neutral-200 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
                               fill="currentColor"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 1000 1000"
-                              className="inline-block w-4 h-4 mr-1 -mt-1">
+                              className="mr-1 -mt-1 inline-block h-4 w-4">
                               <title>{t("other")}</title>
                               <path d="M971.3,154.9c0-34.7-28.2-62.9-62.9-62.9H611.7c-1.3,0-2.6,0.1-3.9,0.2V10L28.7,87.3v823.4L607.8,990v-84.6c1.3,0.1,2.6,0.2,3.9,0.2h296.7c34.7,0,62.9-28.2,62.9-62.9V154.9z M607.8,636.1h44.6v-50.6h-44.6v-21.9h44.6v-50.6h-44.6v-92h277.9v230.2c0,3.8-3.1,7-7,7H607.8V636.1z M117.9,644.7l-50.6-2.4V397.5l50.6-2.2V644.7z M288.6,607.3c17.6,0.6,37.3-2.8,49.1-7.2l9.1,48c-11,5.1-35.6,9.9-66.9,8.3c-85.4-4.3-127.5-60.7-127.5-132.6c0-86.2,57.8-136.7,133.2-140.1c30.3-1.3,53.7,4,64.3,9.2l-12.2,48.9c-12.1-4.9-28.8-9.2-49.5-8.6c-45.3,1.2-79.5,30.1-79.5,87.4C208.8,572.2,237.8,605.7,288.6,607.3z M455.5,665.2c-32.4-1.6-63.7-11.3-79.1-20.5l12.6-50.7c16.8,9.1,42.9,18.5,70.4,19.4c30.1,1,46.3-10.7,46.3-29.3c0-17.8-14-28.1-48.8-40.6c-46.9-16.4-76.8-41.7-76.8-81.5c0-46.6,39.3-84.1,106.8-87.1c33.3-1.5,58.3,4.2,76.5,11.2l-15.4,53.3c-12.1-5.3-33.5-12.8-62.3-12c-28.3,0.8-41.9,13.6-41.9,28.1c0,17.8,16.1,25.5,53.6,39c52.9,18.5,78.4,45.3,78.4,86.4C575.6,629.7,536.2,669.2,455.5,665.2z M935.3,842.7c0,14.9-12.1,27-27,27H611.7c-1.3,0-2.6-0.2-3.9-0.4V686.2h270.9c19.2,0,34.9-15.6,34.9-34.9V398.4c0-19.2-15.6-34.9-34.9-34.9h-47.1v-32.3H808v32.3h-44.8v-32.3h-22.7v32.3h-43.3v-32.3h-22.7v32.3H628v-32.3h-20.2v-203c1.31.2,2.6-0.4,3.9-0.4h296.7c14.9,0,27,12.1,27,27L935.3,842.7L935.3,842.7z" />
                             </svg>
@@ -256,7 +256,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   )}
                   {!props.hideBranding && (
-                    <div className="pt-4 text-xs text-center text-gray-400 dark:border-gray-900 dark:text-white">
+                    <div className="pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                       <form
@@ -264,12 +264,12 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           e.preventDefault();
                           router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
                         }}
-                        className="flex mt-4">
+                        className="mt-4 flex">
                         <EmailInput
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="block w-full text-gray-600 border-gray-300 shadow-sm dark:bg-brand dark:text-brandcontrast dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                          className="block w-full border-gray-300 text-gray-600 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-brand dark:text-brandcontrast sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button type="submit" className="min-w-max" color="primary">

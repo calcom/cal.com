@@ -291,9 +291,9 @@ const BookingPage = (props: BookingPageProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding val={props.profile.brandColor} />
-      <main className="max-w-3xl mx-auto my-0 rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <main className=" mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
-          <div className="overflow-hidden bg-white border border-gray-200 dark:bg-neutral-900 dark:border-0 sm:rounded-sm">
+          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
@@ -307,19 +307,19 @@ const BookingPage = (props: BookingPageProps) => {
                       }))
                   )}
                 />
-                <h2 className="mt-2 font-medium text-gray-500 font-cal dark:text-gray-300">
+                <h2 className="mt-2 font-cal font-medium text-gray-500 dark:text-gray-300">
                   {props.profile.name}
                 </h2>
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                   {props.eventType.title}
                 </h1>
                 <p className="mb-2 text-gray-500">
-                  <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {props.eventType.length} {t("minutes")}
                 </p>
                 {props.eventType.price > 0 && (
-                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
-                    <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                    <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
                         value={props.eventType.price / 100.0}
@@ -331,22 +331,22 @@ const BookingPage = (props: BookingPageProps) => {
                 )}
                 {selectedLocation === LocationType.InPerson && (
                   <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     {getLocationValue({ locationType: selectedLocation })}
                   </p>
                 )}
                 {selectedLocation === LocationType.Jitsi && (
                   <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     Jitsi Meet
                   </p>
                 )}
                 <p className="mb-4 text-green-500">
-                  <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {parseDate(date)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
+                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
                     Requires ownership of a token belonging to the following address:{" "}
                     {eventType.metadata.smartContractAddress}
                   </p>
@@ -366,7 +366,7 @@ const BookingPage = (props: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                        className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                         placeholder="John Doe"
                       />
                     </div>
@@ -381,7 +381,7 @@ const BookingPage = (props: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                        className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                         placeholder="you@example.com"
                       />
                     </div>
@@ -395,12 +395,12 @@ const BookingPage = (props: BookingPageProps) => {
                         <label key={i} className="block">
                           <input
                             type="radio"
-                            className="w-4 h-4 text-black border-gray-300 ltr:mr-2 rtl:ml-2 location focus:ring-black"
+                            className="location h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
                           />
-                          <span className="ltr:ml-2 rtl:mr-2text-sm dark:text-gray-500">
+                          <span className="rtl:mr-2text-sm ltr:ml-2 dark:text-gray-500">
                             {locationLabels[location.type]}
                           </span>
                         </label>
@@ -428,7 +428,7 @@ const BookingPage = (props: BookingPageProps) => {
                         {input.type !== EventTypeCustomInputType.BOOL && (
                           <label
                             htmlFor={"custom_" + input.id}
-                            className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {input.label}
                           </label>
                         )}
@@ -439,7 +439,7 @@ const BookingPage = (props: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -450,7 +450,7 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -461,24 +461,24 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                            className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                             placeholder=""
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
-                          <div className="flex items-center h-5">
+                          <div className="flex h-5 items-center">
                             <input
                               type="checkbox"
                               {...bookingForm.register(`customInputs.${input.id}`, {
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="w-4 h-4 text-black border-gray-300 rounded ltr:mr-2 rtl:ml-2 focus:ring-black"
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                               placeholder=""
                             />
                             <label
                               htmlFor={"custom_" + input.id}
-                              className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                              className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
                           </div>
@@ -491,7 +491,7 @@ const BookingPage = (props: BookingPageProps) => {
                         <label
                           onClick={() => setGuestToggle(!guestToggle)}
                           htmlFor="guests"
-                          className="block mb-1 text-sm font-medium dark:text-white hover:cursor-pointer">
+                          className="mb-1 block text-sm font-medium hover:cursor-pointer dark:text-white">
                           {/*<UserAddIcon className="inline-block w-5 h-5 mr-1 -mt-1" />*/}
                           {t("additional_guests")}
                         </label>
@@ -500,7 +500,7 @@ const BookingPage = (props: BookingPageProps) => {
                         <div>
                           <label
                             htmlFor="guests"
-                            className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {t("guests")}
                           </label>
                           <Controller
@@ -536,14 +536,14 @@ const BookingPage = (props: BookingPageProps) => {
                   <div className="mb-4">
                     <label
                       htmlFor="notes"
-                      className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                      className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                       {t("additional_notes")}
                     </label>
                     <textarea
                       {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
-                      className="block w-full border-gray-300 rounded-sm shadow-sm dark:bg-black dark:text-white dark:border-gray-900 focus:ring-black focus:border-brand sm:text-sm"
+                      className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
@@ -557,10 +557,10 @@ const BookingPage = (props: BookingPageProps) => {
                   </div>
                 </Form>
                 {mutation.isError && (
-                  <div className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
+                  <div className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
-                        <ExclamationIcon className="w-5 h-5 text-yellow-400" aria-hidden="true" />
+                        <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />
                       </div>
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">

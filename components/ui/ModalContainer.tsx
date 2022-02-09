@@ -14,19 +14,19 @@ export default function ModalContainer(props: Props) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 z-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"></div>
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+        <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
           &#8203;
         </span>
         <div
           className={classNames(
-            "inline-block min-w-96 px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6",
+            "inline-block min-w-96 transform rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:p-6 sm:align-middle",
             {
-              "sm:max-w-lg sm:w-full ": !props.wide,
-              "sm:max-w-4xl sm:w-4xl": props.wide,
+              "sm:w-full sm:max-w-lg ": !props.wide,
+              "sm:w-4xl sm:max-w-4xl": props.wide,
               "overflow-scroll": props.scroll,
               "!p-0": props.noPadding,
             }

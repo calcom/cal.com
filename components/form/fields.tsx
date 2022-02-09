@@ -17,7 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm",
+        "mt-1 block w-full rounded-sm border border-gray-300 py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -34,7 +34,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex items-center flex-shrink-0 px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
       {props.children}
     </span>
   );
@@ -69,7 +69,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         </Label>
       )}
       {addOnLeading ? (
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           {addOnLeading}
           <Input
             id={id}
@@ -136,7 +136,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full font-mono border-gray-300 rounded-sm shadow-sm focus:ring-neutral-900 focus:border-neutral-900 sm:text-sm",
+        "font-mono block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
         props.className
       )}
     />
@@ -221,7 +221,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("p-2 bg-white border border-gray-300 rounded-sm space-y-2", props.className)}>
+      className={classNames("space-y-2 rounded-sm border border-gray-300 bg-white p-2", props.className)}>
       {props.children}
     </div>
   );

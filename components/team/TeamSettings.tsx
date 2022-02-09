@@ -90,7 +90,7 @@ export default function TeamSettings(props: Props) {
                       name="" // typescript requires name but we don't want component to render name label
                       id="team-url"
                       addOnLeading={
-                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                        <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
                           {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
                         </span>
                       }
@@ -111,7 +111,7 @@ export default function TeamSettings(props: Props) {
                       id="name"
                       placeholder={t("your_team_name")}
                       required
-                      className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                       defaultValue={team?.name as string}
                     />
                   }
@@ -130,7 +130,7 @@ export default function TeamSettings(props: Props) {
                           name="about"
                           rows={3}
                           defaultValue={team?.bio as string}
-                          className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"></textarea>
+                          className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
                     }
@@ -143,14 +143,14 @@ export default function TeamSettings(props: Props) {
                     htmlFor="avatar"
                     Input={
                       <>
-                        <div className="flex mt-1">
+                        <div className="mt-1 flex">
                           <input
                             ref={logoRef}
                             type="hidden"
                             name="avatar"
                             id="avatar"
                             placeholder="URL"
-                            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                             defaultValue={team?.logo ?? undefined}
                           />
                           <ImageUploader
@@ -165,7 +165,7 @@ export default function TeamSettings(props: Props) {
                               onClick={removeLogo}
                               color="secondary"
                               type="button"
-                              className="py-1 ml-1 text-xs">
+                              className="ml-1 py-1 text-xs">
                               {t("remove_logo")}
                             </Button>
                           )}
@@ -178,14 +178,14 @@ export default function TeamSettings(props: Props) {
                 </div>
 
                 <div className="relative flex items-start">
-                  <div className="flex items-center h-5">
+                  <div className="flex h-5 items-center">
                     <input
                       id="hide-branding"
                       name="hide-branding"
                       type="checkbox"
                       ref={hideBrandingRef}
                       defaultChecked={team?.hideBranding}
-                      className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
+                      className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
                     />
                   </div>
                   <div className="text-sm ltr:ml-3 rtl:mr-3">

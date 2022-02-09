@@ -38,8 +38,8 @@ function CropContainer({
   };
 
   return (
-    <div className="w-40 h-40 rounded-full crop-container max-h-40">
-      <div className="relative w-40 h-40 rounded-full">
+    <div className="crop-container h-40 max-h-40 w-40 rounded-full">
+      <div className="relative h-40 w-40 rounded-full">
         <Cropper
           image={imageSrc}
           crop={crop}
@@ -119,38 +119,38 @@ export default function ImageUploader({
       <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
+            <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
               {t("upload_target", { target })}
             </h3>
           </div>
         </div>
         <div className="mb-4">
-          <div className="flex flex-col items-center justify-center p-8 mt-6 cropper">
+          <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="flex items-center justify-start w-20 h-20 bg-gray-50 rounded-full max-h-20">
+              <div className="flex h-20 max-h-20 w-20 items-center justify-start rounded-full bg-gray-50">
                 {!imageSrc && (
-                  <p className="w-full text-sm text-center text-white sm:text-xs">
+                  <p className="w-full text-center text-sm text-white sm:text-xs">
                     {t("no_target", { target })}
                   </p>
                 )}
-                {imageSrc && <img className="w-20 h-20 rounded-full" src={imageSrc} alt={target} />}
+                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="px-3 py-1 mt-8 text-xs font-medium leading-4 text-gray-700 bg-white border border-gray-300 rounded-sm hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-900">
+            <label className="mt-8 rounded-sm border border-gray-300 bg-white px-3 py-1 text-xs font-medium leading-4 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent dark:text-white dark:hover:bg-gray-900">
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="absolute mt-4 opacity-0 pointer-events-none"
+                className="pointer-events-none absolute mt-4 opacity-0"
                 accept="image/*"
               />
               {t("choose_a_file")}
             </label>
           </div>
         </div>
-        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+        <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
           <DialogClose asChild>
             <Button onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
           </DialogClose>

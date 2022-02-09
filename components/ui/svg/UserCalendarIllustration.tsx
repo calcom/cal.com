@@ -3,7 +3,7 @@ import React from "react";
 function UserCalendarIllustration() {
   return (
     <svg
-      className="w-1/2 md:w-32 mx-auto block mb-4"
+      className="mx-auto mb-4 block w-1/2 md:w-32"
       viewBox="0 0 132 132"
       fill="none"
       xmlns="http://www.w3.org/2000/svg">

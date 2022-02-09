@@ -93,17 +93,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <StartIcon
           className={classNames(
             "inline",
-            size === "icon" ? "w-5 h-5 " : "w-5 h-5 ltr:mr-2 rtl:ml-2 rtl:ml-2 rtl:-mr-1 -ml-1"
+            size === "icon" ? "h-5 w-5 " : "-ml-1 h-5 w-5 ltr:mr-2 rtl:ml-2 rtl:ml-2 rtl:-mr-1"
           )}
         />
       )}
       {props.children}
       {loading && (
-        <div className="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
             className={classNames(
-              "w-5 h-5 mx-4 animate-spin",
-              color === "primary" ? "dark:text-black text-white" : "text-black"
+              "mx-4 h-5 w-5 animate-spin",
+              color === "primary" ? "text-white dark:text-black" : "text-black"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -122,7 +122,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="inline w-5 h-5 ltr:ml-2 rtl:mr-2 -mr-1" />}
+      {EndIcon && <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />}
     </>
   );
   return props.href ? (

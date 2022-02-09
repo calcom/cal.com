@@ -7,13 +7,15 @@ import { useLocale } from "@lib/hooks/useLocale";
 
 import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
-type OptionProps = React.OptionHTMLAttributes<HTMLOptionElement> & {
+interface OptionProps
+  extends Pick<React.OptionHTMLAttributes<HTMLOptionElement>, "value" | "label" | "className"> {
   description?: string;
-};
+}
 
-type RadioAreaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+interface RadioAreaSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   options: OptionProps[]; // allow options to be passed programmatically, like options={}
-};
+  onChange?: (value: string) => void;
+}
 
 export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
   const { t } = useLocale();
@@ -23,7 +25,7 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
     placeholder = t("select"),
   } = props;
 
-  const getLabel = (value: string | ReadonlyArray<string> | number) =>
+  const getLabel = (value: string | ReadonlyArray<string> | number | undefined) =>
     options.find((option: OptionProps) => option.value === value)?.label;
 
   return (
@@ -32,8 +34,8 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
         type="button"
         disabled={disabled}
         className={classNames(
-          "mb-1 cursor-pointer focus:ring-primary-500 text-left border border-1 bg-white p-2 shadow-sm block w-full sm:text-sm border-gray-300 rounded-sm",
-          disabled && "focus:ring-0 cursor-default bg-gray-200 "
+          "border-1 mb-1 block w-full cursor-pointer rounded-sm border border-gray-300 bg-white p-2 text-left shadow-sm focus:ring-primary-500 sm:text-sm",
+          disabled && "cursor-default bg-gray-200 focus:ring-0 "
         )}>
         {getLabel(props.value) ?? placeholder}
         <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
@@ -41,8 +43,11 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
       <CollapsibleContent>
         <RadioAreaGroup className="space-y-2 text-sm" name={props.name} onChange={props.onChange}>
           {options.map((option) => (
-            <RadioArea {...option} key={option.value} defaultChecked={props.value === option.value}>
-              <strong className="block mb-1">{option.label}</strong>
+            <RadioArea
+              {...option}
+              key={Array.isArray(option.value) ? option.value.join(",") : `${option.value}`}
+              defaultChecked={props.value === option.value}>
+              <strong className="mb-1 block">{option.label}</strong>
               <p>{option.description}</p>
             </RadioArea>
           ))}

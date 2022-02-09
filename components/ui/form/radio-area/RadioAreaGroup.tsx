@@ -11,7 +11,7 @@ const RadioArea = (props: RadioAreaProps) => {
   return (
     <label
       className={classNames(
-        "block border border-1 p-4 focus:outline-none focus:ring focus:ring-neutral-500",
+        "border-1 block border p-4 focus:outline-none focus:ring focus:ring-neutral-500",
         props.checked && "border-brand",
         props.className
       )}>
