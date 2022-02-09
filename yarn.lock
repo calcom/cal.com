@@ -11363,10 +11363,10 @@ ts-node@^10.2.1:
     make-error "^1.1.1"
     yn "3.1.1"
 
-tsdav@2.0.0-rc.3:
-  version "2.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-2.0.0-rc.3.tgz#b8cef07079e69a65be4d1404c91a6dbd319fa5b0"
-  integrity sha512-F6YxPB+dA5TP5KIr4NgfzQtPO7Pvf6XLwDjkpkWw6FhAdtshN97AVR+kP+DPcyUp2df3vMK9YS+XEOcpqwxCCw==
+tsdav@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/tsdav/-/tsdav-2.0.0.tgz#e0a91d0ad79e793885b3fdc34157bd8aeedfb0f1"
+  integrity sha512-ENdQyhu4T03QZxh5dhoDP7vXB8bqwpBATCA57pu61Gam5/wg+7JApQuUdGjXHGzcqSpWpD960avPCdj2M+hlLQ==
   dependencies:
     base-64 "1.0.0"
     cross-fetch "3.1.5"
