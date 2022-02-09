@@ -20,7 +20,7 @@ export const DateRangePicker = ({ startDate, endDate, onDatesChange }: Props) =>
       rangeDivider={<ArrowRightIcon className="h-4 w-4 text-gray-400 ltr:mr-2 rtl:ml-2" />}
       value={[startDate, endDate]}
       onChange={([startDate, endDate]) => {
-        onDatesChange({ startDate, endDate });
+        if (typeof onDatesChange === "function") onDatesChange({ startDate, endDate });
       }}
     />
   );
