@@ -40,6 +40,15 @@ export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
     };
   }
 
+  protected getRejectionReason(): string {
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.attendee.language.translate("rejection_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.rejectionReason}</p>
+    </div>`;
+  }
+
   protected getTextBody(): string {
     return `
 ${this.attendee.language.translate("event_request_declined")}
