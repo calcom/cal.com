@@ -295,7 +295,7 @@ ${getRichDescription(this.calEvent)}
     </div>
     `;
   }
-  
+
   protected getRejectionReason(): string {
     return `
     <p style="height: 6px"></p>

@@ -40,8 +40,6 @@ export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
     };
   }
 
-
-
   protected getTextBody(): string {
     return `
 ${this.attendee.language.translate("event_request_declined")}
@@ -131,4 +129,3 @@ ${this.calEvent.rejectionReason && this.getRejectionReason()}
     `;
   }
 }
-
