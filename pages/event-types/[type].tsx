@@ -399,7 +399,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">{location.address}</span>
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.address}
+                      />
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
