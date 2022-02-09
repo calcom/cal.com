@@ -13,12 +13,15 @@ jobs:
           fetch-depth: 0
 
       - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           version: 14.x
 
       - name: Install deps
-        uses: bahmutov/npm-install@v1
+        run: yarn
 
       - name: Lint
         run: yarn lint
+
+      - name: Type Checks
+        run: tsc
