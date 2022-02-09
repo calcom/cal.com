@@ -13,5 +13,15 @@ services:
       POSTGRES_DB: "cal-saml"
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres_is_ready:
+    image: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
 volumes:
   db_data:
