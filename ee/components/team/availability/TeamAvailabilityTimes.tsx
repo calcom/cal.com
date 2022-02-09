@@ -48,7 +48,7 @@ export default function TeamAvailabilityTimes(props: Props) {
     : [];
 
   return (
-    <div className={classNames("flex-grow p-5 pl-0 min-w-60", props.className)}>
+    <div className={classNames("min-w-60 flex-grow p-5 pl-0", props.className)}>
       {props.HeaderComponent}
       {isLoading && times.length === 0 && <Loader />}
       {!isLoading && times.length === 0 && (
@@ -59,7 +59,7 @@ export default function TeamAvailabilityTimes(props: Props) {
       {times.map((time) => (
         <div key={time.format()} className="flex flex-row items-center">
           <a
-            className="flex-grow block py-2 mb-2 mr-3 font-medium text-center bg-white border rounded-sm min-w-48 dark:bg-gray-600 text-primary-500 dark:text-neutral-200 border-brand dark:border-transparent hover:bg-brand hover:text-brandcontrast dark:hover:border-black dark:hover:text-white dark:hover:bg-black"
+            className="mb-2 mr-3 block min-w-48 flex-grow rounded-sm border border-brand bg-white py-2 text-center font-medium text-primary-500 hover:bg-brand hover:text-brandcontrast dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black dark:hover:bg-black dark:hover:text-white"
             data-testid="time">
             {time.format("HH:mm")}
           </a>

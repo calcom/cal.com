@@ -36,7 +36,7 @@ export default function Avatar(props: AvatarProps) {
   return title ? (
     <Tooltip.Tooltip delayDuration={300}>
       <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
-      <Tooltip.Content className="p-2 text-sm rounded-sm shadow-sm bg-brand text-brandcontrast">
+      <Tooltip.Content className="rounded-sm bg-brand p-2 text-sm text-brandcontrast shadow-sm">
         <Tooltip.Arrow />
         {title}
       </Tooltip.Content>

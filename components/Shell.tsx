@@ -104,12 +104,12 @@ export function ShellSubHeading(props: {
   className?: string;
 }) {
   return (
-    <div className={classNames("block sm:flex justify-between mb-3", props.className)}>
+    <div className={classNames("mb-3 block justify-between sm:flex", props.className)}>
       <div>
-        <h2 className="flex items-center content-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
+        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
         </h2>
-        {props.subtitle && <p className="text-sm ltr:mr-4 text-neutral-500">{props.subtitle}</p>}
+        {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
@@ -184,7 +184,7 @@ export default function Shell(props: {
   if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
     return (
-      <div className="absolute z-50 flex items-center w-full h-screen bg-gray-50">
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
         <Loader />
       </div>
     );
@@ -206,9 +206,9 @@ export default function Shell(props: {
 
       <div className="flex h-screen overflow-hidden bg-gray-100" data-testid="dashboard-shell">
         <div className="hidden md:flex lg:flex-shrink-0">
-          <div className="flex flex-col w-14 lg:w-56">
-            <div className="flex flex-col flex-1 h-0 bg-white border-r border-gray-200">
-              <div className="flex flex-col flex-1 pt-3 pb-4 overflow-y-auto lg:pt-5">
+          <div className="flex w-14 flex-col lg:w-56">
+            <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+              <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
                 <Link href="/event-types">
                   <a className="px-4 md:hidden lg:inline">
                     <Logo small />
@@ -220,7 +220,7 @@ export default function Shell(props: {
                     <Logo small icon />
                   </a>
                 </Link>
-                <nav className="flex-1 px-2 mt-2 space-y-1 bg-white lg:mt-5">
+                <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
                   {navigation.map((item) => (
                     <Link key={item.name} href={item.href}>
                       <a
@@ -228,14 +228,14 @@ export default function Shell(props: {
                           item.current
                             ? "bg-neutral-100 text-neutral-900"
                             : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                          "group flex items-center px-2 py-2 text-sm font-medium rounded-sm"
+                          "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
                         )}>
                         <item.icon
                           className={classNames(
                             item.current
                               ? "text-neutral-500"
                               : "text-neutral-400 group-hover:text-neutral-500",
-                            "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
+                            "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
                           )}
                           aria-hidden="true"
                         />
@@ -246,7 +246,7 @@ export default function Shell(props: {
                 </nav>
               </div>
               <TrialBanner />
-              <div className="p-2 pt-2 pr-2 m-2 rounded-sm hover:bg-gray-100">
+              <div className="m-2 rounded-sm p-2 pt-2 pr-2 hover:bg-gray-100">
                 <span className="hidden lg:inline">
                   <UserDropdown />
                 </span>
@@ -258,25 +258,25 @@ export default function Shell(props: {
           </div>
         </div>
 
-        <div className="flex flex-col flex-1 w-0 overflow-hidden">
+        <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <main
             className={classNames(
-              "flex-1 relative z-0 overflow-y-auto focus:outline-none max-w-[1700px]",
+              "relative z-0 max-w-[1700px] flex-1 overflow-y-auto focus:outline-none",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200 md:hidden">
+            <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
               <Link href="/event-types">
                 <a>
                   <Logo />
                 </a>
               </Link>
-              <div className="flex items-center self-center gap-3">
-                <button className="p-2 text-gray-400 bg-white rounded-full hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              <div className="flex items-center gap-3 self-center">
+                <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
                   <span className="sr-only">{t("view_notifications")}</span>
                   <Link href="/settings/profile">
                     <a>
-                      <CogIcon className="w-6 h-6" aria-hidden="true" />
+                      <CogIcon className="h-6 w-6" aria-hidden="true" />
                     </a>
                   </Link>
                 </button>
@@ -285,8 +285,8 @@ export default function Shell(props: {
             </nav>
             <div
               className={classNames(
-                props.centered && "md:max-w-5xl mx-auto",
-                props.flexChildrenContainer && "flex flex-col flex-1",
+                props.centered && "mx-auto md:max-w-5xl",
+                props.flexChildrenContainer && "flex flex-1 flex-col",
                 "py-8"
               )}>
               {!!props.backPath && (
@@ -299,25 +299,25 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block sm:flex justify-between px-4 sm:px-6 md:px-8 min-h-[80px]">
+              <div className="block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8">
                 {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-                <div className="w-full mb-8">
-                  <h1 className="mb-1 text-xl font-bold tracking-wide text-gray-900 font-cal">
+                <div className="mb-8 w-full">
+                  <h1 className="mb-1 font-cal text-xl font-bold tracking-wide text-gray-900">
                     {props.heading}
                   </h1>
-                  <p className="text-sm ltr:mr-4 rtl:ml-4 text-neutral-500">{props.subtitle}</p>
+                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                 </div>
-                <div className="flex-shrink-0 mb-4">{props.CTA}</div>
+                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
               </div>
               <div
                 className={classNames(
                   "px-4 sm:px-6 md:px-8",
-                  props.flexChildrenContainer && "flex flex-col flex-1"
+                  props.flexChildrenContainer && "flex flex-1 flex-col"
                 )}>
                 {props.children}
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="fixed bottom-0 z-40 flex w-full bg-white shadow bottom-nav md:hidden">
+              <nav className="bottom-nav fixed bottom-0 z-40 flex w-full bg-white shadow md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.href === "/settings/profile" ? (
@@ -329,13 +329,13 @@ export default function Shell(props: {
                           item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
                           itemIdx === 0 ? "rounded-l-lg" : "",
                           itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-xs sm:text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
+                          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
                         )}
                         aria-current={item.current ? "page" : undefined}>
                         <item.icon
                           className={classNames(
                             item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                            "block mx-auto flex-shrink-0 h-5 w-5 mb-1 text-center"
+                            "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
                           )}
                           aria-hidden="true"
                         />
@@ -370,11 +370,11 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center w-full appearance-none cursor-pointer group">
+        <div className="group flex w-full cursor-pointer appearance-none items-center">
           <span
             className={classNames(
-              small ? "w-8 h-8" : "w-10 h-10",
-              "bg-gray-300 rounded-full flex-shrink-0 relative  ltr:mr-3 rtl:ml-3"
+              small ? "h-8 w-8" : "h-10 w-10",
+              "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
             <img
               className="rounded-full"
@@ -387,24 +387,24 @@ function UserDropdown({ small }: { small?: boolean }) {
               alt={user?.username || "Nameless User"}
             />
             {!user?.away && (
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
             )}
             {user?.away && (
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-yellow-500 border-2 border-white rounded-full"></div>
+              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500"></div>
             )}
           </span>
           {!small && (
-            <span className="flex items-center flex-grow truncate">
-              <span className="flex-grow text-sm truncate">
-                <span className="block font-medium text-gray-900 truncate">
+            <span className="flex flex-grow items-center truncate">
+              <span className="flex-grow truncate text-sm">
+                <span className="block truncate font-medium text-gray-900">
                   {user?.username || "Nameless User"}
                 </span>
-                <span className="block font-normal truncate text-neutral-500">
+                <span className="block truncate font-normal text-neutral-500">
                   {user?.username ? `cal.com/${user.username}` : "No public page"}
                 </span>
               </span>
               <SelectorIcon
-                className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500"
+                className="h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                 aria-hidden="true"
               />
             </span>
@@ -418,13 +418,13 @@ function UserDropdown({ small }: { small?: boolean }) {
               mutation.mutate({ away: !user?.away });
               utils.invalidateQueries("viewer.me");
             }}
-            className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+            className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
             <MoonIcon
               className={classNames(
                 user?.away
                   ? "text-purple-500 group-hover:text-purple-700"
                   : "text-gray-500 group-hover:text-gray-700",
-                "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
+                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
               )}
               aria-hidden="true"
             />
@@ -439,7 +439,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               rel="noopener noreferrer"
               href={`${process.env.NEXT_PUBLIC_APP_URL}/${user.username}`}
               className="flex items-center px-4 py-2 text-sm text-gray-700">
-              <ExternalLinkIcon className="w-5 h-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("view_public_page")}
+              <ExternalLinkIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("view_public_page")}
             </a>
           </DropdownMenuItem>
         )}
@@ -454,7 +454,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               viewBox="0 0 2447.6 2452.5"
               className={classNames(
                 "text-gray-500 group-hover:text-gray-700",
-                "mt-0.5 ltr:mr-2 rtl:ml-2 flex-shrink-0 h-4 w-4"
+                "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
               )}
               xmlns="http://www.w3.org/2000/svg">
               <g clipRule="evenodd" fillRule="evenodd">
@@ -481,7 +481,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             rel="noopener noreferrer"
             href="https://cal.com/roadmap"
             className="flex items-center px-4 py-2 text-sm text-gray-700">
-            <MapIcon className="w-5 h-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
+            <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
         <HelpMenuItemDynamic />
@@ -489,11 +489,11 @@ function UserDropdown({ small }: { small?: boolean }) {
         <DropdownMenuItem>
           <a
             onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-            className="flex px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+            className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
             <LogoutIcon
               className={classNames(
                 "text-gray-500 group-hover:text-gray-700",
-                "ltr:mr-3 rtl:ml-3 flex-shrink-0 h-5 w-5"
+                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
               )}
               aria-hidden="true"
             />

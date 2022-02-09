@@ -14,13 +14,13 @@ export default function AddToHomescreen() {
   }
   return !closeBanner ? (
     <div className="fixed inset-x-0 bottom-0 pb-2 sm:hidden sm:pb-5">
-      <div className="px-2 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="p-2 rounded-lg shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div className="rounded-lg p-2 shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
           <div className="flex flex-wrap items-center justify-between">
-            <div className="flex items-center flex-1 w-0">
-              <span className="flex p-2 rounded-lg bg-opacity-30 bg-brand text-brandcontrast">
+            <div className="flex w-0 flex-1 items-center">
+              <span className="flex rounded-lg bg-brand bg-opacity-30 p-2 text-brandcontrast">
                 <svg
-                  className="text-indigo-500 fill-current h-7 w-7"
+                  className="h-7 w-7 fill-current text-indigo-500"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 50 50"
                   enableBackground="new 0 0 50 50">
@@ -34,13 +34,13 @@ export default function AddToHomescreen() {
               </p>
             </div>
 
-            <div className="flex-shrink-0 order-2 sm:order-3">
+            <div className="order-2 flex-shrink-0 sm:order-3">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"
-                className="flex p-2 -mr-1 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
+                className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <XIcon className="w-6 h-6 text-white" aria-hidden="true" />
+                <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>
           </div>

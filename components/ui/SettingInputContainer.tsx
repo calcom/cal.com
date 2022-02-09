@@ -13,12 +13,12 @@ export default function SettingInputContainer({
     <div className="space-y-3">
       <div className="block sm:flex">
         <div className="mb-4 min-w-48 sm:mb-0">
-          <label htmlFor={htmlFor} className="flex mt-1 text-sm font-medium text-neutral-700">
-            <Icon className="w-4 h-4 ltr:mr-2 rtl:ml-2 mt-0.5 text-neutral-500" />
+          <label htmlFor={htmlFor} className="mt-1 flex text-sm font-medium text-neutral-700">
+            <Icon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
             {label}
           </label>
         </div>
-        <div className="flex-grow w-full">{Input}</div>
+        <div className="w-full flex-grow">{Input}</div>
       </div>
     </div>
   );

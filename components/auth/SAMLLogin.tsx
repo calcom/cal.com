@@ -35,7 +35,7 @@ export default function SAMLLogin(props: Props) {
       <Button
         color="secondary"
         data-testid={"saml"}
-        className="flex justify-center w-full"
+        className="flex w-full justify-center"
         onClick={async (event) => {
           event.preventDefault();
 

@@ -512,6 +512,7 @@
   "cal_provide_zoom_meeting_url": "Cal은 Zoom 회의 URL을 제공합니다.",
   "cal_provide_tandem_meeting_url": "Cal은 Tandem 회의 URL을 제공합니다.",
   "cal_provide_video_meeting_url": "Cal은 일일 화상 회의 URL을 제공합니다.",
+  "cal_provide_jitsi_meeting_url": "Cal은 Jitsi Meet 회의 URL을 제공합니다.",
   "cal_provide_huddle01_meeting_url": "Cal은 Huddle01 Web3 회의 URL을 제공합니다.",
   "require_payment": "지불 요청",
   "commission_per_transaction": "거래당 수수료",

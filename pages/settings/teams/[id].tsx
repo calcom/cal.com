@@ -109,7 +109,7 @@ export function TeamSettingsPage() {
                 </>
               )}
 
-              <div className="px-4 -mx-0 bg-white border rounded-sm border-neutral-200 sm:px-6">
+              <div className="-mx-0 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (
@@ -119,8 +119,8 @@ export function TeamSettingsPage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-between mb-3 mt-7">
-                <h3 className="text-xl font-bold leading-6 text-gray-900 font-cal">{t("members")}</h3>
+              <div className="mb-3 mt-7 flex items-center justify-between">
+                <h3 className="font-cal text-xl font-bold leading-6 text-gray-900">{t("members")}</h3>
                 {isAdmin && (
                   <div className="relative flex items-center">
                     <Button
@@ -137,7 +137,7 @@ export function TeamSettingsPage() {
               <MemberList team={team} members={team.members || []} />
               {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
             </div>
-            <div className="w-full px-2 mt-8 ltr:ml-2 rtl:mr-2 md:w-3/12 sm:mt-0 min-w-32">
+            <div className="mt-8 w-full min-w-32 px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />
             </div>
           </div>

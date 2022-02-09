@@ -69,13 +69,13 @@ const ColorPicker = (props: ColorPickerProps) => {
   const close = useCallback(() => toggle(false), []);
   useOnClickOutside(popover, close);
   return (
-    <div className="relative flex items-center justify-center mt-1">
+    <div className="relative mt-1 flex items-center justify-center">
       <Swatch size="sm" backgroundColor={color} onClick={() => toggle(!isOpen)} />
 
       {isOpen && (
         <div className="popover" ref={popover}>
           <HexColorPicker
-            className="!w-32 !h-32 !absolute !top-10 !left-0 !z-10"
+            className="!absolute !top-10 !left-0 !z-10 !h-32 !w-32"
             color={color}
             onChange={(val) => {
               setColor(val);
@@ -85,7 +85,7 @@ const ColorPicker = (props: ColorPickerProps) => {
         </div>
       )}
       <HexColorInput
-        className="block w-full px-3 py-2 ml-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+        className="ml-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
         color={color}
         onChange={(val) => {
           setColor(val);

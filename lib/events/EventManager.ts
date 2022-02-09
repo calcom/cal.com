@@ -66,6 +66,7 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
     location === LocationType.Daily.valueOf() ||
+    location === LocationType.Jitsi.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
     location === LocationType.Tandem.valueOf()
   ) {

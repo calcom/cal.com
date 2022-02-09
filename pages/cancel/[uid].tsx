@@ -36,22 +36,22 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
         description={`${t("cancel")} ${props.booking && props.booking.title} | ${props.profile?.name}`}
       />
       <CustomBranding val={props.profile?.brandColor} />
-      <main className="max-w-3xl mx-auto my-24">
+      <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+              <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
               <div
-                className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6"
+                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 {error && (
                   <div>
-                    <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                      <XIcon className="w-6 h-6 text-red-600" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                      <XIcon className="h-6 w-6 text-red-600" />
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -63,8 +63,8 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                 {!error && (
                   <>
                     <div>
-                      <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                        <XIcon className="w-6 h-6 text-red-600" />
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                        <XIcon className="h-6 w-6 text-red-600" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -77,12 +77,12 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                             {props.cancellationAllowed ? t("reschedule_instead") : t("event_is_in_the_past")}
                           </p>
                         </div>
-                        <div className="py-4 mt-4 border-t border-b">
-                          <h2 className="mb-2 text-lg font-medium text-gray-600 font-cal">
+                        <div className="mt-4 border-t border-b py-4">
+                          <h2 className="mb-2 font-cal text-lg font-medium text-gray-600">
                             {props.booking?.title}
                           </h2>
                           <p className="text-gray-500">
-                            <CalendarIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                            <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                             {dayjs(props.booking?.startTime).format(
                               (is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY"
                             )}
@@ -99,7 +99,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           onChange={(e) => setCancellationReason(e.target.value)}
                           className="mb-5 sm:mb-6"
                         />
-                        <div className="text-center rtl:space-x-reverse space-x-2">
+                        <div className="space-x-2 text-center rtl:space-x-reverse">
                           <Button
                             color="secondary"
                             data-testid="cancel"
