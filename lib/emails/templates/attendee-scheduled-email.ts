@@ -285,6 +285,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getAdditionalNotes(): string {
+    if (!this.calEvent.description) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
@@ -294,6 +295,16 @@ ${getRichDescription(this.calEvent)}
       }</p>
     </div>
     `;
+  }
+
+  protected getRejectionReason(): string {
+    if (!this.calEvent.rejectionReason) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("rejection_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.rejectionReason}</p>
+    </div>`;
   }
 
   protected getLocation(): string {
