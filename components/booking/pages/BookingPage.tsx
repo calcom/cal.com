@@ -270,7 +270,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   return (
     <div>
-      <Theme></Theme>
+      <Theme />
       <Head>
         <title>
           {rescheduleUid

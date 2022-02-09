@@ -34,7 +34,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   return isReady ? (
     <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
-      <Theme></Theme>
+      <Theme />
       <Head>
         <title>
           {t("payment")} | {eventName} | Cal.com

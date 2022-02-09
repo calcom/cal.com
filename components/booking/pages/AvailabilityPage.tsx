@@ -99,7 +99,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
   return (
     <>
-      <Theme></Theme>
+      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}

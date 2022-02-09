@@ -38,7 +38,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   return (
     <>
-      <Theme></Theme>
+      <Theme />
       <HeadSeo
         title={nameOrUsername}
         description={(user.bio as string) || ""}

@@ -63,7 +63,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     isReady && (
       <div>
-        <Theme></Theme>
+        <Theme />
         <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
           <div className="mx-auto mb-8 text-center max-w-96">
