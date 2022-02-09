@@ -48,7 +48,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
-${this.calEvent.rejectionReason && this.getRejectionReason()}
+${this.getRejectionReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -96,7 +96,7 @@ ${this.calEvent.rejectionReason && this.getRejectionReason()}
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
-                              ${this.calEvent.rejectionReason && this.getRejectionReason()}
+                              ${this.getRejectionReason()}
                             </div>
                           </td>
                         </tr>

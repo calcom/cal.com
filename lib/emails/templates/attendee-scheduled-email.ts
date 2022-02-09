@@ -285,6 +285,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getAdditionalNotes(): string {
+    if (!this.calEvent.description) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
@@ -297,6 +298,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getRejectionReason(): string {
+    if (!this.calEvent.rejectionReason) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
