@@ -1,4 +1,6 @@
 {
+  "baseBranch": "origin/main",
+  "globalDependencies": [".env"],
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
@@ -7,11 +9,14 @@
     "clean": {
       "cache": false
     },
-    "lint": {
-      "outputs": []
-    },
     "dev": {
       "cache": false
+    },
+    "dx": {
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
     }
   }
 }

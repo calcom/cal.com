@@ -73,6 +73,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
+      - run: cd apps/web
       - run: yarn prisma migrate deploy
       - run: yarn db-seed
       - run: yarn test
