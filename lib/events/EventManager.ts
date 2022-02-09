@@ -18,7 +18,7 @@ export interface EventResult {
   success: boolean;
   uid: string;
   createdEvent?: Event;
-  updatedEvent?: Event;
+  updatedEvent?: Event | Event[];
   originalEvent: CalendarEvent;
 }
 
