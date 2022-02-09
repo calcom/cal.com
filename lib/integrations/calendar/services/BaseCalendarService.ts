@@ -23,6 +23,7 @@ import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
 import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
+import type { Event } from "@lib/events/EventManager";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -116,7 +117,7 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<unknown> {
+  async updateEvent(uid: string, event: CalendarEvent) {
     try {
       const events = await this.getEventsByUID(uid);
 
@@ -136,7 +137,12 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error) {
         this.log.debug("Error creating iCalString");
 
-        return {};
+        return {
+          type: event.type,
+          id: typeof event.uid === "string" ? event.uid : "-1",
+          password: "",
+          url: typeof event.location === "string" ? event.location : "-1",
+        };
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
@@ -152,7 +158,7 @@ export default abstract class BaseCalendarService implements Calendar {
             headers: this.headers,
           });
         })
-      );
+      ).then((p) => p.map((r) => r.json() as unknown as Event));
     } catch (reason) {
       this.log.error(reason);
 
