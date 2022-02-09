@@ -6,6 +6,7 @@
     "dbaeumer.vscode-eslint", // eslint plugin
     "bradlc.vscode-tailwindcss", // hinting / autocompletion for tailwind
     "ban.spellright", // Spell check for docs
-    "stripe.vscode-stripe" // stripe VSCode extension
+    "stripe.vscode-stripe", // stripe VSCode extension
+    "Prisma.prisma" // syntax|format|completion for prisma 
   ]
 }
