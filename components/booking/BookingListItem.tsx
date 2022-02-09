@@ -12,7 +12,6 @@ import { TextArea } from "@components/form/fields";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
 import Button from "@components/ui/Button";
-// import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -52,7 +51,7 @@ function BookingListItem(booking: BookingItem) {
     {
       id: "reject",
       label: t("reject"),
-      onClick: () => setRejectionDialogIsOpen(true), //mutation.mutate(false),
+      onClick: () => setRejectionDialogIsOpen(true),
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
