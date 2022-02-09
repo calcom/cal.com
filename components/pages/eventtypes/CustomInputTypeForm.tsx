@@ -1,11 +1,16 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import Select, { OptionTypeBase } from "react-select";
+import Select from "react-select";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Button from "@components/ui/Button";
+
+interface OptionTypeBase {
+  label: string;
+  value: EventTypeCustomInputType;
+}
 
 interface Props {
   onSubmit: SubmitHandler<IFormInput>;
@@ -50,8 +55,8 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               defaultValue={selectedInputOption}
               options={inputOptions}
               isSearchable={false}
-              className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
-              onChange={(option) => field.onChange(option.value)}
+              className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
               name={field.name}
@@ -68,7 +73,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             type="text"
             id="label"
             required
-            className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             defaultValue={selectedCustomInput?.label}
             {...register("label", { required: true })}
           />
@@ -84,18 +89,18 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="block w-full border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />
           </div>
         </div>
       )}
-      <div className="flex items-center h-5">
+      <div className="flex h-5 items-center">
         <input
           id="required"
           type="checkbox"
-          className="w-4 h-4 ltr:mr-2 rtl:ml-2 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 ltr:mr-2 rtl:ml-2"
           defaultChecked={selectedCustomInput?.required ?? true}
           {...register("required")}
         />

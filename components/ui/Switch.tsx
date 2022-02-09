@@ -20,16 +20,16 @@ export default function Switch(props: SwitchProps) {
   };
   const id = useId();
   return (
-    <div className="flex items-center h-[20px]">
+    <div className="flex h-[20px] items-center">
       <PrimitiveSwitch.Root
-        className={classNames(checked ? "bg-gray-900" : "bg-gray-400", "rounded-sm w-[36px] p-0.5 h-[20px]")}
+        className={classNames(checked ? "bg-gray-900" : "bg-gray-400", "h-[20px] w-[36px] rounded-sm p-0.5")}
         checked={checked}
         onCheckedChange={onPrimitiveCheckedChange}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
           className={classNames(
-            "bg-white w-[16px] h-[16px] block transition-transform",
+            "block h-[16px] w-[16px] bg-white transition-transform",
             checked ? "translate-x-[16px]" : "translate-x-0"
           )}
         />
@@ -37,7 +37,7 @@ export default function Switch(props: SwitchProps) {
       {label && (
         <Label.Root
           htmlFor={id}
-          className="text-sm font-medium align-text-top cursor-pointer text-neutral-700 ltr:ml-3 rtl:mr-3">
+          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3">
           {label}
         </Label.Root>
       )}

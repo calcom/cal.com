@@ -18,11 +18,11 @@ export default function Error() {
   return (
     <AuthContainer title="" description="">
       <div>
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
           <XIcon className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+          <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
             {error}
           </h3>
           <div className="mt-2">
@@ -32,7 +32,7 @@ export default function Error() {
       </div>
       <div className="mt-5 sm:mt-6">
         <Link href="/auth/login">
-          <Button className="w-full flex justify-center">{t("go_back_login")}</Button>
+          <Button className="flex w-full justify-center">{t("go_back_login")}</Button>
         </Link>
       </div>
     </AuthContainer>

@@ -19,13 +19,13 @@ const TrialBanner = () => {
 
   return (
     <div
-      className="hidden p-4 m-4 text-sm font-medium text-center text-gray-600 bg-yellow-200 rounded-md sm:block"
+      className="m-4 hidden rounded-md bg-yellow-200 p-4 text-center text-sm font-medium text-gray-600 sm:block"
       data-testid="trial-banner">
       <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
       <Button
         href="/api/upgrade"
         color="minimal"
-        className="justify-center w-full border-2 border-gray-600 hover:bg-yellow-100">
+        className="w-full justify-center border-2 border-gray-600 hover:bg-yellow-100">
         {t("upgrade_now")}
       </Button>
     </div>

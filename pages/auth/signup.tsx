@@ -64,18 +64,18 @@ export default function Signup({ email }: Props) {
 
   return (
     <div
-      className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8"
+      className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
       <HeadSeo title={t("sign_up")} description={t("sign_up")} />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-gray-900 font-cal">
+        <h2 className="text-center font-cal text-3xl font-extrabold text-gray-900">
           {t("create_your_account")}
         </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="px-4 py-8 mx-2 bg-white shadow sm:rounded-lg sm:px-10">
+        <div className="mx-2 bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
           {/* TODO: Refactor as soon as /availability is live */}
           <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(signUp)} className="space-y-6 bg-white">
@@ -83,25 +83,25 @@ export default function Signup({ email }: Props) {
               <div className="space-y-2">
                 <TextField
                   addOnLeading={
-                    <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
                   labelProps={{ className: "block text-sm font-medium text-gray-700" }}
-                  className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-black sm:text-sm"
+                  className="block w-full min-w-0 flex-grow rounded-none rounded-r-sm border-gray-300 lowercase focus:border-black focus:ring-black sm:text-sm"
                   {...register("username")}
                   required
                 />
                 <EmailField
                   {...register("email")}
-                  className="block w-full px-3 py-2 mt-1 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   labelProps={{
                     className: "block text-sm font-medium text-gray-700",
                   }}
                   {...register("password")}
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   label={t("confirm_password")}
@@ -112,16 +112,16 @@ export default function Signup({ email }: Props) {
                     validate: (value) =>
                       value === methods.watch("password") || (t("error_password_mismatch") as string),
                   })}
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
-              <div className="flex rtl:space-x-reverse space-x-2">
-                <Button loading={isSubmitting} className="justify-center w-7/12">
+              <div className="flex space-x-2 rtl:space-x-reverse">
+                <Button loading={isSubmitting} className="w-7/12 justify-center">
                   {t("create_account")}
                 </Button>
                 <Button
                   color="secondary"
-                  className="justify-center w-5/12"
+                  className="w-5/12 justify-center"
                   onClick={() =>
                     signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
                   }>

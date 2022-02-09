@@ -1,11 +1,11 @@
 export class HttpError<TCode extends number = number> extends Error {
-  public readonly cause: unknown;
+  public readonly cause?: Error;
   public readonly statusCode: TCode;
   public readonly message: string;
   public readonly url: string | undefined;
   public readonly method: string | undefined;
 
-  constructor(opts: { url?: string; method?: string; message?: string; statusCode: TCode; cause?: unknown }) {
+  constructor(opts: { url?: string; method?: string; message?: string; statusCode: TCode; cause?: Error }) {
     super(opts.message ?? `HTTP Error ${opts.statusCode} `);
 
     Object.setPrototypeOf(this, HttpError.prototype);

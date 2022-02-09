@@ -16,14 +16,14 @@ type User = inferQueryOutput<"viewer.me">;
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState([]);
+  const [availability, setAvailability] = useState<{ end: string; start: string }[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
     let m = mins % 60;
-    h = h < 10 ? "0" + h : h;
-    m = m < 10 ? "0" + m : m;
+    h = h < 10 ? 0 + h : h;
+    m = m < 10 ? 0 + m : m;
     return `${h}:${m}`;
   }
 
@@ -51,12 +51,12 @@ const AvailabilityView = ({ user }: { user: User }) => {
   }, [selectedDate]);
 
   return (
-    <div className="max-w-xl overflow-hidden bg-white rounded-sm shadow">
+    <div className="max-w-xl overflow-hidden rounded-sm bg-white shadow">
       <div className="px-4 py-5 sm:p-6">
         {t("overview_of_day")}{" "}
         <input
           type="date"
-          className="inline h-8 p-0 border-none"
+          className="inline h-8 border-none p-0"
           defaultValue={selectedDate.format("YYYY-MM-DD")}
           onChange={(e) => {
             setSelectedDate(dayjs(e.target.value));
@@ -65,7 +65,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
           <div className="overflow-hidden rounded-sm bg-brand">
-            <div className="px-4 py-2 sm:px-6 text-brandcontrast">
+            <div className="px-4 py-2 text-brandcontrast sm:px-6">
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
@@ -95,7 +95,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
           )}
 
           <div className="overflow-hidden rounded-sm bg-brand">
-            <div className="px-4 py-2 sm:px-6 text-brandcontrast">
+            <div className="px-4 py-2 text-brandcontrast sm:px-6">
               {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
             </div>
           </div>

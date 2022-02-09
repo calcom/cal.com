@@ -45,7 +45,7 @@ export default function Bookings() {
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <BookingsShell>
-        <div className="flex flex-col -mx-4 sm:mx-auto">
+        <div className="-mx-4 flex flex-col sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               {query.status === "error" && (
@@ -54,9 +54,9 @@ export default function Bookings() {
               {(query.status === "loading" || query.status === "idle") && <Loader />}
               {query.status === "success" && !isEmpty && (
                 <>
-                  <div className="mt-6 overflow-hidden border border-b border-gray-200 rounded-sm">
+                  <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <tbody className="bg-white divide-y divide-gray-200" data-testid="bookings">
+                      <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
                             {page.bookings.map((booking) => (
@@ -67,7 +67,7 @@ export default function Bookings() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="text-center p-4" ref={buttonInView.ref}>
+                  <div className="p-4 text-center" ref={buttonInView.ref}>
                     <Button
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}
