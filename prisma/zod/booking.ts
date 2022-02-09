@@ -36,6 +36,7 @@ export const _BookingModel = z.object({
   status: z.nativeEnum(BookingStatus),
   paid: z.boolean(),
   cancellationReason: z.string().nullish(),
+  rejectionReason: z.string().nullish(),
 });
 
 export interface CompleteBooking extends z.infer<typeof _BookingModel> {

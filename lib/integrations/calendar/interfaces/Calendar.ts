@@ -53,6 +53,7 @@ export interface CalendarEvent {
   paymentInfo?: PaymentInfo | null;
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
+  rejectionReason?: string | null;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
