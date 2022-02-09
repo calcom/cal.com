@@ -37,7 +37,7 @@ const SandboxPage: NextPage<PageProps> = (props) => {
           {props.pages.map((pathname) => (
             <li key={pathname}>
               <Link href={"/sandbox/" + pathname + "#main"}>
-                <a className="font-mono px-4">{pathname}</a>
+                <a className="px-4 font-mono">{pathname}</a>
               </Link>
             </li>
           ))}

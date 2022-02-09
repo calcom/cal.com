@@ -12,7 +12,7 @@ export default function SettingInputContainer({
   return (
     <div className="space-y-3">
       <div className="block sm:flex">
-        <div className="mb-4 min-w-48 sm:mb-0">
+        <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor={htmlFor} className="mt-1 flex text-sm font-medium text-neutral-700">
             <Icon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
             {label}

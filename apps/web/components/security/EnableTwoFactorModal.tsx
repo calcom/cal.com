@@ -152,7 +152,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
             <div className="flex justify-center">
               <img src={dataUri} />
             </div>
-            <p className="font-mono text-center text-xs">{secret}</p>
+            <p className="text-center font-mono text-xs">{secret}</p>
           </>
         </WithStep>
         <WithStep step={SetupStep.EnterTotpCode} current={step}>

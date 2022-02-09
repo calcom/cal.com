@@ -83,7 +83,7 @@ export default function LicenseBanner() {
           </span>
           variable to &apos;agreeapos;.
         </Trans>
-        <h2 className="mt-8 mb-2 font-cal text-black">{t("terms_summary")}:</h2>
+        <h2 className="font-cal mt-8 mb-2 text-black">{t("terms_summary")}:</h2>
         <ul className="ml-5 list-disc">
           <li>{t("codebase_has_to_stay_opensource")}</li>
           <li>{t("cannot_repackage_codebase")}</li>

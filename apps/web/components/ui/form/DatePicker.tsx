@@ -16,7 +16,7 @@ export const DatePicker = ({ date, onDatesChange, className }: Props) => {
   return (
     <PrimitiveDatePicker
       className={classNames(
-        "rounded-sm border border-gray-300 p-1 pl-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm",
+        "focus:border-primary-500 focus:ring-primary-500 rounded-sm border border-gray-300 p-1 pl-2 shadow-sm sm:text-sm",
         className
       )}
       clearIcon={null}

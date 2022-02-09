@@ -78,7 +78,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           </p>
                         </div>
                         <div className="mt-4 border-t border-b py-4">
-                          <h2 className="mb-2 font-cal text-lg font-medium text-gray-600">
+                          <h2 className="font-cal mb-2 text-lg font-medium text-gray-600">
                             {props.booking?.title}
                           </h2>
                           <p className="text-gray-500">

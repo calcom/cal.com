@@ -58,7 +58,7 @@ export default function MemberChangeRoleModal(props: {
               value={role}
               onChange={(e) => setRole(e.target.value as MembershipRole)}
               id="role"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm">
+              className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm">
               <option value="MEMBER">{t("member")}</option>
               <option value="ADMIN">{t("admin")}</option>
               {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}

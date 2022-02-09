@@ -64,8 +64,8 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
 
         <div className="inline-block transform rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand bg-opacity-5 text-brandcontrast sm:mx-0 sm:h-10 sm:w-10">
-              <UserIcon className="h-6 w-6 text-brandcontrast" />
+            <div className="bg-brand text-brandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+              <UserIcon className="text-brandcontrast h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -91,7 +91,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                 </label>
                 <select
                   id="role"
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm">
+                  className="focus:border-brand mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm">
                   <option value="MEMBER">{t("member")}</option>
                   <option value="ADMIN">{t("admin")}</option>
                 </select>
@@ -103,7 +103,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                     name="sendInviteEmail"
                     defaultChecked
                     id="sendInviteEmail"
-                    className="rounded-sm border-gray-300 text-black shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                    className="focus:border-brand rounded-sm border-gray-300 text-black shadow-sm focus:ring-black sm:text-sm"
                   />
                 </div>
                 <div className="text-sm ltr:ml-2 rtl:mr-2">

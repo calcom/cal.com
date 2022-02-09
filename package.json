@@ -17,7 +17,7 @@
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
     "husky": "^7.0.1",
     "lint-staged": "^11.1.2",
-    "prettier": "^2.3.2",
+    "prettier": "^2.5.1",
     "prettier-plugin-tailwindcss": "^0.1.6",
     "turbo": "latest"
   },

@@ -108,7 +108,7 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
                 id="timeZone"
                 value={timeZone}
                 onChange={(tz: ITimezoneOption) => setTimeZone(tz.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
               />
             </div>
           </div>

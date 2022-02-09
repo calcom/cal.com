@@ -217,7 +217,7 @@ export function CalendarListContainer(props: { heading?: false }) {
           }
           subtitle={t("configure_how_your_event_types_interact")}
           actions={
-            <div className="block max-w-full sm:min-w-80">
+            <div className="sm:min-w-80 block max-w-full">
               <DestinationCalendarSelector
                 onChange={mutation.mutate}
                 isLoading={mutation.isLoading}

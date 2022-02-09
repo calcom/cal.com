@@ -55,7 +55,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               defaultValue={selectedInputOption}
               options={inputOptions}
               isSearchable={false}
-              className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
               onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
@@ -73,7 +73,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             type="text"
             id="label"
             required
-            className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
             defaultValue={selectedCustomInput?.label}
             {...register("label", { required: true })}
           />
@@ -89,7 +89,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />
@@ -100,7 +100,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <input
           id="required"
           type="checkbox"
-          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 ltr:mr-2 rtl:ml-2"
+          className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
           defaultChecked={selectedCustomInput?.required ?? true}
           {...register("required")}
         />

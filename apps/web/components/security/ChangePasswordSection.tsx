@@ -74,7 +74,7 @@ const ChangePasswordSection = () => {
                   name="current_password"
                   id="current_password"
                   required
-                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                  className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                   placeholder={t("your_old_password")}
                 />
               </div>
@@ -91,7 +91,7 @@ const ChangePasswordSection = () => {
                   value={newPassword}
                   required
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                  className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                   placeholder={t("super_secure_new_password")}
                 />
               </div>

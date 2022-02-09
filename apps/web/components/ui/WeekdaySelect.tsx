@@ -33,8 +33,8 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
                 toggleDay(idx);
               }}
               className={`
-              h-10 w-10
-                      rounded bg-brand px-3 py-1 text-brandcontrast focus:outline-none 
+              bg-brand text-brandcontrast
+                      h-10 w-10 rounded px-3 py-1 focus:outline-none 
                     ${activeDays[idx + 1] ? "rounded-r-none" : ""} 
                     ${activeDays[idx - 1] ? "rounded-l-none" : ""} 
                     ${idx === 0 ? "rounded-l" : ""} 
