@@ -48,6 +48,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.getRejectionReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -95,6 +96,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
+                              ${this.getRejectionReason()}
                             </div>
                           </td>
                         </tr>
