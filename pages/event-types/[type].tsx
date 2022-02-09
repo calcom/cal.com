@@ -399,13 +399,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
-                      <span className="rtl:mr-2text-sm ltr:ml-2">{location.address}</span>
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.address}
+                      />
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
                     <div className="flex flex-grow items-center">
                       <PhoneIcon className="h-6 w-6" />
-                      <span className="rtl:mr-2text-sm ltr:ml-2">{t("phone_call")}</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">{t("phone_call")}</span>
                     </div>
                   )}
                   {location.type === LocationType.GoogleMeet && (
@@ -436,7 +440,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <path d="M0 16H16V37.3333H0" fill="#2684FC" />
                       </svg>
 
-                      <span className="rtl:mr-2text-sm ltr:ml-2">Google Meet</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">Google Meet</span>
                     </div>
                   )}
                   {location.type === LocationType.Huddle01 && (
@@ -509,7 +513,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             fillRule="evenodd"></path>
                         </g>
                       </svg>
-                      <span className="rtl:mr-2text-sm ltr:ml-2">Daily.co Video</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">Daily.co Video</span>
                     </div>
                   )}
                   {location.type === LocationType.Zoom && (
@@ -536,7 +540,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           fill="white"
                         />
                       </svg>
-                      <span className="rtl:mr-2text-sm ltr:ml-2">Zoom Video</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">Zoom Video</span>
                     </div>
                   )}
                   {location.type === LocationType.Tandem && (
@@ -925,7 +929,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="w-0 flex-1">
                                     <div className="truncate">
                                       <span
-                                        className="rtl:mr-2text-sm ltr:ml-2"
+                                        className="text-sm ltr:ml-2 rtl:mr-2"
                                         title={`${t("label")}: ${customInput.label}`}>
                                         {t("label")}: {customInput.label}
                                       </span>
@@ -933,19 +937,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     {customInput.placeholder && (
                                       <div className="truncate">
                                         <span
-                                          className="rtl:mr-2text-sm ltr:ml-2"
+                                          className="text-sm ltr:ml-2 rtl:mr-2"
                                           title={`${t("placeholder")}: ${customInput.placeholder}`}>
                                           {t("placeholder")}: {customInput.placeholder}
                                         </span>
                                       </div>
                                     )}
                                     <div>
-                                      <span className="rtl:mr-2text-sm ltr:ml-2">
+                                      <span className="text-sm ltr:ml-2 rtl:mr-2">
                                         {t("type")}: {customInput.type}
                                       </span>
                                     </div>
                                     <div>
-                                      <span className="rtl:mr-2text-sm ltr:ml-2">
+                                      <span className="text-sm ltr:ml-2 rtl:mr-2">
                                         {customInput.required ? t("required") : t("optional")}
                                       </span>
                                     </div>
