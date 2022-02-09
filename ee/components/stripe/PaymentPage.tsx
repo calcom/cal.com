@@ -40,25 +40,25 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="max-w-3xl py-24 mx-auto">
+      <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+              <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
               <div
-                className="inline-block px-8 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white border rounded-sm dark:bg-gray-800 border-neutral-200 dark:border-neutral-700 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:py-6"
+                className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
-                    <CreditCardIcon className="w-8 h-8 text-green-600" />
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                    <CreditCardIcon className="h-8 w-8 text-green-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
-                      className="text-2xl font-semibold leading-6 dark:text-white text-neutral-900"
+                      className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                       id="modal-headline">
                       {t("payment")}
                     </h3>
@@ -67,7 +67,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {t("pay_later_instructions")}
                       </p>
                     </div>
-                    <div className="grid grid-cols-3 py-4 mt-4 text-left text-gray-700 border-t border-b dark:text-gray-300 dark:border-gray-900">
+                    <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
@@ -117,7 +117,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                 </div>
                 {!props.profile.hideBranding && (
-                  <div className="pt-4 mt-4 text-xs text-center text-gray-400 border-t dark:border-gray-900 dark:text-white">
+                  <div className="mt-4 border-t pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
                     <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
                   </div>
                 )}

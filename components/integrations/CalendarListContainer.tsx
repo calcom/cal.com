@@ -122,7 +122,7 @@ function ConnectedCalendarsList(props: Props) {
                         onOpenChange={props.onChanged}
                       />
                     }>
-                    <ul className="p-4 space-y-2">
+                    <ul className="space-y-2 p-4">
                       {item.calendars.map((cal) => (
                         <CalendarSwitch
                           key={cal.externalId}

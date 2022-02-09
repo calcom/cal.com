@@ -123,14 +123,14 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
         <label htmlFor="url" className="block text-sm font-medium text-gray-700">
           Calendar URL
         </label>
-        <div className="flex mt-1 rounded-md shadow-sm">
+        <div className="mt-1 flex rounded-md shadow-sm">
           <input
             required
             type="text"
             name="url"
             id="url"
             placeholder="https://example.com/calendar"
-            className="flex-grow block w-full min-w-0 lowercase border-gray-300 rounded-none rounded-r-sm focus:ring-black focus:border-brand sm:text-sm"
+            className="block w-full min-w-0 flex-grow rounded-none rounded-r-sm border-gray-300 lowercase focus:border-brand focus:ring-black sm:text-sm"
           />
         </div>
       </div>
@@ -144,7 +144,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
           name="username"
           id="username"
           placeholder="rickroll"
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
         />
       </div>
       <div className="mb-2">
@@ -157,7 +157,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
           name="password"
           id="password"
           placeholder="•••••••••••••"
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 sm:text-sm"
+          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
         />
       </div>
     </form>

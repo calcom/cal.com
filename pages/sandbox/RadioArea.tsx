@@ -19,21 +19,21 @@ const selectOptions = [
 export default function RadioAreaPage() {
   const [formData, setFormData] = useState({});
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-  };
-
   return (
     <>
       <Head>
         <meta name="googlebot" content="noindex" />
       </Head>
       <div className="w-full p-4">
-        <h1 className="text-4xl mb-4">RadioArea component</h1>
-        <form onSubmit={onSubmit} className="space-y-4 mb-2">
+        <h1 className="mb-4 text-4xl">RadioArea component</h1>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+          className="mb-2 space-y-4">
           <RadioArea.Group
             onChange={(radioGroup_1: string) => setFormData({ ...formData, radioGroup_1 })}
-            className="flex rtl:space-x-reverse space-x-4 max-w-screen-md"
+            className="flex max-w-screen-md space-x-4 rtl:space-x-reverse"
             name="radioGroup_1">
             <RadioArea.Item value="radioGroup_1_radio_1" className="flex-grow bg-white">
               <strong className="mb-1">radioGroup_1_radio_1</strong>
@@ -50,7 +50,7 @@ export default function RadioAreaPage() {
           </RadioArea.Group>
           <RadioArea.Group
             onChange={(radioGroup_2: string) => setFormData({ ...formData, radioGroup_2 })}
-            className="flex rtl:space-x-reverse space-x-4 max-w-screen-md"
+            className="flex max-w-screen-md space-x-4 rtl:space-x-reverse"
             name="radioGroup_2">
             <RadioArea.Item value="radioGroup_2_radio_1" className="flex-grow bg-white">
               <strong className="mb-1">radioGroup_1_radio_1</strong>

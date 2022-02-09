@@ -56,8 +56,8 @@ const DestinationCalendarSelector = ({
     <div className="relative">
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
       {!hidePlaceholder && (
-        <div className="absolute z-10 pointer-events-none">
-          <Button size="sm" color="secondary" className="border-transparent m-[1px] rounded-sm">
+        <div className="pointer-events-none absolute z-10">
+          <Button size="sm" color="secondary" className="m-[1px] rounded-sm border-transparent">
             {t("select_destination_calendar")}: {selectedOption?.label || ""}
           </Button>
         </div>
@@ -67,7 +67,7 @@ const DestinationCalendarSelector = ({
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         isSearchable={false}
-        className="flex-1 block w-full min-w-0 mt-1 mb-2 border-gray-300 rounded-none focus:ring-primary-500 focus:border-primary-500 rounded-r-md sm:text-sm"
+        className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
         onChange={(option) => {
           setSelectedOption(option);
           if (!option) {

@@ -24,40 +24,40 @@ export default function LicenseBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 left-0 pb-2 md:left-56 sm:pb-5">
-      <div className="px-2 mx-auto max-w-7xl sm:px-8">
-        <div className="p-2 bg-green-600 rounded-sm shadow-lg sm:p-3">
+    <div className="fixed inset-x-0 bottom-0 left-0 pb-2 sm:pb-5 md:left-56">
+      <div className="mx-auto max-w-7xl px-2 sm:px-8">
+        <div className="rounded-sm bg-green-600 p-2 shadow-lg sm:p-3">
           <div className="flex flex-wrap items-center justify-between">
-            <div className="flex items-center flex-1 w-0">
-              <span className="flex p-2 bg-green-800 rounded-sm">
-                <BadgeCheckIcon className="w-6 h-6 text-white" aria-hidden="true" />
+            <div className="flex w-0 flex-1 items-center">
+              <span className="flex rounded-sm bg-green-800 p-2">
+                <BadgeCheckIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </span>
-              <p className="ml-3 font-medium text-white truncate">
+              <p className="ml-3 truncate font-medium text-white">
                 <span className="inline">
                   <Trans i18nKey="accept_our_license" values={{ agree: "agree" }}>
                     Accept our license by changing the .env variable
-                    <span className="px-1 bg-gray-50 bg-opacity-20">NEXT_PUBLIC_LICENSE_CONSENT</span> to
+                    <span className="bg-gray-50 bg-opacity-20 px-1">NEXT_PUBLIC_LICENSE_CONSENT</span> to
                     &apos;agree&apos;.
                   </Trans>
                 </span>
               </p>
             </div>
-            <div className="flex-shrink-0 order-3 w-full mt-2 sm:order-2 sm:mt-0 sm:w-auto">
+            <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-green-600 bg-white border border-transparent rounded-sm shadow-sm hover:bg-green-50">
+                  <button className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
                     {t("accept_license")}
                   </button>
                 </DialogTrigger>
                 <DialogContent />
               </Dialog>
             </div>
-            <div className="flex-shrink-0 order-2 sm:order-3 sm:ml-2">
+            <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="flex p-2 -mr-1 rounded-sm hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-white">
+                  <button className="-mr-1 flex rounded-sm p-2 hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-white">
                     <span className="sr-only">{t("dismiss")}</span>
-                    <XIcon className="w-6 h-6 text-white" aria-hidden="true" />
+                    <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
                   </button>
                 </DialogTrigger>
                 <DialogContent />
@@ -78,12 +78,12 @@ export default function LicenseBanner() {
         cancelBtnText={t("cancel")}>
         <Trans i18nKey="remove_banner_instructions" values={{ agree: "agree" }}>
           To remove this banner, please open your .env file and change the
-          <span className="bg-green-400 text-green-500 bg-opacity-20 p-[2px]">
+          <span className="bg-green-400 bg-opacity-20 p-[2px] text-green-500">
             NEXT_PUBLIC_LICENSE_CONSENT
-          </span>{" "}
+          </span>
           variable to &apos;agreeapos;.
         </Trans>
-        <h2 className="mt-8 mb-2 text-black font-cal">{t("terms_summary")}:</h2>
+        <h2 className="mt-8 mb-2 font-cal text-black">{t("terms_summary")}:</h2>
         <ul className="ml-5 list-disc">
           <li>{t("codebase_has_to_stay_opensource")}</li>
           <li>{t("cannot_repackage_codebase")}</li>

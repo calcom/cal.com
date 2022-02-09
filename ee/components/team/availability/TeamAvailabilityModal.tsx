@@ -32,17 +32,17 @@ export default function TeamAvailabilityModal(props: Props) {
   }, [utils, selectedTimeZone, selectedDate]);
 
   return (
-    <div className="flex flex-row max-h-[500px] min-h-[500px]  rtl:space-x-reverse space-x-8">
-      <div className="w-64 p-5 pr-0 space-y-5 min-w-64">
+    <div className="flex max-h-[500px] min-h-[500px] flex-row  space-x-8 rtl:space-x-reverse">
+      <div className="w-64 min-w-64 space-y-5 p-5 pr-0">
         <div className="flex">
           <Avatar
             imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name as string)}
             alt={props.member?.name || ""}
-            className="rounded-full w-14 h-14"
+            className="h-14 w-14 rounded-full"
           />
-          <div className="inline-block pt-1 ml-3">
+          <div className="ml-3 inline-block pt-1">
             <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>
-            <span className="block -mt-1 text-sm text-gray-400">{props.member?.email}</span>
+            <span className="-mt-1 block text-sm text-gray-400">{props.member?.email}</span>
           </div>
         </div>
         <div className="flex flex-col">
@@ -61,7 +61,7 @@ export default function TeamAvailabilityModal(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+            className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
           />
         </div>
         <div>
@@ -74,7 +74,7 @@ export default function TeamAvailabilityModal(props: Props) {
             ]}
             isSearchable={false}
             classNamePrefix="react-select"
-            className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            className="react-select-container block w-full min-w-0 flex-1 rounded-sm border border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
             value={{ value: frequency, label: `${frequency} minutes` }}
             onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />

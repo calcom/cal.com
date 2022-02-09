@@ -5,7 +5,7 @@ import classNames from "@lib/classNames";
 
 export function List(props: JSX.IntrinsicElements["ul"]) {
   return (
-    <ul {...props} className={classNames("sm:overflow-hidden rounded-sm sm:mx-0 -mx-4", props.className)}>
+    <ul {...props} className={classNames("-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden", props.className)}>
       {props.children}
     </ul>
   );

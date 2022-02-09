@@ -16,11 +16,11 @@ export const DatePicker = ({ date, onDatesChange, className }: Props) => {
   return (
     <PrimitiveDatePicker
       className={classNames(
-        "p-1 pl-2 border border-gray-300 rounded-sm shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm",
+        "rounded-sm border border-gray-300 p-1 pl-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm",
         className
       )}
       clearIcon={null}
-      calendarIcon={<CalendarIcon className="w-5 h-5 text-gray-500" />}
+      calendarIcon={<CalendarIcon className="h-5 w-5 text-gray-500" />}
       value={date}
       onChange={onDatesChange}
     />

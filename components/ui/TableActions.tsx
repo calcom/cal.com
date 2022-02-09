@@ -24,7 +24,7 @@ const TableActions: FC<Props> = ({ actions }) => {
   const { t } = useLocale();
   return (
     <>
-      <div className="rtl:space-x-reverse space-x-2 hidden lg:block">
+      <div className="hidden space-x-2 rtl:space-x-reverse lg:block">
         {actions.map((action) => (
           <Button
             key={action.id}
@@ -38,11 +38,11 @@ const TableActions: FC<Props> = ({ actions }) => {
           </Button>
         ))}
       </div>
-      <Menu as="div" className="inline-block lg:hidden text-left ">
+      <Menu as="div" className="inline-block text-left lg:hidden ">
         {({ open }) => (
           <>
             <div>
-              <Menu.Button className="text-neutral-400 mt-1 p-2 border border-transparent hover:border-gray-200">
+              <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
                 <span className="sr-only">{t("open_options")}</span>
                 <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
               </Menu.Button>
@@ -59,7 +59,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               leaveTo="transform opacity-0 scale-95">
               <Menu.Items
                 static
-                className="origin-top-right absolute right-0 mt-2 w-56 rounded-sm shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-neutral-100">
+                className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <div className="py-1">
                   {actions.map((action) => {
                     const Element = typeof action.onClick === "function" ? "span" : "a";
@@ -74,7 +74,7 @@ const TableActions: FC<Props> = ({ actions }) => {
                               "group flex items-center px-4 py-2 text-sm font-medium"
                             )}>
                             <action.icon
-                              className="ltr:mr-3 h-5 w-5 text-neutral-400 group-hover:text-neutral-500"
+                              className="h-5 w-5 text-neutral-400 group-hover:text-neutral-500 ltr:mr-3"
                               aria-hidden="true"
                             />
                             {action.label}

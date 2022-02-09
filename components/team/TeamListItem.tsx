@@ -60,9 +60,9 @@ export default function TeamListItem(props: Props) {
         size={9}
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
-        className="rounded-full w-9 h-9 min-w-9 min-h-9"
+        className="h-9 min-h-9 w-9 min-w-9 rounded-full"
       />
-      <div className="inline-block ml-3">
+      <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
@@ -75,12 +75,12 @@ export default function TeamListItem(props: Props) {
     <li className="divide-y">
       <div
         className={classNames(
-          "flex justify-between  items-center",
+          "flex items-center  justify-between",
           !isInvitee && "group hover:bg-neutral-50"
         )}>
         {!isInvitee ? (
           <Link href={"/settings/teams/" + team.id}>
-            <a className="flex-grow text-sm truncate cursor-pointer" title={`${team.name}`}>
+            <a className="flex-grow cursor-pointer truncate text-sm" title={`${team.name}`}>
               {teamInfo}
             </a>
           </Link>
@@ -108,16 +108,16 @@ export default function TeamListItem(props: Props) {
                     navigator.clipboard.writeText(process.env.NEXT_PUBLIC_APP_URL + "/team/" + team.slug);
                     showToast(t("link_copied"), "success");
                   }}
-                  className="w-10 h-10 transition-none"
+                  className="h-10 w-10 transition-none"
                   size="icon"
                   color="minimal"
                   type="button">
-                  <LinkIcon className="w-5 h-5 group-hover:text-gray-600" />
+                  <LinkIcon className="h-5 w-5 group-hover:text-gray-600" />
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="w-10 h-10 p-0 border border-transparent group text-neutral-400 hover:border-gray-200 ">
-                  <DotsHorizontalIcon className="w-5 h-5 group-hover:text-gray-800" />
+                <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
+                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {isAdmin && (
