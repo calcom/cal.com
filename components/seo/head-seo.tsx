@@ -77,7 +77,6 @@ const constructImage = (name: string, description: string, username: string): st
 export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
-
   const {
     title,
     description,
