@@ -106,7 +106,7 @@ export default function PaymentComponent(props: Props) {
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
-      <div className="flex justify-center mt-2">
+      <div className="mt-2 flex justify-center">
         <Button
           type="submit"
           disabled={["processing", "error"].includes(state.status)}

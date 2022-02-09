@@ -58,7 +58,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">
+            <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">
               {t("success")}
             </h2>
           </div>
@@ -66,7 +66,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           <Link href="/auth/login">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
               {t("login")}
             </button>
           </Link>
@@ -80,14 +80,14 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">{t("whoops")}</h2>
-            <h2 className="text-3xl font-extrabold text-center text-gray-900">{t("request_is_expired")}</h2>
+            <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">{t("whoops")}</h2>
+            <h2 className="text-center text-3xl font-extrabold text-gray-900">{t("request_is_expired")}</h2>
           </div>
           <p>{t("request_is_expired_instructions")}</p>
           <Link href="/auth/forgot-password">
             <button
               type="button"
-              className="flex justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
               {t("try_again")}
             </button>
           </Link>
@@ -102,15 +102,15 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   }, [resetPasswordRequest]);
 
   return (
-    <div className="flex flex-col justify-center min-h-screen py-12 bg-gray-50 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
       <HeadSeo title={t("reset_password")} description={t("change_your_password")} />
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="px-4 py-8 mx-2 space-y-6 bg-white rounded-lg shadow sm:px-10">
+        <div className="mx-2 space-y-6 rounded-lg bg-white px-4 py-8 shadow sm:px-10">
           {isRequestExpired && <Expired />}
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900 font-cal">
+                <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">
                   {t("reset_password")}
                 </h2>
                 <p>{t("enter_new_password")}</p>
@@ -151,7 +151,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                       type="password"
                       autoComplete="password"
                       required
-                      className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-black focus:border-brand sm:text-sm"
+                      className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-brand focus:outline-none focus:ring-black sm:text-sm"
                     />
                   </div>
                 </div>
@@ -160,12 +160,12 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+                    className={`flex w-full justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
                       loading ? "cursor-not-allowed" : ""
                     }`}>
                     {loading && (
                       <svg
-                        className="w-5 h-5 mr-3 -ml-1 text-white animate-spin"
+                        className="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24">

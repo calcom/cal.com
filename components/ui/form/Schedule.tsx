@@ -139,21 +139,21 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   };
 
   return (
-    <fieldset className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row justify-between py-5 min-h-[86px]">
+    <fieldset className="flex min-h-[86px] flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
       <div className="w-1/3">
         <label className="flex items-center space-x-2 rtl:space-x-reverse">
           <input
             type="checkbox"
             checked={fields.length > 0}
             onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
-            className="inline-block border-gray-300 rounded-sm focus:ring-neutral-500 text-neutral-900"
+            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
           <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
         {fields.map((field, index) => (
-          <div key={field.id} className="flex justify-between mb-1">
+          <div key={field.id} className="mb-1 flex justify-between">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <TimeRangeField name={`${name}.${day}.${index}`} />
             </div>

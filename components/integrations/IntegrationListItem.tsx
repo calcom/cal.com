@@ -14,9 +14,9 @@ function IntegrationListItem(props: {
 }): JSX.Element {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
-      <div className={classNames("flex flex-1 rtl:space-x-reverse space-x-2 w-full p-3 items-center")}>
+      <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
         <Image width={40} height={40} src={`/${props.imageSrc}`} alt={props.title} />
-        <div className="flex-grow pl-2 truncate">
+        <div className="flex-grow truncate pl-2">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
         </div>

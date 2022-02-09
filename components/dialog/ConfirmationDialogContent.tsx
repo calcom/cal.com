@@ -33,26 +33,26 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     <DialogContent>
       <div className="flex">
         {variety && (
-          <div className="ltr:mr-3 mt-0.5">
+          <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
-              <div className="p-2 mx-auto text-center bg-red-100 rounded-full">
-                <ExclamationIcon className="w-5 h-5 text-red-600" />
+              <div className="mx-auto rounded-full bg-red-100 p-2 text-center">
+                <ExclamationIcon className="h-5 w-5 text-red-600" />
               </div>
             )}
             {variety === "warning" && (
-              <div className="p-2 mx-auto text-center bg-orange-100 rounded-full">
-                <ExclamationIcon className="w-5 h-5 text-orange-600" />
+              <div className="mx-auto rounded-full bg-orange-100 p-2 text-center">
+                <ExclamationIcon className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
-              <div className="p-2 mx-auto text-center bg-green-100 rounded-full">
-                <CheckIcon className="w-5 h-5 text-green-600" />
+              <div className="mx-auto rounded-full bg-green-100 p-2 text-center">
+                <CheckIcon className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>
         )}
         <div>
-          <DialogPrimitive.Title className="text-xl font-bold text-gray-900 font-cal">
+          <DialogPrimitive.Title className="font-cal text-xl font-bold text-gray-900">
             {title}
           </DialogPrimitive.Title>
           <DialogPrimitive.Description className="text-sm text-neutral-500">
@@ -60,7 +60,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           </DialogPrimitive.Description>
         </div>
       </div>
-      <div className="mt-5 sm:mt-8 sm:flex sm:flex-row-reverse gap-x-2">
+      <div className="mt-5 gap-x-2 sm:mt-8 sm:flex sm:flex-row-reverse">
         <DialogClose onClick={onConfirm} asChild>
           {confirmBtn || <Button color="primary">{confirmBtnText}</Button>}
         </DialogClose>

@@ -94,7 +94,7 @@ export default function SAMLConfiguration({
         <>
           <hr className="mt-8" />
           <div className="mt-6">
-            <h2 className="text-lg font-medium leading-6 text-gray-900 font-cal">
+            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
               {t("saml_configuration")}
               <Badge className="ml-2 text-xs" variant={samlConfig ? "success" : "gray"}>
                 {samlConfig ? t("enabled") : t("disabled")}
@@ -110,7 +110,7 @@ export default function SAMLConfiguration({
           </div>
 
           {samlConfig ? (
-            <div className="flex mt-2">
+            <div className="mt-2 flex">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button

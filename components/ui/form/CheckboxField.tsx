@@ -7,7 +7,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description, ...rest }, ref) => {
   return (
-    <div className="items-center block sm:flex">
+    <div className="block items-center sm:flex">
       <div className="mb-4 min-w-48 sm:mb-0">
         <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
           {label}
@@ -15,15 +15,15 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description,
       </div>
       <div className="w-full">
         <div className="relative flex items-start">
-          <div className="flex items-center h-5">
+          <div className="flex h-5 items-center">
             <input
               {...rest}
               ref={ref}
               type="checkbox"
-              className="w-4 h-4 border-gray-300 rounded focus:ring-primary-500 text-primary-600"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
           </div>
-          <div className="ltr:ml-3 rtl:mr-3 text-sm">
+          <div className="text-sm ltr:ml-3 rtl:mr-3">
             <p className="text-neutral-900">{description}</p>
           </div>
         </div>

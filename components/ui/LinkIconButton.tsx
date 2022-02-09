@@ -12,8 +12,8 @@ export default function LinkIconButton(props: LinkIconButtonProps) {
       <button
         type="button"
         {...props}
-        className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 rounded-sm text-md hover:text-gray-900 hover:bg-gray-200">
-        <props.Icon className="w-4 h-4 ltr:mr-2 rtl:ml-2 text-neutral-500" />
+        className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+        <props.Icon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
         {props.children}
       </button>
     </div>

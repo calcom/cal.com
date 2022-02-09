@@ -36,11 +36,11 @@ const page = sandboxPage(function ButtonPage() {
   ];
   return (
     <>
-      <div className="p-4 bg-gray-200">
+      <div className="bg-gray-200 p-4">
         <h1>Button component</h1>
         <div className="flex flex-col">
           {list.map((props, index) => (
-            <div key={index} className="p-2 m-2 bg-white">
+            <div key={index} className="m-2 bg-white p-2">
               <h3>
                 <code>
                   {JSON.stringify(

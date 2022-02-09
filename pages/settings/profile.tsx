@@ -47,7 +47,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
         ref={props.hideBrandingRef}
         defaultChecked={isBrandingHidden(props.user)}
         className={
-          "focus:ring-neutral-800 h-4 w-4 text-neutral-900 border-gray-300 rounded-sm disabled:opacity-50"
+          "h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800 disabled:opacity-50"
         }
         onClick={(e) => {
           if (!e.currentTarget.checked || props.user.plan !== "FREE") {
@@ -62,12 +62,12 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
       />
       <Dialog open={modelOpen}>
         <DialogContent>
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-yellow-100 rounded-full">
-            <InformationCircleIcon className="w-6 h-6 text-yellow-400" aria-hidden="true" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
+            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
           </div>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="text-lg font-bold leading-6 text-gray-900 font-cal" id="modal-title">
+              <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
                 {t("only_available_on_pro_plan")}
               </h3>
             </div>
@@ -84,9 +84,9 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
               </Trans>
             </p>
           </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+          <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
             <DialogClose asChild>
-              <Button className="table-cell text-center btn-wide" onClick={() => setModalOpen(false)}>
+              <Button className="btn-wide table-cell text-center" onClick={() => setModalOpen(false)}>
                 {t("dismiss")}
               </Button>
             </DialogClose>
@@ -214,12 +214,12 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       <div className="py-6 lg:pb-8">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow space-y-6">
-            <div className="block space-x-2 sm:flex rtl:space-x-reverse">
-              <div className="w-full mb-6 sm:w-1/2">
+            <div className="block space-x-2 rtl:space-x-reverse sm:flex">
+              <div className="mb-6 w-full sm:w-1/2">
                 <TextField
                   name="username"
                   addOnLeading={
-                    <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
@@ -239,13 +239,13 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   autoComplete="given-name"
                   placeholder={t("your_name")}
                   required
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                   defaultValue={props.user.name || undefined}
                 />
               </div>
             </div>
             <div className="block sm:flex">
-              <div className="w-full mb-6 sm:w-1/2">
+              <div className="mb-6 w-full sm:w-1/2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   {t("email")}
                 </label>
@@ -255,7 +255,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -276,14 +276,14 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("little_something_about")}
                   rows={3}
                   defaultValue={props.user.bio || undefined}
-                  className="block w-full mt-1 border-gray-300 rounded-sm shadow-sm focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"></textarea>
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
               </div>
             </div>
             <div>
-              <div className="flex mt-1">
+              <div className="mt-1 flex">
                 <Avatar
                   alt={props.user.name || ""}
-                  className="relative w-10 h-10 rounded-full"
+                  className="relative h-10 w-10 rounded-full"
                   gravatarFallbackMd5={props.user.emailMd5}
                   imageSrc={imageSrc}
                 />
@@ -293,7 +293,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="avatar"
                   id="avatar"
                   placeholder="URL"
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
                   defaultValue={imageSrc}
                 />
                 <div className="flex items-center px-5">
@@ -329,7 +329,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedLanguage || props.localeProp}
                   onChange={(v) => v && setSelectedLanguage(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                   options={localeOptions}
                 />
               </div>
@@ -344,7 +344,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedTimeZone}
                   onChange={(v) => v && setSelectedTimeZone(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                 />
               </div>
             </div>
@@ -358,7 +358,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   value={selectedWeekStartDay}
                   onChange={(v) => v && setSelectedWeekStartDay(v)}
                   classNamePrefix="react-select"
-                  className="block w-full mt-1 capitalize border border-gray-300 rounded-sm shadow-sm react-select-container focus:ring-neutral-800 focus:border-neutral-800 sm:text-sm"
+                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
@@ -377,19 +377,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
                   onChange={(v) => v && setSelectedTheme(v)}
-                  className="shadow-sm | { value: string } focus:ring-neutral-800 focus:border-neutral-800 mt-1 block w-full sm:text-sm border-gray-300 rounded-sm"
+                  className="| { value: string } mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
                   options={themeOptions}
                 />
               </div>
-              <div className="relative flex items-start mt-8">
-                <div className="flex items-center h-5">
+              <div className="relative mt-8 flex items-start">
+                <div className="flex h-5 items-center">
                   <input
                     id="theme-adjust-os"
                     name="theme-adjust-os"
                     type="checkbox"
                     onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
-                    className="w-4 h-4 border-gray-300 rounded-sm focus:ring-neutral-800 text-neutral-900"
+                    className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800"
                   />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -408,7 +408,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
             </div>
             <div>
               <div className="relative flex items-start">
-                <div className="flex items-center h-5">
+                <div className="flex h-5 items-center">
                   <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -420,7 +420,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
-            <h3 className="font-bold leading-6 text-red-700 mt-7 text-md">{t("danger_zone")}</h3>
+            <h3 className="text-md mt-7 font-bold leading-6 text-red-700">{t("danger_zone")}</h3>
             <div>
               <div className="relative flex items-start">
                 <Dialog>
@@ -429,7 +429,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                       type="button"
                       color="warn"
                       StartIcon={TrashIcon}
-                      className="text-red-700 border-2 border-red-700"
+                      className="border-2 border-red-700 text-red-700"
                       data-testid="delete-account">
                       {t("delete_account")}
                     </Button>

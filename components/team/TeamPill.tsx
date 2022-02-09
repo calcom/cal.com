@@ -13,12 +13,12 @@ interface Props {
 export default function TeamPill(props: Props) {
   return (
     <div
-      className={classNames("self-center px-3 py-1 ltr:mr-2 rtl:ml-2 text-xs capitalize border rounded-md", {
-        "bg-gray-50 border-gray-200 text-gray-700": !props.color,
-        "bg-blue-50 border-blue-200 text-blue-700": props.color === "blue",
-        "bg-red-50 border-red-200 text-red-700": props.color === "red",
-        "bg-yellow-50 border-yellow-200 text-yellow-700": props.color === "yellow",
-        "bg-green-50 border-green-200 text-green-600": props.color === "green",
+      className={classNames("self-center rounded-md border px-3 py-1 text-xs capitalize ltr:mr-2 rtl:ml-2", {
+        "border-gray-200 bg-gray-50 text-gray-700": !props.color,
+        "border-blue-200 bg-blue-50 text-blue-700": props.color === "blue",
+        "border-red-200 bg-red-50 text-red-700": props.color === "red",
+        "border-yellow-200 bg-yellow-50 text-yellow-700": props.color === "yellow",
+        "border-green-200 bg-green-50 text-green-600": props.color === "green",
       })}>
       {props.text}
     </div>

@@ -26,7 +26,7 @@ export default function TwoFactor() {
   const className = "h-12 w-12 !text-xl text-center";
 
   return (
-    <div className="max-w-sm mx-auto !mt-0">
+    <div className="mx-auto !mt-0 max-w-sm">
       <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
       <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
       <div className="flex flex-row space-x-1">

@@ -33,7 +33,7 @@ const SandboxPage: NextPage<PageProps> = (props) => {
         <meta name="googlebot" content="noindex" />
       </Head>
       <nav>
-        <ul className="flex justify-between flex-col md:flex-row">
+        <ul className="flex flex-col justify-between md:flex-row">
           {props.pages.map((pathname) => (
             <li key={pathname}>
               <Link href={"/sandbox/" + pathname + "#main"}>
@@ -66,7 +66,7 @@ export function sandboxPage(Component: NextPage) {
 }
 
 const page = sandboxPage(() => {
-  return <p className="text-center text-2xl my-20">Click a component above</p>;
+  return <p className="my-20 text-center text-2xl">Click a component above</p>;
 });
 
 export default page.default;

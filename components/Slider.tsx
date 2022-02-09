@@ -12,7 +12,7 @@ const Slider = ({
   changeHandler: (value: number) => void;
 }) => (
   <SliderPrimitive.Root
-    className="mt-2 slider"
+    className="slider mt-2"
     value={[value]}
     aria-label={label}
     onValueChange={(value: number[]) => changeHandler(value[0] ?? value)}

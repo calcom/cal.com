@@ -5,7 +5,6 @@
     "esbenp.prettier-vscode", // prettier plugin
     "dbaeumer.vscode-eslint", // eslint plugin
     "bradlc.vscode-tailwindcss", // hinting / autocompletion for tailwind
-    "heybourn.headwind", // automatically sort tailwind classes in predictable order, kinda like "prettier for tailwind",
     "ban.spellright", // Spell check for docs
     "stripe.vscode-stripe" // stripe VSCode extension
   ]

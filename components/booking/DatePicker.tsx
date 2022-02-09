@@ -163,10 +163,10 @@ function DatePicker({
       className={
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
         (date
-          ? "w-full sm:w-1/2 md:w-1/3 sm:border-r sm:dark:border-gray-800 sm:pl-4 sm:pr-6 "
+          ? "w-full sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-800 md:w-1/3 "
           : "w-full sm:pl-4")
       }>
-      <div className="flex mb-4 text-xl font-light text-gray-600">
+      <div className="mb-4 flex text-xl font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
           <strong className="text-gray-900 dark:text-white">{month}</strong>{" "}
           <span className="text-gray-500">{year}</span>
@@ -175,21 +175,21 @@ function DatePicker({
           <button
             onClick={decrementMonth}
             className={classNames(
-              "group ltr:mr-2 rtl:ml-2 p-1",
+              "group p-1 ltr:mr-2 rtl:ml-2",
               isFirstMonth && "text-gray-400 dark:text-gray-600"
             )}
             disabled={isFirstMonth}
             data-testid="decrementMonth">
-            <ChevronLeftIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
+            <ChevronLeftIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
-          <button className="p-1 group" onClick={incrementMonth} data-testid="incrementMonth">
-            <ChevronRightIcon className="w-5 h-5 group-hover:text-black dark:group-hover:text-white" />
+          <button className="group p-1" onClick={incrementMonth} data-testid="incrementMonth">
+            <ChevronRightIcon className="h-5 w-5 group-hover:text-black dark:group-hover:text-white" />
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 text-center border-t border-b dark:border-gray-800 sm:border-0">
+      <div className="grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
         {weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short").map((weekDay) => (
-          <div key={weekDay} className="my-4 text-xs tracking-widest text-gray-500 uppercase">
+          <div key={weekDay} className="my-4 text-xs uppercase tracking-widest text-gray-500">
             {weekDay}
           </div>
         ))}
@@ -209,9 +209,9 @@ function DatePicker({
                 onClick={() => onDatePicked(browsingDate.date(day.date))}
                 disabled={day.disabled}
                 className={classNames(
-                  "absolute w-full top-0 left-0 right-0 bottom-0 rounded-sm text-center mx-auto",
+                  "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
                   "hover:border hover:border-brand dark:hover:border-white",
-                  day.disabled ? "text-gray-400 font-light hover:border-0 cursor-default" : "font-medium",
+                  day.disabled ? "cursor-default font-light text-gray-400 hover:border-0" : "font-medium",
                   date && date.isSame(browsingDate.date(day.date), "day")
                     ? "bg-brand text-brandcontrast"
                     : !day.disabled
