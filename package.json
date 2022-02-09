@@ -9,12 +9,13 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo run clean && rm -rf node_modules",
+    "deploy": "turbo run deploy",
     "dev": "turbo run dev --parallel",
     "dx": "turbo run dx",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky install"
+    "lint": "turbo run lint",
+    "prepare": "husky install",
+    "type-check": "turbo run type-check"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",

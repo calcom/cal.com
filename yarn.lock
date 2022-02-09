@@ -9662,7 +9662,7 @@ react-style-singleton@^2.1.0:
     invariant "^2.2.4"
     tslib "^1.0.0"
 
-react-timezone-select@^1.1.15:
+react-timezone-select@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/react-timezone-select/-/react-timezone-select-1.3.1.tgz#844fc8825826865d68451426d77902532f472017"
   integrity sha512-ydNax+6+nJcOOE5lZA4EfkU7wcHz/b/2KK7dEfSUmnUjlHnZKSO/rf1x3SOX8EgNNrWM/Pn8BbPIPqbM0Vu1iQ==
