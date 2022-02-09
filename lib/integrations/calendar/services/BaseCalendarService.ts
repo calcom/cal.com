@@ -1,5 +1,7 @@
 import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { createEvent } from "ics";
 import {
@@ -23,6 +25,9 @@ import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
 import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -291,11 +296,11 @@ export default abstract class BaseCalendarService implements Calendar {
             vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
-            ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
+            ? dayjs.tz(event.startDate.toString(), calendarTimezone)
             : new Date(event.startDate.toUnixTime() * 1000);
 
           const endDate = calendarTimezone
-            ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
+            ? dayjs.tz(event.endDate.toString(), calendarTimezone)
             : new Date(event.endDate.toUnixTime() * 1000);
 
           return {
