@@ -114,7 +114,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
             (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="bg-white border-gray-200 rounded-sm dark:bg-gray-900 sm:dark:border-gray-600 md:border">
+            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-900 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
@@ -143,12 +143,12 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {eventType.title}
                       <div>
-                        <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                        <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </div>
                       {eventType.price > 0 && (
                         <div>
-                          <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                          <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -191,16 +191,16 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     truncateAfter={3}
                   />
                   <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="mb-4 text-3xl font-semibold text-gray-800 font-cal dark:text-white">
+                  <h1 className="mb-4 font-cal text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}
                   </h1>
-                  <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
-                    <ClockIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
-                    <p className="px-2 py-1 mb-1 -ml-2 text-gray-500">
-                      <CreditCardIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -229,7 +229,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   minimumBookingNotice={eventType.minimumBookingNotice}
                 />
 
-                <div className="block mt-4 ml-1 sm:hidden">
+                <div className="mt-4 ml-1 block sm:hidden">
                   <TimezoneDropdown />
                 </div>
 
@@ -257,13 +257,13 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="px-2 py-1 mb-1 -ml-2 text-left text-gray-500 min-w-32">
-          <GlobeIcon className="inline-block w-4 h-4 mr-1 -mt-1" />
+        <Collapsible.Trigger className="mb-1 -ml-2 min-w-32 px-2 py-1 text-left text-gray-500">
+          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
           {timeZone()}
           {isTimeOptionsOpen ? (
-            <ChevronUpIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+            <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
           ) : (
-            <ChevronDownIcon className="inline-block w-4 h-4 ml-1 -mt-1" />
+            <ChevronDownIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
