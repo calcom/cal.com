@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
 
+import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendDeclinedEmails } from "@lib/emails/email-manager";
 import { sendScheduledEmails } from "@lib/emails/email-manager";
@@ -185,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(204).end();
     } else {
       await refund(booking, evt);
-
+      const rejectionReason = asStringOrNull(req.body.reason) || "";
       await prisma.booking.update({
         where: {
           id: bookingId,
@@ -193,6 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data: {
           rejected: true,
           status: BookingStatus.REJECTED,
+          rejectionReason: rejectionReason,
         },
       });
 
