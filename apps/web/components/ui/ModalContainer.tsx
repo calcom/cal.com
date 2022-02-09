@@ -23,7 +23,7 @@ export default function ModalContainer(props: Props) {
         </span>
         <div
           className={classNames(
-            "inline-block min-w-96 transform rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:p-6 sm:align-middle",
+            "min-w-96 inline-block transform rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:p-6 sm:align-middle",
             {
               "sm:w-full sm:max-w-lg ": !props.wide,
               "sm:w-4xl sm:max-w-4xl": props.wide,

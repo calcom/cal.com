@@ -302,7 +302,7 @@ export default function Shell(props: {
               <div className="block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8">
                 {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="mb-8 w-full">
-                  <h1 className="mb-1 font-cal text-xl font-bold tracking-wide text-gray-900">
+                  <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900">
                     {props.heading}
                   </h1>
                   <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>

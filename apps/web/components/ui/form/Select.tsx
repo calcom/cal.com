@@ -24,7 +24,7 @@ function Select<
         ...components,
         IndicatorSeparator: () => null,
       }}
-      className={classNames("text-sm shadow-sm focus:border-primary-500", className)}
+      className={classNames("focus:border-primary-500 text-sm shadow-sm", className)}
       {...props}
     />
   );

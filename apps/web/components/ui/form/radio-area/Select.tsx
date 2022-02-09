@@ -34,7 +34,7 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
         type="button"
         disabled={disabled}
         className={classNames(
-          "border-1 mb-1 block w-full cursor-pointer rounded-sm border border-gray-300 bg-white p-2 text-left shadow-sm focus:ring-primary-500 sm:text-sm",
+          "border-1 focus:ring-primary-500 mb-1 block w-full cursor-pointer rounded-sm border border-gray-300 bg-white p-2 text-left shadow-sm sm:text-sm",
           disabled && "cursor-default bg-gray-200 focus:ring-0 "
         )}>
         {getLabel(props.value) ?? placeholder}

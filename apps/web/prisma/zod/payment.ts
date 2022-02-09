@@ -1,7 +1,6 @@
-import { PaymentType } from "@prisma/client";
 import * as z from "zod";
-
 import * as imports from "../zod-utils";
+import { PaymentType } from "@prisma/client";
 import { CompleteBooking, BookingModel } from "./index";
 
 // Helper schema for JSON fields

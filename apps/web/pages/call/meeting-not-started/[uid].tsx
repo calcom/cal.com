@@ -51,7 +51,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
                       </h3>
                     </div>
                     <div className="mt-4 border-t border-b py-4">
-                      <h2 className="mb-2 text-center font-cal text-lg font-medium text-gray-600">
+                      <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
                         {props.booking.title}
                       </h2>
                       <p className="text-center text-gray-500">

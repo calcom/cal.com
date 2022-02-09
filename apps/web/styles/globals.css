@@ -26,7 +26,7 @@
 
 .react-daterange-picker > .react-daterange-picker__wrapper input {
   /* Makes sure the on-focus behaviour is like Cal.com's */
-  @apply my-0.5 h-auto rounded-sm py-0.5 focus:border-primary-500 focus:ring-primary-500;
+  @apply focus:border-primary-500 focus:ring-primary-500 my-0.5 h-auto rounded-sm py-0.5;
 }
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
@@ -175,12 +175,12 @@
 }
 
 .react-multi-email > [type="text"] {
-  @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-brand dark:text-white;
+  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
 }
 
 .react-multi-email > span[data-placeholder] {

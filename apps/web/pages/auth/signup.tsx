@@ -70,7 +70,7 @@ export default function Signup({ email }: Props) {
       aria-modal="true">
       <HeadSeo title={t("sign_up")} description={t("sign_up")} />
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center font-cal text-3xl font-extrabold text-gray-900">
+        <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">
           {t("create_your_account")}
         </h2>
       </div>

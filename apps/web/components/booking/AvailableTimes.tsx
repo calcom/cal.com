@@ -95,7 +95,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 <Link href={bookingUrl}>
                   <a
                     className={classNames(
-                      "mb-2 block rounded-sm border bg-white py-4 font-medium text-primary-500 hover:bg-brand hover:text-white hover:text-brandcontrast dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black dark:hover:bg-brand dark:hover:text-brandcontrast",
+                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-brand dark:hover:text-brandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">

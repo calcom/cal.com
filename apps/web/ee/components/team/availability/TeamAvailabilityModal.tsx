@@ -33,7 +33,7 @@ export default function TeamAvailabilityModal(props: Props) {
 
   return (
     <div className="flex max-h-[500px] min-h-[500px] flex-row  space-x-8 rtl:space-x-reverse">
-      <div className="w-64 min-w-64 space-y-5 p-5 pr-0">
+      <div className="min-w-64 w-64 space-y-5 p-5 pr-0">
         <div className="flex">
           <Avatar
             imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name as string)}
@@ -74,7 +74,7 @@ export default function TeamAvailabilityModal(props: Props) {
             ]}
             isSearchable={false}
             classNamePrefix="react-select"
-            className="react-select-container block w-full min-w-0 flex-1 rounded-sm border border-gray-300 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
             value={{ value: frequency, label: `${frequency} minutes` }}
             onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />

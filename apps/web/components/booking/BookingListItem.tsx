@@ -151,7 +151,7 @@ function BookingListItem(booking: BookingItem) {
             )}
           </div>
           {booking.description && (
-            <div className="max-w-52 truncate text-sm text-gray-500 md:max-w-96" title={booking.description}>
+            <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500" title={booking.description}>
               &quot;{booking.description}&quot;
             </div>
           )}

@@ -55,7 +55,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 className="mx-auto mb-4 h-24 w-24 rounded-full"
                 alt={nameOrUsername}
               />
-              <h1 className="mb-1 font-cal text-3xl font-bold text-neutral-900 dark:text-white">
+              <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
@@ -69,7 +69,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <div
                     key={type.id}
                     style={{ display: "flex" }}
-                    className="group relative rounded-sm border border-neutral-200 bg-white hover:border-brand hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+                    className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
                     <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                     <Link
                       href={{

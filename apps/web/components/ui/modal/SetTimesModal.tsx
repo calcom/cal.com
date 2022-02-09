@@ -76,7 +76,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="hours"
                 id="startHours"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="9"
                 defaultValue={startHours}
               />
@@ -95,7 +95,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="minutes"
                 id="startMinutes"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={startMinutes}
               />
@@ -115,7 +115,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="hours"
                 id="endHours"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="17"
                 defaultValue={endHours}
               />
@@ -134,7 +134,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 step="15"
                 name="minutes"
                 id="endMinutes"
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={endMinutes}
               />

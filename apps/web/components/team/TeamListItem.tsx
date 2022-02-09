@@ -60,7 +60,7 @@ export default function TeamListItem(props: Props) {
         size={9}
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
-        className="h-9 min-h-9 w-9 min-w-9 rounded-full"
+        className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
       <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>

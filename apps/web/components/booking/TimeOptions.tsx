@@ -35,7 +35,7 @@ const TimeOptions: FC<Props> = (props) => {
   };
 
   return selectedTimeZone !== "" ? (
-    <div className="absolute z-10 w-full max-w-80 rounded-sm border border-gray-200 bg-white px-4 py-2 dark:border-0 dark:bg-gray-700">
+    <div className="max-w-80 absolute z-10 w-full rounded-sm border border-gray-200 bg-white px-4 py-2 dark:border-0 dark:bg-gray-700">
       <div className="mb-4 flex">
         <div className="w-1/2 font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
         <div className="w-1/2">
@@ -69,7 +69,7 @@ const TimeOptions: FC<Props> = (props) => {
         id="timeZone"
         value={selectedTimeZone}
         onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
-        className="mt-1 mb-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+        className="focus:border-brand mt-1 mb-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
       />
     </div>
   ) : null;

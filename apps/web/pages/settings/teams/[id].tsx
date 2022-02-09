@@ -137,7 +137,7 @@ export function TeamSettingsPage() {
               <MemberList team={team} members={team.members || []} />
               {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
             </div>
-            <div className="mt-8 w-full min-w-32 px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
+            <div className="min-w-32 mt-8 w-full px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
               <TeamSettingsRightSidebar role={team.membership.role} team={team} />
             </div>
           </div>

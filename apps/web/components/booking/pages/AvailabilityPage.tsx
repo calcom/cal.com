@@ -184,7 +184,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     truncateAfter={3}
                   />
                   <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="mb-4 font-cal text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                     {eventType.title}
                   </h1>
                   <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
@@ -250,7 +250,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="mb-1 -ml-2 min-w-32 px-2 py-1 text-left text-gray-500">
+        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-500">
           <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
           {timeZone()}
           {isTimeOptionsOpen ? (

@@ -210,7 +210,7 @@ function DatePicker({
                 disabled={day.disabled}
                 className={classNames(
                   "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
-                  "hover:border hover:border-brand dark:hover:border-white",
+                  "hover:border-brand hover:border dark:hover:border-white",
                   day.disabled ? "cursor-default font-light text-gray-400 hover:border-0" : "font-medium",
                   date && date.isSame(browsingDate.date(day.date), "day")
                     ? "bg-brand text-brandcontrast"

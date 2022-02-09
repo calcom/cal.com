@@ -58,7 +58,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">
+            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
               {t("success")}
             </h2>
           </div>
@@ -80,7 +80,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">{t("whoops")}</h2>
+            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">{t("whoops")}</h2>
             <h2 className="text-center text-3xl font-extrabold text-gray-900">{t("request_is_expired")}</h2>
           </div>
           <p>{t("request_is_expired_instructions")}</p>
@@ -110,7 +110,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           {!isRequestExpired && !success && (
             <>
               <div className="space-y-6">
-                <h2 className="mt-6 text-center font-cal text-3xl font-extrabold text-gray-900">
+                <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
                   {t("reset_password")}
                 </h2>
                 <p>{t("enter_new_password")}</p>
@@ -151,7 +151,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
                       type="password"
                       autoComplete="password"
                       required
-                      className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-brand focus:outline-none focus:ring-black sm:text-sm"
+                      className="focus:border-brand block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-black sm:text-sm"
                     />
                   </div>
                 </div>

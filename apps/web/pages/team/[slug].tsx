@@ -32,7 +32,7 @@ function TeamPage({ team }: TeamPageProps) {
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="group relative rounded-sm border border-neutral-200 bg-white hover:border-brand hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+          className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
           <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
@@ -66,7 +66,7 @@ function TeamPage({ team }: TeamPageProps) {
         <Theme />
         <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
-          <div className="mx-auto mb-8 max-w-96 text-center">
+          <div className="max-w-96 mx-auto mb-8 text-center">
             <Avatar
               alt={teamName}
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
@@ -87,7 +87,7 @@ function TeamPage({ team }: TeamPageProps) {
                   <div className="w-full border-t border-gray-200 dark:border-gray-900" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-gray-100 px-2 text-sm text-gray-500 dark:bg-brand dark:text-brandcontrast">
+                  <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
                     {t("or")}
                   </span>
                 </div>

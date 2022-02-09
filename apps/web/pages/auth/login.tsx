@@ -119,7 +119,7 @@ export default function Login({
             <div className="relative">
               <div className="absolute right-0 -top-[2px]">
                 <Link href="/auth/forgot-password">
-                  <a tabIndex={-1} className="text-sm font-medium text-primary-600">
+                  <a tabIndex={-1} className="text-primary-600 text-sm font-medium">
                     {t("forgot")}
                   </a>
                 </Link>

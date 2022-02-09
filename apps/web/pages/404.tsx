@@ -53,7 +53,7 @@ export default function Custom404() {
                 <p className="text-sm font-semibold uppercase tracking-wide text-black">
                   {t("missing_license")}
                 </p>
-                <h1 className="mt-2 font-cal text-3xl font-extrabold text-gray-900">
+                <h1 className="font-cal mt-2 text-3xl font-extrabold text-gray-900">
                   {t("signup_requires")}
                 </h1>
                 <p className="mt-4">{t("signup_requires_description")}</p>
@@ -170,7 +170,7 @@ export default function Custom404() {
             <>
               <div className="text-center">
                 <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
-                <h1 className="mt-2 font-cal text-4xl font-extrabold text-gray-900 sm:text-5xl">
+                <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
                   {t("page_doesnt_exist")}
                 </h1>
                 {isSubpage ? (
