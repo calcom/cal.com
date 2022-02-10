@@ -39,19 +39,19 @@ export default function SetTimesModal(props: SetTimesModalProps) {
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div
-          className="fixed inset-0 z-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 z-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"></div>
 
         <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
           &#8203;
         </span>
 
-        <div className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+        <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-blue-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <ClockIcon className="w-6 h-6 text-black" />
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+              <ClockIcon className="h-6 w-6 text-black" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -62,7 +62,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
               </div>
             </div>
           </div>
-          <div className="flex mb-4">
+          <div className="mb-4 flex">
             <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
             <div>
               <label htmlFor="startHours" className="sr-only">
@@ -76,12 +76,12 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="hours"
                 id="startHours"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                 placeholder="9"
                 defaultValue={startHours}
               />
             </div>
-            <span className="pt-1 mx-2">:</span>
+            <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="startMinutes" className="sr-only">
                 {t("minutes")}
@@ -95,7 +95,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="minutes"
                 id="startMinutes"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={startMinutes}
               />
@@ -115,12 +115,12 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 maxLength={2}
                 name="hours"
                 id="endHours"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                 placeholder="17"
                 defaultValue={endHours}
               />
             </div>
-            <span className="pt-1 mx-2">:</span>
+            <span className="mx-2 pt-1">:</span>
             <div>
               <label htmlFor="endMinutes" className="sr-only">
                 {t("minutes")}
@@ -134,7 +134,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 step="15"
                 name="minutes"
                 id="endMinutes"
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:border-brand focus:ring-black sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={endMinutes}
               />
