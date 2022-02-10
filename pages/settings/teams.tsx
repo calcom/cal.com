@@ -61,6 +61,7 @@ export default function Teams() {
         <div className={classNames("my-4 flex justify-end", isFreePlan && "opacity-50")}>
           <Button
             disabled={isFreePlan}
+            data-testid="new-team"
             type="button"
             className="btn btn-white"
             onClick={() => setShowCreateTeamModal(true)}>

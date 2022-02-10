@@ -243,7 +243,7 @@ async function main() {
     ],
   });
 
-  await createUserAndEventType({
+  const trialUserTeam = await createUserAndEventType({
     user: {
       email: "trial@example.com",
       password: "trial",
@@ -340,6 +340,19 @@ async function main() {
       {
         id: freeUserTeam.id,
         username: freeUserTeam.name || "Unknown",
+      },
+    ]
+  );
+
+  await createTeamAndAddUsers(
+    {
+      name: "Seeded Trial Team",
+      slug: "seeded-trial-team",
+    },
+    [
+      {
+        id: trialUserTeam.id,
+        username: trialUserTeam.name || "Unknown",
       },
     ]
   );
