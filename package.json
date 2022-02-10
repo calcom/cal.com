@@ -18,6 +18,7 @@
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
+    "test-playwright": "turbo run test-playwright",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
