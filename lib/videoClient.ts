@@ -134,6 +134,7 @@ const ZoomVideo = (credential): VideoApiAdapter => {
       timezone: event.attendees[0].timeZone,
       //password: "string",       TODO: Should we use a password? Maybe generate a random one?
       agenda: event.description,
+      default_password: true,
       settings: {
         host_video: true,
         participant_video: true,
@@ -147,6 +148,7 @@ const ZoomVideo = (credential): VideoApiAdapter => {
         audio: "both",
         auto_recording: "none",
         enforce_login: false,
+        waiting_room: false,
         registrants_email_notification: true,
       },
     };
