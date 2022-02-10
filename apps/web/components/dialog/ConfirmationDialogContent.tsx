@@ -62,7 +62,11 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       </div>
       <div className="mt-5 gap-x-2 sm:mt-8 sm:flex sm:flex-row-reverse">
         <DialogClose onClick={onConfirm} asChild>
-          {confirmBtn || <Button color="primary">{confirmBtnText}</Button>}
+          {confirmBtn || (
+            <Button data-testid="confirmbt-disband-team" color="primary">
+              {confirmBtnText}
+            </Button>
+          )}
         </DialogClose>
         <DialogClose asChild>
           <Button color="secondary">{cancelBtnText}</Button>

@@ -81,6 +81,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
           <Dialog>
             <DialogTrigger asChild>
               <LinkIconButton
+                data-testid="disband-team"
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
