@@ -130,7 +130,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       throw new Error((await res.json()).message);
     }
     const responseData = await res.json();
-    console.log("response data ready");
     return responseData.data;
   };
 
@@ -318,6 +317,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                     handleSkipStep();
                   } else {
                     await response.json().catch((e) => {
+                      console.log("Error: response.json invalid: " + e);
                       setSubmitting(false);
                     });
                   }
