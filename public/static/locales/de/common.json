@@ -247,6 +247,7 @@
   "friday_time_error": "Ungültige Zeit am Freitag",
   "saturday_time_error": "Ungültige Zeit am Samstag",
   "error_end_time_before_start_time": "Die Endzeit darf nicht vor der Startzeit liegen",
+  "error_end_time_next_day": "Die Endzeit darf nicht größer als 24 Stunden sein",
   "back_to_bookings": "Zurück zu den Buchungen",
   "free_to_pick_another_event_type": "Sie können jederzeit einen anderen Termin wählen.",
   "cancelled": "Abgesagt",
