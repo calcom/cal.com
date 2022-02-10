@@ -6,6 +6,7 @@ import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
+import { Prisma } from "@prisma/client";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -69,10 +70,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  let booking = null;
-
-  if (context.query.rescheduleUid) {
-    booking = await prisma.booking.findFirst({
+  async function getBooking() {
+    return prisma.booking.findFirst({
       where: {
         uid: asStringOrThrow(context.query.rescheduleUid),
       },
@@ -86,6 +85,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
+  }
+
+  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
+  let booking: Booking | null = null;
+
+  if (context.query.rescheduleUid) {
+    booking = await getBooking();
   }
 
   return {

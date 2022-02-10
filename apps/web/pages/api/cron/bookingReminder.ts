@@ -8,7 +8,7 @@ import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
     res.status(401).json({ message: "Not authenticated" });

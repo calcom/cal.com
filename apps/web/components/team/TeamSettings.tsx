@@ -54,7 +54,6 @@ export default function TeamSettings(props: Props) {
     };
     // remove unchanged variables
     for (const key in variables) {
-      //@ts-expect-error will fix types
       if (variables[key] === team?.[key]) delete variables[key];
     }
     mutation.mutate({ id: team.id, ...variables });

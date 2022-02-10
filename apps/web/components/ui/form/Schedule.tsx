@@ -27,7 +27,7 @@ const TIMES = (() => {
   const end = dayjs().utc().endOf("day");
   let t: Dayjs = dayjs().utc().startOf("day");
 
-  const times = [];
+  const times: Dayjs[] = [];
   while (t.isBefore(end)) {
     times.push(t);
     t = t.add(increment, "minutes");
