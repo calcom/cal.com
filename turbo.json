@@ -2,9 +2,9 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env"],
   "pipeline": {
-    "@calcom/calendso#db-deploy": {},
-    "@calcom/calendso#db-seed": {
-      "dependsOn": ["@calcom/calendso#db-deploy"]
+    "@calcom/web#db-deploy": {},
+    "@calcom/web#db-seed": {
+      "dependsOn": ["@calcom/web#db-deploy"]
     },
     "build": {
       "dependsOn": ["^build"],
@@ -28,7 +28,7 @@
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/calendso#build", "@calcom/calendso#db-seed"]
+      "dependsOn": ["@calcom/web#build", "@calcom/web#db-seed"]
     },
     "type-check": {
       "outputs": []
