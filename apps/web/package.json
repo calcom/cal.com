@@ -105,7 +105,7 @@
     "react-window": "^1.8.6",
     "short-uuid": "^4.2.0",
     "stripe": "^8.191.0",
-    "superjson": "1.8.0",
+    "superjson": "1.8.1",
     "tsdav": "2.0.0",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2",
