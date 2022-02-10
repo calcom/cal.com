@@ -153,7 +153,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
-                          image: organizer.avatar || "",
+                          image: `${process.env.NEXT_PUBLIC_APP_URL}/${organizer.username}/avatar.png`,
                         }))}
                       />
                     )}
