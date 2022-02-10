@@ -10,6 +10,11 @@ node_modules
 
 # testing
 coverage
+playwright/videos
+playwright/screenshots
+playwright/artifacts
+playwright/results
+playwright/reports/*
 
 # next.js
 .next/
