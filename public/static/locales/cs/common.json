@@ -244,6 +244,7 @@
   "friday_time_error": "Neplatný čas v pátek",
   "saturday_time_error": "Neplatný čas v sobotu",
   "error_end_time_before_start_time": "Čas konce nemůže být před časem začátku",
+  "error_end_time_next_day": "Čas konce nemůže být delší než 24 hodin",
   "back_to_bookings": "Zpět na rezervace",
   "free_to_pick_another_event_type": "Kdykoliv si můžete vybrat jinou událost.",
   "cancelled": "Zrušeno",

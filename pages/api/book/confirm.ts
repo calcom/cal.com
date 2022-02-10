@@ -187,6 +187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       await refund(booking, evt);
       const rejectionReason = asStringOrNull(req.body.reason) || "";
+      evt.rejectionReason = rejectionReason;
       await prisma.booking.update({
         where: {
           id: bookingId,

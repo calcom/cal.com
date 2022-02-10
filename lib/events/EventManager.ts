@@ -18,7 +18,7 @@ export interface EventResult {
   success: boolean;
   uid: string;
   createdEvent?: Event;
-  updatedEvent?: Event;
+  updatedEvent?: Event | Event[];
   originalEvent: CalendarEvent;
 }
 
@@ -207,9 +207,10 @@ export default class EventManager {
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
-      if (result.updatedEvent) {
-        evt.videoCallData = result.updatedEvent;
-        evt.location = result.updatedEvent.url;
+      const [updatedEvent] = Array.isArray(result.updatedEvent) ? result.updatedEvent : [result.updatedEvent];
+      if (updatedEvent) {
+        evt.videoCallData = updatedEvent;
+        evt.location = updatedEvent.url;
       }
       results.push(result);
     }

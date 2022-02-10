@@ -23,22 +23,22 @@ export function parseZone(
       date,
       {
         utc: true,
-        ...format,
+        ...(typeof format === "string" ? { format } : { ...format }),
       },
       locale,
       strict
     );
   }
   const [, dateTime, sign, tzHour, tzMinute] = match;
-  const uOffset: number = tzHour * 60 + parseInt(tzMinute, 10);
+  const uOffset: number = parseInt(tzHour) * 60 + parseInt(tzMinute, 10);
   const offset = sign === "+" ? uOffset : -uOffset;
 
   return dayjs(
     dateTime,
     {
       $offset: offset,
-      ...format,
-    } as dayjs.OptionType,
+      ...(typeof format === "string" ? { format } : { ...format }),
+    } as dayjs.OptionType & { $offset: number },
     locale,
     strict
   );
