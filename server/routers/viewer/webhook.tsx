@@ -6,6 +6,7 @@ import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import sendPayload from "@lib/webhooks/sendPayload";
 
 import { createProtectedRouter } from "@server/createRouter";
+import { getTranslation } from "@server/lib/i18n";
 
 export const webhookRouter = createProtectedRouter()
   .query("list", {
@@ -94,6 +95,11 @@ export const webhookRouter = createProtectedRouter()
     }),
     async resolve({ input }) {
       const { url, type, payloadTemplate } = input;
+      const translation = await getTranslation("en", "common");
+      const language = {
+        locale: "en",
+        translate: translation,
+      };
 
       const data = {
         type: "Test",
@@ -106,12 +112,14 @@ export const webhookRouter = createProtectedRouter()
             email: "jdoe@example.com",
             name: "John Doe",
             timeZone: "Europe/London",
+            language,
           },
         ],
         organizer: {
           name: "Cal",
           email: "",
           timeZone: "Europe/London",
+          language,
         },
       };
 

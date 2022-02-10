@@ -8,6 +8,7 @@ import { VideoCallData } from "@lib/videoClient";
 
 import { NewCalendarEventType } from "../constants/types";
 import { ConferenceData } from "./GoogleCalendar";
+import type { Event } from "@lib/events/EventManager";
 
 export type Person = {
   name: string;
@@ -66,7 +67,7 @@ type EventBusyDate = Record<"start" | "end", Date | string>;
 export interface Calendar {
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
-  updateEvent(uid: string, event: CalendarEvent): Promise<unknown>;
+  updateEvent(uid: string, event: CalendarEvent): Promise<Event | Event[]>;
 
   deleteEvent(uid: string, event: CalendarEvent): Promise<unknown>;
 
