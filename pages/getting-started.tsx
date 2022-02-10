@@ -242,7 +242,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     if (!props.eventTypes || props.eventTypes.length === 0) {
       const eventTypes = await getEventTypes();
       if (eventTypes.length === 0) {
-        Promise.all(
+        await Promise.all(
           DEFAULT_EVENT_TYPES.map(async (event) => {
             return await createEventType(event);
           })
