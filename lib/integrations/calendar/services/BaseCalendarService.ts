@@ -1,5 +1,7 @@
 import { Credential } from "@prisma/client";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
 import { createEvent } from "ics";
 import {
@@ -24,6 +26,9 @@ import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../const
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 import type { Event } from "@lib/events/EventManager";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -198,7 +203,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const objects = (
       await Promise.all(
         selectedCalendars
-          .filter((sc) => sc.integration === "caldav_calendar")
+          .filter((sc) => ["caldav_calendar", "apple_calendar"].includes(sc.integration ?? ""))
           .map((sc) =>
             fetchCalendarObjects({
               calendar: {
@@ -222,20 +227,10 @@ export default abstract class BaseCalendarService implements Calendar {
         const vcalendar = new ICAL.Component(jcalData);
         const vevent = vcalendar.getFirstSubcomponent("vevent");
         const event = new ICAL.Event(vevent);
-        const calendarTimezone =
-          vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
-
-        const startDate = calendarTimezone
-          ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
-          : new Date(event.startDate.toUnixTime() * 1000);
-
-        const endDate = calendarTimezone
-          ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
-          : new Date(event.endDate.toUnixTime() * 1000);
 
         return {
-          start: startDate.toISOString(),
-          end: endDate.toISOString(),
+          start: event.startDate.toJSDate().toISOString(),
+          end: event.endDate.toJSDate().toISOString(),
         };
       });
 
@@ -307,11 +302,11 @@ export default abstract class BaseCalendarService implements Calendar {
             vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
 
           const startDate = calendarTimezone
-            ? dayjs(event.startDate.toJSDate()).tz(calendarTimezone)
+            ? dayjs.tz(event.startDate.toString(), calendarTimezone)
             : new Date(event.startDate.toUnixTime() * 1000);
 
           const endDate = calendarTimezone
-            ? dayjs(event.endDate.toJSDate()).tz(calendarTimezone)
+            ? dayjs.tz(event.endDate.toString(), calendarTimezone)
             : new Date(event.endDate.toUnixTime() * 1000);
 
           return {
