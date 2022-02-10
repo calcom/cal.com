@@ -2,7 +2,7 @@ import { ClockIcon } from "@heroicons/react/outline";
 import { useRef } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
-
+import showToast from "@lib/notification";
 import Button from "@components/ui/Button";
 
 interface SetTimesModalProps {
@@ -20,6 +20,18 @@ export default function SetTimesModal(props: SetTimesModalProps) {
   const startMinsRef = useRef<HTMLInputElement>(null!);
   const endHoursRef = useRef<HTMLInputElement>(null!);
   const endMinsRef = useRef<HTMLInputElement>(null!);
+
+  const isValidTime = (startTime: number, endTime: number) => {
+    if (new Date(startTime) > new Date(endTime)) {
+      showToast(t("error_end_time_before_start_time"), "error");
+      return false;
+    }
+    if (endTime > 1440) {
+      showToast(t("error_end_time_next_day"), "error");
+      return false;
+    }
+    return true;
+  };
 
   return (
     <div
@@ -138,12 +150,18 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 const enteredEndHours = parseInt(endHoursRef.current.value);
                 const enteredEndMins = parseInt(endMinsRef.current.value);
 
-                props.onChange({
-                  startTime: enteredStartHours * 60 + enteredStartMins,
-                  endTime: enteredEndHours * 60 + enteredEndMins,
-                });
-
-                props.onExit(0);
+                if (
+                  isValidTime(
+                    enteredStartHours * 60 + enteredStartMins,
+                    enteredEndHours * 60 + enteredEndMins
+                  )
+                ) {
+                  props.onChange({
+                    startTime: enteredStartHours * 60 + enteredStartMins,
+                    endTime: enteredEndHours * 60 + enteredEndMins,
+                  });
+                  props.onExit(0);
+                }
               }}
               type="submit">
               {t("save")}
