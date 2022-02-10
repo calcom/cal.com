@@ -10,6 +10,7 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
     },
+    "db-seed": {},
     "deploy": {
       "dependsOn": []
     },
