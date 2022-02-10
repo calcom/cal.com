@@ -559,7 +559,7 @@
   "cal_provide_zoom_meeting_url": "O Cal irá fornecer um URL de reunião do Zoom.",
   "cal_provide_tandem_meeting_url": "O Cal irá fornecer um URL de reunião do Tandem.",
   "cal_provide_video_meeting_url": "O Cal irá fornecer um URL de reunião do Daily video.",
-  "cal_provide_jitsi_meeting_url": "O Cal irá fornecer um URL de reunião vídeo do Jitsi Meet.",
+  "cal_provide_jitsi_meeting_url": "Será gerado um URL do Jitsi Meet para si.",
   "cal_provide_huddle01_meeting_url": "O Cal irá fornecer um URL de reunião vídeo do Huddle01 Web3.",
   "require_payment": "Requer Pagamento",
   "commission_per_transaction": "comissão por transação",

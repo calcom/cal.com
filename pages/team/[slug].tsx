@@ -23,7 +23,7 @@ import Text from "@components/ui/Text";
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 
 function TeamPage({ team }: TeamPageProps) {
-  const { isReady } = useTheme();
+  const { isReady, Theme } = useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
 
@@ -63,6 +63,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     isReady && (
       <div>
+        <Theme />
         <HeadSeo title={teamName} description={teamName} />
         <div className="px-4 pt-24 pb-12">
           <div className="mx-auto mb-8 max-w-96 text-center">

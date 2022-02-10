@@ -19,7 +19,7 @@ const TrialBanner = () => {
 
   return (
     <div
-      className="m-4 hidden rounded-md bg-yellow-200 p-4 text-center text-sm font-medium text-gray-600 sm:block"
+      className="m-4 hidden rounded-md bg-yellow-200 p-4 text-center text-sm font-medium text-gray-600 lg:block"
       data-testid="trial-banner">
       <div className="mb-2 text-left">{t("trial_days_left", { days: trialDaysLeft })}</div>
       <Button

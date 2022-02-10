@@ -35,7 +35,7 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const { isReady } = useTheme(profile.theme);
+  const { isReady, Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
 
@@ -99,6 +99,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
   return (
     <>
+      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -126,7 +127,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: user.avatar || undefined,
+                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -175,7 +176,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: user.avatar,
+                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }

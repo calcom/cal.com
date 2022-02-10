@@ -533,9 +533,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly
-        metadata.hangoutLink = results[0].updatedEvent?.hangoutLink;
-        metadata.conferenceData = results[0].updatedEvent?.conferenceData;
-        metadata.entryPoints = results[0].updatedEvent?.entryPoints;
+        const [updatedEvent] = Array.isArray(results[0].updatedEvent)
+          ? results[0].updatedEvent
+          : [results[0].updatedEvent];
+        if (updatedEvent) {
+          metadata.hangoutLink = updatedEvent.hangoutLink;
+          metadata.conferenceData = updatedEvent.conferenceData;
+          metadata.entryPoints = updatedEvent.entryPoints;
+        }
       }
 
       await sendRescheduledEmails({ ...evt, additionInformation: metadata });
