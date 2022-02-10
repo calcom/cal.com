@@ -36,7 +36,6 @@ import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegratio
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
-import { defaultAvatarSrc } from "@lib/profile";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -313,15 +312,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const mapUserToValue = ({
     id,
     name,
-    avatar,
+    username,
   }: {
     id: number | null;
     name: string | null;
-    avatar: string | null;
+    username: string | null;
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${avatar || ""}`,
+    avatar: `${process.env.NEXT_PUBLIC_APP_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<{
@@ -1716,7 +1715,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = user.avatar || defaultAvatarSrc({ email: asStringOrUndefined(user.email) });
+        user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];
