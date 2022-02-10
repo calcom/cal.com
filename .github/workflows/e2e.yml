@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     timeout-minutes: 10
-    name: ${{ matrix.node }} and ${{ matrix.os }}
+    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       BASE_URL: http://localhost:3000
