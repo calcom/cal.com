@@ -13,10 +13,10 @@ import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
 
-import ConnectIntegration from "./ConnectIntegrations";
-import DisconnectIntegration from "./DisconnectIntegration";
-import IntegrationListItem from "./IntegrationListItem";
-import SubHeadingTitleWithConnections from "./SubHeadingTitleWithConnections";
+import ConnectIntegration from "../../../../components/integrations/ConnectIntegrations";
+import DisconnectIntegration from "../../../../components/integrations/DisconnectIntegration";
+import IntegrationListItem from "../../../../components/integrations/IntegrationListItem";
+import SubHeadingTitleWithConnections from "../../../../components/integrations/SubHeadingTitleWithConnections";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
@@ -105,7 +105,7 @@ function ConnectedCalendarsList(props: Props) {
         }
         return (
           <List>
-            {data.connectedCalendars.map((item) => (
+            {data.connectedCalendars.map((item: any) => (
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
@@ -123,7 +123,7 @@ function ConnectedCalendarsList(props: Props) {
                       />
                     }>
                     <ul className="p-4 space-y-2">
-                      {item.calendars.map((cal) => (
+                      {item.calendars.map((cal: any) => (
                         <CalendarSwitch
                           key={cal.externalId}
                           externalId={cal.externalId as string}
@@ -170,7 +170,7 @@ function CalendarList(props: Props) {
       query={query}
       success={({ data }) => (
         <List>
-          {data.calendar.items.map((item) => (
+          {data.calendar.items.map((item: any) => (
             <IntegrationListItem
               key={item.title}
               {...item}

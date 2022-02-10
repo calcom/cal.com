@@ -1,20 +1,12 @@
 import { DestinationCalendar, SelectedCalendar } from "@prisma/client";
-import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
 
 import { Ensure } from "@lib/types/utils";
 import { VideoCallData } from "@lib/videoClient";
 
-import { NewCalendarEventType } from "../constants/types";
-import { ConferenceData } from "./GoogleCalendar";
-
-export type Person = {
-  name: string;
-  email: string;
-  timeZone: string;
-  language: { translate: TFunction; locale: string };
-};
+import { ConferenceData } from "../../google_calendar/interfaces/GoogleCalendar";
+import { NewCalendarEventType, Person } from "../types/CalendarTypes";
 
 export interface EntryPoint {
   entryPointType?: string;

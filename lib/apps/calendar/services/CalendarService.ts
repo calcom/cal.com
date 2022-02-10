@@ -18,10 +18,10 @@ import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import logger from "@lib/logger";
 
-import { TIMEZONE_FORMAT } from "../constants/formats";
-import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
-import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
+import { TIMEZONE_FORMAT } from "../constants/format";
+import { DEFAULT_CALENDAR_TYPE } from "../constants/general";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../types/CalendarTypes";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -358,7 +358,7 @@ export default abstract class BaseCalendarService implements Calendar {
     return createAccount({
       account: {
         serverUrl: this.url,
-        accountType: CALDAV_CALENDAR_TYPE,
+        accountType: DEFAULT_CALENDAR_TYPE,
         credentials: this.credentials,
       },
       headers: this.headers,

@@ -2,10 +2,10 @@ import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { AddAppleIntegrationModal } from "@lib/integrations/calendar/components/AddAppleIntegration";
-import { AddCalDavIntegrationModal } from "@lib/integrations/calendar/components/AddCalDavIntegration";
-
 import { ButtonBaseProps } from "@components/ui/Button";
+
+import { AddIntegrationModal as AddAppleIntegrationModal } from "../../lib/apps/apple_calendar/components/AddIntegration";
+import { AddIntegrationModal as AddCalDavIntegrationModal } from "../../lib/apps/caldav_calendar/components/AddIntegration";
 
 export default function ConnectIntegration(props: {
   type: string;

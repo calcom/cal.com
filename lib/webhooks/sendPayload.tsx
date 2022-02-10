@@ -1,6 +1,6 @@
 import { compile } from "handlebars";
 
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 

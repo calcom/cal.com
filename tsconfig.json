@@ -19,7 +19,10 @@
       ],
       "@ee/*": [
         "ee/*"
-      ]
+      ],
+      "@apps/*": [
+        "lib/apps/*"
+      ],
     },
     "skipLibCheck": true,
     "strict": true,
@@ -33,7 +36,9 @@
     "isolatedModules": true,
     "useUnknownInCatchVariables": true,
     "jsx": "preserve",
-    "typeRoots": ["./types"],
+    "typeRoots": [
+      "./types"
+    ],
     "types": [
       "@types/jest",
     ],
@@ -52,7 +57,9 @@
   "ts-node": {
     "compilerOptions": {
       "module": "CommonJS",
-      "types": ["node"],
+      "types": [
+        "node"
+      ],
     }
   }
 }

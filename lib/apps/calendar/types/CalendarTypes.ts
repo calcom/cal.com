@@ -1,10 +1,18 @@
 import dayjs from "dayjs";
 import ICAL from "ical.js";
+import { TFunction } from "next-i18next";
 
-import AppleCalendarService from "../services/AppleCalendarService";
-import CalDavCalendarService from "../services/CalDavCalendarService";
-import GoogleCalendarService from "../services/GoogleCalendarService";
-import Office365CalendarService from "../services/Office365CalendarService";
+import AppleCalendarService from "../../apple_calendar/services/CalendarService";
+import CalDavCalendarService from "../../apple_calendar/services/CalendarService";
+import GoogleCalendarService from "../../google_calendar/services/CalendarService";
+import Office365CalendarService from "../../office365_calendar/services/CalendarService";
+
+export type Person = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
+};
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;
 

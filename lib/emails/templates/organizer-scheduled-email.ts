@@ -7,9 +7,9 @@ import { createEvent, DateArray, Person } from "ics";
 import nodemailer from "nodemailer";
 
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
+import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
+import { getAppName } from "@lib/apps/utils/AppUtils";
 import { getErrorFromUnknown } from "@lib/errors";
-import { getIntegrationName } from "@lib/integrations";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
 
 import {
@@ -298,7 +298,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getIntegrationName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];

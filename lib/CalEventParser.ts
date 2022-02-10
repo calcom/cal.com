@@ -2,10 +2,10 @@ import { Person } from "ics";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { getIntegrationName } from "@lib/integrations";
+import { getAppName } from "@lib/apps/utils/AppUtils";
 
+import { CalendarEvent } from "./apps/calendar/interfaces/Calendar";
 import { BASE_URL } from "./config/constants";
-import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 
 const translator = short();
 
@@ -54,7 +54,7 @@ ${calEvent.description}
 };
 
 export const getLocation = (calEvent: CalendarEvent) => {
-  let providerName = calEvent.location ? getIntegrationName(calEvent.location) : "";
+  let providerName = calEvent.location ? getAppName(calEvent.location) : "";
 
   if (calEvent.location && calEvent.location.includes("integrations:")) {
     const location = calEvent.location.split(":")[1];

@@ -13,9 +13,9 @@ import { Form, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
-export const ADD_APPLE_INTEGRATION_FORM_TITLE = "addAppleIntegration";
+export const ADD_INTEGRATION_FORM_TITLE = "addAppleIntegration";
 
-export function AddAppleIntegrationModal(props: DialogProps) {
+export function AddIntegrationModal(props: DialogProps) {
   const form = useForm({
     defaultValues: {
       username: "",
