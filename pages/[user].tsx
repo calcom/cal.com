@@ -13,9 +13,12 @@ import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-
 import { ssrInit } from "@server/lib/ssr";
+
+// import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+const EventTypeDescription = dynamic(() =>
+  import("@components/eventtype/EventTypeDescription").then((mod) => mod.EventTypeDescription)
+);
 
 const HeadSeo = dynamic(() => import("@components/seo/head-seo").then((mod) => mod.HeadSeo));
 const CryptoSection = dynamic(() => import("../ee/components/web3/CryptoSection"));
