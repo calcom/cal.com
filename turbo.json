@@ -32,7 +32,6 @@
     },
     "type-check": {
       "outputs": []
-    },
-    "test-playwright": {}
+    }
   }
 }
