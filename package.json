@@ -16,6 +16,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "prepare": "husky install",
+    "prisma": "yarn prisma",
     "start": "turbo run start",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test -c apps/web/playwright.config.ts",
