@@ -26,7 +26,6 @@ interface EvtsToVerify {
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { Theme } = useTheme(props.user.theme);
-  const isServer = typeof window === "undefined";
   const { user, eventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
@@ -38,15 +37,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <Theme />
-      {isServer ? (
-        <HeadSeo
-          title={nameOrUsername}
-          description={(user.bio as string) || ""}
-          name={nameOrUsername}
-          username={(user.username as string) || ""}
-          // avatar={user.avatar || undefined}
-        />
-      ) : null}
+      <HeadSeo
+        title={nameOrUsername}
+        description={(user.bio as string) || ""}
+        name={nameOrUsername}
+        username={(user.username as string) || ""}
+        // avatar={user.avatar || undefined}
+      />
       <div className="h-screen dark:bg-black">
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
@@ -108,18 +105,16 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 </div>
               ))}
           </div>
-          {isServer
-            ? eventTypes.length === 0 && (
-                <div className="overflow-hidden rounded-sm shadow">
-                  <div className="p-8 text-center text-gray-400 dark:text-white">
-                    <h2 className="font-cal text-3xl font-semibold text-gray-600 dark:text-white">
-                      {t("uh_oh")}
-                    </h2>
-                    <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup")}</p>
-                  </div>
-                </div>
-              )
-            : null}
+          {eventTypes.length === 0 && (
+            <div className="overflow-hidden rounded-sm shadow">
+              <div className="p-8 text-center text-gray-400 dark:text-white">
+                <h2 className="font-cal text-3xl font-semibold text-gray-600 dark:text-white">
+                  {t("uh_oh")}
+                </h2>
+                <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup")}</p>
+              </div>
+            </div>
+          )}
         </main>
         <Toaster position="bottom-right" />
       </div>
