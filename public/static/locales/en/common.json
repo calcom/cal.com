@@ -251,6 +251,7 @@
   "friday_time_error":"Invalid time on Friday",
   "saturday_time_error":"Invalid time on Saturday",
   "error_end_time_before_start_time": "End time cannot be before start time",
+  "error_end_time_next_day": "End time cannot be greater than 24 hours",
   "back_to_bookings": "Back to bookings",
   "free_to_pick_another_event_type": "Feel free to pick another event anytime.",
   "cancelled": "Cancelled",
