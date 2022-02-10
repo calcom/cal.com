@@ -2,6 +2,10 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env"],
   "pipeline": {
+    "@calcom/calendso#db-deploy": {},
+    "@calcom/calendso#db-seed": {
+      "dependsOn": ["@calcom/calendso#db-deploy"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
@@ -20,6 +24,9 @@
     },
     "lint": {
       "outputs": []
+    },
+    "test": {
+      "dependsOn": ["@calcom/calendso#build", "@calcom/calendso#db-seed"]
     },
     "type-check": {
       "outputs": []

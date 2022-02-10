@@ -73,9 +73,7 @@ jobs:
             turbo-${{ github.job }}-${{ github.ref_name }}-
       - run: cd apps/web
       - run: yarn prisma migrate deploy
-      - run: yarn db-seed
       - run: yarn test
-      - run: yarn build
 
       - name: Cache playwright binaries
         uses: actions/cache@v2
