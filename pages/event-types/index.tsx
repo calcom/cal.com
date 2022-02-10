@@ -44,9 +44,9 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
   return (
     <div className="md:py-20">
       <UserCalendarIllustration />
-      <div className="block mx-auto text-center md:max-w-screen-sm">
+      <div className="mx-auto block text-center md:max-w-screen-sm">
         <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
-        <p className="mt-1 mb-2 text-md text-neutral-600">{t("new_event_type_description")}</p>
+        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
         <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
       </div>
     </div>
@@ -93,7 +93,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
   }
 
   return (
-    <div className="mb-16 -mx-4 overflow-hidden bg-white border border-gray-200 rounded-sm sm:mx-0">
+    <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
@@ -107,7 +107,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 "flex items-center justify-between hover:bg-neutral-50 ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="flex items-center justify-between w-full px-4 py-4 group hover:bg-neutral-50 sm:px-6">
+              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button
@@ -125,10 +125,10 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 )}
                 <Link href={"/event-types/" + type.id}>
                   <a
-                    className="flex-grow text-sm truncate"
+                    className="flex-grow truncate text-sm"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="font-medium truncate text-neutral-900">{type.title} </span>
+                      <span className="truncate font-medium text-neutral-900">{type.title} </span>
                       <small className="hidden text-neutral-500 sm:inline">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
@@ -145,7 +145,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                   </a>
                 </Link>
 
-                <div className="flex-shrink-0 hidden mt-4 sm:mt-0 sm:ml-5 sm:flex">
+                <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                   <div className="flex items-center space-x-2 overflow-hidden rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
@@ -162,8 +162,8 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="appearance-none btn-icon">
-                        <ExternalLinkIcon className="w-5 h-5 group-hover:text-black" />
+                        className="btn-icon appearance-none">
+                        <ExternalLinkIcon className="h-5 w-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
 
@@ -176,20 +176,20 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                           );
                         }}
                         className="btn-icon">
-                        <LinkIcon className="w-5 h-5 group-hover:text-black" />
+                        <LinkIcon className="h-5 w-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-shrink-0 mr-5 sm:hidden">
+              <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Menu as="div" className="inline-block text-left">
                   {({ open }) => (
                     <>
                       <div>
-                        <Menu.Button className="p-2 mt-1 border border-transparent text-neutral-400 hover:border-gray-200">
+                        <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
                           <span className="sr-only">{t("open_options")}</span>
-                          <DotsHorizontalIcon className="w-5 h-5" aria-hidden="true" />
+                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                         </Menu.Button>
                       </div>
 
@@ -204,7 +204,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="absolute right-0 z-10 w-56 mt-2 origin-top-right bg-white divide-y rounded-sm shadow-lg divide-neutral-100 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -217,7 +217,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <ExternalLinkIcon
-                                    className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   {t("preview")}
@@ -238,7 +238,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <LinkIcon
-                                    className="w-4 h-4 mr-3 text-neutral-400 group-hover:text-neutral-500"
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   {t("copy_link")}
@@ -265,14 +265,14 @@ interface EventTypeListHeadingProps {
   membershipCount: number;
 }
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
-  <div className="flex mb-4">
+  <div className="mb-4 flex">
     <Link href="/settings/teams">
       <a>
         <Avatar
           alt={profile?.name || ""}
           imageSrc={profile?.image || undefined}
           size={8}
-          className="inline mt-1 ltr:mr-2 rtl:ml-2"
+          className="mt-1 inline ltr:mr-2 rtl:ml-2"
         />
       </a>
     </Link>
@@ -281,11 +281,11 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         <a className="font-bold">{profile?.name || ""}</a>
       </Link>
       {membershipCount && (
-        <span className="relative text-xs -top-px text-neutral-500 ltr:ml-2 rtl:mr-2">
+        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
           <Link href="/settings/teams">
             <a>
               <Badge variant="gray">
-                <UsersIcon className="inline w-3 h-3 mr-1 -mt-px" />
+                <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </a>
