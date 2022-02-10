@@ -25,6 +25,7 @@
     "lint": {
       "outputs": []
     },
+    "start": {},
     "test": {
       "dependsOn": ["@calcom/calendso#build", "@calcom/calendso#db-seed"]
     },
