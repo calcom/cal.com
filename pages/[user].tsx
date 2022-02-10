@@ -26,7 +26,7 @@ interface EvtsToVerify {
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { isReady } = useTheme(props.user.theme);
+  const { isReady, Theme } = useTheme(props.user.theme);
   const { user, eventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
@@ -38,6 +38,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   return (
     <>
+      <Theme />
       <HeadSeo
         title={nameOrUsername}
         description={(user.bio as string) || ""}

@@ -115,7 +115,7 @@ const BookingPage = (props: BookingPageProps) => {
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
-  const { isReady } = useTheme(props.profile.theme);
+  const { isReady, Theme } = useTheme(props.profile.theme);
 
   const date = asStringOrNull(router.query.date);
   const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
@@ -275,6 +275,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   return (
     <div>
+      <Theme />
       <Head>
         <title>
           {rescheduleUid

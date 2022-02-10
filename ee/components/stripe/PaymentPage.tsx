@@ -23,7 +23,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
-  const { isReady } = useTheme(props.profile.theme);
+  const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -34,6 +34,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   return isReady ? (
     <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
+      <Theme />
       <Head>
         <title>
           {t("payment")} | {eventName} | Cal.com

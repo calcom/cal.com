@@ -35,7 +35,7 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const { isReady } = useTheme(profile.theme);
+  const { isReady, Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
 
@@ -99,6 +99,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
   return (
     <>
+      <Theme />
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
