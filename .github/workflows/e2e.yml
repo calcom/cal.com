@@ -87,8 +87,7 @@ jobs:
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-
-      - run: yarn test-playwright
+      - run: yarn playwright test
 
       - name: Upload videos
         if: ${{ always() }}
