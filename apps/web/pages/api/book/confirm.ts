@@ -43,7 +43,7 @@ const authorized = async (
 
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });
   if (!session?.user?.id) {
     return res.status(401).json({ message: "Not authenticated" });

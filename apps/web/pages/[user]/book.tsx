@@ -1,16 +1,14 @@
+import BookingPage from "@components/booking/pages/BookingPage";
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Prisma } from "@prisma/client";
+import { ssrInit } from "@server/lib/ssr";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
-
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import BookingPage from "@components/booking/pages/BookingPage";
-
-import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -107,10 +105,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  let booking = null;
-
-  if (context.query.rescheduleUid) {
-    booking = await prisma.booking.findFirst({
+  async function getBooking() {
+    return prisma.booking.findFirst({
       where: {
         uid: asStringOrThrow(context.query.rescheduleUid),
       },
@@ -124,6 +120,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
+  }
+
+  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
+  let booking: Booking | null = null;
+
+  if (context.query.rescheduleUid) {
+    booking = await getBooking();
   }
 
   return {

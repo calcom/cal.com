@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { Credential, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -342,8 +342,7 @@ export default abstract class BaseCalendarService implements Calendar {
   }
 
   private async getEventsByUID(uid: string): Promise<CalendarEventType[]> {
-    const events = [];
-
+    const events: Prisma.PromiseReturnType<typeof this.getEvents> = [];
     const calendars = await this.listCalendars();
 
     for (const cal of calendars) {

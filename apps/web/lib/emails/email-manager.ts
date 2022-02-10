@@ -14,10 +14,10 @@ import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-e
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
-  const emailsToSend = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    calEvent.attendees.map((attendee) => {
+    ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
           const scheduledEmail = new AttendeeScheduledEmail(calEvent, attendee);
@@ -44,10 +44,10 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
 };
 
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
-  const emailsToSend = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    calEvent.attendees.map((attendee) => {
+    ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
           const scheduledEmail = new AttendeeRescheduledEmail(calEvent, attendee);
@@ -85,10 +85,10 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
 };
 
 export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
-  const emailsToSend = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    calEvent.attendees.map((attendee) => {
+    ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
           const declinedEmail = new AttendeeDeclinedEmail(calEvent, attendee);
@@ -104,10 +104,10 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
 };
 
 export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
-  const emailsToSend = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    calEvent.attendees.map((attendee) => {
+    ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
           const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee);
@@ -145,10 +145,10 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
 };
 
 export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
-  const emailsToSend = [];
+  const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    calEvent.attendees.map((attendee) => {
+    ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
           const paymentEmail = new AttendeeAwaitingPaymentEmail(calEvent, attendee);

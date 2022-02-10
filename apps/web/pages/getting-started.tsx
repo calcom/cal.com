@@ -645,11 +645,6 @@ export async function getServerSideProps(context: NextPageContext) {
 
   const session = await getSession(context);
 
-  let integrations = [];
-  let connectedCalendars = [];
-  let credentials = [];
-  let eventTypes = [];
-  let schedules = [];
   if (!session?.user?.id) {
     return {
       redirect: {
@@ -694,7 +689,7 @@ export async function getServerSideProps(context: NextPageContext) {
     };
   }
 
-  credentials = await prisma.credential.findMany({
+  const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
     },
@@ -705,16 +700,16 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  integrations = getIntegrations(credentials)
+  const integrations = getIntegrations(credentials)
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
 
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(credentials, user.id);
   // get all the connected integrations' calendars (from third party)
-  connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+  const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
-  eventTypes = await prisma.eventType.findMany({
+  const eventTypes = await prisma.eventType.findMany({
     where: {
       userId: user.id,
     },
@@ -728,7 +723,7 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  schedules = await prisma.schedule.findMany({
+  const schedules = await prisma.schedule.findMany({
     where: {
       userId: user.id,
     },
