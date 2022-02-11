@@ -10,7 +10,7 @@ let minify: typeof minifyType;
 
 if (isServer) {
   // HACK: To import uglify-js only on server use `require`
-  // Dynamic Imports are dynamic and thus can't be used in the component on server.
+  // Dynamic Imports are asynchronous and thus can't be used in the component on server.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   minify = require("uglify-js").minify;
 }
