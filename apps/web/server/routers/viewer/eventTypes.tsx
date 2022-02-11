@@ -4,9 +4,9 @@ import {
   _DestinationCalendarModel,
   _EventTypeCustomInputModel,
   _EventTypeModel,
-} from "prisma/zod";
-import { stringOrNumber } from "prisma/zod-utils";
-import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
+} from "@calcom/prisma/zod";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";

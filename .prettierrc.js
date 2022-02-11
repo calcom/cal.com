@@ -7,7 +7,7 @@ module.exports = {
   semi: true,
   printWidth: 110,
   arrowParens: "always",
-  importOrder: ["^@ee/(.*)$", "^@lib/(.*)$", "^@components/(.*)$", "^@(server|trpc)/(.*)$", "^[./]"],
+  importOrder: ["^@(calcom|components|ee|lib|server|trpc)/(.*)$", "^[./]"],
   importOrderSeparation: true,
   plugins: [require("./merged-prettier-plugin")],
 };
