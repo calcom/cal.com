@@ -13,6 +13,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import showToast from "@lib/notification";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
@@ -57,50 +58,55 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               )}
             </h1>
             <p className="text-neutral-500 dark:text-white">{user.bio}</p>
+            {user.away && (
+              <p className="font-bold text-neutral-900 dark:text-white">The user is currently away.</p>
+            )}
           </div>
           <div className="space-y-6" data-testid="event-types">
-            {!user.away &&
-              eventTypes.map((type) => (
-                <div
-                  key={type.id}
-                  style={{ display: "flex" }}
-                  className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
-                  <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
-                  <Link
-                    href={{
-                      pathname: `/${user.username}/${type.slug}`,
-                      query,
-                    }}>
-                    <a
-                      onClick={async (e) => {
-                        // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
-                        if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                          const showToast = (await import("@lib/notification")).default;
-                          e.preventDefault();
-                          showToast(
-                            "You must verify a wallet with a token belonging to the specified smart contract first",
-                            "error"
-                          );
-                        }
-                      }}
-                      className="block w-full px-6 py-4"
-                      data-testid="event-type-link">
-                      <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
-                      <EventTypeDescription eventType={type} />
-                    </a>
-                  </Link>
-                  {type.isWeb3Active && type.metadata.smartContractAddress && (
-                    <CryptoSection
-                      id={type.id}
-                      pathname={`/${user.username}/${type.slug}`}
-                      smartContractAddress={type.metadata.smartContractAddress as string}
-                      verified={evtsToVerify[type.id]}
-                      setEvtsToVerify={setEvtsToVerify}
-                      oneStep
-                    />
-                  )}
-                </div>
-              ))}
+            {eventTypes.map((type) => (
+              <div
+                key={type.id}
+                style={{ display: "flex" }}
+                className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+                <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                <Link
+                  href={{
+                    pathname: `/${user.username}/${type.slug}`,
+                    query,
+                  }}>
+                  <a
+                    onClick={(e) => {
+                      if (user.away) {
+                        e.preventDefault();
+                        showToast("The event can't be booked as the user is away.", "error");
+                      }
+                      // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
+                      else if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
+                        e.preventDefault();
+                        showToast(
+                          "You must verify a wallet with a token belonging to the specified smart contract first",
+                          "error"
+                        );
+                      }
+                    }}
+                    className="block w-full px-6 py-4"
+                    data-testid="event-type-link">
+                    <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                    <EventTypeDescription eventType={type} />
+                  </a>
+                </Link>
+                {type.isWeb3Active && type.metadata.smartContractAddress && (
+                  <CryptoSection
+                    id={type.id}
+                    pathname={`/${user.username}/${type.slug}`}
+                    smartContractAddress={type.metadata.smartContractAddress as string}
+                    verified={evtsToVerify[type.id]}
+                    setEvtsToVerify={setEvtsToVerify}
+                    oneStep
+                  />
+                )}
+              </div>
+            ))}
           </div>
           {eventTypes.length === 0 && (
             <div className="overflow-hidden rounded-sm shadow">
