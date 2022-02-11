@@ -16,7 +16,7 @@ export default function LicenseBanner() {
     Summary of terms:
     - The codebase has to stay open source, whether it was modified or not
     - You can not repackage or sell the codebase
-    - Acquire a commercial license to remove these terms by emailing: license@cal.com
+    - Acquire a commercial license to remove these terms by visiting: cal.com/sales
     NEXT_PUBLIC_LICENSE_CONSENT=''
   */
   if (process.env.NEXT_PUBLIC_LICENSE_CONSENT === "agree") {
@@ -89,8 +89,8 @@ export default function LicenseBanner() {
           <li>{t("cannot_repackage_codebase")}</li>
           <li>
             {t("acquire_license")}:{" "}
-            <a className="text-blue-500 underline" href="mailto:license@cal.com">
-              license@cal.com
+            <a className="text-blue-500 underline" href="https://cal.com/sales">
+              cal.com/sales
             </a>
           </li>
         </ul>
