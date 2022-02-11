@@ -2,8 +2,8 @@ import { MembershipRole, Prisma, PrismaClient, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
-import { hashPassword } from "../lib/auth";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../lib/availability";
+import { hashPassword } from "@calcom/lib/auth";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
 const prisma = new PrismaClient();
 

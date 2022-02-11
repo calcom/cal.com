@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-import { LocationType } from "@lib/location";
+export enum LocationType {
+  InPerson = "inPerson",
+  Phone = "phone",
+  GoogleMeet = "integrations:google:meet",
+  Zoom = "integrations:zoom",
+  Daily = "integrations:daily",
+}
 
 export const eventTypeLocations = z.array(
   z.object({ type: z.nativeEnum(LocationType), address: z.string().optional() })
