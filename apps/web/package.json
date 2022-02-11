@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
+    "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/tsconfig": "*",
     "@daily-co/daily-js": "^0.21.0",
