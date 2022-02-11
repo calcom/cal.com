@@ -6,7 +6,7 @@ export function Dialog(props: DialogProps) {
   const { children, ...other } = props;
   return (
     <DialogPrimitive.Root {...other}>
-      <DialogPrimitive.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
       {children}
     </DialogPrimitive.Root>
   );
@@ -17,7 +17,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Content
       {...props}
-      className="fixed left-1/2 top-1/2 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl sm:w-full sm:max-w-lg sm:align-middle"
+      className="fixed left-1/2 top-1/2 z-50 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl sm:w-full sm:max-w-lg sm:align-middle"
       ref={forwardedRef}>
       {children}
     </DialogPrimitive.Content>
