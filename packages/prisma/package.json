@@ -27,11 +27,6 @@
   },
   "main": "index.ts",
   "types": "index.d.ts",
-  "lint-staged": {
-    "./schema.prisma": [
-      "prisma format"
-    ]
-  },
   "prisma": {
     "seed": "ts-node ./seed.ts"
   }
