@@ -3,7 +3,7 @@ import { ChevronRightIcon } from "@heroicons/react/solid";
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -13,8 +13,10 @@ import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
   const { t } = useLocale();
+
   const router = useRouter();
   const username = router.asPath.replace("%20", "-");
+
   const links = [
     {
       title: t("documentation"),
@@ -30,10 +32,14 @@ export default function Custom404() {
     },
   ];
 
+  const [url, setUrl] = useState("https://cal.com/signup?username=");
+  useEffect(() => {
+    setUrl(`https://cal.com/signup?username=${username.replace("/", "")}`);
+  }, [router.query]);
+
   const isSubpage = router.asPath.includes("/", 2);
   const isSignup = router.asPath.includes("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com";
-  const signupLink = "https://cal.com/signup?username=" + username.replace("/", "");
 
   return (
     <>
@@ -178,21 +184,18 @@ export default function Custom404() {
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
                 ) : isCalcom ? (
-                  <Link href={signupLink}>
+                  <Link href={url}>
                     <a className="mt-2 inline-block text-lg">
                       {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
                       {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
                     </a>
                   </Link>
                 ) : (
-                  <>
+                  <span className="mt-2 inline-block text-lg">
                     {t("the_username")}{" "}
-                    <strong className="text-green-500">
-                      {new URL(process.env.NEXT_PUBLIC_BASE_URL || "").hostname}
-                      {username}
-                    </strong>{" "}
+                    <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
                     {t("is_still_available")}
-                  </>
+                  </span>
                 )}
               </div>
               <div className="mt-12">
@@ -202,7 +205,7 @@ export default function Custom404() {
                 {!isSubpage && isCalcom && (
                   <ul role="list" className="mt-4">
                     <li className="border-2 border-green-500 px-4 py-2">
-                      <Link href={signupLink}>
+                      <Link href={url}>
                         <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                           <div className="flex-shrink-0">
                             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
