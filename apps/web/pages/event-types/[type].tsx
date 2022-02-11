@@ -675,7 +675,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       ? {
                           smartContractAddress,
                         }
-                      : undefined,
+                      : "",
                   });
                 }}
                 className="space-y-6">
