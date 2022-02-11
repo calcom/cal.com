@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { pick } from "lodash";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -5,7 +6,6 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import { resizeBase64Image } from "@server/lib/resizeBase64Image";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req: req });

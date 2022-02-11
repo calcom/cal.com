@@ -1,5 +1,6 @@
-import { getSession } from "@lib/auth";
 import { NextPageContext } from "next";
+
+import { getSession } from "@lib/auth";
 
 function RedirectPage() {
   return;

@@ -8,10 +8,10 @@ import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { TextArea } from "@components/form/fields";
-import TableActions, { ActionType } from "@components/ui/TableActions";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
+import { TextArea } from "@components/form/fields";
 import Button from "@components/ui/Button";
+import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
