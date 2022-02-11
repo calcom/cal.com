@@ -9,6 +9,7 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo run clean && rm -rf node_modules",
+    "db-deploy": "turbo run db-deploy",
     "db-seed": "turbo run db-seed",
     "deploy": "turbo run deploy",
     "dev": "turbo run dev --parallel",
