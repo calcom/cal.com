@@ -71,7 +71,7 @@ jobs:
           key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             turbo-${{ github.job }}-${{ github.ref_name }}-
-      - run: yarn prisma migrate deploy
+      - run: yarn db-deploy
       - run: yarn test
 
       - name: Cache playwright binaries
