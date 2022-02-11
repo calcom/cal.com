@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
-  "globalDependencies": [".env"],
+  "globalDependencies": ["apps/web/.env"],
   "pipeline": {
     "@calcom/web#db-deploy": {},
     "@calcom/web#db-seed": {

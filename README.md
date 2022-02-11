@@ -166,7 +166,7 @@ yarn dx
 1. Run (in development mode)
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
 #### Setting up your first user
@@ -230,14 +230,14 @@ yarn workspace @calcom/web playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build
-   yarn start
+   yarn build --scope=@calcom/web
+   yarn start --scope=@calcom/web
    ```
 
 5. Enjoy the new version.
