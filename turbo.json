@@ -53,6 +53,7 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
     },
+    "db-deploy": {},
     "db-seed": {},
     "deploy": {
       "dependsOn": []
