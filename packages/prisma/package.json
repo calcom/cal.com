@@ -23,6 +23,7 @@
     "zod-prisma": "^0.5.4"
   },
   "dependencies": {
+    "@calcom/lib": "*",
     "@prisma/client": "3.0.2"
   },
   "main": "index.ts",

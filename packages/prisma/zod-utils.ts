@@ -1,12 +1,5 @@
 import { z } from "zod";
-
-export enum LocationType {
-  InPerson = "inPerson",
-  Phone = "phone",
-  GoogleMeet = "integrations:google:meet",
-  Zoom = "integrations:zoom",
-  Daily = "integrations:daily",
-}
+import { LocationType } from "@calcom/lib/location";
 
 export const eventTypeLocations = z.array(
   z.object({ type: z.nativeEnum(LocationType), address: z.string().optional() })
