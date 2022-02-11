@@ -76,6 +76,12 @@ model Credential {
   userId Int?
 }
 
+model IntegrationCredential {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value Json
+}
+
 enum UserPlan {
   FREE
   TRIAL
