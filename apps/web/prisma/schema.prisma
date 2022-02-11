@@ -245,7 +245,7 @@ model Booking {
   payment             Payment[]
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
-  rejectionReason  String?
+  rejectionReason     String?
 }
 
 model Schedule {

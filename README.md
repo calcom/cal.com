@@ -100,10 +100,10 @@ Here is what you need to be able to run Cal.
    cd cal.com
    ```
 
-1. Copy `.env.example` to `.env`
+1. Copy `apps/web/.env.example` to `apps/web/.env`
 
    ```sh
-   cp .env.example .env
+   cp apps/web/.env.example apps/web/.env
    ```
 
 1. Install packages with yarn
@@ -157,7 +157,7 @@ yarn dx
    </details>
 
 1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
-1. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
+1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
    npx prisma migrate deploy
@@ -166,7 +166,7 @@ yarn dx
 1. Run (in development mode)
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
 #### Setting up your first user
@@ -188,10 +188,10 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn test-playwright
+yarn workspace @calcom/web test-playwright
 
 # To open last HTML report run:
-yarn playwright-report
+yarn workspace @calcom/web playwright-report
 ```
 
 ### Upgrading from earlier versions
@@ -230,14 +230,14 @@ yarn playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build
-   yarn start
+   yarn build --scope=@calcom/web
+   yarn start --scope=@calcom/web
    ```
 
 5. Enjoy the new version.
