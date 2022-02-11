@@ -15,6 +15,11 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
 
+/**
+ * TODO:
+ * 1. Verify if Crypto Code files load or not(search for DEFAULT_HARDFORK) if, web3 isn't enabled on EventTypes
+ * 2.
+ */
 // import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 const EventTypeDescription = dynamic(() =>
   import("@components/eventtype/EventTypeDescription").then((mod) => mod.EventTypeDescription)
