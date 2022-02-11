@@ -17,7 +17,7 @@ if (isServer) {
 
 // This method is stringified and executed only on client. So,
 // - Pass all the params explicitly to this method. Don't use closure
-function applyTheme(theme: string) {
+function applyThemeAndAddListener(theme: string) {
   const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
   const applyTheme = function (theme: string, darkMatch: boolean) {
     if (!theme) {
@@ -52,7 +52,7 @@ export default function useTheme(theme?: Maybe<string>) {
       // So, we can avoid this to be sent to client, which would also avoid execution of uglify on client.
       return null;
     }
-    const code = minify(applyTheme.toString()).code;
+    const code = minify(applyThemeAndAddListener.toString()).code;
     const themeStr = theme ? `"${theme}"` : null;
     return (
       <Head>
