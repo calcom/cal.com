@@ -22,6 +22,7 @@ module.exports = {
       "ar",
       "iw",
       "zh-CN",
+      "zh-TW",
       "cs",
     ],
   },
