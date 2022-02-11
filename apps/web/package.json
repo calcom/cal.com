@@ -124,7 +124,7 @@
     "@types/lodash": "^4.14.177",
     "@types/micro": "^7.3.6",
     "@types/module-alias": "^2.0.1",
-    "@types/node": "^16.11.10",
+    "@types/node": "^16.11.24",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
     "@types/react": "^17.0.37",
