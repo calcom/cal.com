@@ -13,18 +13,11 @@ import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { AvatarSSR } from "@components/ui/Avatar";
+
 import { ssrInit } from "@server/lib/ssr";
 
-/**
- * TODO:
- * 1. Verify if Crypto Code files load or not(search for DEFAULT_HARDFORK) if, web3 isn't enabled on EventTypes
- * 2.
- */
-// import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-const EventTypeDescription = dynamic(() =>
-  import("@components/eventtype/EventTypeDescription").then((mod) => mod.EventTypeDescription)
-);
-
+const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo").then((mod) => mod.HeadSeo));
 const CryptoSection = dynamic(() => import("../ee/components/web3/CryptoSection"));
 
@@ -55,12 +48,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       <div className="h-screen dark:bg-black">
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
-            {user.avatar ? (
-              <img
-                alt={nameOrUsername}
-                className="w-undefined mx-auto mb-4 h-auto h-24 w-24 rounded-full rounded-full"
-                src={user.avatar}></img>
-            ) : null}
+            <AvatarSSR user={user}></AvatarSSR>
             <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
               {nameOrUsername}
               {user.verified && (
