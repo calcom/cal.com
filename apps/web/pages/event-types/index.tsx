@@ -228,10 +228,21 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                               {({ active }) => (
                                 <button
                                   onClick={() => {
-                                    showToast("Link copied!", "success");
-                                    navigator.clipboard.writeText(
-                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
-                                    );
+                                    if (navigator.share) {
+                                      navigator
+                                        .share({
+                                          title: t("share"),
+                                          text: t("share_event"),
+                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
+                                        })
+                                        .then(() => showToast(t("link_shared"), "success"))
+                                        .catch(() => showToast(t("failed"), "error"));
+                                    } else {
+                                      navigator.clipboard.writeText(
+                                        `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                                      );
+                                      showToast(t("link_copied"), "success");
+                                    }
                                   }}
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
@@ -241,7 +252,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  {t("copy_link")}
+                                  {navigator.share ? t("share") : t("copy_link")}
                                 </button>
                               )}
                             </Menu.Item>
