@@ -1,5 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
+import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -13,7 +14,7 @@ import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { AvatarSSR } from "@components/ui/Avatar";
+import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -48,7 +49,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       <div className="h-screen dark:bg-black">
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
-            <AvatarSSR user={user}></AvatarSSR>
+            <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
             <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
               {nameOrUsername}
               {user.verified && (
@@ -218,7 +219,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      user,
+      user: {
+        ...user,
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+      },
       eventTypes,
       trpcState: ssr.dehydrate(),
     },

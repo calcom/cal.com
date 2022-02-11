@@ -45,21 +45,3 @@ export default function Avatar(props: AvatarProps) {
     <>{avatar}</>
   );
 }
-
-// An SSR Supported version of Avatar component.
-export function AvatarSSR({ user }) {
-  const nameOrUsername = user.name || user.username || "";
-  let imgSrc;
-
-  if (user.avatar) {
-    imgSrc = user.avatar;
-  } else if (user.emailMd5) {
-    imgSrc = defaultAvatarSrc({ md5: user.emailMd5 });
-  }
-  return imgSrc ? (
-    <img
-      alt={nameOrUsername}
-      className="mx-auto mb-4 h-auto h-24 w-24 rounded-full rounded-full"
-      src={imgSrc}></img>
-  ) : null;
-}
