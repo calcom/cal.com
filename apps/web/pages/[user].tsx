@@ -53,7 +53,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
               {nameOrUsername}
               {user.verified && (
-                <BadgeCheckIcon className="-mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
               )}
             </h1>
             <p className="text-neutral-500 dark:text-white">{user.bio}</p>

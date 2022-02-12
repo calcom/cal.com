@@ -1,9 +1,11 @@
-import Avatar from "@components/ui/Avatar";
-import Select from "@components/ui/form/Select";
 import { CheckIcon, XIcon } from "@heroicons/react/outline";
-import { useLocale } from "@lib/hooks/useLocale";
 import React, { useEffect, useState } from "react";
 import { MultiValue } from "react-select";
+
+import { useLocale } from "@lib/hooks/useLocale";
+
+import Avatar from "@components/ui/Avatar";
+import Select from "@components/ui/form/Select";
 
 type CheckedSelectValue = {
   avatar: string;
