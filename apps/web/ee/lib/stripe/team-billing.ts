@@ -264,6 +264,11 @@ export async function downgradeIllegalProUsers() {
       role: {
         not: MembershipRole.OWNER,
       },
+      user: {
+        plan: {
+          not: UserPlan.PRO,
+        },
+      },
     },
     include: {
       user: true,
