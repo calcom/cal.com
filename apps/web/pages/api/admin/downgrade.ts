@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // check if peer or bailey
-  const isPeerOrBailey = ["peer", "bailey", "pro"].includes(session.user.username);
+  const isPeerOrBailey = ["peer", "bailey"].includes(session.user.username);
   if (!isPeerOrBailey) {
     res.status(500).json({ error: "not peer or bailey" });
     return;
