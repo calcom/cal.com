@@ -63,6 +63,7 @@ async function getUserFromSession({
           integration: true,
         },
       },
+      schedule: true,
       completedOnboarding: true,
       destinationCalendar: true,
       locale: true,

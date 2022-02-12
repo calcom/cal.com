@@ -81,6 +81,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
+        schedule: user.schedule,
         plan: user.plan,
         away: user.away,
       };
@@ -556,15 +557,50 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .query("availability", {
+  .query("availability.list", {
     async resolve({ ctx }) {
       const { prisma, user } = ctx;
-      const availabilityQuery = await prisma.availability.findMany({
+      const schedules = await prisma.schedule.findMany({
         where: {
           userId: user.id,
         },
+        select: {
+          id: true,
+          name: true,
+          availability: true,
+        },
       });
-      const schedule = availabilityQuery.reduce(
+      return {
+        schedules: schedules.map((schedule) => ({
+          ...schedule,
+          isDefault: user.schedule && schedule.id === user.schedule.id,
+        })),
+      };
+    },
+  })
+  .query("availability", {
+    input: z.object({
+      scheduleId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const { prisma, user } = ctx;
+      const schedule = await prisma.schedule.findUnique({
+        where: {
+          id: input.scheduleId,
+        },
+        select: {
+          id: true,
+          userId: true,
+          name: true,
+          availability: true,
+        },
+      });
+      if (!schedule || schedule.userId !== user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+      const availability = schedule.availability.reduce(
         (schedule: Schedule, availability) => {
           availability.days.forEach((day) => {
             schedule[day].push({
@@ -594,7 +630,9 @@ const loggedInViewerRouter = createProtectedRouter()
       );
       return {
         schedule,
+        availability,
         timeZone: user.timeZone,
+        isDefault: user.schedule && user.schedule.id === schedule.id,
       };
     },
   })
