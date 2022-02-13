@@ -21,6 +21,6 @@
     "JWT_SECRET": "secret"
   },
   "scripts": {
-    "postdeploy": "npx prisma migrate deploy"
+    "postdeploy": "cd apps/web && npx prisma migrate deploy"
   }
 }
