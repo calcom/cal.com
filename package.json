@@ -20,7 +20,8 @@
     "start": "turbo run start",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test -c apps/web/playwright.config.ts",
-    "type-check": "turbo run type-check"
+    "type-check": "turbo run type-check",
+    "heroku-postbuild": "turbo run @calcom/web#build"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "2.0.4",
