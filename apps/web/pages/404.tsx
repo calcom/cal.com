@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-import { HeadSeo } from "@components/seo/head-seo";
 import { useLocale } from "@lib/hooks/useLocale";
+
+import { HeadSeo } from "@components/seo/head-seo";
+
 import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {

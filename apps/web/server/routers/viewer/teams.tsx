@@ -11,6 +11,7 @@ import {
   upgradeTeam,
   ensureSubscriptionQuantityCorrectness,
 } from "@ee/lib/stripe/team-billing";
+
 import { BASE_URL } from "@lib/config/constants";
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { sendTeamInviteEmail } from "@lib/emails/email-manager";
@@ -18,6 +19,7 @@ import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import { getUserAvailability } from "@lib/queries/availability";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@lib/queries/teams";
 import slugify from "@lib/slugify";
+
 import { createProtectedRouter } from "@server/createRouter";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";

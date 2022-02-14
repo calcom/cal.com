@@ -3,11 +3,12 @@ import utc from "dayjs/plugin/utc";
 import React, { useState, useEffect } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
 import Select from "@components/ui/form/Select";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

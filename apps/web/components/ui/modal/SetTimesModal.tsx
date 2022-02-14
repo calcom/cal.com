@@ -1,9 +1,10 @@
 import { ClockIcon } from "@heroicons/react/outline";
 import { useRef } from "react";
 
-import Button from "@components/ui/Button";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
+
+import Button from "@components/ui/Button";
 
 interface SetTimesModalProps {
   startTime: number;

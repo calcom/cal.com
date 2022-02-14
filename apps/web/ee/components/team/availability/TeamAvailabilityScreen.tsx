@@ -4,11 +4,12 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
 import Select from "@components/ui/form/Select";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 

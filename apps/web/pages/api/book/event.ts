@@ -10,6 +10,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { handlePayment } from "@ee/lib/stripe/server";
+
 import {
   sendScheduledEmails,
   sendRescheduledEmails,
@@ -29,6 +30,7 @@ import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
+
 import { getTranslation } from "@server/lib/i18n";
 
 import verifyAccount from "../../../web3/utils/verifyAccount";

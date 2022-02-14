@@ -6,6 +6,14 @@ import React, { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 
+import { QueryCell } from "@lib/QueryCell";
+import classNames from "@lib/classNames";
+import { HttpError } from "@lib/core/http/error";
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { inferQueryOutput, trpc } from "@lib/trpc";
+import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
+
 import { ClientSuspense } from "@components/ClientSuspense";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
@@ -22,13 +30,6 @@ import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingT
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-import { QueryCell } from "@lib/QueryCell";
-import classNames from "@lib/classNames";
-import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { inferQueryOutput, trpc } from "@lib/trpc";
-import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 
 type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 

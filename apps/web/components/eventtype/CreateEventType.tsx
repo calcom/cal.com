@@ -2,11 +2,17 @@ import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
+import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
+import { HttpError } from "@lib/core/http/error";
+import { useLocale } from "@lib/hooks/useLocale";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import showToast from "@lib/notification";
+import { trpc } from "@lib/trpc";
+
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
@@ -20,11 +26,6 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
-import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 interface EventTypeParent {

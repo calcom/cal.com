@@ -6,6 +6,7 @@ import { getSession } from "@lib/auth";
 import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
+
 import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";

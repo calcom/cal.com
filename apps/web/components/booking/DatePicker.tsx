@@ -6,13 +6,14 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useMemo, useState } from "react";
 
-import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
+
+import Loader from "@components/Loader";
 
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(utc);

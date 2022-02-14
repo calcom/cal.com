@@ -2,10 +2,11 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import BookingPage from "@components/booking/pages/BookingPage";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import BookingPage from "@components/booking/pages/BookingPage";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 

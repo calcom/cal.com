@@ -8,6 +8,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID, samlTenantProduct } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { ssrInit } from "@server/lib/ssr";
 
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;

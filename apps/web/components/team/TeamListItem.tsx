@@ -2,6 +2,12 @@ import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/
 import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
+import classNames from "@lib/classNames";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -13,11 +19,6 @@ import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@components/ui/Dropdown";
-import classNames from "@lib/classNames";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";

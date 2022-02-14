@@ -3,8 +3,9 @@ import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import Select from "react-select";
 
-import Button from "@components/ui/Button";
 import { useLocale } from "@lib/hooks/useLocale";
+
+import Button from "@components/ui/Button";
 
 interface OptionTypeBase {
   label: string;

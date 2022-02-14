@@ -17,6 +17,16 @@ import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import LicenseBanner from "@ee/components/LicenseBanner";
+import TrialBanner from "@ee/components/TrialBanner";
+import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+
+import classNames from "@lib/classNames";
+import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { trpc } from "@lib/trpc";
+
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
@@ -26,14 +36,6 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
-import LicenseBanner from "@ee/components/LicenseBanner";
-import TrialBanner from "@ee/components/TrialBanner";
-import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
-import classNames from "@lib/classNames";
-import { shouldShowOnboarding } from "@lib/getting-started";
-import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";

@@ -13,6 +13,12 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { QueryCell } from "@lib/QueryCell";
+import classNames from "@lib/classNames";
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { inferQueryOutput, trpc } from "@lib/trpc";
+
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
@@ -22,11 +28,6 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
-import { QueryCell } from "@lib/QueryCell";
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { inferQueryOutput, trpc } from "@lib/trpc";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];

@@ -6,9 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
+<<<<<<< HEAD:apps/web/pages/video/[uid].tsx
 import { useLocale } from "@lib/hooks/useLocale";
+=======
+>>>>>>> d165b17b (Revert "Sort imports"):apps/web/pages/call/[uid].tsx
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 

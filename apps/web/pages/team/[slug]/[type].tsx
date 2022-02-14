@@ -1,11 +1,12 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>;
 

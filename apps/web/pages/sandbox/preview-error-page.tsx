@@ -1,8 +1,9 @@
 import { NextPage } from "next";
 import React from "react";
 
-import { ErrorPage } from "@components/error/error-page";
 import { HttpError } from "@lib/core/http/error";
+
+import { ErrorPage } from "@components/error/error-page";
 
 const PreviewErrorPage: NextPage = () => {
   const statusCode = 403;

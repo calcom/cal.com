@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { ReactNode } from "react";
 
-import { ListItem, ListItemText, ListItemTitle } from "@components/List";
 import classNames from "@lib/classNames";
+
+import { ListItem, ListItemText, ListItemTitle } from "@components/List";
 
 function IntegrationListItem(props: {
   imageSrc: string;

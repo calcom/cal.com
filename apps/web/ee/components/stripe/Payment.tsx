@@ -4,9 +4,11 @@ import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { SyntheticEvent, useEffect, useState } from "react";
 
-import Button from "@components/ui/Button";
 import { PaymentData } from "@ee/lib/stripe/server";
+
 import { useLocale } from "@lib/hooks/useLocale";
+
+import Button from "@components/ui/Button";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,

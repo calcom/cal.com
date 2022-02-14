@@ -9,11 +9,13 @@ import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { AvatarSSR } from "@components/ui/AvatarSSR";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { AvatarSSR } from "@components/ui/AvatarSSR";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@components/eventtype/EventTypeDescription"));

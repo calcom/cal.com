@@ -5,6 +5,7 @@ import type { AppProps as NextAppProps } from "next/app";
 import React, { ComponentProps, ReactNode } from "react";
 
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
+
 import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 import { trpc } from "./trpc";

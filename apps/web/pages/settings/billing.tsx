@@ -2,10 +2,11 @@ import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { ReactNode } from "react";
 import { useIntercom } from "react-use-intercom";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import SettingsShell from "@components/SettingsShell";
 import Shell, { useMeQuery } from "@components/Shell";
 import Button from "@components/ui/Button";
-import { useLocale } from "@lib/hooks/useLocale";
 
 type CardProps = { title: string; description: string; className?: string; children: ReactNode };
 const Card = ({ title, description, className = "", children }: CardProps): JSX.Element => (

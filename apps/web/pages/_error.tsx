@@ -6,10 +6,11 @@ import { NextPage, NextPageContext } from "next";
 import NextError, { ErrorProps } from "next/error";
 import React from "react";
 
-import { ErrorPage } from "@components/error/error-page";
 import { HttpError } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
 import logger from "@lib/logger";
+
+import { ErrorPage } from "@components/error/error-page";
 
 // Adds HttpException to the list of possible error types.
 type AugmentedError = (NonNullable<NextPageContext["err"]> & HttpError) | null;

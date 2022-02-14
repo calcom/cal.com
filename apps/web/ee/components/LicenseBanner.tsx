@@ -2,9 +2,10 @@ import { XIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { Trans } from "react-i18next";
 
+import { useLocale } from "@lib/hooks/useLocale";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { useLocale } from "@lib/hooks/useLocale";
 
 export default function LicenseBanner() {
   const { t } = useLocale();

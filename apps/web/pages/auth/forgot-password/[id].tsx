@@ -6,9 +6,10 @@ import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import React, { useMemo } from "react";
 
-import { HeadSeo } from "@components/seo/head-seo";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
+
+import { HeadSeo } from "@components/seo/head-seo";
 
 type Props = {
   id: string;

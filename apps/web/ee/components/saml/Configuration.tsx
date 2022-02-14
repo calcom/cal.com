@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useRef } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { trpc } from "@lib/trpc";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { TextArea } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { trpc } from "@lib/trpc";
 
 export default function SAMLConfiguration({
   teamsView,

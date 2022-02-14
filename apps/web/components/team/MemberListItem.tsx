@@ -3,17 +3,19 @@ import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/reac
 import Link from "next/link";
 import React, { useState } from "react";
 
+import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
+
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
 import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import ModalContainer from "@components/ui/ModalContainer";
-import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Dropdown, {
   DropdownMenuContent,

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import stripe from "@ee/lib/stripe/server";
+
 import { HttpError as HttpCode } from "@lib/core/http/error";
 import { prisma } from "@lib/prisma";
 

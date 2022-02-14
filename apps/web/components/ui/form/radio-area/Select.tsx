@@ -2,9 +2,10 @@ import { ChevronDownIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
 
-import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
+
+import { RadioArea, RadioAreaGroup } from "@components/ui/form/radio-area/RadioAreaGroup";
 
 interface OptionProps
   extends Pick<React.OptionHTMLAttributes<HTMLOptionElement>, "value" | "label" | "className"> {

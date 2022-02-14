@@ -7,10 +7,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
 
-import { HeadSeo } from "@components/seo/head-seo";
-import Button from "@components/ui/Button";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import { HeadSeo } from "@components/seo/head-seo";
+import Button from "@components/ui/Button";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();

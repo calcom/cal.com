@@ -1,7 +1,8 @@
 import React from "react";
 
-import Avatar from "@components/ui/Avatar";
 import classNames from "@lib/classNames";
+
+import Avatar from "@components/ui/Avatar";
 
 // import * as Tooltip from "@radix-ui/react-tooltip";
 
