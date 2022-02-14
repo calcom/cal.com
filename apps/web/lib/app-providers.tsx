@@ -41,7 +41,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.useQuery(["viewer.session"]).data;
-  // No need to have intercoms on public pages.
+  // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const RemainingProviders = (
     <SessionProvider session={session || undefined}>
