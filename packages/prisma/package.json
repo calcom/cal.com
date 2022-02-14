@@ -10,7 +10,7 @@
     "db-nuke": "docker-compose down --volumes --remove-orphans",
     "db-reset": "run-s db-nuke db-setup",
     "db-seed": "yarn prisma db seed",
-    "db-setup": "run-s db-up db-migrate db-seed",
+    "db-setup": "run-s db-up db-deploy db-seed",
     "db-up": "docker-compose up -d",
     "deploy": "run-s build db-deploy",
     "dx": "yarn db-setup",
