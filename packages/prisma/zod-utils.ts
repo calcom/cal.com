@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { LocationType } from "@calcom/lib/location";
 
 export const eventTypeLocations = z.array(

@@ -1,7 +1,7 @@
 import dayjs, { ConfigType } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";

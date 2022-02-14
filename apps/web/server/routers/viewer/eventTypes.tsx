@@ -1,4 +1,6 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { z } from "zod";
+
 import {
   _AvailabilityModel,
   _DestinationCalendarModel,
@@ -7,7 +9,6 @@ import {
 } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
-import { z } from "zod";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
