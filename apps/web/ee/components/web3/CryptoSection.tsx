@@ -33,7 +33,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
       className="align-center my-5 flex h-12 transform flex-row space-x-5 text-sm opacity-0 transition-opacity group-hover:opacity-100 dark:bg-gray-900"
       id={`crypto-${props.id}`}>
       {/* If already connected, show log out / disconnect button */}
-      {balance.data && <div>{balance.data.formatted}</div>}
+      {/* {balance.data && <div>{balance.data.formatted}</div>} */}
       {data.connected && (
         <Button onClick={disconnect} color="secondary">
           Disconnect wallet
@@ -42,10 +42,12 @@ const CryptoSection = (props: CryptoSectionProps) => {
       {!data.connected &&
         data.connectors.map((connector) => (
           <Button
+            className="h-10"
             color="secondary"
             key={connector.id}
             onClick={() => connect(connector)}
             type="button"
+            size="icon"
             id="hasToken"
             name="hasToken">
             <img
