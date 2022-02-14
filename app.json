@@ -1,0 +1,26 @@
+{
+  "name": "Cal.com",
+  "description": "Open Source Scheduling",
+  "repository": "https://github.com/calcom/cal.com",
+  "logo": "https://cal.com/android-chrome-512x512.png",
+  "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ],
+  "env": {
+    "BASE_URL": {
+      "description": "Replace HEROKU_APP_NAME with the name given to your app",
+      "value": "https://HEROKU_APP_NAME.herokuapp.com"
+    },
+    "CALENDSO_ENCRYPTION_KEY": {
+      "description": "Application Key for symmetric encryption and decryption. Must be 32 bytes for AES256 encryption algorithm.",
+      "value": "secret"
+    },
+    "JWT_SECRET": "secret"
+  },
+  "scripts": {
+    "postdeploy": "cd apps/web && npx prisma migrate deploy"
+  }
+}
