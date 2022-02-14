@@ -35,7 +35,7 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
-  const { isReady, Theme } = useTheme(profile.theme);
+  const { Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
 
@@ -114,133 +114,131 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
             "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
             (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
-          {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-900 sm:dark:border-gray-600 md:border">
-              {/* mobile: details */}
-              <div className="block p-4 sm:p-8 md:hidden">
-                <div className="flex items-center">
-                  <AvatarGroup
-                    items={
-                      [
-                        { image: profile.image, alt: profile.name, title: profile.name },
-                        ...eventType.users
-                          .filter((user) => user.name !== profile.name)
-                          .map((user) => ({
-                            title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
-                            alt: user.name || undefined,
-                          })),
-                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                    }
-                    size={9}
-                    truncateAfter={5}
-                  />
-                  <div className="ltr:ml-3 rtl:mr-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600">
-                      {eventType.title}
-                      <div>
-                        <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                        {eventType.length} {t("minutes")}
-                      </div>
-                      {eventType.price > 0 && (
-                        <div>
-                          <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                          <IntlProvider locale="en">
-                            <FormattedNumber
-                              value={eventType.price / 100.0}
-                              style="currency"
-                              currency={eventType.currency.toUpperCase()}
-                            />
-                          </IntlProvider>
-                        </div>
-                      )}
+          <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-900 sm:dark:border-gray-600 md:border">
+            {/* mobile: details */}
+            <div className="block p-4 sm:p-8 md:hidden">
+              <div className="flex items-center">
+                <AvatarGroup
+                  items={
+                    [
+                      { image: profile.image, alt: profile.name, title: profile.name },
+                      ...eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                          alt: user.name || undefined,
+                        })),
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                  }
+                  size={9}
+                  truncateAfter={5}
+                />
+                <div className="ltr:ml-3 rtl:mr-3">
+                  <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
+                  <div className="flex gap-2 text-xs font-medium text-gray-600">
+                    {eventType.title}
+                    <div>
+                      <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                      {eventType.length} {t("minutes")}
                     </div>
+                    {eventType.price > 0 && (
+                      <div>
+                        <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                        <IntlProvider locale="en">
+                          <FormattedNumber
+                            value={eventType.price / 100.0}
+                            style="currency"
+                            currency={eventType.currency.toUpperCase()}
+                          />
+                        </IntlProvider>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
               </div>
-
-              <div className="px-4 sm:flex sm:p-4 sm:py-5">
-                <div
-                  className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:block " +
-                    (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
-                  }>
-                  <AvatarGroup
-                    items={
-                      [
-                        { image: profile.image, alt: profile.name, title: profile.name },
-                        ...eventType.users
-                          .filter((user) => user.name !== profile.name)
-                          .map((user) => ({
-                            title: user.name,
-                            alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
-                          })),
-                      ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
-                    }
-                    size={10}
-                    truncateAfter={3}
-                  />
-                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
-                    {eventType.title}
-                  </h1>
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                    {eventType.length} {t("minutes")}
-                  </p>
-                  {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={eventType.price / 100.0}
-                          style="currency"
-                          currency={eventType.currency.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
-
-                  <TimezoneDropdown />
-
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
-                </div>
-                <DatePicker
-                  date={selectedDate}
-                  periodType={eventType?.periodType}
-                  periodStartDate={eventType?.periodStartDate}
-                  periodEndDate={eventType?.periodEndDate}
-                  periodDays={eventType?.periodDays}
-                  periodCountCalendarDays={eventType?.periodCountCalendarDays}
-                  onDatePicked={changeDate}
-                  workingHours={workingHours}
-                  weekStart={profile.weekStart || "Sunday"}
-                  eventLength={eventType.length}
-                  minimumBookingNotice={eventType.minimumBookingNotice}
-                />
-
-                <div className="mt-4 ml-1 block sm:hidden">
-                  <TimezoneDropdown />
-                </div>
-
-                {selectedDate && (
-                  <AvailableTimes
-                    timeFormat={timeFormat}
-                    minimumBookingNotice={eventType.minimumBookingNotice}
-                    eventTypeId={eventType.id}
-                    slotInterval={eventType.slotInterval}
-                    eventLength={eventType.length}
-                    date={selectedDate}
-                    users={eventType.users}
-                    schedulingType={eventType.schedulingType ?? null}
-                  />
-                )}
-              </div>
+              <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
             </div>
-          )}
+
+            <div className="px-4 sm:flex sm:p-4 sm:py-5">
+              <div
+                className={
+                  "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:block " +
+                  (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                }>
+                <AvatarGroup
+                  items={
+                    [
+                      { image: profile.image, alt: profile.name, title: profile.name },
+                      ...eventType.users
+                        .filter((user) => user.name !== profile.name)
+                        .map((user) => ({
+                          title: user.name,
+                          alt: user.name,
+                          image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                        })),
+                    ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
+                  }
+                  size={10}
+                  truncateAfter={3}
+                />
+                <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
+                <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  {eventType.title}
+                </h1>
+                <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  {eventType.length} {t("minutes")}
+                </p>
+                {eventType.price > 0 && (
+                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                    <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <IntlProvider locale="en">
+                      <FormattedNumber
+                        value={eventType.price / 100.0}
+                        style="currency"
+                        currency={eventType.currency.toUpperCase()}
+                      />
+                    </IntlProvider>
+                  </p>
+                )}
+
+                <TimezoneDropdown />
+
+                <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+              </div>
+              <DatePicker
+                date={selectedDate}
+                periodType={eventType?.periodType}
+                periodStartDate={eventType?.periodStartDate}
+                periodEndDate={eventType?.periodEndDate}
+                periodDays={eventType?.periodDays}
+                periodCountCalendarDays={eventType?.periodCountCalendarDays}
+                onDatePicked={changeDate}
+                workingHours={workingHours}
+                weekStart={profile.weekStart || "Sunday"}
+                eventLength={eventType.length}
+                minimumBookingNotice={eventType.minimumBookingNotice}
+              />
+
+              <div className="mt-4 ml-1 block sm:hidden">
+                <TimezoneDropdown />
+              </div>
+
+              {selectedDate && (
+                <AvailableTimes
+                  timeFormat={timeFormat}
+                  minimumBookingNotice={eventType.minimumBookingNotice}
+                  eventTypeId={eventType.id}
+                  slotInterval={eventType.slotInterval}
+                  eventLength={eventType.length}
+                  date={selectedDate}
+                  users={eventType.users}
+                  schedulingType={eventType.schedulingType ?? null}
+                />
+              )}
+            </div>
+          </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
         </main>
       </div>
