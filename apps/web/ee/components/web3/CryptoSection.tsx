@@ -1,12 +1,11 @@
 import React from "react";
-import { useAccount } from "wagmi";
-import { useConnect } from "wagmi";
-import { useBalance } from "wagmi";
+import { useConnect, useAccount, useBalance } from "wagmi";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
 import { Button } from "@components/ui/Button";
+
 
 interface CryptoSectionProps {
   id: number | string;
