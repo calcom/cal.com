@@ -1,8 +1,12 @@
 import { User } from "@prisma/client";
 
 import classNames from "@lib/classNames";
-import { defaultAvatarSrc } from "@lib/profile";
 
+const defaultAvatarSrc = function ({ md5 }: { md5?: string }) {
+  if (!md5) return "";
+
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
+};
 export type AvatarProps = {
   user: Pick<User, "name" | "username" | "avatar"> & { emailMd5?: string };
   className?: string;
