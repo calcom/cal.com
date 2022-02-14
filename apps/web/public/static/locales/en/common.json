@@ -1,6 +1,6 @@
 {
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your PRO trial",
-  "day": "{{count}} day", 
+  "day": "{{count}} day",
   "day_plural": "{{count}} days",
   "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
@@ -640,8 +640,7 @@
   "visit_roadmap": "Roadmap",
   "remove": "Remove",
   "add": "Add",
-  "verify_wallet": "Verify Wallet",
-  "connect_metamask": "Connect Metamask",
+  "use": "Use",
   "create_events_on": "Create events on:",
   "missing_license": "Missing License",
   "signup_requires": "Commercial license required",
