@@ -7,23 +7,22 @@ import { addAliases } from "module-alias";
 // https://stackoverflow.com/questions/69023682/typescript-playwright-error-cannot-find-module
 // https://github.com/microsoft/playwright/issues/7066#issuecomment-983984496
 addAliases({
-  "@components": __dirname + "/components",
-  "@lib": __dirname + "/lib",
-  "@server": __dirname + "/server",
-  "@ee": __dirname + "/ee",
+  "@components": __dirname + "/apps/web/components",
+  "@lib": __dirname + "/apps/web/lib",
+  "@server": __dirname + "/apps/web/server",
+  "@ee": __dirname + "/apps/web/ee",
 });
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  testDir: "playwright",
   timeout: 60_000,
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./playwright/reports/results.xml" }],
   ],
-  globalSetup: require.resolve("./playwright/lib/globalSetup"),
-  outputDir: "playwright/results",
+  globalSetup: require.resolve("./apps/web/playwright/lib/globalSetup"),
+  outputDir: "./playwright/results",
   webServer: {
     command: "yarn start --scope=@calcom/web",
     port: 3000,
@@ -39,6 +38,7 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: "chromium",
+      testDir: "apps/web/playwright",
       use: { ...devices["Desktop Chrome"] },
     },
     /*  {

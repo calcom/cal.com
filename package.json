@@ -20,7 +20,7 @@
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
-    "test-playwright": "yarn playwright test -c apps/web/playwright.config.ts",
+    "test-playwright": "yarn playwright test",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
