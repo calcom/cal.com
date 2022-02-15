@@ -190,7 +190,7 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn workspace @calcom/web test-playwright
+yarn workspace @calcom/web test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report

@@ -21,6 +21,7 @@
     "start": "turbo run start",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test",
+    "test-e2e": "turbo run test-e2e",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
