@@ -92,6 +92,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/bookings/upcoming",
         permanent: true,
       },
+      {
+        source: '/call/:path*',
+        destination: '/video/:path*',
+        permanent: false
+      }
     ];
   },
 });
