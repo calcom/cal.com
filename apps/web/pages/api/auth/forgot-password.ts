@@ -5,7 +5,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { sendPasswordResetEmail } from "@lib/emails/email-manager";
 import { PasswordReset, PASSWORD_RESET_EXPIRY_HOURS } from "@lib/emails/templates/forgot-password-email";
 import prisma from "@lib/prisma";
-
 import { getTranslation } from "@server/lib/i18n";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

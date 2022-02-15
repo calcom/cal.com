@@ -1,9 +1,5 @@
 import { useState } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
-
 import {
   Dialog,
   DialogTrigger,
@@ -14,6 +10,9 @@ import {
 } from "@components/Dialog";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
+import { trpc } from "@lib/trpc";
 
 interface Props {
   teamId: number;

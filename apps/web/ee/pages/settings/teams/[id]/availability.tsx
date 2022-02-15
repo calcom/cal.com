@@ -1,15 +1,13 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
-import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
-
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc } from "@lib/trpc";
-
 import Loader from "@components/Loader";
 import Shell, { useMeQuery } from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
+import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { trpc } from "@lib/trpc";
 
 export function TeamAvailabilityPage() {
   const router = useRouter();

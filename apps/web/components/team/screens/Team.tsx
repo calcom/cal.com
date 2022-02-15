@@ -5,12 +5,11 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { useLocale } from "@lib/hooks/useLocale";
 
 type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];

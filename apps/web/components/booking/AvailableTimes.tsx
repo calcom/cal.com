@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
 
+import Loader from "@components/Loader";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
-
-import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
   timeFormat: string;

@@ -4,7 +4,6 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import prisma from "@lib/prisma";
-
 import { appRouter } from "@server/routers/_app";
 import { createSSGHelpers } from "@trpc/react/ssg";
 

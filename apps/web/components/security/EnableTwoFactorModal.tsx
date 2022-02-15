@@ -1,10 +1,9 @@
 import React, { SyntheticEvent, useState } from "react";
 
-import { ErrorCode } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
-
 import { Dialog, DialogContent } from "@components/Dialog";
 import Button from "@components/ui/Button";
+import { ErrorCode } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";

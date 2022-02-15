@@ -2,12 +2,11 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
+import Loader from "@components/Loader";
+import Shell from "@components/Shell";
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
-
-import Loader from "@components/Loader";
-import Shell from "@components/Shell";
 
 dayjs.extend(utc);
 

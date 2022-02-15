@@ -3,7 +3,6 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 
 import classNames from "@lib/classNames";
 import { defaultAvatarSrc } from "@lib/profile";
-
 import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {

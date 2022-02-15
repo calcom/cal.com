@@ -1,10 +1,9 @@
 import React, { SyntheticEvent, useState } from "react";
 
+import Button from "@components/ui/Button";
 import { ErrorCode } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
-
-import Button from "@components/ui/Button";
 
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");

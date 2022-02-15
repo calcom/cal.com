@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
-
 import { createContext } from "@server/createContext";
 import { viewerRouter } from "@server/routers/viewer";
 

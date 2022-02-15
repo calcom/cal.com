@@ -4,7 +4,6 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
-
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
@@ -20,7 +19,6 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 import { Schedule } from "@lib/types/schedule";
-
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 

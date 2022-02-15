@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import AuthContainer from "@components/ui/AuthContainer";
 import Button from "@components/ui/Button";
-
+import { useLocale } from "@lib/hooks/useLocale";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { ssrInit } from "@server/lib/ssr";
 
 type Props = inferSSRProps<typeof getServerSideProps>;

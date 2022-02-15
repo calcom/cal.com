@@ -4,12 +4,11 @@ import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import React, { SyntheticEvent } from "react";
 
-import { getSession } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
-
 import { EmailField } from "@components/form/fields";
 import AuthContainer from "@components/ui/AuthContainer";
 import Button from "@components/ui/Button";
+import { getSession } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();

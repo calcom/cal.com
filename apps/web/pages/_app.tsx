@@ -2,11 +2,9 @@ import { DefaultSeo } from "next-seo";
 // import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
+import I18nLanguageHandler from "@components/I18nLanguageHandler";
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-
-import I18nLanguageHandler from "@components/I18nLanguageHandler";
-
 import type { AppRouter } from "@server/routers/_app";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { loggerLink } from "@trpc/client/links/loggerLink";

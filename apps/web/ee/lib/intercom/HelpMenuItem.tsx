@@ -1,10 +1,9 @@
 import { ChatAltIcon } from "@heroicons/react/solid";
 import { useIntercom } from "react-use-intercom";
 
+import { DropdownMenuItem } from "@components/ui/Dropdown";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { DropdownMenuItem } from "@components/ui/Dropdown";
 
 const HelpMenuItem = () => {
   const { t } = useLocale();

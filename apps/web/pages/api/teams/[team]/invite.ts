@@ -8,7 +8,6 @@ import { sendTeamInviteEmail } from "@lib/emails/email-manager";
 import { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import prisma from "@lib/prisma";
 import slugify from "@lib/slugify";
-
 import { getTranslation } from "@server/lib/i18n";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

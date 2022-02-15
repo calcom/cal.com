@@ -1,15 +1,13 @@
 import React from "react";
 
-import SAMLConfiguration from "@ee/components/saml/Configuration";
-
-import { identityProviderNameMap } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
-
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
+import SAMLConfiguration from "@ee/components/saml/Configuration";
+import { identityProviderNameMap } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
+import { trpc } from "@lib/trpc";
 
 import { IdentityProvider } from ".prisma/client";
 

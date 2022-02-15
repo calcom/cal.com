@@ -5,12 +5,10 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import BookingPage from "@components/booking/pages/BookingPage";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import BookingPage from "@components/booking/pages/BookingPage";
-
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);

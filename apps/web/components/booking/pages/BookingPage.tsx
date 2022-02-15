@@ -12,8 +12,11 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
+import CustomBranding from "@components/CustomBranding";
+import { EmailInput, Form } from "@components/form/fields";
+import AvatarGroup from "@components/ui/AvatarGroup";
+import { Button } from "@components/ui/Button";
 import { createPaymentLink } from "@ee/lib/stripe/client";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
@@ -24,11 +27,6 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-
-import CustomBranding from "@components/CustomBranding";
-import { EmailInput, Form } from "@components/form/fields";
-import AvatarGroup from "@components/ui/AvatarGroup";
-import { Button } from "@components/ui/Button";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";

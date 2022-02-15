@@ -3,10 +3,9 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import { useLocale } from "@lib/hooks/useLocale";
-
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 export default function CancelSuccess() {
   const { t } = useLocale();

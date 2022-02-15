@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { upgradeTeam } from "@ee/lib/stripe/team-billing";
-
 import { getSession } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -4,14 +4,6 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import useTheme from "@lib/hooks/useTheme";
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import { defaultAvatarSrc } from "@lib/profile";
-import { getTeamWithMembers } from "@lib/queries/teams";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
@@ -19,6 +11,13 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { useLocale } from "@lib/hooks/useLocale";
+import useTheme from "@lib/hooks/useTheme";
+import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { defaultAvatarSrc } from "@lib/profile";
+import { getTeamWithMembers } from "@lib/queries/teams";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 

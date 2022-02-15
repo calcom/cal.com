@@ -1,9 +1,8 @@
 import { useState } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
 import EnableTwoFactorModal from "./EnableTwoFactorModal";

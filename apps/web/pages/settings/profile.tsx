@@ -9,17 +9,6 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-import { QueryCell } from "@lib/QueryCell";
-import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
-import { nameOfDay } from "@lib/core/i18n/weekday";
-import { useLocale } from "@lib/hooks/useLocale";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
-import showToast from "@lib/notification";
-import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
@@ -31,6 +20,16 @@ import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import ColorPicker from "@components/ui/colorpicker";
+import { QueryCell } from "@lib/QueryCell";
+import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
+import { getSession } from "@lib/auth";
+import { nameOfDay } from "@lib/core/i18n/weekday";
+import { useLocale } from "@lib/hooks/useLocale";
+import { isBrandingHidden } from "@lib/isBrandingHidden";
+import showToast from "@lib/notification";
+import prisma from "@lib/prisma";
+import { trpc } from "@lib/trpc";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 

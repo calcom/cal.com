@@ -2,7 +2,6 @@ import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/cl
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendDeclinedEmails } from "@lib/emails/email-manager";
@@ -12,7 +11,6 @@ import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/i
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
-
 import { getTranslation } from "@server/lib/i18n";
 
 const authorized = async (

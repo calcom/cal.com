@@ -4,10 +4,9 @@ import utc from "dayjs/plugin/utc";
 import React from "react";
 import { ITimezone } from "react-timezone-select";
 
+import Loader from "@components/Loader";
 import getSlots from "@lib/slots";
 import { trpc } from "@lib/trpc";
-
-import Loader from "@components/Loader";
 
 interface Props {
   teamId: number;

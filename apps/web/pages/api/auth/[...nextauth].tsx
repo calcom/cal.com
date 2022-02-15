@@ -11,7 +11,6 @@ import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { isSAMLLoginEnabled, samlLoginUrl, hostedCal } from "@lib/saml";
 import slugify from "@lib/slugify";
-
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const providers: Provider[] = [
