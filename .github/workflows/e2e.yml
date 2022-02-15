@@ -72,9 +72,6 @@ jobs:
           restore-keys: |
             turbo-${{ github.job }}-${{ github.ref_name }}-
       - run: yarn
-      - run: yarn db-deploy
-      - run: yarn test
-
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -84,10 +81,11 @@ jobs:
             ~/.cache/ms-playwright
             **/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn test-playwright
+      - run: yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
