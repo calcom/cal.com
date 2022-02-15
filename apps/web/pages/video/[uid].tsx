@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
+import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { HeadSeo } from "@components/seo/head-seo";
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: JoinCallPageProps) {
+  const { t } = useLocale();
   const session = props.session;
   const router = useRouter();
 
@@ -34,15 +34,15 @@ export default function JoinCall(props: JoinCallPageProps) {
 
   useEffect(() => {
     if (emptyBooking) {
-      router.push("/call/no-meeting-found");
+      router.push("/video/no-meeting-found");
     }
 
     if (isUpcoming) {
-      router.push(`/call/meeting-not-started/${props.booking?.uid}`);
+      router.push(`/video/meeting-not-started/${props.booking?.uid}`);
     }
 
     if (isPast) {
-      router.push(`/call/meeting-ended/${props.booking?.uid}`);
+      router.push(`/video/meeting-ended/${props.booking?.uid}`);
     }
   });
 
@@ -108,12 +108,20 @@ export default function JoinCall(props: JoinCallPageProps) {
 
   return (
     <>
-      <HeadSeo title="Video Conference" description="Join the video call" />
       <Head>
-        <meta property="og:type" content="website" />
+        <title>Cal.com Video</title>
+        <meta name="title" content="Cal.com Video" />
+        <meta name="description" content={t("quick_video_meeting")} />
         <meta property="og:image" content="https://cal.com/video-og-image.png" />
-        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://cal.com/video" />
+        <meta property="og:title" content="Cal.com Video" />
+        <meta property="og:description" content={t("quick_video_meeting")} />
         <meta property="twitter:image" content="https://cal.com/video-og-image.png" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://cal.com/video" />
+        <meta property="twitter:title" content="Cal.com Video" />
+        <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
         <Link href="/">
