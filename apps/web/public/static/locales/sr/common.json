@@ -119,8 +119,15 @@
   "ping_test": "Test obaveštenja",
   "add_to_homescreen": "Dodaj ovu aplikaciju na telefon za brži pristup i poboljšano korisničko iskustvo.",
   "upcoming": "Predstojeći",
+  "past": "Prošli dogadjaji",
   "choose_a_file": "Odaberi datoteku...",
   "upload_image": "Otpremi sliku",
   "upload_target": "Otpremi {{target}}",
-  "no_target": "Nema {{target}}"
+  "no_target": "Nema {{target}}",
+  "slide_zoom_drag_instructions": "Kliznim pokretom zumirajte, prevucite da premestite",
+  "view_notifications": "Pogledaj obaveštenja",
+  "view_public_page": "Pogledaj javnu stranicu",
+  "sign_out": "Odjavi se",
+  "add_another": "Dodaj još",
+  "powered_by": "pokrenut tehnologijom"
 }
