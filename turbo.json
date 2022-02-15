@@ -49,6 +49,7 @@
       ],
       "outputs": [".next/**"]
     },
+    "@calcom/web#start": {},
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
