@@ -3,9 +3,10 @@
   "baseBranch": "origin/main",
   "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/web#db-deploy": {},
-    "@calcom/web#db-seed": {
-      "dependsOn": ["@calcom/web#db-deploy"]
+    "@calcom/prisma#db-deploy": {},
+    "@calcom/prisma#db-reset": {},
+    "@calcom/prisma#db-seed": {
+      "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/web#build": {
       "dependsOn": [
@@ -77,7 +78,7 @@
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/web#build", "@calcom/web#db-seed"]
+      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
     },
     "test-e2e": {
       "dependsOn": ["^test"]
