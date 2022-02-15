@@ -17,6 +17,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
+    "pre-commit": "lint-staged",
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
@@ -41,6 +42,9 @@
     ],
     "*.json": [
       "prettier --write"
+    ],
+    "packages/prisma/schema.prisma": [
+      "prisma format"
     ]
   },
   "engines": {
