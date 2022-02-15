@@ -13,4 +13,4 @@ public
 .prettierignore
 .DS_Store
 .eslintignore
-apps/web/prisma/zod
+packages/prisma/zod

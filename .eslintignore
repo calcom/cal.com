@@ -1,2 +1,2 @@
 node_modules
-apps/web/prisma/zod
+packages/prisma/zod
