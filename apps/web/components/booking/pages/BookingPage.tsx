@@ -1,10 +1,4 @@
-import {
-  CalendarIcon,
-  ClockIcon,
-  CreditCardIcon,
-  ExclamationIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/solid";
+import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -330,26 +324,13 @@ const BookingPage = (props: BookingPageProps) => {
                     </IntlProvider>
                   </p>
                 )}
-                {selectedLocation === LocationType.InPerson && (
-                  <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                    {getLocationValue({ locationType: selectedLocation })}
-                  </p>
-                )}
-                {selectedLocation === LocationType.Jitsi && (
-                  <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                    Jitsi Meet
-                  </p>
-                )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {parseDate(date)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    Requires ownership of a token belonging to the following address:{" "}
-                    {eventType.metadata.smartContractAddress}
+                    {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
@@ -368,7 +349,7 @@ const BookingPage = (props: BookingPageProps) => {
                         id="name"
                         required
                         className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
-                        placeholder="John Doe"
+                        placeholder={t("example_name")}
                       />
                     </div>
                   </div>

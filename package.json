@@ -15,11 +15,12 @@
     "dev": "turbo run dev --parallel",
     "dx": "turbo run dx",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
-    "test-playwright": "yarn playwright test -c apps/web/playwright.config.ts",
+    "test-playwright": "yarn playwright test",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
