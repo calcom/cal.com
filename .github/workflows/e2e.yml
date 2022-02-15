@@ -27,10 +27,11 @@ jobs:
       SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
-      # EMAIL_FROM: xxx
-      # EMAIL_SERVER_HOST: xxx
-      # EMAIL_SERVER_PORT: xxx
-      # EMAIL_SERVER_USER: xxx
+      EMAIL_FROM: e2e@cal.com
+      EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+      EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+      EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+      EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
       # MS_GRAPH_CLIENT_ID: xxx
       # MS_GRAPH_CLIENT_SECRET: xxx
       # ZOOM_CLIENT_ID: xxx
