@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
+import { hasIntegrationInstalled } from "../lib/apps/utils/AppUtils";
 import { todo } from "./lib/testUtils";
 
 test.describe.serial("Stripe integration", () => {

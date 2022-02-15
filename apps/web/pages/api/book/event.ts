@@ -11,6 +11,9 @@ import { v5 as uuidv5 } from "uuid";
 
 import { handlePayment } from "@ee/lib/stripe/server";
 
+import { CalendarEvent, AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
+import { getBusyCalendarTimes } from "@lib/apps/calendar/managers/CalendarManager";
+import { BufferedBusyTime } from "@lib/apps/office365_calendar/types/Office365Calendar";
 import {
   sendScheduledEmails,
   sendRescheduledEmails,
@@ -20,9 +23,6 @@ import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
-import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
-import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office365Calendar";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";

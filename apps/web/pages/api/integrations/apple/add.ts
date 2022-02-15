@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getCalendar } from "@lib/apps/calendar/managers/CalendarManager";
 import { getSession } from "@lib/auth";
 import { symmetricEncrypt } from "@lib/crypto";
-import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 

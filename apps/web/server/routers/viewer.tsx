@@ -5,9 +5,8 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { ALL_APPS } from "@lib/apps/utils/AppUtils";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -24,6 +23,10 @@ import { Schedule } from "@lib/types/schedule";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "../../lib/apps/calendar/managers/CalendarManager";
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { viewerTeamsRouter } from "./viewer/teams";
@@ -511,16 +514,16 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const integrations = ALL_INTEGRATIONS.map((integration) => ({
-        ...integration,
+      const apps = ALL_APPS.map((app) => ({
+        ...app,
         credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
+          .filter((credential) => credential.type === app.type)
           .map((credential) => credential.id),
       }));
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       return {
         conferencing: {

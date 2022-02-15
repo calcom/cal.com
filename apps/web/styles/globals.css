@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "../node_modules/@glidejs/glide/dist/css/glide.core.min.css";
+@import "../node_modules/@glidejs/glide/dist/css/glide.theme.min.css";
+
 :root {
   --brand-color: #292929;
   --brand-text-color: #ffffff;

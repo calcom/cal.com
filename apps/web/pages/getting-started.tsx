@@ -21,8 +21,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
@@ -32,12 +30,14 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";
-import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Schedule from "@components/ui/form/Schedule";
 
+import { CalendarListContainer } from "../lib/apps/calendar/components/CalendarListContainer";
+import { getCalendarCredentials, getConnectedCalendars } from "../lib/apps/calendar/managers/CalendarManager";
+import getApps from "../lib/apps/utils/AppUtils";
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
 dayjs.extend(utc);
