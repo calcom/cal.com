@@ -28,6 +28,7 @@
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
     "@calcom/prisma": "*",
+    "@calcom/tsconfig": "*",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
