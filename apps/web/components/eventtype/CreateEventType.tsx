@@ -52,9 +52,7 @@ export default function CreateEventTypeButton(props: Props) {
 
   // URL encoded params
   const teamId: number | undefined =
-    typeof router.query.teamId === "string" && router.query.teamId
-      ? parseInt(router.query.teamId)
-      : undefined;
+    typeof router.query.id === "string" && router.query.id ? parseInt(router.query.id) : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
 
@@ -103,7 +101,6 @@ export default function CreateEventTypeButton(props: Props) {
             ...router.query,
             new: "1",
             eventPage: option.slug,
-            teamId: option.teamId || undefined,
           },
         },
         undefined,
