@@ -137,6 +137,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not able to update this event`;
+        showToast(message, "error");
+      }
     },
   });
 
