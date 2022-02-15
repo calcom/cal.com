@@ -2,10 +2,11 @@ import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
-import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+
+import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
