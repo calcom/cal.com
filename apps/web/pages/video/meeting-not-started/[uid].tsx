@@ -13,19 +13,18 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { HeadSeo } from "@components/seo/head-seo";
 import Button from "@components/ui/Button";
 
-export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
+export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [is24h, setIs24h] = useState(false);
 
   //if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
   useEffect(() => {
     if (emptyBooking) {
-      router.push("/call/no-meeting-found");
+      router.push("/video/no-meeting-found");
     }
   });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [is24h, setIs24h] = useState(false);
   if (!emptyBooking) {
     return (
       <div>
@@ -48,7 +47,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
-                        This meeting is in the past.
+                        This meeting has not started yet
                       </h3>
                     </div>
                     <div className="mt-4 border-t border-b py-4">
@@ -60,6 +59,11 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                         {dayjs(props.booking.startTime).format(
                           (is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY"
                         )}
+                      </p>
+                    </div>
+                    <div className="mt-3 text-center sm:mt-5">
+                      <p className="text-sm text-gray-500">
+                        This meeting will be accessible 60 minutes in advance.
                       </p>
                     </div>
                   </div>
