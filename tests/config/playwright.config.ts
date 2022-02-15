@@ -1,5 +1,6 @@
 import { PlaywrightTestConfig, devices } from "@playwright/test";
 import { addAliases } from "module-alias";
+import * as path from "path";
 
 // Add aliases for the paths specified in the tsconfig.json file.
 // This is needed because playwright does not consider tsconfig.json
@@ -13,6 +14,9 @@ addAliases({
   "@ee": __dirname + "/apps/web/ee",
 });
 
+const outputDir = path.join(__dirname, "..", "..", "test-results");
+const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
+
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   timeout: 60_000,
@@ -21,8 +25,8 @@ const config: PlaywrightTestConfig = {
     ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./playwright/reports/results.xml" }],
   ],
-  globalSetup: require.resolve("./apps/web/playwright/lib/globalSetup"),
-  outputDir: "./playwright/results",
+  globalSetup: require.resolve("./globalSetup"),
+  outputDir,
   webServer: {
     command: "yarn workspace @calcom/web start -p 3000",
     port: 3000,
@@ -38,7 +42,7 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: "chromium",
-      testDir: "apps/web/playwright",
+      testDir,
       use: { ...devices["Desktop Chrome"] },
     },
     /*  {
