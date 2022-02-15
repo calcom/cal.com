@@ -9,5 +9,5 @@ module.exports = {
   arrowParens: "always",
   importOrder: ["^@ee/(.*)$", "^@lib/(.*)$", "^@components/(.*)$", "^@(server|trpc)/(.*)$", "^[./]"],
   importOrderSeparation: true,
-  plugins: [require("prettier-plugin-tailwindcss")],
+  plugins: [require("./merged-prettier-plugin")],
 };

@@ -1,0 +1,20 @@
+{
+  "name": "@calcom/docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "start": "next start",
+    "build": "next build"
+  },
+  "author": "Cal.com, Inc.",
+  "license": "MIT",
+  "dependencies": {
+    "next": "^12.0.9",
+    "nextra": "^1.1.0",
+    "nextra-theme-docs": "^1.2.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}
