@@ -93,6 +93,7 @@ jobs:
         with:
           name: videos
           path: |
+            test-results
             playwright/screenshots
             playwright/videos
             playwright/results

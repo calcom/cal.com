@@ -1,5 +1,5 @@
 {
-  "extends": "../../packages/tsconfig/nextjs.json",
+  "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
