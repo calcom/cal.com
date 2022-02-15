@@ -21,10 +21,10 @@ import { symmetricDecrypt } from "@lib/crypto";
 import type { Event } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
-import { TIMEZONE_FORMAT } from "../constants/formats";
-import { CALDAV_CALENDAR_TYPE } from "../constants/generals";
-import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../constants/types";
+import { TIMEZONE_FORMAT } from "../constants/format";
+import { DEFAULT_CALENDAR_TYPE } from "../constants/general";
 import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../types/CalendarTypes";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 
 dayjs.extend(utc);

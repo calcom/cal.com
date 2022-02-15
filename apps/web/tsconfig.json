@@ -6,7 +6,8 @@
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@ee/*": ["ee/*"]
+      "@ee/*": ["ee/*"],
+      "@apps/*": ["lib/apps/*"]
     },
     "typeRoots": ["./types"],
     "types": ["@types/jest"]

@@ -1,4 +1,4 @@
-import { CalendarEvent } from "@lib/calendar/interfaces/Calendar";
+import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
@@ -12,7 +12,6 @@ import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-reque
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];

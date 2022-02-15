@@ -57,7 +57,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="mt-2 flex">
-            <span className="flex flex-col space-x-2 space-y-1 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
+            <span className="flex flex-col space-x-2 space-y-1 space-x-2 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -336,7 +336,7 @@ function WebhookListContainer() {
             <ListItem className={classNames("flex-col")}>
               <div
                 className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+                <Image width={40} height={40} src="/apps/webhooks.svg" alt="Webhooks" />
                 <div className="flex-grow truncate pl-2">
                   <ListItemTitle component="h3">Webhooks</ListItemTitle>
                   <ListItemText component="p">{t("automation")}</ListItemText>
@@ -409,7 +409,7 @@ function IframeEmbedContainer() {
         <List>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
               <div className="flex-grow truncate pl-2">
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
@@ -434,7 +434,7 @@ function IframeEmbedContainer() {
           </ListItem>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
               <div className="flex-grow truncate pl-2">
                 <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
                 <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>
@@ -583,7 +583,7 @@ function Web3Container() {
         <List>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-              <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
               <div className="flex-grow truncate pl-2">
                 <ListItemTitle component="h3">
                   MetaMask (

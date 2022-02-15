@@ -9,14 +9,13 @@ import { trpc } from "@lib/trpc";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
+import ConnectIntegration from "@components/integrations/ConnectIntegrations";
+import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
+import IntegrationListItem from "@components/integrations/IntegrationListItem";
+import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
-
-import ConnectIntegration from "../../../../components/integrations/ConnectIntegrations";
-import DisconnectIntegration from "../../../../components/integrations/DisconnectIntegration";
-import IntegrationListItem from "../../../../components/integrations/IntegrationListItem";
-import SubHeadingTitleWithConnections from "../../../../components/integrations/SubHeadingTitleWithConnections";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
@@ -105,7 +104,7 @@ function ConnectedCalendarsList(props: Props) {
         }
         return (
           <List>
-            {data.connectedCalendars.map((item: any) => (
+            {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
@@ -126,8 +125,8 @@ function ConnectedCalendarsList(props: Props) {
                       {item.calendars.map((cal) => (
                         <CalendarSwitch
                           key={cal.externalId}
-                          externalId={cal.externalId as string}
-                          title={cal.name as string}
+                          externalId={cal.externalId}
+                          title={cal.name || "Nameless calendar"}
                           type={item.integration.type}
                           defaultSelected={cal.isSelected}
                         />
@@ -170,7 +169,7 @@ function CalendarList(props: Props) {
       query={query}
       success={({ data }) => (
         <List>
-          {data.calendar.items.map((item: any) => (
+          {data.calendar.items.map((item) => (
             <IntegrationListItem
               key={item.title}
               {...item}

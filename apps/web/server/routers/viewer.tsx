@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
 import { ALL_APPS } from "@lib/apps/utils/AppUtils";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -23,10 +24,6 @@ import { Schedule } from "@lib/types/schedule";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
-import {
-  getCalendarCredentials,
-  getConnectedCalendars,
-} from "../../lib/apps/calendar/managers/CalendarManager";
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { resizeBase64Image } from "../lib/resizeBase64Image";
 import { viewerTeamsRouter } from "./viewer/teams";

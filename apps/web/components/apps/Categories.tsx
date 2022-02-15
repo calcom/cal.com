@@ -11,9 +11,9 @@ export default function AppStoreCategories(props: any) {
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {props.categories.map((category: any) => (
           <Link key={category.name} href={"/apps/categories/" + category.name}>
-            <a className="flex px-6 py-4 bg-gray-100 rounded-sm">
-              <div className="flex w-12 h-12 mr-4 bg-white rounded-sm">
-                <CreditCardIcon className="self-center w-6 h-6 mx-auto" />
+            <a className="flex rounded-sm bg-gray-100 px-6 py-4">
+              <div className="mr-4 flex h-12 w-12 rounded-sm bg-white">
+                <CreditCardIcon className="mx-auto h-6 w-6 self-center" />
               </div>
               <div>
                 <h3 className="font-medium">{category.name}</h3>

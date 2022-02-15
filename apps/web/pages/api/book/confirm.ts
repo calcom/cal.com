@@ -3,12 +3,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
 
+import { CalendarEvent, AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendDeclinedEmails } from "@lib/emails/email-manager";
 import { sendScheduledEmails } from "@lib/emails/email-manager";
 import EventManager from "@lib/events/EventManager";
-import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";

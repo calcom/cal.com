@@ -5,11 +5,12 @@ import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
-import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
-import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting, VideoCallData } from "@lib/videoClient";
+
+import { AdditionInformation, CalendarEvent } from "../apps/calendar/interfaces/Calendar";
+import { createEvent, updateEvent } from "../apps/calendar/managers/CalendarManager";
 
 export type Event = AdditionInformation & VideoCallData;
 

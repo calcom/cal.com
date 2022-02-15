@@ -36,12 +36,12 @@ export default function Slider() {
           <div>
             <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("trending_apps")}</h2>
           </div>
-          <div className="ml-auto glide__arrows" data-glide-el="controls">
+          <div className="glide__arrows ml-auto" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
-              <ArrowLeftIcon className="w-5 h-5 text-gray-600 hover:text-black" />
+              <ArrowLeftIcon className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
             <button data-glide-dir=">">
-              <ArrowRightIcon className="w-5 h-5 text-gray-600 hover:text-black" />
+              <ArrowRightIcon className="h-5 w-5 text-gray-600 hover:text-black" />
             </button>
           </div>
         </div>

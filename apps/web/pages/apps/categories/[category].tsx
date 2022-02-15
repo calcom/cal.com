@@ -21,7 +21,7 @@ export default function Apps() {
       large>
       <div className="mb-8">
         <Button color="secondary" href="/apps">
-          <ChevronLeftIcon className="w-5 h-5" />
+          <ChevronLeftIcon className="h-5 w-5" />
         </Button>
       </div>
       <div className="mb-16">
