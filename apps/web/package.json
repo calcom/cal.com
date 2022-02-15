@@ -8,25 +8,14 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
-    "db-up": "docker-compose up -d",
-    "db-migrate": "yarn prisma migrate deploy",
-    "db-deploy": "yarn prisma migrate deploy",
-    "db-seed": "yarn prisma db seed",
-    "db-nuke": "docker-compose down --volumes --remove-orphans",
-    "db-setup": "run-s db-up db-migrate db-seed",
-    "db-reset": "run-s db-nuke db-setup",
-    "deploy": "run-s build db-deploy",
-    "dx": "env-cmd run-s db-setup dev",
+    "dx": "next dev",
     "test": "jest",
-    "test-e2e": "cd ../.. && yarn playwright test",
+    "test-e2e": "cd ../.. && yarn playwright test --config=tests/config/playwright.config.ts --project=chromium",
     "playwright-report": "playwright show-report playwright/reports/playwright-html-report",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "generate-schemas": "prisma generate",
-    "postinstall": "yarn generate-schemas",
-    "pre-commit": "lint-staged",
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
@@ -37,6 +26,9 @@
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/tsconfig": "*",
     "@daily-co/daily-js": "^0.21.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
@@ -45,7 +37,6 @@
     "@jitsu/sdk-js": "^2.2.4",
     "@metamask/providers": "^8.1.1",
     "@next/bundle-analyzer": "11.1.2",
-    "@prisma/client": "3.0.2",
     "@radix-ui/react-avatar": "^0.1.0",
     "@radix-ui/react-collapsible": "^0.1.0",
     "@radix-ui/react-dialog": "^0.1.0",
@@ -144,30 +135,15 @@
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
     "jest": "^26.0.0",
-    "lint-staged": "^11.1.2",
     "mockdate": "^3.0.5",
     "module-alias": "^2.2.2",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.4",
     "prettier": "^2.5.1",
     "prettier-plugin-tailwindcss": "^0.1.6",
-    "prisma": "3.0.2",
     "tailwindcss": "^3.0.0",
     "ts-jest": "^26.0.0",
     "ts-node": "^10.2.1",
-    "typescript": "^4.5.2",
-    "zod-prisma": "^0.5.4"
-  },
-  "lint-staged": {
-    "./{*,{ee,pages,components,lib}/**/*}.{js,ts,jsx,tsx}": [
-      "prettier --write",
-      "eslint"
-    ],
-    "./prisma/schema.prisma": [
-      "prisma format"
-    ]
-  },
-  "prisma": {
-    "seed": "ts-node ./prisma/seed.ts"
+    "typescript": "^4.5.3"
   }
 }
