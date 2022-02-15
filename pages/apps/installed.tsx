@@ -22,7 +22,6 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { FieldsetLegend, Form, InputGroupBox, TextField, TextArea } from "@components/form/fields";
-import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -30,6 +29,8 @@ import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingT
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Switch from "@components/ui/Switch";
+
+import { CalendarListContainer } from "../../lib/apps/calendar/components/CalendarListContainer";
 
 type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
@@ -556,7 +557,7 @@ function Web3Container() {
         <List>
           <ListItem className={classNames("flex-col")}>
             <div className={classNames("flex flex-1 space-x-2 w-full p-3 items-center")}>
-              <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
+              <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
               <div className="flex-grow pl-2 truncate">
                 <ListItemTitle component="h3">
                   MetaMask (

@@ -7,20 +7,20 @@ import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 
-import { ALL_INTEGRATIONS } from "../getIntegrations";
-import { CALENDAR_INTEGRATIONS_TYPES } from "./constants/generals";
-import { CalendarServiceType, EventBusyDate } from "./constants/types";
-import { Calendar, CalendarEvent } from "./interfaces/Calendar";
-import AppleCalendarService from "./services/AppleCalendarService";
-import CalDavCalendarService from "./services/CalDavCalendarService";
-import GoogleCalendarService from "./services/GoogleCalendarService";
-import Office365CalendarService from "./services/Office365CalendarService";
+import AppleCalendarService from "../../apple_calendar/services/CalendarService";
+import CalDavCalendarService from "../../caldav_calendar/services/CalendarService";
+import GoogleCalendarService from "../../google_calendar/services/CalendarService";
+import Office365CalendarService from "../../office365_calendar/services/CalendarService";
+import { APPS } from "../config";
+import { APPS_TYPES } from "../constants/general";
+import { Calendar, CalendarEvent } from "../interfaces/Calendar";
+import { CalendarServiceType, EventBusyDate } from "../types/CalendarTypes";
 
 const CALENDARS: Record<string, CalendarServiceType> = {
-  [CALENDAR_INTEGRATIONS_TYPES.apple]: AppleCalendarService,
-  [CALENDAR_INTEGRATIONS_TYPES.caldav]: CalDavCalendarService,
-  [CALENDAR_INTEGRATIONS_TYPES.google]: GoogleCalendarService,
-  [CALENDAR_INTEGRATIONS_TYPES.office365]: Office365CalendarService,
+  [APPS_TYPES.apple]: AppleCalendarService,
+  [APPS_TYPES.caldav]: CalDavCalendarService,
+  [APPS_TYPES.google]: GoogleCalendarService,
+  [APPS_TYPES.office365]: Office365CalendarService,
 };
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
@@ -41,7 +41,7 @@ export const getCalendarCredentials = (credentials: Array<Omit<Credential, "user
   const calendarCredentials = credentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     .flatMap((credential) => {
-      const integration = ALL_INTEGRATIONS.find((integration) => integration.type === credential.type);
+      const integration = APPS[credential.type];
 
       const calendar = getCalendar({
         ...credential,

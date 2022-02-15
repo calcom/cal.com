@@ -5,12 +5,12 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { refund } from "@ee/lib/stripe/server";
 
+import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
+import { getCalendar } from "@lib/apps/calendar/managers/CalendarManager";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
-import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -158,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
+  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: any) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {

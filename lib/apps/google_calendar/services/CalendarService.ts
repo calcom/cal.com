@@ -3,13 +3,13 @@ import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2clien
 import { Auth, calendar_v3, google } from "googleapis";
 
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
-import { CALENDAR_INTEGRATIONS_TYPES } from "@lib/integrations/calendar/constants/generals";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 
-import { EventBusyDate, NewCalendarEventType } from "../constants/types";
-import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
-import CalendarService from "./BaseCalendarService";
+import { APPS_TYPES } from "../../calendar/constants/general";
+import { Calendar, CalendarEvent, IntegrationCalendar } from "../../calendar/interfaces/Calendar";
+import CalendarService from "../../calendar/services/CalendarService";
+import { EventBusyDate, NewCalendarEventType } from "../../calendar/types/CalendarTypes";
 
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
 
@@ -20,7 +20,7 @@ export default class GoogleCalendarService implements Calendar {
   private log: typeof logger;
 
   constructor(credential: Credential) {
-    this.integrationName = CALENDAR_INTEGRATIONS_TYPES.google;
+    this.integrationName = APPS_TYPES.google;
 
     this.auth = this.googleAuth(credential);
 

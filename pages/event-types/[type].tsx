@@ -28,11 +28,11 @@ import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
+import getApps, { hasIntegration } from "@lib/apps/utils/AppUtils";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
-import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -1545,7 +1545,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventType.users.push(fallbackUser);
   }
 
-  const integrations = getIntegrations(credentials);
+  const integrations = getApps(credentials);
 
   const locationOptions: OptionTypeBase[] = [];
 

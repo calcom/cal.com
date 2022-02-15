@@ -17,14 +17,15 @@ type Props = {
   onSubmit: () => void;
 };
 
-export const ADD_CALDAV_INTEGRATION_FORM_TITLE = "addCalDav";
-export type AddCalDavIntegrationRequest = {
+export const ADD_INTEGRATION_FORM_TITLE = "addCalDav";
+
+export type AddIntegrationRequest = {
   url: string;
   username: string;
   password: string;
 };
 
-export function AddCalDavIntegrationModal(props: DialogProps) {
+export function AddIntegrationModal(props: DialogProps) {
   const form = useForm({
     defaultValues: {
       url: "",
@@ -118,7 +119,7 @@ const AddCalDavIntegration = React.forwardRef<HTMLFormElement, Props>((props, re
   };
 
   return (
-    <form id={ADD_CALDAV_INTEGRATION_FORM_TITLE} ref={ref} onSubmit={onSubmit}>
+    <form id={ADD_INTEGRATION_FORM_TITLE} ref={ref} onSubmit={onSubmit}>
       <div className="mb-2">
         <label htmlFor="url" className="block text-sm font-medium text-gray-700">
           Calendar URL
