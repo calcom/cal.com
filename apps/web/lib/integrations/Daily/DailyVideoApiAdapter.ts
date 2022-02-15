@@ -96,7 +96,7 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       type: "daily_video",
       id: dailyEvent.name,
       password: "",
-      url: BASE_URL + "/call/" + event.uid,
+      url: BASE_URL + "/video/" + event.uid,
     });
   }
 
