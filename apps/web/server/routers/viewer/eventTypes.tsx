@@ -108,16 +108,32 @@ export const eventTypesRouter = createProtectedRouter()
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
+
+      const userId = ctx.user.id;
+
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
         users: {
           connect: {
-            id: ctx.user.id,
+            id: userId,
           },
         },
       };
 
       if (teamId && schedulingType) {
+        const hasMembership = await ctx.prisma.membership.findFirst({
+          where: {
+            userId,
+            teamId: teamId,
+            accepted: true,
+          },
+        });
+
+        if (!hasMembership) {
+          console.warn(`User ${userId} does not have permission to create this new event type`);
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
         data.team = {
           connect: {
             id: teamId,
