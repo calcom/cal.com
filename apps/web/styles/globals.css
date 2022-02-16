@@ -1,0 +1,386 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-color: #292929;
+  --brand-text-color: #ffffff;
+}
+
+/* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
+.PhoneInputInput {
+  @apply border-0 text-sm focus:ring-0;
+}
+.dark .PhoneInputInput {
+  @apply bg-black;
+}
+.PhoneInputCountrySelect {
+  @apply text-black;
+}
+
+/* DateRangePicker */
+.react-daterange-picker > .react-daterange-picker__wrapper {
+  /* border consistent with other inputs */
+  @apply rounded-sm border-gray-300 px-2 py-1.5 sm:text-sm lg:py-1;
+}
+
+.react-daterange-picker > .react-daterange-picker__wrapper input {
+  /* Makes sure the on-focus behaviour is like Cal.com's */
+  @apply focus:border-primary-500 focus:ring-primary-500 my-0.5 h-auto rounded-sm py-0.5;
+}
+
+/* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
+@layer components {
+  /* Primary buttons */
+  .btn-xs.btn-primary {
+    @apply inline-flex items-center rounded border border-transparent bg-neutral-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-sm.btn-primary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn.btn-primary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-lg.btn-primary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-xl.btn-primary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-900 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-wide.btn-primary {
+    @apply w-full rounded-sm border border-transparent bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  /* Secondary buttons */
+  .btn-xs.btn-secondary {
+    @apply inline-flex items-center rounded border border-transparent bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-sm.btn-secondary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-3 py-2 text-sm font-medium leading-4 text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn.btn-secondary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-lg.btn-secondary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-base font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-xl.btn-secondary {
+    @apply inline-flex items-center rounded-sm border border-transparent bg-neutral-100 px-6 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-wide.btn-secondary {
+    @apply w-full rounded-sm border border-transparent bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  /* White buttons */
+  .btn-xs.btn-white {
+    @apply inline-flex items-center rounded border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-sm.btn-white {
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn.btn-white {
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-lg.btn-white {
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-xl.btn-white {
+    @apply inline-flex items-center rounded-sm border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-wide.btn-white {
+    @apply w-full rounded-sm border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+  /* btn icon */
+  .btn-icon {
+    @apply cursor-pointer rounded-sm border border-transparent p-2 text-neutral-500 hover:border-gray-300 hover:text-neutral-900;
+  }
+  /* slider */
+  .slider {
+    @apply relative flex h-4 w-40 select-none items-center;
+  }
+
+  .slider > .slider-track {
+    @apply relative h-1 flex-grow rounded-md bg-neutral-400;
+  }
+
+  .slider .slider-range {
+    @apply absolute h-full rounded-full bg-neutral-700;
+  }
+
+  .slider .slider-thumb {
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-neutral-700 shadow-sm transition-all;
+  }
+
+  .slider .slider-thumb:hover {
+    @apply bg-neutral-600;
+  }
+
+  .slider .slider-thumb:focus {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* !important to style multi-email input */
+::-moz-selection {
+  color: white;
+  background: black;
+}
+
+::selection {
+  color: white;
+  background: black;
+}
+
+/* add padding bottom to bottom nav on standalone mode */
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+  .intercom-launcher-frame {
+    display: none !important;
+  }
+}
+
+/* add padding bottom to bottom nav on standalone mode */
+@media all and (display-mode: standalone) {
+  .bottom-nav {
+    padding-bottom: 24px;
+  }
+}
+
+/* hide intercom chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+  .intercom-launcher-frame {
+    display: none !important;
+  }
+}
+
+.react-multi-email > [type="text"] {
+  @apply focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+}
+
+.react-multi-email [data-tag] {
+  box-shadow: none !important;
+  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
+}
+
+.react-multi-email > span[data-placeholder] {
+  display: none;
+  position: absolute;
+  left: 0.8rem;
+  top: 0.75rem;
+  line-height: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.react-multi-email.empty > span[data-placeholder] {
+  display: inline;
+  color: #646b7a;
+}
+
+.react-multi-email.focused > span[data-placeholder] {
+  display: none;
+}
+
+.react-multi-email > input {
+  width: 100% !important;
+  display: inline-block !important;
+  @apply mt-1;
+}
+
+.react-multi-email [data-tag] {
+  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
+}
+
+.react-multi-email [data-tag] [data-tag-item] {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.react-multi-email [data-tag] [data-tag-handle] {
+  margin-left: 0.833em;
+  cursor: pointer;
+}
+
+/* !important to override react-select */
+.react-select__value-container {
+  border: 0 !important;
+}
+
+.react-select__input input {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.react-select__option--is-focused {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.react-select__control {
+  border: 2px solid transparent !important;
+  box-shadow: none !important;
+}
+
+.react-select__control.react-select__control--is-focused {
+  border: 2px solid #000 !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+  margin: -1px;
+  padding: 1px;
+}
+
+/* !important to override react-dates */
+.DateRangePickerInput__withBorder {
+  border: 0 !important;
+}
+.DateInput_input {
+  border: 1px solid #d1d5db !important;
+  border-radius: 2px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: #000;
+  padding: 11px ​11px 9px !important;
+  line-height: 16px !important;
+}
+
+.DateInput_input__focused {
+  border: 2px solid #000 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  padding: 10px ​10px 9px !important;
+}
+
+.DateRangePickerInput_arrow {
+  padding: 0px 10px;
+}
+
+.loader {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 60px auto;
+  position: relative;
+  border-width: 4px;
+  border-style: solid;
+  animation: loader 2s infinite ease;
+}
+
+.loader-inner {
+  vertical-align: top;
+  display: inline-block;
+  width: 100%;
+  animation: loader-inner 2s infinite ease-in;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(180deg);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  75% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-inner {
+  0% {
+    height: 0%;
+  }
+
+  25% {
+    height: 0%;
+  }
+
+  50% {
+    height: 100%;
+  }
+
+  75% {
+    height: 100%;
+  }
+
+  100% {
+    height: 0%;
+  }
+}
+
+nav#nav--settings > a {
+  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900;
+}
+
+nav#nav--settings > a svg {
+  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500;
+}
+
+nav#nav--settings > a.active {
+  @apply border-neutral-500 bg-neutral-50 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-700;
+}
+
+nav#nav--settings > a.active svg {
+  @apply text-neutral-500;
+}
+
+body {
+  background-color: #f3f4f6;
+}
+
+hr {
+  @apply border-gray-200;
+}
+
+.text-white-important {
+  color: white !important;
+}
+
+@layer utilities {
+  .transition-max-width {
+    -webkit-transition-property: max-width;
+    transition-property: max-width;
+  }
+}
+
+#timeZone input:focus {
+  box-shadow: none;
+}
+
+.weekdaySelect button.active {
+  background: #000;
+  color: #fff;
+}
+
+/* react-date-picker forces a border upon us, cast it away */
+.react-date-picker__wrapper {
+  border: none !important;
+}

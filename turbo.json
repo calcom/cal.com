@@ -1,0 +1,90 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "baseBranch": "origin/main",
+  "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
+  "pipeline": {
+    "@calcom/prisma#db-deploy": {},
+    "@calcom/prisma#db-reset": {},
+    "@calcom/prisma#db-seed": {
+      "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
+    "@calcom/web#build": {
+      "dependsOn": [
+        "^build",
+        "@calcom/prisma#build",
+        "$BASE_URL",
+        "$CALENDSO_ENCRYPTION_KEY",
+        "$CRON_API_KEY",
+        "$DAILY_API_KEY",
+        "$DAILY_SCALE_PLAN",
+        "$DATABASE_URL",
+        "$EMAIL_FROM",
+        "$EMAIL_SERVER_HOST",
+        "$EMAIL_SERVER_PASSWORD",
+        "$EMAIL_SERVER_PORT",
+        "$EMAIL_SERVER_USER",
+        "$GOOGLE_API_CREDENTIALS",
+        "$GOOGLE_LOGIN_ENABLED",
+        "$JWT_SECRET",
+        "$MS_GRAPH_CLIENT_ID",
+        "$MS_GRAPH_CLIENT_SECRET",
+        "$NEXT_PUBLIC_APP_URL",
+        "$NEXT_PUBLIC_INTERCOM_APP_ID",
+        "$NEXT_PUBLIC_LICENSE_CONSENT",
+        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "$NEXT_PUBLIC_TELEMETRY_KEY",
+        "$NEXTAUTH_URL",
+        "$PAYMENT_FEE_FIXED",
+        "$PAYMENT_FEE_PERCENTAGE",
+        "$PGSSLMODE",
+        "$PLAYWRIGHT_SECRET",
+        "$SAML_ADMINS",
+        "$SAML_DATABASE_URL",
+        "$STRIPE_CLIENT_ID",
+        "$STRIPE_PRIVATE_KEY",
+        "$STRIPE_WEBHOOK_SECRET",
+        "$TANDEM_BASE_URL",
+        "$TANDEM_CLIENT_ID",
+        "$TANDEM_CLIENT_SECRET",
+        "$ZOOM_CLIENT_ID",
+        "$ZOOM_CLIENT_SECRET"
+      ],
+      "outputs": [".next/**"]
+    },
+    "@calcom/web#dx": {
+      "dependsOn": ["@calcom/prisma#dx"]
+    },
+    "@calcom/web#start": {},
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "db-deploy": {},
+    "db-seed": {},
+    "deploy": {
+      "dependsOn": []
+    },
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false
+    },
+    "dx": {
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "start": {},
+    "test": {
+      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
+    },
+    "test-e2e": {
+      "dependsOn": ["^test"]
+    },
+    "type-check": {
+      "outputs": []
+    }
+  }
+}
