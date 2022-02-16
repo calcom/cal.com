@@ -1,0 +1,16 @@
+{
+  "extends": "@calcom/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@lib/*": ["lib/*"],
+      "@server/*": ["server/*"],
+      "@ee/*": ["ee/*"]
+    },
+    "typeRoots": ["./types"],
+    "types": ["@types/jest"]
+  },
+  "include": ["next-env.d.ts", "@types/*.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

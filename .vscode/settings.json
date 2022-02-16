@@ -5,5 +5,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.run": "onSave"
+  "eslint.run": "onSave",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "spellright.language": ["en"],
+  "spellright.documentTypes": ["markdown"]
 }
