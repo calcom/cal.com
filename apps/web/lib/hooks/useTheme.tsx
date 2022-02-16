@@ -34,12 +34,6 @@ export default function useTheme(theme?: Maybe<string>) {
   }, []);
 
   function Theme() {
-    const isServer = typeof window === "undefined";
-    if (!isServer) {
-      // This component's job is to inject the JS that listens to media queries and applies the change.
-      // So, we can avoid this to be sent to client, which would also avoid execution of uglify on client.
-      return null;
-    }
     const code = applyThemeAndAddListener.toString();
     const themeStr = theme ? `"${theme}"` : null;
     return (
