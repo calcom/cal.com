@@ -652,5 +652,7 @@
   "prisma_studio_tip": "Create an account via Prisma Studio",
   "prisma_studio_tip_description": "Learn how to set up your first user",
   "contact_sales": "Contact Sales",
-  "error_404": "Error 404"
+  "error_404": "Error 404",
+  "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
+  "example_name": "John Doe"
 }

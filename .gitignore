@@ -10,6 +10,7 @@ node_modules
 
 # testing
 coverage
+/test-results/
 playwright/videos
 playwright/screenshots
 playwright/artifacts
