@@ -620,5 +620,8 @@
   "account_managed_by_identity_provider": "Vašim nalogom upravlja {{provider}}",
   "account_managed_by_identity_provider_description": "Da biste promenili svoju adresu e-pošte, lozinku, omogućili dvofaktorsku autentifikaciju itd., molimo vas posetite vaša {{provider}} podešavanja naloga.",
   "signin_with_google": "Ulogujte sa pomoću Google-a",
-  "signin_with_saml": "Ulogujte se pomoću SAML"
+  "signin_with_saml": "Ulogujte se pomoću SAML",
+  "saml_configuration": "SAML konfiguracija",
+  "delete_saml_configuration": "Izbriši SAML konfiguraciju",
+  "delete_saml_configuration_confirmation_message": "Da li ste sigurni da želite izbrisati SAML konfiguraciju? Vaši članovi tima koji koriste SAML login neće moći više da pristupe Cal.com."
 }
