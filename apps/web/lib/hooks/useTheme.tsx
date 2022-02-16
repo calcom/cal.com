@@ -29,7 +29,7 @@ export default function useTheme(theme?: Maybe<string>) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // TODO: isReady doesn't seem required now. This is also impacting PSI Score.
+    // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.
     setIsReady(true);
   }, []);
 
