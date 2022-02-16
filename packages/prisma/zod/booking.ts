@@ -1,22 +1,7 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
-import { BookingStatus } from "@prisma/client";
-import {
-  CompleteUser,
-  UserModel,
-  CompleteBookingReference,
-  BookingReferenceModel,
-  CompleteEventType,
-  EventTypeModel,
-  CompleteAttendee,
-  AttendeeModel,
-  CompleteDailyEventReference,
-  DailyEventReferenceModel,
-  CompletePayment,
-  PaymentModel,
-  CompleteDestinationCalendar,
-  DestinationCalendarModel,
-} from "./index";
+import * as z from "zod"
+import * as imports from "../zod-utils"
+import { BookingStatus } from "@prisma/client"
+import { CompleteUser, UserModel, CompleteBookingReference, BookingReferenceModel, CompleteEventType, EventTypeModel, CompleteAttendee, AttendeeModel, CompleteDailyEventReference, DailyEventReferenceModel, CompletePayment, PaymentModel, CompleteDestinationCalendar, DestinationCalendarModel } from "./index"
 
 export const _BookingModel = z.object({
   id: z.number().int(),
@@ -36,16 +21,16 @@ export const _BookingModel = z.object({
   paid: z.boolean(),
   cancellationReason: z.string().nullish(),
   rejectionReason: z.string().nullish(),
-});
+})
 
 export interface CompleteBooking extends z.infer<typeof _BookingModel> {
-  user?: CompleteUser | null;
-  references: CompleteBookingReference[];
-  eventType?: CompleteEventType | null;
-  attendees: CompleteAttendee[];
-  dailyRef?: CompleteDailyEventReference | null;
-  payment: CompletePayment[];
-  destinationCalendar?: CompleteDestinationCalendar | null;
+  user?: CompleteUser | null
+  references: CompleteBookingReference[]
+  eventType?: CompleteEventType | null
+  attendees: CompleteAttendee[]
+  dailyRef?: CompleteDailyEventReference | null
+  payment: CompletePayment[]
+  destinationCalendar?: CompleteDestinationCalendar | null
 }
 
 /**
@@ -53,14 +38,12 @@ export interface CompleteBooking extends z.infer<typeof _BookingModel> {
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const BookingModel: z.ZodSchema<CompleteBooking> = z.lazy(() =>
-  _BookingModel.extend({
-    user: UserModel.nullish(),
-    references: BookingReferenceModel.array(),
-    eventType: EventTypeModel.nullish(),
-    attendees: AttendeeModel.array(),
-    dailyRef: DailyEventReferenceModel.nullish(),
-    payment: PaymentModel.array(),
-    destinationCalendar: DestinationCalendarModel.nullish(),
-  })
-);
+export const BookingModel: z.ZodSchema<CompleteBooking> = z.lazy(() => _BookingModel.extend({
+  user: UserModel.nullish(),
+  references: BookingReferenceModel.array(),
+  eventType: EventTypeModel.nullish(),
+  attendees: AttendeeModel.array(),
+  dailyRef: DailyEventReferenceModel.nullish(),
+  payment: PaymentModel.array(),
+  destinationCalendar: DestinationCalendarModel.nullish(),
+}))
