@@ -163,7 +163,7 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 1. Run (in development mode)
@@ -177,12 +177,12 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   npx prisma studio
+   yarn prisma studio
    ```
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
@@ -210,7 +210,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   npx prisma migrate dev
+   yarn workspace @calcom/web prisma migrate dev
    ```
 
    (this can clear your development database in some cases)
@@ -218,7 +218,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
