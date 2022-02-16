@@ -68,13 +68,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .turbo
-          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          key: turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
           restore-keys: |
-            turbo-${{ github.job }}-${{ github.ref_name }}-
+            turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-
       - run: yarn
-      - run: yarn db-deploy
-      - run: yarn test
-
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -84,10 +81,11 @@ jobs:
             ~/.cache/ms-playwright
             **/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn test-playwright
+      - run: yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
@@ -95,6 +93,7 @@ jobs:
         with:
           name: videos
           path: |
+            test-results
             playwright/screenshots
             playwright/videos
             playwright/results

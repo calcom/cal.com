@@ -1,4 +1,4 @@
-import { _EventTypeModel } from "prisma/zod";
+import { _EventTypeModel } from "./eventtype";
 
 const createEventTypeBaseInput = _EventTypeModel
   .pick({

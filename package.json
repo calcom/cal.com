@@ -17,10 +17,12 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
+    "pre-commit": "lint-staged",
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test",
+    "test-e2e": "turbo run test-e2e",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
@@ -40,6 +42,9 @@
     ],
     "*.json": [
       "prettier --write"
+    ],
+    "packages/prisma/schema.prisma": [
+      "prisma format"
     ]
   },
   "engines": {

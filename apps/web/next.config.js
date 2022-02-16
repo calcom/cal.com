@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const withTM = require("@vercel/edge-functions-ui/transpile")([]);
+const withTM = require("@vercel/edge-functions-ui/transpile")(["@calcom/lib", "@calcom/prisma"]);
 const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview
@@ -92,6 +92,11 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         destination: "/bookings/upcoming",
         permanent: true,
       },
+      {
+        source: '/call/:path*',
+        destination: '/video/:path*',
+        permanent: false
+      }
     ];
   },
 });

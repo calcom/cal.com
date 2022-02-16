@@ -106,6 +106,7 @@ Here is what you need to be able to run Cal.
 
    ```sh
    cp apps/web/.env.example apps/web/.env
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -190,7 +191,7 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn workspace @calcom/web test-playwright
+yarn workspace @calcom/web test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report
