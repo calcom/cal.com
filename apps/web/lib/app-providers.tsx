@@ -6,6 +6,7 @@ import React, { ComponentProps, ReactNode } from "react";
 
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
+import usePublicPage from "@lib/hooks/usePublicPage";
 import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 import { trpc } from "./trpc";
@@ -40,14 +41,22 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.useQuery(["viewer.session"]).data;
+  // No need to have intercom on public pages - Good for Page Performance
+  const isPublicPage = usePublicPage();
+  const RemainingProviders = (
+    <SessionProvider session={session || undefined}>
+      <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
+    </SessionProvider>
+  );
+
   return (
     <TelemetryProvider value={createTelemetryClient()}>
       <IdProvider>
-        <DynamicIntercomProvider>
-          <SessionProvider session={session || undefined}>
-            <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
-          </SessionProvider>
-        </DynamicIntercomProvider>
+        {isPublicPage ? (
+          RemainingProviders
+        ) : (
+          <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+        )}
       </IdProvider>
     </TelemetryProvider>
   );
