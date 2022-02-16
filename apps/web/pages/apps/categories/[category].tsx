@@ -7,7 +7,7 @@ import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 import Button from "@components/ui/Button";
 
-import { appRegistry } from "../appRegistry";
+import { appRegistry } from "../_appRegistry";
 
 export default function Apps() {
   const { t } = useLocale();

@@ -1,4 +1,4 @@
-import { appRegistry } from "pages/apps/appRegistry";
+import { appRegistry } from "pages/apps/_appRegistry";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

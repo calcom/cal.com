@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
+import { CalendarListContainer } from "@lib/apps/calendar/components/CalendarListContainer";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
 import getApps from "@lib/apps/utils/AppUtils";
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -32,7 +33,6 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";
-import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
