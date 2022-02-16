@@ -1,4 +1,6 @@
 import Glide from "@glidejs/glide";
+import "@glidejs/glide/dist/css/glide.core.min.css";
+import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { appRegistry } from "pages/apps/appRegistry";
 import { useEffect, useState } from "react";
