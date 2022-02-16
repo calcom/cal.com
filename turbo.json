@@ -1,15 +1,17 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
-  "globalDependencies": [".env"],
+  "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/web#db-deploy": {},
-    "@calcom/web#db-seed": {
-      "dependsOn": ["@calcom/web#db-deploy"]
+    "@calcom/prisma#db-deploy": {},
+    "@calcom/prisma#db-reset": {},
+    "@calcom/prisma#db-seed": {
+      "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
+        "@calcom/prisma#build",
         "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
@@ -49,6 +51,10 @@
       ],
       "outputs": [".next/**"]
     },
+    "@calcom/web#dx": {
+      "dependsOn": ["@calcom/prisma#dx"]
+    },
+    "@calcom/web#start": {},
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
@@ -72,7 +78,10 @@
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/web#build", "@calcom/web#db-seed"]
+      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
+    },
+    "test-e2e": {
+      "dependsOn": ["^test"]
     },
     "type-check": {
       "outputs": []

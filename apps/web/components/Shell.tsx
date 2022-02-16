@@ -317,7 +317,7 @@ export default function Shell(props: {
                 {props.children}
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="bottom-nav fixed bottom-0 z-40 flex w-full bg-white shadow md:hidden">
+              <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                 {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                 {navigation.flatMap((item, itemIdx) =>
                   item.href === "/settings/profile" ? (

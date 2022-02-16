@@ -15,11 +15,14 @@
     "dev": "turbo run dev --parallel",
     "dx": "turbo run dx",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
+    "pre-commit": "lint-staged",
     "prepare": "husky install",
     "start": "turbo run start",
     "test": "turbo run test",
-    "test-playwright": "yarn playwright test -c apps/web/playwright.config.ts",
+    "test-playwright": "yarn playwright test",
+    "test-e2e": "turbo run test-e2e",
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
@@ -27,7 +30,9 @@
     "husky": "^7.0.1",
     "lint-staged": "^11.1.2",
     "prettier": "^2.5.1",
-    "prettier-plugin-tailwindcss": "^0.1.6",
+    "prettier-plugin-tailwindcss": "^0.1.6"
+  },
+  "dependencies": {
     "turbo": "latest"
   },
   "lint-staged": {
@@ -37,6 +42,9 @@
     ],
     "*.json": [
       "prettier --write"
+    ],
+    "packages/prisma/schema.prisma": [
+      "prisma format"
     ]
   },
   "engines": {

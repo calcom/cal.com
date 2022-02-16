@@ -1,0 +1,40 @@
+# Webhooks
+## Create a new Webhook
+
+1. Go to [Your Integrations](https://app.cal.com/integrations).
+2. Scrolling down to the bottom of the page you will see a button called ‘New Webhook’. Press this button to open up the box which will ask for details on creating the new webhooks.
+3. Select whatever event this triggers, this may be Create, Cancelled or Reschedule.
+4. Once this is completed, insert the Subscriber URL then click 'Save' located at the bottom right of the box.
+
+## Edit an existing Webhook
+
+1. Go to [Your Integrations](https://app.cal.com/integrations).
+2. Scrolling down to the bottom of the page you will see an icon to the right of your webhook, this will be labeled edit webhook.
+3. Press the button and from here you can change any of the webhook settings. This could be changing the event that is triggered and this may be Create, Cancelled or Reschedule. Or you can change the Subscriber URL.
+
+## Delete an existing Webhook
+
+1. Go to [Your Integrations](https://app.cal.com/integrations).
+2. Scrolling down to the bottom of the page you will see an icon to the right of your webhook, this will be labeled delete webhook.
+3. Press the button and from here your webhook will no longer work and be deleted.
+
+## Webhook metadata
+Metadata is a way to pass extra information to Cal.com about a booking that is returned through a webhook.
+
+### Example
+The best way to explain this is with an example. Let's say you're a bank, and people register an account on your website, but you want them to book an onboarding call with your team to get set up. You could send them to your Cal.com booking link as part of your onboarding process, but when the webhook is returned, it may be difficult to match up which user booked a meeting with the user's account in your own database. Hence, you can pass a `user_id` value for instance as a URL parameter, which makes no difference to the booking process, but when the webhook is returned, you will receive the metadata as part of the webhook payload.
+
+Metadata is passed as a URL parameter on top of your booking link and follows the following syntax:
+```text
+metadata[key_name]=value
+```
+
+For example, if your booking link is `cal.com/rick/quick-chat`, you can pass a user ID of 123 like so:
+```text
+cal.com/rick/quick-chat?metadata[user_id]=123
+```
+
+As a result, the webhook will be returned in this format:
+```text
+{ <other event details>, metadata: { user_id: 123 } }
+```

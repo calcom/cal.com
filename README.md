@@ -27,10 +27,12 @@
   <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
   <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
-  <img src="https://img.shields.io/github/package-json/v/calcom/cal.com">
   <a href="https://github.com/calcom/cal.com/pulse"><img src="https://img.shields.io/github/commit-activity/m/calcom/cal.com" alt="Commits-per-month"></a>
   <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
   <a href="https://jitsu.com?utm_source=github/calcom/cal.com"><img src="https://img.shields.io/badge/Metrics_tracked_by-JITSU-AA00FF?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACKSURBVHgBrZDRCYAwDEQv6gCOoKO4hOCXI9QVnEZwiY5iF5GaVClaBNtioCSUvCR3tMJaxIfZgW4AGUoEPVwgPZoS0Dmgg3NBVDFNbMIsmYCak3J1jDk9iCQvsKJvkzr71N81Gj6vDT/LU2P6RhY63jcafk3YJEbgeZpiFyc/5HJKv8Ef273NSfABGbQfUZhnOSAAAAAASUVORK5CYII=" alt="Jitsu Tracked"></a>
+    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
+    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=social"></a>
+    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
 
 </p>
 
@@ -100,10 +102,11 @@ Here is what you need to be able to run Cal.
    cd cal.com
    ```
 
-1. Copy `.env.example` to `.env`
+1. Copy `apps/web/.env.example` to `apps/web/.env`
 
    ```sh
-   cp .env.example .env
+   cp apps/web/.env.example apps/web/.env
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -157,7 +160,7 @@ yarn dx
    </details>
 
 1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
-1. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
+1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
    npx prisma migrate deploy
@@ -166,7 +169,7 @@ yarn dx
 1. Run (in development mode)
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
 #### Setting up your first user
@@ -188,10 +191,10 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn test-playwright
+yarn workspace @calcom/web test-e2e
 
 # To open last HTML report run:
-yarn playwright-report
+yarn workspace @calcom/web playwright-report
 ```
 
 ### Upgrading from earlier versions
@@ -230,14 +233,14 @@ yarn playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev
+   yarn dev --scope=@calcom/web
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build
-   yarn start
+   yarn build --scope=@calcom/web
+   yarn start --scope=@calcom/web
    ```
 
 5. Enjoy the new version.
