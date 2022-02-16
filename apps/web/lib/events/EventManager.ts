@@ -3,6 +3,8 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+import type { PartialReference } from "@calcom/types/EventManager";
+
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import { LocationType } from "@lib/location";
@@ -31,15 +33,6 @@ export interface CreateUpdateResult {
 export interface PartialBooking {
   id: number;
   references: Array<PartialReference>;
-}
-
-export interface PartialReference {
-  id?: number;
-  type: string;
-  uid: string;
-  meetingId?: string | null;
-  meetingPassword?: string | null;
-  meetingUrl?: string | null;
 }
 
 export const isZoom = (location: string): boolean => {

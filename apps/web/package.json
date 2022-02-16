@@ -106,6 +106,7 @@
   },
   "devDependencies": {
     "@calcom/config": "*",
+    "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.18.1",
     "@tailwindcss/forms": "^0.4.0",

@@ -9,9 +9,15 @@
       "@ee/*": ["ee/*"],
       "@apps/*": ["lib/apps/*"]
     },
-    "typeRoots": ["./types"],
-    "types": ["@types/jest"]
+    "typeRoots": ["./types", "@calcom/types"],
+    "types": ["@types/jest", "@calcom/types/*.d.ts"]
   },
-  "include": ["next-env.d.ts", "@types/*.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
   "exclude": ["node_modules"]
 }
