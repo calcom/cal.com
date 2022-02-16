@@ -1,23 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
+import prisma from "@calcom/prisma";
+import "@calcom/types/next";
 
-import prisma from "../../../../lib/prisma";
+const BASE_URL = process.env.BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 const client_id = process.env.ZOOM_CLIENT_ID;
 const client_secret = process.env.ZOOM_CLIENT_SECRET;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-
-  // Check that user is authenticated
-  const session = await getSession({ req });
-
-  if (!session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
 
   const redirectUri = encodeURI(BASE_URL + "/api/integrations/zoomvideo/callback");
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -38,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await prisma.user.update({
     where: {
-      id: session.user.id,
+      id: req.session?.user.id,
     },
     data: {
       credentials: {
@@ -50,5 +42,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.redirect("/integrations");
+  res.redirect("/apps/installed");
 }

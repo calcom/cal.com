@@ -1,27 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
+import "@calcom/types/next";
+
+const BASE_URL = process.env.BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 const client_id = process.env.ZOOM_CLIENT_ID;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Check that user is authenticated
-    const session = await getSession({ req });
-
-    if (!session?.user?.id) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
     // Get user
     await prisma.user.findFirst({
       rejectOnNotFound: true,
       where: {
-        id: session?.user?.id,
+        id: req.session?.user?.id,
       },
       select: {
         id: true,
