@@ -98,7 +98,6 @@
     "superjson": "1.8.1",
     "tsdav": "2.0.0",
     "tslog": "^3.2.1",
-    "uglify-js": "latest",
     "uuid": "^8.3.2",
     "web3": "^1.6.1",
     "zod": "^3.8.2"
