@@ -165,14 +165,14 @@ function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const supportedIntegrationList = ["https://discord.com/api/webhooks/"];
+  const supportedWebhookIntegrationList = ["https://discord.com/api/webhooks/"];
 
-  const isSupportedIntegration = (e) => {
+  const handleSubscriberUrlChange = (e) => {
     form.setValue("subscriberUrl", e.target.value);
-    const ind = supportedIntegrationList.findIndex((integration) => {
+    const ind = supportedWebhookIntegrationList.findIndex((integration) => {
       return e.target.value.includes(integration);
     });
-    if (ind > -1) updateCustomTemplate(supportedIntegrationList[ind]);
+    if (ind > -1) updateCustomTemplate(supportedWebhookIntegrationList[ind]);
   };
 
   const updateCustomTemplate = (webhookIntegration) => {
@@ -244,7 +244,7 @@ function WebhookDialogForm(props: {
         {...form.register("subscriberUrl")}
         required
         type="url"
-        onChange={isSupportedIntegration}
+        onChange={handleSubscriberUrlChange}
       />
 
       <fieldset className="space-y-2">
