@@ -218,7 +218,6 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      console.log("\n\n session", session, "\n\n");
       const calendsoSession: Session = {
         ...session,
         user: {
@@ -230,7 +229,6 @@ export default NextAuth({
       return calendsoSession;
     },
     async signIn({ user, account, profile }) {
-      console.log("\n\n user", user, "\n\n");
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
