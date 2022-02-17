@@ -112,7 +112,6 @@ const BookingPage = (props: BookingPageProps) => {
   const rescheduleUid = router.query.rescheduleUid as string;
   const { isReady, Theme } = useTheme(props.profile.theme);
   const date = asStringOrNull(router.query.date);
-  const timeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
@@ -213,6 +212,7 @@ const BookingPage = (props: BookingPageProps) => {
     if (!date) return "No date";
     const parsedZone = parseZone(date);
     if (!parsedZone?.isValid()) return "Invalid date";
+    const timeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
     const formattedTime = parsedZone?.format(timeFormat);
     return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };

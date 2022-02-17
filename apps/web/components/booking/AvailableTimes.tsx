@@ -8,6 +8,7 @@ import React, { FC, useEffect, useState } from "react";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 
 import Loader from "@components/Loader";
 
@@ -30,7 +31,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeId,
   slotInterval,
   minimumBookingNotice,
-  timeFormat,
   users,
   schedulingType,
 }) => {
@@ -49,6 +49,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   });
 
   const [brand, setBrand] = useState("#292929");
+
+  const timeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
 
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());

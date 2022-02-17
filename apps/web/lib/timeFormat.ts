@@ -4,6 +4,8 @@
  * based on the user's preferred language
  * defaults to 'en-US' (12h) if no navigator language is found
  */
-const locale = navigator ? navigator?.language : "en-US";
-export const isBrowserLocale24h = () =>
-  !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
+export const isBrowserLocale24h = () => {
+  let locale = "en-US";
+  if (navigator) locale = navigator?.language;
+  return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
+};
