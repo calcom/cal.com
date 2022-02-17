@@ -6,7 +6,7 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import { ButtonBaseProps } from "@components/ui/Button";
 
 export default function DisconnectIntegration(props: {
-  /** Integration credential id */
+  /** Integration installed app id */
   id: number;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;

@@ -99,7 +99,7 @@ export async function getServerSideProps(context: NextPageContext) {
       endTime: true,
       user: {
         select: {
-          credentials: true,
+          installedApps: true,
         },
       },
       attendees: true,

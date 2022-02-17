@@ -1,11 +1,11 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 
 import { handleErrorsJson } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import { randomString } from "@lib/random";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
 
-export const FAKE_HUDDLE_CREDENTIAL: Credential = {
+export const FAKE_HUDDLE_CREDENTIAL: InstalledApp = {
   id: +new Date().getTime(),
   type: "huddle01_video",
   key: { apikey: randomString(12) },

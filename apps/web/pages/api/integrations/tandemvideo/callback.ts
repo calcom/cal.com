@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: session.user.id,
       },
       data: {
-        credentials: {
+        installedApps: {
           create: {
             type: "tandem_video",
             key: responseBody,

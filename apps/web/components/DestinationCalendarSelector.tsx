@@ -45,7 +45,7 @@ const DestinationCalendarSelector = ({
   }
   const options =
     query.data.connectedCalendars.map((selectedCalendar) => ({
-      key: selectedCalendar.credentialId,
+      key: selectedCalendar.installedAppId,
       label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
       options: (selectedCalendar.calendars ?? []).map((cal) => ({
         label: cal.name || "",

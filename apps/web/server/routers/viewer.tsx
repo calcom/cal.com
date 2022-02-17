@@ -6,7 +6,7 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
+import { getCalendarInstalledApps, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
 import {
@@ -415,11 +415,11 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("connectedCalendars", {
     async resolve({ ctx }) {
       const { user } = ctx;
-      // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      // get user's installed apps + their connected integrations
+      const calendarInstalledApps = getCalendarInstalledApps(user.installedApps, user.id);
 
       // get all the connected integrations' calendars (from third party)
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
 
       return {
         connectedCalendars,
@@ -437,8 +437,8 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const { integration, externalId, eventTypeId, bookingId } = input;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const calendarInstalledApps = getCalendarInstalledApps(user.installedApps, user.id);
+      const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
@@ -471,7 +471,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { user } = ctx;
       const where = { userId: user.id, type: "metamask_web3" };
 
-      const web3Credential = await ctx.prisma.credential.findFirst({
+      const web3InstalledApps = await ctx.prisma.installedApp.findFirst({
         where,
         select: {
           id: true,
@@ -479,19 +479,19 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
-      if (web3Credential) {
-        return ctx.prisma.credential.update({
+      if (web3InstalledApps) {
+        return ctx.prisma.installedApp.update({
           where: {
-            id: web3Credential.id,
+            id: web3InstalledApps.id,
           },
           data: {
             key: {
-              isWeb3Active: !(web3Credential.key as JSONObject).isWeb3Active,
+              isWeb3Active: !(web3InstalledApps.key as JSONObject).isWeb3Active,
             },
           },
         });
       } else {
-        return ctx.prisma.credential.create({
+        return ctx.prisma.installedApp.create({
           data: {
             type: "metamask_web3",
             key: {
@@ -506,16 +506,16 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     async resolve({ ctx }) {
       const { user } = ctx;
-      const { credentials } = user;
+      const { installedApps } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
+      function countActive(items: { installedAppIds: unknown[] }[]) {
+        return items.reduce((acc, item) => acc + item.installedAppIds.length, 0);
       }
       const integrations = ALL_INTEGRATIONS.map((integration) => ({
         ...integration,
-        credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
-          .map((credential) => credential.id),
+        installedAppIds: installedApps
+          .filter((installedApp) => installedApp.type === integration.type)
+          .map((installedApp) => installedApp.id),
       }));
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
@@ -544,7 +544,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       const where = { userId: user.id, type: "metamask_web3" };
 
-      const web3Credential = await ctx.prisma.credential.findFirst({
+      const web3InstalledApp = await ctx.prisma.installedApp.findFirst({
         where,
         select: {
           key: true,
@@ -552,7 +552,7 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       return {
-        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
+        isWeb3Active: web3InstalledApp ? (web3InstalledApp.key as JSONObject).isWeb3Active : false,
       };
     },
   })

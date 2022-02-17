@@ -1,4 +1,4 @@
-import { Credential, DestinationCalendar } from "@prisma/client";
+import { InstalledApp, DestinationCalendar } from "@prisma/client";
 import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
@@ -99,28 +99,28 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 type EventManagerUser = {
-  credentials: Credential[];
+  installedApps: InstalledApp[];
   destinationCalendar: DestinationCalendar | null;
 };
 export default class EventManager {
-  calendarCredentials: Credential[];
-  videoCredentials: Credential[];
+  calendarInstalledApps: InstalledApp[];
+  videoInstalledApps: InstalledApp[];
 
   /**
-   * Takes an array of credentials and initializes a new instance of the EventManager.
+   * Takes an array of installed apps and initializes a new instance of the EventManager.
    *
-   * @param credentials
+   * @param installedApps
    */
   constructor(user: EventManagerUser) {
-    this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
+    this.calendarInstalledApps = user.installedApps.filter((app) => app.type.endsWith("_calendar"));
+    this.videoInstalledApps = user.installedApps.filter((app) => app.type.endsWith("_video"));
 
-    //for  Daily.co video, temporarily pushes a credential for the daily-video-client
+    //for  Daily.co video, temporarily pushes a installed app for the daily-video-client
     const hasDailyIntegration = process.env.DAILY_API_KEY;
     if (hasDailyIntegration) {
-      this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
+      this.videoInstalledApps.push(FAKE_DAILY_CREDENTIAL);
     }
-    this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    this.videoInstalledApps.push(FAKE_HUDDLE_CREDENTIAL);
   }
 
   /**
@@ -261,21 +261,21 @@ export default class EventManager {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
     if (event.destinationCalendar) {
-      const destinationCalendarCredentials = this.calendarCredentials.filter(
+      const destinationCalendarInstalledApps = this.calendarInstalledApps.filter(
         (c) => c.type === event.destinationCalendar?.integration
       );
-      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
+      return Promise.all(destinationCalendarInstalledApps.map(async (c) => await createEvent(c, event)));
     }
 
     /**
      *  Not ideal but, if we don't find a destination calendar,
      * fallback to the first connected calendar
      */
-    const [credential] = this.calendarCredentials;
-    if (!credential) {
+    const [installedApp] = this.calendarInstalledApps;
+    if (!installedApp) {
       return [];
     }
-    return [await createEvent(credential, event)];
+    return [await createEvent(installedApp, event)];
   }
 
   /**
@@ -285,14 +285,16 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): Credential | undefined {
+  private getVideoInstalledApp(event: CalendarEvent): InstalledApp | undefined {
     if (!event.location) {
       return undefined;
     }
 
     const integrationName = event.location.replace("integrations:", "");
 
-    return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
+    return this.videoInstalledApps.find((installedApp: InstalledApp) =>
+      installedApp.type.includes(integrationName)
+    );
   }
 
   /**
@@ -304,12 +306,12 @@ export default class EventManager {
    * @private
    */
   private createVideoEvent(event: CalendarEvent): Promise<EventResult> {
-    const credential = this.getVideoCredential(event);
+    const installedApp = this.getVideoInstalledApp(event);
 
-    if (credential) {
-      return createMeeting(credential, event);
+    if (installedApp) {
+      return createMeeting(installedApp, event);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject("No suitable app given for the requested integration name.");
     }
   }
 
@@ -327,12 +329,12 @@ export default class EventManager {
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult>> {
-    return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
+    return async.mapLimit(this.calendarInstalledApps, 5, async (installedApp: InstalledApp) => {
       const bookingRefUid = booking
-        ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
+        ? booking.references.filter((ref) => ref.type === installedApp.type)[0]?.uid
         : null;
 
-      return updateEvent(credential, event, bookingRefUid);
+      return updateEvent(installedApp, event, bookingRefUid);
     });
   }
 
@@ -344,13 +346,15 @@ export default class EventManager {
    * @private
    */
   private updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
-    const credential = this.getVideoCredential(event);
+    const installedApp = this.getVideoInstalledApp(event);
 
-    if (credential) {
-      const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
-      return updateMeeting(credential, event, bookingRef);
+    if (installedApp) {
+      const bookingRef = booking
+        ? booking.references.filter((ref) => ref.type === installedApp.type)[0]
+        : null;
+      return updateMeeting(installedApp, event, bookingRef);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject("No suitable apps given for the requested integration name.");
     }
   }
 }

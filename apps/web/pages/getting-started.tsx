@@ -21,7 +21,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
+import { getCalendarInstalledApps, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -167,7 +167,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       step = 1;
     }
 
-    const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
+    const hasConfigureCalendar = props.integrations.some((integration) => integration.installedApp !== null);
     if (hasConfigureCalendar) {
       step = 2;
     }
@@ -689,7 +689,7 @@ export async function getServerSideProps(context: NextPageContext) {
     };
   }
 
-  const credentials = await prisma.credential.findMany({
+  const installedApps = await prisma.installedApp.findMany({
     where: {
       userId: user.id,
     },
@@ -700,14 +700,14 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  const integrations = getIntegrations(credentials)
+  const integrations = getIntegrations(installedApps)
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
 
-  // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(credentials, user.id);
+  // get user's installed apps + their connected integrations
+  const calendarInstalledApps = getCalendarInstalledApps(installedApps, user.id);
   // get all the connected integrations' calendars (from third party)
-  const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+  const connectedCalendars = await getConnectedCalendars(calendarInstalledApps, user.selectedCalendars);
 
   const eventTypes = await prisma.eventType.findMany({
     where: {

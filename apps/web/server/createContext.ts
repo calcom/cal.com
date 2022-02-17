@@ -47,7 +47,7 @@ async function getUserFromSession({
       brandColor: true,
       plan: true,
       away: true,
-      credentials: {
+      installedApps: {
         select: {
           id: true,
           type: true,

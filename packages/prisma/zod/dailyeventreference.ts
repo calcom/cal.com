@@ -1,16 +1,16 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
-import { CompleteBooking, BookingModel } from "./index";
+import * as z from "zod"
+import * as imports from "../zod-utils"
+import { CompleteBooking, BookingModel } from "./index"
 
 export const _DailyEventReferenceModel = z.object({
   id: z.number().int(),
   dailyurl: z.string(),
   dailytoken: z.string(),
   bookingId: z.number().int().nullish(),
-});
+})
 
 export interface CompleteDailyEventReference extends z.infer<typeof _DailyEventReferenceModel> {
-  booking?: CompleteBooking | null;
+  booking?: CompleteBooking | null
 }
 
 /**
@@ -18,8 +18,6 @@ export interface CompleteDailyEventReference extends z.infer<typeof _DailyEventR
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const DailyEventReferenceModel: z.ZodSchema<CompleteDailyEventReference> = z.lazy(() =>
-  _DailyEventReferenceModel.extend({
-    booking: BookingModel.nullish(),
-  })
-);
+export const DailyEventReferenceModel: z.ZodSchema<CompleteDailyEventReference> = z.lazy(() => _DailyEventReferenceModel.extend({
+  booking: BookingModel.nullish(),
+}))

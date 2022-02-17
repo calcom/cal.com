@@ -78,7 +78,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!eventTypeRaw) return { notFound: true };
 
-  const credentials = await prisma.credential.findMany({
+  const installedApps = await prisma.installedApp.findMany({
     where: {
       userId: user.id,
     },
@@ -89,14 +89,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
+  const web3InstalledApps = installedApps.find((app) => app.type.includes("_web3"));
 
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
     isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
+      web3InstalledApps && web3InstalledApps.key
+        ? (((web3InstalledApps.key as JSONObject).isWeb3Active || false) as boolean)
         : false,
   };
 

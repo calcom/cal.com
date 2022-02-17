@@ -1,4 +1,4 @@
-import { Credential, Prisma, SchedulingType } from "@prisma/client";
+import { InstalledApp, Prisma, SchedulingType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -46,31 +46,31 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 type BufferedBusyTimes = BufferedBusyTime[];
 
 /**
- * Refreshes a Credential with fresh data from the database.
+ * Refreshes a Installed App with fresh data from the database.
  *
- * @param credential
+ * @param installedApp
  */
-async function refreshCredential(credential: Credential): Promise<Credential> {
-  const newCredential = await prisma.credential.findUnique({
+async function refreshInstalledApp(installedApp: InstalledApp): Promise<InstalledApp> {
+  const newInstalledApp = await prisma.installedApp.findUnique({
     where: {
-      id: credential.id,
+      id: installedApp.id,
     },
   });
 
-  if (!newCredential) {
-    return credential;
+  if (!newInstalledApp) {
+    return installedApp;
   } else {
-    return newCredential;
+    return newInstalledApp;
   }
 }
 
 /**
- * Refreshes the given set of credentials.
+ * Refreshes the given set of installed apps.
  *
- * @param credentials
+ * @param installedApp
  */
-async function refreshCredentials(credentials: Array<Credential>): Promise<Array<Credential>> {
-  return await async.mapLimit(credentials, 5, refreshCredential);
+async function refreshInstalledApps(installedApps: Array<InstalledApp>): Promise<Array<InstalledApp>> {
+  return await async.mapLimit(installedApps, 5, refreshInstalledApp);
 }
 
 function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number): boolean {
@@ -136,7 +136,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
     name: true,
     username: true,
     timeZone: true,
-    credentials: true,
+    installedApps: true,
     bufferTime: true,
     destinationCalendar: true,
     locale: true,
@@ -350,7 +350,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
-  // Initialize EventManager with credentials
+  // Initialize EventManager with installed apps
   const rescheduleUid = reqBody.rescheduleUid;
 
   async function createBooking() {
@@ -443,16 +443,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const credentials = currentUser.credentials;
-    if (credentials) {
+    const installedApps = currentUser.installedApps;
+    if (installedApps) {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
+        installedApps,
         reqBody.start,
         reqBody.end,
         selectedCalendars
       );
 
-      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
+      const videoBusyTimes = (await getBusyVideoTimes(installedApps)).filter(notEmpty);
       calendarBusyTimes.push(...videoBusyTimes);
       console.log("calendarBusyTimes==>>>", calendarBusyTimes);
 
@@ -510,9 +510,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!user) throw Error("Can't continue, user not found.");
 
-  // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials(user.credentials);
-  const eventManager = new EventManager({ ...user, credentials });
+  // After polling videoBusyTimes, installed apps might have been changed due to refreshment, so query them again.
+  const installedApps = await refreshInstalledApps(user.installedApps);
+  const eventManager = new EventManager({ ...user, installedApps });
 
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
@@ -580,9 +580,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
     try {
-      const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+      const [firstStripeInstalledApp] = user.installedApps.filter((cred) => cred.type == "stripe_payment");
       if (!booking.user) booking.user = user;
-      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+      const payment = await handlePayment(evt, eventType, firstStripeInstalledApp, booking);
 
       res.status(201).json({ ...booking, message: "Payment required", paymentUid: payment.uid });
       return;

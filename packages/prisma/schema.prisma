@@ -76,6 +76,14 @@ model Credential {
   userId Int?
 }
 
+model InstalledApp {
+  id     Int    @id @default(autoincrement())
+  type   String
+  key    Json
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
+}
+
 enum UserPlan {
   FREE
   TRIAL
@@ -122,6 +130,7 @@ model User {
   createdDate         DateTime             @default(now()) @map(name: "created")
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
+  installedApps       InstalledApp[]
   teams               Membership[]
   bookings            Booking[]
   availability        Availability[]
@@ -143,7 +152,6 @@ model User {
   metadata            Json?
   verified            Boolean?             @default(false)
 
-  @@map(name: "users")
 }
 
 model Team {

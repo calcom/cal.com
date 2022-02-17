@@ -8,22 +8,22 @@ type Json = Literal | { [key: string]: Json } | Json[]
 const literalSchema = z.union([z.string(), z.number(), z.boolean()])
 const jsonSchema: z.ZodSchema<Json> = z.lazy(() => z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]))
 
-export const _CredentialModel = z.object({
+export const _InstalledAppModel = z.object({
   id: z.number().int(),
   type: z.string(),
   key: jsonSchema,
   userId: z.number().int().nullish(),
 })
 
-export interface CompleteCredential extends z.infer<typeof _CredentialModel> {
+export interface CompleteInstalledApp extends z.infer<typeof _InstalledAppModel> {
   user?: CompleteUser | null
 }
 
 /**
- * CredentialModel contains all relations on your model in addition to the scalars
+ * InstalledAppModel contains all relations on your model in addition to the scalars
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const CredentialModel: z.ZodSchema<CompleteCredential> = z.lazy(() => _CredentialModel.extend({
+export const InstalledAppModel: z.ZodSchema<CompleteInstalledApp> = z.lazy(() => _InstalledAppModel.extend({
   user: UserModel.nullish(),
 }))

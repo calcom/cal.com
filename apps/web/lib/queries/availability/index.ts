@@ -26,7 +26,7 @@ export async function getUserAvailability(query: {
       username: username,
     },
     select: {
-      credentials: true,
+      installedApps: true,
       timeZone: true,
       bufferTime: true,
       availability: true,
@@ -61,13 +61,13 @@ export async function getUserAvailability(query: {
   const { selectedCalendars, ...currentUser } = rawUser;
 
   const busyTimes = await getBusyCalendarTimes(
-    currentUser.credentials,
+    currentUser.installedApps,
     dateFrom.format(),
     dateTo.format(),
     selectedCalendars
   );
 
-  // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
+  // busyTimes.push(...await getBusyVideoTimes(currentUser.installedApps, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

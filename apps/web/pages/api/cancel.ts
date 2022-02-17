@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user: {
         select: {
           id: true,
-          credentials: true,
+          installedApps: true,
           email: true,
           timeZone: true,
           name: true,
@@ -155,18 +155,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (bookingToDelete.location === "integrations:daily") {
-    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+    bookingToDelete.user.installedApps.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
-    const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+  const apiDeletes = async.mapLimit(bookingToDelete.user.installedApps, 5, async (installedApp) => {
+    const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === installedApp.type)[0]?.uid;
     if (bookingRefUid) {
-      if (credential.type.endsWith("_calendar")) {
-        const calendar = getCalendar(credential);
+      if (installedApp.type.endsWith("_calendar")) {
+        const calendar = getCalendar(installedApp);
 
         return calendar?.deleteEvent(bookingRefUid, evt);
-      } else if (credential.type.endsWith("_video")) {
-        return deleteMeeting(credential, bookingRefUid);
+      } else if (installedApp.type.endsWith("_video")) {
+        return deleteMeeting(installedApp, bookingRefUid);
       }
     }
   });

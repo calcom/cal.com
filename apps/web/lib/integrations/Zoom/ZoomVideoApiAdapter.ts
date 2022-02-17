@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
@@ -68,8 +68,8 @@ interface ZoomToken {
   refresh_token: string;
 }
 
-const zoomAuth = (credential: Credential) => {
-  const credentialKey = credential.key as unknown as ZoomToken;
+const zoomAuth = (installedApp: InstalledApp) => {
+  const credentialKey = installedApp.key as unknown as ZoomToken;
   const isTokenValid = (token: ZoomToken) =>
     token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
   const authHeader =
@@ -94,9 +94,9 @@ const zoomAuth = (credential: Credential) => {
         responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
         delete responseBody.expires_in;
         // Store new tokens in database.
-        await prisma.credential.update({
+        await prisma.installedApp.update({
           where: {
-            id: credential.id,
+            id: installedApp.id,
           },
           data: {
             key: responseBody,
@@ -115,8 +115,8 @@ const zoomAuth = (credential: Credential) => {
   };
 };
 
-const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
-  const auth = zoomAuth(credential);
+const ZoomVideoApiAdapter = (installedApp: InstalledApp): VideoApiAdapter => {
+  const auth = zoomAuth(installedApp);
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate

@@ -1,4 +1,4 @@
-import { Credential, Prisma } from "@prisma/client";
+import { InstalledApp, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -39,16 +39,16 @@ export default abstract class BaseCalendarService implements Calendar {
   protected integrationName = "";
   private log: typeof logger;
 
-  constructor(credential: Credential, integrationName: string, url?: string) {
+  constructor(installedApp: InstalledApp, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
     const {
       username,
       password,
-      url: credentialURL,
-    } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+      url: installedAppURL,
+    } = JSON.parse(symmetricDecrypt(installedApp.key as string, CALENDSO_ENCRYPTION_KEY));
 
-    this.url = url || credentialURL;
+    this.url = url || installedAppURL;
 
     this.credentials = { username, password };
     this.headers = getBasicAuthHeaders({ username, password });

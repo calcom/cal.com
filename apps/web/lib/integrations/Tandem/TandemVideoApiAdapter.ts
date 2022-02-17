@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { InstalledApp } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
@@ -19,8 +19,8 @@ const client_id = process.env.TANDEM_CLIENT_ID as string;
 const client_secret = process.env.TANDEM_CLIENT_SECRET as string;
 const TANDEM_BASE_URL = process.env.TANDEM_BASE_URL as string;
 
-const tandemAuth = (credential: Credential) => {
-  const credentialKey = credential.key as unknown as TandemToken;
+const tandemAuth = (installedApp: InstalledApp) => {
+  const credentialKey = installedApp.key as unknown as TandemToken;
   const isTokenValid = (token: TandemToken) => token && token.access_token && token.expiry_date < Date.now();
 
   const refreshAccessToken = (refreshToken: string) => {
@@ -38,9 +38,9 @@ const tandemAuth = (credential: Credential) => {
         responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
         delete responseBody.expires_in;
         // Store new tokens in database.
-        await prisma.credential.update({
+        await prisma.installedApp.update({
           where: {
-            id: credential.id,
+            id: installedApp.id,
           },
           data: {
             key: responseBody,
@@ -61,8 +61,8 @@ const tandemAuth = (credential: Credential) => {
   };
 };
 
-const TandemVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
-  const auth = tandemAuth(credential);
+const TandemVideoApiAdapter = (installedApp: InstalledApp): VideoApiAdapter => {
+  const auth = tandemAuth(installedApp);
 
   const _parseDate = (date: string) => {
     return Date.parse(date) / 1000;

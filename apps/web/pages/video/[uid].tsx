@@ -156,7 +156,7 @@ export async function getServerSideProps(context: NextPageContext) {
       user: {
         select: {
           id: true,
-          credentials: true,
+          installedApps: true,
         },
       },
       attendees: true,

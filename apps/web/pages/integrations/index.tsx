@@ -56,7 +56,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="mt-2 flex">
-            <span className="flex flex-col space-y-1 space-x-2 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
+            <span className="flex flex-col space-x-2 space-y-1 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -448,21 +448,21 @@ function IframeEmbedContainer() {
 
 function ConnectOrDisconnectIntegrationButton(props: {
   //
-  credentialIds: number[];
+  installedAppIds: number[];
   type: string;
   installed: boolean;
 }) {
   const { t } = useLocale();
-  const [credentialId] = props.credentialIds;
+  const [installedAppId] = props.installedAppIds;
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.invalidateQueries(["viewer.integrations"]);
   };
 
-  if (credentialId) {
+  if (installedAppId) {
     return (
       <DisconnectIntegration
-        id={credentialId}
+        id={installedAppId}
         render={(btnProps) => (
           <Button {...btnProps} color="warn" data-testid="integration-connection-button">
             {t("disconnect")}
