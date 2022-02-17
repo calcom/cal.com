@@ -132,7 +132,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Hook up the webhook logic here
   const eventTrigger = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscribers = await getSubscribers(bookingToDelete.userId, eventTrigger);
+  const subscribers = await getSubscribers(
+    bookingToDelete.userId,
+    bookingToDelete.eventTypeId as number,
+    eventTrigger
+  );
   const promises = subscribers.map((sub) =>
     sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
       (e) => {

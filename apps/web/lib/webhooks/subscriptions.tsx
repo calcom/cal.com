@@ -2,10 +2,17 @@ import { WebhookTriggerEvents } from "@prisma/client";
 
 import prisma from "@lib/prisma";
 
-const getSubscribers = async (userId: number, triggerEvent: WebhookTriggerEvents) => {
+const getSubscribers = async (userId: number, eventTypeId: number, triggerEvent: WebhookTriggerEvents) => {
   const allWebhooks = await prisma.webhook.findMany({
     where: {
-      userId: userId,
+      OR: [
+        {
+          userId: userId,
+        },
+        {
+          eventTypeId: eventTypeId,
+        },
+      ],
       AND: {
         eventTriggers: {
           has: triggerEvent,

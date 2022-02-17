@@ -596,7 +596,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(user.id, eventTrigger);
+  const subscribers = await getSubscribers(user.id, eventTypeId, eventTrigger);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
