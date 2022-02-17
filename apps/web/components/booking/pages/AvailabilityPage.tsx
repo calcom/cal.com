@@ -62,11 +62,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   }, [router.query.date]);
 
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-  const [timeFormat, setTimeFormat] = useState("h:mma");
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
@@ -91,10 +89,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     }
     timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
-  };
-
-  const handleToggle24hClock = (is24hClock: boolean) => {
-    setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
   return (
@@ -228,7 +222,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
                 {selectedDate && (
                   <AvailableTimes
-                    timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
                     slotInterval={eventType.slotInterval}
@@ -260,7 +253,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
         </Collapsible.Content>
       </Collapsible.Root>
     );

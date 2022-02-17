@@ -13,7 +13,6 @@ import { isBrowserLocale24h } from "@lib/timeFormat";
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
-  timeFormat: string;
   minimumBookingNotice: number;
   eventTypeId: number;
   eventLength: number;
