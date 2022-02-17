@@ -68,7 +68,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         date.toDate().getUTCDate(),
         date.toDate().getUTCHours(),
         date.toDate().getUTCMinutes(),
-        ti,
       ],
       startInputType: "utc",
       title: eventName,
