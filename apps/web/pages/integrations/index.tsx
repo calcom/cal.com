@@ -193,7 +193,7 @@ function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
-    } as Omit<TWebhook, "userId" | "createdAt">,
+    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
