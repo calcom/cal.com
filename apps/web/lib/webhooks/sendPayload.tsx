@@ -27,6 +27,7 @@ const sendPayload = async (
   subscriberUrl: string,
   data: CalendarEvent & {
     metadata?: { [key: string]: string };
+    rescheduleUid?: string;
   },
   template?: string | null
 ) => {
