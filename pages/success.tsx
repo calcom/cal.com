@@ -357,7 +357,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
+      hideBranding: true,
       profile,
       eventType,
       trpcState: ssr.dehydrate(),

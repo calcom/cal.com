@@ -246,7 +246,6 @@ const BookingPage = (props: BookingPageProps) => {
     });
   };
 
-  console.log(bookingForm, bookingForm.register("email"));
   return (
     <div>
       <Head>
