@@ -236,21 +236,10 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                               {({ active }) => (
                                 <button
                                   onClick={() => {
-                                    if (isNativeShare) {
-                                      navigator
-                                        .share({
-                                          title: t("share"),
-                                          text: t("share_event"),
-                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
-                                        })
-                                        .then(() => showToast(t("link_shared"), "success"))
-                                        .catch(() => showToast(t("failed"), "error"));
-                                    } else {
-                                      navigator.clipboard.writeText(
-                                        `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
-                                      );
-                                      showToast(t("link_copied"), "success");
-                                    }
+                                    navigator.clipboard.writeText(
+                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                                    );
+                                    showToast(t("link_copied"), "success");
                                   }}
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
@@ -260,10 +249,37 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  {isNativeShare ? t("share") : t("copy_link")}
+                                  {t("copy_link")}
                                 </button>
                               )}
                             </Menu.Item>
+                            {isNativeShare ? (
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => {
+                                      navigator
+                                        .share({
+                                          title: t("share"),
+                                          text: t("share_event"),
+                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
+                                        })
+                                        .then(() => showToast(t("link_shared"), "success"))
+                                        .catch(() => showToast(t("failed"), "error"));
+                                    }}
+                                    className={classNames(
+                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                      "group flex w-full items-center px-4 py-2 text-sm font-medium"
+                                    )}>
+                                    <LinkIcon
+                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                      aria-hidden="true"
+                                    />
+                                    {t("share")}
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            ) : null}
                           </div>
                         </Menu.Items>
                       </Transition>
