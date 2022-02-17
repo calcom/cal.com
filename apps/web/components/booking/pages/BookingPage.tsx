@@ -24,6 +24,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
@@ -110,9 +111,8 @@ const BookingPage = (props: BookingPageProps) => {
 
   const rescheduleUid = router.query.rescheduleUid as string;
   const { isReady, Theme } = useTheme(props.profile.theme);
-
   const date = asStringOrNull(router.query.date);
-  const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
+  const timeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
