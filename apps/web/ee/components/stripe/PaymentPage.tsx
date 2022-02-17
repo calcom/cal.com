@@ -22,13 +22,11 @@ dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
-  // const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    // setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
   const eventName = props.booking.title;
