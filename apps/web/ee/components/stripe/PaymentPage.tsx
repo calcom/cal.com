@@ -14,6 +14,7 @@ import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { timeFormat } from "@lib/timeFormat";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -21,13 +22,13 @@ dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
-  const [is24h, setIs24h] = useState(false);
+  // const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    // setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
   const eventName = props.booking.title;
@@ -75,7 +76,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
-                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                        {date.format(timeFormat)} - {props.eventType.length} mins{" "}
                         <span className="text-gray-500">
                           ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                         </span>
