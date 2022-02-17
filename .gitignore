@@ -59,5 +59,9 @@ yarn-error.log*
 
 # Typescript
 tsconfig.tsbuildinfo
+
 # turbo
 .turbo
+
+# prisma
+packages/prisma/zod
