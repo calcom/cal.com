@@ -200,7 +200,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json(error);
   }
 
-  const t = await getTranslation(reqBody.language ?? "en", "common");
+  // const t = await getTranslation(reqBody.language ?? "en", "common");
 
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
