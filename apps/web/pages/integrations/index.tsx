@@ -181,7 +181,7 @@ function WebhookDialogForm(props: {
       case "https://discord.com/api/webhooks/":
         form.setValue(
           "payloadTemplate",
-          '{"content": "A new event has been scheduled","embeds": [{"color": 2697513,"fields": [{"name": "What","value": "{{title}} ({{type}}"},{"name": "When","value": "Start: {{startTime}} \\n End: {{endTime}} \\n Timezone: ({{organizer.timeZone}})"},{"name": "Who","value": "Organizer: {{organizer.name}} ({{organizer.email}}) \\n Booker: {{attendees.name}} ({{attendees.email}})" }]}]}'
+          '{"content": "A new event has been scheduled","embeds": [{"color": 2697513,"fields": [{"name": "What","value": "{{title}} ({{type}})"},{"name": "When","value": "Start: {{startTime}} \\n End: {{endTime}} \\n Timezone: ({{organizer.timeZone}})"},{"name": "Who","value": "Organizer: {{organizer.name}} ({{organizer.email}}) \\n Booker: {{attendees.0.name}} ({{attendees.0.email}})" },{"name":"Description", "value":": {{description}}"},{"name":"Where","value":": {{location}} "}]}]}'
         );
     }
   };
