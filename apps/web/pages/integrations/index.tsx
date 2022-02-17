@@ -133,7 +133,7 @@ function WebhookTestDisclosure() {
               type="button"
               color="minimal"
               disabled={mutation.isLoading}
-              onClick={() =>   mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
+              onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
               {t("ping_test")}
             </Button>
           </div>
