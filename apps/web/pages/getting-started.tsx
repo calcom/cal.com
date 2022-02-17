@@ -188,7 +188,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
         steps[currentStep].onComplete &&
         typeof steps[currentStep].onComplete === "function"
       ) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await steps[currentStep].onComplete!();
       }
       incrementStep();

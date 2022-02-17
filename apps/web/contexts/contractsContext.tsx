@@ -38,7 +38,6 @@ export function ContractsProvider({ children }: Props) {
 
   return (
     <>
-      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
       {/* @ts-ignore */}
       <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
     </>
