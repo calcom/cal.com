@@ -1,7 +1,7 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
 import { IdentityProvider, UserPlan } from "@prisma/client"
-import { CompleteEventType, EventTypeModel, CompleteCredential, CredentialModel, CompleteInstalledApp, InstalledAppModel, CompleteMembership, MembershipModel, CompleteBooking, BookingModel, CompleteAvailability, AvailabilityModel, CompleteSelectedCalendar, SelectedCalendarModel, CompleteSchedule, ScheduleModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel } from "./index"
+import { CompleteEventType, EventTypeModel, CompleteCredential, CredentialModel, CompleteMembership, MembershipModel, CompleteBooking, BookingModel, CompleteAvailability, AvailabilityModel, CompleteSelectedCalendar, SelectedCalendarModel, CompleteSchedule, ScheduleModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel, CompleteInstalledApp, InstalledAppModel } from "./index"
 
 // Helper schema for JSON fields
 type Literal = boolean | number | string
@@ -43,7 +43,6 @@ export const _UserModel = z.object({
 export interface CompleteUser extends z.infer<typeof _UserModel> {
   eventTypes: CompleteEventType[]
   credentials: CompleteCredential[]
-  installedApps: CompleteInstalledApp[]
   teams: CompleteMembership[]
   bookings: CompleteBooking[]
   availability: CompleteAvailability[]
@@ -51,6 +50,7 @@ export interface CompleteUser extends z.infer<typeof _UserModel> {
   Schedule: CompleteSchedule[]
   webhooks: CompleteWebhook[]
   destinationCalendar?: CompleteDestinationCalendar | null
+  installedApps: CompleteInstalledApp[]
 }
 
 /**
@@ -61,7 +61,6 @@ export interface CompleteUser extends z.infer<typeof _UserModel> {
 export const UserModel: z.ZodSchema<CompleteUser> = z.lazy(() => _UserModel.extend({
   eventTypes: EventTypeModel.array(),
   credentials: CredentialModel.array(),
-  installedApps: InstalledAppModel.array(),
   teams: MembershipModel.array(),
   bookings: BookingModel.array(),
   availability: AvailabilityModel.array(),
@@ -69,4 +68,5 @@ export const UserModel: z.ZodSchema<CompleteUser> = z.lazy(() => _UserModel.exte
   Schedule: ScheduleModel.array(),
   webhooks: WebhookModel.array(),
   destinationCalendar: DestinationCalendarModel.nullish(),
+  installedApps: InstalledAppModel.array(),
 }))
