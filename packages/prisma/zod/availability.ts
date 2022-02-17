@@ -1,6 +1,6 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
-import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./index";
+import * as z from "zod"
+import * as imports from "../zod-utils"
+import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./index"
 
 export const _AvailabilityModel = z.object({
   id: z.number().int(),
@@ -11,11 +11,11 @@ export const _AvailabilityModel = z.object({
   startTime: z.date(),
   endTime: z.date(),
   date: z.date().nullish(),
-});
+})
 
 export interface CompleteAvailability extends z.infer<typeof _AvailabilityModel> {
-  user?: CompleteUser | null;
-  eventType?: CompleteEventType | null;
+  user?: CompleteUser | null
+  eventType?: CompleteEventType | null
 }
 
 /**
@@ -23,9 +23,7 @@ export interface CompleteAvailability extends z.infer<typeof _AvailabilityModel>
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const AvailabilityModel: z.ZodSchema<CompleteAvailability> = z.lazy(() =>
-  _AvailabilityModel.extend({
-    user: UserModel.nullish(),
-    eventType: EventTypeModel.nullish(),
-  })
-);
+export const AvailabilityModel: z.ZodSchema<CompleteAvailability> = z.lazy(() => _AvailabilityModel.extend({
+  user: UserModel.nullish(),
+  eventType: EventTypeModel.nullish(),
+}))

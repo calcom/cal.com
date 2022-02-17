@@ -1,5 +1,5 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
+import * as z from "zod"
+import * as imports from "../zod-utils"
 
 export const _VerificationRequestModel = z.object({
   id: z.number().int(),
@@ -8,4 +8,4 @@ export const _VerificationRequestModel = z.object({
   expires: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
+})
