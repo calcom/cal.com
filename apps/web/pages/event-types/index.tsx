@@ -92,6 +92,14 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
     });
   }
 
+  const [isNativeShare, setNativeShare] = useState(false);
+
+  useEffect(() => {
+    if (navigator.share) {
+      setNativeShare(true);
+    }
+  }, []);
+
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -228,7 +236,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                               {({ active }) => (
                                 <button
                                   onClick={() => {
-                                    if (navigator.share) {
+                                    if (isNativeShare) {
                                       navigator
                                         .share({
                                           title: t("share"),
@@ -252,7 +260,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
-                                  {navigator.share ? t("share") : t("copy_link")}
+                                  {isNativeShare ? t("share") : t("copy_link")}
                                 </button>
                               )}
                             </Menu.Item>
