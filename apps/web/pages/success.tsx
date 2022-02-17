@@ -16,6 +16,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
+import { timeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -35,13 +36,11 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
 
-  const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
@@ -69,6 +68,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         date.toDate().getUTCDate(),
         date.toDate().getUTCHours(),
         date.toDate().getUTCMinutes(),
+        ti,
       ],
       startInputType: "utc",
       title: eventName,
@@ -135,7 +135,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2">
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
-                          {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                          {date.format(timeFormat)} - {props.eventType.length} mins{" "}
                           <span className="text-gray-500">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
