@@ -51,8 +51,6 @@ test.describe.serial("Stripe integration", () => {
 
     await Promise.all([page.waitForNavigation({ url: "/payment/*" }), page.press('[name="email"]', "Enter")]);
 
-    await page.waitForSelector('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]');
-
     // We lookup Stripe's iframe
     const stripeFrame = page.frame({
       url: (url) => url.href.startsWith("https://js.stripe.com/v3/elements-inner-card-"),
