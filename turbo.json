@@ -51,9 +51,6 @@
       ],
       "outputs": [".next/**"]
     },
-    "@calcom/web#dev": {
-      "dependsOn": ["@calcom/prisma#build"]
-    },
     "@calcom/web#dx": {
       "dependsOn": ["@calcom/prisma#dx"]
     },
