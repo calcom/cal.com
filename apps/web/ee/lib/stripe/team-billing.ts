@@ -82,8 +82,14 @@ export async function upgradeTeam(userId: number, teamId: number) {
   const { membersMissingSeats, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
 
   if (!subscription) {
-    const customer = await getStripeCustomerFromUser(userId);
-    if (!customer) throw new HttpError({ statusCode: 400, message: "User has no Stripe customer" });
+    let customer = await getStripeCustomerFromUser(userId);
+    if (!customer) {
+      // create stripe customer if it doesn't already exist
+      const res = await stripe.customers.create({
+        email: ownerUser.user.email,
+      });
+      customer = res.id;
+    }
     // create a checkout session with the quantity of missing seats
     const session = await createCheckoutSession(
       customer,
@@ -277,7 +283,7 @@ export async function downgradeIllegalProUsers() {
   const downgrade = async (member: typeof illegalProUsers[number]) => {
     await prisma.user.update({
       where: { id: member.user.id },
-      data: { plan: UserPlan.FREE },
+      data: { plan: UserPlan.TRIAL },
     });
     usersDowngraded.push(member.user.username || `{member.user.id}`);
   };
@@ -320,19 +326,20 @@ export async function downgradeIllegalProUsers() {
   };
 }
 
+const isProductionSite =
+  process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com" && process.env.VERCEL_ENV === "production";
+
 // TODO: these should be moved to env vars
 export function getPerSeatProPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
-    : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
+  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
 }
 export function getProPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
-    : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
+  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
 }
 export function getPremiumPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1Jv3CMH8UDiwIftkFgyXbcHN"
-    : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
+  return isProductionSite ? "price_1Jv3CMH8UDiwIftkFgyXbcHN" : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
+}
+
+export function getProPlanProduct(): string {
+  return isProductionSite ? "prod_JVxwoOF5odFiZ8" : "prod_KDRBg0E4HyVZee";
 }
