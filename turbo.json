@@ -4,8 +4,11 @@
   "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
     "@calcom/prisma#db-deploy": {},
-    "@calcom/prisma#db-reset": {},
+    "@calcom/prisma#db-reset": {
+      "cache": false
+    },
     "@calcom/prisma#db-seed": {
+      "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/web#build": {
