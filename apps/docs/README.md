@@ -13,22 +13,27 @@
 The official product, support and developer documentation, containing information and guides about using the product as well as support for self-hosted installations. This documentation site runs on [Nextra](https://nextra.vercel.app), so you may refer to their documentation should you need information on anything that isn't covered here.
 
 ## Prerequisites
+
 - Git
 - Node.js & npm
 - Yarn
 
 ## Installation
+
 Firstly, clone the repository using Git:
+
 ```console
 git clone https://github.com/calcom/docs.git
 ```
 
 Now, you can install the dependencies with yarn:
+
 ```console
 yarn install
 ```
 
 ## Editing
+
 To create, edit and delete documentation pages, you can simply create markdown (.mdx) files in the `pages/` folder. You can edit Markdown with any text editor, but VS Code and WebStorm have side-by-side previews so you can see your formatted content whilst writing markdown.
 
 You will also need to add it as an entry to the `meta.json` file found in whichever directory that the .mdx file is in.
@@ -52,6 +57,7 @@ This command generates static content into the `build` directory and can be serv
 ## How to easily contribute
 
 ## Existing Page
+
 1. From the documentation's GitHub repository, head to the folder called 'pages' and open it.
 2. From here you can view all current pages on the documentation site. Select the page you would like to contribute to.
 3. You should now be able to view the page you have selected. Located at the top right of the page will be a pencil icon. Pressing this will bring you up an editor to edit and make changes. You can add formatting using the buttons at the top, which will automatically insert the relevant markdown content needed to style the text.
