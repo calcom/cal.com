@@ -22,6 +22,7 @@
     "lint": "turbo run lint",
     "pre-commit": "lint-staged",
     "prepare": "husky install",
+    "postinstall": "yarn workspace @calcom/prisma generate-schemas",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test",
