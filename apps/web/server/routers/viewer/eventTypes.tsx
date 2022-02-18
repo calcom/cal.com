@@ -8,7 +8,7 @@ import {
   _EventTypeModel,
 } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
+import { createEventTypeInput } from "@calcom/prisma/zod-utils";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
