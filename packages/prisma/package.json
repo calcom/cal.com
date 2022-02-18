@@ -1,0 +1,34 @@
+{
+  "name": "@calcom/prisma",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn generate-schemas",
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "db-deploy": "yarn prisma migrate deploy",
+    "db-migrate": "yarn prisma migrate dev",
+    "db-nuke": "docker-compose down --volumes --remove-orphans",
+    "db-reset": "run-s db-nuke db-setup",
+    "db-seed": "yarn prisma db seed",
+    "db-setup": "run-s db-up db-deploy db-seed",
+    "db-up": "docker-compose up -d",
+    "deploy": "run-s build db-deploy",
+    "dx": "yarn db-setup",
+    "generate-schemas": "prisma generate"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "prisma": "3.0.2",
+    "ts-node": "^10.2.1",
+    "zod-prisma": "^0.5.4"
+  },
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@prisma/client": "3.0.2"
+  },
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "prisma": {
+    "seed": "ts-node ./seed.ts"
+  }
+}

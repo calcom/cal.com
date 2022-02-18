@@ -24,7 +24,6 @@ const getMinuteOffset = (date: Dayjs, frequency: number) => {
   return Math.ceil(minuteOffset / frequency) * frequency;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");

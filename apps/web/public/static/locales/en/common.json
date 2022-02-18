@@ -453,6 +453,8 @@
   "pending": "Pending",
   "open_options": "Open options",
   "copy_link": "Copy link to event",
+  "share": "Share",
+  "share_event": "Share event",
   "copy_link_team": "Copy link to team",
   "leave_team": "Leave team",
   "confirm_leave_team": "Yes, leave team",
@@ -460,6 +462,7 @@
   "user_from_team": "{{user}} from {{team}}",
   "preview": "Preview",
   "link_copied": "Link copied!",
+  "link_shared": "Link shared!",
   "title": "Title",
   "description": "Description",
   "quick_video_meeting": "A quick video meeting.",
@@ -653,5 +656,7 @@
   "prisma_studio_tip_description": "Learn how to set up your first user",
   "contact_sales": "Contact Sales",
   "error_404": "Error 404",
-  "set_to_default": "Set to Default"
+  "set_to_default": "Set to Default",
+  "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
+  "example_name": "John Doe"
 }

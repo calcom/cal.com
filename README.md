@@ -106,6 +106,7 @@ Here is what you need to be able to run Cal.
 
    ```sh
    cp apps/web/.env.example apps/web/.env
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -162,13 +163,13 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 1. Run (in development mode)
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
 #### Setting up your first user
@@ -176,12 +177,12 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   npx prisma studio
+   yarn prisma studio
    ```
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
@@ -190,7 +191,7 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn workspace @calcom/web test-playwright
+yarn workspace @calcom/web test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report
@@ -209,7 +210,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   npx prisma migrate dev
+   yarn workspace @calcom/web prisma migrate dev
    ```
 
    (this can clear your development database in some cases)
@@ -217,7 +218,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
@@ -232,14 +233,14 @@ yarn workspace @calcom/web playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build --scope=@calcom/web
-   yarn start --scope=@calcom/web
+   yarn build
+   yarn start
    ```
 
 5. Enjoy the new version.
