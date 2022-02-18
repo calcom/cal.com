@@ -38,7 +38,9 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
       let idx;
       if (
         (idx = availability.findIndex(
-          (schedule) => schedule.startTime === time.start && schedule.endTime === time.end
+          (schedule) =>
+            schedule.startTime.toString() === time.start.toString() &&
+            schedule.endTime.toString() === time.end.toString()
         )) !== -1
       ) {
         availability[idx].days.push(day);

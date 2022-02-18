@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -28,6 +29,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
+import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -45,9 +47,9 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
+import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
-import { Scheduler } from "@components/ui/Scheduler";
 import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
@@ -89,6 +91,37 @@ const addDefaultLocationOptions = (
       locationOptions.push(item);
     }
   });
+};
+
+const AvailabilitySelect = () => {
+  const query = trpc.useQuery(["viewer.availability.list"]);
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => {
+        const defaultSchedule = data.schedules.find((schedule) => schedule.isDefault) as {
+          id: number;
+          name: string;
+        };
+        return (
+          <Select
+            name="schedule"
+            defaultValue={{
+              value: defaultSchedule.id,
+              label: defaultSchedule.name,
+            }}
+            options={data.schedules.map((schedule) => ({
+              value: schedule.id,
+              label: schedule.name,
+            }))}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+          />
+        );
+      }}
+    />
+  );
 };
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -1179,29 +1212,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <div className="w-full">
                           <Controller
-                            name="availability"
+                            name="schedule"
                             control={formMethods.control}
-                            render={() => (
-                              <Scheduler
-                                setAvailability={(val) => {
-                                  formMethods.setValue("availability", {
-                                    openingHours: val.openingHours,
-                                    dateOverrides: val.dateOverrides,
-                                  });
-                                }}
-                                setTimeZone={(timeZone) => {
-                                  formMethods.setValue("timeZone", timeZone);
-                                  setSelectedTimeZone(timeZone);
-                                }}
-                                timeZone={selectedTimeZone}
-                                availability={availability.map((schedule) => ({
-                                  ...schedule,
-                                  startTime: new Date(schedule.startTime),
-                                  endTime: new Date(schedule.endTime),
-                                }))}
-                              />
-                            )}
+                            render={() => <AvailabilitySelect />}
                           />
+                          <Link href="/availability">
+                            <a>
+                              <Alert
+                                className="mt-1 text-xs"
+                                severity="info"
+                                message="You can manage your schedules on the Availability page."
+                              />
+                            </a>
+                          </Link>
                         </div>
                       </div>
 

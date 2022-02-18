@@ -658,5 +658,6 @@
   "error_404": "Error 404",
   "set_to_default": "Set to Default",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
-  "example_name": "John Doe"
+  "example_name": "John Doe",
+  "click_to_add_a_new_schedule": "Add a new schedule"
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
+import { getAvailabilityFromSchedule } from "@lib/availability";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
@@ -634,6 +635,45 @@ const loggedInViewerRouter = createProtectedRouter()
         timeZone: user.timeZone,
         isDefault: user.schedule && user.schedule.id === schedule.id,
       };
+    },
+  })
+  .mutation("schedule.update", {
+    input: z.object({
+      scheduleId: z.number(),
+      timeZone: z.string().optional(),
+      schedule: z.array(
+        z.array(
+          z.object({
+            start: z.date(),
+            end: z.date(),
+          })
+        )
+      ),
+    }),
+    async resolve({ input, ctx }) {
+      const { user, prisma } = ctx;
+      const availability = getAvailabilityFromSchedule(input.schedule);
+      await prisma.schedule.update({
+        where: {
+          id: input.scheduleId,
+        },
+        data: {
+          availability: {
+            deleteMany: {
+              scheduleId: {
+                equals: input.scheduleId,
+              },
+            },
+            createMany: {
+              data: availability.map((schedule) => ({
+                days: schedule.days,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+              })),
+            },
+          },
+        },
+      });
     },
   })
   .mutation("updateProfile", {

@@ -1,7 +1,7 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
 import { IdentityProvider, UserPlan } from "@prisma/client"
-import { CompleteEventType, EventTypeModel, CompleteCredential, CredentialModel, CompleteMembership, MembershipModel, CompleteBooking, BookingModel, CompleteAvailability, AvailabilityModel, CompleteSelectedCalendar, SelectedCalendarModel, CompleteSchedule, ScheduleModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel } from "./index"
+import { CompleteEventType, EventTypeModel, CompleteCredential, CredentialModel, CompleteMembership, MembershipModel, CompleteBooking, BookingModel, CompleteSchedule, ScheduleModel, CompleteSelectedCalendar, SelectedCalendarModel, CompleteAvailability, AvailabilityModel, CompleteWebhook, WebhookModel, CompleteDestinationCalendar, DestinationCalendarModel } from "./index"
 
 // Helper schema for JSON fields
 type Literal = boolean | number | string
@@ -45,9 +45,9 @@ export interface CompleteUser extends z.infer<typeof _UserModel> {
   credentials: CompleteCredential[]
   teams: CompleteMembership[]
   bookings: CompleteBooking[]
-  availability: CompleteAvailability[]
+  schedule?: CompleteSchedule | null
   selectedCalendars: CompleteSelectedCalendar[]
-  Schedule: CompleteSchedule[]
+  availability: CompleteAvailability[]
   webhooks: CompleteWebhook[]
   destinationCalendar?: CompleteDestinationCalendar | null
 }
@@ -62,9 +62,9 @@ export const UserModel: z.ZodSchema<CompleteUser> = z.lazy(() => _UserModel.exte
   credentials: CredentialModel.array(),
   teams: MembershipModel.array(),
   bookings: BookingModel.array(),
-  availability: AvailabilityModel.array(),
+  schedule: ScheduleModel.nullish(),
   selectedCalendars: SelectedCalendarModel.array(),
-  Schedule: ScheduleModel.array(),
+  availability: AvailabilityModel.array(),
   webhooks: WebhookModel.array(),
   destinationCalendar: DestinationCalendarModel.nullish(),
 }))
