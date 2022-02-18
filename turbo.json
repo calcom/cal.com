@@ -81,7 +81,9 @@
       "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
     },
     "test-e2e": {
-      "dependsOn": ["^test"]
+      "cache": false,
+      "dependsOn": ["^test"],
+      "outputs": ["playwright", "test-results"]
     },
     "type-check": {
       "outputs": []
