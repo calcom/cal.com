@@ -1,5 +1,5 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
-import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
