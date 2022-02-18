@@ -94,11 +94,11 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
     });
   }
 
-  const [isNativeShare, setNativeShare] = useState(false);
+  const [isNativeShare, setNativeShare] = useState(true);
 
   useEffect(() => {
-    if (navigator.share) {
-      setNativeShare(true);
+    if (!navigator.share) {
+      setNativeShare(false);
     }
   }, []);
 
