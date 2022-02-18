@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next",
-    "start": "next start",
+    "dev": "PORT=4000 next",
+    "start": "PORT=4000 next start",
     "build": "next build"
   },
   "author": "Cal.com, Inc.",

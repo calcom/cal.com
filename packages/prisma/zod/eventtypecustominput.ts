@@ -1,7 +1,7 @@
-import * as z from "zod";
-import * as imports from "../zod-utils";
-import { EventTypeCustomInputType } from "@prisma/client";
-import { CompleteEventType, EventTypeModel } from "./index";
+import * as z from "zod"
+import * as imports from "../zod-utils"
+import { EventTypeCustomInputType } from "@prisma/client"
+import { CompleteEventType, EventTypeModel } from "./index"
 
 export const _EventTypeCustomInputModel = z.object({
   id: z.number().int(),
@@ -10,10 +10,10 @@ export const _EventTypeCustomInputModel = z.object({
   type: z.nativeEnum(EventTypeCustomInputType),
   required: z.boolean(),
   placeholder: z.string(),
-});
+})
 
 export interface CompleteEventTypeCustomInput extends z.infer<typeof _EventTypeCustomInputModel> {
-  eventType: CompleteEventType;
+  eventType: CompleteEventType
 }
 
 /**
@@ -21,8 +21,6 @@ export interface CompleteEventTypeCustomInput extends z.infer<typeof _EventTypeC
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const EventTypeCustomInputModel: z.ZodSchema<CompleteEventTypeCustomInput> = z.lazy(() =>
-  _EventTypeCustomInputModel.extend({
-    eventType: EventTypeModel,
-  })
-);
+export const EventTypeCustomInputModel: z.ZodSchema<CompleteEventTypeCustomInput> = z.lazy(() => _EventTypeCustomInputModel.extend({
+  eventType: EventTypeModel,
+}))
