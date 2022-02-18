@@ -36,6 +36,8 @@ test.describe.serial("Stripe integration", () => {
   });
 
   test("Can book a paid booking", async ({ page }) => {
+    test.slow(); // Easy way to triple the default timeout
+
     await page.goto("/pro/paid");
     // Click [data-testid="incrementMonth"]
     await page.click('[data-testid="incrementMonth"]');
