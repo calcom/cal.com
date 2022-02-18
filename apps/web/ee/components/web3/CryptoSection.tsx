@@ -65,10 +65,8 @@ const CryptoSection = (props: CryptoSectionProps) => {
       } else {
         const account = (await window.web3.eth.getAccounts())[0];
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         addContract({ address: props.smartContractAddress, signature });
 

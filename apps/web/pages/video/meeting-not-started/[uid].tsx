@@ -23,7 +23,6 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
       router.push("/video/no-meeting-found");
     }
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [is24h, setIs24h] = useState(false);
   if (!emptyBooking) {
     return (
