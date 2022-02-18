@@ -61,14 +61,14 @@ const BookingPage = (props: BookingPageProps) => {
       const eventOwner = eventType.users[0];
 
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
+    onSuccess: async (responseData) => {
+      const { attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -239,7 +239,6 @@ const BookingPage = (props: BookingPageProps) => {
     let web3Details;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
@@ -259,9 +258,7 @@ const BookingPage = (props: BookingPageProps) => {
       location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: booking.customInputs![inputId],
       })),
     });
@@ -397,7 +394,6 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                         {/* @ts-ignore */}
                         <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
