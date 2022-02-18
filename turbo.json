@@ -8,6 +8,7 @@
       "cache": false
     },
     "@calcom/prisma#db-seed": {
+      "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/web#build": {
