@@ -49,23 +49,18 @@ test.describe.serial("Stripe integration", () => {
 
     await Promise.all([page.waitForNavigation({ url: "/payment/*" }), page.press('[name="email"]', "Enter")]);
 
-    await page.waitForSelector('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]');
-
-    // We lookup Stripe's iframe
-    const stripeFrame = page.frame({
-      url: (url) => url.href.startsWith("https://js.stripe.com/v3/elements-inner-card-"),
-    });
-
-    if (!stripeFrame) throw new Error("Stripe frame not found");
+    const stripeFrame = page
+      .frameLocator('iframe[src^="https://js.stripe.com/v3/elements-inner-card-"]')
+      .first();
 
     // Fill [placeholder="Card number"]
-    await stripeFrame.fill('[placeholder="Card number"]', "4242 4242 4242 4242");
+    await stripeFrame.locator('[placeholder="Card number"]').fill("4242 4242 4242 4242");
     // Fill [placeholder="MM / YY"]
-    await stripeFrame.fill('[placeholder="MM / YY"]', "12 / 24");
+    await stripeFrame.locator('[placeholder="MM / YY"]').fill("12 / 24");
     // Fill [placeholder="CVC"]
-    await stripeFrame.fill('[placeholder="CVC"]', "111");
+    await stripeFrame.locator('[placeholder="CVC"]').fill("111");
     // Fill [placeholder="ZIP"]
-    await stripeFrame.fill('[placeholder="ZIP"]', "111111");
+    await stripeFrame.locator('[placeholder="ZIP"]').fill("11111");
     // Click button:has-text("Pay now")
     await page.click('button:has-text("Pay now")');
 
