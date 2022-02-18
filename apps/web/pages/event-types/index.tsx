@@ -7,6 +7,8 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   UsersIcon,
+  UploadIcon,
+  ClipboardCopyIcon,
 } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -245,7 +247,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                     "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                   )}>
-                                  <LinkIcon
+                                  <ClipboardCopyIcon
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
@@ -271,7 +273,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                       active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                       "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                     )}>
-                                    <LinkIcon
+                                    <UploadIcon
                                       className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                       aria-hidden="true"
                                     />
