@@ -608,6 +608,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sub.subscriberUrl,
       {
         ...evt,
+        rescheduleUid,
         metadata: reqBody.metadata,
       },
       sub.payloadTemplate
