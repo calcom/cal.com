@@ -16,7 +16,6 @@ type Props = {
 const TimeOptions: FC<Props> = (props) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [is24hClock, setIs24hClock] = useState(false);
-
   const { t } = useLocale();
 
   useEffect(() => {
