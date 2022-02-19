@@ -20,25 +20,17 @@ export default function JoinCall(props: JoinCallPageProps) {
   //if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
 
-  //daily.co calls have a 60 minute exit and entry buffer when a user enters a call when it's not available it will trigger the modals
+  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
-  const enterDate = new Date(now.getTime() + 60 * 60 * 1000);
   const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
 
-  console.log(enterDate);
-
-  //find out if the meeting is upcoming or in the past
+  //find out if the meeting is in the past
   const isPast = new Date(props.booking?.endTime || "") <= exitDate;
-  const isUpcoming = new Date(props.booking?.startTime || "") >= enterDate;
-  const meetingUnavailable = isUpcoming == true || isPast == true;
+  const meetingUnavailable = isPast == true;
 
   useEffect(() => {
     if (emptyBooking) {
       router.push("/video/no-meeting-found");
-    }
-
-    if (isUpcoming) {
-      router.push(`/video/meeting-not-started/${props.booking?.uid}`);
     }
 
     if (isPast) {
@@ -126,7 +118,7 @@ export default function JoinCall(props: JoinCallPageProps) {
       <div style={{ zIndex: 2, position: "relative" }}>
         <Link href="/">
           <img
-            className="fixed z-10 hidden h-5 w-auto sm:inline-block"
+            className="h-5·w-auto fixed z-10 hidden sm:inline-block"
             src="https://cal.com/logo-white.svg"
             alt="Cal.com Logo"
             style={{

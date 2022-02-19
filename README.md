@@ -334,6 +334,7 @@ Contributions are what make the open source community such an amazing place to b
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
 <!-- LICENSE -->
 
