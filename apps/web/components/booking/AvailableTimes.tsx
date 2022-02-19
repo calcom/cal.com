@@ -8,11 +8,11 @@ import React, { FC, useEffect, useState } from "react";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
-import { timeFormat } from "@lib/timeFormat";
 
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
+  timeFormat: string;
   minimumBookingNotice: number;
   eventTypeId: number;
   eventLength: number;
@@ -25,6 +25,7 @@ type AvailableTimesProps = {
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
+  timeFormat,
   date,
   eventLength,
   eventTypeId,

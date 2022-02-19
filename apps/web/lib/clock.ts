@@ -7,10 +7,12 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 interface TimeOptions {
+  is24hClock: boolean;
   inviteeTimeZone: string;
 }
 
 const timeOptions: TimeOptions = {
+  is24hClock: false,
   inviteeTimeZone: "",
 };
 
@@ -20,7 +22,19 @@ const initClock = () => {
   if (typeof localStorage === "undefined" || isInitialized) {
     return;
   }
+  timeOptions.is24hClock = localStorage.getItem("timeOption.is24hClock") === "true";
   timeOptions.inviteeTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
+};
+
+const is24h = (is24hClock?: boolean) => {
+  initClock();
+  if (typeof is24hClock !== "undefined") set24hClock(is24hClock);
+  return timeOptions.is24hClock;
+};
+
+const set24hClock = (is24hClock: boolean) => {
+  localStorage.setItem("timeOption.is24hClock", is24hClock.toString());
+  timeOptions.is24hClock = is24hClock;
 };
 
 function setTimeZone(selectedTimeZone: string) {
@@ -34,4 +48,4 @@ const timeZone = (selectedTimeZone?: string) => {
   return timeOptions.inviteeTimeZone;
 };
 
-export { timeZone };
+export { is24h, timeZone };

@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import prisma from "@lib/prisma";
-import { timeFormat } from "@lib/timeFormat";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -54,7 +54,9 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                       </h2>
                       <p className="text-center text-gray-500">
                         <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                        {dayjs(props.booking.startTime).format(timeFormat + ", dddd DD MMMM YYYY")}
+                        {dayjs(props.booking.startTime).format(
+                          detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                        )}
                       </p>
                     </div>
                   </div>

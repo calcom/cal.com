@@ -16,7 +16,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { timeFormat } from "@lib/timeFormat";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -134,7 +134,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2">
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
-                          {date.format(timeFormat)} - {props.eventType.length} mins{" "}
+                          {date.format(detectBrowserTimeFormat)} - {props.eventType.length} mins{" "}
                           <span className="text-gray-500">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>

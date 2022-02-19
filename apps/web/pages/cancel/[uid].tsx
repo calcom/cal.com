@@ -9,7 +9,7 @@ import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { timeFormat } from "@lib/timeFormat";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -83,7 +83,9 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           </h2>
                           <p className="text-gray-500">
                             <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                            {dayjs(props.booking?.startTime).format(timeFormat + ", dddd DD MMMM YYYY")}
+                            {dayjs(props.booking?.startTime).format(
+                              detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                            )}
                           </p>
                         </div>
                       </div>

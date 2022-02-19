@@ -15,6 +15,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -62,9 +63,13 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   }, [router.query.date]);
 
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
+  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+
   const telemetry = useTelemetry();
 
   useEffect(() => {
+    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
@@ -89,6 +94,10 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
     }
     timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
+  };
+
+  const handleToggle24hClock = (is24hClock: boolean) => {
+    setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
   return (
@@ -222,6 +231,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
 
                 {selectedDate && (
                   <AvailableTimes
+                    timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
                     slotInterval={eventType.slotInterval}
@@ -253,7 +263,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
           )}
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} onToggle24hClock={handleToggle24hClock} />
         </Collapsible.Content>
       </Collapsible.Root>
     );

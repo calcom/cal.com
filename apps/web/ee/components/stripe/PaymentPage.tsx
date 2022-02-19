@@ -14,7 +14,7 @@ import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
-import { timeFormat } from "@lib/timeFormat";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -74,7 +74,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
-                        {date.format(timeFormat)} - {props.eventType.length} mins{" "}
+                        {date.format(detectBrowserTimeFormat)} - {props.eventType.length} mins{" "}
                         <span className="text-gray-500">
                           ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                         </span>

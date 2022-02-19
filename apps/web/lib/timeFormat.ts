@@ -9,4 +9,4 @@ export const isBrowserLocale24h = () => {
   if (navigator) locale = navigator?.language;
   return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
 };
-export const timeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
+export const detectBrowserTimeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";

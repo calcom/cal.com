@@ -24,7 +24,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { timeFormat } from "@lib/timeFormat";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
@@ -212,7 +212,7 @@ const BookingPage = (props: BookingPageProps) => {
     if (!date) return "No date";
     const parsedZone = parseZone(date);
     if (!parsedZone?.isValid()) return "Invalid date";
-    const formattedTime = parsedZone?.format(timeFormat);
+    const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
     return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
