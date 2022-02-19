@@ -28,7 +28,7 @@ const TimeOptions: FC<Props> = (props) => {
     if (selectedTimeZone && timeZone() && selectedTimeZone !== timeZone()) {
       props.onSelectTimeZone(timeZone(selectedTimeZone));
     }
-  }, [selectedTimeZone]);
+  }, [selectedTimeZone, props.onSelectTimeZone]);
   const handle24hClockToggle = (is24hClock: boolean) => {
     setIs24hClock(is24hClock);
     props.onToggle24hClock(is24h(is24hClock));
