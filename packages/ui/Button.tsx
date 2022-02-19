@@ -1,8 +1,9 @@
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
 
-import classNames from "@lib/classNames";
-import { SVGComponent } from "@lib/types/SVGComponent";
+import classNames from "@calcom/lib/classNames";
+
+type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export type ButtonBaseProps = {
   color?: "primary" | "secondary" | "minimal" | "warn";
