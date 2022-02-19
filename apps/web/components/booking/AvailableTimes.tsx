@@ -12,12 +12,12 @@ import { useSlots } from "@lib/hooks/useSlots";
 import Loader from "@components/Loader";
 
 type AvailableTimesProps = {
-  timeFormat: string;
   minimumBookingNotice: number;
   eventTypeId: number;
   eventLength: number;
   slotInterval: number | null;
   date: Dayjs;
+  timeFormat: string;
   users: {
     username: string | null;
   }[];
