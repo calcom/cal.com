@@ -1,2 +1,2 @@
 // TODO: Remove this file once every `classNames` is imported from `@calcom/lib`
-export * from "@calcom/lib/classNames";
+export { default } from "@calcom/lib/classNames";
