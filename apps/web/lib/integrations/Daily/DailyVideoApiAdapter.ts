@@ -102,9 +102,8 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
   const translateEvent = (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
-    // added a 1 hour buffer for room expiration and room entry
+    // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
-    const nbf = Math.round(new Date(event.startTime).getTime() / 1000) - 60 * 60;
     const scalePlan = process.env.DAILY_SCALE_PLAN;
 
     if (scalePlan === "true") {
@@ -117,7 +116,6 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           enable_screenshare: true,
           enable_chat: true,
           exp: exp,
-          nbf: nbf,
           enable_recording: "local",
         },
       };
@@ -131,7 +129,6 @@ const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        nbf: nbf,
       },
     };
   };
