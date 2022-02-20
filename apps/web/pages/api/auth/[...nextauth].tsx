@@ -14,6 +14,8 @@ import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
+const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+
 const providers: Provider[] = [
   CredentialsProvider({
     id: "credentials",
@@ -310,7 +312,7 @@ export default NextAuth({
               data: {
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: slugify(user.name) + "-" + randomString(6),
+                username: usernameSlug(user.name),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
@@ -332,7 +334,7 @@ export default NextAuth({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
-            username: slugify(user.name) + "-" + randomString(6),
+            username: usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
             email: user.email,

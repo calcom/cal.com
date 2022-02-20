@@ -76,12 +76,10 @@ function createTelemetryClient(): TelemetryClient {
           return;
         } else if (
           // FIXME
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           !window["jitsu"]
         ) {
           // FIXME
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           window["jitsu"] = jitsuClient({
             log_level: "ERROR",
@@ -92,7 +90,6 @@ function createTelemetryClient(): TelemetryClient {
           });
         }
         // FIXME
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const res = callback(window["jitsu"]);
         if (res && typeof res["catch"] === "function") {

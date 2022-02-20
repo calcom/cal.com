@@ -104,7 +104,6 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number)
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
 ): boolean {
   const date = dayjs(time);
@@ -609,6 +608,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sub.subscriberUrl,
       {
         ...evt,
+        rescheduleUid,
         metadata: reqBody.metadata,
       },
       sub.payloadTemplate

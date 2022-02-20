@@ -15,7 +15,7 @@ import Button from "@components/ui/Button";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
-
+  
   // if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
   useEffect(() => {
