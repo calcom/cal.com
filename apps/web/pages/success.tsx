@@ -16,7 +16,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -35,12 +35,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
+  const [is24h, setIs24h] = useState(isBrowserLocale24h());
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
@@ -134,7 +136,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2">
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
-                          {date.format(detectBrowserTimeFormat)} - {props.eventType.length} mins{" "}
+                          {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                           <span className="text-gray-500">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
