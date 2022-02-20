@@ -79,11 +79,11 @@ function useRedirectToOnboardingIfNeeded() {
   const user = query.data;
 
   const [isRedirectingToOnboarding, setRedirecting] = useState(false);
+
   useEffect(() => {
-    if (user && shouldShowOnboarding(user)) {
-      setRedirecting(true);
-    }
+    user && setRedirecting(shouldShowOnboarding(user));
   }, [router, user]);
+
   useEffect(() => {
     if (isRedirectingToOnboarding) {
       router.replace({
