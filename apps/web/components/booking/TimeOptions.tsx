@@ -32,6 +32,7 @@ const TimeOptions: FC<Props> = (props) => {
     setIs24hClock(is24hClock);
     props.onToggle24hClock(is24h(is24hClock));
   };
+
   return selectedTimeZone !== "" ? (
     <div className="max-w-80 absolute z-10 w-full rounded-sm border border-gray-200 bg-white px-4 py-2 dark:border-0 dark:bg-gray-700">
       <div className="mb-4 flex">
