@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
@@ -57,12 +56,8 @@ export default function Signup({ email }: Props) {
       method: "POST",
     })
       .then(handleErrors)
-      .then(
-        async () =>
-          await signIn("Cal.com", {
-            callbackUrl: (`${WEBSITE_URL}/${router.query.callbackUrl}` || "") as string,
-          })
-      )
+      .then(async () => await signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
+
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
       });
@@ -129,9 +124,7 @@ export default function Signup({ email }: Props) {
                   color="secondary"
                   className="w-5/12 justify-center"
                   onClick={() =>
-                    signIn("Cal.com", {
-                      callbackUrl: (`${WEBSITE_URL}/${router.query.callbackUrl}` || "") as string,
-                    })
+                    signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
                   }>
                   {t("login_instead")}
                 </Button>
@@ -184,7 +177,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + `${WEBSITE_URL}/${ctx.query.callbackUrl}`,
+        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
       },
     };
   }
