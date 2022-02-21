@@ -167,7 +167,9 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
               title={t("delete_webhook")}
               confirmBtnText={t("confirm_delete_webhook")}
               cancelBtnText={t("cancel")}
-              onConfirm={() => deleteWebhook.mutate({ id: props.webhook.id })}>
+              onConfirm={() =>
+                deleteWebhook.mutate({ id: props.webhook.id, eventTypeId: props.webhook.eventTypeId })
+              }>
               {t("delete_webhook_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>
@@ -230,6 +232,7 @@ function WebhookTestDisclosure() {
 
 function WebhookDialogForm(props: {
   //
+  eventTypeId: number;
   defaultValues?: TWebhook;
   handleClose: () => void;
 }) {
@@ -256,15 +259,16 @@ function WebhookDialogForm(props: {
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
+        const e = { ...event, eventTypeId: props.eventTypeId };
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }
         if (event.id) {
-          await utils.client.mutation("viewer.webhook.edit", event);
+          await utils.client.mutation("viewer.webhook.edit", e);
           await utils.invalidateQueries(["viewer.webhook.list"]);
           showToast(t("webhook_updated_successfully"), "success");
         } else {
-          await utils.client.mutation("viewer.webhook.create", event);
+          await utils.client.mutation("viewer.webhook.create", e);
           await utils.invalidateQueries(["viewer.webhook.list"]);
           showToast(t("webhook_created_successfully"), "success");
         }
@@ -362,9 +366,9 @@ function WebhookDialogForm(props: {
   );
 }
 
-function WebhookListContainer() {
+function WebhookListContainer(props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: 2 }], {
+  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
     suspense: true,
   });
 
@@ -420,7 +424,10 @@ function WebhookListContainer() {
           {/* New webhook dialog */}
           <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
             <DialogContent>
-              <WebhookDialogForm handleClose={() => setNewWebhookModal(false)} />
+              <WebhookDialogForm
+                eventTypeId={props.eventTypeId}
+                handleClose={() => setNewWebhookModal(false)}
+              />
             </DialogContent>
           </Dialog>
           {/* Edit webhook dialog */}
@@ -429,6 +436,7 @@ function WebhookListContainer() {
               {editing && (
                 <WebhookDialogForm
                   key={editing.id}
+                  eventTypeId={props.eventTypeId}
                   handleClose={() => setEditModalOpen(false)}
                   defaultValues={editing}
                 />
@@ -1876,7 +1884,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </Dialog>
             )}
           />
-          {isAdmin && <WebhookListContainer />}
+          {isAdmin && <WebhookListContainer eventTypeId={props.eventType.id} />}
         </ClientSuspense>
       </Shell>
     </div>

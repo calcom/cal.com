@@ -97,7 +97,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
               title={t("delete_webhook")}
               confirmBtnText={t("confirm_delete_webhook")}
               cancelBtnText={t("cancel")}
-              onConfirm={() => deleteWebhook.mutate({ id: props.webhook.id })}>
+              onConfirm={() => deleteWebhook.mutate({ id: props.webhook.id, eventTypeId: null })}>
               {t("delete_webhook_confirmation_message")}
             </ConfirmationDialogContent>
           </Dialog>
@@ -206,15 +206,16 @@ function WebhookDialogForm(props: {
       data-testid="WebhookDialogForm"
       form={form}
       handleSubmit={async (event) => {
+        const e = { ...event, eventTypeId: null };
         if (!useCustomPayloadTemplate && event.payloadTemplate) {
           event.payloadTemplate = null;
         }
         if (event.id) {
-          await utils.client.mutation("viewer.webhook.edit", event);
+          await utils.client.mutation("viewer.webhook.edit", e);
           await utils.invalidateQueries(["viewer.webhook.list"]);
           showToast(t("webhook_updated_successfully"), "success");
         } else {
-          await utils.client.mutation("viewer.webhook.create", event);
+          await utils.client.mutation("viewer.webhook.create", e);
           await utils.invalidateQueries(["viewer.webhook.list"]);
           showToast(t("webhook_created_successfully"), "success");
         }
