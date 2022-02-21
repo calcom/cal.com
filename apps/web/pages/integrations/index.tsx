@@ -320,7 +320,7 @@ function WebhookDialogForm(props: {
 
 function WebhookListContainer() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.webhook.list"], { suspense: true });
+  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: undefined }], { suspense: true });
 
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
