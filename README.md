@@ -68,7 +68,8 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
+
 
 <!-- GETTING STARTED -->
 
@@ -169,7 +170,7 @@ yarn dx
 1. Run (in development mode)
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
 #### Setting up your first user
@@ -233,14 +234,14 @@ yarn workspace @calcom/web playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build --scope=@calcom/web
-   yarn start --scope=@calcom/web
+   yarn build
+   yarn start
    ```
 
 5. Enjoy the new version.
@@ -334,6 +335,7 @@ Contributions are what make the open source community such an amazing place to b
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
 <!-- LICENSE -->
 

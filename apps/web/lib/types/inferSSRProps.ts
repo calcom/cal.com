@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 type GetSSRResult<TProps> =
   //
   { props: TProps } | { redirect: any } | { notFound: boolean };

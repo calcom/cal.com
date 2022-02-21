@@ -23,6 +23,7 @@ export const webhookRouter = createProtectedRouter()
       subscriberUrl: z.string().url(),
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
       active: z.boolean(),
+      payloadTemplate: z.string().nullable(),
     }),
     async resolve({ ctx, input }) {
       return await ctx.prisma.webhook.create({
