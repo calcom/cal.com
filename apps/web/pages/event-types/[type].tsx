@@ -36,9 +36,9 @@ import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegratio
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
+import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { slugify } from "@lib/slugify";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
@@ -254,7 +254,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
-                className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                 defaultValue={
                   formMethods
                     .getValues("locations")
@@ -384,7 +384,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               options={locationOptions}
               isSearchable={false}
               classNamePrefix="react-select"
-              className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
                   locationFormMethods.setValue("locationType", e.value);
@@ -402,25 +402,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2 shadow-sm">
                 <div className="flex justify-between">
                   {location.type === LocationType.InPerson && (
-                    <div className="flex items-center flex-grow">
-                      <LocationMarkerIcon className="w-6 h-6" />
+                    <div className="flex flex-grow items-center">
+                      <LocationMarkerIcon className="h-6 w-6" />
                       <input
                         disabled
-                        className="w-full text-sm bg-transparent border-0 ltr:ml-2 rtl:mr-2"
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.address}
                       />
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
-                    <div className="flex items-center flex-grow">
-                      <PhoneIcon className="w-6 h-6" />
+                    <div className="flex flex-grow items-center">
+                      <PhoneIcon className="h-6 w-6" />
                       <span className="text-sm ltr:ml-2 rtl:mr-2">{t("phone_call")}</span>
                     </div>
                   )}
                   {location.type === LocationType.GoogleMeet && (
-                    <div className="flex items-center flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
-                        className="w-6 h-6"
+                        className="h-6 w-6"
                         viewBox="0 0 64 54"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg">
@@ -449,7 +449,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Huddle01 && (
-                    <div className="flex items-center flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
                         width="1.25em"
                         height="1.25em"
@@ -522,9 +522,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Zoom && (
-                    <div className="flex items-center flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
-                        className="w-6 h-6"
+                        className="h-6 w-6"
                         viewBox="0 0 64 64"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg">
@@ -549,7 +549,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Tandem && (
-                    <div className="flex items-center flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
                         width="1.25em"
                         height="1.25em"
@@ -573,9 +573,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Jitsi && (
-                    <div className="flex items-center flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
-                        className="w-6 h-6"
+                        className="h-6 w-6"
                         viewBox="0 0 64 64"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg">
@@ -603,11 +603,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <button
                       type="button"
                       onClick={() => openLocationModal(location.type)}
-                      className="p-1 mr-1 text-gray-500 hover:text-gray-900">
-                      <PencilIcon className="w-4 h-4" />
+                      className="mr-1 p-1 text-gray-500 hover:text-gray-900">
+                      <PencilIcon className="h-4 w-4" />
                     </button>
                     <button type="button" onClick={() => removeLocation(location)}>
-                      <XIcon className="w-6 h-6 pl-1 text-gray-500 border-l-1 hover:text-gray-900 " />
+                      <XIcon className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                     </button>
                   </div>
                 </div>
@@ -618,7 +618,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex px-3 py-2 rounded-sm hover:bg-gray-100"
+                    className="flex rounded-sm px-3 py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
@@ -637,7 +637,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
-          <div className="relative cursor-pointer group" onClick={() => setEditIcon(false)}>
+          <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
             {editIcon ? (
               <>
                 <h1
@@ -645,7 +645,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
                   {eventType.title}
                 </h1>
-                <PencilIcon className="inline w-4 h-4 ml-1 -mt-1 text-gray-700 group-hover:text-gray-500" />
+                <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
               </>
             ) : (
               <div style={{ marginBottom: -11 }}>
@@ -654,7 +654,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   autoFocus
                   style={{ top: -6, fontSize: 22 }}
                   required
-                  className="relative w-full h-10 pl-0 text-gray-900 bg-transparent border-none cursor-pointer hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
+                  className="relative h-10 w-full cursor-pointer border-none bg-transparent pl-0 text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
@@ -664,9 +664,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           </div>
         }
         subtitle={eventType.description || ""}>
-        <div className="block mx-auto sm:flex md:max-w-5xl">
+        <div className="mx-auto block sm:flex md:max-w-5xl">
           <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
-            <div className="p-4 py-6 -mx-4 bg-white border rounded-sm border-neutral-200 sm:mx-0 sm:px-8">
+            <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
               <Form
                 form={formMethods}
                 handleSubmit={async (values) => {
@@ -686,8 +686,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 }}
                 className="space-y-6">
                 <div className="space-y-3">
-                  <div className="items-center block sm:flex">
-                    <div className="mb-4 min-w-48 sm:mb-0">
+                  <div className="block items-center sm:flex">
+                    <div className="min-w-48 mb-4 sm:mb-0">
                       <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
                         <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                         {t("url")}
@@ -695,19 +695,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                     <div className="w-full">
                       <div className="flex rounded-sm shadow-sm">
-                        <span className="inline-flex items-center px-3 text-gray-500 border border-r-0 border-gray-300 rounded-l-sm bg-gray-50 sm:text-sm">
+                        <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
                           {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                           {team ? "team/" + team.slug : eventType.users[0].username}/
                         </span>
                         <input
                           type="text"
                           required
-                          className="flex-1 block w-full min-w-0 border-gray-300 rounded-none rounded-r-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                           defaultValue={eventType.slug}
-                          onKeyUp={(event) => {
-                            formMethods.setValue("slug", slugify(String(event.target.value)));
-                          }}
-                          {...formMethods.register("slug")}
+                          {...formMethods.register("slug", {
+                            setValueAs: (v) => slugify(v),
+                          })}
                         />
                       </div>
                     </div>
@@ -757,7 +756,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <div className="space-y-3">
                   <div className="block sm:flex">
                     <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
-                      <label htmlFor="description" className="flex mt-0 text-sm font-medium text-neutral-700">
+                      <label htmlFor="description" className="mt-0 flex text-sm font-medium text-neutral-700">
                         <DocumentIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                         {t("description")}
                       </label>
@@ -765,7 +764,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="w-full">
                       <textarea
                         id="description"
-                        className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                         placeholder={t("quick_video_meeting")}
                         {...formMethods.register("description")}
                         defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -776,11 +775,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {team && (
                   <div className="space-y-3">
                     <div className="block sm:flex">
-                      <div className="mb-4 min-w-48 sm:mb-0">
+                      <div className="min-w-48 mb-4 sm:mb-0">
                         <label
                           htmlFor="schedulingType"
-                          className="flex mt-2 text-sm font-medium text-neutral-700">
-                          <UsersIcon className="w-5 h-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                          className="mt-2 flex text-sm font-medium text-neutral-700">
+                          <UsersIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
                           {t("scheduling_type")}
                         </label>
                       </div>
@@ -802,9 +801,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
 
                     <div className="block sm:flex">
-                      <div className="mb-4 min-w-48 sm:mb-0">
+                      <div className="min-w-48 mb-4 sm:mb-0">
                         <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="w-5 h-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                          <UserAddIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
                           {t("attendees")}
                         </label>
                       </div>
@@ -853,8 +852,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                        * This will fallback to each user selected destination calendar.
                        */}
                       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
+                        <div className="block items-center sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
                             <label
                               htmlFor="createEventsOn"
                               className="flex text-sm font-medium text-neutral-700">
@@ -879,8 +878,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       )}
-                      <div className="items-center block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
+                      <div className="block items-center sm:flex">
+                        <div className="min-w-48 mb-4 sm:mb-0">
                           <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
                             {t("event_name")} <InfoBadge content={t("event_name_tooltip")} />
                           </label>
@@ -889,7 +888,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <div className="relative mt-1 rounded-sm shadow-sm">
                             <input
                               type="text"
-                              className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                               placeholder={t("meeting_with_user")}
                               defaultValue={eventType.eventName || ""}
                               {...formMethods.register("eventName")}
@@ -898,8 +897,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                       </div>
                       {eventType.isWeb3Active && (
-                        <div className="items-center block sm:flex">
-                          <div className="mb-4 min-w-48 sm:mb-0">
+                        <div className="block items-center sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
                             <label
                               htmlFor="smartContractAddress"
                               className="flex text-sm font-medium text-neutral-700">
@@ -911,7 +910,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               {
                                 <input
                                   type="text"
-                                  className="block w-full border-gray-300 rounded-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                  className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                                   placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
                                   defaultValue={(eventType.metadata.smartContractAddress || "") as string}
                                   {...formMethods.register("smartContractAddress")}
@@ -921,20 +920,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
                       )}
-                      <div className="items-center block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
+                      <div className="block items-center sm:flex">
+                        <div className="min-w-48 mb-4 sm:mb-0">
                           <label
                             htmlFor="additionalFields"
-                            className="mt-2 text-sm font-medium flexflex text-neutral-700">
+                            className="flexflex mt-2 text-sm font-medium text-neutral-700">
                             {t("additional_inputs")}
                           </label>
                         </div>
                         <div className="w-full">
                           <ul className="mt-1">
                             {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-                              <li key={idx} className="p-2 mb-2 border bg-secondary-50">
+                              <li key={idx} className="bg-secondary-50 mb-2 border p-2">
                                 <div className="flex justify-between">
-                                  <div className="flex-1 w-0">
+                                  <div className="w-0 flex-1">
                                     <div className="truncate">
                                       <span
                                         className="text-sm ltr:ml-2 rtl:mr-2"
@@ -973,7 +972,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       {t("edit")}
                                     </Button>
                                     <button type="button" onClick={() => removeCustom(idx)}>
-                                      <XIcon className="w-6 h-6 pl-1 border-l-2 hover:text-red-500 " />
+                                      <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                                     </button>
                                   </div>
                                 </div>
@@ -1050,8 +1049,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         )}
                       />
 
-                      <div className="items-center block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
+                      <div className="block items-center sm:flex">
+                        <div className="min-w-48 mb-4 sm:mb-0">
                           <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
                             {t("slot_interval")}
                           </label>
@@ -1076,7 +1075,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <Select
                                     isSearchable={false}
                                     classNamePrefix="react-select"
-                                    className="flex-1 block w-full min-w-0 border border-gray-300 rounded-sm react-select-container focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
                                     onChange={(val) => {
                                       formMethods.setValue(
                                         "slotInterval",
@@ -1098,7 +1097,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
 
                       <div className="block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
+                        <div className="min-w-48 mb-4 sm:mb-0">
                           <label
                             htmlFor="inviteesCanSchedule"
                             className="mt-2.5 flex text-sm font-medium text-neutral-700">
@@ -1117,12 +1116,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   formMethods.setValue("periodType", val as PeriodType)
                                 }>
                                 {PERIOD_TYPES.map((period) => (
-                                  <div className="flex items-center mb-2 text-sm" key={period.type}>
+                                  <div className="mb-2 flex items-center text-sm" key={period.type}>
                                     <RadioGroup.Item
                                       id={period.type}
                                       value={period.type}
-                                      className="flex items-center w-4 h-4 bg-white border border-black rounded-full cursor-pointer focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                                      <RadioGroup.Indicator className="relative flex items-center justify-center w-4 h-4 after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
+                                      className="flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                                      <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                                     </RadioGroup.Item>
                                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                                     {period.type === "ROLLING" && (
@@ -1136,7 +1135,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         />
                                         <select
                                           id=""
-                                          className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-sm focus:border-primary-500 focus:ring-primary-500 focus:outline-none sm:text-sm"
+                                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
                                           {...formMethods.register("periodCountCalendarDays")}
                                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                           <option value="1">{t("calendar_days")}</option>
@@ -1176,7 +1175,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <hr className="border-neutral-200" />
 
                       <div className="block sm:flex">
-                        <div className="mb-4 min-w-48 sm:mb-0">
+                        <div className="min-w-48 mb-4 sm:mb-0">
                           <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
                             {t("availability")}
                           </label>
@@ -1213,20 +1212,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <>
                           <hr className="border-neutral-200" />
                           <div className="block sm:flex">
-                            <div className="mb-4 min-w-48 sm:mb-0">
+                            <div className="min-w-48 mb-4 sm:mb-0">
                               <label
                                 htmlFor="payment"
-                                className="flex mt-2 text-sm font-medium text-neutral-700">
+                                className="mt-2 flex text-sm font-medium text-neutral-700">
                                 {t("payment")}
                               </label>
                             </div>
 
                             <div className="flex flex-col">
                               <div className="w-full">
-                                <div className="items-center block sm:flex">
+                                <div className="block items-center sm:flex">
                                   <div className="w-full">
                                     <div className="relative flex items-start">
-                                      <div className="flex items-center h-5">
+                                      <div className="flex h-5 items-center">
                                         <input
                                           onChange={(event) => {
                                             setRequirePayment(event.target.checked);
@@ -1237,7 +1236,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           id="requirePayment"
                                           name="requirePayment"
                                           type="checkbox"
-                                          className="w-4 h-4 border-gray-300 rounded text-primary-600 focus:ring-primary-500"
+                                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                                           defaultChecked={requirePayment}
                                         />
                                       </div>
@@ -1260,7 +1259,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                               {requirePayment && (
                                 <div className="w-full">
-                                  <div className="items-center block sm:flex">
+                                  <div className="block items-center sm:flex">
                                     <div className="w-full">
                                       <div className="relative mt-1 rounded-sm shadow-sm">
                                         <Controller
@@ -1274,7 +1273,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               min="0.5"
                                               type="number"
                                               required
-                                              className="block w-full pl-2 pr-12 border-gray-300 rounded-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
                                               placeholder="Price"
                                               onChange={(e) => {
                                                 field.onChange(e.target.valueAsNumber * 100);
@@ -1283,7 +1282,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             />
                                           )}
                                         />
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                           <span className="text-gray-500 sm:text-sm" id="duration">
                                             {new Intl.NumberFormat("en", {
                                               style: "currency",
@@ -1308,7 +1307,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </>
                   {/* )} */}
                 </Collapsible>
-                <div className="flex justify-end mt-4 space-x-2 rtl:space-x-reverse">
+                <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                   <Button href="/event-types" color="secondary" tabIndex={-1}>
                     {t("cancel")}
                   </Button>
@@ -1341,8 +1340,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 href={permalink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                <ExternalLinkIcon className="w-4 h-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+                className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
+                <ExternalLinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                 {t("preview")}
               </a>
               <button
@@ -1351,13 +1350,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   showToast("Link copied!", "success");
                 }}
                 type="button"
-                className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 rounded-sm text-md hover:bg-gray-200 hover:text-gray-900">
-                <LinkIcon className="w-4 h-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                 {t("copy_link")}
               </button>
               <Dialog>
-                <DialogTrigger className="flex items-center px-2 py-1 text-sm font-medium rounded-sm text-md text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                  <TrashIcon className="w-4 h-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
+                  <TrashIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("delete")}
                 </DialogTrigger>
                 <ConfirmationDialogContent
@@ -1373,10 +1372,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         </div>
         <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
           <DialogContent asChild>
-            <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+            <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
               <div className="mb-4 sm:flex sm:items-start">
-                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                  <LocationMarkerIcon className="w-6 h-6 text-primary-600" />
+                <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                  <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
                 </div>
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -1427,7 +1426,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       options={locationOptions}
                       isSearchable={false}
                       classNamePrefix="react-select"
-                      className="flex-1 block w-full min-w-0 my-4 border border-gray-300 rounded-sm react-select-container focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
                       onChange={(val) => {
                         if (val) {
                           locationFormMethods.setValue("locationType", val.value);
@@ -1438,7 +1437,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   )}
                 />
                 <LocationOptions />
-                <div className="flex justify-end mt-4 space-x-2">
+                <div className="mt-4 flex justify-end space-x-2">
                   <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
                     {t("cancel")}
                   </Button>
@@ -1455,10 +1454,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           render={() => (
             <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
               <DialogContent asChild>
-                <div className="inline-block px-4 pt-5 pb-4 text-left align-bottom transition-all transform bg-white rounded-sm shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+                <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
                   <div className="mb-4 sm:flex sm:items-start">
-                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto rounded-full bg-secondary-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <PlusIcon className="w-6 h-6 text-primary-600" />
+                    <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                      <PlusIcon className="text-primary-600 h-6 w-6" />
                     </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                       <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
