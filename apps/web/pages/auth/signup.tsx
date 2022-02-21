@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { WEBSITE_URL } from "@lib/config/constants";
+import { BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
@@ -60,7 +60,7 @@ export default function Signup({ email }: Props) {
       .then(
         async () =>
           await signIn("Cal.com", {
-            callbackUrl: (`${WEBSITE_URL}/${router.query.callbackUrl}` || "") as string,
+            callbackUrl: (`${BASE_URL}/${router.query.callbackUrl}` || "") as string,
           })
       )
       .catch((err) => {
@@ -130,7 +130,7 @@ export default function Signup({ email }: Props) {
                   className="w-5/12 justify-center"
                   onClick={() =>
                     signIn("Cal.com", {
-                      callbackUrl: (`${WEBSITE_URL}/${router.query.callbackUrl}` || "") as string,
+                      callbackUrl: (`${BASE_URL}/${router.query.callbackUrl}` || "") as string,
                     })
                   }>
                   {t("login_instead")}
@@ -184,7 +184,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + `${WEBSITE_URL}/${ctx.query.callbackUrl}`,
+        destination: "/auth/login?callbackUrl=" + `${BASE_URL}/${ctx.query.callbackUrl}`,
       },
     };
   }
