@@ -164,7 +164,7 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 1. Run (in development mode)
@@ -211,7 +211,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate dev
+   yarn workspace @calcom/prisma db-migrate
    ```
 
    (this can clear your development database in some cases)
@@ -219,7 +219,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
