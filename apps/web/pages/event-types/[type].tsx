@@ -1666,6 +1666,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const integrations = getApps(credentials);
 
+  /** TODO: Find a way to get locations dynamically */
   const locationOptions: OptionTypeBase[] = [];
 
   if (hasIntegration(integrations, "zoom_video")) {
