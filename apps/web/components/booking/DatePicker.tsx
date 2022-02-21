@@ -51,10 +51,8 @@ function isOutOfBounds(
   switch (periodType) {
     case PeriodType.ROLLING: {
       const periodRollingEndDay = periodCountCalendarDays
-        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          dayjs().utcOffset(date.utcOffset()).add(periodDays!, "days").endOf("day")
-        : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          dayjs().utcOffset(date.utcOffset()).addBusinessTime(periodDays!, "days").endOf("day");
+        ? dayjs().utcOffset(date.utcOffset()).add(periodDays!, "days").endOf("day")
+        : dayjs().utcOffset(date.utcOffset()).addBusinessTime(periodDays!, "days").endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 

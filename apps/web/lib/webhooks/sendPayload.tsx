@@ -7,7 +7,7 @@ type ContentType = "application/json" | "application/x-www-form-urlencoded";
 function applyTemplate(template: string, data: CalendarEvent, contentType: ContentType) {
   const compiled = compile(template)(data);
   if (contentType === "application/json") {
-    return jsonParse(compiled);
+    return JSON.stringify(jsonParse(compiled));
   }
   return compiled;
 }
@@ -27,6 +27,7 @@ const sendPayload = async (
   subscriberUrl: string,
   data: CalendarEvent & {
     metadata?: { [key: string]: string };
+    rescheduleUid?: string;
   },
   template?: string | null
 ) => {
