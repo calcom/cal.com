@@ -57,7 +57,6 @@ export default function Signup({ email }: Props) {
     })
       .then(handleErrors)
       .then(async () => await signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
-
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
       });
