@@ -1,0 +1,25 @@
+const supportedWebhookIntegrationList = ["https://discord.com/api/webhooks/"];
+
+export const hasTemplateIntegration = (props) => {
+  const ind = supportedWebhookIntegrationList.findIndex((integration) => {
+    return props.url.includes(integration);
+  });
+  if (ind > -1) return true;
+  return false;
+};
+
+const customTemplate = (props) => {
+  const ind = supportedWebhookIntegrationList.findIndex((integration) => {
+    return props.url.includes(integration);
+  });
+  return integrationTemplate(supportedWebhookIntegrationList[ind]) || "";
+};
+
+const integrationTemplate = (webhookIntegration) => {
+  switch (webhookIntegration) {
+    case "https://discord.com/api/webhooks/":
+      return '{"content": "A new event has been scheduled","embeds": [{"color": 2697513,"fields": [{"name": "What","value": "{{title}} ({{type}})"},{"name": "When","value": "Start: {{startTime}} \\n End: {{endTime}} \\n Timezone: ({{organizer.timeZone}})"},{"name": "Who","value": "Organizer: {{organizer.name}} ({{organizer.email}}) \\n Booker: {{attendees.0.name}} ({{attendees.0.email}})" },{"name":"Description", "value":": {{description}}"},{"name":"Where","value":": {{location}} "}]}]}';
+  }
+};
+
+export default customTemplate;

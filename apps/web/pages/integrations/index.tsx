@@ -165,24 +165,12 @@ function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const supportedWebhookIntegrationList = ["https://discord.com/api/webhooks/"];
 
   const handleSubscriberUrlChange = (e) => {
     form.setValue("subscriberUrl", e.target.value);
-    const ind = supportedWebhookIntegrationList.findIndex((integration) => {
-      return e.target.value.includes(integration);
-    });
-    if (ind > -1) updateCustomTemplate(supportedWebhookIntegrationList[ind]);
-  };
-
-  const updateCustomTemplate = (webhookIntegration) => {
-    setUseCustomPayloadTemplate(true);
-    switch (webhookIntegration) {
-      case "https://discord.com/api/webhooks/":
-        form.setValue(
-          "payloadTemplate",
-          '{"content": "A new event has been scheduled","embeds": [{"color": 2697513,"fields": [{"name": "What","value": "{{title}} ({{type}})"},{"name": "When","value": "Start: {{startTime}} \\n End: {{endTime}} \\n Timezone: ({{organizer.timeZone}})"},{"name": "Who","value": "Organizer: {{organizer.name}} ({{organizer.email}}) \\n Booker: {{attendees.0.name}} ({{attendees.0.email}})" },{"name":"Description", "value":": {{description}}"},{"name":"Where","value":": {{location}} "}]}]}'
-        );
+    if (hasTemplateIntegration({ url: e.target.value })) {
+      setUseCustomPayloadTemplate(true);
+      form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
     }
   };
 

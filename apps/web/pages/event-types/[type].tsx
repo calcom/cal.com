@@ -44,6 +44,7 @@ import { slugify } from "@lib/slugify";
 import { trpc, inferQueryOutput } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
+import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
@@ -238,7 +239,13 @@ function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-
+  const handleSubscriberUrlChange = (e) => {
+    form.setValue("subscriberUrl", e.target.value);
+    if (hasTemplateIntegration({ url: e.target.value })) {
+      setUseCustomPayloadTemplate(true);
+      form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+    }
+  };
   const {
     defaultValues = {
       id: "",
@@ -293,7 +300,13 @@ function WebhookDialogForm(props: {
           />
         </InputGroupBox>
       </fieldset>
-      <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
+      <TextField
+        label={t("subscriber_url")}
+        {...form.register("subscriberUrl")}
+        required
+        type="url"
+        onChange={handleSubscriberUrlChange}
+      />
 
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
