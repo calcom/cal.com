@@ -13,6 +13,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
+import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from "@components/Dialog";
