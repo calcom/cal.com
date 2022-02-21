@@ -30,7 +30,7 @@ You need a PostgresDB database hosted somewhere. [Heroku](https://www.heroku.com
 
 5. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
    ```
-   npx prisma studio
+   yarn db-studio
    ```
 6. Click on the `User` model to add a new user record.
 7. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
@@ -42,5 +42,5 @@ You need a PostgresDB database hosted somewhere. [Heroku](https://www.heroku.com
 1. Import from your forked repository
 1. Set the Environment Variables
 1. Set the root directory to `apps/web`
-1. Override the build command to `cd ../.. && npx turbo run build --scope=@calcom/web --include-dependencies --no-deps`
+1. Override the build command to `cd ../.. && yarn build`
 1. Hit Deploy
