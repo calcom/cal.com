@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next",
     "start": "next start",
-    "build": "next build"
+    "build": "echo 'ok'"
   },
   "author": "Cal.com, Inc.",
   "license": "MIT",

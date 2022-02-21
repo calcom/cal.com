@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build --scope=@calcom/prisma --scope=@calcom/web",
+    "build": "turbo run build --include-dependencies --no-deps",
     "clean": "turbo run clean && rm -rf node_modules",
     "db-deploy": "turbo run db-deploy",
     "db-seed": "turbo run db-seed",
