@@ -25,7 +25,7 @@ You need a PostgresDB database hosted somewhere. [Heroku](https://www.heroku.com
 4. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 5. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
