@@ -44,7 +44,14 @@ export type AppMeta = ReturnType<typeof getApps>;
 
 export function hasIntegration(apps: AppMeta, type: string): boolean {
   return !!apps.find(
-    (app) => app.type === type && !!app.installed && (type === "daily_video" || app.credentials.length > 0)
+    (app) =>
+      app.type === type &&
+      !!app.installed &&
+      /* TODO: find a better way to do this */
+      (type === "daily_video" ||
+        type === "jitsi_video" ||
+        type === "huddle01_video" ||
+        app.credentials.length > 0)
   );
 }
 export function hasIntegrationInstalled(type: App["type"]): boolean {

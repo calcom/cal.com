@@ -12,7 +12,7 @@
  */
 export type App = {
   installed: boolean;
-  type: `${string}_calendar` | `${string}_payment` | `${string}_video`;
+  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3`;
   title: string;
   name: string;
   description: string;
