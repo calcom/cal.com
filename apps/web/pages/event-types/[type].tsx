@@ -178,6 +178,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
+  const [availabilityState, setAvailabilityState] = useState<{
+    openingHours: AvailabilityInput[];
+    dateOverrides: AvailabilityInput[];
+  }>({ openingHours: [], dateOverrides: [] });
+
   useEffect(() => {
     const fetchTokens = async () => {
       // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
@@ -671,8 +676,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 form={formMethods}
                 handleSubmit={async (values) => {
                   const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
+
                   updateMutation.mutate({
                     ...input,
+                    availability: availabilityState,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -1187,10 +1194,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             render={() => (
                               <Scheduler
                                 setAvailability={(val) => {
-                                  formMethods.setValue("availability", {
+                                  const schedule = {
                                     openingHours: val.openingHours,
                                     dateOverrides: val.dateOverrides,
-                                  });
+                                  };
+                                  // Updating internal state that would be sent on mutation
+                                  setAvailabilityState(schedule);
+                                  // Updating form values displayed, but this one doesn't reach form submit scope
+                                  formMethods.setValue("availability", schedule);
                                 }}
                                 setTimeZone={(timeZone) => {
                                   formMethods.setValue("timeZone", timeZone);
