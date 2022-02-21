@@ -68,7 +68,8 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
+
 
 <!-- GETTING STARTED -->
 
