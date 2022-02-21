@@ -704,10 +704,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           required
                           className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                           defaultValue={eventType.slug}
-                          onKeyUp={(event) => {
-                            formMethods.setValue("slug", slugify(String(event.target.value)));
-                          }}
-                          {...formMethods.register("slug")}
+                          {...formMethods.register("slug", {
+                            setValueAs: (v) => slugify(v),
+                          })}
                         />
                       </div>
                     </div>
