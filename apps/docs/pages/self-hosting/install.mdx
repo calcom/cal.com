@@ -102,7 +102,7 @@ yarn dx
 1.  Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
     ```sh
-    npx prisma migrate deploy
+    yarn workspace @calcom/prisma db-deploy
     ```
 
 1.  Run (in development mode)
