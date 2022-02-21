@@ -1,10 +1,10 @@
 import { useTranslation } from "next-i18next";
 
 export const useLocale = () => {
-  const { i18n, t } = useTranslation("common");
-
+  const t = (a) => {
+    return a;
+  };
   return {
-    i18n,
     t,
   };
 };
