@@ -5,7 +5,7 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "appStore/*"
+    "packages/app-store/*"
   ],
   "scripts": {
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",

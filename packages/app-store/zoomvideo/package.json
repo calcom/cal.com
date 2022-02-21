@@ -16,6 +16,9 @@
   "⬇️ TODO 2: placeholder for now, pull this from TrustPilot or G2": 1,
   "reviews": 69,
   "dependencies": {
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
     "@calcom/types": "*"
   }
 }

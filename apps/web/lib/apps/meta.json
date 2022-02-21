@@ -1,0 +1,14 @@
+{
+  "index": 1,
+  "self-hosting": 1,
+  "availability": 1,
+  "bookings": 1,
+  "event-types": 1,
+  "teams": 1,
+  "integrations": 1,
+  "webhooks": 1,
+  "settings": 1,
+  "import": 1,
+  "billing": 1,
+  "developer": 1
+}

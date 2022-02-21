@@ -2,48 +2,36 @@ import { Credential } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import appStore from "@calcom/app-store";
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { PartialReference } from "@calcom/types/EventManager";
+import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
+
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
-import { PartialReference } from "@lib/events/EventManager";
 import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import JitsiVideoApiAdapter from "@lib/integrations/Jitsi/JitsiVideoApiAdapter";
 import logger from "@lib/logger";
 
 import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
 import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
-import ZoomVideoApiAdapter from "./integrations/Zoom/ZoomVideoApiAdapter";
-import { CalendarEvent } from "./integrations/calendar/interfaces/Calendar";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
-export interface VideoCallData {
-  type: string;
-  id: string;
-  password: string;
-  url: string;
-}
-
-type EventBusyDate = Record<"start" | "end", Date>;
-
-export interface VideoApiAdapter {
-  createMeeting(event: CalendarEvent): Promise<VideoCallData>;
-
-  updateMeeting(bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData>;
-
-  deleteMeeting(uid: string): Promise<unknown>;
-
-  getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
-}
-
 // factory
 const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
   withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
+    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
+    const makeVideoApiAdapter = appStore[appName].lib?.VideoApiAdapter as VideoApiAdapterFactory;
+    if (typeof makeVideoApiAdapter !== "undefined") {
+      const videoAdapter = makeVideoApiAdapter(cred);
+      acc.push(videoAdapter);
+      return acc;
+    }
+
     switch (cred.type) {
-      case "zoom_video":
-        acc.push(ZoomVideoApiAdapter(cred));
-        break;
       case "daily_video":
         acc.push(DailyVideoApiAdapter(cred));
         break;

@@ -1,5 +1,5 @@
 {
   "extends": "@calcom/tsconfig/base.json",
-  "include": ["", "@calcom/types"],
+  "include": [".", "@calcom/types"],
   "exclude": ["dist", "build", "node_modules"]
 }

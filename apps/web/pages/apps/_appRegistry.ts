@@ -1,4 +1,32 @@
-// TODO: maybe we wanna do this dynamically later based on folder structure
+import fs from "fs";
+import path from "path";
+
+// It won't be called on client-side.
+export async function getStaticProps() {
+  const appStoreDir = path.join(process.cwd(), "packages/appStore");
+  const filenames = fs.readdirSync(appStoreDir);
+
+  const apps = filenames.map((filename) => {
+    const filePath = path.join(appStoreDir, filename);
+    const fileContents = fs.readFileSync(filePath, "utf8");
+
+    // Generally you would parse/transform the contents
+    // For example you can transform markdown to HTML here
+
+    return {
+      filename,
+      content: fileContents,
+    };
+  });
+  // By returning { props: posts }, the Blog component
+  // will receive `posts` as a prop at build time
+  return {
+    props: {
+      posts: apps,
+    },
+  };
+}
+
 export function appRegistry() {
   return [
     {

@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import "@calcom/types/next";
 
 const BASE_URL = process.env.BASE_URL || `https://${process.env.VERCEL_URL}`;
 

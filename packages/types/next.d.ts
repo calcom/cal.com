@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { IncomingMessage } from "http";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
 
 import "./next-auth";
 
