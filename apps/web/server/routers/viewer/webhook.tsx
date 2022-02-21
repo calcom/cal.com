@@ -11,10 +11,10 @@ import { getTranslation } from "@server/lib/i18n";
 export const webhookRouter = createProtectedRouter()
   .query("list", {
     input: z.object({
-      eventTypeId: z.number().optional(),
+      eventTypeId: z.number().nullable(),
     }),
     async resolve({ ctx, input }) {
-      if (typeof input.eventTypeId !== "undefined") {
+      if (input.eventTypeId) {
         return await ctx.prisma.webhook.findMany({
           where: {
             eventTypeId: input.eventTypeId,
