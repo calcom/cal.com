@@ -19,7 +19,6 @@ const opts: JacksonOption = {
 let apiController: IAPIController;
 let oauthController: IOAuthController;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const g = global as any;
 
 export default async function init() {

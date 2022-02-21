@@ -1,11 +1,12 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
-import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
-import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+
+import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -81,6 +82,11 @@ export default function CreateEventTypeButton(props: Props) {
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not able to create this event`;
         showToast(message, "error");
       }
     },

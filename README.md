@@ -68,7 +68,8 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
+
 
 <!-- GETTING STARTED -->
 
@@ -106,6 +107,7 @@ Here is what you need to be able to run Cal.
 
    ```sh
    cp apps/web/.env.example apps/web/.env
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -162,13 +164,13 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 1. Run (in development mode)
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
 #### Setting up your first user
@@ -176,12 +178,12 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   npx prisma studio
+   yarn prisma studio
    ```
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
@@ -190,7 +192,7 @@ yarn dx
 # In first terminal
 yarn dx
 # In second terminal
-yarn workspace @calcom/web test-playwright
+yarn workspace @calcom/web test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report
@@ -209,7 +211,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   npx prisma migrate dev
+   yarn workspace @calcom/web prisma migrate dev
    ```
 
    (this can clear your development database in some cases)
@@ -217,7 +219,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/web prisma migrate deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
@@ -232,14 +234,14 @@ yarn workspace @calcom/web playwright-report
 4. Start the server. In a development environment, just do:
 
    ```sh
-   yarn dev --scope=@calcom/web
+   yarn dev
    ```
 
    For a production build, run for example:
 
    ```sh
-   yarn build --scope=@calcom/web
-   yarn start --scope=@calcom/web
+   yarn build
+   yarn start
    ```
 
 5. Enjoy the new version.
@@ -333,6 +335,7 @@ Contributions are what make the open source community such an amazing place to b
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
 <!-- LICENSE -->
 

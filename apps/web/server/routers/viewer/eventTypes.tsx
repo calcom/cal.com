@@ -1,13 +1,14 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { z } from "zod";
+
 import {
   _AvailabilityModel,
   _DestinationCalendarModel,
   _EventTypeCustomInputModel,
   _EventTypeModel,
-} from "prisma/zod";
-import { stringOrNumber } from "prisma/zod-utils";
-import { createEventTypeInput } from "prisma/zod/eventtypeCustom";
-import { z } from "zod";
+} from "@calcom/prisma/zod";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -107,16 +108,32 @@ export const eventTypesRouter = createProtectedRouter()
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
+
+      const userId = ctx.user.id;
+
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
         users: {
           connect: {
-            id: ctx.user.id,
+            id: userId,
           },
         },
       };
 
       if (teamId && schedulingType) {
+        const hasMembership = await ctx.prisma.membership.findFirst({
+          where: {
+            userId,
+            teamId: teamId,
+            accepted: true,
+          },
+        });
+
+        if (!hasMembership) {
+          console.warn(`User ${userId} does not have permission to create this new event type`);
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
         data.team = {
           connect: {
             id: teamId,

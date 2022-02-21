@@ -1,10 +1,4 @@
-import {
-  CalendarIcon,
-  ClockIcon,
-  CreditCardIcon,
-  ExclamationIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/solid";
+import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -67,14 +61,14 @@ const BookingPage = (props: BookingPageProps) => {
       const eventOwner = eventType.users[0];
 
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
+    onSuccess: async (responseData) => {
+      const { attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -245,7 +239,6 @@ const BookingPage = (props: BookingPageProps) => {
     let web3Details;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
@@ -265,9 +258,7 @@ const BookingPage = (props: BookingPageProps) => {
       location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: booking.customInputs![inputId],
       })),
     });
@@ -330,26 +321,13 @@ const BookingPage = (props: BookingPageProps) => {
                     </IntlProvider>
                   </p>
                 )}
-                {selectedLocation === LocationType.InPerson && (
-                  <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                    {getLocationValue({ locationType: selectedLocation })}
-                  </p>
-                )}
-                {selectedLocation === LocationType.Jitsi && (
-                  <p className="mb-2 text-gray-500">
-                    <LocationMarkerIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                    Jitsi Meet
-                  </p>
-                )}
                 <p className="mb-4 text-green-500">
                   <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {parseDate(date)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    Requires ownership of a token belonging to the following address:{" "}
-                    {eventType.metadata.smartContractAddress}
+                    {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
                 <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
@@ -368,7 +346,7 @@ const BookingPage = (props: BookingPageProps) => {
                         id="name"
                         required
                         className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
-                        placeholder="John Doe"
+                        placeholder={t("example_name")}
                       />
                     </div>
                   </div>
@@ -416,7 +394,6 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                         {/* @ts-ignore */}
                         <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
                       </div>
