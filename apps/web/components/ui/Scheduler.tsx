@@ -47,6 +47,12 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
 
   const addNewSchedule = () => setEditSchedule(openingHours.length);
 
+  const setDaysAvailability = (item: Availability, selected: number[]) => {
+    item.days = selected;
+    setOpeningHours(openingHours.map((v: Availability) => (v.id === item.id ? item : v)));
+    setAvailability({ openingHours, dateOverrides: [] });
+  };
+
   const applyEditSchedule = (changed: Availability) => {
     // new entry
     if (!changed.days) {
@@ -68,7 +74,10 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
   const OpeningHours = ({ idx, item }: { idx: number; item: Availability }) => (
     <li className="flex justify-between border-b py-2">
       <div className="flex flex-col space-y-4 lg:inline-flex">
-        <WeekdaySelect defaultValue={item.days} onSelect={(selected: number[]) => (item.days = selected)} />
+        <WeekdaySelect
+          defaultValue={item.days}
+          onSelect={(selected: number[]) => setDaysAvailability(item, selected)}
+        />
         <button
           className="rounded-sm bg-neutral-100 px-3 py-2 text-sm"
           type="button"

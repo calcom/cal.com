@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 interface WeekdaySelectProps {
   defaultValue: number[];
@@ -12,13 +12,10 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
 
   const days = ["S", "M", "T", "W", "T", "F", "S"];
 
-  useEffect(() => {
-    props.onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
-  }, [activeDays]);
-
   const toggleDay = (idx: number) => {
     activeDays[idx] = !activeDays[idx];
     setActiveDays(([] as boolean[]).concat(activeDays));
+    props.onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
   };
 
   return (
@@ -34,10 +31,10 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
               }}
               className={`
               bg-brand text-brandcontrast
-                      h-10 w-10 rounded px-3 py-1 focus:outline-none 
-                    ${activeDays[idx + 1] ? "rounded-r-none" : ""} 
-                    ${activeDays[idx - 1] ? "rounded-l-none" : ""} 
-                    ${idx === 0 ? "rounded-l" : ""} 
+                      h-10 w-10 rounded px-3 py-1 focus:outline-none
+                    ${activeDays[idx + 1] ? "rounded-r-none" : ""}
+                    ${activeDays[idx - 1] ? "rounded-l-none" : ""}
+                    ${idx === 0 ? "rounded-l" : ""}
                     ${idx === days.length - 1 ? "rounded-r" : ""}
                   `}>
               {day}
