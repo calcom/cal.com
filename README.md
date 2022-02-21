@@ -178,7 +178,7 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   yarn prisma studio
+   yarn db-studio
    ```
 
 1. Click on the `User` model to add a new user record.
