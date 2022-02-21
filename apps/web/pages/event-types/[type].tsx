@@ -383,7 +383,7 @@ function WebhookListContainer(props) {
           <ShellSubHeading
             className="mt-10"
             title={t("Team Webhooks")}
-            subtitle={t("receive_cal_meeting_data")}
+            subtitle={t("receive_cal_event_meeting_data")}
           />
           <List>
             <ListItem className={classNames("flex-col")}>
