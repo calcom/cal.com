@@ -2,6 +2,7 @@ import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { BASE_URL } from "@lib/config/constants";
 import { AddAppleIntegrationModal } from "@lib/integrations/calendar/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/calendar/components/AddCalDavIntegration";
 
@@ -17,7 +18,7 @@ export default function ConnectIntegration(props: {
 
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
-      returnTo: location.pathname + location.search,
+      returnTo: BASE_URL + location.pathname + location.search,
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
