@@ -343,15 +343,13 @@ async function main() {
       },
     ]
   );
-
-  await prisma.$disconnect();
 }
 
 main()
-  .then(() => {
-    console.log("🌱 Seeded db");
-  })
   .catch((e) => {
     console.error(e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
