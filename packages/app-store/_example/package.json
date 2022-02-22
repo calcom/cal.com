@@ -1,17 +1,14 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "zoom",
-  "label": "Zoom",
-  "⬇️ needs to be the same as the folder name": 1,
-  "slug": "zoom",
-  "category": "Video Conferencing",
-  "description": "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
-  "logo": "/apps/zoom.svg",
-  "publisher": "Cal.com",
-  "url": "https://zoom.us/",
-  "verified": true,
-  "⬇️ TODO: placeholder for now, pull this from TrustPilot or G2": 1,
-  "rating": 4.3,
-  "⬇️ TODO 2: placeholder for now, pull this from TrustPilot or G2": 1,
-  "reviews": 69
+  "name": "@calcom/example-app",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "This is a brief description for the Example App.",
+  "dependencies": {
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
 }

@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@calcom/zoomvideo",
   "version": "0.0.0",
   "main": "./index.ts",
@@ -10,9 +11,7 @@
   "publisher": "Cal.com",
   "url": "https://zoom.us/",
   "verified": true,
-  "⬇️ TODO: placeholder for now, pull this from TrustPilot or G2": 1,
   "rating": 4.3,
-  "⬇️ TODO 2: placeholder for now, pull this from TrustPilot or G2": 1,
   "reviews": 69,
   "dependencies": {
     "@calcom/prisma": "*"
