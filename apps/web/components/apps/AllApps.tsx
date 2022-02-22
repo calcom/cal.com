@@ -1,12 +1,10 @@
-import { appRegistry } from "pages/apps/_appRegistry";
-
+import { App } from "@lib/apps/interfaces/App";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import AppCard from "./AppCard";
 
-export default function AllApps() {
+export default function AllApps({ apps }: { apps: App[] }) {
   const { t } = useLocale();
-  const apps = appRegistry();
 
   return (
     <div className="mb-16">

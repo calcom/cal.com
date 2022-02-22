@@ -1,5 +1,8 @@
 import { ChevronLeftIcon } from "@heroicons/react/solid";
+import { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
+
+import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -7,12 +10,9 @@ import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 import Button from "@components/ui/Button";
 
-import { appRegistry } from "../_appRegistry";
-
-export default function Apps() {
+export default function Apps({ appStore }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const apps = appRegistry();
 
   return (
     <Shell
@@ -27,7 +27,7 @@ export default function Apps() {
       <div className="mb-16">
         <h2 className="mb-2 text-lg font-semibold text-gray-900">All {router.query.category} apps</h2>
         <div className="grid grid-cols-3 gap-3">
-          {apps.map((app) => {
+          {appStore.map((app) => {
             return (
               app.category === router.query.category && (
                 <AppCard
@@ -46,3 +46,26 @@ export default function Apps() {
     </Shell>
   );
 }
+
+export const getStaticPaths = async () => {
+  const appStore = getAppRegistry();
+  const paths = appStore.reduce((categories, app) => {
+    if (!categories.includes(app.category)) {
+      categories.push(app.category);
+    }
+    return categories;
+  }, [] as string[]);
+
+  return {
+    paths: paths.map((category) => ({ params: { category } })),
+    fallback: false,
+  };
+};
+
+export const getStaticProps = async () => {
+  return {
+    props: {
+      appStore: getAppRegistry(),
+    },
+  };
+};

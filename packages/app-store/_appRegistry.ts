@@ -1,38 +1,9 @@
-import fs from "fs";
-import path from "path";
-
-// It won't be called on client-side.
-export async function getStaticProps() {
-  const appStoreDir = path.join(process.cwd(), "packages/appStore");
-  const filenames = fs.readdirSync(appStoreDir);
-
-  const apps = filenames.map((filename) => {
-    const filePath = path.join(appStoreDir, filename);
-    const fileContents = fs.readFileSync(filePath, "utf8");
-
-    // Generally you would parse/transform the contents
-    // For example you can transform markdown to HTML here
-
-    return {
-      filename,
-      content: fileContents,
-    };
-  });
-  // By returning { props: posts }, the Blog component
-  // will receive `posts` as a prop at build time
-  return {
-    props: {
-      posts: apps,
-    },
-  };
-}
-
-export function appRegistry() {
+export function getAppRegistry() {
   return [
     {
       name: "Zoom",
       slug: "zoom", // needs to be the same as the folder name
-      category: "Video Conferencing",
+      category: "video",
       description:
         "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
       logo: "/apps/zoom.svg",
@@ -45,7 +16,7 @@ export function appRegistry() {
     {
       name: "Cal Video",
       slug: "cal-video",
-      category: "Video Conferencing",
+      category: "video",
       description:
         "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
       logo: "/apps/daily.svg",
@@ -59,7 +30,7 @@ export function appRegistry() {
     {
       name: "Google Meet",
       slug: "google-meet",
-      category: "Video Conferencing",
+      category: "video",
       description:
         "Google Meet is Google's web-based video conferencing platform, designed to compete with major conferencing platforms.",
       logo: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
@@ -69,8 +40,8 @@ export function appRegistry() {
     },
     {
       name: "Stripe",
-      slug: "stripe",
-      category: "Payments",
+      slug: "stripe_payment",
+      category: "payment",
       description: "Stripe is the world's leading payment provider. Start charging for your bookings today.",
       logo: "/apps/stripe.svg",
       rating: 4.6,
@@ -80,7 +51,7 @@ export function appRegistry() {
     {
       name: "Google Calendar",
       slug: "google-calendar",
-      category: "Calendar",
+      category: "calendar",
       description:
         "Google Calendar is the most popular calendar platform for personal and business calendars.",
       logo: "/apps/google-calendar.svg",
@@ -90,7 +61,7 @@ export function appRegistry() {
     {
       name: "Microsoft 365/Outlook Calendar",
       slug: "microsoft-365",
-      category: "Calendar",
+      category: "calendar",
       description:
         "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
       logo: "/apps/outlook.svg",
@@ -100,7 +71,7 @@ export function appRegistry() {
     {
       name: "CalDAV",
       slug: "caldav",
-      category: "Calendar",
+      category: "calendar",
       description: "CalDAV is an open calendar standard which connects to virtually every calendar.",
       logo: "/apps/caldav.svg",
       rating: 3.6,
@@ -109,7 +80,7 @@ export function appRegistry() {
     {
       name: "iCloud Calendar",
       slug: "icloud-calendar",
-      category: "Calendar",
+      category: "calendar",
       description:
         "iCloud Calendar is Apple's calendar platform for users of iCloud, and is used in the Apple Calendar app on iOS and macOS.",
       logo: "/apps/apple-calendar.svg",

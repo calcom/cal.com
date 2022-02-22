@@ -2,16 +2,15 @@ import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
-import { appRegistry } from "pages/apps/_appRegistry";
 import { useEffect, useState } from "react";
 
+import type { App } from "@lib/apps/interfaces/App";
 import { useLocale } from "@lib/hooks/useLocale";
 import useMediaQuery from "@lib/hooks/useMediaQuery";
 
 import AppCard from "./AppCard";
 
-export default function Slider() {
-  const apps = appRegistry();
+const Slider = <T extends App>({ items }: { items: T[] }) => {
   const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [size, setSize] = useState(3);
@@ -49,7 +48,7 @@ export default function Slider() {
         </div>
         <div className="glide__track" data-glide-el="track">
           <ul className="glide__slides">
-            {apps.map((app) => {
+            {items.map((app) => {
               return (
                 app.trending && (
                   <li key={app.name} className="glide__slide">
@@ -71,4 +70,6 @@ export default function Slider() {
       </div>
     </div>
   );
-}
+};
+
+export default Slider;

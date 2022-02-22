@@ -18,4 +18,14 @@ export type App = {
   description: string;
   imageSrc: string;
   variant: "calendar" | "payment" | "conferencing";
+  label: string;
+  slug: string;
+  category: string;
+  logo: string;
+  publisher: string;
+  url: string;
+  verified: boolean;
+  trending: boolean;
+  rating: number;
+  reviews: number;
 };
