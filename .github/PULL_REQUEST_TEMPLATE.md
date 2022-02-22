@@ -20,12 +20,15 @@ Fixes # (issue)
 - [ ] Test A
 - [ ] Test B
 
-## Checklist:
+## Checklist
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code and corrected any misspellings
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+<!-- Please remove all the irrelevant bullets to your PR -->
+
+- I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
+- My code doesn't follow the style guidelines of this project
+- I haven't performed a self-review of my own code and corrected any misspellings
+- I haven't commented my code, particularly in hard-to-understand areas
+- I haven't checked if my PR needs changes to the documentation
+- I haven't checked if my changes generate no new warnings
+- I haven't added tests that prove my fix is effective or that my feature works
+- I haven't checked if new and existing unit tests pass locally with my changes

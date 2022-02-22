@@ -38,6 +38,7 @@ import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegratio
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
+import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -209,6 +210,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  const [availabilityState, setAvailabilityState] = useState<{
+    openingHours: AvailabilityInput[];
+    dateOverrides: AvailabilityInput[];
+  }>({ openingHours: [], dateOverrides: [] });
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -703,8 +709,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 form={formMethods}
                 handleSubmit={async (values) => {
                   const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
+
                   updateMutation.mutate({
                     ...input,
+                    availability: availabilityState,
                     periodStartDate: periodDates.startDate,
                     periodEndDate: periodDates.endDate,
                     periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -736,7 +744,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           required
                           className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                           defaultValue={eventType.slug}
-                          {...formMethods.register("slug")}
+                          {...formMethods.register("slug", {
+                            setValueAs: (v) => slugify(v),
+                          })}
                         />
                       </div>
                     </div>
@@ -1216,6 +1226,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             control={formMethods.control}
                             render={() => <AvailabilitySelect />}
                           />
+
                           <Link href="/availability">
                             <a>
                               <Alert
