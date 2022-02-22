@@ -6,7 +6,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
+import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
