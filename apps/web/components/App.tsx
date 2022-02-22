@@ -74,17 +74,17 @@ export default function App({
     <>
       <Shell large>
         <div className="-mx-8">
-          <div className="px-10 bg-gray-50">
+          <div className="bg-gray-50 px-10">
             <Link href="/apps">
-              <a className="inline-flex px-1 py-2 mt-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-                <ChevronLeftIcon className="w-5 h-5" /> {t("browse_apps")}
+              <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
               </a>
             </Link>
             <div className="flex items-center justify-between py-8">
               <div className="flex">
-                <img className="w-16 h-16" src={logo} />
+                <img className="h-16 w-16" src={logo} alt="" />
                 <header className="px-4 py-2">
-                  <h1 className="text-xl text-gray-900 font-cal">{name}</h1>
+                  <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
                     <span className="capitalize">{categories[0]}</span> • {t("build_by", { author })}
                   </h2>
@@ -122,7 +122,7 @@ export default function App({
 
           <div className="flex justify-between px-10 py-10">
             <div className="prose-sm prose">{body}</div>
-            <div className="flex-1 max-w-80">
+            <div className="max-w-80 flex-1">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
                 {categories.map((category) => (
@@ -149,7 +149,7 @@ export default function App({
                 )}
               </small>
               <h4 className="mt-8 mb-2 font-medium text-gray-900 ">{t("learn_more")}</h4>
-              <ul className="-ml-1 -mr-1 text-xs leading-5 prose">
+              <ul className="prose -ml-1 -mr-1 text-xs leading-5">
                 {docs && (
                   <li>
                     <a
@@ -157,7 +157,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={docs}>
-                      <BookOpenIcon className="inline w-4 h-4 mr-1 -mt-1" />
+                      <BookOpenIcon className="mr-1 -mt-1 inline h-4 w-4" />
                       {t("documentation")}
                     </a>
                   </li>
@@ -169,7 +169,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={website}>
-                      <ExternalLinkIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      <ExternalLinkIcon className="mr-1 -mt-px inline h-4 w-4" />
                       {website.replace("https://", "")}
                     </a>
                   </li>
@@ -181,7 +181,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={"mailto:" + email}>
-                      <MailIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      <MailIcon className="mr-1 -mt-px inline h-4 w-4" />
                       {email}
                     </a>
                   </li>
@@ -193,7 +193,7 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={tos}>
-                      <DocumentTextIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      <DocumentTextIcon className="mr-1 -mt-px inline h-4 w-4" />
                       {t("terms_of_service")}
                     </a>
                   </li>
@@ -205,20 +205,20 @@ export default function App({
                       rel="noreferrer"
                       className="text-blue-500 no-underline hover:underline"
                       href={privacy}>
-                      <ShieldCheckIcon className="inline w-4 h-4 mr-1 -mt-px" />
+                      <ShieldCheckIcon className="mr-1 -mt-px inline h-4 w-4" />
                       {t("privacy_policy")}
                     </a>
                   </li>
                 )}
               </ul>
               <hr className="my-6" />
-              <small className="block text-gray-500 leading-1">
+              <small className="leading-1 block text-gray-500">
                 Every app published on the Cal.com App Store is open source and thoroughly tested via peer
                 reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are
                 published by Cal.com. If you encounter inappropriate content or behaviour please report it.
               </small>
-              <a className="block mt-2 text-xs text-red-500" href="mailto:help@cal.com">
-                <FlagIcon className="inline w-3 h-3" /> Report App
+              <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
+                <FlagIcon className="inline h-3 w-3" /> Report App
               </a>
             </div>
           </div>
