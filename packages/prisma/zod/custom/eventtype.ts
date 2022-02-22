@@ -1,4 +1,4 @@
-import { _EventTypeModel } from "@calcom/prisma/zod";
+import { _EventTypeModel } from "../eventtype";
 
 export const createEventTypeInput = _EventTypeModel
     .pick({
