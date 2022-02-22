@@ -2,7 +2,7 @@ import appStore from ".";
 
 export function getAppRegistry() {
   return [
-    appStore.zoomvideo.metadata,
+    ...Object.values(appStore).map((app) => app.metadata),
     {
       name: "Cal Video",
       slug: "cal-video",

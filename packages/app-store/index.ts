@@ -1,9 +1,9 @@
 import * as example from "./_example";
-import * as zoomvideo from "./zoomvideo";
+import * as zoom_video from "./zoom_video";
 
 const appStore = {
   example,
-  zoomvideo,
+  zoom_video,
 };
 
 export default appStore;

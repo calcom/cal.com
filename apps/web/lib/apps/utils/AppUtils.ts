@@ -9,7 +9,7 @@ import { APPS as ConferencingApps } from "@lib/apps/conferencing/config";
 import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
 const ALL_APPS_MAP = {
-  zoomvideo: appStore.zoomvideo.metadata,
+  ...Object.values(appStore).map((app) => app.metadata),
   ...CalendarApps,
   ...ConferencingApps,
   ...PaymentApps,

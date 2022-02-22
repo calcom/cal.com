@@ -20,7 +20,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ message: `API route not found` });
   }
 
-  const [appName, apiEndpoint] = args;
+  const [_appName, apiEndpoint] = args;
+  const appName = _appName.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
 
   try {
     // TODO: Find a way to dynamically import these modules
