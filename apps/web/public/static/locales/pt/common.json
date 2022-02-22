@@ -453,6 +453,8 @@
   "pending": "Pendente",
   "open_options": "Abrir Opções",
   "copy_link": "Copiar ligação do evento",
+  "share": "Partilhar",
+  "share_event": "Gostaria de resevar com o meu calendário ou enviar-me a sua ligação?",
   "copy_link_team": "Copiar ligação para a equipa",
   "leave_team": "Sair da equipa",
   "confirm_leave_team": "Sim, sair da equipa",
@@ -460,6 +462,7 @@
   "user_from_team": "{{user}} de {{team}}",
   "preview": "Pré-visualizar",
   "link_copied": "Ligação copiada!",
+  "link_shared": "Ligação partilhada!",
   "title": "Título",
   "description": "Descrição",
   "quick_video_meeting": "Uma breve reunião em vídeo.",
@@ -652,5 +655,7 @@
   "prisma_studio_tip": "Crie uma conta via Prisma Studio",
   "prisma_studio_tip_description": "Saiba como configurar o seu primeiro utilizador",
   "contact_sales": "Contacte as vendas",
-  "error_404": "Erro 404"
+  "error_404": "Erro 404",
+  "requires_ownership_of_a_token": "Requer a propriedade de um token pertencente ao seguinte endereço:",
+  "example_name": "José Ninguém"
 }
