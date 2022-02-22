@@ -1,4 +1,5 @@
-import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";

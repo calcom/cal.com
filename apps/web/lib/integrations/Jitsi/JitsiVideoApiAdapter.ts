@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { PartialReference } from "@lib/events/EventManager";
-import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";
+import type { PartialReference } from "@calcom/types/EventManager";
+import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {
   return {

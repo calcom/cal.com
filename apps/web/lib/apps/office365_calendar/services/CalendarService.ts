@@ -1,13 +1,15 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential } from "@prisma/client";
 
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 
 import { APPS_TYPES } from "../../calendar/constants/general";
-import { Calendar, CalendarEvent, IntegrationCalendar } from "../../calendar/interfaces/Calendar";
+import { Calendar, IntegrationCalendar } from "../../calendar/interfaces/Calendar";
 import { BatchResponse, EventBusyDate, NewCalendarEventType } from "../../calendar/types/CalendarTypes";
 import { BufferedBusyTime, O365AuthCredentials } from "../types/Office365Calendar";
 

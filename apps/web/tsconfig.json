@@ -10,7 +10,7 @@
       "@apps/*": ["lib/apps/*"]
     },
     "typeRoots": ["./types", "@calcom/types"],
-    "types": ["@types/jest", "@calcom/types/*.d.ts"]
+    "types": ["@types/jest"]
   },
   "include": [
     "next-env.d.ts",

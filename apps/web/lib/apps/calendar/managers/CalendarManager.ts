@@ -1,8 +1,10 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+
 import { getUid } from "@lib/CalEventParser";
-import { getErrorFromUnknown } from "@lib/errors";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
@@ -13,7 +15,7 @@ import GoogleCalendarService from "../../google_calendar/services/CalendarServic
 import Office365CalendarService from "../../office365_calendar/services/CalendarService";
 import { APPS } from "../config";
 import { APPS_TYPES } from "../constants/general";
-import { Calendar, CalendarEvent } from "../interfaces/Calendar";
+import { Calendar } from "../interfaces/Calendar";
 import { CalendarServiceType, EventBusyDate } from "../types/CalendarTypes";
 
 const CALENDARS: Record<string, CalendarServiceType> = {

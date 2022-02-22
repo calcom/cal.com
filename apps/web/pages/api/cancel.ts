@@ -3,9 +3,9 @@ import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import { refund } from "@ee/lib/stripe/server";
 
-import { CalendarEvent } from "@lib/apps/calendar/interfaces/Calendar";
 import { getCalendar } from "@lib/apps/calendar/managers/CalendarManager";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";

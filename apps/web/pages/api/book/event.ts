@@ -9,9 +9,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
-import { CalendarEvent, AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
+import { AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
 import { getBusyCalendarTimes } from "@lib/apps/calendar/managers/CalendarManager";
 import { BufferedBusyTime } from "@lib/apps/office365_calendar/types/Office365Calendar";
 import {
@@ -22,7 +24,7 @@ import {
 import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
-import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
+import EventManager, { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";

@@ -16,6 +16,8 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
+import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
 import { symmetricDecrypt } from "@lib/crypto";
 import type { Event } from "@lib/events/EventManager";
@@ -23,7 +25,7 @@ import logger from "@lib/logger";
 
 import { TIMEZONE_FORMAT } from "../constants/format";
 import { DEFAULT_CALENDAR_TYPE } from "../constants/general";
-import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { Calendar, IntegrationCalendar } from "../interfaces/Calendar";
 import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../types/CalendarTypes";
 import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
 
