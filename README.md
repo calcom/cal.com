@@ -70,7 +70,6 @@ Cal officially launched as v.1.0 on 15th of September, however a lot of new feat
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
-
 <!-- GETTING STARTED -->
 
 ## Getting Started
@@ -279,14 +278,11 @@ See the [open issues](https://github.com/calcom/cal.com/issues) for a list of pr
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Please see our [contributing guide](/CONTRIBUTING.md).
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-5. Push to the branch (`git push origin feature/AmazingFeature`)
-6. Open a pull request
+### Good First Issues
+
+We have a list of [good first issues](https://github.com/calcom/cal.com/labels/✅%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
