@@ -50,18 +50,19 @@ export async function getStripeCustomerId(user: UserType): Promise<string | null
       /* Creating customer on Stripe and saving it on prisma */
       const customer = await stripe.customers.create({ email: user.email });
       customerId = customer.id;
-      await prisma.user.update({
-        where: {
-          email: user.email,
-        },
-        data: {
-          metadata: {
-            ...(user.metadata as Prisma.JsonObject),
-            stripeCustomerId: customerId,
-          },
-        },
-      });
     }
+
+    await prisma.user.update({
+      where: {
+        email: user.email,
+      },
+      data: {
+        metadata: {
+          ...(user.metadata as Prisma.JsonObject),
+          stripeCustomerId: customerId,
+        },
+      },
+    });
   }
 
   return customerId;
