@@ -1,4 +1,4 @@
-import { App } from "../interfaces/App";
+import type { App } from "@calcom/types/App";
 
 export const APPS = {
   zoom_video: {

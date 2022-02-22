@@ -1,9 +1,10 @@
 import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
+import type { App } from "@calcom/types/App";
+
 import { APPS as CalendarApps } from "@lib/apps/calendar/config";
 import { APPS as ConferencingApps } from "@lib/apps/conferencing/config";
-import { App } from "@lib/apps/interfaces/App";
 import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
 const ALL_APPS_MAP = { ...CalendarApps, ...ConferencingApps, ...PaymentApps };

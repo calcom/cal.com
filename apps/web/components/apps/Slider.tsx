@@ -4,7 +4,8 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 
-import type { App } from "@lib/apps/interfaces/App";
+import type { App } from "@calcom/types/App";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import useMediaQuery from "@lib/hooks/useMediaQuery";
 
