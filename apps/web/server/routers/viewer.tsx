@@ -339,9 +339,9 @@ const loggedInViewerRouter = createProtectedRouter()
         typeof bookingListingByStatus,
         Prisma.BookingOrderByWithAggregationInput
       > = {
-        upcoming: { startTime: "desc" },
+        upcoming: { startTime: "asc" },
         past: { startTime: "desc" },
-        cancelled: { startTime: "desc" },
+        cancelled: { startTime: "asc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -390,7 +390,7 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const bookings = bookingsQuery.reverse().map((booking) => {
+      const bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           startTime: booking.startTime.toISOString(),

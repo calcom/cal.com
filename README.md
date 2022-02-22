@@ -68,7 +68,8 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
+
 
 <!-- GETTING STARTED -->
 
@@ -163,7 +164,7 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 1. Run (in development mode)
@@ -177,7 +178,7 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   yarn prisma studio
+   yarn db-studio
    ```
 
 1. Click on the `User` model to add a new user record.
@@ -210,7 +211,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate dev
+   yarn workspace @calcom/prisma db-migrate
    ```
 
    (this can clear your development database in some cases)
@@ -218,7 +219,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
@@ -334,6 +335,7 @@ Contributions are what make the open source community such an amazing place to b
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
 <!-- LICENSE -->
 

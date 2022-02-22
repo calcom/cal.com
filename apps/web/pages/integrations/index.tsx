@@ -56,7 +56,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="mt-2 flex">
-            <span className="flex flex-col space-y-1 space-x-2 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
+            <span className="flex flex-col space-x-2 space-y-1 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -165,6 +165,26 @@ function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const supportedWebhookIntegrationList = ["https://discord.com/api/webhooks/"];
+
+  const handleSubscriberUrlChange = (e) => {
+    form.setValue("subscriberUrl", e.target.value);
+    const ind = supportedWebhookIntegrationList.findIndex((integration) => {
+      return e.target.value.includes(integration);
+    });
+    if (ind > -1) updateCustomTemplate(supportedWebhookIntegrationList[ind]);
+  };
+
+  const updateCustomTemplate = (webhookIntegration) => {
+    setUseCustomPayloadTemplate(true);
+    switch (webhookIntegration) {
+      case "https://discord.com/api/webhooks/":
+        form.setValue(
+          "payloadTemplate",
+          '{"content": "A new event has been scheduled","embeds": [{"color": 2697513,"fields": [{"name": "What","value": "{{title}} ({{type}})"},{"name": "When","value": "Start: {{startTime}} \\n End: {{endTime}} \\n Timezone: ({{organizer.timeZone}})"},{"name": "Who","value": "Organizer: {{organizer.name}} ({{organizer.email}}) \\n Booker: {{attendees.0.name}} ({{attendees.0.email}})" },{"name":"Description", "value":": {{description}}"},{"name":"Where","value":": {{location}} "}]}]}'
+        );
+    }
+  };
 
   const {
     defaultValues = {
@@ -219,7 +239,13 @@ function WebhookDialogForm(props: {
           />
         </InputGroupBox>
       </fieldset>
-      <TextField label={t("subscriber_url")} {...form.register("subscriberUrl")} required type="url" />
+      <TextField
+        label={t("subscriber_url")}
+        {...form.register("subscriberUrl")}
+        required
+        type="url"
+        onChange={handleSubscriberUrlChange}
+      />
 
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>

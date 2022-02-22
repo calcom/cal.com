@@ -15,7 +15,7 @@ Make sure you have `docker` & `docker-compose` installed on the server / system.
    ```bash
    docker pull calendso/calendso
    ```
-   
+
 or
 
 ### Option #2: Cloning
@@ -30,12 +30,12 @@ or
 
 3. Build and start calendso
 
-   ```
+   ```bash
    docker-compose up --build
    ```
 
 4. Start prisma studio
-   ```
+   ```bash
    docker-compose exec calendso -- npx prisma studio
    ```
 5. Open a browser to [port 5555](http://localhost:5555) on your localhost to look at or modify the database content.
