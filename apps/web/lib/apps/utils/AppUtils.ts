@@ -1,25 +1,27 @@
 import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
+import appStore from "@calcom/app-store";
 import type { App } from "@calcom/types/App";
 
 import { APPS as CalendarApps } from "@lib/apps/calendar/config";
 import { APPS as ConferencingApps } from "@lib/apps/conferencing/config";
 import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
-const ALL_APPS_MAP = { ...CalendarApps, ...ConferencingApps, ...PaymentApps };
+const ALL_APPS_MAP = {
+  zoomvideo: appStore.zoomvideo.metadata,
+  ...CalendarApps,
+  ...ConferencingApps,
+  ...PaymentApps,
+};
 
-/**
- *  We can't use aliases in playwright tests (yet)
- * https://github.com/microsoft/playwright/issues/7121
- */
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
-export const ALL_APPS = Object.entries(ALL_APPS_MAP).map((app) => app[1]);
+export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
 function getApps(userCredentials: CredentialData[]) {
   const apps = ALL_APPS.map((app) => {

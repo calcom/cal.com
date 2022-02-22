@@ -1,15 +1,6 @@
 import type { App } from "@calcom/types/App";
 
 export const APPS = {
-  zoom_video: {
-    installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
-    type: "zoom_video",
-    title: "Zoom",
-    name: "Zoom",
-    description: "Video Conferencing",
-    imageSrc: "apps/zoom.svg",
-    variant: "conferencing",
-  },
   daily_video: {
     installed: !!process.env.DAILY_API_KEY,
     type: "daily_video",
@@ -18,5 +9,15 @@ export const APPS = {
     description: "Video Conferencing",
     imageSrc: "apps/daily.svg",
     variant: "conferencing",
+    label: "",
+    slug: "",
+    category: "",
+    logo: "",
+    publisher: "",
+    url: "",
+    verified: true,
+    trending: true,
+    rating: 0,
+    reviews: 0,
   },
 } as Record<string, App>;

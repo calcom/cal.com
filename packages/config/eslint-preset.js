@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended"],
+  extends: ["plugin:playwright/playwright-test", "next", "prettier"],
   settings: {
     next: {
       rootDir: ["apps/*/", "packages/*/"],

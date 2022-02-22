@@ -10,7 +10,7 @@
  * @member {string} imageSrc is to indicate where the app's logo is located.
  * @member {string} variant is to indicate to which classification the app belongs. It can be a `calendar`, `payment` or `conferencing` integration.
  */
-export type App = {
+export interface App {
   installed: boolean;
   type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3`;
   title: string;
@@ -28,4 +28,4 @@ export type App = {
   trending: boolean;
   rating: number;
   reviews: number;
-};
+}
