@@ -4,23 +4,23 @@
 .env
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
-/.yarn
 
 # testing
-/coverage
-.nyc_output
+coverage
+/test-results/
 playwright/videos
 playwright/screenshots
+playwright/artifacts
+playwright/results
+playwright/reports/*
 
 # next.js
-/.next/
-/out/
-
-# production
-/build
+.next/
+out/
+build
 
 # misc
 .DS_Store
@@ -30,12 +30,15 @@ playwright/screenshots
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # local env files
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -54,3 +57,7 @@ yarn-error.log*
 # Local History for Visual Studio Code
 .history/
 
+# Typescript
+tsconfig.tsbuildinfo
+# turbo
+.turbo

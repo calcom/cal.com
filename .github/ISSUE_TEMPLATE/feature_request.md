@@ -2,11 +2,9 @@
 name: Feature request
 about: Suggest a feature or idea
 title: ""
-labels: enhancement
+labels: feature
 assignees: ""
 ---
-
-> Please check if your Feature Request has not been already raised in the [Discussions Tab](https://github.com/calendso/calendso/discussions), as we would like to reduce duplicates. If it has been already raised, simply upvote it 🔼.
 
 ### Is your proposal related to a problem?
 

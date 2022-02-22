@@ -1,23 +1,37 @@
 name: E2E test
-on: [push]
+on:
+  pull_request_target:
+    branches:
+      - main
+    paths-ignore:
+      - public/static/locales/**
 jobs:
   test:
     timeout-minutes: 10
-    name: ${{ matrix.node }} and ${{ matrix.os }}
-
+    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
-      GOOGLE_API_CREDENTIALS: "{}"
-      # GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
+      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+      GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
-      # CALENDSO_ENCRYPTION_KEY: xxx
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+      PAYMENT_FEE_PERCENTAGE: 0.005
+      PAYMENT_FEE_FIXED: 10
+      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+      SAML_ADMINS: pro@example.com
       # NEXTAUTH_URL: xxx
-      # EMAIL_FROM: xxx
-      # EMAIL_SERVER_HOST: xxx
-      # EMAIL_SERVER_PORT: xxx
-      # EMAIL_SERVER_USER: xxx
+      EMAIL_FROM: e2e@cal.com
+      EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+      EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+      EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+      EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
       # MS_GRAPH_CLIENT_ID: xxx
       # MS_GRAPH_CLIENT_SECRET: xxx
       # ZOOM_CLIENT_ID: xxx
@@ -39,27 +53,26 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
           node-version: ${{ matrix.node }}
 
-      - name: Install deps
-        uses: bahmutov/npm-install@v1
-      - name: Next.js cache
+      - name: Turbo Cache
+        id: turbo-cache
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-nextjs
-
-      - run: yarn test
-      - run: yarn prisma migrate deploy
-      - run: yarn db-seed
-      - run: yarn build
-      - run: yarn start &
-      - run: npx wait-port 3000 --timeout 10000
-
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-
+      - run: yarn
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -69,11 +82,11 @@ jobs:
             ~/.cache/ms-playwright
             **/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn playwright install-deps
-
-      - run: yarn test-playwright
+        run: yarn playwright install --with-deps
+      - run: yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
@@ -81,5 +94,8 @@ jobs:
         with:
           name: videos
           path: |
+            test-results
             playwright/screenshots
             playwright/videos
+            playwright/results
+            playwright/reports
