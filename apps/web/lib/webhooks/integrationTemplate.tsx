@@ -4,8 +4,7 @@ export const hasTemplateIntegration = (props) => {
   const ind = supportedWebhookIntegrationList.findIndex((integration) => {
     return props.url.includes(integration);
   });
-  if (ind > -1) return true;
-  return false;
+  return (ind > -1) ? true : false;
 };
 
 const customTemplate = (props) => {
