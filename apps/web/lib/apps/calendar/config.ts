@@ -39,4 +39,4 @@ export const APPS = {
     imageSrc: "apps/apple-calendar.svg",
     variant: "calendar",
   },
-} as Record<string, App>;
+} as Record<string, Partial<App>>;

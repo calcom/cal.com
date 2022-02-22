@@ -1,5 +1,8 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "include": [".", "@calcom/types"],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "node_modules"],
+  "compilerOptions": {
+    "resolveJsonModule": true
+  }
 }

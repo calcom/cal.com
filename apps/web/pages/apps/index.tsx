@@ -1,3 +1,5 @@
+import { InferGetStaticPropsType } from "next";
+
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -8,7 +10,7 @@ import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
 import Slider from "@components/apps/Slider";
 
-export default function Apps({ appStore, categories }) {
+export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
 
   return (

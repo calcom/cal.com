@@ -1,18 +1,8 @@
+import appStore from ".";
+
 export function getAppRegistry() {
   return [
-    {
-      name: "Zoom",
-      slug: "zoom", // needs to be the same as the folder name
-      category: "video",
-      description:
-        "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
-      logo: "/apps/zoom.svg",
-      publisher: "Cal.com",
-      url: "https://zoom.us/",
-      verified: true,
-      rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
-      reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
-    },
+    appStore.zoomvideo.metadata,
     {
       name: "Cal Video",
       slug: "cal-video",
