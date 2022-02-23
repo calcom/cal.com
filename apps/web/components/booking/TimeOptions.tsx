@@ -13,7 +13,7 @@ type Props = {
   onToggle24hClock: (is24hClock: boolean) => void;
 };
 
-const TimeOptions: FC<Props> = (props) => {
+const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [is24hClock, setIs24hClock] = useState(false);
   const { t } = useLocale();
@@ -25,13 +25,12 @@ const TimeOptions: FC<Props> = (props) => {
 
   useEffect(() => {
     if (selectedTimeZone && timeZone() && selectedTimeZone !== timeZone()) {
-      props.onSelectTimeZone(timeZone(selectedTimeZone));
+      onSelectTimeZone(timeZone(selectedTimeZone));
     }
-  }, [selectedTimeZone]);
-
+  }, [selectedTimeZone, onSelectTimeZone]);
   const handle24hClockToggle = (is24hClock: boolean) => {
     setIs24hClock(is24hClock);
-    props.onToggle24hClock(is24h(is24hClock));
+    onToggle24hClock(is24h(is24hClock));
   };
 
   return selectedTimeZone !== "" ? (
