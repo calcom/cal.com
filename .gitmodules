@@ -1,0 +1,3 @@
+[submodule "apps/website"]
+	path = apps/website
+	url = git@github.com:calcom/website.git
