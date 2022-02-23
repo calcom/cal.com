@@ -22,8 +22,14 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {props.items.slice(0, props.truncateAfter).map((item, idx) => {
         if (item.image != null) {
           return (
-            <li key={idx} className={classNames("-mr-2 inline-block border-2", props.border)}>
-              <Avatar imageSrc={item.image} title={item.title} alt={item.alt || ""} size={props.size} />
+            <li key={idx} className="-mr-2 inline-block">
+              <Avatar
+                className={props.border}
+                imageSrc={item.image}
+                title={item.title}
+                alt={item.alt || ""}
+                size={props.size}
+              />
             </li>
           );
         }
