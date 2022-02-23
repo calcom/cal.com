@@ -25,6 +25,7 @@ mkdir tmp # create the tmp folder
 cd tmp # go into the tmp folder
 
 # checkout the current submodule commit
+git config --global init.defaultBranch main
 git init # initialise empty repo
 git remote add origin https://$GITHUB_ACCESS_TOKEN@$SUBMODULE_GITHUB # add origin of the submodule
 git fetch --depth=1 origin $COMMIT # fetch only the required version
