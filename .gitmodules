@@ -1,0 +1,3 @@
+[submodule "apps/api"]
+	path = apps/api
+	url = git@github.com:calcom/api.git
