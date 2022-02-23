@@ -10,11 +10,13 @@ import { getTranslation } from "@server/lib/i18n";
 
 export const webhookRouter = createProtectedRouter()
   .query("list", {
-    input: z.object({
-      eventTypeId: z.number().nullable(),
-    }),
+    input: z
+      .object({
+        eventTypeId: z.number().optional(),
+      })
+      .optional(),
     async resolve({ ctx, input }) {
-      if (input.eventTypeId) {
+      if (input?.eventTypeId) {
         return await ctx.prisma.webhook.findMany({
           where: {
             eventTypeId: input.eventTypeId,
@@ -34,7 +36,7 @@ export const webhookRouter = createProtectedRouter()
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
       active: z.boolean(),
       payloadTemplate: z.string().nullable(),
-      eventTypeId: z.number().nullable(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       if (input.eventTypeId) {
@@ -61,7 +63,7 @@ export const webhookRouter = createProtectedRouter()
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       active: z.boolean().optional(),
       payloadTemplate: z.string().nullable(),
-      eventTypeId: z.number().nullable(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
@@ -94,7 +96,7 @@ export const webhookRouter = createProtectedRouter()
   .mutation("delete", {
     input: z.object({
       id: z.string(),
-      eventTypeId: z.number().nullable(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { id } = input;
