@@ -124,6 +124,14 @@ Here is what you need to be able to run Cal.
 yarn dx
 ```
 
+#### Development tip
+
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `apps/web/.env` to get logging information for all the queries and mutations driven by **trpc**.
+
+```sh
+echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
+```
+
 #### Manual setup
 
 1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
