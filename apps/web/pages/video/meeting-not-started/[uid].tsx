@@ -4,10 +4,10 @@ import dayjs from "dayjs";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { useEffect } from "react";
 
 import prisma from "@lib/prisma";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
@@ -23,7 +23,6 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
       router.push("/video/no-meeting-found");
     }
   });
-  const [is24h, setIs24h] = useState(false);
   if (!emptyBooking) {
     return (
       <div>
@@ -56,7 +55,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
                       <p className="text-center text-gray-500">
                         <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                         {dayjs(props.booking.startTime).format(
-                          (is24h ? "H:mm" : "h:mma") + ", dddd DD MMMM YYYY"
+                          detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                         )}
                       </p>
                     </div>
