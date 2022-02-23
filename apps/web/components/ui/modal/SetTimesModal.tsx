@@ -1,10 +1,14 @@
 import { ClockIcon } from "@heroicons/react/outline";
-import { useRef } from "react";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import { useRef, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 
 import Button from "@components/ui/Button";
+
+dayjs.extend(customParseFormat);
 
 interface SetTimesModalProps {
   startTime: number;
@@ -21,6 +25,11 @@ export default function SetTimesModal(props: SetTimesModalProps) {
   const startMinsRef = useRef<HTMLInputElement>(null!);
   const endHoursRef = useRef<HTMLInputElement>(null!);
   const endMinsRef = useRef<HTMLInputElement>(null!);
+  const [endMinuteDisable, setEndMinuteDisable] = useState(false);
+  const [maximumStartTime, setMaximumStartTime] = useState({ hour: endHours, minute: 59 });
+  const [minimumEndTime, setMinimumEndTime] = useState({ hour: startHours, minute: 59 });
+
+  const STEP = 15;
 
   const isValidTime = (startTime: number, endTime: number) => {
     if (new Date(startTime) > new Date(endTime)) {
@@ -33,6 +42,48 @@ export default function SetTimesModal(props: SetTimesModalProps) {
     }
     return true;
   };
+
+  // compute dynamic range for minimum and maximum allowed hours/minutes.
+  const setEdgeTimes = (
+    (step) =>
+    (
+      startHoursRef: React.MutableRefObject<HTMLInputElement>,
+      startMinsRef: React.MutableRefObject<HTMLInputElement>,
+      endHoursRef: React.MutableRefObject<HTMLInputElement>,
+      endMinsRef: React.MutableRefObject<HTMLInputElement>
+    ) => {
+      //parse all the refs
+      const startHour = parseInt(startHoursRef.current.value);
+      let startMinute = parseInt(startMinsRef.current.value);
+      const endHour = parseInt(endHoursRef.current.value);
+      let endMinute = parseInt(endMinsRef.current.value);
+
+      //convert to dayjs object
+      const startTime = dayjs(`${startHour}-${startMinute}`, "hh:mm");
+      const endTime = dayjs(`${endHour}-${endMinute}`, "hh:mm");
+
+      //compute minimin and maximum allowed
+      const maximumStartTime = endTime.subtract(step, "minute");
+      const maximumStartHour = maximumStartTime.hour();
+      const maximumStartMinute = startHour === endHour ? maximumStartTime.minute() : 59;
+
+      const minimumEndTime = startTime.add(step, "minute");
+      const minimumEndHour = minimumEndTime.hour();
+      const minimumEndMinute = startHour === endHour ? minimumEndTime.minute() : 0;
+
+      //check allow min/max minutes when the end/start hour matches
+      if (startHoursRef.current.value === endHoursRef.current.value) {
+        if (parseInt(startMinsRef.current.value) >= maximumStartMinute)
+          startMinsRef.current.value = maximumStartMinute.toString();
+        if (parseInt(endMinsRef.current.value) <= minimumEndMinute)
+          endMinsRef.current.value = minimumEndMinute.toString();
+      }
+
+      //save into state
+      setMaximumStartTime({ hour: maximumStartHour, minute: maximumStartMinute });
+      setMinimumEndTime({ hour: minimumEndHour, minute: minimumEndMinute });
+    }
+  )(STEP);
 
   return (
     <div
@@ -65,7 +116,7 @@ export default function SetTimesModal(props: SetTimesModalProps) {
           </div>
           <div className="mb-4 flex">
             <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
-            <div>
+            <div className="w-1/6">
               <label htmlFor="startHours" className="sr-only">
                 {t("hours")}
               </label>
@@ -73,17 +124,18 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 ref={startHoursRef}
                 type="number"
                 min="0"
-                max="23"
-                maxLength={2}
+                max={maximumStartTime.hour}
+                minLength={2}
                 name="hours"
                 id="startHours"
                 className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="9"
                 defaultValue={startHours}
+                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
               />
             </div>
             <span className="mx-2 pt-1">:</span>
-            <div>
+            <div className="w-1/6">
               <label htmlFor="startMinutes" className="sr-only">
                 {t("minutes")}
               </label>
@@ -91,27 +143,28 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 ref={startMinsRef}
                 type="number"
                 min="0"
-                max="59"
-                step="15"
+                max={maximumStartTime.minute}
+                step={STEP}
                 maxLength={2}
                 name="minutes"
                 id="startMinutes"
                 className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={startMinutes}
+                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
               />
             </div>
           </div>
           <div className="flex">
             <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("end_time")}</label>
-            <div>
+            <div className="w-1/6">
               <label htmlFor="endHours" className="sr-only">
                 {t("hours")}
               </label>
               <input
                 ref={endHoursRef}
                 type="number"
-                min="0"
+                min={minimumEndTime.hour}
                 max="24"
                 maxLength={2}
                 name="hours"
@@ -119,25 +172,32 @@ export default function SetTimesModal(props: SetTimesModalProps) {
                 className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="17"
                 defaultValue={endHours}
+                onChange={(e) => {
+                  if (endHoursRef.current.value === "24") endMinsRef.current.value = "0";
+                  setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef);
+                  setEndMinuteDisable(endHoursRef.current.value === "24");
+                }}
               />
             </div>
             <span className="mx-2 pt-1">:</span>
-            <div>
+            <div className="w-1/6">
               <label htmlFor="endMinutes" className="sr-only">
                 {t("minutes")}
               </label>
               <input
                 ref={endMinsRef}
                 type="number"
-                min="0"
+                min={minimumEndTime.minute}
                 max="59"
                 maxLength={2}
-                step="15"
+                step={STEP}
                 name="minutes"
                 id="endMinutes"
                 className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
                 placeholder="30"
                 defaultValue={endMinutes}
+                disabled={endMinuteDisable}
+                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
               />
             </div>
           </div>
