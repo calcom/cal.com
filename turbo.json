@@ -3,6 +3,10 @@
   "baseBranch": "origin/main",
   "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"],
+      "outputs": ["zod/**"]
+    },
     "@calcom/prisma#db-deploy": {},
     "@calcom/prisma#db-reset": {
       "cache": false
