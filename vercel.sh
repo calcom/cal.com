@@ -1,52 +1,39 @@
-# repo paths (supplied without the protocol prefix)
-MAIN_REPO=github.com/calcom/cal.com.git
+# github submodule repo address without https:// prefix
+SUBMODULE_GITHUB=github.com/calcom/website
 
-# the reference of the submodule in .gitmodules (usually the path)
-SUBMODULE_REF=apps/website
+# .gitmodules submodule path
+SUBMODULE_PATH=apps/website
 
-if [ "$VERCEL_GIT_COMMIT_SHA" == "" ]; then
-  echo "Error: VERCEL_GIT_COMMIT_SHA is empty"
-  exit 1
-fi
-
+# github access token is necessary
+# add it to Environment Variables on Vercel
 if [ "$GITHUB_ACCESS_TOKEN" == "" ]; then
   echo "Error: GITHUB_ACCESS_TOKEN is empty"
   exit 1
 fi
 
-# stop script execution on error
+# stop execution on error - don't let it build if something goes wrong
 set -e
 
+# get submodule commit
+output=`git submodule status --recursive` # get submodule info
+no_prefix=${output#*-} # get rid of the prefix
+COMMIT=${no_prefix% *} # get rid of the suffix
+
 # set up an empty temporary work directory
-rm -rf vercel-tmp || true
-mkdir vercel-tmp
-cd vercel-tmp
+rm -rf tmp || true # remove the tmp folder if exists
+mkdir tmp # create the tmp folder
+cd tmp # go into the tmp folder
 
-# checkout the current commit
-git init
-git remote add origin https://$GITHUB_ACCESS_TOKEN@$MAIN_REPO
-git fetch --depth=1 origin $VERCEL_GIT_COMMIT_SHA
-git checkout $VERCEL_GIT_COMMIT_SHA
+# checkout the current submodule commit
+git init # initialise empty repo
+git remote add origin https://$GITHUB_ACCESS_TOKEN@$SUBMODULE_GITHUB # add origin of the submodule
+git fetch --depth=1 origin $COMMIT # fetch only the required version
+git checkout $COMMIT # checkout on the right commit
 
-# set the submodule repo paths to ones that vercel can access
-mv .gitmodules .gitmodules.original
-cat .gitmodules.original | sed "s/git@github.com:/https:\/\/$GITHUB_ACCESS_TOKEN@github.com\//" > .gitmodules
-
-# checkout the submodule
-git submodule sync
-git submodule update --init --recursive 2>&1 | sed "s/$GITHUB_ACCESS_TOKEN/\*\*\*\*/"
-
-# move the submodule to where it should have been if vercel had supported submodules
-cd ..
-rm -rf vercel-tmp/$SUBMODULE_PATH/.git
-if [ -d $SUBMODULE_PATH ]; then
-mv $SUBMODULE_PATH $SUBMODULE_PATH.original
-fi
-mkdir -p $(dirname $SUBMODULE_PATH)
-mv vercel-tmp/$SUBMODULE_PATH/ $SUBMODULE_PATH
-
-# show contents of submodule path in logs
-ls -l $SUBMODULE_PATH
+# move the submodule from tmp to the submodule path
+cd .. # go folder up
+rm -rf tmp/.git # remove .git 
+mv tmp/* $SUBMODULE_PATH/ # move the submodule to the submodule path
 
 # clean up
-rm -rf vercel-tmp
+rm -rf tmp # remove the tmp folder
