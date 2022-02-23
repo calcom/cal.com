@@ -24,12 +24,13 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
           return (
             <li key={idx} className="-mr-2 inline-block">
               <Avatar
+                className={props.border}
                 imageSrc={item.image}
                 title={item.title}
                 alt={item.alt || ""}
                 size={props.size}
-                className={props.border}
               />
+            </li>
           );
         }
       })}
