@@ -159,7 +159,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                   <div className="flex items-center space-x-2 overflow-hidden rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
-                        border="border-white"
+                        border="border-2 border-white"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
