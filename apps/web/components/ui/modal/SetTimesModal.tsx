@@ -59,8 +59,8 @@ export default function SetTimesModal(props: SetTimesModalProps) {
       let endMinute = parseInt(endMinsRef.current.value);
 
       //convert to dayjs object
-      const startTime = dayjs(`${startHour}-${startMinute}`, "hh:mm");
-      const endTime = dayjs(`${endHour}-${endMinute}`, "hh:mm");
+      const startTime = dayjs(`${startHour}:${startMinute}`, "hh:mm");
+      const endTime = dayjs(`${endHour}:${endMinute}`, "hh:mm");
 
       //compute minimin and maximum allowed
       const maximumStartTime = endTime.subtract(step, "minute");
