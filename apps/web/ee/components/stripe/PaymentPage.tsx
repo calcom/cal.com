@@ -14,6 +14,7 @@ import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -21,7 +22,7 @@ dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
-  const [is24h, setIs24h] = useState(false);
+  const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
