@@ -123,6 +123,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
+                    border="dark:border-gray-900 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
@@ -171,6 +172,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
+                    border="dark:border-gray-900 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
