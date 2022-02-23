@@ -42,7 +42,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
               <div className="mt-1">
                 <AvatarGroup
-                  border="border-white"
+                  border="border-2 border-white"
                   truncateAfter={4}
                   className="flex-shrink-0"
                   size={10}
