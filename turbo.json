@@ -81,11 +81,11 @@
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
+      "dependsOn": []
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["^test"],
+      "dependsOn": ["^test", "@calcom/web#build", "@calcom/prisma#db-reset"],
       "outputs": ["playwright", "test-results"]
     },
     "type-check": {
