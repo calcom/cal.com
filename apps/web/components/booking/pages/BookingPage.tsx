@@ -24,6 +24,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
@@ -110,9 +111,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   const rescheduleUid = router.query.rescheduleUid as string;
   const { isReady, Theme } = useTheme(props.profile.theme);
-
   const date = asStringOrNull(router.query.date);
-  const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
@@ -213,7 +212,7 @@ const BookingPage = (props: BookingPageProps) => {
     if (!date) return "No date";
     const parsedZone = parseZone(date);
     if (!parsedZone?.isValid()) return "Invalid date";
-    const formattedTime = parsedZone?.format(timeFormat);
+    const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
     return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
@@ -289,6 +288,7 @@ const BookingPage = (props: BookingPageProps) => {
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
+                  border="border-white dark:border-gray-900"
                   size={14}
                   items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
                     props.eventType.users
