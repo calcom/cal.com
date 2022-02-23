@@ -30,7 +30,6 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
                 size={props.size}
                 className={props.border}
               />
-            </li>
           );
         }
       })}
