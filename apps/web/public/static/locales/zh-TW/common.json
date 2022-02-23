@@ -451,6 +451,8 @@
   "pending": "等待中",
   "open_options": "開啟選項",
   "copy_link": "複製活動連結",
+  "share": "分享",
+  "share_event": "是否可以在我的行事曆預約，還是把連結寄給我？",
   "copy_link_team": "複製團隊連結",
   "leave_team": "離開團隊",
   "confirm_leave_team": "沒錯，離開團隊",
@@ -458,6 +460,7 @@
   "user_from_team": "{{team}} 的 {{user}}",
   "preview": "預覽",
   "link_copied": "網址已複製！",
+  "link_shared": "已分享連結！",
   "title": "標題",
   "description": "描述",
   "quick_video_meeting": "快速視訊會議。",
@@ -650,5 +653,6 @@
   "prisma_studio_tip": "透過 Prisma Studio 建立帳號",
   "prisma_studio_tip_description": "學習如何設定第一位使用者",
   "contact_sales": "聯繫業務",
-  "error_404": "404 錯誤"
+  "error_404": "404 錯誤",
+  "requires_ownership_of_a_token": "必須有屬於以下位址的 Token 所有權："
 }
