@@ -65,3 +65,6 @@ tsconfig.tsbuildinfo
 
 # Prisma-Zod
 packages/prisma/zod/*.ts
+
+# Builds
+dist
