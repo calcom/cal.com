@@ -10,7 +10,7 @@ import { Optional } from "@lib/types/utils";
 export const PhoneInput = (
   props: Optional<PhoneInputProps<React.InputHTMLAttributes<HTMLInputElement>>, "onChange"> & {
     control: Control<FieldValues>;
-  }
+  } & { name: string } & { defaultValue: undefined }
 ) => (
   <BasePhoneInput
     {...props}

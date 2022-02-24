@@ -39,7 +39,7 @@ const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
-type BookingFormValues = {
+export type BookingFormValues = {
   name: string;
   email: string;
   notes?: string;
@@ -254,7 +254,9 @@ const BookingPage = (props: BookingPageProps) => {
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      location: getLocationValue(
+        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+      ),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
