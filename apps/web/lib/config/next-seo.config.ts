@@ -20,8 +20,8 @@ export const seoConfig: {
   },
   defaultNextSeo: {
     twitter: {
-      handle: "@calendso",
-      site: "@Calendso",
+      handle: "@calcom",
+      site: "@calcom",
       cardType: "summary_large_image",
     },
   },
