@@ -11,7 +11,7 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "db-deploy": "turbo run db-deploy",
     "db-seed": "turbo run db-seed",
-    "db-studio": "yarn workspace @calcom/prisma db-view",
+    "db-studio": "yarn workspace @calcom/prisma db-studio",
     "deploy": "turbo run deploy",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "docs-dev": "turbo run dev --scope=\"@calcom/docs\"",
