@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "strictNullChecks": true,
+    "declaration": false,
     "useUnknownInCatchVariables": true
   },
   "include": ["src", "next-env.d.ts"],
