@@ -393,7 +393,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               onChange={(e) => {
                 if (e?.value) {
                   locationFormMethods.setValue("locationType", e.value);
-                  openLocationModal(e.value);
+                  e.value === LocationType.InPerson && openLocationModal(e.value);
                 }
               }}
             />
