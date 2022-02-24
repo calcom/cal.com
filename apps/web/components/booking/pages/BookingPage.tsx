@@ -39,7 +39,7 @@ const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
-export type BookingFormValues = {
+type BookingFormValues = {
   name: string;
   email: string;
   notes?: string;
