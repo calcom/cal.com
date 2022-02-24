@@ -22,9 +22,9 @@ const AvailabilityView = ({ user }: { user: User }) => {
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
     let m = mins % 60;
-    h = h < 10 ? 0 + h : h;
-    m = m < 10 ? 0 + m : m;
-    return `${h}:${m}`;
+    let hs = h < 10 ? "0" + h : h;
+    let ms = m < 10 ? "0" + m : m;
+    return `${hs}:${ms}`;
   }
 
   useEffect(() => {
