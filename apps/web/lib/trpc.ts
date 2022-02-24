@@ -1,16 +1,29 @@
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
+import { ReactNode } from "react";
+import { QueryClient } from "react-query";
 import superjson from "superjson";
 
 import type { AppRouter } from "@server/routers/_app";
-import { createReactQueryHooks } from "@trpc/react";
-import type { inferProcedureOutput, inferProcedureInput } from "@trpc/server";
+import { createReactQueryHooks, TRPCClient } from "@trpc/react";
+import type { inferProcedureOutput, inferProcedureInput, AnyRouter } from "@trpc/server";
+import { TRPCResponse } from "@trpc/server/rpc";
 
 /**
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createReactQueryHooks`.
  * @link https://trpc.io/docs/react#3-create-trpc-hooks
  */
-export const trpc = createReactQueryHooks<AppRouter>();
+// export interface TRPCClient {
+//   Provider: TRPCClient
+// }
+type TRPCProvider = {
+  queryClient: QueryClient;
+  client: TRPCClient<AnyRouter>;
+  children: ReactNode;
+  isPrepass?: boolean;
+  // ssrContext?: TSSRContext | null;
+};
+export const trpc: TRPCProvider = createReactQueryHooks<AppRouter>();
 
 export const transformer = superjson;
 /**
@@ -20,6 +33,7 @@ export const transformer = superjson;
 export type inferQueryOutput<TRouteKey extends keyof AppRouter["_def"]["queries"]> = inferProcedureOutput<
   AppRouter["_def"]["queries"][TRouteKey]
 >;
+s;
 
 export type inferQueryInput<TRouteKey extends keyof AppRouter["_def"]["queries"]> = inferProcedureInput<
   AppRouter["_def"]["queries"][TRouteKey]
