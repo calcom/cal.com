@@ -1,3 +1,6 @@
+[submodule "apps/api"]
+	path = apps/api
+	url = git@github.com:calcom/api.git
 [submodule "apps/website"]
 	path = apps/website
 	url = git@github.com:calcom/website.git
