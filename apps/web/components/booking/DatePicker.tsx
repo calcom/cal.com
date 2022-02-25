@@ -4,7 +4,8 @@ import dayjs, { Dayjs } from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useEffect, useMemo, useState } from "react";
+import { memoize } from "lodash";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
@@ -101,6 +102,43 @@ function DatePicker({
       setIsFirstMonth(browsingDate.startOf("month").isBefore(dayjs()));
     }
   }, [browsingDate, i18n.language]);
+  const isDisabledCommon = (
+    day: number,
+    {
+      browsingDate,
+      periodType,
+      periodStartDate,
+      periodEndDate,
+      periodCountCalendarDays,
+      periodDays,
+      eventLength,
+      minimumBookingNotice,
+      workingHours,
+    }
+  ) => {
+    const date = browsingDate.startOf("day").date(day);
+    return (
+      isOutOfBounds(date, {
+        periodType,
+        periodStartDate,
+        periodEndDate,
+        periodCountCalendarDays,
+        periodDays,
+      }) ||
+      !getSlots({
+        inviteeDate: date,
+        frequency: eventLength,
+        minimumBookingNotice,
+        workingHours,
+      }).length
+    );
+  };
+
+  const isDisabledRef = useRef(
+    memoize(isDisabledCommon, (day, { browsingDate }) => {
+      return day + "_" + browsingDate.toString();
+    })
+  );
 
   const days = useMemo(() => {
     if (!browsingDate) {
@@ -115,28 +153,24 @@ function DatePicker({
 
     const days = Array(weekdayOfFirst).fill(null);
 
-    const isDisabled = (day: number) => {
-      const date = browsingDate.startOf("day").date(day);
-      return (
-        isOutOfBounds(date, {
+    const isDisabled = isDisabledRef.current;
+
+    const daysInMonth = browsingDate.daysInMonth();
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        disabled: isDisabled(i, {
+          browsingDate,
           periodType,
           periodStartDate,
           periodEndDate,
           periodCountCalendarDays,
           periodDays,
-        }) ||
-        !getSlots({
-          inviteeDate: date,
-          frequency: eventLength,
+          eventLength,
           minimumBookingNotice,
           workingHours,
-        }).length
-      );
-    };
-
-    const daysInMonth = browsingDate.daysInMonth();
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push({ disabled: isDisabled(i), date: i });
+        }),
+        date: i,
+      });
     }
 
     return days;
