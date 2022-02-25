@@ -102,7 +102,8 @@ function DatePicker({
       setIsFirstMonth(browsingDate.startOf("month").isBefore(dayjs()));
     }
   }, [browsingDate, i18n.language]);
-  const isDisabledCommon = (
+
+  const isDisabled = (
     day: number,
     {
       browsingDate,
@@ -135,7 +136,8 @@ function DatePicker({
   };
 
   const isDisabledRef = useRef(
-    memoize(isDisabledCommon, (day, { browsingDate }) => {
+    memoize(isDisabled, (day, { browsingDate }) => {
+      // Make a composite cache key
       return day + "_" + browsingDate.toString();
     })
   );
@@ -153,12 +155,12 @@ function DatePicker({
 
     const days = Array(weekdayOfFirst).fill(null);
 
-    const isDisabled = isDisabledRef.current;
+    const isDisabledMemoized = isDisabledRef.current;
 
     const daysInMonth = browsingDate.daysInMonth();
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({
-        disabled: isDisabled(i, {
+        disabled: isDisabledMemoized(i, {
           browsingDate,
           periodType,
           periodStartDate,
