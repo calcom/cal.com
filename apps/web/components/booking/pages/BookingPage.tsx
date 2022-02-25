@@ -397,8 +397,9 @@ const BookingPage = (props: BookingPageProps) => {
                       </label>
                       <div className="mt-1">
                         <PhoneInput
-                          name="phone"
+                          // @ts-expect-error
                           control={bookingForm.control}
+                          name="phone"
                           placeholder={t("enter_phone_number")}
                           id="phone"
                           required

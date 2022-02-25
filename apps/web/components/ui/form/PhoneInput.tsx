@@ -1,10 +1,18 @@
 import React from "react";
-import BasePhoneInput from "react-phone-number-input/react-hook-form";
+import { Control } from "react-hook-form";
+import BasePhoneInput, { Props } from "react-phone-number-input/react-hook-form";
 import "react-phone-number-input/style.css";
 
 import classNames from "@lib/classNames";
 
-export const PhoneInput = ({ control, name, ...rest }) => (
+type PhoneInputProps = {
+  value: string;
+  id: string;
+  placeholder: string;
+  required: boolean;
+};
+
+export const PhoneInput = ({ control, name, ...rest }: Props<PhoneInputProps>) => (
   <BasePhoneInput
     {...rest}
     name={name}
