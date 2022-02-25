@@ -398,7 +398,6 @@ const BookingPage = (props: BookingPageProps) => {
                       <div className="mt-1">
                         <PhoneInput
                           name="phone"
-                          // @ts-ignore
                           control={bookingForm.control}
                           placeholder={t("enter_phone_number")}
                           id="phone"
