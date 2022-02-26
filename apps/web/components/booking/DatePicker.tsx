@@ -181,7 +181,8 @@ function DatePicker({
 
     // Update dates with their availability
     doWorkAsync({
-      batch: 15,
+      batch: 5,
+      name: "DatePicker",
       length: daysInMonth,
       callback: (i: number, isLast) => {
         let day = i + 1;
