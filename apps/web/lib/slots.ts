@@ -31,7 +31,6 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   if (inviteeDate.isBefore(startDate, "day")) {
     return [];
   }
-
   const localWorkingHours = getWorkingHours(
     { utcOffset: -inviteeDate.utcOffset() },
     workingHours.map((schedule) => ({
@@ -42,8 +41,12 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
-  for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
-    const slot = dayjs(inviteeDate).startOf("day").add(minutes, "minute");
+  for (
+    let minutes = getMinuteOffset(inviteeDate, frequency), dayStart = dayjs(inviteeDate).startOf("day");
+    minutes < 1440;
+    minutes += frequency
+  ) {
+    const slot = dayStart.add(minutes, "minute");
     // check if slot happened already
     if (slot.isBefore(startDate)) {
       continue;
@@ -52,8 +55,8 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
     if (
       localWorkingHours.some((hours) =>
         slot.isBetween(
-          inviteeDate.startOf("day").add(hours.startTime, "minute"),
-          inviteeDate.startOf("day").add(hours.endTime, "minute"),
+          dayStart.add(hours.startTime, "minute"),
+          dayStart.add(hours.endTime, "minute"),
           null,
           "[)"
         )
