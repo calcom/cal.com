@@ -24,19 +24,6 @@ const getMinuteOffset = (date: Dayjs, frequency: number) => {
   return Math.ceil(minuteOffset / frequency) * frequency;
 };
 
-function getSlotChecker(startOfInviteeDay, localWorkingHours) {
-  return (slot) => {
-    return localWorkingHours.some((hours) =>
-      slot.isBetween(
-        startOfInviteeDay.add(hours.startTime, "minute"),
-        startOfInviteeDay.add(hours.endTime, "minute"),
-        null,
-        "[)"
-      )
-    );
-  };
-}
-
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
@@ -57,7 +44,6 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
-  const isSlotValid = getSlotChecker(startOfInviteeDay, localWorkingHours);
   for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
     const slot = startOfInviteeDay.add(minutes, "minute");
     // check if slot happened already
@@ -65,7 +51,16 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
       continue;
     }
     // add slots to available slots if it is found to be between the start and end time of the checked working hours.
-    if (isSlotValid(slot)) {
+    if (
+      localWorkingHours.some((hours) =>
+        slot.isBetween(
+          startOfInviteeDay.add(hours.startTime, "minute"),
+          startOfInviteeDay.add(hours.endTime, "minute"),
+          null,
+          "[)"
+        )
+      )
+    ) {
       slots.push(slot);
     }
   }
