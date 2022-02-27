@@ -4,11 +4,13 @@ import dayjs, { Dayjs } from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useEffect, useMemo, useState } from "react";
+import { memoize } from "lodash";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
+import { doWorkAsync } from "@lib/doWorkAsync";
 import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
@@ -87,7 +89,13 @@ function DatePicker({
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
-
+  const [daysFromState, setDays] = useState<
+    | {
+        disabled: Boolean;
+        date: number;
+      }[]
+    | null
+  >(null);
   useEffect(() => {
     if (!browsingDate || (date && browsingDate.utcOffset() !== date?.utcOffset())) {
       setBrowsingDate(date || dayjs().tz(timeZone()));
@@ -99,12 +107,55 @@ function DatePicker({
       setMonth(browsingDate.toDate().toLocaleString(i18n.language, { month: "long" }));
       setYear(browsingDate.format("YYYY"));
       setIsFirstMonth(browsingDate.startOf("month").isBefore(dayjs()));
+      setDays(null);
     }
   }, [browsingDate, i18n.language]);
 
-  const days = useMemo(() => {
+  const isDisabled = (
+    day: number,
+    {
+      browsingDate,
+      periodType,
+      periodStartDate,
+      periodEndDate,
+      periodCountCalendarDays,
+      periodDays,
+      eventLength,
+      minimumBookingNotice,
+      workingHours,
+    }
+  ) => {
+    const date = browsingDate.startOf("day").date(day);
+    return (
+      isOutOfBounds(date, {
+        periodType,
+        periodStartDate,
+        periodEndDate,
+        periodCountCalendarDays,
+        periodDays,
+      }) ||
+      !getSlots({
+        inviteeDate: date,
+        frequency: eventLength,
+        minimumBookingNotice,
+        workingHours,
+      }).length
+    );
+  };
+
+  const isDisabledRef = useRef(
+    memoize(isDisabled, (day, { browsingDate }) => {
+      // Make a composite cache key
+      return day + "_" + browsingDate.toString();
+    })
+  );
+
+  const days = (() => {
     if (!browsingDate) {
       return [];
+    }
+    if (daysFromState) {
+      return daysFromState;
     }
     // Create placeholder elements for empty days in first week
     let weekdayOfFirst = browsingDate.date(1).day();
@@ -115,33 +166,49 @@ function DatePicker({
 
     const days = Array(weekdayOfFirst).fill(null);
 
-    const isDisabled = (day: number) => {
-      const date = browsingDate.startOf("day").date(day);
-      return (
-        isOutOfBounds(date, {
-          periodType,
-          periodStartDate,
-          periodEndDate,
-          periodCountCalendarDays,
-          periodDays,
-        }) ||
-        !getSlots({
-          inviteeDate: date,
-          frequency: eventLength,
-          minimumBookingNotice,
-          workingHours,
-        }).length
-      );
-    };
+    const isDisabledMemoized = isDisabledRef.current;
 
     const daysInMonth = browsingDate.daysInMonth();
+    const daysInitialOffset = days.length;
+
+    // Build UI with All dates disabled
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push({ disabled: isDisabled(i), date: i });
+      days.push({
+        disabled: true,
+        date: i,
+      });
     }
+
+    // Update dates with their availability
+    doWorkAsync({
+      batch: 5,
+      name: "DatePicker",
+      length: daysInMonth,
+      callback: (i: number, isLast) => {
+        let day = i + 1;
+        days[daysInitialOffset + i] = {
+          disabled: isDisabledMemoized(day, {
+            browsingDate,
+            periodType,
+            periodStartDate,
+            periodEndDate,
+            periodCountCalendarDays,
+            periodDays,
+            eventLength,
+            minimumBookingNotice,
+            workingHours,
+          }),
+          date: day,
+        };
+      },
+      done: () => {
+        setDays(days);
+      },
+    });
 
     return days;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [browsingDate]);
+  })();
 
   if (!browsingDate) {
     return <Loader />;
