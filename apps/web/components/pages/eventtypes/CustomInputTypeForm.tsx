@@ -120,11 +120,11 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         value={selectedCustomInput?.id || -1}
         {...register("id", { valueAsNumber: true })}
       />
-      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-        <Button type="submit">{t("save")}</Button>
+      <div className="mt-5 flex space-x-2 sm:mt-4">
         <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
+        <Button type="submit">{t("save")}</Button>
       </div>
     </form>
   );
