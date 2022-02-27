@@ -76,7 +76,7 @@ export default function TeamCreate(props: Props) {
               />
             </div>
             {errorMessage && <Alert severity="error" title={errorMessage} />}
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <div className="mt-5 flex flex-row-reverse sm:mt-4">
               <button type="submit" className="btn btn-primary">
                 {t("create_team")}
               </button>
