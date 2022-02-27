@@ -22,7 +22,7 @@ import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
 
 import classNames from "@lib/classNames";
-import { BASE_URL } from "@lib/config/constants";
+import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -62,7 +62,7 @@ function useRedirectToLoginIfUnauthenticated() {
       router.replace({
         pathname: "/auth/login",
         query: {
-          callbackUrl: `${BASE_URL}/${location.pathname}${location.search}`,
+          callbackUrl: `${NEXT_PUBLIC_BASE_URL}/${location.pathname}${location.search}`,
         },
       });
     }
@@ -380,7 +380,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <img
               className="rounded-full"
               src={
-                (process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL) +
+                (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL) +
                 "/" +
                 user?.username +
                 "/avatar.png"
