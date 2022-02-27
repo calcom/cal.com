@@ -201,8 +201,8 @@ function DatePicker({
           date: day,
         };
       },
-      done: () => {
-        setDays(days);
+      batchDone: () => {
+        setDays([...days]);
       },
     });
 
