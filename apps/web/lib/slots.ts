@@ -16,12 +16,22 @@ export type GetSlots = {
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
 };
+export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
-const getMinuteOffset = (date: Dayjs, frequency: number) => {
-  // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
-  const minuteOffset = Math.min(date.diff(dayjs().utc(), "minute"), 1440) % 1440;
-  // round down to nearest step
-  return Math.ceil(minuteOffset / frequency) * frequency;
+const splitAvailableTime = (
+  startTimeMinutes: number,
+  endTimeMinutes: number,
+  frequency: number
+): Array<WorkingHoursTimeFrame> => {
+  let initialTime = startTimeMinutes;
+  const finalizationTime = endTimeMinutes;
+  const result = [] as Array<WorkingHoursTimeFrame>;
+  while (initialTime < finalizationTime) {
+    const periodTime = initialTime + frequency;
+    result.push({ startTime: initialTime, endTime: periodTime });
+    initialTime += frequency;
+  }
+  return result;
 };
 
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
@@ -44,27 +54,21 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
-  for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
-    const slot = startOfInviteeDay.add(minutes, "minute");
-    // check if slot happened already
-    if (slot.isBefore(startDate)) {
-      continue;
-    }
-    // add slots to available slots if it is found to be between the start and end time of the checked working hours.
-    if (
-      localWorkingHours.some((hours) =>
-        slot.isBetween(
-          startOfInviteeDay.add(hours.startTime, "minute"),
-          startOfInviteeDay.add(hours.endTime, "minute"),
-          null,
-          "[)"
-        )
-      )
-    ) {
+
+  const slotsTimeFrameAvailable = [] as Array<WorkingHoursTimeFrame>;
+
+  // Here we split working hour in chunks for every frequency available that can fit in whole working hour
+  localWorkingHours.forEach((item, index) => {
+    slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency));
+  });
+
+  slotsTimeFrameAvailable.forEach((item) => {
+    const slot = startOfInviteeDay.add(item.startTime, "minute");
+    // Validating slot its not on the past
+    if (!slot.isBefore(startDate)) {
       slots.push(slot);
     }
-  }
-
+  });
   return slots;
 };
 
