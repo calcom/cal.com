@@ -100,8 +100,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           className="mb-5 sm:mb-6"
                         />
                         <div className="space-x-2 text-center rtl:space-x-reverse">
+                          <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
+                            {t("reschedule_this")}
+                          </Button>
                           <Button
-                            color="secondary"
                             data-testid="cancel"
                             onClick={async () => {
                               setLoading(true);
@@ -141,9 +143,8 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               }
                             }}
                             loading={loading}>
-                            {t("cancel")}
+                            {t("cancel_event")}
                           </Button>
-                          <Button onClick={() => router.push("/reschedule/" + uid)}>{t("reschedule")}</Button>
                         </div>
                       </div>
                     )}
