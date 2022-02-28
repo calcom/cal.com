@@ -10,6 +10,7 @@ import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
 
+import { useMeQuery } from "@components/Shell";
 import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
 
@@ -46,6 +47,10 @@ type TimeRangeFieldProps = {
 };
 
 const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
+
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const [options, setOptions] = useState<Option[]>([]);
   const [selected, setSelected] = useState<number | undefined>();
@@ -57,7 +62,9 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
 
   const getOption = (time: ConfigType) => ({
     value: dayjs(time).toDate().valueOf(),
-    label: dayjs(time).utc().format("HH:mm"),
+    label: dayjs(time)
+      .utc()
+      .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm"),
     // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
   });
 
@@ -82,7 +89,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           handleSelected(value);
           return (
             <Select
-              className="w-[6rem]"
+              className="w-30"
               options={options}
               onFocus={() => setOptions(timeOptions())}
               onBlur={() => setOptions([])}
@@ -100,7 +107,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
           <Select
-            className="w-[6rem]"
+            className="w-30"
             options={options}
             onFocus={() => setOptions(timeOptions({ selected }))}
             onBlur={() => setOptions([])}
