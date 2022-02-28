@@ -9,6 +9,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
+import { useMeQuery } from "@components/Shell";
 import { TextArea } from "@components/form/fields";
 import Button from "@components/ui/Button";
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -16,6 +17,9 @@ import TableActions, { ActionType } from "@components/ui/TableActions";
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 function BookingListItem(booking: BookingItem) {
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -120,7 +124,8 @@ function BookingListItem(booking: BookingItem) {
         <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell">
           <div className="text-sm leading-6 text-gray-900">{startTime}</div>
           <div className="text-sm text-gray-500">
-            {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+            {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
+            {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
           </div>
         </td>
         <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
