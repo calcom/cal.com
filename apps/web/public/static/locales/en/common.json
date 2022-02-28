@@ -659,5 +659,8 @@
   "contact_sales": "Contact Sales",
   "error_404": "Error 404",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
-  "example_name": "John Doe"
+  "example_name": "John Doe",
+  "time_format": "Time format",
+  "12_hour": "12 hour",
+  "24_hour": "24 hour"
 }
