@@ -402,6 +402,7 @@
   "phone_number": "Phone Number",
   "enter_phone_number": "Enter phone number",
   "reschedule": "Reschedule",
+  "reschedule_this": "Reschedule instead",
   "book_a_team_member": "Book a team member instead",
   "or": "OR",
   "go_back": "Go back",
@@ -435,6 +436,7 @@
   "danger_zone": "Danger Zone",
   "back": "Back",
   "cancel": "Cancel",
+  "cancel_event": "Cancel this event",
   "continue": "Continue",
   "confirm": "Confirm",
   "disband_team": "Disband Team",
@@ -657,5 +659,8 @@
   "contact_sales": "Contact Sales",
   "error_404": "Error 404",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
-  "example_name": "John Doe"
+  "example_name": "John Doe",
+  "time_format": "Time format",
+  "12_hour": "12 hour",
+  "24_hour": "24 hour"
 }
