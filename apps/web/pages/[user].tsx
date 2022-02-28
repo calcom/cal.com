@@ -123,7 +123,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
 
   const username = (context.query.user as string).toLowerCase();
-
   const user = await prisma.user.findUnique({
     where: {
       username: username.toLowerCase(),
@@ -148,63 +147,64 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-      type: true,
-      key: true,
-    },
-  });
-
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-
-  const eventTypesWithHidden = await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              users: {
-                some: {
-                  id: user.id,
+  const [credentials, eventTypesWithHidden] = await Promise.all([
+    prisma.credential.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+      },
+    }),
+    prisma.eventType.findMany({
+      where: {
+        AND: [
+          {
+            teamId: null,
+          },
+          {
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                users: {
+                  some: {
+                    id: user.id,
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
         },
       ],
-    },
-    orderBy: [
-      {
-        position: "desc",
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        length: true,
+        description: true,
+        hidden: true,
+        schedulingType: true,
+        price: true,
+        currency: true,
+        metadata: true,
       },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      length: true,
-      description: true,
-      hidden: true,
-      schedulingType: true,
-      price: true,
-      currency: true,
-      metadata: true,
-    },
-    take: user.plan === "FREE" ? 1 : undefined,
-  });
+      take: user.plan === "FREE" ? 1 : undefined,
+    }),
+  ]);
+
+  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
