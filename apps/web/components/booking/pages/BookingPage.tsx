@@ -288,7 +288,7 @@ const BookingPage = (props: BookingPageProps) => {
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
-                  border="border-white dark:border-gray-900"
+                  border="border-2 border-white dark:border-gray-900"
                   size={14}
                   items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
                     props.eventType.users

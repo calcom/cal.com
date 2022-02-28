@@ -2,7 +2,7 @@ import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { BASE_URL } from "@lib/config/constants";
+import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 
 import { ButtonBaseProps } from "@components/ui/Button";
 
@@ -19,7 +19,7 @@ export default function ConnectIntegration(props: {
 
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
-      returnTo: BASE_URL + location.pathname + location.search,
+      returnTo: NEXT_PUBLIC_BASE_URL + location.pathname + location.search,
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;

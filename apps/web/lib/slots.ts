@@ -16,17 +16,29 @@ export type GetSlots = {
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
 };
+export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
-const getMinuteOffset = (date: Dayjs, frequency: number) => {
-  // Diffs the current time with the given date and iff same day; (handled by 1440) - return difference; otherwise 0
-  const minuteOffset = Math.min(date.diff(dayjs().utc(), "minute"), 1440) % 1440;
-  // round down to nearest step
-  return Math.ceil(minuteOffset / frequency) * frequency;
+const splitAvailableTime = (
+  startTimeMinutes: number,
+  endTimeMinutes: number,
+  frequency: number
+): Array<WorkingHoursTimeFrame> => {
+  let initialTime = startTimeMinutes;
+  const finalizationTime = endTimeMinutes;
+  const result = [] as Array<WorkingHoursTimeFrame>;
+  while (initialTime < finalizationTime) {
+    const periodTime = initialTime + frequency;
+    result.push({ startTime: initialTime, endTime: periodTime });
+    initialTime += frequency;
+  }
+  return result;
 };
 
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
+  const startOfDay = dayjs.utc().startOf("day");
+  const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
   if (inviteeDate.isBefore(startDate, "day")) {
     return [];
@@ -36,33 +48,27 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
     { utcOffset: -inviteeDate.utcOffset() },
     workingHours.map((schedule) => ({
       days: schedule.days,
-      startTime: dayjs.utc().startOf("day").add(schedule.startTime, "minute"),
-      endTime: dayjs.utc().startOf("day").add(schedule.endTime, "minute"),
+      startTime: startOfDay.add(schedule.startTime, "minute"),
+      endTime: startOfDay.add(schedule.endTime, "minute"),
     }))
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
-  for (let minutes = getMinuteOffset(inviteeDate, frequency); minutes < 1440; minutes += frequency) {
-    const slot = dayjs(inviteeDate).startOf("day").add(minutes, "minute");
-    // check if slot happened already
-    if (slot.isBefore(startDate)) {
-      continue;
-    }
-    // add slots to available slots if it is found to be between the start and end time of the checked working hours.
-    if (
-      localWorkingHours.some((hours) =>
-        slot.isBetween(
-          inviteeDate.startOf("day").add(hours.startTime, "minute"),
-          inviteeDate.startOf("day").add(hours.endTime, "minute"),
-          null,
-          "[)"
-        )
-      )
-    ) {
+
+  const slotsTimeFrameAvailable = [] as Array<WorkingHoursTimeFrame>;
+
+  // Here we split working hour in chunks for every frequency available that can fit in whole working hour
+  localWorkingHours.forEach((item, index) => {
+    slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency));
+  });
+
+  slotsTimeFrameAvailable.forEach((item) => {
+    const slot = startOfInviteeDay.add(item.startTime, "minute");
+    // Validating slot its not on the past
+    if (!slot.isBefore(startDate)) {
       slots.push(slot);
     }
-  }
-
+  });
   return slots;
 };
 
