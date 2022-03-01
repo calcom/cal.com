@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "name": "@calcom/dailyvideo",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "title": "Daily.co Video",
+  "slug": "dailyvideo",
+  "category": "video",
+  "description": "Video Conferencing",
+  "logo": "/apps/daily.svg",
+  "publisher": "Cal.com",
+  "url": "https://daily.co/",
+  "verified": true,
+  "rating": 0,
+  "reviews": 0,
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
