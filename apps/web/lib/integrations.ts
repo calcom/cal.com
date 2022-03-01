@@ -20,6 +20,8 @@ export function getIntegrationName(name: string) {
       return "Huddle01";
     case "tandem_video":
       return "Tandem";
+    case "vimcal_calendar":
+      return "Vimcal";
   }
 }
 

@@ -13,6 +13,7 @@ export type Integration = {
   installed: boolean;
   type:
     | "google_calendar"
+    | "vimcal_calendar"
     | "office365_calendar"
     | "zoom_video"
     | "daily_video"
@@ -35,6 +36,14 @@ export const ALL_INTEGRATIONS = [
     type: "google_calendar",
     title: "Google Calendar",
     imageSrc: "integrations/google-calendar.svg",
+    description: "For personal and business calendars",
+    variant: "calendar",
+  },
+  {
+    installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+    type: "vimcal_calendar",
+    title: "Vimcal",
+    imageSrc: "integrations/vimcal.svg",
     description: "For personal and business calendars",
     variant: "calendar",
   },

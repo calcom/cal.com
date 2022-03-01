@@ -6,5 +6,6 @@ export const CALENDAR_INTEGRATIONS_TYPES = {
   apple: "apple_calendar",
   caldav: "caldav_calendar",
   google: "google_calendar",
+  vimcal: "vimcal_calendar",
   office365: "office365_calendar",
 };
