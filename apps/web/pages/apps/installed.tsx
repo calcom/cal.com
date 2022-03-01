@@ -57,7 +57,7 @@ function WebhookListItem(props: { webhook: TWebhook; onEditWebhook: () => void }
             </span>
           </div>
           <div className="mt-2 flex">
-            <span className="flex flex-col space-y-1 space-x-2 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
+            <span className="flex flex-col space-x-2 space-y-1 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse">
               {props.webhook.eventTriggers.map((eventTrigger, ind) => (
                 <span
                   key={ind}
@@ -477,6 +477,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   //
   credentialIds: number[];
   type: string;
+  isGlobal?: boolean;
   installed: boolean;
 }) {
   const { t } = useLocale();
@@ -507,7 +508,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   /** We don't need to "Connect", just show that it's installed */
-  if (["huddle01_video", "jitsi_video"].includes(props.type)) {
+  if (props.isGlobal || ["huddle01_video", "jitsi_video"].includes(props.type)) {
     return (
       <div className="truncate px-3 py-2">
         <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>

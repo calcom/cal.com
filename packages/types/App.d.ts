@@ -28,4 +28,9 @@ export interface App {
   trending: boolean;
   rating: number;
   reviews: number;
+  /**
+   *  Wheter if the app is installed globally or needs user intervention.
+   * Used to show Connect/Disconnect buttons in App Store
+   * */
+  isGlobal?: boolean;
 }
