@@ -1,9 +1,10 @@
 import type { App } from "@calcom/types/App";
 
-import _metadata from "./package.json";
+import _package from "./package.json";
 
 export const metadata = {
-  ..._metadata,
+  name: "Zoom Video",
+  description: _package.description,
   installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
   type: "zoom_video",
   imageSrc: "apps/zoom.svg",
@@ -14,7 +15,12 @@ export const metadata = {
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
-} as Partial<App>;
+  category: "video",
+  label: "Zoom Video",
+  slug: "zoom_video",
+  title: "Zoom Video",
+  trending: true,
+} as App;
 
 export * as api from "./api";
 export * as lib from "./lib";

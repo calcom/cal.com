@@ -13,7 +13,7 @@ const ALL_APPS_MAP = {
   ...CalendarApps,
   ...ConferencingApps,
   ...PaymentApps,
-};
+} as App[];
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true },
@@ -54,6 +54,7 @@ export function hasIntegration(apps: AppMeta, type: string): boolean {
       (type === "jitsi_video" || type === "huddle01_video" || app.credentials.length > 0)
   );
 }
+
 export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
 }

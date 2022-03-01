@@ -2,7 +2,7 @@ import { ChevronRightIcon, PencilAltIcon, SwitchHorizontalIcon, TrashIcon } from
 import { ClipboardIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 
@@ -21,7 +21,7 @@ import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { FieldsetLegend, Form, InputGroupBox, TextField, TextArea } from "@components/form/fields";
+import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@components/form/fields";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -122,7 +122,7 @@ function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className={"flex w-full cursor-pointer"}>
-        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
+        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} text-neutral-500 h-5 w-5`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
