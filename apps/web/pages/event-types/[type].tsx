@@ -28,7 +28,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@ee/lib/stripe/server";
 
-import getApps, { hasIntegration } from "@lib/apps/utils/AppUtils";
+import getApps, { getLocationOptions, hasIntegration } from "@lib/apps/utils/AppUtils";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -108,19 +108,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
-    props;
+  const {
+    eventType,
+    locationOptions: untraslatedLocationOptions,
+    availability,
+    team,
+    teamMembers,
+    hasPaymentIntegration,
+    currency,
+  } = props;
 
-  /** Appending default locations */
-
-  const defaultLocations = [
-    { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Jitsi, label: "Jitsi Meet" },
-    { value: LocationType.Phone, label: t("phone_call") },
-  ];
-
-  addDefaultLocationOptions(defaultLocations, locationOptions);
-
+  const locationOptions = untraslatedLocationOptions.map((l) => ({ ...l, label: t(l.label) }));
   const router = useRouter();
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
@@ -1665,17 +1663,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const integrations = getApps(credentials);
+  const locationOptions = getLocationOptions();
 
-  /** TODO: Find a way to get locations dynamically */
-  const locationOptions: OptionTypeBase[] = [];
-
-  if (hasIntegration(integrations, "zoom_video")) {
-    locationOptions.push({
-      value: LocationType.Zoom,
-      label: "Zoom Video",
-      disabled: true,
-    });
-  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({

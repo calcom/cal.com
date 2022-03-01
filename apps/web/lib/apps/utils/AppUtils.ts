@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import _ from "lodash";
 
 import appStore from "@calcom/app-store";
+import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import { APPS as CalendarApps } from "@lib/apps/calendar/config";
@@ -22,6 +23,28 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
+
+type OptionTypeBase = {
+  label: string;
+  value: LocationType;
+  disabled?: boolean;
+};
+
+export function getLocationOptions() {
+  const defaultLocations: OptionTypeBase[] = [
+    { value: LocationType.InPerson, label: "in_person_meeting" },
+    { value: LocationType.Jitsi, label: "Jitsi Meet" },
+    { value: LocationType.Phone, label: "phone_call" },
+  ];
+
+  Object.values(appStore).forEach((app) => {
+    if ("locationOption" in app.lib) {
+      defaultLocations.push(app.lib.locationOption);
+    }
+  });
+
+  return defaultLocations;
+}
 
 function getApps(userCredentials: CredentialData[]) {
   const apps = ALL_APPS.map((app) => {
