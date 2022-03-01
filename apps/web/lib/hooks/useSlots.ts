@@ -30,10 +30,21 @@ type UseSlotsProps = {
   date: Dayjs;
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
+  beforeBufferTime?: number;
+  afterBufferTime?: number;
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { slotInterval, eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
+  const {
+    slotInterval,
+    eventLength,
+    minimumBookingNotice = 0,
+    beforeBufferTime = 0,
+    afterBufferTime = 0,
+    date,
+    users,
+    eventTypeId,
+  } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -109,8 +120,11 @@ export const useSlots = (props: UseSlotsProps) => {
       minimumBookingNotice,
     });
     // Check for conflicts
+    // const busyTimes = [{ start: new Date(2022, 2, 4, 11, 0, 0, 0), end: new Date(2022, 2, 4, 12, 0, 0, 0) }];
+    // buffer check must be added in this loop
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {
+        // busyTimes.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);
         // Check if start times are the same
@@ -123,6 +137,18 @@ export const useSlots = (props: UseSlotsProps) => {
         }
         // Check if startTime is between slot
         else if (startTime.isBetween(times[i], times[i].add(eventLength, "minutes"))) {
+          times.splice(i, 1);
+        }
+        // Check if time is between startTime and afterBufferTime
+        else if (times[i].isBetween(startTime, endTime.add(afterBufferTime, "minutes"))) {
+          times.splice(i, 1);
+        }
+        // Check if time is between endTime and beforeBufferTime
+        else if (
+          times[i]
+            .add(eventLength, "minutes")
+            .isBetween(startTime.subtract(beforeBufferTime, "minutes"), endTime)
+        ) {
           times.splice(i, 1);
         } else {
           return true;
