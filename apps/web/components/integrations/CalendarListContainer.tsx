@@ -208,7 +208,6 @@ export function CalendarListContainer(props: { heading?: false }) {
     <>
       {heading && (
         <ShellSubHeading
-          className="mt-10 mb-0"
           title={
             <SubHeadingTitleWithConnections
               title="Calendars"
@@ -230,7 +229,6 @@ export function CalendarListContainer(props: { heading?: false }) {
       <ConnectedCalendarsList onChanged={onChanged} />
       {!!query.data?.connectedCalendars.length && (
         <ShellSubHeading
-          className="mt-6"
           title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
         />
       )}

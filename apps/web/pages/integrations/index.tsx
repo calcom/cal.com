@@ -121,7 +121,7 @@ function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className={"flex w-full cursor-pointer"}>
-        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
+        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} text-neutral-500 h-5 w-5`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -330,7 +330,7 @@ function WebhookListContainer() {
       query={query}
       success={({ data }) => (
         <>
-          <ShellSubHeading className="mt-10" title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <ShellSubHeading title={t("Webhooks")} subtitle={t("receive_cal_meeting_data")} />
           <List>
             <ListItem className={classNames("flex-col")}>
               <div
@@ -403,69 +403,67 @@ function IframeEmbedContainer() {
 
   return (
     <>
-      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} className="mt-10" />
-      <div className="lg:col-span-9 lg:pb-8">
-        <List>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
-                <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
-              </div>
-              <div>
-                <input
-                  id="iframe"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
-                  placeholder={t("loading")}
-                  defaultValue={iframeTemplate}
-                  readOnly
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(iframeTemplate);
-                    showToast("Copied to clipboard", "success");
-                  }}>
-                  <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
-                </button>
-              </div>
+      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} />
+      <List>
+        <ListItem className={classNames("flex-col")}>
+          <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
+            <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+            <div className="flex-grow truncate pl-2">
+              <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
+              <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
             </div>
-          </ListItem>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
-                <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>
-              </div>
-              <div>
-                <input
-                  id="fullscreen"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
-                  placeholder={t("loading")}
-                  defaultValue={htmlTemplate}
-                  readOnly
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(htmlTemplate);
-                    showToast("Copied to clipboard", "success");
-                  }}>
-                  <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
-                </button>
-              </div>
+            <div className="text-right">
+              <input
+                id="iframe"
+                className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                placeholder={t("loading")}
+                defaultValue={iframeTemplate}
+                readOnly
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(iframeTemplate);
+                  showToast("Copied to clipboard", "success");
+                }}>
+                <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
+              </button>
             </div>
-          </ListItem>
-        </List>
-        <div className="grid grid-cols-2 space-x-4 rtl:space-x-reverse">
-          <div>
-            <label htmlFor="iframe" className="block text-sm font-medium text-gray-700"></label>
-            <div className="mt-1"></div>
           </div>
-          <div>
-            <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700"></label>
-            <div className="mt-1"></div>
+        </ListItem>
+        <ListItem className={classNames("flex-col")}>
+          <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
+            <Image width={40} height={40} src="/integrations/embed.svg" alt="Embed" />
+            <div className="flex-grow truncate pl-2">
+              <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
+              <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>
+            </div>
+            <div className="text-right">
+              <input
+                id="fullscreen"
+                className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                placeholder={t("loading")}
+                defaultValue={htmlTemplate}
+                readOnly
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(htmlTemplate);
+                  showToast("Copied to clipboard", "success");
+                }}>
+                <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
+              </button>
+            </div>
           </div>
+        </ListItem>
+      </List>
+      <div className="grid grid-cols-2 space-x-4 rtl:space-x-reverse">
+        <div>
+          <label htmlFor="iframe" className="block text-sm font-medium text-gray-700"></label>
+          <div className="mt-1"></div>
+        </div>
+        <div>
+          <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700"></label>
+          <div className="mt-1"></div>
         </div>
       </div>
     </>
@@ -553,7 +551,6 @@ function IntegrationsContainer() {
           </List>
 
           <ShellSubHeading
-            className="mt-10"
             title={
               <SubHeadingTitleWithConnections title={t("payment")} numConnections={data.payment.numActive} />
             }
@@ -578,26 +575,24 @@ function Web3Container() {
   return (
     <>
       <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
-      <div className="lg:col-span-9 lg:pb-8">
-        <List>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-              <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">
-                  MetaMask (
-                  <a className="text-blue-500" target="_blank" href="https://cal.com/web3" rel="noreferrer">
-                    Read more
-                  </a>
-                  )
-                </ListItemTitle>
-                <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
-              </div>
-              <Web3ConnectBtn />
+      <List>
+        <ListItem className={classNames("flex-col")}>
+          <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
+            <Image width={40} height={40} src="/integrations/metamask.svg" alt="Embed" />
+            <div className="flex-grow truncate pl-2">
+              <ListItemTitle component="h3">
+                MetaMask (
+                <a className="text-blue-500" target="_blank" href="https://cal.com/web3" rel="noreferrer">
+                  Read more
+                </a>
+                )
+              </ListItemTitle>
+              <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
             </div>
-          </ListItem>
-        </List>
-      </div>
+            <Web3ConnectBtn />
+          </div>
+        </ListItem>
+      </List>
     </>
   );
 }
