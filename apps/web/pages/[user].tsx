@@ -50,7 +50,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
             <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
-            <h1 className="font-cal text-neutral-900 mb-1 text-3xl font-bold dark:text-white">
+            <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
               {nameOrUsername}
               {user.verified && (
                 <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
@@ -64,7 +64,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <div
                   key={type.id}
                   style={{ display: "flex" }}
-                  className="group hover:border-brand border-neutral-200 dark:bg-neutral-900 dark:hover:border-neutral-600 relative rounded-sm border bg-white hover:bg-gray-50 dark:border-0">
+                  className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
                   <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   <Link
                     href={{
@@ -85,7 +85,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       }}
                       className="block w-full px-6 py-4"
                       data-testid="event-type-link">
-                      <h2 className="text-neutral-900 grow font-semibold dark:text-white">{type.title}</h2>
+                      <h2 className="grow font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                       <EventTypeDescription eventType={type} />
                     </a>
                   </Link>

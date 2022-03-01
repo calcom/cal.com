@@ -4,6 +4,10 @@ const sortImports = require("@trivago/prettier-plugin-sort-imports");
 
 const combinedFormatter = {
   ...tailwind,
+  options: {
+    ...tailwind.options,
+    ...sortImports.options,
+  },
   parsers: {
     ...tailwind.parsers,
     ...Object.keys(sortImports.parsers).reduce((acc, key) => {
