@@ -14,7 +14,8 @@
   "rating": 4.3,
   "reviews": 69,
   "dependencies": {
-    "@calcom/prisma": "*"
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"
