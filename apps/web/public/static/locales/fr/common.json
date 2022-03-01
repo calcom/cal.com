@@ -402,6 +402,7 @@
   "phone_number": "Numéro de téléphone",
   "enter_phone_number": "Saisissez le numéro de téléphone",
   "reschedule": "Reporter",
+  "reschedule_this": "Reporter à la place",
   "book_a_team_member": "Réserver plutôt un membre de l'équipe",
   "or": "OU",
   "go_back": "Revenir en arrière",
@@ -435,6 +436,7 @@
   "danger_zone": "Zone dangereuse",
   "back": "Retour",
   "cancel": "Annuler",
+  "cancel_event": "Annuler cet événement",
   "continue": "Continuer",
   "confirm": "Confirmer",
   "disband_team": "Dissoudre l'équipe",
@@ -657,5 +659,8 @@
   "contact_sales": "Contacter les ventes",
   "error_404": "Erreur 404",
   "requires_ownership_of_a_token": "Nécessite la propriété d'un jeton appartenant à l'adresse suivante :",
-  "example_name": "Jean Dupont"
+  "example_name": "Jean Dupont",
+  "time_format": "Format horaire",
+  "12_hour": "12 heures",
+  "24_hour": "24 heures"
 }
