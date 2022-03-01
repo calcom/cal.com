@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/slackcalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "This is a package for the intergration of slack into the app-store",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@slack/oauth": "^2.4.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
