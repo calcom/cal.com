@@ -75,6 +75,7 @@ const loggedInViewerRouter = createProtectedRouter()
         endTime: user.endTime,
         bufferTime: user.bufferTime,
         locale: user.locale,
+        timeFormat: user.timeFormat,
         avatar: user.avatar,
         createdDate: user.createdDate,
         completedOnboarding: user.completedOnboarding,
@@ -612,6 +613,7 @@ const loggedInViewerRouter = createProtectedRouter()
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
+      timeFormat: z.number().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
