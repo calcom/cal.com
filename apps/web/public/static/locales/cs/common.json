@@ -402,6 +402,7 @@
   "phone_number": "Tel. číslo",
   "enter_phone_number": "Zadejte telefonní číslo",
   "reschedule": "Přesunout na jindy",
+  "reschedule_this": "Raději přesunout na jindy",
   "book_a_team_member": "Namísto toho si rezervujte člena týmu",
   "or": "NEBO",
   "go_back": "Vrátit se zpět",
@@ -435,6 +436,7 @@
   "danger_zone": "Nebezpečná zóna",
   "back": "Zpět",
   "cancel": "Zrušit",
+  "cancel_event": "Zrušit tuto událost",
   "continue": "Pokračovat",
   "confirm": "Potvrdit",
   "disband_team": "Rozpustit tým",
@@ -656,5 +658,8 @@
   "contact_sales": "Kontaktovat obchodní oddělení",
   "error_404": "Chyba 404",
   "requires_ownership_of_a_token": "Vyžaduje vlastnictví tokenu, který patří následující adrese:",
-  "example_name": "Jan Novák"
+  "example_name": "Jan Novák",
+  "time_format": "Formát času",
+  "12_hour": "12hodinový",
+  "24_hour": "24hodinový"
 }
