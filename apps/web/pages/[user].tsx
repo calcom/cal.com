@@ -147,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const { credentials, eventTypes: eventTypesWithHidden } = await prisma.user.findUnique({
+  const { credentials, eventTypes: eventTypesRaw } = await prisma.user.findUnique({
     rejectOnNotFound: true,
     where: {
       id: user.id,
@@ -165,6 +165,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           AND: [
             {
               teamId: null,
+              hidden: false,
             },
             {
               OR: [
@@ -208,8 +209,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-
-  const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
