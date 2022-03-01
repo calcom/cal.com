@@ -7,7 +7,7 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-/** @link hhttps://docs.daily.co/reference/rest-api/rooms/create-room */
+/** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
 export interface DailyReturnType {
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
   id: string;
