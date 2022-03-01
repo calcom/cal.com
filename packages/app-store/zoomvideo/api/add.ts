@@ -3,6 +3,7 @@ import { stringify } from "querystring";
 
 import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import "@calcom/types/next";
 
 const client_id = process.env.ZOOM_CLIENT_ID;
 

@@ -3,8 +3,8 @@ import type { Session } from "next-auth";
 
 import "./next-auth";
 
-declare module "next" {
-  export interface NextApiRequest extends IncomingMessage {
+export declare module "next" {
+  interface NextApiRequest extends IncomingMessage {
     session?: Session | null;
   }
 }
