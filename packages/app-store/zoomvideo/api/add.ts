@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
-const BASE_URL = process.env.BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 const client_id = process.env.ZOOM_CLIENT_ID;
 

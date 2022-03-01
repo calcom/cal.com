@@ -1,13 +1,13 @@
 import { Credential } from "@prisma/client";
 
+import { BASE_URL } from "@calcom/lib/constants";
+import { handleErrorsJson } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { BASE_URL } from "@lib/config/constants";
-import { handleErrorsJson } from "@lib/errors";
-import prisma from "@lib/prisma";
-
+/** @link hhttps://docs.daily.co/reference/rest-api/rooms/create-room */
 export interface DailyReturnType {
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
   id: string;
@@ -19,8 +19,8 @@ export interface DailyReturnType {
   url: string;
   created_at: string;
   config: {
-    nbf: number;
-    exp: number;
+    nbf: number /* Timestamps expressed in seconds, not in milliseconds */;
+    exp: number /* Timestamps expressed in seconds, not in milliseconds */;
     enable_chat: boolean;
     enable_knocking: boolean;
     enable_prejoin_ui: boolean;

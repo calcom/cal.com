@@ -13,7 +13,6 @@ import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApi
 import JitsiVideoApiAdapter from "@lib/integrations/Jitsi/JitsiVideoApiAdapter";
 import logger from "@lib/logger";
 
-import DailyVideoApiAdapter from "./integrations/Daily/DailyVideoApiAdapter";
 import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
@@ -32,9 +31,6 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     }
 
     switch (cred.type) {
-      case "daily_video":
-        acc.push(DailyVideoApiAdapter(cred));
-        break;
       case "jitsi_video":
         acc.push(JitsiVideoApiAdapter());
         break;
