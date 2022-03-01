@@ -380,10 +380,12 @@ function UserDropdown({ small }: { small?: boolean }) {
             <img
               className="rounded-full"
               src={
-                (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL) +
-                "/" +
-                user?.username +
-                "/avatar.png"
+                user?.username
+                  ? (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL) +
+                    "/" +
+                    user.username +
+                    "/avatar.png"
+                  : "cal-com-icon.svg"
               }
               alt={user?.username || "Nameless User"}
             />
