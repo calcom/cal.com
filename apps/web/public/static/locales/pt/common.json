@@ -402,6 +402,7 @@
   "phone_number": "Número de Telefone",
   "enter_phone_number": "Inserir Número do Telefone",
   "reschedule": "Reagendar",
+  "reschedule_this": "Reagendar em alternativa",
   "book_a_team_member": "Reserve um Membro da sua Equipa no seu lugar",
   "or": "Ou",
   "go_back": "Voltar atrás",
@@ -435,6 +436,7 @@
   "danger_zone": "Zona de Perigo",
   "back": "Anterior",
   "cancel": "Cancelar",
+  "cancel_event": "Cancelar este evento",
   "continue": "Continuar",
   "confirm": "Confirmar",
   "disband_team": "Dissolver Equipa",
@@ -657,5 +659,8 @@
   "contact_sales": "Contacte as vendas",
   "error_404": "Erro 404",
   "requires_ownership_of_a_token": "Requer a propriedade de um token pertencente ao seguinte endereço:",
-  "example_name": "José Ninguém"
+  "example_name": "José Ninguém",
+  "time_format": "Formato da hora",
+  "12_hour": "12 horas",
+  "24_hour": "24 horas"
 }
