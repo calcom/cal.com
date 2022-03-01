@@ -19,8 +19,10 @@ export interface DailyReturnType {
   url: string;
   created_at: string;
   config: {
-    nbf: number /* Timestamps expressed in seconds, not in milliseconds */;
-    exp: number /* Timestamps expressed in seconds, not in milliseconds */;
+    /** Timestamps expressed in seconds, not in milliseconds */
+    nbf: number;
+    /** Timestamps expressed in seconds, not in milliseconds */
+    exp: number;
     enable_chat: boolean;
     enable_knocking: boolean;
     enable_prejoin_ui: boolean;
