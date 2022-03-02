@@ -32,7 +32,7 @@ test.describe("pro user", () => {
     // Click [data-testid="incrementMonth"]
     await page.click('[data-testid="incrementMonth"]');
     // Waiting for full month increment
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(500);
     // Click [data-testid="day"]
     await page.click('[data-testid="day"][data-disabled="false"]');
     // Click [data-testid="time"]
