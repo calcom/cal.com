@@ -364,6 +364,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodCountCalendarDays: "1" | "0";
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
+    beforeBufferTime: number;
+    afterBufferTime: number;
     slotInterval: number | null;
     destinationCalendar: {
       integration: string;
