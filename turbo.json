@@ -18,7 +18,7 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
-        "@calcom/prisma#build",
+        "@calcom/prisma#db-deploy",
         "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
@@ -53,6 +53,7 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
+        "WEBSITE_BASE_URL",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
