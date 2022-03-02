@@ -31,9 +31,6 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     }
 
     switch (cred.type) {
-      case "jitsi_video":
-        acc.push(JitsiVideoApiAdapter());
-        break;
       case "huddle01_video":
         acc.push(Huddle01VideoApiAdapter());
         break;

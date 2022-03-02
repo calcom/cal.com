@@ -74,7 +74,7 @@ export function hasIntegration(apps: AppMeta, type: string): boolean {
       app.type === type &&
       !!app.installed &&
       /* TODO: find a better way to do this */
-      (type === "jitsi_video" || type === "huddle01_video" || app.credentials.length > 0)
+      (type === "huddle01_video" || app.credentials.length > 0)
   );
 }
 

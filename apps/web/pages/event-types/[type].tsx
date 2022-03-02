@@ -1672,18 +1672,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       label: "Google Meet",
     });
   }
-  if (hasIntegration(integrations, "daily_video")) {
-    locationOptions.push({
-      value: LocationType.Daily,
-      label: "Daily.co Video",
-    });
-  }
-  if (hasIntegration(integrations, "jitsi_video")) {
-    locationOptions.push({
-      value: LocationType.Jitsi,
-      label: "Jitsi Meet",
-    });
-  }
   if (hasIntegration(integrations, "huddle01_video")) {
     locationOptions.push({
       value: LocationType.Huddle01,

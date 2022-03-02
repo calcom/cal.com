@@ -1,30 +1,6 @@
-import { Prisma } from "@prisma/client";
-import _ from "lodash";
-
 import type { App } from "@calcom/types/App";
 
-import { validJson } from "@lib/jsonUtils";
-
 export const APPS = {
-  jitsi_video: {
-    installed: true,
-    type: "jitsi_video",
-    title: "Jitsi Meet",
-    imageSrc: "integrations/jitsi.svg",
-    description: "Video Conferencing",
-    variant: "conferencing",
-    name: "Daily",
-    label: "",
-    slug: "",
-    category: "",
-    logo: "",
-    publisher: "",
-    url: "",
-    verified: true,
-    trending: true,
-    rating: 0,
-    reviews: 0,
-  },
   huddle01_video: {
     installed: true,
     type: "huddle01_video",
