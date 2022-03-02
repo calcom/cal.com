@@ -9,7 +9,7 @@ export interface App {
    * */
   installed: boolean;
   /** The app type */
-  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3`;
+  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3` | `${string}_app`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */
@@ -19,7 +19,7 @@ export interface App {
   /** The icon to display in /apps/installed */
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing";
+  variant: "calendar" | "payment" | "conferencing" | "app";
   label: string;
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
