@@ -120,11 +120,8 @@ export const useSlots = (props: UseSlotsProps) => {
       minimumBookingNotice,
     });
     // Check for conflicts
-    // const busyTimes = [{ start: new Date(2022, 2, 4, 11, 0, 0, 0), end: new Date(2022, 2, 4, 12, 0, 0, 0) }];
-    // buffer check must be added in this loop
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {
-        // busyTimes.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);
         // Check if start times are the same
