@@ -38,7 +38,7 @@ export function getLocationOptions() {
   ];
 
   Object.values(appStore).forEach((app) => {
-    if ("locationOption" in app.lib) {
+    if ("lib" in app && "locationOption" in app.lib) {
       defaultLocations.push(app.lib.locationOption);
     }
   });
