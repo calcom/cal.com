@@ -15,6 +15,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -62,11 +63,13 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
   }, [router.query.date]);
 
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-  const [timeFormat, setTimeFormat] = useState("h:mma");
+  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+
   const telemetry = useTelemetry();
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+
     telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
   }, [telemetry]);
 
@@ -120,6 +123,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
+                    border="border-2 dark:border-gray-900 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
@@ -168,6 +172,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
+                    border="border-2 dark:border-gray-900 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },

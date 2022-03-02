@@ -3,6 +3,10 @@
   "baseBranch": "origin/main",
   "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"],
+      "outputs": ["zod/**"]
+    },
     "@calcom/prisma#db-deploy": {},
     "@calcom/prisma#db-reset": {
       "cache": false
@@ -81,11 +85,11 @@
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
+      "dependsOn": []
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["^test"],
+      "dependsOn": ["^test", "@calcom/web#build", "@calcom/prisma#db-reset"],
       "outputs": ["playwright", "test-results"]
     },
     "type-check": {

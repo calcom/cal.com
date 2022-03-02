@@ -1,3 +1,2 @@
-export default function classNames(...classes: unknown[]) {
-  return classes.filter(Boolean).join(" ");
-}
+// TODO: Remove this file once every `classNames` is imported from `@calcom/lib`
+export { default } from "@calcom/lib/classNames";

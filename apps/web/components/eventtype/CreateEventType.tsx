@@ -6,12 +6,13 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
+import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import showToast from "@lib/notification";
+import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
@@ -67,7 +68,7 @@ export default function CreateEventTypeButton(props: Props) {
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
       if (name === "title" && type === "change") {
-        if (value.title) setValue("slug", value.title.replace(/\s+/g, "-").toLowerCase());
+        if (value.title) setValue("slug", slugify(value.title));
         else setValue("slug", "");
       }
     });

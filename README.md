@@ -70,7 +70,6 @@ Cal officially launched as v.1.0 on 15th of September, however a lot of new feat
 
 ![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
-
 <!-- GETTING STARTED -->
 
 ## Getting Started
@@ -125,6 +124,14 @@ Here is what you need to be able to run Cal.
 yarn dx
 ```
 
+#### Development tip
+
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `apps/web/.env` to get logging information for all the queries and mutations driven by **trpc**.
+
+```sh
+echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
+```
+
 #### Manual setup
 
 1. Configure environment variables in the .env file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
@@ -164,7 +171,7 @@ yarn dx
 1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 1. Run (in development mode)
@@ -178,7 +185,7 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   yarn prisma studio
+   yarn db-studio
    ```
 
 1. Click on the `User` model to add a new user record.
@@ -214,7 +221,7 @@ yarn workspace @calcom/web playwright-report
    In a development environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate dev
+   yarn workspace @calcom/prisma db-migrate
    ```
 
    (this can clear your development database in some cases)
@@ -222,7 +229,7 @@ yarn workspace @calcom/web playwright-report
    In a production environment, run:
 
    ```sh
-   yarn workspace @calcom/web prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
@@ -276,20 +283,17 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 ## Roadmap
 
-See the [open issues](https://github.com/calcom/cal.com/issues) for a list of proposed features (and known issues).
+See the [roadmap project](https://github.com/orgs/calcom/projects/1) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
 <!-- CONTRIBUTING -->
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Please see our [contributing guide](/CONTRIBUTING.md).
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-5. Push to the branch (`git push origin feature/AmazingFeature`)
-6. Open a pull request
+### Good First Issues
+
+We have a list of [good first issues](https://github.com/calcom/cal.com/labels/✅%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
