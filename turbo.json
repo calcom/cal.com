@@ -7,7 +7,9 @@
       "dependsOn": ["$DATABASE_URL"],
       "outputs": ["zod/**"]
     },
-    "@calcom/prisma#db-deploy": {},
+    "@calcom/prisma#db-deploy": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
     "@calcom/prisma#db-reset": {
       "cache": false
     },
@@ -18,7 +20,7 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
-        "@calcom/prisma#build",
+        "@calcom/prisma#db-deploy",
         "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
@@ -53,6 +55,7 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
+        "WEBSITE_BASE_URL",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
