@@ -146,6 +146,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
+
+  const timeFormatOptions = [
+    { value: 12, label: t("12_hour") },
+    { value: 24, label: t("24_hour") },
+  ];
   const usernameRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
   const emailRef = useRef<HTMLInputElement>(null!);
@@ -153,6 +158,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
+  const [selectedTimeFormat, setSelectedTimeFormat] = useState({
+    value: props.user.timeFormat || 12,
+    label: timeFormatOptions.find((option) => option.value === props.user.timeFormat)?.label || 12,
+  });
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
     value: props.user.weekStart,
@@ -189,6 +198,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
+    const enteredTimeFormat = selectedTimeFormat.value;
 
     // TODO: Add validation
 
@@ -204,6 +214,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       theme: asStringOrNull(selectedTheme?.value),
       brandColor: enteredBrandColor,
       locale: enteredLanguage,
+      timeFormat: enteredTimeFormat,
     });
   }
 
@@ -344,6 +355,21 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   onChange={(v) => v && setSelectedTimeZone(v)}
                   classNamePrefix="react-select"
                   className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700">
+                {t("time_format")}
+              </label>
+              <div className="mt-1">
+                <Select
+                  id="timeFormatSelect"
+                  value={selectedTimeFormat || props.user.timeFormat}
+                  onChange={(v) => v && setSelectedTimeFormat(v)}
+                  classNamePrefix="react-select"
+                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  options={timeFormatOptions}
                 />
               </div>
             </div>
@@ -499,6 +525,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       plan: true,
       brandColor: true,
       metadata: true,
+      timeFormat: true,
     },
   });
 

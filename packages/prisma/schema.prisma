@@ -128,6 +128,7 @@ model User {
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean              @default(false)
   locale              String?
+  timeFormat          Int?                 @default(12)
   twoFactorSecret     String?
   twoFactorEnabled    Boolean              @default(false)
   identityProvider    IdentityProvider     @default(CAL)

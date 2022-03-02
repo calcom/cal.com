@@ -1,6 +1,6 @@
-import { _EventTypeModel } from "./eventtype";
+import { _EventTypeModel } from "../eventtype";
 
-const createEventTypeBaseInput = _EventTypeModel
+export const createEventTypeInput = _EventTypeModel
   .pick({
     title: true,
     slug: true,
@@ -8,10 +8,10 @@ const createEventTypeBaseInput = _EventTypeModel
     length: true,
     teamId: true,
     schedulingType: true,
+    hidden: true,
   })
+  .partial({ hidden: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
-
-export const createEventTypeInput = createEventTypeBaseInput;
