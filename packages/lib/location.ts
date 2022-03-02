@@ -8,5 +8,4 @@ export enum LocationType {
   Jitsi = "integrations:jitsi",
   Huddle01 = "integrations:huddle01",
   Tandem = "integrations:tandem",
-  Slack = "integrations:slack",
 }
