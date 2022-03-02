@@ -11,9 +11,11 @@ import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
 const ALL_APPS_MAP = {
   ...Object.values(appStore).map((app) => app.metadata),
+  /* To be deprecated start */
   ...CalendarApps,
   ...ConferencingApps,
   ...PaymentApps,
+  /* To be deprecated end */
 } as App[];
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
@@ -30,36 +32,49 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-export function getLocationOptions() {
+export function getLocationOptions(integrations: AppMeta) {
   const defaultLocations: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "in_person_meeting" },
-    { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: "phone_call" },
   ];
 
-  Object.values(appStore).forEach((app) => {
-    if ("lib" in app && "locationOption" in app.lib) {
-      defaultLocations.push(app.lib.locationOption);
+  integrations.forEach((app) => {
+    if (app.locationOption) {
+      defaultLocations.push(app.locationOption);
     }
   });
 
   return defaultLocations;
 }
 
+/**
+ * This should get all avaialable apps to the user based on his saved
+ * credentials, this should also get globally available apps.
+ */
 function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.map((app) => {
+  const apps = ALL_APPS.map((appMeta) => {
+    const appName = appMeta.type.split("_").join("");
+    const app = appStore[appName as keyof typeof appStore];
     const credentials = userCredentials
-      .filter((credential) => credential.type === app.type)
+      .filter((credential) => credential.type === appMeta.type)
       .map((credential) => _.pick(credential, ["id", "type"])); // ensure we don't leak `key` to frontend
+    let locationOption: OptionTypeBase | null = null;
+
+    /** Check if app has location option AND add it if user has credentials for it OR is a global one */
+    if (app && "lib" in app && "locationOption" in app.lib && (appMeta.isGlobal || credentials.length > 0)) {
+      locationOption = app.lib.locationOption;
+    }
 
     const credential: typeof credentials[number] | null = credentials[0] || null;
     return {
-      ...app,
+      ...appMeta,
       /**
        * @deprecated use `credentials`
        */
       credential,
       credentials,
+      /** Option to display in `location` field while editing event types */
+      locationOption,
     };
   });
 
@@ -68,6 +83,7 @@ function getApps(userCredentials: CredentialData[]) {
 
 export type AppMeta = ReturnType<typeof getApps>;
 
+/** @deprecated use `getApps`  */
 export function hasIntegration(apps: AppMeta, type: string): boolean {
   return !!apps.find(
     (app) =>

@@ -1663,19 +1663,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions();
+  const locationOptions = getLocationOptions(integrations);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({
       value: LocationType.GoogleMeet,
       label: "Google Meet",
-    });
-  }
-  if (hasIntegration(integrations, "daily_video")) {
-    locationOptions.push({
-      value: LocationType.Daily,
-      label: "Daily.co Video",
     });
   }
   if (hasIntegration(integrations, "jitsi_video")) {
