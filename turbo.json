@@ -55,7 +55,7 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
-        "WEBSITE_BASE_URL",
+        "$WEBSITE_BASE_URL",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
@@ -65,6 +65,10 @@
       "dependsOn": ["@calcom/prisma#dx"]
     },
     "@calcom/web#start": {},
+    "@calcom/website#build": {
+      "dependsOn": ["$WEBSITE_BASE_URL"],
+      "outputs": [".next/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
