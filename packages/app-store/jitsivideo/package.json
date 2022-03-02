@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Video Conferencing",
-  "dependencies": {},
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
   "devDependencies": {
     "@calcom/types": "*"
   }
