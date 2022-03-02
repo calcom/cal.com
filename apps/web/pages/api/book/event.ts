@@ -420,7 +420,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(409).json({ message: "booking.conflict" });
       return;
     }
-    res.status(500).end();
+    res.status(400).end();
     return;
   }
 
