@@ -476,6 +476,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
 
         log.debug(`Booking ${currentUser.name} failed`, error);
+        res.status(500).json(error);
+        return;
       }
 
       let timeOutOfBounds = false;
