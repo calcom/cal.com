@@ -1663,7 +1663,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions();
+  const locationOptions = getLocationOptions(integrations);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
