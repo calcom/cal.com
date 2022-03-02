@@ -314,6 +314,7 @@
   "create_new_webhook_to_account": "Criar um webhook na sua conta",
   "new_webhook": "Novo Webhook",
   "receive_cal_meeting_data": "Receba dados da reunião Cal em uma, URL especificada, em tempo real, quando um evento for programado ou cancelado.",
+  "receive_cal_event_meeting_data": "Receba dados da reunião Cal num URL especificado, em tempo real, assim que o evento for agendado ou cancelado.",
   "responsive_fullscreen_iframe": "Iframe responsivo de ecrã inteiro",
   "loading": "A carregar...",
   "standard_iframe": "Iframe padrão",
