@@ -7,7 +7,9 @@
       "dependsOn": ["$DATABASE_URL"],
       "outputs": ["zod/**"]
     },
-    "@calcom/prisma#db-deploy": {},
+    "@calcom/prisma#db-deploy": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
     "@calcom/prisma#db-reset": {
       "cache": false
     },
