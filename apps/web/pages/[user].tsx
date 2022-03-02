@@ -123,6 +123,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
 
   const username = (context.query.user as string).toLowerCase();
+  const start = Date.now();
   const user = await prisma.user.findUnique({
     where: {
       username: username.toLowerCase(),
@@ -207,7 +208,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     },
   });
-
+  const end = Date.now();
+  console.log(`Data Fetched: ${end - start}`);
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
