@@ -1,11 +1,11 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
+import prisma from "@calcom/prisma";
 import { getStripeCustomerFromUser } from "@ee/lib/stripe/customer";
 
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
-import prisma from "@lib/prisma";
 
 import stripe from "./server";
 
@@ -261,69 +261,6 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
   if (subscription && membersMissingSeats.length !== stripeQuantity) {
     await updatePerSeatQuantity(subscription, membersMissingSeats.length);
   }
-}
-
-export async function downgradeIllegalProUsers() {
-  const usersDowngraded: string[] = [];
-  const illegalProUsers = await prisma.membership.findMany({
-    where: {
-      role: {
-        not: MembershipRole.OWNER,
-      },
-      user: {
-        plan: {
-          not: UserPlan.PRO,
-        },
-      },
-    },
-    include: {
-      user: true,
-    },
-  });
-  const downgrade = async (member: typeof illegalProUsers[number]) => {
-    await prisma.user.update({
-      where: { id: member.user.id },
-      data: { plan: UserPlan.TRIAL },
-    });
-    usersDowngraded.push(member.user.username || `{member.user.id}`);
-  };
-  for (const member of illegalProUsers) {
-    const metadata = (member.user.metadata as Prisma.JsonObject) ?? {};
-    // if their pro is already sponsored by a team, do not downgrade
-    if (metadata.proPaidForTeamId !== undefined) continue;
-
-    const stripeCustomerId = await getStripeCustomerFromUser(member.user.id);
-    if (!stripeCustomerId) {
-      await downgrade(member);
-      continue;
-    }
-
-    const customer = await stripe.customers.retrieve(stripeCustomerId, {
-      expand: ["subscriptions.data.plan"],
-    });
-    if (!customer || customer.deleted) {
-      await downgrade(member);
-      continue;
-    }
-
-    const subscription = customer.subscriptions?.data[0];
-    if (!subscription) {
-      await downgrade(member);
-      continue;
-    }
-
-    const hasProPlan = !!subscription.items.data.find(
-      (item) => item.plan.id === getProPlanPrice() || item.plan.id === getPremiumPlanPrice()
-    );
-    // if they're pro, do not downgrade
-    if (hasProPlan) continue;
-
-    await downgrade(member);
-  }
-  return {
-    usersDowngraded,
-    usersDowngradedAmount: usersDowngraded.length,
-  };
 }
 
 const isProductionSite =
