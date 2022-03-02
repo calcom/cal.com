@@ -46,6 +46,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
+  webhooks                Webhook[]
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
@@ -345,11 +346,13 @@ enum WebhookTriggerEvents {
 
 model Webhook {
   id              String                 @id @unique
-  userId          Int
+  userId          Int?
+  eventTypeId     Int?
   subscriberUrl   String
   payloadTemplate String?
   createdAt       DateTime               @default(now())
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
-  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType       EventType?              @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 }
