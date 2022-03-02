@@ -10,7 +10,6 @@ import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/Vide
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
-import JitsiVideoApiAdapter from "@lib/integrations/Jitsi/JitsiVideoApiAdapter";
 import logger from "@lib/logger";
 
 import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
