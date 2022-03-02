@@ -4,10 +4,7 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Video Conferencing",
-  "dependencies": {
-    "@calcom/prisma": "*",
-    "@calcom/lib": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@calcom/types": "*"
   }
