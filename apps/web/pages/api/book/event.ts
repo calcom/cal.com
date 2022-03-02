@@ -1,4 +1,4 @@
-import { Credential, Prisma, SchedulingType } from "@prisma/client";
+import { Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -594,9 +594,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   log.debug(`Booking ${user.username} completed`);
 
-  const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const subscriberOptions = {
+    userId: user.id,
+    eventTypeId,
+    triggerEvent: eventTrigger,
+  };
+
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(user.id, eventTrigger);
+  const subscribers = await getSubscribers(subscriberOptions);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
