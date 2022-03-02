@@ -31,6 +31,8 @@ test.describe("pro user", () => {
     await page.click('[data-testid="event-type-link"]');
     // Click [data-testid="incrementMonth"]
     await page.click('[data-testid="incrementMonth"]');
+    // Waiting for full month increment
+    await page.waitForTimeout(1000);
     // Click [data-testid="day"]
     await page.click('[data-testid="day"][data-disabled="false"]');
     // Click [data-testid="time"]
