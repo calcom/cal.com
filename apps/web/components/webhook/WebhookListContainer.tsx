@@ -14,6 +14,8 @@ import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
 export type WebhookListContainerType = {
+  title: string;
+  subtitle: string;
   eventTypeId?: number;
 };
 
@@ -35,11 +37,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
       query={query}
       success={({ data }) => (
         <>
-          <ShellSubHeading
-            className="mt-10"
-            title={t("Team Webhooks")}
-            subtitle={t("receive_cal_event_meeting_data")}
-          />
+          <ShellSubHeading className="mt-10" title={props.title} subtitle={props.subtitle} />
           <List>
             <ListItem className={classNames("flex-col")}>
               <div
