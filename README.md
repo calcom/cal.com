@@ -280,7 +280,7 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 ## Roadmap
 
-See the [open issues](https://github.com/calcom/cal.com/issues) for a list of proposed features (and known issues).
+See the [roadmap project](https://github.com/orgs/calcom/projects/1) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
 <!-- CONTRIBUTING -->
 

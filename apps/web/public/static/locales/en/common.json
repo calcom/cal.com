@@ -314,6 +314,7 @@
   "create_new_webhook_to_account": "Create a new webhook to your account",
   "new_webhook": "New Webhook",
   "receive_cal_meeting_data": "Receive Cal meeting data at a specified URL, in real-time, when an event is scheduled or cancelled.",
+  "receive_cal_event_meeting_data": "Receive Cal meeting data at a specified URL, in real-time, when this event is scheduled or cancelled.",
   "responsive_fullscreen_iframe": "Responsive full screen iframe",
   "loading": "Loading...",
   "standard_iframe": "Standard iframe",
@@ -402,6 +403,7 @@
   "phone_number": "Phone Number",
   "enter_phone_number": "Enter phone number",
   "reschedule": "Reschedule",
+  "reschedule_this": "Reschedule instead",
   "book_a_team_member": "Book a team member instead",
   "or": "OR",
   "go_back": "Go back",
@@ -435,6 +437,7 @@
   "danger_zone": "Danger Zone",
   "back": "Back",
   "cancel": "Cancel",
+  "cancel_event": "Cancel this event",
   "continue": "Continue",
   "confirm": "Confirm",
   "disband_team": "Disband Team",
@@ -657,5 +660,8 @@
   "contact_sales": "Contact Sales",
   "error_404": "Error 404",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
-  "example_name": "John Doe"
+  "example_name": "John Doe",
+  "time_format": "Time format",
+  "12_hour": "12 hour",
+  "24_hour": "24 hour"
 }

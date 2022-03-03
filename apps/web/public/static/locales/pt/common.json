@@ -314,6 +314,7 @@
   "create_new_webhook_to_account": "Criar um webhook na sua conta",
   "new_webhook": "Novo Webhook",
   "receive_cal_meeting_data": "Receba dados da reunião Cal em uma, URL especificada, em tempo real, quando um evento for programado ou cancelado.",
+  "receive_cal_event_meeting_data": "Receba dados da reunião Cal num URL especificado, em tempo real, assim que o evento for agendado ou cancelado.",
   "responsive_fullscreen_iframe": "Iframe responsivo de ecrã inteiro",
   "loading": "A carregar...",
   "standard_iframe": "Iframe padrão",
@@ -402,6 +403,7 @@
   "phone_number": "Número de Telefone",
   "enter_phone_number": "Inserir Número do Telefone",
   "reschedule": "Reagendar",
+  "reschedule_this": "Reagendar em alternativa",
   "book_a_team_member": "Reserve um Membro da sua Equipa no seu lugar",
   "or": "Ou",
   "go_back": "Voltar atrás",
@@ -435,6 +437,7 @@
   "danger_zone": "Zona de Perigo",
   "back": "Anterior",
   "cancel": "Cancelar",
+  "cancel_event": "Cancelar este evento",
   "continue": "Continuar",
   "confirm": "Confirmar",
   "disband_team": "Dissolver Equipa",
@@ -657,5 +660,8 @@
   "contact_sales": "Contacte as vendas",
   "error_404": "Erro 404",
   "requires_ownership_of_a_token": "Requer a propriedade de um token pertencente ao seguinte endereço:",
-  "example_name": "José Ninguém"
+  "example_name": "José Ninguém",
+  "time_format": "Formato da hora",
+  "12_hour": "12 horas",
+  "24_hour": "24 horas"
 }
