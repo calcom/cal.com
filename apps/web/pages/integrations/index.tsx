@@ -289,7 +289,7 @@ export default function IntegrationsPage() {
       <ClientSuspense fallback={<Loader />}>
         <IntegrationsContainer />
         <CalendarListContainer />
-        <WebhookListContainer />
+        <WebhookListContainer title="webhooks" />
         <IframeEmbedContainer />
         <Web3Container />
       </ClientSuspense>

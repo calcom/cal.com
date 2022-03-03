@@ -14,6 +14,7 @@ import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
 export type WebhookListContainerType = {
+  title: string;
   eventTypeId?: number;
 };
 
@@ -37,7 +38,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
         <>
           <ShellSubHeading
             className="mt-10"
-            title={t("Team Webhooks")}
+            title={t(props.title)}
             subtitle={t("receive_cal_event_meeting_data")}
           />
           <List>

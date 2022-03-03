@@ -1531,7 +1531,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </Dialog>
             )}
           />
-          {isAdmin && <WebhookListContainer eventTypeId={props.eventType.id} />}
+          {isAdmin && <WebhookListContainer title="team_webhooks" eventTypeId={props.eventType.id} />}
         </ClientSuspense>
       </Shell>
     </div>
