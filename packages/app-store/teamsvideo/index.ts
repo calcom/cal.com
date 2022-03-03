@@ -21,6 +21,3 @@ export const metadata = {
   title: "MS Teams",
   trending: true,
 } as App;
-
-export * as api from "./api";
-export * as lib from "./lib";
