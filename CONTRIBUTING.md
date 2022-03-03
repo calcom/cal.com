@@ -8,7 +8,7 @@ Contributions are what make the open source community such an amazing place to b
 
 The development branch is `main`. This is the branch that all pull
 requests should be made against. The changes on the `main`
-branch are tagged into a release biweekly.
+branch are tagged into a release monthly.
 
 To develop locally:
 
@@ -51,7 +51,7 @@ Please be sure that you can make a full production build before pushing code.
 
 ## Testing
 
-More info on how to add new tests comming soon.
+More info on how to add new tests coming soon.
 
 ### Running tests
 
