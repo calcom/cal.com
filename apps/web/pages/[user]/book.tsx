@@ -26,7 +26,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const user = await prisma.user.findUnique({
     where: {
-      username: asStringOrThrow(context.query.user),
+      username: asStringOrThrow(context.query.user).toLowerCase(),
     },
     select: {
       id: true,
