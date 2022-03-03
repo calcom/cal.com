@@ -13,9 +13,11 @@ const TrialBanner = () => {
 
   if (!user || user.plan !== "TRIAL") return null;
 
-  const trialDaysLeft = dayjs(user.createdDate)
-    .add(TRIAL_LIMIT_DAYS + 1, "day")
-    .diff(dayjs(), "day");
+  const trialDaysLeft = user.trialEndsAt
+    ? dayjs(user.trialEndsAt).add(1, "day").diff(dayjs(), "day")
+    : dayjs(user.createdDate)
+        .add(TRIAL_LIMIT_DAYS + 1, "day")
+        .diff(dayjs(), "day");
 
   return (
     <div

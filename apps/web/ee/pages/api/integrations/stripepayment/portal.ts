@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getStripeCustomerFromUser } from "@ee/lib/stripe/customer";
+import { getStripeCustomerIdFromUserId } from "@ee/lib/stripe/customer";
 import stripe from "@ee/lib/stripe/server";
 
 import { getSession } from "@lib/auth";
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    const customerId = await getStripeCustomerFromUser(session.user.id);
+    const customerId = await getStripeCustomerIdFromUserId(session.user.id);
 
     if (!customerId) {
       res.status(500).json({ message: "Missing customer id" });

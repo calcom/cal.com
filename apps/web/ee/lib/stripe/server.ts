@@ -2,10 +2,11 @@ import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
+import prisma from "@calcom/prisma";
+
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
-import prisma from "@lib/prisma";
 
 import { createPaymentLink } from "./client";
 
