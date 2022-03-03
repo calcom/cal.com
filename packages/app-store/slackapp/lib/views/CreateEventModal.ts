@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import { Modal, Blocks, Elements, Bits } from "slack-block-builder";
+import { Modal, Blocks, Elements, Bits, Message } from "slack-block-builder";
 
 const CreateEventModal = (
   data:
@@ -14,19 +14,22 @@ const CreateEventModal = (
       })
     | null
 ) => {
-  return Modal({ title: "Cal.com", submit: "Create" })
+  return Message()
     .blocks(
-      Blocks.Section({ text: `Hey there, ${data?.user?.username}!` }),
+      Blocks.Section({ text: `Hey there, *${data?.user?.username}!*` }),
       Blocks.Divider(),
+      Blocks.Input({ label: "Event Name" }).element(
+        Elements.TextInput({ placeholder: "Event Name" }).actionId("event_name")
+      ),
       Blocks.Input({ label: "Which event would you like to create?" }).element(
         Elements.StaticSelect({ placeholder: "Which event would you like to create?" })
-          .actionId("events_types")
+          .actionId("create.event.type")
           .options(
             data?.user?.eventTypes.map((item: any) =>
               Bits.Option({ text: item.title ?? "No Name", value: item.id.toString() })
             )
           )
-      ),
+      ), // This doesnt need to reach out to the server when the user changes the selection
       Blocks.Input({ label: "Who would you like to invite to your event?" }).element(
         Elements.UserMultiSelect({ placeholder: "Who would you like to invite to your event?" }).actionId(
           "invite_users"
@@ -37,9 +40,14 @@ const CreateEventModal = (
       ),
       Blocks.Input({ label: "What time would you like to start?" }).element(
         Elements.TimePicker({ placeholder: "Select Time" }).actionId("event_start_time")
+      ), // TODO: We could in future validate if the time is in the future or if busy at point - Didnt see much point as this gets validated when you submit. Could be better UX
+      Blocks.Actions().elements(
+        Elements.Button({ text: "Cancel", actionId: "cal.event.cancel" }).danger(),
+        Elements.Button({ text: "Create", actionId: "cal.event.create" }).primary()
       )
     )
-    .buildToJSON();
+    .asUser()
+    .buildToObject();
 };
 
 export default CreateEventModal;

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import { CreateEventModal } from "./views";
 
-export default async function createEvents(req: NextApiRequest, res: NextApiResponse) {
+export default async function showCreateEventMessage(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
 
   const data = await prisma.credential.findFirst({

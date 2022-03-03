@@ -9,37 +9,49 @@ import { HttpError } from "@lib/core/http/error";
 
 const signingSecret = process.env.SLACK_SIGNING_SECRET;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { args } = req.query;
-
+function verifyHash(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
   const timeStamp = req.headers["x-slack-request-timestamp"] as string; // Always returns a string and not a string[]
   const slackSignature = req.headers["x-slack-signature"] as string;
   const currentTime = dayjs().unix();
 
+  // Ensure that there is a timestamp
   if (!timeStamp) {
     return res.status(400).json({ message: "Missing X-Slack-Request-Timestamp header" });
   }
 
+  // If there is no signging secret in env there is no way to check that the request is valid.
   if (!signingSecret) {
     return res.status(400).json({ message: "Missing process.env.SLACK_SIGNING_SECRET" });
   }
 
+  // Ensure that the timestamp is within the last 5 minutes (300 seconds)
   if (Math.abs(currentTime - parseInt(timeStamp)) > 60 * 5) {
     return res.status(400).json({ message: "Request is too old" });
   }
 
-  const signature_base = `v0:${timeStamp}:${stringify(body)}`;
-  const signed_sig = "v0=" + createHmac("sha256", signingSecret).update(signature_base).digest("hex");
+  const hmac = createHmac("sha256", signingSecret);
+  const [version, hash] = slackSignature.split("=");
 
-  if (signed_sig !== slackSignature) {
+  hmac.update(`${version}:${timeStamp}:${stringify(body)}`);
+  const digest = hmac.digest("hex");
+
+  // TODO: This still fails on and custom selections - need to figure out how to handle this. Normal slack actions do not produce an invalid signature.
+  if (digest !== hash) {
     return res.status(400).json({ message: "Invalid signature" });
   }
+}
 
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  verifyHash(req, res); // Verify that this request is coming from slack
+
+  const { args } = req.query;
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
   }
 
+  // Handle routes to mono repo
+  // This is a hack to get the app store to work with the mono repo.
   const [_appName, apiEndpoint] = args;
   const appName = _appName.split("_").join("");
 
@@ -49,9 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
-    const response = await handler(req, res);
-    console.log("response", response);
-
+    await handler(req, res);
     res.status(200);
   } catch (error) {
     console.error(error);

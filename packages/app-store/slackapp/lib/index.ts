@@ -1,2 +1,2 @@
 export { default as locationOption } from "./locationOption";
-export { default as createEvent } from "./createEvent";
+export { default as showCreateEventMessage } from "./showCreateEventMessage";
