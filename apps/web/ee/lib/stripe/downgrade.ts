@@ -7,7 +7,7 @@ import prisma from "@calcom/prisma";
 
 import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 
-import { getStripeCustomerFromUser } from "./customer";
+import { getStripeCustomerFromUserId } from "./customer";
 import stripe from "./server";
 import { getPremiumPlanPrice, getProPlanPrice } from "./team-billing";
 
@@ -45,7 +45,7 @@ export async function downgradeIllegalProUsers() {
     // if their pro is already sponsored by a team, do not downgrade
     if (metadata.proPaidForTeamId !== undefined) continue;
 
-    const stripeCustomerId = await getStripeCustomerFromUser(member.user.id);
+    const stripeCustomerId = await getStripeCustomerFromUserId(member.user.id);
     if (!stripeCustomerId) {
       await downgrade(member);
       continue;
