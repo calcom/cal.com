@@ -1,8 +1,11 @@
 #!/usr/bin/env ts-node
 // To run this script: `yarn downgrade 2>&1 | tee result.log`
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import dayjs from "dayjs";
 
 import prisma from "@calcom/prisma";
+
+import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 
 import { getStripeCustomerFromUser } from "./customer";
 import stripe from "./server";
@@ -29,7 +32,10 @@ export async function downgradeIllegalProUsers() {
     console.log(`Downgrading: ${member.user.email}`);
     await prisma.user.update({
       where: { id: member.user.id },
-      data: { plan: UserPlan.TRIAL },
+      data: {
+        plan: UserPlan.TRIAL,
+        trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
+      },
     });
     console.log(`Downgraded: ${member.user.email}`);
     usersDowngraded.push(member.user.username || `{member.user.id}`);
