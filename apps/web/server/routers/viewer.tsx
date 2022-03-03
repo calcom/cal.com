@@ -82,6 +82,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
       };
