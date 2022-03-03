@@ -85,9 +85,6 @@ const BookingPage = (props: BookingPageProps) => {
         if (!location) {
           return;
         }
-        if (location === "integrations:jitsi") {
-          return "https://meet.jit.si/cal/" + uuidv4();
-        }
         if (location.includes("integration")) {
           return t("web_conferencing_details_to_follow");
         }
