@@ -1220,7 +1220,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <Controller
                                   name="beforeBufferTime"
                                   control={formMethods.control}
-                                  defaultValue={eventType.beforeBufferValue || 0}
+                                  defaultValue={eventType.beforeEventBuffer || 0}
                                   render={({ field: { onChange, value } }) => {
                                     const beforeBufferOptions = [
                                       {
