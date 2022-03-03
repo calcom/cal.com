@@ -121,6 +121,7 @@ model User {
   hideBranding        Boolean              @default(false)
   theme               String?
   createdDate         DateTime             @default(now()) @map(name: "created")
+  trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
@@ -353,6 +354,6 @@ model Webhook {
   createdAt       DateTime               @default(now())
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
-  user            User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventType       EventType?              @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 }
