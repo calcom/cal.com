@@ -38,7 +38,7 @@ export async function downgradeIllegalProUsers() {
       },
     });
     console.log(`Downgraded: ${member.user.email}`);
-    usersDowngraded.push(member.user.username || `{member.user.id}`);
+    usersDowngraded.push(member.user.username || `${member.user.id}`);
   };
   for (const member of illegalProUsers) {
     const metadata = (member.user.metadata as Prisma.JsonObject) ?? {};
