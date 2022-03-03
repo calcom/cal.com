@@ -67,6 +67,7 @@ async function getUserFromSession({
       destinationCalendar: true,
       locale: true,
       timeFormat: true,
+      trialEndsAt: true,
     },
   });
 

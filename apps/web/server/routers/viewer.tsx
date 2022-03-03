@@ -78,6 +78,7 @@ const loggedInViewerRouter = createProtectedRouter()
         timeFormat: user.timeFormat,
         avatar: user.avatar,
         createdDate: user.createdDate,
+        trialEndsAt: user.trialEndsAt,
         completedOnboarding: user.completedOnboarding,
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
