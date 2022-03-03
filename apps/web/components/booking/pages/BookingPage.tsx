@@ -85,9 +85,6 @@ const BookingPage = (props: BookingPageProps) => {
         if (!location) {
           return;
         }
-        if (location === "integrations:jitsi") {
-          return "https://meet.jit.si/cal/" + uuidv4();
-        }
         if (location.includes("integration")) {
           return t("web_conferencing_details_to_follow");
         }
@@ -254,7 +251,9 @@ const BookingPage = (props: BookingPageProps) => {
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      location: getLocationValue(
+        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+      ),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
@@ -281,8 +280,8 @@ const BookingPage = (props: BookingPageProps) => {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor}/>
-      <main className=" mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <CustomBranding val={props.profile.brandColor} />
+      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
           <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
@@ -394,8 +393,14 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        {/* @ts-ignore */}
-                        <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
+                        <PhoneInput
+                          // @ts-expect-error
+                          control={bookingForm.control}
+                          name="phone"
+                          placeholder={t("enter_phone_number")}
+                          id="phone"
+                          required
+                        />
                       </div>
                     </div>
                   )}
