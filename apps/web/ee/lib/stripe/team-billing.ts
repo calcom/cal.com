@@ -82,17 +82,17 @@ export async function upgradeTeam(userId: number, teamId: number) {
   const { membersMissingSeats, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
 
   if (!subscription) {
-    let customer = await getStripeCustomerFromUserId(userId);
-    if (!customer) {
+    let customerId = await getStripeCustomerFromUserId(userId);
+    if (!customerId) {
       // create stripe customer if it doesn't already exist
       const res = await stripe.customers.create({
         email: ownerUser.user.email,
       });
-      customer = res.id;
+      customerId = res.id;
     }
     // create a checkout session with the quantity of missing seats
     const session = await createCheckoutSession(
-      customer,
+      customerId,
       membersMissingSeats.length,
       teamId,
       ownerIsMissingSeat
