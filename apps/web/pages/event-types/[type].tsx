@@ -1220,7 +1220,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <Controller
                                   name="beforeBufferTime"
                                   control={formMethods.control}
-                                  render={({ field: { onChange, onBlur, value, ref } }) => {
+                                  render={({ field: { onChange, value } }) => {
                                     const beforeBufferOptions = [
                                       {
                                         label: t("event_buffer_default"),
@@ -1258,7 +1258,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <Controller
                                   name="afterBufferTime"
                                   control={formMethods.control}
-                                  render={({ field: { onChange, onBlur, value, ref } }) => {
+                                  render={({ field: { onChange, value } }) => {
                                     const afterBufferOptions = [
                                       {
                                         label: t("event_buffer_default"),
