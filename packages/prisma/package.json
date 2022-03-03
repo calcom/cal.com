@@ -20,7 +20,7 @@
   "devDependencies": {
     "npm-run-all": "^4.1.5",
     "prisma": "3.9.2",
-    "ts-node": "^10.2.1",
+    "ts-node": "^10.6.0",
     "zod-prisma": "^0.5.4"
   },
   "dependencies": {
@@ -29,6 +29,11 @@
   },
   "main": "index.ts",
   "types": "index.d.ts",
+  "files": [
+    "client",
+    "zod",
+    "zod-utils.ts"
+  ],
   "prisma": {
     "seed": "ts-node ./seed.ts"
   }
