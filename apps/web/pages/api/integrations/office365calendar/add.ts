@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
+import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 
 import { encodeOAuthState } from "../utils";
 
@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       response_type: "code",
       scope: scopes.join(" "),
       client_id: process.env.MS_GRAPH_CLIENT_ID,
-      redirect_uri: BASE_URL + "/api/integrations/office365calendar/callback",
+      redirect_uri: NEXT_PUBLIC_BASE_URL + "/api/integrations/office365calendar/callback",
       state,
     };
     const query = stringify(params);
