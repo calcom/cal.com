@@ -119,9 +119,11 @@ export const useSlots = (props: UseSlotsProps) => {
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
     });
+    const busyTimes = [{ start: new Date(2022, 2, 4, 11, 0, 0, 0), end: new Date(2022, 2, 4, 12, 0, 0, 0) }];
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
-      responseBody.busy.every((busyTime): boolean => {
+      // responseBody.busy.every((busyTime): boolean => {
+      busyTimes.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);
         // Check if start times are the same
@@ -136,15 +138,12 @@ export const useSlots = (props: UseSlotsProps) => {
         else if (startTime.isBetween(times[i], times[i].add(eventLength, "minutes"))) {
           times.splice(i, 1);
         }
-        // Check if time is between startTime and afterBufferTime
-        else if (times[i].isBetween(startTime, endTime.add(afterBufferTime, "minutes"))) {
-          times.splice(i, 1);
-        }
-        // Check if time is between endTime and beforeBufferTime
+        // Check if time is between afterBufferTime and beforeBufferTime
         else if (
-          times[i]
-            .add(eventLength, "minutes")
-            .isBetween(startTime.subtract(beforeBufferTime, "minutes"), endTime)
+          times[i].isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
         ) {
           times.splice(i, 1);
         } else {
