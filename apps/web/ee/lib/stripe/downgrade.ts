@@ -12,33 +12,44 @@ import stripe from "./server";
 import { getPremiumPlanPrice, getProPlanPrice } from "./team-billing";
 
 export async function downgradeIllegalProUsers() {
-  const usersDowngraded: string[] = [];
   const illegalProUsers = await prisma.membership.findMany({
     where: {
       role: {
         not: MembershipRole.OWNER,
       },
       user: {
-        plan: {
-          not: UserPlan.PRO,
+        plan: UserPlan.PRO,
+      },
+    },
+    select: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          plan: true,
+          metadata: true,
         },
       },
     },
-    include: {
-      user: true,
-    },
   });
+  const usersDowngraded: Partial<typeof illegalProUsers[number]["user"]>[] = [];
   const downgrade = async (member: typeof illegalProUsers[number]) => {
     console.log(`Downgrading: ${member.user.email}`);
-    await prisma.user.update({
-      where: { id: member.user.id },
-      data: {
-        plan: UserPlan.TRIAL,
-        trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
-      },
-    });
+    // await prisma.user.update({
+    //   where: { id: member.user.id },
+    //   data: {
+    //     plan: UserPlan.TRIAL,
+    //     trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
+    //   },
+    // });
     console.log(`Downgraded: ${member.user.email}`);
-    usersDowngraded.push(member.user.username || `${member.user.id}`);
+    usersDowngraded.push({
+      id: member.user.id,
+      username: member.user.username,
+      email: member.user.email,
+      plan: member.user.plan,
+    });
   };
   for (const member of illegalProUsers) {
     const metadata = (member.user.metadata as Prisma.JsonObject) ?? {};
