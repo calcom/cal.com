@@ -18,7 +18,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
+    "downgrade": "ts-node ee/lib/stripe/downgrade.ts"
   },
   "engines": {
     "node": ">=14.x",
@@ -135,7 +136,7 @@
     "eslint": "^8.9.0",
     "tailwindcss": "^3.0.0",
     "ts-jest": "^26.0.0",
-    "ts-node": "^10.2.1",
+    "ts-node": "^10.6.0",
     "typescript": "^4.5.3"
   }
 }
