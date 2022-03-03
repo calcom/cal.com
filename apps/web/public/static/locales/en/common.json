@@ -311,6 +311,8 @@
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber Url",
   "create_new_webhook": "Create a new webhook",
+  "webhooks": "Webhooks",
+  "team_webhooks": "Team Webhooks",
   "create_new_webhook_to_account": "Create a new webhook to your account",
   "new_webhook": "New Webhook",
   "receive_cal_meeting_data": "Receive Cal meeting data at a specified URL, in real-time, when an event is scheduled or cancelled.",
