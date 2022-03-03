@@ -2,7 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
 import prisma from "@calcom/prisma";
-import { getStripeCustomerFromUserId } from "@ee/lib/stripe/customer";
+import { getStripeCustomerIdFromUserId } from "@ee/lib/stripe/customer";
 
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
@@ -11,7 +11,7 @@ import stripe from "./server";
 
 // get team owner's Pro Plan subscription from Cal userId
 export async function getProPlanSubscription(userId: number) {
-  const stripeCustomerId = await getStripeCustomerFromUserId(userId);
+  const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
   if (!stripeCustomerId) return null;
 
   const customer = await stripe.customers.retrieve(stripeCustomerId, {
@@ -82,7 +82,7 @@ export async function upgradeTeam(userId: number, teamId: number) {
   const { membersMissingSeats, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
 
   if (!subscription) {
-    let customerId = await getStripeCustomerFromUserId(userId);
+    let customerId = await getStripeCustomerIdFromUserId(userId);
     if (!customerId) {
       // create stripe customer if it doesn't already exist
       const res = await stripe.customers.create({

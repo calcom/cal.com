@@ -6,7 +6,7 @@ import { HttpError as HttpCode } from "@lib/core/http/error";
 
 import stripe from "./server";
 
-export async function getStripeCustomerFromUserId(userId: number) {
+export async function getStripeCustomerIdFromUserId(userId: number) {
   // Get user
   const user = await prisma.user.findUnique({
     where: {
