@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@calcom/teams",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Use your Office 365 account to book video calls through MS Teams",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
