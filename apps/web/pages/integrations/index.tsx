@@ -289,7 +289,7 @@ export default function IntegrationsPage() {
       <ClientSuspense fallback={<Loader />}>
         <IntegrationsContainer />
         <CalendarListContainer />
-        <WebhookListContainer />
+        <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
         <IframeEmbedContainer />
         <Web3Container />
       </ClientSuspense>
