@@ -60,6 +60,7 @@
   "password_reset_instructions": "If you didn't request this, you can safely ignore this email and your password will not be changed.",
   "event_awaiting_approval_subject": "Awaiting Approval: {{eventType}} with {{name}} at {{date}}",
   "event_still_awaiting_approval": "An event is still waiting for your approval",
+  "booking_submitted_subject": "Booking Submitted: {{eventType}} with {{name}} at {{date}}",
   "your_meeting_has_been_booked": "Your meeting has been booked",
   "event_type_has_been_rescheduled_on_time_date": "Your {{eventType}} with {{name}} has been rescheduled to {{time}} ({{timeZone}}) on {{date}}.",
   "event_has_been_rescheduled": "Updated - Your event has been rescheduled",
