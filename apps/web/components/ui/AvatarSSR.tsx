@@ -10,6 +10,11 @@ export type AvatarProps = {
   alt: string;
 };
 
+// defaultAvatarSrc from profile.tsx can't be used as it imports crypto
+function defaultAvatarSrc({ md5 }) {
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
+}
+
 // An SSR Supported version of Avatar component.
 // FIXME: title support is missing
 export function AvatarSSR(props: AvatarProps) {
@@ -20,6 +25,8 @@ export function AvatarSSR(props: AvatarProps) {
   const alt = props.alt || nameOrUsername;
   if (user.avatar) {
     imgSrc = user.avatar;
+  } else if (user.emailMd5) {
+    imgSrc = defaultAvatarSrc({ md5: user.emailMd5 });
   }
   return imgSrc ? <img alt={alt} className={className} src={imgSrc}></img> : null;
 }
