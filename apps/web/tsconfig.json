@@ -6,7 +6,8 @@
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
-      "@ee/*": ["ee/*"]
+      "@ee/*": ["ee/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
     "typeRoots": ["./types"],
     "types": ["@types/jest"]
