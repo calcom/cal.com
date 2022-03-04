@@ -4,12 +4,12 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
 import prisma from "@calcom/prisma";
+import stripe from "@calcom/stripe/server";
 
 import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
-import stripe from "./server";
-import { getPremiumPlanPrice, getProPlanPrice } from "./team-billing";
+import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./team-billing";
 
 export async function downgradeIllegalProUsers() {
   const illegalProUsers = await prisma.user.findMany({
@@ -65,7 +65,8 @@ export async function downgradeIllegalProUsers() {
     }
 
     const hasProPlan = !!subscription.items.data.find(
-      (item) => item.plan.id === getProPlanPrice() || item.plan.id === getPremiumPlanPrice()
+      (item) => item.plan.product === getProPlanProduct() || item.plan.id === getProPlanPrice,
+      getProPlanProduct() || item.plan.id === getPremiumPlanPrice()
     );
     // if they're pro, do not downgrade
     if (hasProPlan) continue;

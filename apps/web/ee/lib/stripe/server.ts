@@ -25,13 +25,8 @@ export type StripeData = Stripe.OAuthToken & {
   default_currency: string;
 };
 
-const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
 const paymentFeePercentage = process.env.PAYMENT_FEE_PERCENTAGE!;
 const paymentFeeFixed = process.env.PAYMENT_FEE_FIXED!;
-
-const stripe = new Stripe(stripePrivateKey, {
-  apiVersion: "2020-08-27",
-});
 
 export async function handlePayment(
   evt: CalendarEvent,
@@ -169,4 +164,4 @@ async function handleRefundError(opts: { event: CalendarEvent; reason: string; p
   });
 }
 
-export default stripe;
+export { default } from "@calcom/stripe/server";
