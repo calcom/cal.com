@@ -2,7 +2,7 @@ import { LocationType } from "@calcom/lib/location";
 
 const locationOption = {
   value: LocationType.Teams,
-  label: "MS Teams Meeting",
+  label: "MS Teams",
   disabled: false,
 };
 

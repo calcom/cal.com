@@ -1,13 +1,13 @@
 import * as example from "./_example";
 import * as dailyvideo from "./dailyvideo";
-import * as teamsvideo from "./office365_video";
+import * as office365video from "./office365video";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
   example,
   dailyvideo,
   zoomvideo,
-  teamsvideo,
+  office365video,
 };
 
 export default appStore;
