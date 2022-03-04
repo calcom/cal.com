@@ -364,6 +364,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodCountCalendarDays: "1" | "0";
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
+    beforeBufferTime: number;
+    afterBufferTime: number;
     slotInterval: number | null;
     destinationCalendar: {
       integration: string;
@@ -683,7 +685,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <Form
                   form={formMethods}
                   handleSubmit={async (values) => {
-                    const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
+                    const {
+                      periodDates,
+                      periodCountCalendarDays,
+                      smartContractAddress,
+                      beforeBufferTime,
+                      afterBufferTime,
+                      ...input
+                    } = values;
                     updateMutation.mutate({
                       ...input,
                       availability: availabilityState,
@@ -691,6 +700,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
                       id: eventType.id,
+                      beforeEventBuffer: beforeBufferTime,
+                      afterEventBuffer: afterBufferTime,
                       metadata: smartContractAddress
                         ? {
                             smartContractAddress,
@@ -1189,6 +1200,98 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                         </div>
+                        <hr className="border-neutral-200" />
+                        <div className="block sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="bufferTime"
+                              className="mt-2.5 flex text-sm font-medium text-neutral-700">
+                              {t("buffer_time")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="inline-flex w-full space-x-2">
+                              <div className="w-full">
+                                <label
+                                  htmlFor="beforeBufferTime"
+                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                  {t("before_event")}
+                                </label>
+                                <Controller
+                                  name="beforeBufferTime"
+                                  control={formMethods.control}
+                                  defaultValue={eventType.beforeEventBuffer || 0}
+                                  render={({ field: { onChange, value } }) => {
+                                    const beforeBufferOptions = [
+                                      {
+                                        label: t("event_buffer_default"),
+                                        value: 0,
+                                      },
+                                      ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                        label: minutes + " " + t("minutes"),
+                                        value: minutes,
+                                      })),
+                                    ];
+                                    return (
+                                      <Select
+                                        isSearchable={false}
+                                        classNamePrefix="react-select"
+                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        onChange={(val) => {
+                                          if (val) onChange(val.value);
+                                        }}
+                                        defaultValue={
+                                          beforeBufferOptions.find((option) => option.value === value) ||
+                                          beforeBufferOptions[0]
+                                        }
+                                        options={beforeBufferOptions}
+                                      />
+                                    );
+                                  }}
+                                />
+                              </div>
+                              <div className="w-full">
+                                <label
+                                  htmlFor="afterBufferTime"
+                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                  {t("after_event")}
+                                </label>
+                                <Controller
+                                  name="afterBufferTime"
+                                  control={formMethods.control}
+                                  defaultValue={eventType.afterEventBuffer || 0}
+                                  render={({ field: { onChange, value } }) => {
+                                    const afterBufferOptions = [
+                                      {
+                                        label: t("event_buffer_default"),
+                                        value: 0,
+                                      },
+                                      ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                        label: minutes + " " + t("minutes"),
+                                        value: minutes,
+                                      })),
+                                    ];
+                                    return (
+                                      <Select
+                                        isSearchable={false}
+                                        classNamePrefix="react-select"
+                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        onChange={(val) => {
+                                          if (val) onChange(val.value);
+                                        }}
+                                        defaultValue={
+                                          afterBufferOptions.find((option) => option.value === value) ||
+                                          afterBufferOptions[0]
+                                        }
+                                        options={afterBufferOptions}
+                                      />
+                                    );
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
                         <hr className="border-neutral-200" />
                         <div className="block sm:flex">
@@ -1618,6 +1721,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       requiresConfirmation: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       slotInterval: true,
       team: {
         select: {
