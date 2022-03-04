@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
+import { FAKE_JITSI_CREDENTIAL } from "@lib/integrations/Jitsi/JitsiVideoApiAdapter";
 import { createEvent, updateEvent } from "@lib/integrations/calendar/CalendarManager";
 import { AdditionInformation, CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { LocationType } from "@lib/location";
@@ -57,8 +58,14 @@ export const isTandem = (location: string): boolean => {
   return location === "integrations:tandem";
 };
 
+export const isJitsi = (location: string): boolean => {
+  return location === "integrations:jitsi";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
+  return (
+    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isJitsi(location)
+  );
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -121,6 +128,7 @@ export default class EventManager {
       this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
     this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    this.videoCredentials.push(FAKE_JITSI_CREDENTIAL);
   }
 
   /**

@@ -1,6 +1,6 @@
 export default {
-  github: 'https://github.com/calcom/docs',
-  docsRepositoryBase: 'https://github.com/calcom/docs/blob/master',
+  github: 'https://github.com/calcom/cal.com',
+  docsRepositoryBase: 'https://github.com/calcom/cal.com/blob/main/apps/docs/pages',
   titleSuffix: ' | Cal.com',
   logo: (
     <h4 className="m-0">
