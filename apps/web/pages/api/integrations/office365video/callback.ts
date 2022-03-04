@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: BASE_URL + "/api/integrations/office365teams/callback",
+    redirect_uri: BASE_URL + "/api/integrations/office365video/callback",
     client_secret: process.env.MS_GRAPH_CLIENT_SECRET!,
   });
 
@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await prisma.credential.create({
     data: {
-      type: "office365_teams",
+      type: "office365_video",
       key: responseBody,
       userId: session.user.id,
     },

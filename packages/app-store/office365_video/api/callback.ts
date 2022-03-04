@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await prisma.credential.create({
     data: {
-      type: "office365_teams",
+      type: "office365_video",
       key: responseBody,
       userId: session.user.id,
     },

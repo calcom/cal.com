@@ -6,7 +6,7 @@ export const metadata = {
   name: "Microsoft 365/Teams",
   description: _package.description,
   installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-  type: "teams_video",
+  type: "office365_video",
   imageSrc: "apps/zoom.svg",
   variant: "conferencing",
   logo: "/apps/zoom.svg",
