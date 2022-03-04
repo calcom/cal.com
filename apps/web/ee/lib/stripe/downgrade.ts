@@ -12,56 +12,44 @@ import stripe from "./server";
 import { getPremiumPlanPrice, getProPlanPrice } from "./team-billing";
 
 export async function downgradeIllegalProUsers() {
-  const illegalProUsers = await prisma.membership.findMany({
+  const illegalProUsers = await prisma.user.findMany({
     where: {
-      role: {
-        not: MembershipRole.OWNER,
-      },
-      user: {
-        plan: UserPlan.PRO,
-      },
+      plan: UserPlan.PRO,
     },
     select: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          plan: true,
-          metadata: true,
-        },
-      },
+      id: true,
+      email: true,
+      username: true,
+      plan: true,
+      metadata: true,
     },
   });
-  const usersDowngraded: Partial<typeof illegalProUsers[number]["user"]>[] = [];
-  const downgrade = async (member: typeof illegalProUsers[number]) => {
-    console.log(`Downgrading: ${member.user.email}`);
+  console.table(illegalProUsers);
+  const usersDowngraded: Partial<typeof illegalProUsers[number]>[] = [];
+  const downgrade = async (user: typeof illegalProUsers[number]) => {
+    console.log(`Downgrading: ${user.email}`);
     // await prisma.user.update({
-    //   where: { id: member.user.id },
+    //   where: { id: member.id },
     //   data: {
     //     plan: UserPlan.TRIAL,
     //     trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
     //   },
     // });
-    console.log(`Downgraded: ${member.user.email}`);
+    console.log(`Downgraded: ${user.email}`);
     usersDowngraded.push({
-      id: member.user.id,
-      username: member.user.username,
-      email: member.user.email,
-      plan: member.user.plan,
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      plan: user.plan,
+      metadata: user.metadata,
     });
   };
   for (const member of illegalProUsers) {
-    const metadata = (member.user.metadata as Prisma.JsonObject) ?? {};
+    const metadata = (member.metadata as Prisma.JsonObject) ?? {};
     // if their pro is already sponsored by a team, do not downgrade
-    if (metadata.proPaidForTeamId !== undefined) continue;
+    if (metadata.proPaidForByTeamId !== undefined) continue;
 
-    const stripeCustomerId = await getStripeCustomerIdFromUserId(member.user.id);
-    if (!stripeCustomerId) {
-      await downgrade(member);
-      continue;
-    }
-
+    const stripeCustomerId = await getStripeCustomerIdFromUserId(member.id);
     const customer = await stripe.customers.retrieve(stripeCustomerId, {
       expand: ["subscriptions.data.plan"],
     });
