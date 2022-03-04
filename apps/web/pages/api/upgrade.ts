@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getStripeCustomerId } from "@ee/lib/stripe/customer";
+
 import { getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
@@ -27,6 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  const stripeCustomerId = await getStripeCustomerId(user);
+
   try {
     const response = await fetch(`${WEBSITE_URL}/api/upgrade`, {
       method: "POST",
@@ -35,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        stripeCustomerId: (user.metadata as Prisma.JsonObject)?.stripeCustomerId,
+        stripeCustomerId,
         email: user.email,
         fromApp: true,
       }),
