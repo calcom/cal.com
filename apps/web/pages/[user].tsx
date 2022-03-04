@@ -123,7 +123,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
 
   const username = (context.query.user as string).toLowerCase();
-
+  const dataFetchStart = Date.now();
   const user = await prisma.user.findUnique({
     where: {
       username: username.toLowerCase(),
@@ -205,7 +205,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });
-
+  const dataFetchEnd = Date.now();
+  if (context.query.log === "1") {
+    context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
+  }
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
