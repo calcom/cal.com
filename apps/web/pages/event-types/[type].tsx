@@ -121,7 +121,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     { value: LocationType.InPerson, label: t("in_person_meeting") },
     { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
-    { value: LocationType.Daily, label: t("cal_provide_video_meeting_url") },
   ];
 
   addDefaultLocationOptions(defaultLocations, locationOptions);
@@ -630,7 +629,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex rounded-sm py-2 hover:bg-gray-100"
+                    className="flex rounded-sm  py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
