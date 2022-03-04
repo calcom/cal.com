@@ -344,7 +344,7 @@ const BookingPage = (props: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder={t("example_name")}
                       />
                     </div>
@@ -359,7 +359,7 @@ const BookingPage = (props: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
                       />
                     </div>
@@ -422,7 +422,7 @@ const BookingPage = (props: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -433,7 +433,7 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -444,7 +444,7 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder=""
                           />
                         )}
@@ -526,7 +526,7 @@ const BookingPage = (props: BookingPageProps) => {
                       {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
-                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
