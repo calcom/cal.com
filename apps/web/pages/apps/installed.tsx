@@ -122,7 +122,7 @@ function WebhookTestDisclosure() {
   return (
     <Collapsible open={open} onOpenChange={() => setOpen(!open)}>
       <CollapsibleTrigger type="button" className={"flex w-full cursor-pointer"}>
-        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} text-neutral-500 h-5 w-5`} />
+        <ChevronRightIcon className={`${open ? "rotate-90 transform" : ""} h-5 w-5 text-neutral-500`} />
         <span className="text-sm font-medium text-gray-700">{t("webhook_test")}</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -508,7 +508,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   /** We don't need to "Connect", just show that it's installed */
-  if (props.isGlobal || ["huddle01_video", "jitsi_video"].includes(props.type)) {
+  if (props.isGlobal) {
     return (
       <div className="truncate px-3 py-2">
         <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
