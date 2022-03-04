@@ -65,7 +65,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   style={{ display: "flex" }}
                   className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
                   <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
+                    prefetch={false}
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
                       query,
