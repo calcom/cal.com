@@ -65,8 +65,10 @@ export async function downgradeIllegalProUsers() {
     }
 
     const hasProPlan = !!subscription.items.data.find(
-      (item) => item.plan.product === getProPlanProduct() || item.plan.id === getProPlanPrice,
-      getProPlanProduct() || item.plan.id === getPremiumPlanPrice()
+      (item) =>
+        item.plan.product === getProPlanProduct() ||
+        item.plan.id === getProPlanPrice() ||
+        item.plan.id === getPremiumPlanPrice()
     );
     // if they're pro, do not downgrade
     if (hasProPlan) continue;

@@ -17,5 +17,10 @@
   },
   "main": "index.ts",
   "types": "index.d.ts",
-  "files": []
+  "files": [
+    "client.ts",
+    "constants.ts",
+    "server.ts",
+    "utils.ts"
+  ]
 }

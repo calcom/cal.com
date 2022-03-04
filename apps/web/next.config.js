@@ -1,4 +1,4 @@
-const withTM = require("@vercel/edge-functions-ui/transpile")([
+const withTM = require("next-transpile-modules")([
   "@calcom/lib",
   "@calcom/prisma",
   "@calcom/stripe",

@@ -14,6 +14,8 @@ import Loader from "@components/Loader";
 type AvailableTimesProps = {
   timeFormat: string;
   minimumBookingNotice: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
   slotInterval: number | null;
@@ -33,6 +35,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   timeFormat,
   users,
   schedulingType,
+  beforeBufferTime,
+  afterBufferTime,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -45,6 +49,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     schedulingType,
     users,
     minimumBookingNotice,
+    beforeBufferTime,
+    afterBufferTime,
     eventTypeId,
   });
 
@@ -95,7 +101,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 <Link href={bookingUrl}>
                   <a
                     className={classNames(
-                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-brand dark:hover:text-brandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-brand dark:hover:text-brandcontrast dark:text-neutral-200 mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:hover:border-black",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">

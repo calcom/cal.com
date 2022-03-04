@@ -14,6 +14,8 @@ export type AdvancedOptions = {
   requiresConfirmation?: boolean;
   disableGuests?: boolean;
   minimumBookingNotice?: number;
+  beforeBufferTime?: number;
+  afterBufferTime?: number;
   slotInterval?: number | null;
   price?: number;
   currency?: string;

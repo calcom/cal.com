@@ -3,26 +3,17 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
+import { createPaymentLink } from "@calcom/stripe/client";
+import stripe, { PaymentData } from "@calcom/stripe/server";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 import { getErrorFromUnknown } from "@lib/errors";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
-import { createPaymentLink } from "./client";
-
 export type PaymentInfo = {
   link?: string | null;
   reason?: string | null;
   id?: string | null;
-};
-
-export type PaymentData = Stripe.Response<Stripe.PaymentIntent> & {
-  stripe_publishable_key: string;
-  stripeAccount: string;
-};
-
-export type StripeData = Stripe.OAuthToken & {
-  default_currency: string;
 };
 
 const paymentFeePercentage = process.env.PAYMENT_FEE_PERCENTAGE!;
@@ -163,5 +154,3 @@ async function handleRefundError(opts: { event: CalendarEvent; reason: string; p
     paymentInfo: { reason: opts.reason, id: opts.paymentId },
   });
 }
-
-export { default } from "@calcom/stripe/server";

@@ -9,7 +9,7 @@ export type StripeData = Stripe.OAuthToken & {
   default_currency: string;
 };
 
-const stripePrivateKey = process.env.STRIPE_SECRET_KEY!;
+const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
 
 const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",

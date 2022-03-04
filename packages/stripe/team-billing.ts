@@ -2,12 +2,12 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
 import prisma from "@calcom/prisma";
-import { getStripeCustomerIdFromUserId } from "@ee/lib/stripe/customer";
+import stripe from "@calcom/stripe/server";
 
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
 
-import stripe from "./server";
+import { getStripeCustomerIdFromUserId } from "./customer";
 
 // get team owner's Pro Plan subscription from Cal userId
 export async function getProPlanSubscription(userId: number) {

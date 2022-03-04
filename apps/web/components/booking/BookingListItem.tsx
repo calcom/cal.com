@@ -145,7 +145,7 @@ function BookingListItem(booking: BookingItem) {
           </div>
           <div
             title={booking.title}
-            className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
+            className="max-w-56 text-neutral-900 truncate text-sm font-medium leading-6 md:max-w-max">
             {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
             {booking.title}
             {!!booking?.eventType?.price && !booking.paid && (
@@ -170,7 +170,9 @@ function BookingListItem(booking: BookingItem) {
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
-              {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
+              {!booking.confirmed && !booking.rejected && user!.id === booking.user!.id && (
+                <TableActions actions={pendingActions} />
+              )}
               {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
               {!booking.confirmed && booking.rejected && (
                 <div className="text-sm text-gray-500">{t("rejected")}</div>
