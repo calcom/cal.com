@@ -14,6 +14,8 @@ import Loader from "@components/Loader";
 type AvailableTimesProps = {
   timeFormat: string;
   minimumBookingNotice: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
   slotInterval: number | null;
@@ -33,6 +35,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   timeFormat,
   users,
   schedulingType,
+  beforeBufferTime,
+  afterBufferTime,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -45,6 +49,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     schedulingType,
     users,
     minimumBookingNotice,
+    beforeBufferTime,
+    afterBufferTime,
     eventTypeId,
   });
 

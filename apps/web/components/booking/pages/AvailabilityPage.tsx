@@ -241,6 +241,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     date={selectedDate}
                     users={eventType.users}
                     schedulingType={eventType.schedulingType ?? null}
+                    beforeBufferTime={eventType.beforeEventBuffer}
+                    afterBufferTime={eventType.afterEventBuffer}
                   />
                 )}
               </div>

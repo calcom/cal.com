@@ -30,10 +30,21 @@ type UseSlotsProps = {
   date: Dayjs;
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
+  beforeBufferTime?: number;
+  afterBufferTime?: number;
 };
 
 export const useSlots = (props: UseSlotsProps) => {
-  const { slotInterval, eventLength, minimumBookingNotice = 0, date, users, eventTypeId } = props;
+  const {
+    slotInterval,
+    eventLength,
+    minimumBookingNotice = 0,
+    beforeBufferTime = 0,
+    afterBufferTime = 0,
+    date,
+    users,
+    eventTypeId,
+  } = props;
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -123,6 +134,29 @@ export const useSlots = (props: UseSlotsProps) => {
         }
         // Check if startTime is between slot
         else if (startTime.isBetween(times[i], times[i].add(eventLength, "minutes"))) {
+          times.splice(i, 1);
+        }
+        // Check if time is between afterBufferTime and beforeBufferTime
+        else if (
+          times[i].isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
+        ) {
+          times.splice(i, 1);
+        }
+        // considering preceding event's after buffer time
+        else if (
+          i > 0 &&
+          times[i - 1]
+            .add(eventLength + afterBufferTime, "minutes")
+            .isBetween(
+              startTime.subtract(beforeBufferTime, "minutes"),
+              endTime.add(afterBufferTime, "minutes"),
+              null,
+              "[)"
+            )
+        ) {
           times.splice(i, 1);
         } else {
           return true;

@@ -44,6 +44,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     schedulingType: true,
     minimumBookingNotice: true,
+    beforeEventBuffer: true,
+    afterEventBuffer: true,
     timeZone: true,
     metadata: true,
     slotInterval: true,
