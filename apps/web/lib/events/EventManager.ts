@@ -7,7 +7,7 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
+// import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
@@ -53,8 +53,14 @@ export const isTandem = (location: string): boolean => {
   return location === "integrations:tandem";
 };
 
+export const isTeams = (location: string): boolean => {
+  return location === "integrations:office365_video";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
+  return (
+    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isTeams(location)
+  );
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -64,7 +70,8 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.Daily.valueOf() ||
     location === LocationType.Jitsi.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf()
+    location === LocationType.Tandem.valueOf() ||
+    location === LocationType.Teams.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -112,11 +119,11 @@ export default class EventManager {
     this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
-    const hasDailyIntegration = process.env.DAILY_API_KEY;
-    if (hasDailyIntegration) {
-      this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
-    }
-    this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    // const hasDailyIntegration = process.env.DAILY_API_KEY;
+    // if (hasDailyIntegration) {
+    //   this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
+    // }
+    // this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
   }
 
   /**
