@@ -3,7 +3,7 @@ import type { App } from "@calcom/types/App";
 import _package from "./package.json";
 
 export const metadata = {
-  name: "MS Teams",
+  name: "Microsoft 365/Teams",
   description: _package.description,
   installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
   type: "teams_video",
@@ -17,7 +17,7 @@ export const metadata = {
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
   label: "MS Teams",
-  slug: "msteamsthisisatest",
+  slug: "msteams",
   title: "MS Teams",
   trending: true,
 } as App;
