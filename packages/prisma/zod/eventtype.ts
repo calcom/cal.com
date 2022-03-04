@@ -30,6 +30,8 @@ export const _EventTypeModel = z.object({
   requiresConfirmation: z.boolean(),
   disableGuests: z.boolean(),
   minimumBookingNotice: z.number().int(),
+  beforeEventBuffer: z.number().int(),
+  afterEventBuffer: z.number().int(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
   price: z.number().int(),
   currency: z.string(),
