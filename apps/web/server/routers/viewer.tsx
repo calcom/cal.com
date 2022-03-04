@@ -386,6 +386,11 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           status: true,
           paid: true,
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
         orderBy,
         take: take + 1,
