@@ -6,6 +6,9 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
+const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
+
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
 export interface TeamsEventResult {
   audioConferencing: {
@@ -22,33 +25,31 @@ export interface TeamsEventResult {
   subject: string;
 }
 
-interface ZoomToken {
-  scope: "meeting:write";
+interface O365AuthCredentials {
+  email: string;
+  scope: string;
+  token_type: string;
   expiry_date: number;
-  expires_in?: number; // deprecated, purely for backwards compatibility; superseeded by expiry_date.
-  token_type: "bearer";
   access_token: string;
   refresh_token: string;
+  ext_expires_in: number;
 }
 
-const zoomAuth = (credential: Credential) => {
-  const credentialKey = credential.key as unknown as ZoomToken;
-  const isTokenValid = (token: ZoomToken) =>
-    token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
-  const authHeader =
-    "Basic " +
-    Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
+const o365Auth = (credential: Credential) => {
+  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
 
-  const refreshAccessToken = (refreshToken: string) =>
-    fetch("https://zoom.us/oauth/token", {
+  const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
+
+  const refreshAccessToken = (refreshToken: string) => {
+    return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
+        scope: "User.Read Calendars.Read Calendars.ReadWrite",
+        client_id: MS_GRAPH_CLIENT_ID,
         refresh_token: refreshToken,
         grant_type: "refresh_token",
+        client_secret: MS_GRAPH_CLIENT_SECRET,
       }),
     })
       .then(handleErrorsJson)
@@ -65,67 +66,78 @@ const zoomAuth = (credential: Credential) => {
             key: responseBody,
           },
         });
-        credentialKey.expiry_date = responseBody.expiry_date;
-        credentialKey.access_token = responseBody.access_token;
-        return credentialKey.access_token;
+        // .then(() => o365AuthCredentials.access_token);
+        o365AuthCredentials.expiry_date = responseBody.expiry_date;
+        o365AuthCredentials.access_token = responseBody.access_token;
+        return o365AuthCredentials.access_token;
       });
+  };
 
   return {
     getToken: () =>
-      !isTokenValid(credentialKey)
-        ? Promise.resolve(credentialKey.access_token)
-        : refreshAccessToken(credentialKey.refresh_token),
+      !isExpired(o365AuthCredentials.expiry_date)
+        ? Promise.resolve(o365AuthCredentials.access_token)
+        : refreshAccessToken(o365AuthCredentials.refresh_token),
   };
 };
 
 const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
+  const auth = o365Auth(credential);
+
   const translateEvent = (event: CalendarEvent) => {
-    // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       subject: event.title,
       stateDateTime: event.startTime,
       endDateTime: event.endTime,
-    //   duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
-    //   //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-    //   timezone: event.attendees[0].timeZone,
-    //   //password: "string",       TODO: Should we use a password? Maybe generate a random one?
-    //   agenda: event.description,
-    //   settings: {
-    //     host_video: true,
-    //     participant_video: true,
-    //     cn_meeting: false, // TODO: true if host meeting in China
-    //     in_meeting: false, // TODO: true if host meeting in India
-    //     join_before_host: true,
-    //     mute_upon_entry: false,
-    //     watermark: false,
-    //     use_pmi: false,
-    //     approval_type: 2,
-    //     audio: "both",
-    //     auto_recording: "none",
-    //     enforce_login: false,
-    //     registrants_email_notification: true,
-    //   },
     };
   };
 
   return {
-    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
+    getAvailability: () => {
+      return Promise.resolve([]);
+    },
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
+      const accessToken = await auth.getToken();
+
+      const result = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
-          // Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + accessToken,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),
       }).then(handleErrorsRaw);
 
       return Promise.resolve({
-        type: "zoom_video",
-        id: bookingRef.meetingId as string,
-        password: bookingRef.meetingPassword as string,
-        url: bookingRef.meetingUrl as string,
+        type: "office365_video",
+        id: result.id,
+        password: "",
+        url: result.joinWebUrl,
       });
-  }
+    },
+    deleteMeeting: () => {
+      return Promise.resolve([]);
+    },
+    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      const accessToken = await auth.getToken();
+
+      const result = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      }).then(handleErrorsRaw);
+
+      return Promise.resolve({
+        type: "office365_video",
+        id: result.id,
+        password: "",
+        url: result.joinWebUrl,
+      });
+    },
+  };
 };
 
-export default ZoomVideoApiAdapter;
+export default TeamsVideoApiAdapter;

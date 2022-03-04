@@ -5,6 +5,6 @@
   "dependencies": {
     "@calcom/zoomvideo": "*",
     "@calcom/dailyvideo": "*",
-    "@calcom/teamsvideo": "*"
+    "@calcom/office365video": "*"
   }
 }

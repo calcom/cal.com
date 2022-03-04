@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@calcom/office360video",
+  "name": "@calcom/office365video",
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Use your Office 365 account to book video calls through MS Teams",
