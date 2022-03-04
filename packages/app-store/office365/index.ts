@@ -6,7 +6,7 @@ export const metadata = {
   name: "MS Teams",
   description: _package.description,
   installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
-  type: "zoom_video",
+  type: "teams_video",
   imageSrc: "apps/zoom.svg",
   variant: "conferencing",
   logo: "/apps/zoom.svg",
@@ -17,7 +17,10 @@ export const metadata = {
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
   label: "MS Teams",
-  slug: "msteams",
+  slug: "msteamsthisisatest",
   title: "MS Teams",
   trending: true,
 } as App;
+
+export * as api from "./api";
+export * as lib from "./lib";
