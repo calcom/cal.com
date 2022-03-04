@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "@calcom/jitsivideo",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Video Conferencing",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

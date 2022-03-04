@@ -1,8 +1,8 @@
 import { LocationType } from "@calcom/lib/location";
 
 const locationOption = {
-  value: LocationType.Daily,
-  label: "Daily.co Video",
+  value: LocationType.Huddle01,
+  label: "Huddle01 Video",
   disabled: false,
 };
 
