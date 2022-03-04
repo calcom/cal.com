@@ -6,6 +6,8 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import { getLocation, getRichDescription } from "@lib/CalEventParser";
+
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
 
@@ -87,8 +89,29 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
     return {
       subject: event.title,
-      stateDateTime: event.startTime,
-      endDateTime: event.endTime,
+      body: {
+        contentType: "HTML",
+        content: getRichDescription(event),
+      },
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: event.attendees.map((attendee) => ({
+        emailAddress: {
+          address: attendee.email,
+          name: attendee.name,
+        },
+        type: "required",
+      })),
+      // Assumption this is being called to create a MS Teams Meeting
+      location: "MS Teams Meeting",
+      isOnlineMeeting: true,
+      onlineMeetingProvider: "teamsForBusiness",
     };
   };
 
