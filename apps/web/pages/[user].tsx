@@ -1,6 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
-import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -121,6 +120,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
+  const crypto = require("crypto");
 
   const username = (context.query.user as string).toLowerCase();
   const dataFetchStart = Date.now();

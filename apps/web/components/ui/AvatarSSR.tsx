@@ -1,7 +1,6 @@
 import { User } from "@prisma/client";
 
 import classNames from "@lib/classNames";
-import { defaultAvatarSrc } from "@lib/profile";
 
 export type AvatarProps = {
   user: Pick<User, "name" | "username" | "avatar"> & { emailMd5?: string };
@@ -21,8 +20,6 @@ export function AvatarSSR(props: AvatarProps) {
   const alt = props.alt || nameOrUsername;
   if (user.avatar) {
     imgSrc = user.avatar;
-  } else if (user.emailMd5) {
-    imgSrc = defaultAvatarSrc({ md5: user.emailMd5 });
   }
   return imgSrc ? <img alt={alt} className={className} src={imgSrc}></img> : null;
 }
