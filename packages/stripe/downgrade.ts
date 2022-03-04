@@ -3,10 +3,9 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
+import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
-
-import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
 import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./team-billing";

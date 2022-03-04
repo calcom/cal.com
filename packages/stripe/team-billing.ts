@@ -1,11 +1,10 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
-
-import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
-import { HttpError } from "@lib/core/http/error";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
 

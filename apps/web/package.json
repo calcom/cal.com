@@ -18,8 +18,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "downgrade": "ts-node ee/lib/stripe/downgrade.ts"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": ">=14.x",

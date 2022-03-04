@@ -4,7 +4,8 @@
   "private": true,
   "license": "AGPLv3",
   "scripts": {
-    "clean": "rm -rf .turbo && rm -rf node_modules"
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "downgrade": "ts-node ./downgrade.ts"
   },
   "devDependencies": {
     "ts-node": "^10.6.0"
