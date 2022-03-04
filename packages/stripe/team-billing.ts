@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
+import { getPerSeatProPlanPrice, getPremiumPlanPrice, getProPlanPrice } from "./utils";
 
 // get team owner's Pro Plan subscription from Cal userId
 export async function getProPlanSubscription(userId: number) {
@@ -260,22 +261,4 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
   if (subscription && membersMissingSeats.length !== stripeQuantity) {
     await updatePerSeatQuantity(subscription, membersMissingSeats.length);
   }
-}
-
-const isProductionSite =
-  process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com" && process.env.VERCEL_ENV === "production";
-
-// TODO: these should be moved to env vars
-export function getPerSeatProPlanPrice(): string {
-  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
-}
-export function getProPlanPrice(): string {
-  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
-}
-export function getPremiumPlanPrice(): string {
-  return isProductionSite ? "price_1Jv3CMH8UDiwIftkFgyXbcHN" : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
-}
-
-export function getProPlanProduct(): string {
-  return isProductionSite ? "prod_JVxwoOF5odFiZ8" : "prod_KDRBg0E4HyVZee";
 }

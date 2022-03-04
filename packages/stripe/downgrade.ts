@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 // To run this script: `yarn downgrade 2>&1 | tee result.log`
-import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 
 import { getStripeCustomerIdFromUserId } from "./customer";
-import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./team-billing";
+import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./utils";
 
 export async function downgradeIllegalProUsers() {
   const illegalProUsers = await prisma.user.findMany({
@@ -23,17 +23,16 @@ export async function downgradeIllegalProUsers() {
       metadata: true,
     },
   });
-  console.table(illegalProUsers);
   const usersDowngraded: Partial<typeof illegalProUsers[number]>[] = [];
   const downgrade = async (user: typeof illegalProUsers[number]) => {
     console.log(`Downgrading: ${user.email}`);
-    // await prisma.user.update({
-    //   where: { id: member.id },
-    //   data: {
-    //     plan: UserPlan.TRIAL,
-    //     trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
-    //   },
-    // });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        plan: UserPlan.TRIAL,
+        trialEndsAt: dayjs().add(TRIAL_LIMIT_DAYS, "day").toDate(),
+      },
+    });
     console.log(`Downgraded: ${user.email}`);
     usersDowngraded.push({
       id: user.id,
@@ -66,8 +65,7 @@ export async function downgradeIllegalProUsers() {
     const hasProPlan = !!subscription.items.data.find(
       (item) =>
         item.plan.product === getProPlanProduct() ||
-        item.plan.id === getProPlanPrice() ||
-        item.plan.id === getPremiumPlanPrice()
+        [getProPlanPrice(), getPremiumPlanPrice()].includes(item.plan.id)
     );
     // if they're pro, do not downgrade
     if (hasProPlan) continue;
