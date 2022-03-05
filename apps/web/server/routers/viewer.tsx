@@ -83,6 +83,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
       };
@@ -616,6 +617,7 @@ const loggedInViewerRouter = createProtectedRouter()
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
       brandColor: z.string().optional(),
+      darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
