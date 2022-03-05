@@ -1,4 +1,3 @@
-import { IdProvider } from "@radix-ui/react-id";
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
@@ -51,13 +50,11 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   return (
     <TelemetryProvider value={createTelemetryClient()}>
-      <IdProvider>
-        {isPublicPage ? (
-          RemainingProviders
-        ) : (
-          <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
-        )}
-      </IdProvider>
+      {isPublicPage ? (
+        RemainingProviders
+      ) : (
+        <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+      )}
     </TelemetryProvider>
   );
 };
