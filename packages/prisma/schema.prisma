@@ -40,8 +40,13 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
+  // In case of a Team Event, this is the list of users who are part of the Event Type
   users                   User[]                 @relation("user_eventtype")
+  // User's ID who is part of the Event Type - For a non team booking it is the creator himself. In case of a Team Event, this is not set.
   userId                  Int?
+  // User who created the Event Type. It is always present.
+  creator                 User?                  @relation(name: "creator_eventtype", fields: [creatorId], references: [id])
+  creatorId               Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
   bookings                Booking[]
@@ -125,6 +130,7 @@ model User {
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
+  createdEventTypes   EventType[]          @relation("creator_eventtype")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]

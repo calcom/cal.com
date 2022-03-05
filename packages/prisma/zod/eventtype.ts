@@ -19,6 +19,7 @@ export const _EventTypeModel = z.object({
   length: z.number().int(),
   hidden: z.boolean(),
   userId: z.number().int().nullish(),
+  creatorId: z.number().int().nullish(),
   teamId: z.number().int().nullish(),
   eventName: z.string().nullish(),
   timeZone: z.string().nullish(),
@@ -30,6 +31,8 @@ export const _EventTypeModel = z.object({
   requiresConfirmation: z.boolean(),
   disableGuests: z.boolean(),
   minimumBookingNotice: z.number().int(),
+  beforeEventBuffer: z.number().int(),
+  afterEventBuffer: z.number().int(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
   price: z.number().int(),
   currency: z.string(),
@@ -39,6 +42,7 @@ export const _EventTypeModel = z.object({
 
 export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
   users: CompleteUser[]
+  creator?: CompleteUser | null
   team?: CompleteTeam | null
   bookings: CompleteBooking[]
   availability: CompleteAvailability[]
@@ -55,6 +59,7 @@ export interface CompleteEventType extends z.infer<typeof _EventTypeModel> {
  */
 export const EventTypeModel: z.ZodSchema<CompleteEventType> = z.lazy(() => _EventTypeModel.extend({
   users: UserModel.array(),
+  creator: UserModel.nullish(),
   team: TeamModel.nullish(),
   bookings: BookingModel.array(),
   availability: AvailabilityModel.array(),

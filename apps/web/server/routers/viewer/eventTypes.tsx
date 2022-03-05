@@ -113,6 +113,11 @@ export const eventTypesRouter = createProtectedRouter()
 
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
+        creator: {
+          connect: {
+            id: userId,
+          },
+        },
         users: {
           connect: {
             id: userId,
@@ -172,10 +177,13 @@ export const eventTypesRouter = createProtectedRouter()
 
     const isAuthorized = (function () {
       if (event.team) {
-        return event.team.members
-          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-          .map((member) => member.userId)
-          .includes(ctx.user.id);
+        return (
+          event.creatorId === ctx.user.id ||
+          event.team.members
+            .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+            .map((member) => member.userId)
+            .includes(ctx.user.id)
+        );
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();

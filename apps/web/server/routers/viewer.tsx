@@ -130,6 +130,7 @@ const loggedInViewerRouter = createProtectedRouter()
         price: true,
         currency: true,
         position: true,
+        creatorId: true,
         users: {
           select: {
             id: true,
@@ -231,9 +232,8 @@ const loggedInViewerRouter = createProtectedRouter()
         };
         metadata: {
           membershipCount: number;
-          readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean; readOnly?: boolean })[];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
@@ -257,12 +257,10 @@ const loggedInViewerRouter = createProtectedRouter()
         eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
           membershipCount: 1,
-          readOnly: false,
         },
       });
 
-      eventTypeGroups = ([] as EventTypeGroup[]).concat(
-        eventTypeGroups,
+      eventTypeGroups = eventTypeGroups.concat(
         user.teams.map((membership) => ({
           teamId: membership.team.id,
           profile: {
@@ -272,9 +270,13 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           metadata: {
             membershipCount: membership.team.members.length,
-            readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes,
+          eventTypes: membership.team.eventTypes.map((eventType) => ({
+            ...eventType,
+            readOnly:
+              eventType.creatorId !== user.id &&
+              !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN),
+          })),
         }))
       );
 

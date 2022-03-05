@@ -59,10 +59,9 @@ type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][n
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
   profile: { slug: string | null };
-  readOnly: boolean;
   types: EventType[];
 }
-const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.Element => {
+const EventTypeList = ({ types, profile }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -145,7 +144,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                           {t("hidden")}
                         </span>
                       )}
-                      {readOnly && (
+                      {type.readOnly && (
                         <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
                           {t("readonly")}
                         </span>
@@ -393,11 +392,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList
-                    types={group.eventTypes}
-                    profile={group.profile}
-                    readOnly={group.metadata.readOnly}
-                  />
+                  <EventTypeList types={group.eventTypes} profile={group.profile} />
                 </Fragment>
               ))}
 
