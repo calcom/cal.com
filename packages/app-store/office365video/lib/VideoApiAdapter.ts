@@ -6,7 +6,7 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { getLocation, getRichDescription } from "@lib/CalEventParser";
+// import { getLocation, getRichDescription } from "@lib/CalEventParser";
 
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
@@ -86,32 +86,43 @@ const o365Auth = (credential: Credential) => {
 const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const auth = o365Auth(credential);
 
+  // const translateEvent = (event: CalendarEvent) => {
+  //   return {
+  //     subject: event.title,
+  //     body: {
+  //       contentType: "HTML",
+  //       // content: getRichDescription(event),
+  //       content: "This is a test",
+  //     },
+  //     start: {
+  //       dateTime: event.startTime,
+  //       timeZone: event.organizer.timeZone,
+  //     },
+  //     end: {
+  //       dateTime: event.endTime,
+  //       timeZone: event.organizer.timeZone,
+  //     },
+  //     attendees: event.attendees.map((attendee) => ({
+  //       emailAddress: {
+  //         address: attendee.email,
+  //         name: attendee.name,
+  //       },
+  //       type: "required",
+  //     })),
+  //     // Assumption this is being called to create a MS Teams Meeting
+  //     location: {
+  //       displayName: "MS Teams Meeting",
+  //     },
+  //     isOnlineMeeting: true,
+  //     onlineMeetingProvider: "teamsForBusiness",
+  //   };
+  // };
+
   const translateEvent = (event: CalendarEvent) => {
     return {
+      startDateTime: event.startTime,
+      endDateTime: event.endTime,
       subject: event.title,
-      body: {
-        contentType: "HTML",
-        content: getRichDescription(event),
-      },
-      start: {
-        dateTime: event.startTime,
-        timeZone: event.organizer.timeZone,
-      },
-      end: {
-        dateTime: event.endTime,
-        timeZone: event.organizer.timeZone,
-      },
-      attendees: event.attendees.map((attendee) => ({
-        emailAddress: {
-          address: attendee.email,
-          name: attendee.name,
-        },
-        type: "required",
-      })),
-      // Assumption this is being called to create a MS Teams Meeting
-      location: "MS Teams Meeting",
-      isOnlineMeeting: true,
-      onlineMeetingProvider: "teamsForBusiness",
     };
   };
 
@@ -122,6 +133,8 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
       const accessToken = await auth.getToken();
 
+      // "https://graph.microsoft.com/v1.0/me/events"
+      // "https://graph.microsoft.com/v1.0/me/onlineMeetings"
       const result = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
@@ -135,7 +148,7 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         type: "office365_video",
         id: result.id,
         password: "",
-        url: result.joinWebUrl,
+        url: result.onlineMeeting.joinUrl,
       });
     },
     deleteMeeting: () => {
@@ -157,7 +170,7 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         type: "office365_video",
         id: result.id,
         password: "",
-        url: result.joinWebUrl,
+        url: result.onlineMeeting.joinUrl,
       });
     },
   };
