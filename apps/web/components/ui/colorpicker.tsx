@@ -62,7 +62,9 @@ export type ColorPickerProps = {
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
-  const init = !isValidHexCode(props.defaultValue) ? fallBackHex(props.defaultValue) : props.defaultValue;
+  const init = !isValidHexCode(props.defaultValue)
+    ? fallBackHex(props.defaultValue, false)
+    : props.defaultValue;
   const [color, setColor] = useState(init);
   const [isOpen, toggle] = useState(false);
   const popover = useRef() as React.MutableRefObject<HTMLInputElement>;
