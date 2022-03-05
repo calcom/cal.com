@@ -6,6 +6,7 @@ import { z } from "zod";
 import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { canEventBeEdited } from "@lib/event";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
@@ -131,12 +132,18 @@ const loggedInViewerRouter = createProtectedRouter()
         currency: true,
         position: true,
         creatorId: true,
+        userId: true,
         users: {
           select: {
             id: true,
             username: true,
             avatar: true,
             name: true,
+          },
+        },
+        team: {
+          select: {
+            members: true,
           },
         },
       });
@@ -202,7 +209,6 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         },
       });
-
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -273,9 +279,7 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           eventTypes: membership.team.eventTypes.map((eventType) => ({
             ...eventType,
-            readOnly:
-              eventType.creatorId !== user.id &&
-              !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN),
+            readOnly: !canEventBeEdited({ user, eventType }),
           })),
         }))
       );
