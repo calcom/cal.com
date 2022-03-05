@@ -142,6 +142,7 @@ model User {
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
+  darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
