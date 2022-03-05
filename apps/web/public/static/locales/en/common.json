@@ -671,5 +671,7 @@
   "example_name": "John Doe",
   "time_format": "Time format",
   "12_hour": "12 hour",
-  "24_hour": "24 hour"
+  "24_hour": "24 hour",
+  "attendee_reminders": "Attendee Reminders",
+  "sms": "SMS"
 }
