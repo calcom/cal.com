@@ -1,7 +1,6 @@
 import { User } from "@prisma/client";
 
 import classNames from "@lib/classNames";
-import { defaultAvatarSrc } from "@lib/profile";
 
 export type AvatarProps = {
   user: Pick<User, "name" | "username" | "avatar"> & { emailMd5?: string };
@@ -10,6 +9,11 @@ export type AvatarProps = {
   title?: string;
   alt: string;
 };
+
+// defaultAvatarSrc from profile.tsx can't be used as it imports crypto
+function defaultAvatarSrc({ md5 }) {
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
+}
 
 // An SSR Supported version of Avatar component.
 // FIXME: title support is missing
