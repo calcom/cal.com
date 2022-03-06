@@ -18,7 +18,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
+import { BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -220,7 +220,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                   <TimezoneDropdown />
 
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
-                  {previousPage === `${process.env.NEXT_PUBLIC_BASE_URL}/${profile.slug}` && (
+                  {previousPage === `${BASE_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
                         className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
