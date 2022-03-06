@@ -52,9 +52,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         // base styles independent what type of button it is
         "inline-flex items-center",
         // different styles depending on size
-        size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
-        size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
-        size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
+        size === "sm" && "px-3 py-2 text-sm leading-4 font-medium",
+        size === "base" && "px-5 py-4 text-sm font-medium",
+        size === "lg" && "px-5 py-5 text-base font-medium",
         size === "icon" &&
           "group p-2 border rounded-sm border-transparent text-neutral-400 hover:border-gray-200 transition",
         // turn button into a floating action button (fab)

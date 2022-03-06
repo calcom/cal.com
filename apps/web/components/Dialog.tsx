@@ -1,26 +1,20 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { ReactNode } from "react";
 
-export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]>;
-export function Dialog(props: DialogProps) {
-  const { children, ...other } = props;
-  return (
-    <DialogPrimitive.Root {...other}>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
-      {children}
-    </DialogPrimitive.Root>
-  );
-}
-type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]>;
+export const Dialog = DialogPrimitive.Dialog;
 
+type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]>;
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
-    <DialogPrimitive.Content
-      {...props}
-      className="fixed left-1/2 top-1/2 z-50 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl sm:w-full sm:max-w-lg sm:align-middle"
-      ref={forwardedRef}>
-      {children}
-    </DialogPrimitive.Content>
+    <DialogPrimitive.Portal>
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Content
+        {...props}
+        className="fixed left-1/2 top-1/2 z-50 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl sm:w-full sm:max-w-lg sm:align-middle"
+        ref={forwardedRef}>
+        {children}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
   )
 );
 

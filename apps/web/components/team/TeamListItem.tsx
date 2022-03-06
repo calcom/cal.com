@@ -63,7 +63,7 @@ export default function TeamListItem(props: Props) {
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
       <div className="ml-3 inline-block">
-        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
+        <span className="text-neutral-700 text-sm font-bold">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
         </span>
@@ -116,7 +116,7 @@ export default function TeamListItem(props: Props) {
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
+                <DropdownMenuTrigger className="group text-neutral-400 h-10 w-10 border border-transparent p-0 hover:border-gray-200 ">
                   <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -135,7 +135,6 @@ export default function TeamListItem(props: Props) {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {isAdmin && <DropdownMenuSeparator className="h-px bg-gray-200" />}
                   <DropdownMenuItem>
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
