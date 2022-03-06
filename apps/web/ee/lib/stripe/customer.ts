@@ -34,7 +34,8 @@ const userType = Prisma.validator<Prisma.UserArgs>()({
 });
 
 type UserType = Prisma.UserGetPayload<typeof userType>;
-export async function getStripeCustomerId(user: UserType): Promise<string | null> {
+/** This will retrieve the customer ID from Stripe or create it if it doesn't exists yet. */
+export async function getStripeCustomerId(user: UserType): Promise<string> {
   let customerId: string | null = null;
 
   if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {

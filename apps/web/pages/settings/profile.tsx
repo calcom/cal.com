@@ -176,6 +176,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [brandColor, setBrandColor] = useState(props.user.brandColor);
+  const [darkBrandColor, setDarkBrandColor] = useState(props.user.darkBrandColor);
 
   useEffect(() => {
     if (!props.user.theme) return;
@@ -194,6 +195,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
     const enteredBrandColor = brandColor;
+    const enteredDarkBrandColor = darkBrandColor;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
@@ -213,6 +215,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       hideBranding: enteredHideBranding,
       theme: asStringOrNull(selectedTheme?.value),
       brandColor: enteredBrandColor,
+      darkBrandColor: enteredDarkBrandColor,
       locale: enteredLanguage,
       timeFormat: enteredTimeFormat,
     });
@@ -424,11 +427,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
-            <div>
-              <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
-                {t("brand_color")}
-              </label>
-              <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
+            <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
+              <div className="mb-6 w-full sm:w-1/2">
+                <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                  {t("light_brand_color")}
+                </label>
+                <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
+              </div>
+              <div className="mb-6 w-full sm:w-1/2">
+                <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
+                  {t("dark_brand_color")}
+                </label>
+                <ColorPicker defaultValue={props.user.darkBrandColor} onChange={setDarkBrandColor} />
+              </div>
               <hr className="mt-6" />
             </div>
             <div>
@@ -524,6 +535,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       brandColor: true,
+      darkBrandColor: true,
       metadata: true,
       timeFormat: true,
     },

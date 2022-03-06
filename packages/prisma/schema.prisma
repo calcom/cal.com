@@ -59,6 +59,8 @@ model EventType {
   requiresConfirmation    Boolean                @default(false)
   disableGuests           Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  beforeEventBuffer       Int                    @default(0)
+  afterEventBuffer        Int                    @default(0)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
   price                   Int                    @default(0)
@@ -140,6 +142,7 @@ model User {
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
+  darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)

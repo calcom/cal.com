@@ -110,7 +110,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
         username={profile.slug || undefined}
         // avatar={profile.image || undefined}
       />
-      <CustomBranding val={profile.brandColor} />
+      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
           className={
@@ -241,6 +241,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                     date={selectedDate}
                     users={eventType.users}
                     schedulingType={eventType.schedulingType ?? null}
+                    beforeBufferTime={eventType.beforeEventBuffer}
+                    afterBufferTime={eventType.afterEventBuffer}
                   />
                 )}
               </div>
