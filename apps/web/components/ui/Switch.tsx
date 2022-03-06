@@ -37,7 +37,7 @@ export default function Switch(props: SwitchProps) {
       {label && (
         <Label.Root
           htmlFor={id}
-          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3">
+          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
           {label}
         </Label.Root>
       )}
