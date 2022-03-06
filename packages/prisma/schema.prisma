@@ -309,12 +309,19 @@ enum EventTypeAttendeeReminderMethod {
   SMS    @map("sms")
 }
 
+enum EventTypeAttendeeReminderTimeUnit {
+  MINUTES  @map("minutes")
+  HOURS    @map("hours")
+  DAYS     @map("days")
+}
+
 model EventTypeAttendeeReminder {
-  id                 Int       @id @default(autoincrement())
-  eventTypeId        Int
-  eventType          EventType @relation(fields: [eventTypeId], references: [id])
-  method             String
-  secondsBeforeEvent Int
+  id          Int                               @id @default(autoincrement())
+  eventTypeId Int
+  eventType   EventType                         @relation(fields: [eventTypeId], references: [id])
+  method      EventTypeAttendeeReminderMethod
+  timeUnit    EventTypeAttendeeReminderTimeUnit
+  time        Int
 }
 
 model ResetPasswordRequest {

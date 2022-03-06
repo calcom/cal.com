@@ -313,6 +313,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setCustomInputs([...customInputs]);
   };
 
+  const removeReminder = (index: number) => {
+    formMethods.getValues("attendeeReminders").splice(index, 1);
+    attendeeReminders.splice(index, 1);
+    setAttendeeReminders([...attendeeReminders]);
+  };
+
   const schedulingTypeOptions: {
     value: SchedulingType;
     label: string;
@@ -1366,7 +1372,51 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               render={() => (
                                 <div className="w-full">
                                   {/* TODO sort reminders based on time from event */}
-                                  <ul className="mt-1"></ul>
+                                  <ul className="mt-1">
+                                    {attendeeReminders.map(
+                                      (attendeeReminder: EventTypeAttendeeReminder, idx: number) => (
+                                        <li key={idx} className="bg-secondary-50 mb-2 border p-2">
+                                          <div className="flex justify-between">
+                                            <div className="w-0 flex-1">
+                                              <div className="truncate">
+                                                <span
+                                                  className="text-sm ltr:ml-2 rtl:mr-2"
+                                                  title={`${t("communication_method")}: ${
+                                                    attendeeReminder.method
+                                                  }`}>
+                                                  {t("communication_method")}: {attendeeReminder.method}
+                                                </span>
+                                              </div>
+                                              {attendeeReminder.time && attendeeReminder.timeUnit && (
+                                                <div className="truncate">
+                                                  <span
+                                                    className="text-sm ltr:ml-2 rtl:mr-2"
+                                                    title={`${t("when")}: ${attendeeReminder.time}`}>
+                                                    {t("when")}: {attendeeReminder.time}{" "}
+                                                    {attendeeReminder.timeUnit} {t("before_event")}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="flex">
+                                              <Button
+                                                onClick={() => {
+                                                  setSelectedAttendeeReminder(attendeeReminder);
+                                                  setSelectedAttendeeReminderModalOpen(true);
+                                                }}
+                                                color="minimal"
+                                                type="button">
+                                                {t("edit")}
+                                              </Button>
+                                              <button type="button" onClick={() => removeReminder(idx)}>
+                                                <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </li>
+                                      )
+                                    )}
+                                  </ul>
 
                                   <Button
                                     onClick={() => {
@@ -1700,43 +1750,39 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                       <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                         <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                          {t("add_new_custom_input_field")}
+                          {t("add_new_attendee_reminder")}
                         </h3>
                         <div>
-                          <p className="text-sm text-gray-400">
-                            {t("this_input_will_shown_booking_this_event")}
-                          </p>
+                          <p className="text-sm text-gray-400">{t("attendee_reminder_description")}</p>
                         </div>
                       </div>
                     </div>
                     <AttendeeReminderTypeForm
-                      selectedCustomInput={selectedAttendeeReminder}
+                      selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
-                        const customInput: EventTypeAttendeeReminder = {
+                        const attendeeReminder: EventTypeAttendeeReminder = {
                           id: -1,
                           eventTypeId: -1,
-                          label: values.label,
-                          placeholder: values.placeholder,
-                          required: values.required,
-                          type: values.type,
+                          method: values.method,
+                          timeUnit: values.timeUnit,
+                          time: values.time,
                         };
 
-                        if (selectedCustomInput) {
-                          selectedCustomInput.label = customInput.label;
-                          selectedCustomInput.placeholder = customInput.placeholder;
-                          selectedCustomInput.required = customInput.required;
-                          selectedCustomInput.type = customInput.type;
+                        if (selectedAttendeeReminder) {
+                          selectedAttendeeReminder.method = attendeeReminder.method;
+                          selectedAttendeeReminder.timeUnit = attendeeReminder.timeUnit;
+                          selectedAttendeeReminder.time = attendeeReminder.time;
                         } else {
-                          setCustomInputs(customInputs.concat(customInput));
+                          setAttendeeReminders(attendeeReminders.concat(attendeeReminder));
                           formMethods.setValue(
-                            "customInputs",
-                            formMethods.getValues("customInputs").concat(customInput)
+                            "attendeeReminders",
+                            formMethods.getValues("attendeeReminders").concat(attendeeReminder)
                           );
                         }
-                        setSelectedCustomInputModalOpen(false);
+                        setSelectedAttendeeReminderModalOpen(false);
                       }}
                       onCancel={() => {
-                        setSelectedCustomInputModalOpen(false);
+                        setSelectedAttendeeReminderModalOpen(false);
                       }}
                     />
                   </div>

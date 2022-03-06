@@ -673,5 +673,10 @@
   "12_hour": "12 hour",
   "24_hour": "24 hour",
   "attendee_reminders": "Attendee Reminders",
-  "sms": "SMS"
+  "sms": "SMS",
+  "add_new_attendee_reminder": "Add new attendee reminder",
+  "attendee_reminder_description": "A reminder will be sent to attendees before the event",
+  "communication_method": "Reminder Method",
+  "when_to_send": "When to send the reminder",
+  "days": "Days"
 }
