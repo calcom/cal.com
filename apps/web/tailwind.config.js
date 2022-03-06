@@ -14,6 +14,8 @@ module.exports = {
         /* your primary brand color */
         brand: "var(--brand-color)",
         brandcontrast: "var(--brand-text-color)",
+        darkmodebrand: "var(--brand-color-dark-mode)",
+        darkmodebrandcontrast: "var(--brand-text-color-dark-mode)",
         black: "#111111",
         gray: {
           50: "#F8F8F8",

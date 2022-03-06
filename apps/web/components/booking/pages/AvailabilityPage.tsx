@@ -118,7 +118,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
         username={profile.slug || undefined}
         // avatar={profile.image || undefined}
       />
-      <CustomBranding val={profile.brandColor} />
+      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
           className={
