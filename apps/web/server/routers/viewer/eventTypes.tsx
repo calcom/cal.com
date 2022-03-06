@@ -1,9 +1,16 @@
-import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import {
+  EventTypeCustomInput,
+  MembershipRole,
+  EventTypeAttendeeReminder,
+  PeriodType,
+  Prisma,
+} from "@prisma/client";
 import { z } from "zod";
 
 import {
   _AvailabilityModel,
   _DestinationCalendarModel,
+  _EventTypeAttendeeReminderModel,
   _EventTypeCustomInputModel,
   _EventTypeModel,
 } from "@calcom/prisma/zod";
@@ -63,6 +70,42 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
   };
 }
 
+function handleAttendeeReminders(attendeeReminders: EventTypeAttendeeReminder[], eventTypeId: number) {
+  const remindersToDelete = attendeeReminders.filter((input) => input.id > 0).map((e) => e.id);
+  const remindersToCreate = attendeeReminders
+    .filter((input) => input.id < 0)
+    .map((input) => ({
+      method: input.method,
+      timeUnit: input.timeUnit,
+      time: input.time,
+    }));
+  const remindersToUpdate = attendeeReminders
+    .filter((input) => input.id > 0)
+    .map((input) => ({
+      data: {
+        method: input.method,
+        timeUnit: input.timeUnit,
+        time: input.time,
+      },
+      where: {
+        id: input.id,
+      },
+    }));
+
+  return {
+    deleteMany: {
+      eventTypeId,
+      NOT: {
+        id: { in: remindersToDelete },
+      },
+    },
+    createMany: {
+      data: remindersToCreate,
+    },
+    update: remindersToUpdate,
+  };
+}
+
 const AvailabilityInput = _AvailabilityModel.pick({
   days: true,
   startTime: true,
@@ -84,6 +127,7 @@ const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    attendeeReminders: z.array(_EventTypeAttendeeReminderModel).optional(),
   })
   .partial()
   .merge(
@@ -190,8 +234,17 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
-        input;
+      const {
+        availability,
+        periodType,
+        locations,
+        destinationCalendar,
+        customInputs,
+        attendeeReminders,
+        users,
+        id,
+        ...rest
+      } = input;
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
 
@@ -209,6 +262,10 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (customInputs) {
         data.customInputs = handleCustomInputs(customInputs, id);
+      }
+
+      if (attendeeReminders) {
+        data.attendeeReminders = handleAttendeeReminders(attendeeReminders, id);
       }
 
       if (users) {

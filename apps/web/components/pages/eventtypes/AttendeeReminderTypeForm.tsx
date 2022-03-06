@@ -84,7 +84,7 @@ const AttendeeReminderTypeForm: FC<Props> = (props) => {
           className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
           placeholder="30"
           defaultValue={selectedAttendeeReminder?.time}
-          {...register("time", { required: true })}
+          {...register("time", { required: true, valueAsNumber: true })}
         />
         <Controller
           name="timeUnit"
