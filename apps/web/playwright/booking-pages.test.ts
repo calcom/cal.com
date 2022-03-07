@@ -72,7 +72,7 @@ test.describe("free user", () => {
     await bookTimeSlot();
 
     // check for error message
-    await expect(await page.locator("[data-testid=booking-fail]")).toBeVisible();
+    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
   });
 
   todo("`/free/30min` is bookable");
