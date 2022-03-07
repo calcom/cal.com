@@ -6,19 +6,11 @@ import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-// import { getLocation, getRichDescription } from "@lib/CalEventParser";
-
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
 export interface TeamsEventResult {
-  audioConferencing: {
-    tollNumber: string;
-    tollFreeNumber: string;
-    ConferenceId: string;
-    dialinUrl: string;
-  };
   creationDateTime: string;
   startDateTime: string;
   endDateTime: string;
@@ -37,6 +29,7 @@ interface O365AuthCredentials {
   ext_expires_in: number;
 }
 
+// Checks to see if our O365 user token is valid or if we need to refresh
 const o365Auth = (credential: Credential) => {
   const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
 
@@ -68,7 +61,6 @@ const o365Auth = (credential: Credential) => {
             key: responseBody,
           },
         });
-        // .then(() => o365AuthCredentials.access_token);
         o365AuthCredentials.expiry_date = responseBody.expiry_date;
         o365AuthCredentials.access_token = responseBody.access_token;
         return o365AuthCredentials.access_token;
@@ -86,38 +78,6 @@ const o365Auth = (credential: Credential) => {
 const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const auth = o365Auth(credential);
 
-  // const translateEvent = (event: CalendarEvent) => {
-  //   return {
-  //     subject: event.title,
-  //     body: {
-  //       contentType: "HTML",
-  //       // content: getRichDescription(event),
-  //       content: "This is a test",
-  //     },
-  //     start: {
-  //       dateTime: event.startTime,
-  //       timeZone: event.organizer.timeZone,
-  //     },
-  //     end: {
-  //       dateTime: event.endTime,
-  //       timeZone: event.organizer.timeZone,
-  //     },
-  //     attendees: event.attendees.map((attendee) => ({
-  //       emailAddress: {
-  //         address: attendee.email,
-  //         name: attendee.name,
-  //       },
-  //       type: "required",
-  //     })),
-  //     // Assumption this is being called to create a MS Teams Meeting
-  //     location: {
-  //       displayName: "MS Teams Meeting",
-  //     },
-  //     isOnlineMeeting: true,
-  //     onlineMeetingProvider: "teamsForBusiness",
-  //   };
-  // };
-
   const translateEvent = (event: CalendarEvent) => {
     return {
       startDateTime: event.startTime,
@@ -126,6 +86,7 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     };
   };
 
+  // Since the meeting link is not tied to an event we only need the create and update functions
   return {
     getAvailability: () => {
       return Promise.resolve([]);
@@ -133,9 +94,7 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
       const accessToken = await auth.getToken();
 
-      // "https://graph.microsoft.com/v1.0/me/events"
-      // "https://graph.microsoft.com/v1.0/me/onlineMeetings"
-      const result = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
+      const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -144,11 +103,13 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         body: JSON.stringify(translateEvent(event)),
       }).then(handleErrorsRaw);
 
+      const resultObject = JSON.parse(resultString);
+
       return Promise.resolve({
         type: "office365_video",
-        id: result.id,
+        id: resultObject.id,
         password: "",
-        url: result.onlineMeeting.joinUrl,
+        url: resultObject.joinUrl,
       });
     },
     deleteMeeting: () => {
@@ -157,7 +118,7 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const accessToken = await auth.getToken();
 
-      const result = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
+      const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -166,11 +127,13 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         body: JSON.stringify(translateEvent(event)),
       }).then(handleErrorsRaw);
 
+      const resultObject = JSON.parse(resultString);
+
       return Promise.resolve({
         type: "office365_video",
-        id: result.id,
+        id: resultObject.id,
         password: "",
-        url: result.onlineMeeting.joinUrl,
+        url: resultObject.joinUrl,
       });
     },
   };
