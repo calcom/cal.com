@@ -10,18 +10,6 @@ const scopes = ["OnlineMeetings.ReadWrite"];
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
 
-  // TODO Ask Omar if this is needed
-  // Check that user is authenticated
-  // const session = await getSession({ req: req });
-  // if (!session?.user?.id) {
-  //   res.status(401).json({ message: "You must be logged in to do this" });
-  //   return;
-  // }
-  // if (typeof code !== "string") {
-  //   res.status(400).json({ message: "No code returned" });
-  //   return;
-  // }
-
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
       .map((key) => key + "=" + encodeURIComponent(payload[key]))
