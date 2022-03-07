@@ -7,8 +7,8 @@ import * as zoomvideo from "./zoomvideo";
 const appStore = {
   example,
   dailyvideo,
-  jitsivideo,
   huddle01video,
+  jitsivideo,
   zoomvideo,
 };
 
