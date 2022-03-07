@@ -280,7 +280,7 @@ const BookingPage = (props: BookingPageProps) => {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <CustomBranding val={props.profile.brandColor} />
+      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
           <div className="dark:bg-neutral-900 overflow-hidden border border-gray-200 bg-white dark:border-0 sm:rounded-sm">
@@ -540,7 +540,9 @@ const BookingPage = (props: BookingPageProps) => {
                   </div>
                 </Form>
                 {mutation.isError && (
-                  <div className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                  <div
+                    data-testid="booking-fail"
+                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
                         <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />

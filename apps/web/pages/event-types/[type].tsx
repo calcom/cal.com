@@ -488,7 +488,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Daily && (
-                    <div className="flex flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
                         id="svg"
                         version="1.1"
@@ -629,7 +629,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex rounded-sm px-3 py-2 hover:bg-gray-100"
+                    className="flex rounded-sm  py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="text-neutral-900 mt-0.5 h-4 w-4" />
                     <span className="text-neutral-700 ml-1 text-sm font-medium">{t("add_location")}</span>
@@ -744,7 +744,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <MinutesField
                           label={
                             <>
-                              <ClockIcon className="text-neutral-500 mt-0.5 h-4 w-4 ltr:mr-2 rtl:ml-2" />{" "}
+                              <ClockIcon className="text-neutral-500 h-4 w-4 ltr:mr-2 rtl:ml-2" />{" "}
                               {t("duration")}
                             </>
                           }
@@ -767,7 +767,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <label
                           htmlFor="location"
                           className="text-neutral-700 mt-2.5 flex text-sm font-medium">
-                          <LocationMarkerIcon className="text-neutral-500 mt-0.5 h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                          <LocationMarkerIcon className="text-neutral-500 mt-0.5 mb-4 h-4 w-4 ltr:mr-2 rtl:ml-2" />
                           {t("location")}
                         </label>
                       </div>

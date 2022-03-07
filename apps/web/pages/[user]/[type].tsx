@@ -79,6 +79,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       availability: true,
       hideBranding: true,
       brandColor: true,
+      darkBrandColor: true,
       theme: true,
       plan: true,
       eventTypes: {
@@ -192,11 +193,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         theme: user.theme,
         weekStart: user.weekStart,
         brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
       },
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
       trpcState: ssr.dehydrate(),
+      previousPage: context.req.headers.referer ?? null,
     },
   };
 };
