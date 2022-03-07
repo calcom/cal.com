@@ -15,6 +15,7 @@ import {
   sendScheduledEmails,
   sendRescheduledEmails,
   sendOrganizerRequestEmail,
+  sendAttendeeRequestEmail,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
@@ -586,6 +587,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
     await sendOrganizerRequestEmail(evt);
+    await sendAttendeeRequestEmail(evt, attendeesList[0]);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
