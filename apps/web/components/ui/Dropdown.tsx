@@ -20,6 +20,8 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 );
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
+export const DropdownMenuTriggerItem = DropdownMenuPrimitive.TriggerItem;
+
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
   ({ children, ...props }, forwardedRef) => {

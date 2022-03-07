@@ -90,6 +90,7 @@ const EventTypesPage = () => {
                   <EventTypeList
                     types={group.eventTypes}
                     profile={group.profile}
+                    hasTeams={query.data && query.data.profiles}
                     readOnly={group.metadata.readOnly}
                   />
                 </Fragment>

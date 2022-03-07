@@ -30,7 +30,7 @@ import Dropdown, {
 import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
-interface EventTypeParent {
+export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
   name?: string | null;
   slug?: string | null;
@@ -146,7 +146,7 @@ export default function CreateEventTypeButton(props: Props) {
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                className="hover:bg-neutral-100 focus:outline-none cursor-pointer px-3 py-2"
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}

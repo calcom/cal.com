@@ -11,9 +11,10 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/solid";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui";
@@ -36,17 +37,19 @@ import Dropdown, {
   DropdownMenuSeparator,
 } from "@components/ui/Dropdown";
 
+import { EventTypeParent } from "./CreateEventType";
+
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
   profile: { slug: string | null };
   readOnly: boolean;
   types: EventType[];
+  hasTeams: EventTypeParent[] | false;
 }
 
-export const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
-  const router = useRouter();
 
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
@@ -210,19 +213,39 @@ export const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps):
                             </a>
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Link href={"/settings/teams/"}>
-                            <a>
+                        {!hasTeams ? (
+                          <DropdownMenuItem>
+                            <Link href={"/settings/teams/"}>
+                              <a>
+                                <Button
+                                  type="button"
+                                  color="minimal"
+                                  className="w-full font-normal"
+                                  StartIcon={DuplicateIcon}>
+                                  {t("duplicate")}
+                                </Button>
+                              </a>
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenu.Root>
+                            <DropdownMenu.TriggerItem>
                               <Button
                                 type="button"
                                 color="minimal"
                                 className="w-full font-normal"
-                                StartIcon={DuplicateIcon}>
+                                StartIcon={DuplicateIcon}
+                                EndIcon={ChevronRightIcon}>
                                 {t("duplicate")}
                               </Button>
-                            </a>
-                          </Link>
-                        </DropdownMenuItem>
+                            </DropdownMenu.TriggerItem>
+                            <DropdownMenu.Content>
+                              {hasTeams.map((team) => (
+                                <DropdownMenu.Item key={team.slug}>{team.name}</DropdownMenu.Item>
+                              ))}
+                            </DropdownMenu.Content>
+                          </DropdownMenu.Root>
+                        )}
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
                           <Dialog>
