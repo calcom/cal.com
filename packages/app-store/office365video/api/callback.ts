@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getSession } from "@calcom/lib/auth";
 import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -9,6 +10,18 @@ const scopes = ["OnlineMeetings.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  console.log("🚀 ~ file: callback.ts ~ line 14 ~ handler ~ code", req.query);
+
+  // Check that user is authenticated
+  const session = await getSession({ req: req });
+  if (!session?.user?.id) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+  if (typeof code !== "string") {
+    res.status(400).json({ message: "No code returned" });
+    return;
+  }
 
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
@@ -20,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: BASE_URL + "/api/integrations/office365teams/callback",
+    redirect_uri: BASE_URL + "/api/integrations/office365video/callback",
     client_secret: process.env.MS_GRAPH_CLIENT_SECRET!,
   });
 
