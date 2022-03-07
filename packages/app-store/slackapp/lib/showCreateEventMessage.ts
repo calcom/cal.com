@@ -1,18 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
 import { CreateEventModal } from "./views";
 
 export default async function showCreateEventMessage(req: NextApiRequest, res: NextApiResponse) {
   const body = req.body;
 
   const data = await prisma.credential.findFirst({
-    where: {
-      type: "slack_app",
-      key: {
-        path: ["authed_user", "id"],
-        equals: body.user_id,
-      },
-    },
+    ...WhereCredsEqualsId(body.user_id),
     include: {
       user: {
         select: {

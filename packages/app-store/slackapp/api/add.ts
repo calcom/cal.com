@@ -1,13 +1,10 @@
-import { InstallProvider } from "@slack/oauth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 const client_id = process.env.SLACK_CLIENT_ID;
-const client_secret = process.env.SLACK_CLIENT_SECRET;
-const scopes = ["commands"];
+const scopes = ["commands", "users:read", "users:read.email"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

@@ -6,20 +6,15 @@ import createEvent from "../lib/actions/createEvent";
 enum InteractionEvents {
   CREATE_EVENT = "cal.event.create",
 }
-function parseBody(body: any) {
-  const parsedBody = parse(body);
-  if (parsedBody.payload) {
-    // @ts-ignore - This should never be the case
-    return JSON.parse(parsedBody.payload);
-  }
-  return parsedBody;
-}
+
 export default async function interactiveHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const body = parseBody(req.body);
+    const payload = JSON.parse(req.body.payload);
+
+    const actions = payload.actions;
 
     // I've not found a case where actions is ever > than 1 when this function is called.
-    switch (actions?.action_id) {
+    switch (actions[0]?.action_id) {
       case InteractionEvents.CREATE_EVENT:
         return await createEvent(req, res);
       default:
