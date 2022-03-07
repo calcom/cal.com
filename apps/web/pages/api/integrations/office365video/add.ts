@@ -6,7 +6,7 @@ import { BASE_URL } from "@lib/config/constants";
 
 import { encodeOAuthState } from "../utils";
 
-const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
+const scopes = ["OnlineMeetings.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {

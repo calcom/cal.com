@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../utils";
 
-const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
+const scopes = ["OnlineMeetings.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
