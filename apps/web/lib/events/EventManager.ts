@@ -119,11 +119,11 @@ export default class EventManager {
     this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
 
     //for  Daily.co video, temporarily pushes a credential for the daily-video-client
-    // const hasDailyIntegration = process.env.DAILY_API_KEY;
-    // if (hasDailyIntegration) {
-    //   this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
-    // }
-    // this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    const hasDailyIntegration = process.env.DAILY_API_KEY;
+    if (hasDailyIntegration) {
+      this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
+    }
+    this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
   }
 
   /**
