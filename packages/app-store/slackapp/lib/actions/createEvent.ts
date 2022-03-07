@@ -65,10 +65,18 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       ...WhereCredsEqualsId(user.id),
     })
     .user({
-      include: {
+      select: {
+        username: true,
+        email: true,
+        timeZone: true,
+        locale: true,
         eventTypes: {
           where: {
             id: parseInt(selected_event_id),
+          },
+          select: {
+            id: true,
+            length: true,
           },
         },
         credentials: {
@@ -111,14 +119,11 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     metadata: {},
   };
 
-  // console.log(PostData);
-
   // Possible make the fetch_wrapped into a shared package?
-  fetch(`${BASE_URL}/api/book/events`, {
+  fetch(`${BASE_URL}/api/book/event`, {
     method: "POST",
     body: JSON.stringify(PostData),
     headers: {
-      Accept: "application/json",
       "Content-Type": "application/json",
     },
   })
