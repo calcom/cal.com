@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 const brandColor = "#292929";
 const brandTextColor = "#ffffff";
+const darkBrandColor = "#fafafa";
 
 export function colorNameToHex(color: string) {
   const colors = {
@@ -174,8 +175,8 @@ function hexToRGB(hex: string) {
   return [parseInt(color.slice(0, 2), 16), parseInt(color.slice(2, 4), 16), parseInt(color.slice(4, 6), 16)];
 }
 
-function getContrastingTextColor(bgColor: string | null): string {
-  bgColor = bgColor == "" || bgColor == null ? brandColor : bgColor;
+function getContrastingTextColor(bgColor: string | null, dark: boolean): string {
+  bgColor = bgColor == "" || bgColor == null ? (dark ? darkBrandColor : brandColor) : bgColor;
   const rgb = hexToRGB(bgColor);
   const whiteContrastRatio = computeContrastRatio(rgb, [255, 255, 255]);
   const blackContrastRatio = computeContrastRatio(rgb, [41, 41, 41]); //#292929
@@ -191,18 +192,38 @@ export function isValidHexCode(val: string | null) {
   return false;
 }
 
-export function fallBackHex(val: string | null): string {
+export function fallBackHex(val: string | null, dark: boolean): string {
   if (val) if (colorNameToHex(val)) return colorNameToHex(val) as string;
-  return brandColor;
+  return dark ? darkBrandColor : brandColor;
 }
 
-const BrandColor = ({ val = brandColor }: { val: string | undefined | null }) => {
+const BrandColor = ({
+  lightVal = brandColor,
+  darkVal = darkBrandColor,
+}: {
+  lightVal: string | undefined | null;
+  darkVal: string | undefined | null;
+}) => {
   // ensure acceptable hex-code
-  val = isValidHexCode(val) ? (val?.indexOf("#") === 0 ? val : "#" + val) : fallBackHex(val);
+  lightVal = isValidHexCode(lightVal)
+    ? lightVal?.indexOf("#") === 0
+      ? lightVal
+      : "#" + lightVal
+    : fallBackHex(lightVal, false);
+  darkVal = isValidHexCode(darkVal)
+    ? darkVal?.indexOf("#") === 0
+      ? darkVal
+      : "#" + darkVal
+    : fallBackHex(darkVal, true);
   useEffect(() => {
-    document.documentElement.style.setProperty("--brand-color", val);
-    document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(val));
-  }, [val]);
+    document.documentElement.style.setProperty("--brand-color", lightVal);
+    document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(lightVal, true));
+    document.documentElement.style.setProperty("--brand-color-dark-mode", darkVal);
+    document.documentElement.style.setProperty(
+      "--brand-text-color-dark-mode",
+      getContrastingTextColor(darkVal, true)
+    );
+  }, [lightVal, darkVal]);
   return null;
 };
 

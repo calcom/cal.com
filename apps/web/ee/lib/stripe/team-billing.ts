@@ -1,17 +1,17 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
-import { getStripeCustomerFromUser } from "@ee/lib/stripe/customer";
+import prisma from "@calcom/prisma";
+import { getStripeCustomerIdFromUserId } from "@ee/lib/stripe/customer";
 
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";
 import { HttpError } from "@lib/core/http/error";
-import prisma from "@lib/prisma";
 
 import stripe from "./server";
 
 // get team owner's Pro Plan subscription from Cal userId
 export async function getProPlanSubscription(userId: number) {
-  const stripeCustomerId = await getStripeCustomerFromUser(userId);
+  const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
   if (!stripeCustomerId) return null;
 
   const customer = await stripe.customers.retrieve(stripeCustomerId, {
@@ -82,11 +82,17 @@ export async function upgradeTeam(userId: number, teamId: number) {
   const { membersMissingSeats, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
 
   if (!subscription) {
-    const customer = await getStripeCustomerFromUser(userId);
-    if (!customer) throw new HttpError({ statusCode: 400, message: "User has no Stripe customer" });
+    let customerId = await getStripeCustomerIdFromUserId(userId);
+    if (!customerId) {
+      // create stripe customer if it doesn't already exist
+      const res = await stripe.customers.create({
+        email: ownerUser.user.email,
+      });
+      customerId = res.id;
+    }
     // create a checkout session with the quantity of missing seats
     const session = await createCheckoutSession(
-      customer,
+      customerId,
       membersMissingSeats.length,
       teamId,
       ownerIsMissingSeat
@@ -257,19 +263,20 @@ export async function ensureSubscriptionQuantityCorrectness(userId: number, team
   }
 }
 
+const isProductionSite =
+  process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com" && process.env.VERCEL_ENV === "production";
+
 // TODO: these should be moved to env vars
 export function getPerSeatProPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
-    : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
+  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1KLD4GH8UDiwIftkWQfsh1Vh";
 }
 export function getProPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1KHkoeH8UDiwIftkkUbiggsM"
-    : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
+  return isProductionSite ? "price_1KHkoeH8UDiwIftkkUbiggsM" : "price_1JZ0J3H8UDiwIftk0YIHYKr8";
 }
 export function getPremiumPlanPrice(): string {
-  return process.env.NODE_ENV === "production"
-    ? "price_1Jv3CMH8UDiwIftkFgyXbcHN"
-    : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
+  return isProductionSite ? "price_1Jv3CMH8UDiwIftkFgyXbcHN" : "price_1Jv3CMH8UDiwIftkFgyXbcHN";
+}
+
+export function getProPlanProduct(): string {
+  return isProductionSite ? "prod_JVxwoOF5odFiZ8" : "prod_KDRBg0E4HyVZee";
 }

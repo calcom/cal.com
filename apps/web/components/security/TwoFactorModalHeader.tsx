@@ -4,7 +4,7 @@ import React from "react";
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (
     <div className="mb-4 sm:flex sm:items-start">
-      <div className="bg-brand text-brandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+      <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
         <ShieldCheckIcon className="h-6 w-6 text-black" />
       </div>
       <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
