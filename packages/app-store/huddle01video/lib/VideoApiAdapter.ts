@@ -1,10 +1,9 @@
 import { Credential } from "@prisma/client";
 
+import { handleErrorsJson } from "@calcom/lib/errors";
+import { randomString } from "@calcom/lib/random";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
-import { handleErrorsJson } from "@lib/errors";
-import { randomString } from "@lib/random";
 
 export const FAKE_HUDDLE_CREDENTIAL: Credential = {
   id: +new Date().getTime(),

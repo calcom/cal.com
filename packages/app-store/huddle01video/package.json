@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "@calcom/huddle01video",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Video conferencing",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

@@ -9,7 +9,6 @@ import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/Vide
 
 import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
-import Huddle01VideoApiAdapter from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import logger from "@lib/logger";
 
 import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
@@ -30,9 +29,6 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     }
 
     switch (cred.type) {
-      case "huddle01_video":
-        acc.push(Huddle01VideoApiAdapter());
-        break;
       case "tandem_video":
         acc.push(TandemVideoApiAdapter(cred));
         break;
