@@ -111,6 +111,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         eventType={props.eventType}
                         user={props.user}
                         location={props.booking.location}
+                        successRedirect={props.successRedirect}
                       />
                     </Elements>
                   )}

@@ -96,6 +96,34 @@ const addDefaultLocationOptions = (
   });
 };
 
+const SuccessRedirectEdit = ({ eventType, formMethods }) => {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <hr className="border-neutral-200" />
+      <div className="block sm:flex">
+        <div className="min-w-48 sm:mb-0">
+          <label
+            htmlFor="successRedirect"
+            className="flex h-full items-center text-sm font-medium text-neutral-700">
+            {t("redirect_success_booking")}
+          </label>
+        </div>
+        <div className="w-full">
+          <input
+            type="url"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            placeholder={t("external_redirect_url")}
+            defaultValue={eventType.successRedirect || ""}
+            {...formMethods.register("successRedirect")}
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const PERIOD_TYPES = [
@@ -1333,7 +1361,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                         </div>
-
+                        <SuccessRedirectEdit
+                          formMethods={formMethods}
+                          eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -1724,6 +1754,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
+      successRedirect: true,
       team: {
         select: {
           slug: true,

@@ -672,5 +672,7 @@
   "example_name": "John Doe",
   "time_format": "Time format",
   "12_hour": "12 hour",
-  "24_hour": "24 hour"
+  "24_hour": "24 hour",
+  "redirect_success_booking": "Redirect on successful booking",
+  "external_redirect_url": "External Redirect URL"
 }

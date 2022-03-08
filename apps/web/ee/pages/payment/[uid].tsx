@@ -3,6 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { PaymentData } from "@ee/lib/stripe/server";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { SUCCESS_REDIRECT_DEFAULT_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -40,6 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               length: true,
               eventName: true,
               requiresConfirmation: true,
+              successRedirect: true,
               userId: true,
               users: {
                 select: {
@@ -65,7 +67,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) throw Error("Payment not found");
+  if (!rawPayment) {
+    console.log("Payment not found");
+    return {
+      notFound: true,
+    };
+  }
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
@@ -73,7 +80,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as unknown as PaymentData,
   };
 
-  if (!_booking) throw Error("Booking not found");
+  if (!_booking) {
+    console.log("Booking not found");
+    return {
+      notFound: true,
+    };
+  }
 
   const { startTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -81,7 +93,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     startTime: startTime.toString(),
   };
 
-  if (!eventType) throw Error("Event not found");
+  if (!eventType) {
+    console.log("Event not found");
+    return {
+      notFound: true,
+    };
+  }
 
   const [user] = eventType.users;
   if (!user) return { notFound: true };
@@ -92,6 +109,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
   };
 
+  const successRedirect = eventType.successRedirect || SUCCESS_REDIRECT_DEFAULT_URL;
+
   return {
     props: {
       user,
@@ -99,6 +118,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking,
       payment,
       profile,
+      successRedirect,
     },
   };
 };

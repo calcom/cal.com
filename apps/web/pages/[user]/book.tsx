@@ -6,6 +6,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { SUCCESS_REDIRECT_DEFAULT_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -64,6 +65,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       price: true,
       currency: true,
       disableGuests: true,
+      successRedirect: true,
       users: {
         select: {
           username: true,
@@ -133,6 +135,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking();
   }
 
+  const successRedirect = eventType.successRedirect || SUCCESS_REDIRECT_DEFAULT_URL;
+
   return {
     props: {
       profile: {
@@ -146,6 +150,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       booking,
       trpcState: ssr.dehydrate(),
+      successRedirect,
     },
   };
 }

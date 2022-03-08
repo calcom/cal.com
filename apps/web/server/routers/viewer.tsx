@@ -131,6 +131,7 @@ const loggedInViewerRouter = createProtectedRouter()
         price: true,
         currency: true,
         position: true,
+        successRedirect: true,
         users: {
           select: {
             id: true,
