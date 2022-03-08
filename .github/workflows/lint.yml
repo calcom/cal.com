@@ -16,6 +16,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           version: 14.x
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
 
       - name: Install deps
         run: yarn
