@@ -254,6 +254,7 @@ model Booking {
   cancellationReason  String?
   rejectionReason     String?
   reminderPhone       String?
+  attendeeReminder    AttendeeReminder?
 }
 
 model Schedule {
@@ -323,6 +324,16 @@ model EventTypeAttendeeReminder {
   method      EventTypeAttendeeReminderMethod
   timeUnit    EventTypeAttendeeReminderTimeUnit
   time        Int
+}
+
+model AttendeeReminder {
+  id           Int      @id @default(autoincrement())
+  bookingId    Int      @unique
+  booking      Booking  @relation(fields: [bookingId], references: [id])
+  method       String
+  referenceId  Int
+  scheduledFor DateTime
+  sent         Boolean
 }
 
 model ResetPasswordRequest {

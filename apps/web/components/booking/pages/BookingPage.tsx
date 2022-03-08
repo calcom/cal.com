@@ -215,6 +215,7 @@ const BookingPage = (props: BookingPageProps) => {
   };
 
   const bookEvent = (booking: BookingFormValues) => {
+    console.log("🚀 ~ file: BookingPage.tsx ~ line 218 ~ bookEvent ~ booking", booking);
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );
@@ -481,7 +482,7 @@ const BookingPage = (props: BookingPageProps) => {
                         <PhoneInput
                           // @ts-expect-error
                           control={bookingForm.control}
-                          name="phone"
+                          name="reminderPhone"
                           placeholder={t("enter_phone_number")}
                           id="reminderPhone"
                         />

@@ -50,6 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const reqBody = req.body as BookingConfirmBody;
+  console.log("🚀 ~ file: confirm.ts ~ line 53 ~ handler ~ reqBody", reqBody);
   const bookingId = reqBody.id;
 
   if (!bookingId) {

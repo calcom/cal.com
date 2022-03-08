@@ -55,6 +55,7 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
+  reminderPhone?: string;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
