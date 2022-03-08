@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "files": [
-    "eslint-preset.js"
+    "eslint-preset.js",
+    "prettier-preset.js"
   ],
   "dependencies": {
     "eslint-config-next": "^12.0.8",
