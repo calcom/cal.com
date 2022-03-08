@@ -26,6 +26,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(24);
 });
@@ -45,6 +46,7 @@ it("only shows future booking slots on the same day", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(12);
 });
@@ -62,6 +64,7 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(0);
 });
@@ -80,6 +83,7 @@ it("can cut off dates that due to invitee timezone differences fall on the previ
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours,
+      eventLength: 60,
     })
   ).toHaveLength(0);
 });
@@ -98,6 +102,7 @@ it("adds minimum booking notice correctly", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(11);
 });
