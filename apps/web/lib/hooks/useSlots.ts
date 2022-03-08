@@ -118,10 +118,14 @@ export const useSlots = (props: UseSlotsProps) => {
       inviteeDate: date,
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
+      eventLength,
     });
     // const busyTimes = [
     //   { start: new Date(2022, 2, 9, 12, 50, 0, 0), end: new Date(2022, 2, 9, 13, 50, 0, 0) }
     // ];
+    // Need check for the following cases to consider custom interval
+    //times[0] as start time (9:00am)
+    // and times[times.length-1].add(eventlength, "minutes") as end time (16:00)
     // Check for conflicts
     for (let i = times.length - 1; i >= 0; i -= 1) {
       responseBody.busy.every((busyTime): boolean => {
