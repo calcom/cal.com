@@ -170,7 +170,9 @@ function BookingListItem(booking: BookingItem) {
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
-              {!booking.confirmed && !booking.rejected && <TableActions actions={pendingActions} />}
+              {!booking.confirmed && !booking.rejected && user!.id === booking.user!.id && (
+                <TableActions actions={pendingActions} />
+              )}
               {booking.confirmed && !booking.rejected && <TableActions actions={bookedActions} />}
               {!booking.confirmed && booking.rejected && (
                 <div className="text-sm text-gray-500">{t("rejected")}</div>

@@ -1,8 +1,10 @@
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
+import type { Person } from "@lib/apps/calendar/types/CalendarTypes";
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
+import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
 import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
@@ -81,6 +83,17 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
       resolve(organizerRequestEmail.sendEmail());
     } catch (e) {
       reject(console.error("OrganizerRequestEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const attendeeRequestEmail = new AttendeeRequestEmail(calEvent, attendee);
+      resolve(attendeeRequestEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("AttendRequestEmail.sendEmail failed", e));
     }
   });
 };

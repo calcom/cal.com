@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -130,9 +130,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   // Hook up the webhook logic here
-  const eventTrigger = "BOOKING_CANCELLED";
+  const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
-  const subscribers = await getSubscribers(bookingToDelete.userId, eventTrigger);
+  const subscriberOptions = {
+    userId: bookingToDelete.userId,
+    eventTypeId: bookingToDelete.eventTypeId as number,
+    triggerEvent: eventTrigger,
+  };
+  const subscribers = await getSubscribers(subscriberOptions);
   const promises = subscribers.map((sub) =>
     sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
       (e) => {

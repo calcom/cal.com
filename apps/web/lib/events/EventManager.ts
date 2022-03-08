@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@calcom/app-store/huddle01video/lib/VideoApiAdapter";
+import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -53,8 +54,14 @@ export const isTandem = (location: string): boolean => {
   return location === "integrations:tandem";
 };
 
+export const isJitsi = (location: string): boolean => {
+  return location === "integrations:jitsi";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
+  return (
+    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isJitsi(location)
+  );
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -117,6 +124,7 @@ export default class EventManager {
       this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
     this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    this.videoCredentials.push(FAKE_JITSI_CREDENTIAL);
   }
 
   /**
