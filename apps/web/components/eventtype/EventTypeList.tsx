@@ -11,13 +11,18 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
-  ChevronRightIcon,
 } from "@heroicons/react/solid";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui";
+import Dropdown, {
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@calcom/ui/Dropdown";
 
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
@@ -30,26 +35,20 @@ import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import Dropdown, {
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@components/ui/Dropdown";
 
 import { EventTypeParent } from "./CreateEventType";
 
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
-  profile: { slug: string | null };
+  profile: { slug: string | null; name: string | null; image: string | null };
   readOnly: boolean;
   types: EventType[];
-  hasTeams: EventTypeParent[] | false;
 }
 
-export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ profile, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
@@ -85,6 +84,30 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
     deleteMutation.mutate(payload);
   }
 
+  // inject selection data into url for correct router history
+  const openModal = (option, type: EventType) => {
+    // setTimeout fixes a bug where the url query params are removed immediately after opening the modal
+    setTimeout(() => {
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            new: "1",
+            eventPage: option.slug,
+            title: type.title,
+            slug: type.slug,
+            description: type.description,
+            length: type.length,
+            teamId: option.teamId || undefined,
+          },
+        },
+        undefined,
+        { shallow: true }
+      );
+    });
+  };
+
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
@@ -108,7 +131,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-      <ul className="divide-neutral-200 divide-y" data-testid="event-types">
+      <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
             key={type.id}
@@ -118,10 +141,10 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
-                "hover:bg-neutral-50 flex items-center justify-between ",
+                "flex items-center justify-between hover:bg-neutral-50 ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group hover:bg-neutral-50 flex w-full items-center justify-between px-4 py-4 sm:px-6">
+              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button
@@ -142,8 +165,8 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                     className="flex-grow truncate text-sm"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="text-neutral-900 truncate font-medium">{type.title} </span>
-                      <small className="text-neutral-500 hidden sm:inline">{`/${profile.slug}/${type.slug}`}</small>
+                      <span className="truncate font-medium text-neutral-900">{type.title} </span>
+                      <small className="hidden text-neutral-500 sm:inline">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
                           {t("hidden")}
@@ -195,57 +218,32 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                       </button>
                     </Tooltip>
                     <Dropdown>
-                      <DropdownMenuTrigger className="text-neutral-500 hover:text-neutral-900 h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent hover:border-gray-300">
+                      <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
-                          <Link href="" passHref={true}>
-                            <a target="_blank">
-                              <Button
-                                type="button"
-                                color="minimal"
-                                className="w-full font-normal"
-                                StartIcon={PencilIcon}>
-                                {" "}
-                                {t("edit")}
-                              </Button>
-                            </a>
+                          <Link href={"/event-types/" + type.id} passHref={true}>
+                            <Button
+                              type="button"
+                              color="minimal"
+                              className="w-full font-normal"
+                              StartIcon={PencilIcon}>
+                              {" "}
+                              {t("edit")}
+                            </Button>
                           </Link>
                         </DropdownMenuItem>
-                        {!hasTeams ? (
-                          <DropdownMenuItem>
-                            <Link href={"/settings/teams/"}>
-                              <a>
-                                <Button
-                                  type="button"
-                                  color="minimal"
-                                  className="w-full font-normal"
-                                  StartIcon={DuplicateIcon}>
-                                  {t("duplicate")}
-                                </Button>
-                              </a>
-                            </Link>
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenu.Root>
-                            <DropdownMenu.TriggerItem>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                className="w-full font-normal"
-                                StartIcon={DuplicateIcon}
-                                EndIcon={ChevronRightIcon}>
-                                {t("duplicate")}
-                              </Button>
-                            </DropdownMenu.TriggerItem>
-                            <DropdownMenu.Content>
-                              {hasTeams.map((team) => (
-                                <DropdownMenu.Item key={team.slug}>{team.name}</DropdownMenu.Item>
-                              ))}
-                            </DropdownMenu.Content>
-                          </DropdownMenu.Root>
-                        )}
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            className="w-full font-normal"
+                            StartIcon={DuplicateIcon}
+                            onClick={() => openModal(profile, type)}>
+                            {t("duplicate")}
+                          </Button>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
                           <Dialog>
@@ -282,7 +280,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                   {({ open }) => (
                     <>
                       <div>
-                        <Menu.Button className="text-neutral-400 mt-1 border border-transparent p-2 hover:border-gray-200">
+                        <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
                           <span className="sr-only">{t("open_options")}</span>
                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                         </Menu.Button>
@@ -299,7 +297,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                         leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="divide-neutral-100 focus:outline-none absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                          className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -312,7 +310,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <ExternalLinkIcon
-                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   {t("preview")}
@@ -333,7 +331,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                                     "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <ClipboardCopyIcon
-                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
+                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
                                   {t("copy_link")}
@@ -359,7 +357,7 @@ export const EventTypeList = ({ profile, readOnly, types, hasTeams }: EventTypeL
                                       "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                     )}>
                                     <UploadIcon
-                                      className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
+                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                       aria-hidden="true"
                                     />
                                     {t("share")}

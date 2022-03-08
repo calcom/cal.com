@@ -7,6 +7,13 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/Dropdown";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -20,13 +27,6 @@ import { Form, InputLeading, TextAreaField, TextField } from "@components/form/f
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -58,12 +58,22 @@ export default function CreateEventTypeButton(props: Props) {
       : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
+  const title: string =
+    typeof router.query.title === "string" && router.query.title ? router.query.title : "";
+  const length: number =
+    typeof router.query.length === "string" && router.query.length ? parseInt(router.query.length) : 15;
+  const description: string =
+    typeof router.query.description === "string" && router.query.description ? router.query.description : "";
+  const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
-    defaultValues: { length: 15 },
   });
   const { setValue, watch, register } = form;
+  setValue("title", title);
+  setValue("length", length);
+  setValue("description", description);
+  setValue("slug", slug);
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
@@ -146,7 +156,7 @@ export default function CreateEventTypeButton(props: Props) {
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="hover:bg-neutral-100 focus:outline-none cursor-pointer px-3 py-2"
+                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
@@ -209,7 +219,6 @@ export default function CreateEventTypeButton(props: Props) {
                 required
                 min="10"
                 placeholder="15"
-                defaultValue={15}
                 label={t("length")}
                 className="pr-20"
                 {...register("length", { valueAsNumber: true })}

@@ -2,6 +2,13 @@ import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/
 import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@calcom/ui/Dropdown";
+
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -13,12 +20,6 @@ import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Button from "@components/ui/Button";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@components/ui/Dropdown";
 
 import { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";
@@ -63,7 +64,7 @@ export default function TeamListItem(props: Props) {
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
       <div className="ml-3 inline-block">
-        <span className="text-neutral-700 text-sm font-bold">{team.name}</span>
+        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
         </span>
@@ -116,7 +117,7 @@ export default function TeamListItem(props: Props) {
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="group text-neutral-400 h-10 w-10 border border-transparent p-0 hover:border-gray-200 ">
+                <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 ">
                   <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
