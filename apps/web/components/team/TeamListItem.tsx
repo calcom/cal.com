@@ -76,7 +76,7 @@ export default function TeamListItem(props: Props) {
       <div
         className={classNames(
           "flex items-center  justify-between",
-          !isInvitee && "group hover:bg-neutral-50"
+          !isInvitee && "hover:bg-neutral-50 group"
         )}>
         {!isInvitee ? (
           <Link href={"/settings/teams/" + team.id}>
@@ -116,7 +116,7 @@ export default function TeamListItem(props: Props) {
                 </Button>
               </Tooltip>
               <Dropdown>
-                <DropdownMenuTrigger className="group text-neutral-400 h-10 w-10 border border-transparent p-0 hover:border-gray-200 ">
+                <DropdownMenuTrigger className="text-neutral-400 group h-10 w-10 border border-transparent p-0 hover:border-gray-200 ">
                   <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>

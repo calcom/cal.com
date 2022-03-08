@@ -117,7 +117,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 "hover:bg-neutral-50 flex items-center justify-between ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group hover:bg-neutral-50 flex w-full items-center justify-between px-4 py-4 sm:px-6">
+              <div className="hover:bg-neutral-50 group flex w-full items-center justify-between px-4 py-4 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button

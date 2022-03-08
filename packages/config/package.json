@@ -8,14 +8,14 @@
   ],
   "dependencies": {
     "eslint-config-next": "^12.0.8",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-playwright": "^0.7.1",
-    "eslint-plugin-prettier": "^3.4.0"
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-playwright": "^0.8.0",
+    "eslint-plugin-prettier": "^4.0.0"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "2.0.4",
+    "@trivago/prettier-plugin-sort-imports": "3.2.0",
     "prettier": "^2.5.1",
-    "prettier-plugin-tailwindcss": "^0.1.6",
+    "prettier-plugin-tailwindcss": "^0.1.8",
     "typescript": "^4.5.3"
   }
 }
