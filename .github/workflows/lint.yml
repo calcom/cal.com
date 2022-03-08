@@ -12,6 +12,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.OS }}-modules-${{ env.cache-name }}-
+            ${{ runner.OS }}-modules-
+            ${{ runner.OS }}-
+
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
@@ -20,6 +29,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Install deps
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn
 
       - name: Lint
