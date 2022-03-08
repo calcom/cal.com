@@ -21,6 +21,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
+    "lint:report": "turbo run lint:report || true && yarn lint:merge-reports",
+    "lint:merge-reports": "jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json",
     "pre-commit": "lint-staged",
     "prepare": "husky install",
     "start": "turbo run start --scope=\"@calcom/web\"",

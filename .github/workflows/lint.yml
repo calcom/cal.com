@@ -23,4 +23,17 @@ jobs:
         run: yarn
 
       - name: Lint
-        run: yarn lint
+        run: yarn lint:report
+        continue-on-error: true
+
+      - name: Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@1.2.0
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "lint-results/eslint_report.json"
+
+      - name: Upload ESLint report
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-results/eslint_report.json
+          path: lint-results/eslint_report.json

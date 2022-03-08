@@ -91,6 +91,10 @@
       "cache": false,
       "outputs": []
     },
+    "lint:report": {
+      "cache": false,
+      "outputs": ["lint-results"]
+    },
     "start": {},
     "test": {
       "dependsOn": []
