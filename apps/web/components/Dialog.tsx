@@ -1,9 +1,62 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import React, { ReactNode } from "react";
+import { useRouter } from "next/router";
+import React, { ReactNode, useState } from "react";
 
-export const Dialog = DialogPrimitive.Dialog;
+export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
+  name?: string;
+  clearQueryParamsOnClose?: string[];
+};
+export function Dialog(props: DialogProps) {
+  const router = useRouter();
+  const { children, name, ...dialogProps } = props;
+  // only used if name is set
+  const [open, setOpen] = useState(!!dialogProps.open);
 
+  if (name) {
+    const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
+    dialogProps.onOpenChange = (open) => {
+      if (props.onOpenChange) {
+        props.onOpenChange(open);
+      }
+      // toggles "dialog" query param
+      if (open) {
+        router.query["dialog"] = name;
+      } else {
+        clearQueryParamsOnClose.forEach((queryParam) => {
+          delete router.query[queryParam];
+        });
+      }
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+          },
+        },
+        undefined,
+        { shallow: true }
+      );
+      setOpen(open);
+    };
+    // handles initial state
+    if (!open && router.query["dialog"] === name) {
+      setOpen(true);
+    }
+    // allow overriding
+    if (!("open" in dialogProps)) {
+      dialogProps.open = open;
+    }
+  }
+
+  return (
+    <DialogPrimitive.Root {...dialogProps}>
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      {children}
+    </DialogPrimitive.Root>
+  );
+}
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]>;
+
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>

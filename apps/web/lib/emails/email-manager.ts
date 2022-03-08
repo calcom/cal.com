@@ -1,6 +1,7 @@
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
+import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
 import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
@@ -11,7 +12,7 @@ import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-reque
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
@@ -80,6 +81,17 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
       resolve(organizerRequestEmail.sendEmail());
     } catch (e) {
       reject(console.error("OrganizerRequestEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const attendeeRequestEmail = new AttendeeRequestEmail(calEvent, attendee);
+      resolve(attendeeRequestEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("AttendRequestEmail.sendEmail failed", e));
     }
   });
 };
