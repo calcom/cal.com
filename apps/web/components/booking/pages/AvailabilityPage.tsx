@@ -1,5 +1,12 @@
 // Get router variables
-import { ChevronDownIcon, ChevronUpIcon, ClockIcon, CreditCardIcon, GlobeIcon } from "@heroicons/react/solid";
+import {
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  CreditCardIcon,
+  GlobeIcon,
+} from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
@@ -11,6 +18,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
+import { BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -33,7 +41,7 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
+const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
@@ -168,7 +176,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
                 <div
                   className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:block " +
+                    "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:flex md:flex-col " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
@@ -212,6 +220,15 @@ const AvailabilityPage = ({ profile, eventType, workingHours }: Props) => {
                   <TimezoneDropdown />
 
                   <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
+                  {previousPage === `${BASE_URL}/${profile.slug}` && (
+                    <div className="flex h-full flex-col justify-end">
+                      <ArrowLeftIcon
+                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        onClick={() => router.back()}
+                      />
+                      <p className="sr-only">Go Back</p>
+                    </div>
+                  )}
                 </div>
                 <DatePicker
                   date={selectedDate}
