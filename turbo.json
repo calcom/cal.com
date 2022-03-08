@@ -88,6 +88,7 @@
       "cache": false
     },
     "lint": {
+      "cache": false,
       "outputs": []
     },
     "start": {},
