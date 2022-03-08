@@ -40,8 +40,8 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
               </div>
             )}
             {variety === "warning" && (
-              <div className="mx-auto rounded-full bg-orange-100 p-2 text-center">
-                <ExclamationIcon className="h-5 w-5 text-orange-600" />
+              <div className="bg-orange-100 mx-auto rounded-full p-2 text-center">
+                <ExclamationIcon className="text-orange-600 h-5 w-5" />
               </div>
             )}
             {variety === "success" && (
@@ -55,7 +55,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
           <DialogPrimitive.Title className="font-cal text-xl font-bold text-gray-900">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Description className="text-sm text-neutral-500">
+          <DialogPrimitive.Description className="text-neutral-500 text-sm">
             {children}
           </DialogPrimitive.Description>
         </div>

@@ -90,7 +90,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   return (
     (isReady && (
-      <div className="h-screen bg-neutral-100 dark:bg-neutral-900" data-testid="success-page">
+      <div className="bg-neutral-100 dark:bg-neutral-900 h-screen" data-testid="success-page">
         <Theme />
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
@@ -105,7 +105,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   &#8203;
                 </span>
                 <div
-                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  className="border-neutral-200 dark:border-neutral-700 inline-block transform overflow-hidden rounded-sm border bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -116,12 +116,12 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
                       <h3
-                        className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                        className="text-neutral-900 text-2xl font-semibold leading-6 dark:text-white"
                         id="modal-headline">
                         {needsConfirmation ? t("submitted") : t("meeting_is_scheduled")}
                       </h3>
                       <div className="mt-3">
-                        <p className="text-sm text-neutral-600 dark:text-gray-300">
+                        <p className="text-neutral-600 text-sm dark:text-gray-300">
                           {needsConfirmation
                             ? props.profile.name !== null
                               ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
@@ -176,7 +176,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             }` +
                             (typeof location === "string" ? "&location=" + encodeURIComponent(location) : "")
                           }>
-                          <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
+                          <a className="border-neutral-200 dark:border-neutral-700 mx-2 h-10 w-10 rounded-sm border px-3 py-2 dark:text-white">
                             <svg
                               className="-mt-1 inline-block h-4 w-4"
                               fill="currentColor"
@@ -201,7 +201,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="border-neutral-200 dark:border-neutral-700 mx-2 h-10 w-10 rounded-sm border px-3 py-2 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1 inline-block h-4 w-4"
@@ -227,7 +227,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             ) + (location ? "&location=" + location : "")
                           }>
                           <a
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="border-neutral-200 dark:border-neutral-700 mx-2 h-10 w-10 rounded-sm border px-3 py-2 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1 inline-block h-4 w-4"
@@ -241,7 +241,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </Link>
                         <Link href={"data:text/calendar," + eventLink()}>
                           <a
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="border-neutral-200 dark:border-neutral-700 mx-2 h-10 w-10 rounded-sm border px-3 py-2 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"

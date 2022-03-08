@@ -66,7 +66,7 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
             {label}
             {disabled && (
               <div className="flex-grow">
-                <CheckIcon className="float-right h-6 w-6 text-neutral-500" />
+                <CheckIcon className="text-neutral-500 float-right h-6 w-6" />
               </div>
             )}
           </div>
@@ -86,7 +86,7 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
           {option.label}
           <XIcon
             onClick={() => changeHandler([option])}
-            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
+            className="text-neutral-500 float-right mt-0.5 h-5 w-5 cursor-pointer"
           />
         </div>
       ))}

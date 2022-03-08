@@ -47,8 +47,8 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
-        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
+        <h3 className="text-neutral-900 mt-2 text-xl font-bold">{t("new_event_type_heading")}</h3>
+        <p className="text-md text-neutral-600 mt-1 mb-2">{t("new_event_type_description")}</p>
         <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
       </div>
     </div>
@@ -104,7 +104,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-      <ul className="divide-y divide-neutral-200" data-testid="event-types">
+      <ul className="divide-neutral-200 divide-y" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
             key={type.id}
@@ -114,10 +114,10 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
-                "flex items-center justify-between hover:bg-neutral-50 ",
+                "hover:bg-neutral-50 flex items-center justify-between ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
+              <div className="group hover:bg-neutral-50 flex w-full items-center justify-between px-4 py-4 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button
@@ -138,8 +138,8 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     className="flex-grow truncate text-sm"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="truncate font-medium text-neutral-900">{type.title} </span>
-                      <small className="hidden text-neutral-500 sm:inline">{`/${profile.slug}/${type.slug}`}</small>
+                      <span className="text-neutral-900 truncate font-medium">{type.title} </span>
+                      <small className="text-neutral-500 hidden sm:inline">{`/${profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
                           {t("hidden")}
@@ -198,7 +198,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                   {({ open }) => (
                     <>
                       <div>
-                        <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
+                        <Menu.Button className="text-neutral-400 mt-1 border border-transparent p-2 hover:border-gray-200">
                           <span className="sr-only">{t("open_options")}</span>
                           <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
                         </Menu.Button>
@@ -215,7 +215,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         leaveTo="transform opacity-0 scale-95">
                         <Menu.Items
                           static
-                          className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          className="divide-neutral-100 focus:outline-none absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5">
                           <div className="py-1">
                             <Menu.Item>
                               {({ active }) => (
@@ -228,7 +228,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     "group flex items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <ExternalLinkIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
                                     aria-hidden="true"
                                   />
                                   {t("preview")}
@@ -249,7 +249,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                     "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                   )}>
                                   <ClipboardCopyIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
                                     aria-hidden="true"
                                   />
                                   {t("copy_link")}
@@ -275,7 +275,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                       "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                     )}>
                                     <UploadIcon
-                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                      className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
                                       aria-hidden="true"
                                     />
                                     {t("share")}
@@ -319,7 +319,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         <a className="font-bold">{profile?.name || ""}</a>
       </Link>
       {membershipCount && (
-        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
+        <span className="text-neutral-500 relative -top-px text-xs ltr:ml-2 rtl:mr-2">
           <Link href="/settings/teams">
             <a>
               <Badge variant="gray">
@@ -332,7 +332,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
       )}
       {profile?.slug && (
         <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+          <a className="text-neutral-500 block text-xs">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
             "https://",
             ""
           )}/${profile.slug}`}</a>

@@ -334,7 +334,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   id="token"
                   placeholder={t("access_token")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                 />
                 <Button type="submit" className="mt-1 ml-4 h-10">
                   {t("import")}
@@ -366,7 +366,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                     placeholder={t("username")}
                     defaultValue={props.usernameParam ? props.usernameParam : props.user?.username ?? ""}
                     required
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    className="focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                   />
                 </fieldset>
               )}
@@ -384,7 +384,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   placeholder={t("your_name")}
                   defaultValue={props.user.name ?? enteredName}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                 />
               </fieldset>
 
@@ -504,7 +504,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 placeholder={t("your_name")}
                 defaultValue={props.user.name || enteredName}
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
               />
             </fieldset>
             <fieldset>
@@ -517,7 +517,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 name="bio"
                 id="bio"
                 required
-                className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                 defaultValue={props.user.bio || undefined}
               />
               <Text variant="caption" className="mt-2">

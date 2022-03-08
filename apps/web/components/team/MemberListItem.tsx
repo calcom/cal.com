@@ -70,7 +70,7 @@ export default function MemberListItem(props: Props) {
               className="h-9 w-9 rounded-full"
             />
             <div className="ml-3 inline-block">
-              <span className="text-sm font-bold text-neutral-700">{name}</span>
+              <span className="text-neutral-700 text-sm font-bold">{name}</span>
               <span
                 className="-mt-1 block text-xs text-gray-400"
                 data-testid="member-email"
@@ -102,12 +102,12 @@ export default function MemberListItem(props: Props) {
               disabled={!props.member.accepted}
               onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
               color="minimal"
-              className="group hidden h-10 w-10 items-center justify-center border border-transparent px-0 py-0 text-neutral-400 hover:border-gray-200 hover:bg-white sm:flex">
+              className="group text-neutral-400 hidden h-10 w-10 items-center justify-center border border-transparent px-0 py-0 hover:border-gray-200 hover:bg-white sm:flex">
               <ClockIcon className="h-5 w-5 group-hover:text-gray-800" />
             </Button>
           </Tooltip>
           <Dropdown>
-            <DropdownMenuTrigger className="group h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200 hover:bg-white">
+            <DropdownMenuTrigger className="group text-neutral-400 h-10 w-10 border border-transparent p-0 hover:border-gray-200 hover:bg-white">
               <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>

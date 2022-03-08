@@ -34,7 +34,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const eventName = props.booking.title;
 
   return isReady ? (
-    <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
+    <div className="bg-neutral-50 dark:bg-neutral-900 h-screen">
       <Theme />
       <Head>
         <title>
@@ -50,7 +50,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                className="border-neutral-200 dark:border-neutral-700 inline-block transform overflow-hidden rounded-sm border bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
@@ -60,12 +60,12 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
-                      className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                      className="text-neutral-900 text-2xl font-semibold leading-6 dark:text-white"
                       id="modal-headline">
                       {t("payment")}
                     </h3>
                     <div className="mt-3">
-                      <p className="text-sm text-neutral-600 dark:text-gray-300">
+                      <p className="text-neutral-600 text-sm dark:text-gray-300">
                         {t("pay_later_instructions")}
                       </p>
                     </div>

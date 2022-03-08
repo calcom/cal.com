@@ -11,7 +11,7 @@ const RadioArea = (props: RadioAreaProps) => {
   return (
     <label
       className={classNames(
-        "border-1 block border p-4 focus:outline-none focus:ring focus:ring-neutral-500",
+        "border-1 focus:outline-none focus:ring-neutral-500 block border p-4 focus:ring",
         props.checked && "border-brand",
         props.className
       )}>
@@ -22,7 +22,7 @@ const RadioArea = (props: RadioAreaProps) => {
           }
         }}
         checked={props.checked}
-        className="float-right ml-3 text-neutral-900 focus:ring-neutral-500"
+        className="text-neutral-900 focus:ring-neutral-500 float-right ml-3"
         name={props.name}
         value={props.value}
         type="radio"

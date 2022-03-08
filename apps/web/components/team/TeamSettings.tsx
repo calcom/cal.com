@@ -110,7 +110,7 @@ export default function TeamSettings(props: Props) {
                       id="name"
                       placeholder={t("your_team_name")}
                       required
-                      className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                      className="focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                       defaultValue={team?.name as string}
                     />
                   }
@@ -129,7 +129,7 @@ export default function TeamSettings(props: Props) {
                           name="about"
                           rows={3}
                           defaultValue={team?.bio as string}
-                          className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
+                          className="focus:border-neutral-800 focus:ring-neutral-800 mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"></textarea>
                         <p className="mt-2 text-sm text-gray-500">{t("team_description")}</p>
                       </>
                     }
@@ -149,7 +149,7 @@ export default function TeamSettings(props: Props) {
                             name="avatar"
                             id="avatar"
                             placeholder="URL"
-                            className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                            className="focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                             defaultValue={team?.logo ?? undefined}
                           />
                           <ImageUploader
@@ -184,7 +184,7 @@ export default function TeamSettings(props: Props) {
                       type="checkbox"
                       ref={hideBrandingRef}
                       defaultChecked={team?.hideBranding}
-                      className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
+                      className="text-neutral-900 focus:ring-neutral-500 h-4 w-4 rounded-sm border-gray-300"
                     />
                   </div>
                   <div className="text-sm ltr:ml-3 rtl:mr-3">
