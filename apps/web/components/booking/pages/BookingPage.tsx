@@ -141,6 +141,7 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
+    [LocationType.Teams]: "MS Teams",
   };
 
   const defaultValues = () => {

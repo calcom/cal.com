@@ -54,13 +54,17 @@ export const isTandem = (location: string): boolean => {
   return location === "integrations:tandem";
 };
 
+export const isTeams = (location: string): boolean => {
+  return location === "integrations:office365_video";
+};
+
 export const isJitsi = (location: string): boolean => {
   return location === "integrations:jitsi";
 };
 
 export const isDedicatedIntegration = (location: string): boolean => {
   return (
-    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isJitsi(location)
+    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isJitsi(location) || isTeams(location)
   );
 };
 
@@ -71,7 +75,8 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.Daily.valueOf() ||
     location === LocationType.Jitsi.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf()
+    location === LocationType.Tandem.valueOf() ||
+    location === LocationType.Teams.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 

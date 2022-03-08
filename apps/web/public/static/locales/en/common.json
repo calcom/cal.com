@@ -581,6 +581,7 @@
   "cal_provide_video_meeting_url": "Cal will provide a Daily video meeting URL.",
   "cal_provide_jitsi_meeting_url": "We will generate a Jitsi Meet URL for you.",
   "cal_provide_huddle01_meeting_url": "Cal will provide a Huddle01 web3 video meeting URL.",
+  "cal_provide_teams_meeting_url": "Cal will provide a MS Teams meeting URL. NOTE: MUST HAVE A WORK OR SCHOOL ACCOUNT",
   "require_payment": "Require Payment",
   "commission_per_transaction": "commission per transaction",
   "event_type_updated_successfully_description": "Your event type has been updated successfully.",

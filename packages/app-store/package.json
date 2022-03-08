@@ -4,6 +4,7 @@
   "main": "./index.ts",
   "dependencies": {
     "@calcom/zoomvideo": "*",
-    "@calcom/dailyvideo": "*"
+    "@calcom/dailyvideo": "*",
+    "@calcom/office365video": "*"
   }
 }
