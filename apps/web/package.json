@@ -109,7 +109,6 @@
     "@calcom/config": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.18.1",
-    "@tailwindcss/forms": "^0.4.0",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.10",
     "@types/bcryptjs": "^2.4.2",
@@ -135,7 +134,7 @@
     "module-alias": "^2.2.2",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.4",
-    "tailwindcss": "^3.0.0",
+    "tailwindcss": "^3.0.23",
     "ts-jest": "^26.0.0",
     "ts-node": "^10.6.0",
     "typescript": "^4.5.3"
