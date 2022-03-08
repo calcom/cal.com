@@ -10,7 +10,19 @@ import { getTranslation } from "@server/lib/i18n";
 
 export const webhookRouter = createProtectedRouter()
   .query("list", {
-    async resolve({ ctx }) {
+    input: z
+      .object({
+        eventTypeId: z.number().optional(),
+      })
+      .optional(),
+    async resolve({ ctx, input }) {
+      if (input?.eventTypeId) {
+        return await ctx.prisma.webhook.findMany({
+          where: {
+            eventTypeId: input.eventTypeId,
+          },
+        });
+      }
       return await ctx.prisma.webhook.findMany({
         where: {
           userId: ctx.user.id,
@@ -24,8 +36,17 @@ export const webhookRouter = createProtectedRouter()
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
       active: z.boolean(),
       payloadTemplate: z.string().nullable(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
+      if (input.eventTypeId) {
+        return await ctx.prisma.webhook.create({
+          data: {
+            id: v4(),
+            ...input,
+          },
+        });
+      }
       return await ctx.prisma.webhook.create({
         data: {
           id: v4(),
@@ -42,17 +63,26 @@ export const webhookRouter = createProtectedRouter()
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       active: z.boolean().optional(),
       payloadTemplate: z.string().nullable(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
-      const webhook = await ctx.prisma.webhook.findFirst({
-        where: {
-          userId: ctx.user.id,
-          id,
-        },
-      });
+      const webhook = input.eventTypeId
+        ? await ctx.prisma.webhook.findFirst({
+            where: {
+              eventTypeId: input.eventTypeId,
+              id,
+            },
+          })
+        : await ctx.prisma.webhook.findFirst({
+            where: {
+              userId: ctx.user.id,
+              id,
+            },
+          });
       if (!webhook) {
         // user does not own this webhook
+        // team event doesn't own this webhook
         return null;
       }
       return await ctx.prisma.webhook.update({
@@ -66,23 +96,36 @@ export const webhookRouter = createProtectedRouter()
   .mutation("delete", {
     input: z.object({
       id: z.string(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
       const { id } = input;
 
-      await ctx.prisma.user.update({
-        where: {
-          id: ctx.user.id,
-        },
-        data: {
-          webhooks: {
-            delete: {
-              id,
+      input.eventTypeId
+        ? await ctx.prisma.eventType.update({
+            where: {
+              id: input.eventTypeId,
             },
-          },
-        },
-      });
-
+            data: {
+              webhooks: {
+                delete: {
+                  id,
+                },
+              },
+            },
+          })
+        : await ctx.prisma.user.update({
+            where: {
+              id: ctx.user.id,
+            },
+            data: {
+              webhooks: {
+                delete: {
+                  id,
+                },
+              },
+            },
+          });
       return {
         id,
       };

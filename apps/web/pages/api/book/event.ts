@@ -1,4 +1,4 @@
-import { Credential, Prisma, SchedulingType } from "@prisma/client";
+import { Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -17,14 +17,15 @@ import { AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
 import { getBusyCalendarTimes } from "@lib/apps/calendar/managers/CalendarManager";
 import { BufferedBusyTime } from "@lib/apps/office365_calendar/types/Office365Calendar";
 import {
-  sendScheduledEmails,
-  sendRescheduledEmails,
+  sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendScheduledEmails,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
-import EventManager, { EventResult } from "@lib/events/EventManager";
+import EventManager from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
@@ -410,27 +411,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  type Booking = Prisma.PromiseReturnType<typeof createBooking>;
-  let booking: Booking | null = null;
-  try {
-    booking = await createBooking();
-    evt.uid = booking.uid;
-  } catch (_err) {
-    const err = getErrorFromUnknown(_err);
-    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
-    if (err.code === "P2002") {
-      res.status(409).json({ message: "booking.conflict" });
-      return;
-    }
-    res.status(500).end();
-    return;
-  }
-
   let results: EventResult[] = [];
   let referencesToCreate: PartialReference[] = [];
   let user: User | null = null;
 
-  /** Let's start cheking for availability */
+  /** Let's start checking for availability */
   for (const currentUser of users) {
     if (!currentUser) {
       console.error(`currentUser not found`);
@@ -445,68 +430,94 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const credentials = currentUser.credentials;
+    const calendarBusyTimes: EventBusyDate[] = await prisma.booking
+      .findMany({
+        where: {
+          userId: currentUser.id,
+          eventTypeId: eventTypeId,
+        },
+      })
+      .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
+
     if (credentials) {
-      const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
-        reqBody.start,
-        reqBody.end,
-        selectedCalendars
+      await getBusyCalendarTimes(credentials, reqBody.start, reqBody.end, selectedCalendars).then(
+        (busyTimes) => calendarBusyTimes.push(...busyTimes)
       );
 
       const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
       calendarBusyTimes.push(...videoBusyTimes);
-      console.log("calendarBusyTimes==>>>", calendarBusyTimes);
-
-      const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
-        start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-        end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
-      }));
-
-      let isAvailableToBeBooked = true;
-      try {
-        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
-      } catch {
-        log.debug({
-          message: "Unable set isAvailableToBeBooked. Using true. ",
-        });
-      }
-
-      if (!isAvailableToBeBooked) {
-        const error = {
-          errorCode: "BookingUserUnAvailable",
-          message: `${currentUser.name} is unavailable at this time.`,
-        };
-
-        log.debug(`Booking ${currentUser.name} failed`, error);
-      }
-
-      let timeOutOfBounds = false;
-
-      try {
-        timeOutOfBounds = isOutOfBounds(reqBody.start, {
-          periodType: eventType.periodType,
-          periodDays: eventType.periodDays,
-          periodEndDate: eventType.periodEndDate,
-          periodStartDate: eventType.periodStartDate,
-          periodCountCalendarDays: eventType.periodCountCalendarDays,
-          timeZone: currentUser.timeZone,
-        });
-      } catch {
-        log.debug({
-          message: "Unable set timeOutOfBounds. Using false. ",
-        });
-      }
-
-      if (timeOutOfBounds) {
-        const error = {
-          errorCode: "BookingUserUnAvailable",
-          message: `${currentUser.name} is unavailable at this time.`,
-        };
-
-        log.debug(`Booking ${currentUser.name} failed`, error);
-        res.status(400).json(error);
-      }
     }
+
+    console.log("calendarBusyTimes==>>>", calendarBusyTimes);
+
+    const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
+      start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
+      end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
+    }));
+
+    let isAvailableToBeBooked = true;
+    try {
+      isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+    } catch {
+      log.debug({
+        message: "Unable set isAvailableToBeBooked. Using true. ",
+      });
+    }
+
+    if (!isAvailableToBeBooked) {
+      const error = {
+        errorCode: "BookingUserUnAvailable",
+        message: `${currentUser.name} is unavailable at this time.`,
+      };
+
+      log.debug(`Booking ${currentUser.name} failed`, error);
+      res.status(409).json(error);
+      return;
+    }
+
+    let timeOutOfBounds = false;
+
+    try {
+      timeOutOfBounds = isOutOfBounds(reqBody.start, {
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
+        timeZone: currentUser.timeZone,
+      });
+    } catch {
+      log.debug({
+        message: "Unable set timeOutOfBounds. Using false. ",
+      });
+    }
+
+    if (timeOutOfBounds) {
+      const error = {
+        errorCode: "BookingUserUnAvailable",
+        message: `${currentUser.name} is unavailable at this time.`,
+      };
+
+      log.debug(`Booking ${currentUser.name} failed`, error);
+      res.status(400).json(error);
+      return;
+    }
+  }
+
+  type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+  let booking: Booking | null = null;
+  try {
+    booking = await createBooking();
+    evt.uid = booking.uid;
+  } catch (_err) {
+    const err = getErrorFromUnknown(_err);
+    log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
+    if (err.code === "P2002") {
+      res.status(409).json({ message: "booking.conflict" });
+      return;
+    }
+    res.status(500).end();
+    return;
   }
 
   if (!user) throw Error("Can't continue, user not found.");
@@ -577,6 +588,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
     await sendOrganizerRequestEmail(evt);
+    await sendAttendeeRequestEmail(evt, attendeesList[0]);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0) {
@@ -596,9 +608,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   log.debug(`Booking ${user.username} completed`);
 
-  const eventTrigger = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const eventTrigger: WebhookTriggerEvents = rescheduleUid ? "BOOKING_RESCHEDULED" : "BOOKING_CREATED";
+  const subscriberOptions = {
+    userId: user.id,
+    eventTypeId,
+    triggerEvent: eventTrigger,
+  };
+
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(user.id, eventTrigger);
+  const subscribers = await getSubscribers(subscriberOptions);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,

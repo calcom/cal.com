@@ -39,6 +39,11 @@ test.describe.serial("Stripe integration", () => {
     await page.goto("/pro/paid");
     // Click [data-testid="incrementMonth"]
     await page.click('[data-testid="incrementMonth"]');
+
+    // @TODO: Find a better way to make test wait for full month change render to end
+    // so it can click up on the right day, also when resolve remove other todos
+    // Waiting for full month increment
+    await page.waitForTimeout(400);
     // Click [data-testid="day"]
     await page.click('[data-testid="day"][data-disabled="false"]');
     // Click [data-testid="time"]
