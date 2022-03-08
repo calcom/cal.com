@@ -26,6 +26,7 @@ export type BookingCreateBody = {
   metadata: {
     [key: string]: string;
   };
+  reminderPhone?: string;
 };
 
 export type BookingResponse = Booking & {

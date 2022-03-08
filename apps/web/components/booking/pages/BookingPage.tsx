@@ -46,6 +46,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  reminderPhone?: string;
   customInputs?: {
     [key: string]: string;
   };
@@ -259,6 +260,7 @@ const BookingPage = (props: BookingPageProps) => {
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
+      reminderPhone: booking.reminderPhone,
     });
   };
 
@@ -468,6 +470,24 @@ const BookingPage = (props: BookingPageProps) => {
                         )}
                       </div>
                     ))}
+                  {props.eventType.customInputs && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="reminderPhone"
+                        className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("send_reminders_number")}
+                      </label>
+                      <div className="mt-1">
+                        <PhoneInput
+                          // @ts-expect-error
+                          control={bookingForm.control}
+                          name="phone"
+                          placeholder={t("enter_phone_number")}
+                          id="reminderPhone"
+                        />
+                      </div>
+                    </div>
+                  )}
                   {!props.eventType.disableGuests && (
                     <div className="mb-4">
                       {!guestToggle && (
