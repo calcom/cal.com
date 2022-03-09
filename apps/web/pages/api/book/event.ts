@@ -28,6 +28,7 @@ import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office36
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
+import { scheduleSMSAttendeeReminders } from "@lib/reminders/reminder-manager";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -585,6 +586,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       await sendScheduledEmails({ ...evt, additionInformation: metadata });
+
+      // Checks to see if there is at least one SMS reminder
+      if (eventType.attendeeReminders.some((reminders) => reminders.method === "SMS")) {
+        await scheduleSMSAttendeeReminders(evt.reminderPhone!, evt.startTime, eventType.attendeeReminders);
+      }
     }
   }
 
