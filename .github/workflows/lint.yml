@@ -15,10 +15,30 @@ jobs:
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
-          version: 14.x
+          node-version: 14.x
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
 
       - name: Install deps
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn
 
       - name: Lint
-        run: yarn lint
+        run: yarn lint:report
+        continue-on-error: true
+
+      - name: Merge lint reports
+        run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
+
+      - name: Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@1.2.0
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "lint-results/eslint_report.json"
+
+      - name: Upload ESLint report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-results
+          path: lint-results
