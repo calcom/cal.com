@@ -116,48 +116,44 @@ export const useSlots = (props: UseSlotsProps) => {
     const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
     for (let i = times.length - 1; i >= 0; i -= 1) {
       // Check if the final slot surpasses the availability end time
-      if (
-        times[i]
-          .add(eventLength + beforeBufferTime + afterBufferTime, "minutes")
-          .isAfter(finalizationTime, "minute")
-      ) {
+      const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
+      if (times[i].add(totalSlotLength, "minutes").isAfter(finalizationTime, "minute")) {
         times.splice(i, 1);
       } else {
+        const slotStartTime = times[i];
+        const slotEndTime = times[i].add(eventLength, "minutes");
+        const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
+        const slotEndTimeWithAfterBuffer = times[i].add(eventLength + afterBufferTime, "minutes");
         busy.every((busyTime): boolean => {
-          // busyTimes.every((busyTime): boolean => {
           const startTime = dayjs(busyTime.start);
           const endTime = dayjs(busyTime.end);
           // Check if start times are the same
-          if (times[i].isBetween(startTime, endTime, null, "[)")) {
+          if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
             times.splice(i, 1);
           }
           // Check if slot end time is between start and end time
-          else if (times[i].add(eventLength, "minutes").isBetween(startTime, endTime)) {
+          else if (slotEndTime.isBetween(startTime, endTime)) {
             times.splice(i, 1);
           }
           // Check if startTime is between slot
-          else if (startTime.isBetween(times[i], times[i].add(eventLength, "minutes"))) {
+          else if (startTime.isBetween(slotStartTime, slotEndTime)) {
             times.splice(i, 1);
           }
           // Check if timeslot has before buffer time space free
           else if (
-            times[i]
-              .subtract(beforeBufferTime, "minutes")
-              .isBetween(
-                startTime.subtract(beforeBufferTime, "minutes"),
-                endTime.add(afterBufferTime, "minutes")
-              )
+            slotStartTimeWithBeforeBuffer.isBetween(
+              startTime.subtract(beforeBufferTime, "minutes"),
+              endTime.add(afterBufferTime, "minutes")
+            )
           ) {
             times.splice(i, 1);
           }
           // Check if timeslot has after buffer time space free
           else if (
-            times[i]
-              .add(eventLength + afterBufferTime, "minutes")
-              .isBetween(
-                startTime.subtract(beforeBufferTime, "minutes"),
-                endTime.add(afterBufferTime, "minutes")
-              )
+            slotEndTimeWithAfterBuffer.isBetween(
+              startTime.subtract(beforeBufferTime, "minutes"),
+              endTime.add(afterBufferTime, "minutes")
+            )
           ) {
             times.splice(i, 1);
           } else {
@@ -180,7 +176,6 @@ export const useSlots = (props: UseSlotsProps) => {
       eventLength,
     });
     const filteredTimes = getFilteredTimes(times, responseBody.busy);
-
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
     return filteredTimes.map((time) => ({
