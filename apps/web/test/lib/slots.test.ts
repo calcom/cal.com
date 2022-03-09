@@ -109,7 +109,6 @@ it("adds minimum booking notice correctly", async () => {
 });
 
 it("adds buffer time", async () => {
-  // 24h in a day.
   expect(
     getFilteredTimes({
       times: getSlots({
@@ -139,7 +138,6 @@ it("adds buffer time", async () => {
 });
 
 it("adds buffer time with custom slot interval", async () => {
-  // 24h in a day.
   expect(
     getFilteredTimes({
       times: getSlots({
