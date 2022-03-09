@@ -31,7 +31,11 @@ const splitAvailableTime = (
   while (initialTime < finalizationTime) {
     const periodTime = initialTime + frequency;
     const slotEndTime = initialTime + eventLength;
-    // check if the slot end time surpasses availability end time of the user; 1 minute is added to round up the hour mark for edge cases
+    /*
+    check if the slot end time surpasses availability end time of the user 
+    1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
+    eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
+    */
     if (slotEndTime <= finalizationTime + 1) result.push({ startTime: initialTime, endTime: periodTime });
     initialTime += frequency;
   }
