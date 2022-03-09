@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import prisma from "@lib/prisma";
 
-import { todo } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 const deleteBookingsByEmail = async (email: string) =>
   prisma.booking.deleteMany({
@@ -31,12 +31,8 @@ test.describe("free user", () => {
   test("cannot book same slot multiple times", async ({ page }) => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
-    // Click [data-testid="incrementMonth"]
-    await page.click('[data-testid="incrementMonth"]');
-    // Click [data-testid="day"]
-    await page.click('[data-testid="day"][data-disabled="false"]');
-    // Click [data-testid="time"]
-    await page.click('[data-testid="time"]');
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
 
     // Navigate to book page
     await page.waitForNavigation({
@@ -98,17 +94,7 @@ test.describe("pro user", () => {
   test("book an event first day in next month", async ({ page }) => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
-    // Click [data-testid="incrementMonth"]
-    await page.click('[data-testid="incrementMonth"]');
-
-    // @TODO: Find a better way to make test wait for full month change render to end
-    // so it can click up on the right day, also when resolve remove other todos
-    // Waiting for full month increment
-    await page.waitForTimeout(400);
-    // Click [data-testid="day"]
-    await page.click('[data-testid="day"][data-disabled="false"]');
-    // Click [data-testid="time"]
-    await page.click('[data-testid="time"]');
+    await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Test Testson");
     await page.fill('[name="email"]', "test@example.com");

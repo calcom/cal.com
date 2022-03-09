@@ -55,7 +55,7 @@ ${this.calEvent.attendees[0].language.translate("booking_submitted", {
   name: this.calEvent.attendees[0].name,
 })}
 ${this.calEvent.attendees[0].language.translate("user_needs_to_confirm_or_reject_booking", {
-  user: this.calEvent.attendees[0].name,
+  user: this.calEvent.organizer.name,
 })}
 ${this.getWhat()}
 ${this.getWhen()}
