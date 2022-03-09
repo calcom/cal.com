@@ -18,6 +18,7 @@ export async function downgradeIllegalProUsers() {
     },
     select: {
       id: true,
+      name: true,
       email: true,
       username: true,
       plan: true,
@@ -37,6 +38,7 @@ export async function downgradeIllegalProUsers() {
     usersDowngraded.push({
       id: user.id,
       username: user.username,
+      name: user.name,
       email: user.email,
       plan: user.plan,
       metadata: user.metadata,
