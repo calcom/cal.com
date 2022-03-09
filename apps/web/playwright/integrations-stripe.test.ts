@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
-import { todo } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.describe.serial("Stripe integration", () => {
   test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
@@ -37,17 +37,7 @@ test.describe.serial("Stripe integration", () => {
 
   test("Can book a paid booking", async ({ page }) => {
     await page.goto("/pro/paid");
-    // Click [data-testid="incrementMonth"]
-    await page.click('[data-testid="incrementMonth"]');
-
-    // @TODO: Find a better way to make test wait for full month change render to end
-    // so it can click up on the right day, also when resolve remove other todos
-    // Waiting for full month increment
-    await page.waitForTimeout(400);
-    // Click [data-testid="day"]
-    await page.click('[data-testid="day"][data-disabled="false"]');
-    // Click [data-testid="time"]
-    await page.click('[data-testid="time"]');
+    await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Stripe Stripeson");
     await page.fill('[name="email"]', "test@example.com");
