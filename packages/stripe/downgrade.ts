@@ -74,9 +74,7 @@ export async function downgradeIllegalProUsers() {
     if (hasProPlan) continue;
 
     // If they already have a premium username, do not downgrade
-    // if (suspectUser.username) {
-    //   if (isPremiumUserName(suspectUser.username)) continue;
-    // }
+    // if (suspectUser.username && isPremiumUserName(suspectUser.username)) continue;
 
     await downgrade(suspectUser);
   }
