@@ -30,8 +30,9 @@ const splitAvailableTime = (
   const result = [] as Array<WorkingHoursTimeFrame>;
   while (initialTime < finalizationTime) {
     const periodTime = initialTime + frequency;
-    if (initialTime + eventLength <= finalizationTime)
-      result.push({ startTime: initialTime, endTime: periodTime });
+    const slotEndTime = initialTime + eventLength;
+    // check if the slot end time surpasses availability end time of the user
+    if (slotEndTime <= finalizationTime) result.push({ startTime: initialTime, endTime: periodTime });
     initialTime += frequency;
   }
   return result;
