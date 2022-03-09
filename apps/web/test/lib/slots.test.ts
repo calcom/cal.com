@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import MockDate from "mockdate";
 
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
+import { getFilteredTimes } from "@lib/hooks/useSlots";
 import getSlots from "@lib/slots";
 
 dayjs.extend(utc);
@@ -105,4 +106,34 @@ it("adds minimum booking notice correctly", async () => {
       eventLength: 60,
     })
   ).toHaveLength(11);
+});
+
+it("adds buffer time with custom slot interval", async () => {
+  // 24h in a day.
+  expect(
+    getFilteredTimes({
+      times: getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        workingHours: [
+          {
+            days: Array.from(Array(7).keys()),
+            startTime: MINUTES_DAY_START,
+            endTime: MINUTES_DAY_END,
+          },
+        ],
+        eventLength: 60,
+      }),
+      busy: [
+        {
+          start: dayjs.utc("2021-06-20 12:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+          end: dayjs.utc("2021-06-20 13:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+        },
+      ],
+      eventLength: 60,
+      beforeBufferTime: 15,
+      afterBufferTime: 15,
+    })
+  ).toHaveLength(22);
 });
