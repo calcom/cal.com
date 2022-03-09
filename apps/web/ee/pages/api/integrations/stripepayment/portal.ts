@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getStripeCustomerIdFromUserId } from "@ee/lib/stripe/customer";
-import stripe from "@ee/lib/stripe/server";
+import { getStripeCustomerIdFromUserId } from "@calcom/stripe/customer";
+import stripe from "@calcom/stripe/server";
 
 import { getSession } from "@lib/auth";
 

@@ -19,8 +19,7 @@
     "lint": "next lint",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "downgrade": "ts-node ee/lib/stripe/downgrade.ts"
+    "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
     "node": ">=14.x",
@@ -28,8 +27,10 @@
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
+    "@calcom/ee": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
+    "@calcom/stripe": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.21.0",
@@ -61,7 +62,7 @@
     "async": "^3.2.1",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
-    "dayjs": "^1.10.6",
+    "dayjs": "^1.10.4",
     "dayjs-business-time": "^1.0.4",
     "googleapis": "^84.0.0",
     "handlebars": "^4.7.7",
