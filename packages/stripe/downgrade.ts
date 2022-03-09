@@ -3,6 +3,7 @@
 import { Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
@@ -24,6 +25,7 @@ export async function downgradeIllegalProUsers() {
     },
   });
   const usersDowngraded: Partial<typeof illegalProUsers[number]>[] = [];
+  const hasPremiumUserName = async (user: typeof illegalProUsers[number]) => {};
   const downgrade = async (user: typeof illegalProUsers[number]) => {
     console.log(`Downgrading: ${user.email}`);
     await prisma.user.update({
@@ -42,23 +44,23 @@ export async function downgradeIllegalProUsers() {
       metadata: user.metadata,
     });
   };
-  for (const member of illegalProUsers) {
-    const metadata = (member.metadata as Prisma.JsonObject) ?? {};
+  for (const suspectUser of illegalProUsers) {
+    const metadata = (suspectUser.metadata as Prisma.JsonObject) ?? {};
     // if their pro is already sponsored by a team, do not downgrade
     if (metadata.proPaidForByTeamId !== undefined) continue;
 
-    const stripeCustomerId = await getStripeCustomerIdFromUserId(member.id);
+    const stripeCustomerId = await getStripeCustomerIdFromUserId(suspectUser.id);
     const customer = await stripe.customers.retrieve(stripeCustomerId, {
       expand: ["subscriptions.data.plan"],
     });
     if (!customer || customer.deleted) {
-      await downgrade(member);
+      await downgrade(suspectUser);
       continue;
     }
 
     const subscription = customer.subscriptions?.data[0];
     if (!subscription) {
-      await downgrade(member);
+      await downgrade(suspectUser);
       continue;
     }
 
@@ -70,7 +72,13 @@ export async function downgradeIllegalProUsers() {
     // if they're pro, do not downgrade
     if (hasProPlan) continue;
 
-    await downgrade(member);
+    // If they already have a premium username, do not downgrade
+    if (suspectUser.username) {
+      const response = await checkPremiumUsername(suspectUser.username);
+      if (response.premium) continue;
+    }
+
+    await downgrade(suspectUser);
   }
   return {
     usersDowngraded,

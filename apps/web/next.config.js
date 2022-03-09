@@ -1,4 +1,5 @@
 const withTM = require("next-transpile-modules")([
+  "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
   "@calcom/stripe",

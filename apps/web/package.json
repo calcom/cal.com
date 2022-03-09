@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
+    "@calcom/ee": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/stripe": "*",

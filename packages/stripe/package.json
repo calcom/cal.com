@@ -11,6 +11,7 @@
     "ts-node": "^10.6.0"
   },
   "dependencies": {
+    "@calcom/ee": "*",
     "@calcom/lib": "*",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.16.0",
