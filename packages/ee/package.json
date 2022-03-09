@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
   }
 }

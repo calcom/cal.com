@@ -3,11 +3,11 @@
 import { Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 
+// import { isPremiumUserName } from "../../apps/website/lib/username";
 import { getStripeCustomerIdFromUserId } from "./customer";
 import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./utils";
 
@@ -25,9 +25,7 @@ export async function downgradeIllegalProUsers() {
     },
   });
   const usersDowngraded: Partial<typeof illegalProUsers[number]>[] = [];
-  const hasPremiumUserName = async (user: typeof illegalProUsers[number]) => {};
   const downgrade = async (user: typeof illegalProUsers[number]) => {
-    console.log(`Downgrading: ${user.email}`);
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -45,6 +43,7 @@ export async function downgradeIllegalProUsers() {
     });
   };
   for (const suspectUser of illegalProUsers) {
+    console.log(`Checking: ${suspectUser.email}`);
     const metadata = (suspectUser.metadata as Prisma.JsonObject) ?? {};
     // if their pro is already sponsored by a team, do not downgrade
     if (metadata.proPaidForByTeamId !== undefined) continue;
@@ -73,10 +72,9 @@ export async function downgradeIllegalProUsers() {
     if (hasProPlan) continue;
 
     // If they already have a premium username, do not downgrade
-    if (suspectUser.username) {
-      const response = await checkPremiumUsername(suspectUser.username);
-      if (response.premium) continue;
-    }
+    // if (suspectUser.username) {
+    //   if (isPremiumUserName(suspectUser.username)) continue;
+    // }
 
     await downgrade(suspectUser);
   }
