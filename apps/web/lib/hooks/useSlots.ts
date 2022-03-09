@@ -47,15 +47,15 @@ export const getFilteredTimes = (props: getFilteredTimesProps) => {
   const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
   // Check for conflicts
   for (let i = times.length - 1; i >= 0; i -= 1) {
-    const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
+    // const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
     // Check if the slot surpasses the user's availability end time
-    if (times[i].add(totalSlotLength, "minutes").isAfter(finalizationTime, "minute")) {
+    const slotEndTimeWithAfterBuffer = times[i].add(eventLength + afterBufferTime, "minutes");
+    if (slotEndTimeWithAfterBuffer.isAfter(finalizationTime, "minute")) {
       times.splice(i, 1);
     } else {
       const slotStartTime = times[i];
       const slotEndTime = times[i].add(eventLength, "minutes");
       const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
-      const slotEndTimeWithAfterBuffer = times[i].add(eventLength + afterBufferTime, "minutes");
       busy.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);

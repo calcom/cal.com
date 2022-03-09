@@ -163,5 +163,5 @@ it("adds buffer time with custom slot interval", async () => {
       beforeBufferTime: 15,
       afterBufferTime: 15,
     })
-  ).toHaveLength(236);
+  ).toHaveLength(239);
 });
