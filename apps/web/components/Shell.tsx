@@ -110,7 +110,7 @@ export function ShellSubHeading(props: {
         <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
         </h2>
-        {props.subtitle && <p className="text-neutral-500 text-sm ltr:mr-4">{props.subtitle}</p>}
+        {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
     </div>
@@ -228,7 +228,7 @@ export default function Shell(props: {
                         className={classNames(
                           item.current
                             ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-500 hover:text-neutral-900 hover:bg-gray-50",
+                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
                           "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
                         )}>
                         <item.icon
@@ -262,7 +262,7 @@ export default function Shell(props: {
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <main
             className={classNames(
-              "focus:outline-none relative z-0 max-w-[1700px] flex-1 overflow-y-auto",
+              "relative z-0 max-w-[1700px] flex-1 overflow-y-auto focus:outline-none",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
@@ -273,7 +273,7 @@ export default function Shell(props: {
                 </a>
               </Link>
               <div className="flex items-center gap-3 self-center">
-                <button className="focus:outline-none rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:ring-2 focus:ring-black focus:ring-offset-2">
+                <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
                   <span className="sr-only">{t("view_notifications")}</span>
                   <Link href="/settings/profile">
                     <a>
@@ -306,7 +306,7 @@ export default function Shell(props: {
                   <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900">
                     {props.heading}
                   </h1>
-                  <p className="text-neutral-500 text-sm ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
               </div>
@@ -400,7 +400,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <span className="block truncate font-medium text-gray-900">
                   {user?.username || "Nameless User"}
                 </span>
-                <span className="text-neutral-500 block truncate font-normal">
+                <span className="block truncate font-normal text-neutral-500">
                   {user?.username ? `cal.com/${user.username}` : "No public page"}
                 </span>
               </span>

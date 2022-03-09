@@ -113,7 +113,7 @@ export default function MemberInvitationModal(props: { team: TeamWithMembers | n
                 </div>
               </div>
               <div className="flex flex-row rounded-sm bg-gray-50 px-3 py-2">
-                <InformationCircleIcon className="fill-gray-400 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                <InformationCircleIcon className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
                 <span className="ml-2 text-sm leading-tight text-gray-500">
                   Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not
                   have a pro account.{" "}

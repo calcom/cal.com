@@ -38,7 +38,7 @@ export default function AddToHomescreen() {
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"
-                className="focus:outline-none -mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:ring-2 focus:ring-white">
+                className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
                 <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
