@@ -111,15 +111,7 @@ export const useSlots = (props: UseSlotsProps) => {
       });
   }, [date]);
 
-  const handleAvailableSlots = async (res: Response) => {
-    const responseBody: AvailabilityUserResponse = await res.json();
-    const times = getSlots({
-      frequency: slotInterval || eventLength,
-      inviteeDate: date,
-      workingHours: responseBody.workingHours,
-      minimumBookingNotice,
-      eventLength,
-    });
+  const getFilteredTimes = (times: dayjs.Dayjs[], busy: TimeRange[]) => {
     // Check for conflicts
     const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
     for (let i = times.length - 1; i >= 0; i -= 1) {
@@ -131,7 +123,7 @@ export const useSlots = (props: UseSlotsProps) => {
       ) {
         times.splice(i, 1);
       } else {
-        responseBody.busy.every((busyTime): boolean => {
+        busy.every((busyTime): boolean => {
           // busyTimes.every((busyTime): boolean => {
           const startTime = dayjs(busyTime.start);
           const endTime = dayjs(busyTime.end);
@@ -175,10 +167,23 @@ export const useSlots = (props: UseSlotsProps) => {
         });
       }
     }
+    return times;
+  };
+
+  const handleAvailableSlots = async (res: Response) => {
+    const responseBody: AvailabilityUserResponse = await res.json();
+    const times = getSlots({
+      frequency: slotInterval || eventLength,
+      inviteeDate: date,
+      workingHours: responseBody.workingHours,
+      minimumBookingNotice,
+      eventLength,
+    });
+    const filteredTimes = getFilteredTimes(times, responseBody.busy);
 
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
-    return times.map((time) => ({
+    return filteredTimes.map((time) => ({
       time,
       users: [user],
     }));
