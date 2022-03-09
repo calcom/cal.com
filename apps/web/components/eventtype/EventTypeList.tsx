@@ -41,7 +41,7 @@ import { EventTypeParent } from "./CreateEventType";
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
-  profile: { slug: string | null; name: string | null; image: string | null };
+  profile: EventTypeParent;
   readOnly: boolean;
   types: EventType[];
 }
@@ -93,13 +93,15 @@ export const EventTypeList = ({ profile, readOnly, types }: EventTypeListProps):
           pathname: router.pathname,
           query: {
             ...router.query,
+            dialog: "new-eventtype",
             new: "1",
             eventPage: option.slug,
             title: type.title,
             slug: type.slug,
             description: type.description,
             length: type.length,
-            teamId: option.teamId || undefined,
+            type: type.schedulingType,
+            teamId: option.teamId,
           },
         },
         undefined,

@@ -63,6 +63,7 @@ export default function CreateEventTypeButton(props: Props) {
   const description: string =
     typeof router.query.description === "string" && router.query.description ? router.query.description : "";
   const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
+  const type: string = typeof router.query.type == "string" && router.query.type ? router.query.type : "";
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
