@@ -263,7 +263,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                 defaultValue={
                   formMethods
                     .getValues("locations")
@@ -648,7 +648,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Shell
-        centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
           <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
@@ -679,8 +678,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         }
         subtitle={eventType.description || ""}>
         <ClientSuspense fallback={<Loader />}>
-          <div className="mx-auto block sm:flex md:max-w-5xl">
-            <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
+          <div className="flex flex-col-reverse lg:flex-row">
+            <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 lg:w-9/12">
               <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
                 <Form
                   form={formMethods}
@@ -720,7 +719,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                       <div className="w-full">
                         <div className="flex rounded-sm shadow-sm">
-                          <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                          <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                             {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
@@ -793,7 +792,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <textarea
                           id="description"
-                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                           placeholder={t("quick_video_meeting")}
                           {...formMethods.register("description")}
                           defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -917,7 +916,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <div className="relative mt-1 rounded-sm shadow-sm">
                               <input
                                 type="text"
-                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                                 placeholder={t("meeting_with_user")}
                                 defaultValue={eventType.eventName || ""}
                                 {...formMethods.register("eventName")}
@@ -939,7 +938,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 {
                                   <input
                                     type="text"
-                                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                                     placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
                                     defaultValue={(eventType.metadata.smartContractAddress || "") as string}
                                     {...formMethods.register("smartContractAddress")}
@@ -1124,6 +1123,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
+                        <hr className="my-2 border-neutral-200" />
 
                         <div className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
@@ -1149,7 +1149,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       <RadioGroup.Item
                                         id={period.type}
                                         value={period.type}
-                                        className="flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                                        className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                                         <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                                       </RadioGroup.Item>
                                       {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
@@ -1444,7 +1444,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </Form>
               </div>
             </div>
-            <div className="mt-8 w-full min-w-[177px] px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 sm:w-3/12 ">
+            <div className="m-0 mb-4 mt-0 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
               <div className="px-2">
                 <Controller
                   name="hidden"
@@ -1484,8 +1484,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {t("copy_link")}
                 </button>
                 <Dialog>
-                  <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                    <TrashIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                  <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
+                    <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
                     {t("delete")}
                   </DialogTrigger>
                   <ConfirmationDialogContent
