@@ -16,7 +16,7 @@ const HelpMenuItem = () => {
           boot();
           show();
         }}
-        className="text-neutral-700 flex w-full px-4 py-2 text-sm font-medium hover:bg-gray-100 hover:text-gray-900">
+        className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
         <ChatAltIcon
           className={classNames(
             "text-neutral-400 group-hover:text-neutral-500",

@@ -109,7 +109,7 @@ export function TeamSettingsPage() {
                 </>
               )}
 
-              <div className="border-neutral-200 -mx-0 rounded-sm border bg-white px-4 sm:px-6">
+              <div className="-mx-0 rounded-sm border border-neutral-200 bg-white px-4 sm:px-6">
                 {isAdmin ? (
                   <TeamSettings team={team} />
                 ) : (

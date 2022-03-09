@@ -37,6 +37,7 @@ jobs:
           report-json: "lint-results/eslint_report.json"
 
       - name: Upload ESLint report
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: lint-results

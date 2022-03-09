@@ -41,7 +41,7 @@ export default function TeamAvailabilityModal(props: Props) {
             className="h-14 w-14 rounded-full"
           />
           <div className="ml-3 inline-block pt-1">
-            <span className="text-neutral-700 text-lg font-bold">{props.member?.name}</span>
+            <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>
             <span className="-mt-1 block text-sm text-gray-400">{props.member?.email}</span>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function TeamAvailabilityModal(props: Props) {
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container focus:border-neutral-800 focus:ring-neutral-800 mt-1 block w-full rounded-sm border border-gray-300 shadow-sm sm:text-sm"
+            className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
           />
         </div>
         <div>

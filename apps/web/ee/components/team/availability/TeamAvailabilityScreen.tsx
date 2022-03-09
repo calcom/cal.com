@@ -50,7 +50,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 className="min-h-10 min-w-10 mt-1 h-10 w-10 rounded-full"
               />
               <div className="ml-3 inline-block overflow-hidden pt-1">
-                <span className="text-neutral-700 truncate text-lg font-bold">{member?.name}</span>
+                <span className="truncate text-lg font-bold text-neutral-700">{member?.name}</span>
                 <span className="-mt-1 block truncate text-sm text-gray-400">{member?.email}</span>
               </div>
             </div>
@@ -61,10 +61,10 @@ export default function TeamAvailabilityScreen(props: Props) {
   };
 
   return (
-    <div className="border-neutral-200 flex flex-1 flex-col rounded-sm border bg-white">
+    <div className="flex flex-1 flex-col rounded-sm border border-neutral-200 bg-white">
       <div className="flex w-full space-x-5 border-b border-gray-200 p-4 rtl:space-x-reverse">
         <div className="flex flex-col">
-          <span className="text-neutral-700 text-sm font-medium">Date</span>
+          <span className="text-sm font-medium text-neutral-700">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
             className="p-1.5"
@@ -74,17 +74,17 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-neutral-700 text-sm font-medium">Timezone</span>
+          <span className="text-sm font-medium text-neutral-700">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container focus:border-neutral-800 focus:ring-neutral-800 w-full rounded-sm border border-gray-300 shadow-sm sm:text-sm"
+            className="react-select-container w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
           />
         </div>
         <div className="hidden sm:block">
-          <span className="text-neutral-700 text-sm font-medium">Slot Length</span>
+          <span className="text-sm font-medium text-neutral-700">Slot Length</span>
           <Select
             options={[
               { value: 15, label: "15 minutes" },

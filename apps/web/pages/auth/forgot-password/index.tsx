@@ -88,7 +88,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
         <>
           {t("already_have_an_account")}{" "}
           <Link href="/auth/login">
-            <a className="text-neutral-900 font-medium">{t("login_instead")}</a>
+            <a className="font-medium text-neutral-900">{t("login_instead")}</a>
           </Link>
         </>
       }>

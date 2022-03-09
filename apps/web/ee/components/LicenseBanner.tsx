@@ -55,7 +55,7 @@ export default function LicenseBanner() {
             <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="focus:outline-none -mr-1 flex rounded-sm p-2 hover:bg-green-500 focus:ring-2 focus:ring-white">
+                  <button className="-mr-1 flex rounded-sm p-2 hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-white">
                     <span className="sr-only">{t("dismiss")}</span>
                     <XIcon className="h-6 w-6 text-white" aria-hidden="true" />
                   </button>
