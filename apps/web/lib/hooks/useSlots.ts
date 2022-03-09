@@ -120,9 +120,6 @@ export const useSlots = (props: UseSlotsProps) => {
       minimumBookingNotice,
       eventLength,
     });
-    // const busyTimes = [
-    //   { start: new Date(2022, 2, 9, 12, 50, 0, 0), end: new Date(2022, 2, 9, 13, 50, 0, 0) },
-    // ];
     // Check for conflicts
     const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
     for (let i = times.length - 1; i >= 0; i -= 1) {
