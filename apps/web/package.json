@@ -17,6 +17,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
     "downgrade": "ts-node ee/lib/stripe/downgrade.ts"
@@ -127,7 +128,7 @@
     "autoprefixer": "^10.4.0",
     "babel-jest": "^27.3.1",
     "env-cmd": "10.1.0",
-    "eslint": "^8.9.0",
+    "eslint": "^8.10.0",
     "jest": "^26.0.0",
     "mockdate": "^3.0.5",
     "module-alias": "^2.2.2",
