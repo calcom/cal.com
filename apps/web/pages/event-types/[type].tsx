@@ -413,13 +413,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL - which requires HTTPS:// In the input field
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
     locationType: LocationType;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
-    locationLink?: string;
+    locationLink?: string; // Currently this only accepts links that are HTTPS://
   }>({
     resolver: zodResolver(locationFormSchema),
   });
