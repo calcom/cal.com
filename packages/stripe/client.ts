@@ -2,7 +2,7 @@ import { Stripe } from "@stripe/stripe-js";
 import { loadStripe } from "@stripe/stripe-js/pure";
 import { stringify } from "querystring";
 
-import { Maybe } from "@trpc/server";
+export type Maybe<T> = T | undefined | null;
 
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!;
 let stripePromise: Promise<Stripe | null>;

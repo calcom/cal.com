@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import React, { SyntheticEvent, useEffect, useState } from "react";
 
-import { PaymentData } from "@ee/lib/stripe/server";
+import { PaymentData } from "@calcom/stripe/server";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

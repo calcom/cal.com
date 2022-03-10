@@ -68,3 +68,6 @@ packages/prisma/zod/*.ts
 
 # Builds
 dist
+
+# Linting
+lint-results
