@@ -1,7 +1,8 @@
 const withTM = require("next-transpile-modules")([
-  "@calcom/app-store",
+  "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
+  "@calcom/stripe",
   "@calcom/ui",
 ]);
 const { i18n } = require("./next-i18next.config");

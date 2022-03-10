@@ -12,7 +12,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
-import { createPaymentLink } from "@ee/lib/stripe/client";
+import { createPaymentLink } from "@calcom/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
