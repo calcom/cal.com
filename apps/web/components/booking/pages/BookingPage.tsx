@@ -215,7 +215,6 @@ const BookingPage = (props: BookingPageProps) => {
   };
 
   const bookEvent = (booking: BookingFormValues) => {
-    console.log("🚀 ~ file: BookingPage.tsx ~ line 218 ~ bookEvent ~ booking", booking);
     telemetry.withJitsu((jitsu) =>
       jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
     );

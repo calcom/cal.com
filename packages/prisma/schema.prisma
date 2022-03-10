@@ -312,9 +312,9 @@ enum EventTypeAttendeeReminderMethod {
 }
 
 enum EventTypeAttendeeReminderTimeUnit {
-  MINUTES  @map("minutes")
-  HOURS    @map("hours")
-  DAYS     @map("days")
+  MINUTE  @map("minute")
+  HOUR    @map("hour")
+  DAY     @map("day")
 }
 
 model EventTypeAttendeeReminder {
@@ -328,12 +328,12 @@ model EventTypeAttendeeReminder {
 
 model AttendeeReminder {
   id           Int      @id @default(autoincrement())
-  bookingId    Int      @unique
-  booking      Booking  @relation(fields: [bookingId], references: [id])
+  bookingUid   String   @unique
+  booking      Booking  @relation(fields: [bookingUid], references: [uid])
   method       String
-  referenceId  Int
+  referenceId  String
   scheduledFor DateTime
-  sent         Boolean
+  scheduled    Boolean
 }
 
 model ResetPasswordRequest {

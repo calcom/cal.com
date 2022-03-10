@@ -31,9 +31,9 @@ const AttendeeReminderTypeForm: FC<Props> = (props) => {
     { value: EventTypeAttendeeReminderMethod.SMS, label: t("SMS") },
   ];
   const timeUnitOptions: OptionTypeBase[] = [
-    { value: EventTypeAttendeeReminderTimeUnit.MINUTES, label: t("minutes") },
-    { value: EventTypeAttendeeReminderTimeUnit.HOURS, label: t("hours") },
-    { value: EventTypeAttendeeReminderTimeUnit.DAYS, label: t("days") },
+    { value: EventTypeAttendeeReminderTimeUnit.MINUTE, label: t("minutes") },
+    { value: EventTypeAttendeeReminderTimeUnit.HOUR, label: t("hours") },
+    { value: EventTypeAttendeeReminderTimeUnit.DAY, label: t("days") },
   ];
   const { selectedAttendeeReminder } = props;
   const defaultValues = selectedAttendeeReminder || { type: methodOptions[0].value };
