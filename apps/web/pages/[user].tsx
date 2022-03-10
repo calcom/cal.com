@@ -62,7 +62,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="font-cal mb-2 text-3xl font-semibold text-gray-600 dark:text-white">
-                    😴 {t("user_away")}
+                    😴{" " + t("user_away")}
                   </h2>
                   <p className="mx-auto max-w-md">{t("user_away_description")}</p>
                 </div>
