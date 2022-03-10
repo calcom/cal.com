@@ -3,7 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { canEventBeEdited } from "@lib/event";
@@ -84,6 +84,7 @@ const loggedInViewerRouter = createProtectedRouter()
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
       };
@@ -622,6 +623,7 @@ const loggedInViewerRouter = createProtectedRouter()
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
       brandColor: z.string().optional(),
+      darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),

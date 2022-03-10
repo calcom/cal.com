@@ -192,7 +192,7 @@ export default function Shell(props: {
   }
   return (
     <>
-      <CustomBranding val={user?.brandColor} />
+      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
         description={props.subtitle ? props.subtitle?.toString() : ""}

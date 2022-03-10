@@ -48,6 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               hideBranding: true,
               plan: true,
               brandColor: true,
+              darkBrandColor: true,
             },
           },
           title: true,
@@ -105,10 +106,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         theme: null,
         weekStart: "Sunday",
         brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
+        darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
       },
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
+      previousPage: context.req.headers.referer ?? null,
     },
   };
 };

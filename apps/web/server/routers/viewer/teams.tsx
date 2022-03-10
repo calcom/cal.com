@@ -10,7 +10,7 @@ import {
   downgradeTeamMembers,
   upgradeTeam,
   ensureSubscriptionQuantityCorrectness,
-} from "@ee/lib/stripe/team-billing";
+} from "@calcom/stripe/team-billing";
 
 import { BASE_URL } from "@lib/config/constants";
 import { HOSTED_CAL_FEATURES } from "@lib/config/constants";

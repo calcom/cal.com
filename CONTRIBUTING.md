@@ -69,7 +69,7 @@ To check the formatting of your code:
 yarn lint
 ```
 
-If you get errors, be sure to fix them before comitting.
+If you get errors, be sure to fix them before committing.
 
 ## Making a Pull Request
 
