@@ -1,4 +1,10 @@
-const withTM = require("next-transpile-modules")(["@calcom/lib", "@calcom/prisma", "@calcom/ui"]);
+const withTM = require("next-transpile-modules")([
+  "@calcom/ee",
+  "@calcom/lib",
+  "@calcom/prisma",
+  "@calcom/stripe",
+  "@calcom/ui",
+]);
 const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview

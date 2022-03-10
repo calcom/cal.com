@@ -8,8 +8,8 @@ import Head from "next/head";
 import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import getStripe from "@calcom/stripe/client";
 import PaymentComponent from "@ee/components/stripe/Payment";
-import getStripe from "@ee/lib/stripe/client";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
