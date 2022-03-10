@@ -232,7 +232,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <TextField
                   name="username"
                   addOnLeading={
-                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }

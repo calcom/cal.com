@@ -7,6 +7,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
     "lint": "next lint",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
     "build": "next build"
   },
@@ -21,6 +22,6 @@
   },
   "devDependencies": {
     "@calcom/config": "*",
-    "eslint": "^8.9.0"
+    "eslint": "^8.10.0"
   }
 }
