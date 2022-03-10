@@ -587,9 +587,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       await sendScheduledEmails({ ...evt, additionInformation: metadata });
 
-      // Checks to see if there is at least one SMS reminder
-      if (eventType.attendeeReminders.some((reminders) => reminders.method === "SMS")) {
-        await scheduleSMSAttendeeReminders(evt.reminderPhone!, evt.startTime, eventType.attendeeReminders);
+      // Loops through attendee reminders to schedule them
+      for (const reminder of eventType.attendeeReminders) {
+        if (reminder.method === "SMS") {
+          await scheduleSMSAttendeeReminders(evt.uid, evt.reminderPhone!, evt.startTime, reminder);
+        }
       }
     }
   }
