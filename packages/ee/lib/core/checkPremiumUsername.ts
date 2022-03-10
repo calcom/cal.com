@@ -1,6 +1,11 @@
-import slugify from "@lib/slugify";
+import slugify from "@calcom/lib/slugify";
 
-export async function checkPremiumUsername(_username: string) {
+export async function checkPremiumUsername(_username: string): Promise<{
+  available: boolean;
+  premium: boolean;
+  message?: string;
+  suggestion?: string;
+}> {
   const username = slugify(_username);
   const response = await fetch("https://cal.com/api/username", {
     credentials: "include",
@@ -12,14 +17,6 @@ export async function checkPremiumUsername(_username: string) {
     mode: "cors",
   });
 
-  if (response.ok) {
-    return {
-      available: true as const,
-    };
-  }
   const json = await response.json();
-  return {
-    available: false as const,
-    message: json.message as string,
-  };
+  return json;
 }

@@ -6,7 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "dayjs": "^1.10.6",
+    "dayjs": "^1.10.4",
     "dayjs-business-time": "^1.0.4"
   },
   "devDependencies": {
