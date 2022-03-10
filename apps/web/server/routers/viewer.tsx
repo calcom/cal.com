@@ -634,7 +634,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available || response.premium) {
+          if (!response.available || ("premium" in response && response.premium)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }
