@@ -2,10 +2,9 @@
 import { FC, useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
+import Switch from "@calcom/ui/Switch";
 
-import Switch from "@components/ui/Switch";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { is24h, timeZone } from "../../lib/clock";
 

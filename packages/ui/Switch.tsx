@@ -3,7 +3,7 @@ import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import React, { useState } from "react";
 
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
 
 type SwitchProps = React.ComponentProps<typeof PrimitiveSwitch.Root> & {
   label: string;

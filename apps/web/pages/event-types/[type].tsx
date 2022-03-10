@@ -27,6 +27,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 
+import Switch from "@calcom/ui/Switch";
 import { StripeData } from "@ee/lib/stripe/server";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -52,7 +53,6 @@ import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeFor
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
-import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
