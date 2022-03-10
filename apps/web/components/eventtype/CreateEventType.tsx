@@ -124,7 +124,9 @@ export default function CreateEventTypeButton(props: Props) {
   };
 
   return (
-    <Dialog name="new-eventtype" clearQueryParamsOnClose={["eventPage", "teamId"]}>
+    <Dialog
+      name="new-eventtype"
+      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}
@@ -144,7 +146,7 @@ export default function CreateEventTypeButton(props: Props) {
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
-                className="cursor-pointer px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                className="hover:bg-neutral-100 focus:outline-none cursor-pointer px-3 py-2"
                 onSelect={() => openModal(option)}>
                 <Avatar
                   alt={option.name || ""}
@@ -232,11 +234,17 @@ export default function CreateEventTypeButton(props: Props) {
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
                   className="relative mt-1 flex space-x-6 rounded-sm shadow-sm rtl:space-x-reverse">
-                  <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
+                  <RadioArea.Item
+                    value={SchedulingType.COLLECTIVE}
+                    defaultChecked={type === SchedulingType.COLLECTIVE}
+                    className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
-                  <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
+                  <RadioArea.Item
+                    value={SchedulingType.ROUND_ROBIN}
+                    defaultChecked={type === SchedulingType.ROUND_ROBIN}
+                    className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
