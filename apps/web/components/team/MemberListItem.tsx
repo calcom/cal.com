@@ -165,6 +165,7 @@ export default function MemberListItem(props: Props) {
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
+          team={props.team}
           teamId={props.team?.id}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
