@@ -35,16 +35,6 @@ export function getAppRegistry() {
       reviews: 69,
     },
     {
-      name: "Microsoft 365/Outlook Calendar",
-      slug: "microsoft-365",
-      category: "calendar",
-      description:
-        "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
-      logo: "/apps/outlook.svg",
-      rating: 4.2,
-      reviews: 69,
-    },
-    {
       name: "CalDAV",
       slug: "caldav",
       category: "calendar",

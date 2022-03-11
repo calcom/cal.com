@@ -2,10 +2,11 @@ import dayjs from "dayjs";
 import ICAL from "ical.js";
 import { TFunction } from "next-i18next";
 
-import AppleCalendarService from "../../apple_calendar/services/CalendarService";
-import CalDavCalendarService from "../../apple_calendar/services/CalendarService";
-import GoogleCalendarService from "../../google_calendar/services/CalendarService";
-import Office365CalendarService from "../../office365_calendar/services/CalendarService";
+import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
+
+import AppleCalendarService from "../../../../apps/web/lib/apps/apple_calendar/services/CalendarService";
+import CalDavCalendarService from "../../../../apps/web/lib/apps/apple_calendar/services/CalendarService";
+import GoogleCalendarService from "../../../../apps/web/lib/apps/google_calendar/services/CalendarService";
 
 export type Person = {
   name: string;

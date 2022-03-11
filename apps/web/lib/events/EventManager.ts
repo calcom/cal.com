@@ -6,6 +6,8 @@ import { v5 as uuidv5 } from "uuid";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@calcom/app-store/huddle01video/lib/VideoApiAdapter";
 import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
+import { AdditionInformation } from "@calcom/lib/calendar/interfaces/Calendar";
+import { createEvent, updateEvent } from "@calcom/lib/calendar/managers/CalendarManager";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -13,9 +15,6 @@ import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
-
-import { AdditionInformation } from "../apps/calendar/interfaces/Calendar";
-import { createEvent, updateEvent } from "../apps/calendar/managers/CalendarManager";
 
 export type Event = AdditionInformation & VideoCallData;
 

@@ -1,22 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
+import { BASE_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
-import prisma from "../../../../lib/prisma";
-import { decodeOAuthState } from "../utils";
+import { decodeOAuthState } from "../../utils";
 
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
 
-  // Check that user is authenticated
-  const session = await getSession({ req: req });
-  if (!session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
   if (typeof code !== "string") {
     res.status(400).json({ message: "No code returned" });
     return;
@@ -64,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       type: "office365_calendar",
       key: responseBody,
-      userId: session.user.id,
+      userId: req.session?.user.id,
     },
   });
 

@@ -2,11 +2,10 @@ import { Person } from "ics";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getAppName } from "@calcom/app-store/utils";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
-import { getAppName } from "@lib/apps/utils/AppUtils";
-
-import { BASE_URL } from "./config/constants";
+import { BASE_URL } from "./constants";
 
 const translator = short();
 

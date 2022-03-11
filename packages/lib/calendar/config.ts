@@ -1,6 +1,6 @@
 import type { App } from "@calcom/types/App";
 
-import { validJson } from "../../jsonUtils";
+import { validJson } from "../jsonUtils";
 
 export const APPS = {
   google_calendar: {

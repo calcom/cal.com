@@ -4,7 +4,7 @@ import { getSession } from "@calcom/lib/auth";
 import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import { decodeOAuthState } from "../utils";
+import { decodeOAuthState } from "../../utils";
 
 const scopes = ["OnlineMeetings.ReadWrite"];
 

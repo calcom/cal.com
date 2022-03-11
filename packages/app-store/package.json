@@ -5,6 +5,7 @@
   "dependencies": {
     "@calcom/zoomvideo": "*",
     "@calcom/dailyvideo": "*",
-    "@calcom/office365video": "*"
+    "@calcom/office365video": "*",
+    "lodash": "^4.17.21"
   }
 }

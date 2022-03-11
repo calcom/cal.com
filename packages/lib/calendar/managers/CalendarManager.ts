@@ -1,6 +1,7 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
+import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
@@ -9,10 +10,9 @@ import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 
-import AppleCalendarService from "../../apple_calendar/services/CalendarService";
-import CalDavCalendarService from "../../caldav_calendar/services/CalendarService";
-import GoogleCalendarService from "../../google_calendar/services/CalendarService";
-import Office365CalendarService from "../../office365_calendar/services/CalendarService";
+import AppleCalendarService from "../../../../apps/web/lib/apps/apple_calendar/services/CalendarService";
+import CalDavCalendarService from "../../../../apps/web/lib/apps/caldav_calendar/services/CalendarService";
+import GoogleCalendarService from "../../../../apps/web/lib/apps/google_calendar/services/CalendarService";
 import { APPS } from "../config";
 import { APPS_TYPES } from "../constants/general";
 import { Calendar } from "../interfaces/Calendar";
