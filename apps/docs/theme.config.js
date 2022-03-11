@@ -1,12 +1,8 @@
-export default {
-  github: 'https://github.com/calcom/cal.com',
-  docsRepositoryBase: 'https://github.com/calcom/cal.com/blob/main/apps/docs/pages',
-  titleSuffix: ' | Cal.com',
-  logo: (
-    <h4 className="m-0">
-      Cal.com
-    </h4>
-  ),
+const themeConfig = {
+  github: "https://github.com/calcom/cal.com",
+  docsRepositoryBase: "https://github.com/calcom/cal.com/blob/main/apps/docs/pages",
+  titleSuffix: " | Cal.com",
+  logo: <h4 className="m-0">Cal.com</h4>,
   head: (
     <>
       <meta name="msapplication-TileColor" content="#ffffff" />
@@ -29,23 +25,9 @@ export default {
       <meta name="og:image" content="https://cal.com/og-image.png" />
       <meta name="apple-mobile-web-app-title" content="Cal.com Docs" />
 
-      <link
-        rel="apple-touch-icon"
-        sizes="180x180"
-        href="/apple-touch-icon.png"
-      />
-      <link
-        rel="icon"
-        type="image/png"
-        sizes="32x32"
-        href="/favicon-32x32.png"
-      />
-      <link
-        rel="icon"
-        type="image/png"
-        sizes="16x16"
-        href="/favicon-16x16.png"
-      />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
       <link rel="manifest" href="/site.webmanifest" />
       <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
       <meta name="msapplication-TileColor" content="#ff0000" />
@@ -56,8 +38,8 @@ export default {
   prevLinks: true,
   nextLinks: true,
   footer: true,
-  footerEditLink: 'Edit this page on GitHub',
-  footerText: (
-    <>© {new Date().getFullYear()} Cal.com, Inc. All rights reserved.</>
-  ),
-}
+  footerEditLink: "Edit this page on GitHub",
+  footerText: <>© {new Date().getFullYear()} Cal.com, Inc. All rights reserved.</>,
+};
+
+export default themeConfig;

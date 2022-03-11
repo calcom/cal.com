@@ -3,7 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
@@ -634,7 +634,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available) {
+          if (!response.available || ("premium" in response && response.premium)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }

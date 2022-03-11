@@ -32,7 +32,7 @@ function TeamPage({ team }: TeamPageProps) {
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
           <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
