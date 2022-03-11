@@ -1,5 +1,3 @@
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
