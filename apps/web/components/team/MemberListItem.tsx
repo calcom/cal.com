@@ -122,42 +122,43 @@ export default function MemberListItem(props: Props) {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               {(props.team.membership.role === MembershipRole.OWNER ||
-                props.team.membership.role === MembershipRole.ADMIN) && (
-                <>
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => setShowChangeMemberRoleModal(true)}
-                      color="minimal"
-                      StartIcon={PencilIcon}
-                      className="w-full flex-shrink-0 font-normal">
-                      {t("edit_role")}
-                    </Button>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="h-px bg-gray-200" />
-                  <DropdownMenuItem>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          color="warn"
-                          StartIcon={UserRemoveIcon}
-                          className="w-full font-normal">
-                          {t("remove_member")}
-                        </Button>
-                      </DialogTrigger>
-                      <ConfirmationDialogContent
-                        variety="danger"
-                        title={t("remove_member")}
-                        confirmBtnText={t("confirm_remove_member")}
-                        onConfirm={removeMember}>
-                        {t("remove_member_confirmation_message")}
-                      </ConfirmationDialogContent>
-                    </Dialog>
-                  </DropdownMenuItem>
-                </>
-              )}
+                props.team.membership.role === MembershipRole.ADMIN) &&
+                props.member.role !== "OWNER" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Button
+                        onClick={() => setShowChangeMemberRoleModal(true)}
+                        color="minimal"
+                        StartIcon={PencilIcon}
+                        className="w-full flex-shrink-0 font-normal">
+                        {t("edit_role")}
+                      </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="warn"
+                            StartIcon={UserRemoveIcon}
+                            className="w-full font-normal">
+                            {t("remove_member")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("remove_member")}
+                          confirmBtnText={t("confirm_remove_member")}
+                          onConfirm={removeMember}>
+                          {t("remove_member_confirmation_message")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  </>
+                )}
             </DropdownMenuContent>
           </Dropdown>
         </div>
