@@ -29,20 +29,20 @@ enum PeriodType {
 }
 
 model EventType {
-  id                      Int                    @id @default(autoincrement())
+  id                      Int                         @id @default(autoincrement())
   /// @zod.nonempty()
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
   description             String?
-  position                Int                    @default(0)
+  position                Int                         @default(0)
   /// @zod.custom(imports.eventTypeLocations)
   locations               Json?
   length                  Int
-  hidden                  Boolean                @default(false)
-  users                   User[]                 @relation("user_eventtype")
+  hidden                  Boolean                     @default(false)
+  users                   User[]                      @relation("user_eventtype")
   userId                  Int?
-  team                    Team?                  @relation(fields: [teamId], references: [id])
+  team                    Team?                       @relation(fields: [teamId], references: [id])
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
@@ -51,22 +51,23 @@ model EventType {
   eventName               String?
   customInputs            EventTypeCustomInput[]
   timeZone                String?
-  periodType              PeriodType             @default(UNLIMITED)
+  periodType              PeriodType                  @default(UNLIMITED)
   periodStartDate         DateTime?
   periodEndDate           DateTime?
   periodDays              Int?
   periodCountCalendarDays Boolean?
-  requiresConfirmation    Boolean                @default(false)
-  disableGuests           Boolean                @default(false)
-  minimumBookingNotice    Int                    @default(120)
-  beforeEventBuffer       Int                    @default(0)
-  afterEventBuffer        Int                    @default(0)
+  requiresConfirmation    Boolean                     @default(false)
+  disableGuests           Boolean                     @default(false)
+  minimumBookingNotice    Int                         @default(120)
+  beforeEventBuffer       Int                         @default(0)
+  afterEventBuffer        Int                         @default(0)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
-  price                   Int                    @default(0)
-  currency                String                 @default("usd")
+  price                   Int                         @default(0)
+  currency                String                      @default("usd")
   slotInterval            Int?
   metadata                Json?
+  attendeeReminders       EventTypeAttendeeReminder[]
 
   @@unique([userId, slug])
 }
@@ -301,6 +302,26 @@ model EventTypeCustomInput {
   type        EventTypeCustomInputType
   required    Boolean
   placeholder String                   @default("")
+}
+
+enum EventTypeAttendeeReminderMethod {
+  SMS    @map("SMS")
+  EMAIL  @map("EMAIL")
+}
+
+enum EventTypeAttendeeReminderUnitTime {
+  DAY     @map("day")
+  HOUR    @map("hour")
+  MINUTE  @map("minute")
+}
+
+model EventTypeAttendeeReminder {
+  id          Int                               @id @default(autoincrement())
+  eventTypeId Int
+  eventType   EventType                         @relation(fields: [eventTypeId], references: [id])
+  method      EventTypeAttendeeReminderMethod
+  time        Int
+  unitTime    EventTypeAttendeeReminderUnitTime
 }
 
 model ResetPasswordRequest {
