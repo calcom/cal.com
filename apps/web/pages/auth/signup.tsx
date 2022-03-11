@@ -100,14 +100,14 @@ export default function Signup({ email }: Props) {
                 />
                 <EmailField
                   {...register("email")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="focus:outline-none mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus:border-black focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   labelProps={{
                     className: "block text-sm font-medium text-gray-700",
                   }}
                   {...register("password")}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="focus:outline-none mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:ring-black sm:text-sm"
                 />
                 <PasswordField
                   label={t("confirm_password")}
@@ -118,7 +118,7 @@ export default function Signup({ email }: Props) {
                     validate: (value) =>
                       value === methods.watch("password") || (t("error_password_mismatch") as string),
                   })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="focus:outline-none mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:ring-black sm:text-sm"
                 />
               </div>
               <div className="flex space-x-2 rtl:space-x-reverse">
@@ -152,14 +152,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       notFound: true,
     };
   }
-  const verificationRequest = await prisma.verificationRequest.findUnique({
+  const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token,
     },
   });
 
-  // for now, disable if no verificationRequestToken given or token expired
-  if (!verificationRequest || verificationRequest.expires < new Date()) {
+  // for now, disable if no verificationTokenToken given or token expired
+  if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
     };
@@ -169,7 +169,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     where: {
       AND: [
         {
-          email: verificationRequest.identifier,
+          email: verificationToken.identifier,
         },
         {
           emailVerified: {
@@ -193,7 +193,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
-      email: verificationRequest.identifier,
+      email: verificationToken.identifier,
       trpcState: ssr.dehydrate(),
     },
   };
