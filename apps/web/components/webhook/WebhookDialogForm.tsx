@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import Switch from "@calcom/ui/Switch";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
@@ -10,7 +12,6 @@ import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integratio
 import { DialogFooter } from "@components/Dialog";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@components/form/fields";
 import Button from "@components/ui/Button";
-import Switch from "@components/ui/Switch";
 import { TWebhook } from "@components/webhook/WebhookListItem";
 import WebhookTestDisclosure from "@components/webhook/WebhookTestDisclosure";
 
