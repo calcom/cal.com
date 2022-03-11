@@ -6,14 +6,12 @@ import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import { APPS as CalendarApps } from "@lib/apps/calendar/config";
-import { APPS as ConferencingApps } from "@lib/apps/conferencing/config";
 import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
 const ALL_APPS_MAP = {
   ...Object.values(appStore).map((app) => app.metadata),
   /* To be deprecated start */
   ...CalendarApps,
-  ...ConferencingApps,
   ...PaymentApps,
   /* To be deprecated end */
 } as App[];

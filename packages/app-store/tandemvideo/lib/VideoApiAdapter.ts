@@ -1,11 +1,10 @@
 import { Credential } from "@prisma/client";
 
+import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
-import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
-import prisma from "@lib/prisma";
 
 interface TandemToken {
   expires_in?: number;

@@ -11,8 +11,6 @@ import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
 import logger from "@lib/logger";
 
-import TandemVideoApiAdapter from "./integrations/Tandem/TandemVideoApiAdapter";
-
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
@@ -26,14 +24,6 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
       const videoAdapter = makeVideoApiAdapter(cred);
       acc.push(videoAdapter);
       return acc;
-    }
-
-    switch (cred.type) {
-      case "tandem_video":
-        acc.push(TandemVideoApiAdapter(cred));
-        break;
-      default:
-        break;
     }
     return acc;
   }, []);
