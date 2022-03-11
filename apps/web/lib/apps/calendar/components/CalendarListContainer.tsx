@@ -1,6 +1,8 @@
 import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import Switch from "@calcom/ui/Switch";
+
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
@@ -15,7 +17,6 @@ import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
-import Switch from "@components/ui/Switch";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
