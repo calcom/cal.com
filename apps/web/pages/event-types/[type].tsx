@@ -27,8 +27,8 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 
+import { StripeData } from "@calcom/stripe/server";
 import Switch from "@calcom/ui/Switch";
-import { StripeData } from "@ee/lib/stripe/server";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
