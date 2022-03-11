@@ -3,7 +3,7 @@ import type { App } from "@calcom/types/App";
 import _package from "./package.json";
 
 export const metadata = {
-  name: "Daily.co Video",
+  name: "Cal Video",
   description: _package.description,
   installed: !!process.env.DAILY_API_KEY,
   type: "daily_video",

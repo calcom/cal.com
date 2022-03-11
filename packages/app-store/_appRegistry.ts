@@ -4,20 +4,6 @@ export function getAppRegistry() {
   return [
     ...Object.values(appStore).map((app) => app.metadata),
     {
-      name: "Cal Video",
-      slug: "cal-video",
-      category: "video",
-      description:
-        "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
-      logo: "/apps/daily.svg",
-      publisher: "Cal.com",
-      url: "https://cal.com",
-      verified: true,
-      rating: 4.8,
-      trending: true,
-      reviews: 69,
-    },
-    {
       name: "Google Meet",
       slug: "google-meet",
       category: "video",

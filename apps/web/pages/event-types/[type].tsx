@@ -12,8 +12,14 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { MembershipRole } from "@prisma/client";
-import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import {
+  Availability,
+  EventTypeCustomInput,
+  MembershipRole,
+  PeriodType,
+  Prisma,
+  SchedulingType,
+} from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import dayjs from "dayjs";
@@ -30,11 +36,11 @@ import { JSONObject } from "superjson/dist/types";
 import { StripeData } from "@calcom/stripe/server";
 import Switch from "@calcom/ui/Switch";
 
+import getApps, { getLocationOptions, hasIntegration } from "@lib/apps/utils/AppUtils";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
-import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -703,7 +709,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex rounded-sm  py-2 hover:bg-gray-100"
+                    className="flex rounded-sm py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
@@ -1518,7 +1524,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </Form>
               </div>
             </div>
-            <div className="m-0 mb-4 mt-0 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
+            <div className="m-0 mt-0 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
               <div className="px-2">
                 <Controller
                   name="hidden"
@@ -1867,44 +1873,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventType.users.push(fallbackUser);
   }
 
-  const integrations = getIntegrations(credentials);
+  const integrations = getApps(credentials);
+  const locationOptions = getLocationOptions(integrations);
 
-  const locationOptions: OptionTypeBase[] = [];
-
-  if (hasIntegration(integrations, "zoom_video")) {
-    locationOptions.push({
-      value: LocationType.Zoom,
-      label: "Zoom Video",
-      disabled: true,
-    });
-  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({
       value: LocationType.GoogleMeet,
       label: "Google Meet",
     });
-  }
-  if (hasIntegration(integrations, "daily_video")) {
-    locationOptions.push({
-      value: LocationType.Daily,
-      label: "Daily.co Video",
-    });
-  }
-  if (hasIntegration(integrations, "jitsi_video")) {
-    locationOptions.push({
-      value: LocationType.Jitsi,
-      label: "Jitsi Meet",
-    });
-  }
-  if (hasIntegration(integrations, "huddle01_video")) {
-    locationOptions.push({
-      value: LocationType.Huddle01,
-      label: "Huddle01 Video",
-    });
-  }
-  if (hasIntegration(integrations, "tandem_video")) {
-    locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });
   }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)

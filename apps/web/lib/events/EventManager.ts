@@ -64,7 +64,12 @@ export const isJitsi = (location: string): boolean => {
 
 export const isDedicatedIntegration = (location: string): boolean => {
   return (
-    isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location) || isJitsi(location) || isTeams(location)
+    isZoom(location) ||
+    isDaily(location) ||
+    isHuddle01(location) ||
+    isTandem(location) ||
+    isJitsi(location) ||
+    isTeams(location)
   );
 };
 
