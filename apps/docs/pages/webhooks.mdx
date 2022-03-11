@@ -23,7 +23,7 @@ title: Webhooks
 3. Press the button and from here your webhook will no longer work and be deleted.
 
 ## Webhook metadata
-Metadata is a way to pass extra information to Cal.com about a booking that is returned through a webhook.
+Metadata is a way to pass extra information to Cal.com about a booking that is returned through a webhook
 
 ### Example
 The best way to explain this is with an example. Let's say you're a bank, and people register an account on your website, but you want them to book an onboarding call with your team to get set up. You could send them to your Cal.com booking link as part of your onboarding process, but when the webhook is returned, it may be difficult to match up which user booked a meeting with the user's account in your own database. Hence, you can pass a `user_id` value for instance as a URL parameter, which makes no difference to the booking process, but when the webhook is returned, you will receive the metadata as part of the webhook payload.
