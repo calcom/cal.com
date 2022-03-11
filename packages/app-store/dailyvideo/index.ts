@@ -21,6 +21,7 @@ export const metadata = {
   slug: "dailyvideo",
   title: "Daily.co Video",
   isGlobal: true,
+  email: "help@cal.com",
 } as App;
 
 export * as lib from "./lib";

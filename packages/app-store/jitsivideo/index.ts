@@ -21,6 +21,7 @@ export const metadata = {
   title: "Jitsi Meet",
   trending: true,
   isGlobal: true,
+  email: "help@cal.com",
 } as App;
 
 export * as lib from "./lib";

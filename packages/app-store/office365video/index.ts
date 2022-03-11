@@ -20,6 +20,7 @@ export const metadata = {
   slug: "msteams",
   title: "MS Teams",
   trending: true,
+  email: "help@cal.com",
 } as App;
 
 export * as api from "./api";

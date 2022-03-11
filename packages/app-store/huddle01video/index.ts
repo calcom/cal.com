@@ -21,6 +21,7 @@ export const metadata = {
   title: "Huddle01",
   trending: true,
   isGlobal: true,
+  email: "help@cal.com",
 } as App;
 
 export * as lib from "./lib";

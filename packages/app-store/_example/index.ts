@@ -20,6 +20,7 @@ export const metadata = {
   url: "https://cal.com/",
   variant: "conferencing",
   verified: true,
+  email: "help@cal.com",
 } as App;
 
 export * as api from "./api";
