@@ -1,4 +1,3 @@
-// TODO: replace headlessui with radix-ui
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import React, { Fragment } from "react";
@@ -28,8 +27,8 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="text-neutral-900 mt-2 text-xl font-bold">{t("new_event_type_heading")}</h3>
-        <p className="text-md text-neutral-600 mt-1 mb-2">{t("new_event_type_description")}</p>
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
+        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
         <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
       </div>
     </div>

@@ -1,8 +1,9 @@
-import { Menu, Transition } from "@headlessui/react";
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import Link from "next/link";
 import React, { FC, Fragment } from "react";
 
-import classNames from "@lib/classNames";
+import Dropdown, { DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@calcom/ui/Dropdown";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -38,7 +39,36 @@ const TableActions: FC<Props> = ({ actions }) => {
           </Button>
         ))}
       </div>
-      <Menu as="div" className="inline-block text-left lg:hidden ">
+      <div className="inline-block text-left lg:hidden">
+        <Dropdown>
+          <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+            <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent portalled>
+            {actions.map((action) => (
+              <DropdownMenuItem key={action.id}>
+                <Button
+                  type="button"
+                  color="minimal"
+                  className="w-full font-normal"
+                  href={action.href}
+                  StartIcon={action.icon}
+                  onClick={action.onClick}>
+                  {action.label}
+                </Button>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </Dropdown>
+      </div>
+    </>
+  );
+};
+
+export default TableActions;
+
+/*
+ <Menu as="div" className="inline-block text-left lg:hidden ">
         {({ open }) => (
           <>
             <div>
@@ -89,8 +119,4 @@ const TableActions: FC<Props> = ({ actions }) => {
           </>
         )}
       </Menu>
-    </>
-  );
-};
-
-export default TableActions;
+*/
