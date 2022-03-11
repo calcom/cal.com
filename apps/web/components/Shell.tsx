@@ -38,6 +38,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+import { version } from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 import Button from "./ui/Button";
@@ -247,7 +248,7 @@ export default function Shell(props: {
                 </nav>
               </div>
               <TrialBanner />
-              <div className="m-2 rounded-sm p-2 pt-2 pr-2 hover:bg-gray-100">
+              <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
                 <span className="hidden lg:inline">
                   <UserDropdown />
                 </span>
@@ -255,6 +256,11 @@ export default function Shell(props: {
                   <UserDropdown small />
                 </span>
               </div>
+              <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
+                &copy; {new Date().getFullYear()} Cal.com, Inc. v.{version + "-"}
+                {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
+                <span className="lowercase">-{user && user.plan}</span>
+              </small>
             </div>
           </div>
         </div>
