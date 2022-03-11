@@ -133,7 +133,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-      <ul className="divide-neutral-200 divide-y" data-testid="event-types">
+      <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
             key={type.id}
@@ -143,10 +143,10 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
-                "hover:bg-neutral-50 flex items-center justify-between ",
+                "flex items-center justify-between hover:bg-neutral-50 ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group hover:bg-neutral-50 flex w-full items-center justify-between px-4 py-4 sm:px-6">
+              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button
@@ -168,12 +168,12 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span
-                        className="text-neutral-900 truncate font-medium"
+                        className="truncate font-medium text-neutral-900"
                         data-testid={"event-type-title-" + type.id}>
                         {type.title}
                       </span>
                       <small
-                        className="text-neutral-500 hidden sm:inline"
+                        className="hidden text-neutral-500 sm:inline"
                         data-testid={
                           "event-type-slug-" + type.id
                         }>{`/${group.profile.slug}/${type.slug}`}</small>
@@ -229,7 +229,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="text-neutral-500 hover:text-neutral-900 h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent hover:border-gray-300"
+                        className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -289,101 +289,60 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                 </div>
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
-                <Menu as="div" className="inline-block text-left">
-                  {({ open }) => (
-                    <>
-                      <div>
-                        <Menu.Button className="text-neutral-400 mt-1 border border-transparent p-2 hover:border-gray-200">
-                          <span className="sr-only">{t("open_options")}</span>
-                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                        </Menu.Button>
-                      </div>
-
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95">
-                        <Menu.Items
-                          static
-                          className="divide-neutral-100 focus:outline-none absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ExternalLinkIcon
-                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
-                                    aria-hidden="true"
-                                  />
-                                  {t("preview")}
-                                </a>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
-                                    );
-                                    showToast(t("link_copied"), "success");
-                                  }}
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ClipboardCopyIcon
-                                    className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
-                                    aria-hidden="true"
-                                  />
-                                  {t("copy_link")}
-                                </button>
-                              )}
-                            </Menu.Item>
-                            {isNativeShare ? (
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    onClick={() => {
-                                      navigator
-                                        .share({
-                                          title: t("share"),
-                                          text: t("share_event"),
-                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`,
-                                        })
-                                        .then(() => showToast(t("link_shared"), "success"))
-                                        .catch(() => showToast(t("failed"), "error"));
-                                    }}
-                                    className={classNames(
-                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                      "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                    )}>
-                                    <UploadIcon
-                                      className="text-neutral-400 group-hover:text-neutral-500 mr-3 h-4 w-4"
-                                      aria-hidden="true"
-                                    />
-                                    {t("share")}
-                                  </button>
-                                )}
-                              </Menu.Item>
-                            ) : null}
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </>
-                  )}
-                </Menu>
+                <Dropdown>
+                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent portalled>
+                    <DropdownMenuItem>
+                      <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}>
+                        <a target="_blank">
+                          <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
+                            {t("preview")}
+                          </Button>
+                        </a>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        className="w-full font-normal"
+                        data-testid={"event-type-duplicate-" + type.id}
+                        StartIcon={ClipboardCopyIcon}
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                          );
+                          showToast(t("link_copied"), "success");
+                        }}>
+                        {t("copy_link")}
+                      </Button>
+                    </DropdownMenuItem>
+                    {isNativeShare ? (
+                      <DropdownMenuItem>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          className="w-full font-normal"
+                          data-testid={"event-type-duplicate-" + type.id}
+                          StartIcon={UploadIcon}
+                          onClick={() => {
+                            navigator
+                              .share({
+                                title: t("share"),
+                                text: t("share_event"),
+                                url: `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`,
+                              })
+                              .then(() => showToast(t("link_shared"), "success"))
+                              .catch(() => showToast(t("failed"), "error"));
+                          }}>
+                          {t("share")}
+                        </Button>
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </Dropdown>
               </div>
             </div>
           </li>
