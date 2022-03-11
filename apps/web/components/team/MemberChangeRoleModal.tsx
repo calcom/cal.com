@@ -38,6 +38,23 @@ export default function MemberChangeRoleModal(props: {
       memberId: props.memberId,
       role,
     });
+
+    if (role === "OWNER") {
+      const members = props.team["members"];
+      let owner;
+
+      for (let i = 0; i < members.length; i++) {
+        if (members[i].role === "OWNER") {
+          owner = members[i].id;
+        }
+      }
+
+      changeRoleMutation.mutate({
+        teamId: props.teamId,
+        memberId: owner,
+        role: "ADMIN",
+      });
+    }
   }
 
   return (
