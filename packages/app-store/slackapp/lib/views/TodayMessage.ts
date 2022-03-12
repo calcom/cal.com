@@ -5,7 +5,10 @@ import { BASE_URL } from "@calcom/lib/constants";
 
 const TodayMessage = (bookings: Booking[]) => {
   if (bookings.length === 0) {
-    return Message().blocks(Blocks.Section({ text: "You do not have any bookings for today." }));
+    return Message()
+      .blocks(Blocks.Section({ text: "You do not have any bookings for today." }))
+      .asUser()
+      .buildToJSON();
   }
   return Message()
     .blocks(
