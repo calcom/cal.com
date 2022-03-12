@@ -55,7 +55,7 @@ import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
-import AttendeeReminderTypeFromForm from "@components/pages/eventtypes/AttendeeReminderTypeForm";
+import AttendeeReminderTypeFrom from "@components/pages/eventtypes/AttendeeReminderTypeForm";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -311,6 +311,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     formMethods.getValues("customInputs").splice(index, 1);
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
+  };
+
+  const removeReminder = (index: number) => {
+    formMethods.getValues("attendeeReminders").splice(index, 1);
+    attendeeReminders.splice(index, 1);
+    setAttendeeReminders([...attendeeReminders]);
   };
 
   const schedulingTypeOptions: {
@@ -1392,7 +1398,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           type="button">
                                           {t("edit")}
                                         </Button>
-                                        <button type="button" onClick={() => removeCustom(idx)}>
+                                        <button type="button" onClick={() => removeReminder(idx)}>
                                           <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
                                         </button>
                                       </div>
@@ -1741,14 +1747,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                       </div>
                     </div>
-                    <AttendeeReminderTypeFromForm
+                    <AttendeeReminderTypeFrom
                       selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
                         const attendeeReminder: EventTypeAttendeeReminder = {
                           id: -1,
                           eventTypeId: -1,
                           method: values.method,
-                          time: values.time,
+                          time: Number(values.time),
                           unitTime: values.unitTime,
                         };
 
