@@ -6,6 +6,7 @@ import { BASE_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
+import { getUserEmail } from "../utils";
 
 // TODO: Move this type to a shared location - being used in more than one package.
 export type BookingCreateBody = {
@@ -94,13 +95,10 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   const client = new WebClient(access_token);
   // This could get a bit weird as there is a 3 second limit until the post times ou
 
-  const getUserEmail = async (userId: string) =>
-    await (
-      await client.users.info({ user: userId })
-    ).user?.profile?.email;
-
   // Compute all users that have been selected and get their email.
-  const invitedGuestsEmails = selected_users.map(async (userId: string) => await getUserEmail(userId));
+  const invitedGuestsEmails = selected_users.map(
+    async (userId: string) => await getUserEmail(client, userId)
+  );
 
   const PostData: BookingCreateBody = {
     start: dayjs(selected_date).format(),

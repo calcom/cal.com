@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import { showCreateEventMessage } from "../lib";
+import { showCreateEventMessage, showTodayMessage } from "../lib";
 
 export enum SlackAppCommands {
   CREATE_EVENT = "create-event",
+  TODAY = "today",
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,6 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (command) {
       case SlackAppCommands.CREATE_EVENT:
         return await showCreateEventMessage(req, res);
+      case SlackAppCommands.TODAY:
+        return await showTodayMessage(req, res);
       default:
         return res.status(404).json({ message: `Command not found` });
     }
