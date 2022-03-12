@@ -24,7 +24,7 @@ export const scheduleSMSAttendeeReminders = async (
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
 
   // Check the scheduled date and right now
-  // Can only schedule at least 60 minutes in advance
+  // Can only schedule at least 60 minutes in advance so send a reminder
   if (currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject)) {
     const response = await client.messages.create({
       body: "This is a test",
@@ -41,7 +41,31 @@ export const scheduleSMSAttendeeReminders = async (
         },
         method: "SMS",
         referenceId: response.sid,
-        scheduledDate: dayjs().toISOString(),
+        scheduledDate: dayjs().toDate(),
+        scheduled: true,
+      },
+    });
+  }
+
+  if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
+    const response = await client.messages.create({
+      body: "This is a test",
+      messagingServiceSid: TWILIO_MESSAGING_SID,
+      to: reminderPhone,
+      scheduleType: "fixed",
+      sendAt: scheduledDate.toDate(),
+    });
+
+    await prisma.attendeeReminder.create({
+      data: {
+        booking: {
+          connect: {
+            uid: uid,
+          },
+        },
+        method: "SMS",
+        referenceId: response.sid,
+        scheduledDate: scheduledDate.toDate(),
         scheduled: true,
       },
     });
