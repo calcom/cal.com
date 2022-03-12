@@ -35,7 +35,7 @@ test.describe("Can signup from a team invite", async () => {
     // Wait for the invite to be sent
     await page.waitForSelector(`[data-testid="member-email"][data-email="${testUser.email}"]`);
 
-    const tokenObj = await prisma.verificationRequest.findFirst({
+    const tokenObj = await prisma.verificationToken.findFirst({
       where: { identifier: testUser.email },
       select: { token: true },
     });
@@ -49,7 +49,7 @@ test.describe("Can signup from a team invite", async () => {
       where: { email: testUser.email },
     });
     // Delete verification request
-    await prisma.verificationRequest.delete({
+    await prisma.verificationToken.delete({
       where: { token },
     });
   });

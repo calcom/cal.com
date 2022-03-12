@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const token: string = randomBytes(32).toString("hex");
 
-    await prisma.verificationRequest.create({
+    await prisma.verificationToken.create({
       data: {
         identifier: usernameOrEmail,
         token,

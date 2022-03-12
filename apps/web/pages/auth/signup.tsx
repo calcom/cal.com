@@ -152,14 +152,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       notFound: true,
     };
   }
-  const verificationRequest = await prisma.verificationRequest.findUnique({
+  const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token,
     },
   });
 
-  // for now, disable if no verificationRequestToken given or token expired
-  if (!verificationRequest || verificationRequest.expires < new Date()) {
+  // for now, disable if no verificationTokenToken given or token expired
+  if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
     };
@@ -169,7 +169,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     where: {
       AND: [
         {
-          email: verificationRequest.identifier,
+          email: verificationToken.identifier,
         },
         {
           emailVerified: {
@@ -193,7 +193,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
-      email: verificationRequest.identifier,
+      email: verificationToken.identifier,
       trpcState: ssr.dehydrate(),
     },
   };
