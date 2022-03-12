@@ -46,6 +46,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  reminderPhone?: string;
   customInputs?: {
     [key: string]: string;
   };
@@ -468,6 +469,25 @@ const BookingPage = (props: BookingPageProps) => {
                         )}
                       </div>
                     ))}
+                  {props.eventType.attendeeReminders.some((reminder) => reminder.method === "SMS") && (
+                    <div className="mb-4">
+                      <label
+                        htmlFor="reminderPhone"
+                        className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("phone_reminder")}
+                      </label>
+                      <div className="mt-1">
+                        <PhoneInput
+                          // @ts-expect-error
+                          control={bookingForm.control}
+                          name="reminderPhone"
+                          placeholder={t("enter_phone_number")}
+                          id="reminderPhone"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
                   {!props.eventType.disableGuests && (
                     <div className="mb-4">
                       {!guestToggle && (

@@ -28,6 +28,7 @@ import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office36
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
+import { scheduleSMSAttendeeReminders } from "@lib/reminderManager";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -232,6 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: true,
       metadata: true,
       destinationCalendar: true,
+      attendeeReminders: true,
     },
   });
 
@@ -342,6 +344,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
+    reminderPhone: reqBody.reminderPhone,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -582,6 +585,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
       await sendScheduledEmails({ ...evt, additionInformation: metadata });
+
+      for (const reminder of eventType.attendeeReminders) {
+        if (reminder.method === "SMS" && evt.reminderPhone) {
+          await scheduleSMSAttendeeReminders(evt.uid, evt.reminderPhone!, evt.startTime, reminder);
+        }
+      }
     }
   }
 

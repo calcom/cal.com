@@ -679,5 +679,6 @@
   "sms": "SMS",
   "method": "Method",
   "send_before": "before the meeting",
-  "when_to_send": "When to send reminder"
+  "when_to_send": "When to send reminder",
+  "phone_reminder": "Phone number for reminders (incl. country code)"
 }

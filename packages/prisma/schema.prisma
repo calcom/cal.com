@@ -253,6 +253,7 @@ model Booking {
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
   rejectionReason     String?
+  attendeeReminders   AttendeeReminder[]
 }
 
 model Schedule {
@@ -322,6 +323,17 @@ model EventTypeAttendeeReminder {
   method      EventTypeAttendeeReminderMethod
   time        Int
   unitTime    EventTypeAttendeeReminderUnitTime
+}
+
+model AttendeeReminder {
+  id            Int      @id @default(autoincrement())
+  // At the time of creting the event the db id isn't created but the uid is
+  bookingUid    String
+  booking       Booking? @relation(fields: [bookingUid], references: [uid])
+  method        String
+  referenceId   String
+  scheduledDate DateTime
+  scheduled     Boolean
 }
 
 model ResetPasswordRequest {

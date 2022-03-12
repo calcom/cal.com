@@ -23,6 +23,7 @@ export type BookingCreateBody = {
   user?: string | string[];
   language: string;
   customInputs: { label: string; value: string }[];
+  reminderPhone: string;
   metadata: {
     [key: string]: string;
   };

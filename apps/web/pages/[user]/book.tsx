@@ -55,6 +55,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       length: true,
       locations: true,
       customInputs: true,
+      attendeeReminders: true,
       periodType: true,
       periodDays: true,
       periodStartDate: true,

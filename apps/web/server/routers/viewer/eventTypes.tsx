@@ -79,7 +79,7 @@ function handleAttendeeReminders(attendeeReminders: EventTypeAttendeeReminder[],
       time: input.time,
       unitTime: input.unitTime,
     }));
-  const cInputsToUpdate = attendeeReminders
+  const remindersToUpdate = attendeeReminders
     .filter((input) => input.id > 0)
     .map((input) => ({
       data: {
@@ -102,7 +102,7 @@ function handleAttendeeReminders(attendeeReminders: EventTypeAttendeeReminder[],
     createMany: {
       data: remindersToCreate,
     },
-    update: cInputsToUpdate,
+    update: remindersToUpdate,
   };
 }
 
@@ -264,7 +264,6 @@ export const eventTypesRouter = createProtectedRouter()
         data.customInputs = handleCustomInputs(customInputs, id);
       }
 
-      // TODO
       if (attendeeReminders) {
         data.attendeeReminders = handleAttendeeReminders(attendeeReminders, id);
       }
