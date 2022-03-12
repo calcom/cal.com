@@ -13,7 +13,14 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import {
+  Availability,
+  EventTypeCustomInput,
+  EventTypeAttendeeReminder,
+  PeriodType,
+  Prisma,
+  SchedulingType,
+} from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import dayjs from "dayjs";
@@ -48,6 +55,7 @@ import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
+import AttendeeReminderTypeFromForm from "@components/pages/eventtypes/AttendeeReminderTypeForm";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -174,6 +182,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
+  const [selectedAttendeeReminder, setSelectedAttendeeReminder] = useState<
+    EventTypeAttendeeReminder | undefined
+  >(undefined);
+  const [selectedAttendeeReminderModalOpen, setSelectedAttendeeReminderModalOpen] = useState(false);
+  const [attendeeReminders, setAttendeeReminders] = useState<EventTypeAttendeeReminder[]>(
+    eventType.attendeeReminders.sort((a, b) => a.id - b.id) || []
+  );
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -353,6 +368,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hidden: boolean;
     locations: { type: LocationType; address?: string }[];
     customInputs: EventTypeCustomInput[];
+    attendeeReminders: EventTypeAttendeeReminder[];
     users: string[];
     availability: {
       openingHours: AvailabilityInput[];
@@ -1334,6 +1350,73 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
 
+                        <hr className="border-neutral-200" />
+                        <div className="block items-center sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="attendeeReminders"
+                              className="flexflex mt-2 text-sm font-medium text-neutral-700">
+                              {t("attendee_reminders")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <ul className="mt-1">
+                              {attendeeReminders.map(
+                                (attendeeReminder: EventTypeAttendeeReminder, idx: number) => (
+                                  <li key={idx} className="bg-secondary-50 mb-2 border p-2">
+                                    <div className="flex justify-between">
+                                      <div className="w-0 flex-1">
+                                        <div className="truncate">
+                                          <span
+                                            className="text-sm ltr:ml-2 rtl:mr-2"
+                                            title={`${t("label")}: ${attendeeReminder.method}`}>
+                                            {t("label")}: {attendeeReminder.method}
+                                          </span>
+                                        </div>
+                                        {attendeeReminder.time && (
+                                          <div className="truncate">
+                                            <span
+                                              className="text-sm ltr:ml-2 rtl:mr-2"
+                                              title={`${t("placeholder")}: ${attendeeReminder.unitTime}`}>
+                                              {t("placeholder")}: {attendeeReminder.unitTime}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex">
+                                        <Button
+                                          onClick={() => {
+                                            setSelectedAttendeeReminder(attendeeReminder);
+                                            setSelectedAttendeeReminderModalOpen(true);
+                                          }}
+                                          color="minimal"
+                                          type="button">
+                                          {t("edit")}
+                                        </Button>
+                                        <button type="button" onClick={() => removeCustom(idx)}>
+                                          <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                              <li>
+                                <Button
+                                  onClick={() => {
+                                    setSelectedAttendeeReminder(undefined);
+                                    setSelectedAttendeeReminderModalOpen(true);
+                                  }}
+                                  color="secondary"
+                                  type="button"
+                                  StartIcon={PlusIcon}>
+                                  {t("add_input")}
+                                </Button>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -1634,6 +1717,66 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </Dialog>
             )}
           />
+          <Controller
+            name="attendeeReminders"
+            control={formMethods.control}
+            defaultValue={eventType.attendeeReminders.sort((a, b) => a.id - b.id) || []}
+            render={() => (
+              <Dialog
+                open={selectedAttendeeReminderModalOpen}
+                onOpenChange={setSelectedAttendeeReminderModalOpen}>
+                <DialogContent asChild>
+                  <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+                    <div className="mb-4 sm:flex sm:items-start">
+                      <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                        <PlusIcon className="text-primary-600 h-6 w-6" />
+                      </div>
+                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                          {t("add_new_custom_input_field")}
+                        </h3>
+                        <div>
+                          <p className="text-sm text-gray-400">
+                            {t("this_input_will_shown_booking_this_event")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <AttendeeReminderTypeFromForm
+                      selectedAttendeeReminder={selectedAttendeeReminder}
+                      onSubmit={(values) => {
+                        const customInput: EventTypeCustomInput = {
+                          id: -1,
+                          eventTypeId: -1,
+                          label: values.label,
+                          placeholder: values.placeholder,
+                          required: values.required,
+                          type: values.type,
+                        };
+
+                        if (selectedCustomInput) {
+                          selectedCustomInput.label = customInput.label;
+                          selectedCustomInput.placeholder = customInput.placeholder;
+                          selectedCustomInput.required = customInput.required;
+                          selectedCustomInput.type = customInput.type;
+                        } else {
+                          setCustomInputs(customInputs.concat(customInput));
+                          formMethods.setValue(
+                            "customInputs",
+                            formMethods.getValues("customInputs").concat(customInput)
+                          );
+                        }
+                        setSelectedAttendeeReminderModalOpen(false);
+                      }}
+                      onCancel={() => {
+                        setSelectedAttendeeReminderModalOpen(false);
+                      }}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          />
           {isAdmin && (
             <WebhookListContainer
               title={t("team_webhooks")}
@@ -1711,6 +1854,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventName: true,
       availability: true,
       customInputs: true,
+      attendeeReminders: true,
       timeZone: true,
       periodType: true,
       metadata: true,
