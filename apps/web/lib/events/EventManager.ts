@@ -192,6 +192,7 @@ export default class EventManager {
       },
       select: {
         id: true,
+        uid: true,
         references: {
           select: {
             id: true,
@@ -238,6 +239,12 @@ export default class EventManager {
       },
     });
 
+    const reminderDeletes = prisma.attendeeReminder.deleteMany({
+      where: {
+        bookingUid: booking.uid,
+      },
+    });
+
     const bookingDeletes = prisma.booking.delete({
       where: {
         id: booking.id,
@@ -245,7 +252,7 @@ export default class EventManager {
     });
 
     // Wait for all deletions to be applied.
-    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+    await Promise.all([bookingReferenceDeletes, attendeeDeletes, reminderDeletes, bookingDeletes]);
 
     return {
       results,

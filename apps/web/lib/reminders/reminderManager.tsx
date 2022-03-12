@@ -13,7 +13,7 @@ const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
 
 const client = twilio(TWILIO_SID, TWILIO_TOKEN);
 
-export const scheduleSMSAttendeeReminders = async (
+export const scheduleSMSAttendeeReminder = async (
   uid: string,
   reminderPhone: string,
   startTime: string,
@@ -99,7 +99,7 @@ export const scheduleSMSAttendeeReminders = async (
 };
 
 // There are no bulk cancel so must do one at a time
-export const deleteScheduledSMSReminders = async (referenceId: string) => {
+export const deleteScheduledSMSReminder = async (referenceId: string) => {
   try {
     await client.messages(referenceId).update({ status: "canceled" });
 

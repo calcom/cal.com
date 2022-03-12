@@ -12,7 +12,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdap
 import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import { deleteScheduledSMSReminders } from "@lib/reminders/reminderManager";
+import { deleteScheduledSMSReminder } from "@lib/reminders/reminderManager";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -231,7 +231,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Can only delete scheduled SMS one at a time
   for (const reminder of bookingToDelete.attendeeReminders) {
     if (reminder.method === "SMS") {
-      deleteScheduledSMSReminders(reminder.referenceId);
+      deleteScheduledSMSReminder(reminder.referenceId);
     }
   }
 

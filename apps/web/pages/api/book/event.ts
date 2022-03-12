@@ -28,7 +28,7 @@ import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office36
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
-import { scheduleSMSAttendeeReminders } from "@lib/reminders/reminderManager";
+import { scheduleSMSAttendeeReminder, deleteScheduledSMSReminder } from "@lib/reminders/reminderManager";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -558,6 +558,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       await sendRescheduledEmails({ ...evt, additionInformation: metadata });
+
+      // Reschedule reminders
+      for (const reminder of eventType.attendeeReminders) {
+        if (reminder.method === "SMS" && evt.reminderPhone) {
+          await scheduleSMSAttendeeReminder(evt.uid!, evt.reminderPhone!, evt.startTime, reminder);
+        }
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -588,7 +595,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       for (const reminder of eventType.attendeeReminders) {
         if (reminder.method === "SMS" && evt.reminderPhone) {
-          await scheduleSMSAttendeeReminders(evt.uid, evt.reminderPhone!, evt.startTime, reminder);
+          await scheduleSMSAttendeeReminder(evt.uid!, evt.reminderPhone!, evt.startTime, reminder);
         }
       }
     }
