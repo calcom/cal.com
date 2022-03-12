@@ -22,40 +22,73 @@ export const scheduleSMSAttendeeReminders = async (
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
+  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ scheduledDate", scheduledDate);
+  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ currentDate", currentDate);
+  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ date7days", currentDate.add(7, "day"));
+  console.log(
+    "🚀 ~ file: reminderManager.tsx ~ line 25 ~ date7days",
+    scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
+  );
 
   // Check the scheduled date and right now
   // Can only schedule at least 60 minutes in advance so send a reminder
   if (currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject)) {
-    const response = await client.messages.create({
-      body: "This is a test",
-      messagingServiceSid: TWILIO_MESSAGING_SID,
-      to: reminderPhone,
-    });
+    try {
+      const response = await client.messages.create({
+        body: "This is a test",
+        messagingServiceSid: TWILIO_MESSAGING_SID,
+        to: reminderPhone,
+      });
 
-    await prisma.attendeeReminder.create({
-      data: {
-        booking: {
-          connect: {
-            uid: uid,
+      await prisma.attendeeReminder.create({
+        data: {
+          booking: {
+            connect: {
+              uid: uid,
+            },
           },
+          method: "SMS",
+          referenceId: response.sid,
+          scheduledDate: dayjs().toDate(),
+          scheduled: true,
         },
-        method: "SMS",
-        referenceId: response.sid,
-        scheduledDate: dayjs().toDate(),
-        scheduled: true,
-      },
-    });
+      });
+    } catch (error) {
+      console.log(`Error sending SMS with error ${error}`);
+    }
+  }
+  // Can only schedule text messages 7 days in advance
+  if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
+    try {
+      const response = await client.messages.create({
+        body: "This is a test",
+        messagingServiceSid: TWILIO_MESSAGING_SID,
+        to: reminderPhone,
+        scheduleType: "fixed",
+        sendAt: scheduledDate.toDate(),
+      });
+      console.log("🚀 ~ file: reminderManager.tsx ~ line 58 ~ response", response);
+
+      await prisma.attendeeReminder.create({
+        data: {
+          booking: {
+            connect: {
+              uid: uid,
+            },
+          },
+          method: "SMS",
+          referenceId: response.sid,
+          scheduledDate: scheduledDate.toDate(),
+          scheduled: true,
+        },
+      });
+    } catch (error) {
+      console.log(`Error scheduling SMS with error ${error}`);
+    }
   }
 
-  if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
-    const response = await client.messages.create({
-      body: "This is a test",
-      messagingServiceSid: TWILIO_MESSAGING_SID,
-      to: reminderPhone,
-      scheduleType: "fixed",
-      sendAt: scheduledDate.toDate(),
-    });
-
+  if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
+    // Write to DB and send to CRON if scheduled reminder date is past 7 days
     await prisma.attendeeReminder.create({
       data: {
         booking: {
@@ -64,9 +97,9 @@ export const scheduleSMSAttendeeReminders = async (
           },
         },
         method: "SMS",
-        referenceId: response.sid,
+        referenceId: "",
         scheduledDate: scheduledDate.toDate(),
-        scheduled: true,
+        scheduled: false,
       },
     });
   }
