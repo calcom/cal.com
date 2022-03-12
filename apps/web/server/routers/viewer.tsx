@@ -3,7 +3,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { checkPremiumUsername } from "@ee/lib/core/checkPremiumUsername";
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
@@ -78,10 +78,12 @@ const loggedInViewerRouter = createProtectedRouter()
         timeFormat: user.timeFormat,
         avatar: user.avatar,
         createdDate: user.createdDate,
+        trialEndsAt: user.trialEndsAt,
         completedOnboarding: user.completedOnboarding,
         twoFactorEnabled: user.twoFactorEnabled,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
       };
@@ -385,6 +387,11 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           status: true,
           paid: true,
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
         orderBy,
         take: take + 1,
@@ -610,6 +617,7 @@ const loggedInViewerRouter = createProtectedRouter()
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
       brandColor: z.string().optional(),
+      darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
@@ -626,7 +634,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available) {
+          if (!response.available || ("premium" in response && response.premium)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }

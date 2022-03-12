@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { upgradeTeam } from "@ee/lib/stripe/team-billing";
+import { upgradeTeam } from "@calcom/stripe/team-billing";
 
 import { getSession } from "@lib/auth";
 

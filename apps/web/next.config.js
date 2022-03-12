@@ -1,6 +1,8 @@
-const withTM = require("@vercel/edge-functions-ui/transpile")([
+const withTM = require("next-transpile-modules")([
+  "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
+  "@calcom/stripe",
   "@calcom/ui",
 ]);
 const { i18n } = require("./next-i18next.config");
