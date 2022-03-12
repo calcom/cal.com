@@ -69,10 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       process.env.PLAYWRIGHT_SECRET &&
       req.headers["x-playwright-secret"] === process.env.PLAYWRIGHT_SECRET
     ) {
-      console.log("MATCH PLAYWRIGHT_SECRET", process.env.PLAYWRIGHT_SECRET);
       return res.status(201).json({ message: "Reset Requested", resetLink });
     }
-    console.log("NOMATCH PLAYWRIGHT_SECRET", process.env.PLAYWRIGHT_SECRET);
 
     return res.status(201).json({ message: "Reset Requested" });
   } catch (reason) {

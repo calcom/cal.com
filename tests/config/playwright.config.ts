@@ -18,7 +18,7 @@ const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
 const config: PlaywrightTestConfig = {
-  forbidOnly: false,
+  forbidOnly: !!process.env.CI,
   timeout: 60_000,
   reporter: [
     [process.env.CI ? "github" : "list"],
