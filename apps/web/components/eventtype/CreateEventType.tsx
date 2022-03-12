@@ -1,17 +1,17 @@
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
-import { zodResolver } from "@hookform/resolvers/zod/dist/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { createEventTypeInput } from "@calcom/prisma/zod/eventtypeCustom";
+import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
-import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import showToast from "@lib/notification";
+import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
 import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
@@ -48,7 +48,6 @@ interface Props {
 export default function CreateEventTypeButton(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
-  const modalOpen = useToggleQuery("new");
 
   // URL encoded params
   const teamId: number | undefined =
@@ -67,7 +66,7 @@ export default function CreateEventTypeButton(props: Props) {
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
       if (name === "title" && type === "change") {
-        if (value.title) setValue("slug", value.title.replace(/\s+/g, "-").toLowerCase());
+        if (value.title) setValue("slug", slugify(value.title));
         else setValue("slug", "");
       }
     });
@@ -94,44 +93,33 @@ export default function CreateEventTypeButton(props: Props) {
 
   // inject selection data into url for correct router history
   const openModal = (option: EventTypeParent) => {
-    // setTimeout fixes a bug where the url query params are removed immediately after opening the modal
-    setTimeout(() => {
-      router.push(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            new: "1",
-            eventPage: option.slug,
-            teamId: option.teamId || undefined,
-          },
-        },
-        undefined,
-        { shallow: true }
-      );
-    });
-  };
-
-  // remove url params after close modal to reset state
-  const closeModal = () => {
-    router.replace({
-      pathname: router.pathname,
-      query: { id: router.query.id || undefined },
-    });
+    const query = {
+      ...router.query,
+      dialog: "new-eventtype",
+      eventPage: option.slug,
+      teamId: option.teamId,
+    };
+    if (!option.teamId) {
+      delete query.teamId;
+    }
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
   return (
-    <Dialog
-      open={modalOpen.isOn}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) closeModal();
-      }}>
+    <Dialog name="new-eventtype" clearQueryParamsOnClose={["eventPage", "teamId"]}>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={PlusIcon}
-          {...(props.canAddEvents ? { href: modalOpen.hrefOn } : { disabled: true })}>
+          disabled={!props.canAddEvents}>
           {t("new_event_type_btn")}
         </Button>
       ) : (

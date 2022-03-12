@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
@@ -56,7 +57,12 @@ export default function Signup({ email }: Props) {
       method: "POST",
     })
       .then(handleErrors)
-      .then(async () => await signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string }))
+      .then(
+        async () =>
+          await signIn("Cal.com", {
+            callbackUrl: (`${NEXT_PUBLIC_BASE_URL}/${router.query.callbackUrl}` || "") as string,
+          })
+      )
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
       });
@@ -83,7 +89,7 @@ export default function Signup({ email }: Props) {
               <div className="space-y-2">
                 <TextField
                   addOnLeading={
-                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
@@ -123,7 +129,9 @@ export default function Signup({ email }: Props) {
                   color="secondary"
                   className="w-5/12 justify-center"
                   onClick={() =>
-                    signIn("Cal.com", { callbackUrl: (router.query.callbackUrl || "") as string })
+                    signIn("Cal.com", {
+                      callbackUrl: (`${NEXT_PUBLIC_BASE_URL}/${router.query.callbackUrl}` || "") as string,
+                    })
                   }>
                   {t("login_instead")}
                 </Button>
@@ -176,7 +184,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl,
+        destination: "/auth/login?callbackUrl=" + `${NEXT_PUBLIC_BASE_URL}/${ctx.query.callbackUrl}`,
       },
     };
   }

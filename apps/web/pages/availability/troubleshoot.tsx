@@ -22,9 +22,9 @@ const AvailabilityView = ({ user }: { user: User }) => {
   function convertMinsToHrsMins(mins: number) {
     let h = Math.floor(mins / 60);
     let m = mins % 60;
-    h = h < 10 ? 0 + h : h;
-    m = m < 10 ? 0 + m : m;
-    return `${h}:${m}`;
+    let hs = h < 10 ? "0" + h : h;
+    let ms = m < 10 ? "0" + m : m;
+    return `${hs}:${ms}`;
   }
 
   useEffect(() => {
@@ -64,8 +64,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
         />
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
-          <div className="bg-brand overflow-hidden rounded-sm">
-            <div className="text-brandcontrast px-4 py-2 sm:px-6">
+          <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-sm">
+            <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
@@ -94,8 +94,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
             </div>
           )}
 
-          <div className="bg-brand overflow-hidden rounded-sm">
-            <div className="text-brandcontrast px-4 py-2 sm:px-6">
+          <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-sm">
+            <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
               {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
             </div>
           </div>

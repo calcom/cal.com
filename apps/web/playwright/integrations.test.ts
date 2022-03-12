@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createHttpServer, todo, waitFor } from "./lib/testUtils";
+import { createHttpServer, selectFirstAvailableTimeSlotNextMonth, todo, waitFor } from "./lib/testUtils";
 
 test.describe("integrations", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
@@ -38,9 +38,7 @@ test.describe("integrations", () => {
 
     // --- Book the first available day next month in the pro user's "30min"-event
     await page.goto(`/pro/30min`);
-    await page.click('[data-testid="incrementMonth"]');
-    await page.click('[data-testid="day"][data-disabled="false"]');
-    await page.click('[data-testid="time"]');
+    await selectFirstAvailableTimeSlotNextMonth(page);
 
     // --- fill form
     await page.fill('[name="name"]', "Test Testson");

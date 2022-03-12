@@ -8,12 +8,13 @@ import Head from "next/head";
 import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import getStripe from "@calcom/stripe/client";
 import PaymentComponent from "@ee/components/stripe/Payment";
-import getStripe from "@ee/lib/stripe/client";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 
 dayjs.extend(utc);
 dayjs.extend(toArray);
@@ -21,7 +22,7 @@ dayjs.extend(timezone);
 
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
-  const [is24h, setIs24h] = useState(false);
+  const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady, Theme } = useTheme(props.profile.theme);
 

@@ -73,7 +73,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             type="text"
             id="label"
             required
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
             defaultValue={selectedCustomInput?.label}
             {...register("label", { required: true })}
           />
@@ -89,7 +89,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />
@@ -120,11 +120,11 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         value={selectedCustomInput?.id || -1}
         {...register("id", { valueAsNumber: true })}
       />
-      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-        <Button type="submit">{t("save")}</Button>
+      <div className="mt-5 flex space-x-2 sm:mt-4">
         <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
+        <Button type="submit">{t("save")}</Button>
       </div>
     </form>
   );

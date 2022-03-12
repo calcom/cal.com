@@ -3,15 +3,24 @@
   "baseBranch": "origin/main",
   "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/prisma#db-deploy": {},
-    "@calcom/prisma#db-reset": {},
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"],
+      "outputs": ["zod/**"]
+    },
+    "@calcom/prisma#db-deploy": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
+    "@calcom/prisma#db-reset": {
+      "cache": false
+    },
     "@calcom/prisma#db-seed": {
+      "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
-        "@calcom/prisma#build",
+        "@calcom/prisma#db-deploy",
         "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
@@ -46,6 +55,7 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
+        "$WEBSITE_BASE_URL",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
@@ -55,6 +65,10 @@
       "dependsOn": ["@calcom/prisma#dx"]
     },
     "@calcom/web#start": {},
+    "@calcom/website#build": {
+      "dependsOn": ["$WEBSITE_BASE_URL"],
+      "outputs": [".next/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
@@ -74,14 +88,21 @@
       "cache": false
     },
     "lint": {
+      "cache": false,
       "outputs": []
+    },
+    "lint:report": {
+      "cache": false,
+      "outputs": ["lint-results"]
     },
     "start": {},
     "test": {
-      "dependsOn": ["@calcom/web#build", "@calcom/prisma#db-reset"]
+      "dependsOn": []
     },
     "test-e2e": {
-      "dependsOn": ["^test"]
+      "cache": false,
+      "dependsOn": ["^test", "@calcom/web#build", "@calcom/prisma#db-reset"],
+      "outputs": ["playwright", "test-results"]
     },
     "type-check": {
       "outputs": []

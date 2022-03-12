@@ -12,7 +12,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
-import { createPaymentLink } from "@ee/lib/stripe/client";
+import { createPaymentLink } from "@calcom/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -24,6 +24,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
@@ -61,14 +62,14 @@ const BookingPage = (props: BookingPageProps) => {
       const eventOwner = eventType.users[0];
 
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async ({ attendees, paymentUid, ...responseData }) => {
+    onSuccess: async (responseData) => {
+      const { attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -83,9 +84,6 @@ const BookingPage = (props: BookingPageProps) => {
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
-        }
-        if (location === "integrations:jitsi") {
-          return "https://meet.jit.si/cal/" + uuidv4();
         }
         if (location.includes("integration")) {
           return t("web_conferencing_details_to_follow");
@@ -110,9 +108,7 @@ const BookingPage = (props: BookingPageProps) => {
 
   const rescheduleUid = router.query.rescheduleUid as string;
   const { isReady, Theme } = useTheme(props.profile.theme);
-
   const date = asStringOrNull(router.query.date);
-  const timeFormat = asStringOrNull(router.query.clock) === "24h" ? "H:mm" : "h:mma";
 
   const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
 
@@ -213,7 +209,7 @@ const BookingPage = (props: BookingPageProps) => {
     if (!date) return "No date";
     const parsedZone = parseZone(date);
     if (!parsedZone?.isValid()) return "Invalid date";
-    const formattedTime = parsedZone?.format(timeFormat);
+    const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
     return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
@@ -239,7 +235,6 @@ const BookingPage = (props: BookingPageProps) => {
     let web3Details;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
@@ -256,12 +251,12 @@ const BookingPage = (props: BookingPageProps) => {
       language: i18n.language,
       rescheduleUid,
       user: router.query.user,
-      location: getLocationValue(booking.locationType ? booking : { locationType: selectedLocation }),
+      location: getLocationValue(
+        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+      ),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         value: booking.customInputs![inputId],
       })),
     });
@@ -285,13 +280,14 @@ const BookingPage = (props: BookingPageProps) => {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <CustomBranding val={props.profile.brandColor} />
-      <main className=" mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
+      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
           <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
+                  border="border-2 border-white dark:border-gray-900"
                   size={14}
                   items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
                     props.eventType.users
@@ -348,7 +344,7 @@ const BookingPage = (props: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder={t("example_name")}
                       />
                     </div>
@@ -363,7 +359,7 @@ const BookingPage = (props: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
                       />
                     </div>
@@ -397,9 +393,14 @@ const BookingPage = (props: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                        {/* @ts-ignore */}
-                        <PhoneInput name="phone" placeholder={t("enter_phone_number")} id="phone" required />
+                        <PhoneInput
+                          // @ts-expect-error
+                          control={bookingForm.control}
+                          name="phone"
+                          placeholder={t("enter_phone_number")}
+                          id="phone"
+                          required
+                        />
                       </div>
                     </div>
                   )}
@@ -421,7 +422,7 @@ const BookingPage = (props: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -432,7 +433,7 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -443,7 +444,7 @@ const BookingPage = (props: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder=""
                           />
                         )}
@@ -525,7 +526,7 @@ const BookingPage = (props: BookingPageProps) => {
                       {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
-                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
@@ -539,7 +540,9 @@ const BookingPage = (props: BookingPageProps) => {
                   </div>
                 </Form>
                 {mutation.isError && (
-                  <div className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                  <div
+                    data-testid="booking-fail"
+                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
                         <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />

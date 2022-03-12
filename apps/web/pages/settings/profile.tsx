@@ -137,7 +137,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     return (router.locales || []).map((locale) => ({
       value: locale,
       // FIXME
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
     }));
@@ -147,6 +146,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     { value: "light", label: t("light") },
     { value: "dark", label: t("dark") },
   ];
+
+  const timeFormatOptions = [
+    { value: 12, label: t("12_hour") },
+    { value: 24, label: t("24_hour") },
+  ];
   const usernameRef = useRef<HTMLInputElement>(null!);
   const nameRef = useRef<HTMLInputElement>(null!);
   const emailRef = useRef<HTMLInputElement>(null!);
@@ -154,6 +158,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
+  const [selectedTimeFormat, setSelectedTimeFormat] = useState({
+    value: props.user.timeFormat || 12,
+    label: timeFormatOptions.find((option) => option.value === props.user.timeFormat)?.label || 12,
+  });
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
     value: props.user.weekStart,
@@ -168,6 +176,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [brandColor, setBrandColor] = useState(props.user.brandColor);
+  const [darkBrandColor, setDarkBrandColor] = useState(props.user.darkBrandColor);
 
   useEffect(() => {
     if (!props.user.theme) return;
@@ -186,10 +195,12 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredDescription = descriptionRef.current.value;
     const enteredAvatar = avatarRef.current.value;
     const enteredBrandColor = brandColor;
+    const enteredDarkBrandColor = darkBrandColor;
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
+    const enteredTimeFormat = selectedTimeFormat.value;
 
     // TODO: Add validation
 
@@ -204,7 +215,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       hideBranding: enteredHideBranding,
       theme: asStringOrNull(selectedTheme?.value),
       brandColor: enteredBrandColor,
+      darkBrandColor: enteredDarkBrandColor,
       locale: enteredLanguage,
+      timeFormat: enteredTimeFormat,
     });
   }
 
@@ -214,12 +227,12 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       <div className="py-6 lg:pb-8">
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow space-y-6">
-            <div className="block space-x-2 rtl:space-x-reverse sm:flex">
+            <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
               <div className="mb-6 w-full sm:w-1/2">
                 <TextField
                   name="username"
                   addOnLeading={
-                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
@@ -349,6 +362,21 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div>
+              <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700">
+                {t("time_format")}
+              </label>
+              <div className="mt-1">
+                <Select
+                  id="timeFormatSelect"
+                  value={selectedTimeFormat || props.user.timeFormat}
+                  onChange={(v) => v && setSelectedTimeFormat(v)}
+                  classNamePrefix="react-select"
+                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  options={timeFormatOptions}
+                />
+              </div>
+            </div>
+            <div>
               <label htmlFor="weekStart" className="block text-sm font-medium text-gray-700">
                 {t("first_day_of_week")}
               </label>
@@ -399,11 +427,19 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 </div>
               </div>
             </div>
-            <div>
-              <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
-                {t("brand_color")}
-              </label>
-              <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
+            <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
+              <div className="mb-6 w-full sm:w-1/2">
+                <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
+                  {t("light_brand_color")}
+                </label>
+                <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
+              </div>
+              <div className="mb-6 w-full sm:w-1/2">
+                <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
+                  {t("dark_brand_color")}
+                </label>
+                <ColorPicker defaultValue={props.user.darkBrandColor} onChange={setDarkBrandColor} />
+              </div>
               <hr className="mt-6" />
             </div>
             <div>
@@ -499,7 +535,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       theme: true,
       plan: true,
       brandColor: true,
+      darkBrandColor: true,
       metadata: true,
+      timeFormat: true,
     },
   });
 

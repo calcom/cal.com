@@ -16,6 +16,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
+import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -34,8 +35,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
+  const [is24h, setIs24h] = useState(isBrowserLocale24h());
 
-  const [is24h, setIs24h] = useState(false);
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
 
@@ -95,7 +96,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
-        <CustomBranding val={props.profile.brandColor} />
+        <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -319,6 +320,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           plan: true,
           theme: true,
           brandColor: true,
+          darkBrandColor: true,
         },
       },
       team: {
@@ -347,6 +349,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         plan: true,
         theme: true,
         brandColor: true,
+        darkBrandColor: true,
       },
     });
     if (user) {
@@ -364,6 +367,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor,
+    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,
   };
 
   return {

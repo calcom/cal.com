@@ -7,6 +7,8 @@ import {
   ExternalLinkIcon,
   LinkIcon,
   UsersIcon,
+  UploadIcon,
+  ClipboardCopyIcon,
 } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
@@ -92,6 +94,14 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
     });
   }
 
+  const [isNativeShare, setNativeShare] = useState(true);
+
+  useEffect(() => {
+    if (!navigator.share) {
+      setNativeShare(false);
+    }
+  }, []);
+
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
@@ -149,6 +159,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                   <div className="flex items-center space-x-2 overflow-hidden rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
+                        border="border-2 border-white"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -228,16 +239,16 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                               {({ active }) => (
                                 <button
                                   onClick={() => {
-                                    showToast("Link copied!", "success");
                                     navigator.clipboard.writeText(
                                       `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
                                     );
+                                    showToast(t("link_copied"), "success");
                                   }}
                                   className={classNames(
                                     active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
                                     "group flex w-full items-center px-4 py-2 text-sm font-medium"
                                   )}>
-                                  <LinkIcon
+                                  <ClipboardCopyIcon
                                     className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
                                     aria-hidden="true"
                                   />
@@ -245,6 +256,33 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                                 </button>
                               )}
                             </Menu.Item>
+                            {isNativeShare ? (
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => {
+                                      navigator
+                                        .share({
+                                          title: t("share"),
+                                          text: t("share_event"),
+                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
+                                        })
+                                        .then(() => showToast(t("link_shared"), "success"))
+                                        .catch(() => showToast(t("failed"), "error"));
+                                    }}
+                                    className={classNames(
+                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
+                                      "group flex w-full items-center px-4 py-2 text-sm font-medium"
+                                    )}>
+                                    <UploadIcon
+                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
+                                      aria-hidden="true"
+                                    />
+                                    {t("share")}
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            ) : null}
                           </div>
                         </Menu.Items>
                       </Transition>
