@@ -12,6 +12,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdap
 import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
+import { deleteScheduledSMSReminders } from "@lib/reminders/reminderManager";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
@@ -67,6 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       uid: true,
       eventTypeId: true,
       destinationCalendar: true,
+      attendeeReminders: true,
     },
   });
 
@@ -127,6 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
+    attendeeReminders: bookingToDelete?.attendeeReminders,
   };
 
   // Hook up the webhook logic here
@@ -224,6 +227,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
   await sendCancelledEmails(evt);
+
+  // Can only delete scheduled SMS one at a time
+  for (const reminder of bookingToDelete.attendeeReminders) {
+    if (reminder.method === "SMS") {
+      deleteScheduledSMSReminders(reminder.referenceId);
+    }
+  }
 
   res.status(204).end();
 }

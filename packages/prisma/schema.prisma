@@ -331,7 +331,7 @@ model AttendeeReminder {
   bookingUid    String
   booking       Booking? @relation(fields: [bookingUid], references: [uid])
   method        String
-  referenceId   String
+  referenceId   String   @unique
   scheduledDate DateTime
   scheduled     Boolean
 }

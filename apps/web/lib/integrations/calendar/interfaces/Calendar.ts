@@ -1,4 +1,4 @@
-import { DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import { DestinationCalendar, SelectedCalendar, attendeeReminder } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
 import { PaymentInfo } from "@ee/lib/stripe/server";
@@ -56,6 +56,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   reminderPhone?: string;
+  attendeeReminders?: attendeeReminder[];
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {

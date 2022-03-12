@@ -22,13 +22,6 @@ export const scheduleSMSAttendeeReminders = async (
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
-  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ scheduledDate", scheduledDate);
-  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ currentDate", currentDate);
-  console.log("🚀 ~ file: reminderManager.tsx ~ line 25 ~ date7days", currentDate.add(7, "day"));
-  console.log(
-    "🚀 ~ file: reminderManager.tsx ~ line 25 ~ date7days",
-    scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))
-  );
 
   // Check the scheduled date and right now
   // Can only schedule at least 60 minutes in advance so send a reminder
@@ -102,5 +95,20 @@ export const scheduleSMSAttendeeReminders = async (
         scheduled: false,
       },
     });
+  }
+};
+
+// There are no bulk cancel so must do one at a time
+export const deleteScheduledSMSReminders = async (referenceId: string) => {
+  try {
+    await client.messages(referenceId).update({ status: "canceled" });
+
+    await prisma.attendeeReminder.delete({
+      where: {
+        referenceId: referenceId,
+      },
+    });
+  } catch (error) {
+    console.log(`Error canceling reminder with error ${error}`);
   }
 };
