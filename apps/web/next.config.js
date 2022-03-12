@@ -18,6 +18,7 @@ if (!process.env.NEXT_PUBLIC_APP_URL) {
   process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
 }
 process.env.NEXT_PUBLIC_BASE_URL = process.env.BASE_URL;
+console.warn("VARS", process.env.PLAYWRIGHT_SECRET);
 
 if (!process.env.EMAIL_FROM) {
   console.warn(

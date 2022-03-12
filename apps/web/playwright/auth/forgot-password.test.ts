@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("Can reset forgotten password", async ({ browser }) => {
+test.only("Can reset forgotten password", async ({ browser }) => {
   // Create a new incognito browser context
+  console.log("PLAYWRIGHT", process.env.PLAYWRIGHT_SECRET);
   const context = await browser.newContext({
     extraHTTPHeaders: {
       // Only needed for bypassing emails while testing
