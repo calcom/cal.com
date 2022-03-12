@@ -1369,19 +1369,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="truncate">
                                           <span
                                             className="text-sm ltr:ml-2 rtl:mr-2"
-                                            title={`${t("label")}: ${attendeeReminder.method}`}>
-                                            {t("label")}: {attendeeReminder.method}
+                                            title={`${t("method")}: ${attendeeReminder.method}`}>
+                                            {t("method")}: {attendeeReminder.method}
                                           </span>
                                         </div>
-                                        {attendeeReminder.time && (
-                                          <div className="truncate">
-                                            <span
-                                              className="text-sm ltr:ml-2 rtl:mr-2"
-                                              title={`${t("placeholder")}: ${attendeeReminder.unitTime}`}>
-                                              {t("placeholder")}: {attendeeReminder.unitTime}
-                                            </span>
-                                          </div>
-                                        )}
+                                        <div className="truncate">
+                                          <span
+                                            className="text-sm ltr:ml-2 rtl:mr-2"
+                                            title={`${t("placeholder")}: ${attendeeReminder.unitTime}`}>
+                                            {attendeeReminder.time} {attendeeReminder.unitTime}S{" "}
+                                            {t("send_before")}
+                                          </span>
+                                        </div>
                                       </div>
                                       <div className="flex">
                                         <Button
@@ -1410,7 +1409,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   color="secondary"
                                   type="button"
                                   StartIcon={PlusIcon}>
-                                  {t("add_input")}
+                                  {t("add_reminder")}
                                 </Button>
                               </li>
                             </ul>
@@ -1745,25 +1744,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <AttendeeReminderTypeFromForm
                       selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
-                        const customInput: EventTypeCustomInput = {
+                        const attendeeReminder: EventTypeAttendeeReminder = {
                           id: -1,
                           eventTypeId: -1,
-                          label: values.label,
-                          placeholder: values.placeholder,
-                          required: values.required,
-                          type: values.type,
+                          method: values.method,
+                          time: values.time,
+                          unitTime: values.unitTime,
                         };
 
-                        if (selectedCustomInput) {
-                          selectedCustomInput.label = customInput.label;
-                          selectedCustomInput.placeholder = customInput.placeholder;
-                          selectedCustomInput.required = customInput.required;
-                          selectedCustomInput.type = customInput.type;
+                        if (selectedAttendeeReminder) {
+                          selectedAttendeeReminder.method = attendeeReminder.method;
+                          selectedAttendeeReminder.time = attendeeReminder.time;
+                          selectedAttendeeReminder.unitTime = attendeeReminder.unitTime;
                         } else {
-                          setCustomInputs(customInputs.concat(customInput));
+                          setAttendeeReminders(attendeeReminders.concat(attendeeReminder));
                           formMethods.setValue(
-                            "customInputs",
-                            formMethods.getValues("customInputs").concat(customInput)
+                            "attendeeReminders",
+                            formMethods.getValues("attendeeReminders").concat(attendeeReminder)
                           );
                         }
                         setSelectedAttendeeReminderModalOpen(false);
