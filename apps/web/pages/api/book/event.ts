@@ -28,7 +28,7 @@ import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office36
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
-import { scheduleSMSAttendeeReminder, deleteScheduledSMSReminder } from "@lib/reminders/reminderManager";
+import { scheduleSMSAttendeeReminder, deleteScheduledSMSReminder } from "@lib/reminders/smsReminderManager";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";

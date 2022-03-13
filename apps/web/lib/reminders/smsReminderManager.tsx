@@ -3,7 +3,9 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import twilio from "twilio";
 
+import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
+import reminderTemplate from "@lib/reminders/templates/reminderTemplate";
 
 dayjs.extend(isBetween);
 
@@ -14,11 +16,10 @@ const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
 const client = twilio(TWILIO_SID, TWILIO_TOKEN);
 
 export const scheduleSMSAttendeeReminder = async (
-  uid: string,
-  reminderPhone: string,
-  startTime: string,
+  evt: CalendarEvent,
   attendeeReminder: EventTypeAttendeeReminder
 ) => {
+  const { startTime, reminderPhone, uid } = evt;
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
@@ -28,7 +29,7 @@ export const scheduleSMSAttendeeReminder = async (
   if (currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject)) {
     try {
       const response = await client.messages.create({
-        body: "This is a test",
+        body: reminderTemplate(evt),
         messagingServiceSid: TWILIO_MESSAGING_SID,
         to: reminderPhone,
       });
@@ -41,6 +42,7 @@ export const scheduleSMSAttendeeReminder = async (
             },
           },
           method: "SMS",
+          sendTo: reminderPhone,
           referenceId: response.sid,
           scheduledDate: dayjs().toDate(),
           scheduled: true,
@@ -60,7 +62,6 @@ export const scheduleSMSAttendeeReminder = async (
         scheduleType: "fixed",
         sendAt: scheduledDate.toDate(),
       });
-      console.log("🚀 ~ file: reminderManager.tsx ~ line 58 ~ response", response);
 
       await prisma.attendeeReminder.create({
         data: {
@@ -70,6 +71,7 @@ export const scheduleSMSAttendeeReminder = async (
             },
           },
           method: "SMS",
+          sendTo: reminderPhone,
           referenceId: response.sid,
           scheduledDate: scheduledDate.toDate(),
           scheduled: true,
@@ -90,6 +92,7 @@ export const scheduleSMSAttendeeReminder = async (
           },
         },
         method: "SMS",
+        sendTo: reminderPhone,
         referenceId: "",
         scheduledDate: scheduledDate.toDate(),
         scheduled: false,
