@@ -15,11 +15,16 @@ const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
 
 const client = twilio(TWILIO_SID, TWILIO_TOKEN);
 
+interface reminderPhone {
+  reminderPhone: string;
+}
+
 export const scheduleSMSAttendeeReminder = async (
   evt: CalendarEvent,
+  reminderPhone: string,
   attendeeReminder: EventTypeAttendeeReminder
 ) => {
-  const { startTime, reminderPhone, uid } = evt;
+  const { startTime, uid } = evt;
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);

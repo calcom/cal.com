@@ -562,7 +562,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Reschedule reminders
       for (const reminder of eventType.attendeeReminders) {
         if (reminder.method === "SMS" && evt.reminderPhone) {
-          await scheduleSMSAttendeeReminder(evt.uid!, evt.reminderPhone!, evt.startTime, reminder);
+          await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
         }
       }
     }
@@ -595,7 +595,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       for (const reminder of eventType.attendeeReminders) {
         if (reminder.method === "SMS" && evt.reminderPhone) {
-          await scheduleSMSAttendeeReminder(evt.uid!, evt.reminderPhone!, evt.startTime, reminder);
+          await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
         }
       }
     }

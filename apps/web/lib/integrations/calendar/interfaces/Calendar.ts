@@ -55,7 +55,7 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
-  reminderPhone?: string;
+  reminderPhone?: string | null;
   attendeeReminders?: attendeeReminder[];
 }
 
