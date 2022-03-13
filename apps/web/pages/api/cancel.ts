@@ -134,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
     userId: bookingToDelete.userId,
-    eventTypeId: bookingToDelete.eventTypeId as number,
+    eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
     triggerEvent: eventTrigger,
   };
   const subscribers = await getSubscribers(subscriberOptions);
