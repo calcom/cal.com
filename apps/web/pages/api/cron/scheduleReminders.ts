@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
+import prisma from "@lib/prisma";
 import reminderTemplate from "@lib/reminders/templates/reminderTemplate";
 
 const TWILIO_SID = process.env.TWILIO_SID;
@@ -31,23 +32,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
-      const evt = prisma.booking.findUnique({
+      const booking = prisma.booking.findUnique({
         where: {
           uid: reminder.bookingUid,
         },
         select: {
           title: true,
           startTime: true,
-          organizer: {
-            name: true,
-          },
+          user: true,
           attendees: true,
         },
       });
 
       try {
         const response = await client.messages.create({
-          body: reminderTemplate(evt),
+          body: reminderTemplate(
+            booking.title,
+            booking.user.name,
+            booking.startTime,
+            booking.attendees[0].timeZone
+          ),
           messagingServiceSid: TWILIO_MESSAGING_SID,
           to: reminder.sendTo,
           scheduleType: "fixed",

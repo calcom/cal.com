@@ -2,9 +2,14 @@ import dayjs from "dayjs";
 
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
-const reminderTemplate = (evt: CalendarEvent) => {
-  return `Hi, this is a reminder that you have a ${evt.title} with 
-  ${evt.organizer.name} at ${dayjs(evt.startTime).format("YYYY MMMM DD h:mmA")} ${evt.attendees[0].timeZone}`;
+const reminderTemplate = (
+  title: string,
+  organizerName: string,
+  startTime: string,
+  attendeeTimeZone: string
+) => {
+  return `Hi, this is a reminder that you have a ${title} with 
+  ${organizerName} at ${dayjs(startTime).format("YYYY MMMM DD h:mmA")} ${attendeeTimeZone}`;
 };
 
 export default reminderTemplate;

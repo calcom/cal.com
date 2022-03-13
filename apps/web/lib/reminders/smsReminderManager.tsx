@@ -34,7 +34,7 @@ export const scheduleSMSAttendeeReminder = async (
   if (currentDate.isBetween(startTimeObject.subtract(1, "hour"), startTimeObject)) {
     try {
       const response = await client.messages.create({
-        body: reminderTemplate(evt),
+        body: reminderTemplate(evt.title, evt.organizer.name, evt.startTime, evt.attendees[0].timeZone),
         messagingServiceSid: TWILIO_MESSAGING_SID,
         to: reminderPhone,
       });
@@ -61,7 +61,7 @@ export const scheduleSMSAttendeeReminder = async (
   if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
     try {
       const response = await client.messages.create({
-        body: reminderTemplate(evt),
+        body: reminderTemplate(evt.title, evt.organizer.name, evt.startTime, evt.attendees[0].timeZone),
         messagingServiceSid: TWILIO_MESSAGING_SID,
         to: reminderPhone,
         scheduleType: "fixed",
