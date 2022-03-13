@@ -3,11 +3,11 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";

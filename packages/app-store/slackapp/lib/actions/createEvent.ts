@@ -119,6 +119,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     language: foundUser?.locale ?? "en",
     customInputs: [{ label: "", value: "" }],
     metadata: {},
+    notes: "This event was created with slack.",
   };
 
   // Possible make the fetch_wrapped into a shared package?
@@ -135,5 +136,5 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     .then((data) => console.log(data))
     .catch((error) => console.error({ error }));
 
-  res.status(200).json("ok");
+  res.status(200).json({ response_action: "clear" });
 }
