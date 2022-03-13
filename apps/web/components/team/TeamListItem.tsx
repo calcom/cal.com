@@ -99,7 +99,7 @@ export default function TeamListItem(props: Props) {
             </>
           )}
           {!isInvitee && (
-            <div className="flex space-x-2 rtl:space-x-reverse">
+            <div className="flex rtl:space-x-reverse">
               <TeamRole role={team.role} />
 
               <Tooltip content={t("copy_link_team")}>
