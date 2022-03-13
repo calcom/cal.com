@@ -139,6 +139,7 @@ function DatePicker({
         frequency: eventLength,
         minimumBookingNotice,
         workingHours,
+        eventLength,
       }).length
     );
   };
