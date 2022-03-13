@@ -1,4 +1,5 @@
 import { BookingStatus } from "@prisma/client";
+import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
@@ -20,6 +21,7 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
   });
 
   if (!foundUser) res.status(200).json(NoUserMessage);
+
   const bookings = await prisma.booking.findMany({
     where: {
       OR: [
@@ -36,7 +38,7 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
       ],
       AND: [
         {
-          endTime: { gte: new Date() },
+          endTime: { gte: dayjs().startOf("day").toDate(), lte: dayjs().endOf("day").toDate() },
           AND: [
             { NOT: { status: { equals: BookingStatus.CANCELLED } } },
             { NOT: { status: { equals: BookingStatus.REJECTED } } },
