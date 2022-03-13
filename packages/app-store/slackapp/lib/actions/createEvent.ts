@@ -35,26 +35,28 @@ export type BookingCreateBody = {
 export default async function createEvent(req: NextApiRequest, res: NextApiResponse) {
   const {
     user,
-    state: { values },
+    view: {
+      state: { values },
+    },
   } = JSON.parse(req.body.payload);
 
   // This is a mess I have no idea why slack makes getting infomation this hard.
   const {
-    "/yDN": {
+    eventName: {
       event_name: { value: selected_name },
     },
-    "r8/": {
+    eventType: {
       "create.event.type": {
         selected_option: { value: selected_event_id },
       },
     },
-    J037A: {
+    selectedUsers: {
       invite_users: { selected_users },
     },
-    bt5Nc: {
+    eventDate: {
       event_date: { selected_date },
     },
-    pZP: {
+    eventTime: {
       event_start_time: { selected_time },
     },
   } = values;
@@ -100,9 +102,11 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     async (userId: string) => await getUserEmail(client, userId)
   );
 
+  const startDate = dayjs(`${selected_date} ${selected_time}`, "YYYY-MM-DD HH:mm");
+
   const PostData: BookingCreateBody = {
-    start: dayjs(selected_date).format(),
-    end: dayjs(selected_date)
+    start: dayjs(startDate).format(),
+    end: dayjs(startDate)
       .add(foundUser?.eventTypes[0]?.length ?? 0, "minute")
       .format(),
     eventTypeId: foundUser?.eventTypes[0]?.id ?? 0,
@@ -118,6 +122,8 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   };
 
   // Possible make the fetch_wrapped into a shared package?
+  console.log(JSON.stringify(PostData, null, 2));
+
   fetch(`${BASE_URL}/api/book/event`, {
     method: "POST",
     body: JSON.stringify(PostData),

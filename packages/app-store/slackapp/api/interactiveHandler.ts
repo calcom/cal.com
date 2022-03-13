@@ -10,11 +10,10 @@ enum InteractionEvents {
 export default async function interactiveHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const payload = JSON.parse(req.body.payload);
-
-    const actions = payload.actions;
+    const actions = payload.view.callback_id;
 
     // I've not found a case where actions is ever > than 1 when this function is called.
-    switch (actions[0]?.action_id) {
+    switch (actions) {
       case InteractionEvents.CREATE_EVENT:
         return await createEvent(req, res);
       default:
