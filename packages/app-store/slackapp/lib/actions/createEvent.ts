@@ -133,8 +133,8 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     },
   })
     .then((res) => res.json())
-    .then((data) => console.log(data))
-    .catch((error) => console.error({ error }));
-
-  res.status(200).json({ response_action: "clear" });
+    .catch((error) =>
+      res.status(200).json({ text: "Event creation failed. Please try again", response_action: "clear" })
+    );
+  res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
 }
