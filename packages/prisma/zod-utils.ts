@@ -4,7 +4,11 @@ import { LocationType } from "@calcom/lib/location";
 import { slugify } from "@calcom/lib/slugify";
 
 export const eventTypeLocations = z.array(
-  z.object({ type: z.nativeEnum(LocationType), address: z.string().optional() })
+  z.object({
+    type: z.nativeEnum(LocationType),
+    address: z.string().optional(),
+    link: z.string().url().optional(),
+  })
 );
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
