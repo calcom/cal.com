@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
+import reminderTemplate from "@lib/reminders/templates/reminderTemplate";
+
 const TWILIO_SID = process.env.TWILIO_SID;
 const TWILIO_TOKEN = process.env.TWILIO_TOKEN;
 const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
@@ -28,10 +30,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const inSevenDays = dayjs().add(7, "day");
 
   for (const reminder of unscheduledReminders) {
-    if (dayjs(reminder.scheduledDate).isBefore(inSevenDays))
+    if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
+      const evt = prisma.booking.findUnique({
+        where: {
+          uid: reminder.bookingUid,
+        },
+        select: {
+          title: true,
+          startTime: true,
+          organizer: {
+            name: true,
+          },
+          attendees: true,
+        },
+      });
+
       try {
         const response = await client.messages.create({
-          body: "This is a test",
+          body: reminderTemplate(evt),
           messagingServiceSid: TWILIO_MESSAGING_SID,
           to: reminder.sendTo,
           scheduleType: "fixed",
@@ -49,5 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } catch (error) {
         console.log(`Error scheduling SMS with error ${error}`);
       }
+    }
   }
 }

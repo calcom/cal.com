@@ -56,7 +56,7 @@ export const scheduleSMSAttendeeReminder = async (
   if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
     try {
       const response = await client.messages.create({
-        body: "This is a test",
+        body: reminderTemplate(evt),
         messagingServiceSid: TWILIO_MESSAGING_SID,
         to: reminderPhone,
         scheduleType: "fixed",
