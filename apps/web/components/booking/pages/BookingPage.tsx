@@ -142,11 +142,12 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
   };
+  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: session?.user?.name || (router.query.name as string) || "",
-        email: session?.user?.email || (router.query.email as string) || "",
+        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
+        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
         customInputs: eventType.customInputs.reduce(
