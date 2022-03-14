@@ -1,6 +1,6 @@
+import type { Person } from "@calcom/lib/calendar/types/CalendarTypes";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
-import type { Person } from "@lib/apps/calendar/types/CalendarTypes";
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";

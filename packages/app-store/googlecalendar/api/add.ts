@@ -1,10 +1,9 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
+import { BASE_URL } from "@calcom/lib/constants";
 
-import { encodeOAuthState } from "../utils";
+import { encodeOAuthState } from "../../utils";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 const scopes = [
@@ -14,14 +13,6 @@ const scopes = [
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Check that user is authenticated
-    const session = await getSession({ req: req });
-
-    if (!session) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
     // Get token from Google Calendar API
     const { client_secret, client_id } = JSON.parse(credentials).web;
     const redirect_uri = BASE_URL + "/api/integrations/googlecalendar/callback";

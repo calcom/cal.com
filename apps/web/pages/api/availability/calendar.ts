@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/calendar/managers/CalendarManager";
+
 import { getSession } from "@lib/auth";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";

@@ -4,8 +4,8 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/calendar/managers/CalendarManager";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
 import { ALL_APPS } from "@lib/apps/utils/AppUtils";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";

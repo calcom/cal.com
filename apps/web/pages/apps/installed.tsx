@@ -3,8 +3,9 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
+import { CalendarListContainer } from "@calcom/lib/calendar/components/CalendarListContainer";
+
 import { QueryCell } from "@lib/QueryCell";
-import { CalendarListContainer } from "@lib/apps/calendar/components/CalendarListContainer";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";

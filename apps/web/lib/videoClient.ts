@@ -3,13 +3,13 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { getUid } from "@calcom/lib/CalEventParser";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
 
-import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
-import logger from "@lib/logger";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 

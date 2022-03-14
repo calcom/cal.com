@@ -5,7 +5,8 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getBusyCalendarTimes } from "@lib/apps/calendar/managers/CalendarManager";
+import { getBusyCalendarTimes } from "@calcom/lib/calendar/managers/CalendarManager";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";

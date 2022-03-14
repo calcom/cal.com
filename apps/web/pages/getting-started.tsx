@@ -17,8 +17,9 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
-import { CalendarListContainer } from "@lib/apps/calendar/components/CalendarListContainer";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
+import { CalendarListContainer } from "@calcom/lib/calendar/components/CalendarListContainer";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/calendar/managers/CalendarManager";
+
 import getApps from "@lib/apps/utils/AppUtils";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";

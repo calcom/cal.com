@@ -2,12 +2,12 @@ import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
 import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
+import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
-import { getUid } from "@lib/CalEventParser";
 import { EventResult } from "@lib/events/EventManager";
-import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 
 import AppleCalendarService from "../../../../apps/web/lib/apps/apple_calendar/services/CalendarService";

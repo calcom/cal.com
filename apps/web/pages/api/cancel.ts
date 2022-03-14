@@ -3,14 +3,14 @@ import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getCalendar } from "@calcom/lib/calendar/managers/CalendarManager";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import { refund } from "@ee/lib/stripe/server";
 
-import { getCalendar } from "@lib/apps/calendar/managers/CalendarManager";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
 import prisma from "@lib/prisma";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -159,6 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === "integrations:daily") {
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }

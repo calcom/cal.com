@@ -6,11 +6,11 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 import nodemailer from "nodemailer";
 
+import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
+import type { Person } from "@calcom/lib/calendar/types/CalendarTypes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 
-import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
-import type { Person } from "@lib/apps/calendar/types/CalendarTypes";
 import { getAppName } from "@lib/apps/utils/AppUtils";
 import { serverConfig } from "@lib/serverConfig";
 
