@@ -24,6 +24,7 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
+import { useMeQuery } from "../Shell";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
@@ -48,6 +49,20 @@ export default function MemberListItem(props: Props) {
       showToast(err.message, "error");
     },
   });
+
+  const ownersInTeam = () => {
+    const { members } = props.team;
+    const owners = members.filter((member) => member["role"] === "OWNER");
+    return owners.length;
+  };
+
+  const useCurrentUser = () => {
+    const query = useMeQuery();
+    const user = query.data;
+    return user?.id;
+  };
+
+  const currentUser = useCurrentUser();
 
   const name =
     props.member.name ||
@@ -121,8 +136,9 @@ export default function MemberListItem(props: Props) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="h-px bg-gray-200" />
-              {(props.team.membership.role === MembershipRole.OWNER ||
-                props.team.membership.role === MembershipRole.ADMIN) && (
+              {((props.team.membership.role === MembershipRole.OWNER &&
+                (props.member.role !== "OWNER" || (ownersInTeam() > 1 && props.member.id === currentUser))) ||
+                (props.team.membership.role === MembershipRole.ADMIN && props.member.role !== "OWNER")) && (
                 <>
                   <DropdownMenuItem>
                     <Button
@@ -165,6 +181,7 @@ export default function MemberListItem(props: Props) {
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
           isOpen={showChangeMemberRoleModal}
+          team={props.team}
           teamId={props.team?.id}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
