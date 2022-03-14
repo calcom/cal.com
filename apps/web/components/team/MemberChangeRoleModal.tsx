@@ -5,6 +5,7 @@ import React, { SyntheticEvent, useEffect } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
+import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
 import ModalContainer from "@components/ui/ModalContainer";
@@ -15,10 +16,11 @@ type MembershipRoleOption = {
   label?: string;
 };
 
-const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }];
+const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
+  team: TeamWithMembers;
   memberId: number;
   teamId: number;
   initialRole: MembershipRole;
@@ -48,6 +50,8 @@ export default function MemberChangeRoleModal(props: {
     },
   });
 
+  const memberRole = props.team?.membership.role;
+
   function changeRole(e: SyntheticEvent) {
     e.preventDefault();
 
@@ -57,7 +61,6 @@ export default function MemberChangeRoleModal(props: {
       role: role.value,
     });
   }
-
   return (
     <ModalContainer isOpen={props.isOpen} onExit={props.onExit}>
       <>
@@ -76,7 +79,7 @@ export default function MemberChangeRoleModal(props: {
             {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
             <Select
               isSearchable={false}
-              options={options}
+              options={memberRole !== MembershipRole.OWNER ? options.slice(0, 2) : options}
               value={role}
               onChange={(option) => option && setRole(option)}
               id="role"
