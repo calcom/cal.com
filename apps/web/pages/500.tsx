@@ -11,10 +11,10 @@ export default function Error500() {
       </Head>
       <div className="m-auto text-center">
         <h1 className="font-cal text-[250px] text-gray-900">
-          5<img src="error.svg" className="-mt-10 inline w-60" />0
+          5<img src="/error.svg" className="inline -mt-10 w-60" />0
         </h1>
-        <h2 className="-mt-16 mb-2 text-3xl text-gray-600">It&apos;s not you, it&apos;s us.</h2>
-        <p className="mb-4 max-w-2xl text-gray-500">
+        <h2 className="mb-2 -mt-16 text-3xl text-gray-600">It&apos;s not you, it&apos;s us.</h2>
+        <p className="max-w-2xl mb-4 text-gray-500">
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>
