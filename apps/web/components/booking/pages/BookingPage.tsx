@@ -55,7 +55,7 @@ const BookingPage = (props: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
-  const { eventType, successRedirect } = props;
+  const { eventType } = props;
 
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -92,7 +92,7 @@ const BookingPage = (props: BookingPageProps) => {
       })(responseData.location);
 
       return router.push({
-        pathname: successRedirect,
+        pathname: "/success",
         query: {
           date,
           type: props.eventType.id,

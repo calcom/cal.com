@@ -49,9 +49,11 @@ import DestinationCalendarSelector from "@components/DestinationCalendarSelector
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
+import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
+import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -98,9 +100,9 @@ const addDefaultLocationOptions = (
   });
 };
 
-const SuccessRedirectEdit = ({ eventType, formMethods }) => {
+const SuccessRedirectEdit = ({ eventType, formMethods, proUpgradeRequired }) => {
   const { t } = useLocale();
-
+  const [modalOpen, setModalOpen] = useState(false);
   return (
     <>
       <hr className="border-neutral-200" />
@@ -110,10 +112,19 @@ const SuccessRedirectEdit = ({ eventType, formMethods }) => {
             htmlFor="successRedirect"
             className="flex h-full items-center text-sm font-medium text-neutral-700">
             {t("redirect_success_booking")}
+            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
           </label>
         </div>
         <div className="w-full">
           <input
+            id="successRedirect"
+            onClick={(e) => {
+              if (proUpgradeRequired) {
+                e.preventDefault();
+                setModalOpen(true);
+              }
+            }}
+            readOnly={proUpgradeRequired}
             type="url"
             className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
             placeholder={t("external_redirect_url")}
@@ -121,6 +132,9 @@ const SuccessRedirectEdit = ({ eventType, formMethods }) => {
             {...formMethods.register("successRedirect")}
           />
         </div>
+        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
+          {t("redirect_url_upgrade_description")}
+        </UpgradeToProDialog>
       </div>
     </>
   );
@@ -1412,6 +1426,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <SuccessRedirectEdit
                           formMethods={formMethods}
+                          proUpgradeRequired={!team && eventType.users[0].plan !== "PRO"}
                           eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>
@@ -1748,6 +1763,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    plan: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({

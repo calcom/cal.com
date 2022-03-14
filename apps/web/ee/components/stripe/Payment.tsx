@@ -36,7 +36,6 @@ type Props = {
   eventType: { id: number };
   user: { username: string | null };
   location?: string | null;
-  successRedirect: string;
 };
 
 type States =

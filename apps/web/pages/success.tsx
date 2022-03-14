@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { EventType, Team, User } from "@calcom/prisma/client";
+
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -30,6 +32,84 @@ dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
+function redirectToExternalUrl(url) {
+  window.parent.location.href = url;
+}
+
+function isSuccessRedirectEnabled(eventType: inferSSRProps<typeof getServerSideProps>["eventType"]) {
+  return eventType.successRedirect && (eventType.users[0].plan !== "FREE" || eventType.team);
+}
+
+function RedirectionToast({ url }) {
+  const [timeRemaining, setTimeRemaining] = useState(10);
+  useEffect(() => {
+    let timer;
+    timer = setInterval(() => {
+      if (timeRemaining > 0) {
+        setTimeRemaining((timeRemaining) => {
+          return timeRemaining - 1;
+        });
+      } else {
+        redirectToExternalUrl(url);
+      }
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [timeRemaining]);
+  return (
+    <>
+      {/* z-index just higher than Success Message Box */}
+      <div className="fixed inset-x-0 top-4 z-[60] pb-2 sm:pb-5">
+        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+          <div className="rounded-sm bg-red-600 bg-green-500 p-2 shadow-lg sm:p-3">
+            <div className="flex flex-wrap items-center justify-between">
+              <div className="flex w-0 flex-1 items-center">
+                <p className="ml-3 truncate font-medium text-white">
+                  <span className="md:hidden">Redirecting ...</span>
+                  <span className="hidden md:inline">
+                    You are being redirected to {url} in {timeRemaining}{" "}
+                    {timeRemaining === 1 ? "second" : "seconds"}.
+                  </span>
+                </p>
+              </div>
+              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
+                <button
+                  onClick={() => {
+                    redirectToExternalUrl(url);
+                  }}
+                  className="flex items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm hover:bg-indigo-50">
+                  Continue
+                </button>
+              </div>
+              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+                <button
+                  type="button"
+                  className="-mr-1 flex rounded-md p-2 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
+                  <span className="sr-only">Dismiss</span>
+                  <svg
+                    className="h-6 w-6 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
@@ -39,7 +119,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
-
+  const { eventType } = props;
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
@@ -98,6 +178,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
+          {isSuccessRedirectEnabled(eventType) ? (
+            <RedirectionToast url={eventType.successRedirect}></RedirectionToast>
+          ) : null}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
@@ -313,6 +396,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventName: true,
       requiresConfirmation: true,
       userId: true,
+      successRedirect: true,
       users: {
         select: {
           name: true,
