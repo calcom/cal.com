@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "license": "AGPLv3",
+  "main": "./index.ts",
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
