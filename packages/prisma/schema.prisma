@@ -260,7 +260,7 @@ model Schedule {
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
   eventType    EventType?     @relation(fields: [eventTypeId], references: [id])
-  eventTypeId  Int?
+  eventTypeId  Int?           @unique
   name         String
   timeZone     String?
   availability Availability[]
