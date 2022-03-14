@@ -9,6 +9,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { scheduleEmailReminder } from "@ee/lib/reminders/emailReminderManager";
 import {
   scheduleSMSAttendeeReminder,
   deleteScheduledSMSReminder,
@@ -599,6 +600,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       for (const reminder of eventType.attendeeReminders) {
         if (reminder.method === "SMS" && evt.reminderPhone) {
           await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
+        }
+
+        if (reminder.method === "EMAIL") {
+          await scheduleEmailReminder(evt, evt.attendees[0].email, reminder);
         }
       }
     }
