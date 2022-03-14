@@ -8,7 +8,7 @@ import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { EventType, Team, User } from "@calcom/prisma/client";
 
@@ -17,6 +17,7 @@ import { getEventName } from "@lib/event";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -36,15 +37,14 @@ function redirectToExternalUrl(url) {
   window.parent.location.href = url;
 }
 
-function isSuccessRedirectEnabled(eventType: inferSSRProps<typeof getServerSideProps>["eventType"]) {
-  return eventType.successRedirect && (eventType.users[0].plan !== "FREE" || eventType.team);
-}
-
 function RedirectionToast({ url }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
+  const [isToastVisible, setIsToastVisible] = useState(true);
+  const { t } = useLocale();
+  const timerRef = useRef<number | null>(null);
+
   useEffect(() => {
-    let timer;
-    timer = setInterval(() => {
+    timerRef.current = window.setInterval(() => {
       if (timeRemaining > 0) {
         setTimeRemaining((timeRemaining) => {
           return timeRemaining - 1;
@@ -54,9 +54,14 @@ function RedirectionToast({ url }) {
       }
     }, 1000);
     return () => {
-      clearInterval(timer);
+      window.clearInterval(timerRef.current as number);
     };
-  }, [timeRemaining]);
+  }, [timeRemaining, url]);
+
+  if (!isToastVisible) {
+    return null;
+  }
+
   return (
     <>
       {/* z-index just higher than Success Message Box */}
@@ -79,14 +84,17 @@ function RedirectionToast({ url }) {
                     redirectToExternalUrl(url);
                   }}
                   className="flex items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm hover:bg-indigo-50">
-                  Continue
+                  {t("Continue")}
                 </button>
               </div>
               <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
                 <button
                   type="button"
+                  onClick={() => {
+                    setIsToastVisible(false);
+                    window.clearInterval(timerRef.current as number);
+                  }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
-                  <span className="sr-only">Dismiss</span>
                   <svg
                     className="h-6 w-6 text-white"
                     xmlns="http://www.w3.org/2000/svg"
@@ -178,7 +186,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
-          {isSuccessRedirectEnabled(eventType) ? (
+          {isSuccessRedirectAvailable(eventType) && eventType.successRedirect ? (
             <RedirectionToast url={eventType.successRedirect}></RedirectionToast>
           ) : null}
           <div className="fixed inset-0 z-50 overflow-y-auto">

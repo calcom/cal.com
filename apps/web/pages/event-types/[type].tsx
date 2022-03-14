@@ -23,7 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
@@ -37,6 +37,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
+import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationType } from "@lib/location";
 import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
@@ -100,8 +101,15 @@ const addDefaultLocationOptions = (
   });
 };
 
-const SuccessRedirectEdit = ({ eventType, formMethods, proUpgradeRequired }) => {
+const SuccessRedirectEdit = ({
+  eventType,
+  formMethods,
+}: {
+  eventType: inferSSRProps<typeof getServerSideProps>["eventType"];
+  formMethods: UseFormReturn;
+}) => {
   const { t } = useLocale();
+  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
   const [modalOpen, setModalOpen] = useState(false);
   return (
     <>
@@ -1426,7 +1434,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <SuccessRedirectEdit
                           formMethods={formMethods}
-                          proUpgradeRequired={!team && eventType.users[0].plan !== "PRO"}
                           eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>

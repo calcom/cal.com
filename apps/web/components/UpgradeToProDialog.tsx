@@ -13,6 +13,7 @@ export function UpgradeToProDialog({
 }: {
   modalOpen: boolean;
   setModalOpen: (open: boolean) => void;
+  children: React.ReactNode;
 }) {
   const { t } = useLocale();
   return (
