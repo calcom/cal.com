@@ -3,7 +3,7 @@ import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import React, { useState } from "react";
 
-import classNames from "@lib/classNames";
+import classNames from "@calcom/lib/classNames";
 
 type SwitchProps = React.ComponentProps<typeof PrimitiveSwitch.Root> & {
   label: string;
@@ -37,7 +37,7 @@ export default function Switch(props: SwitchProps) {
       {label && (
         <Label.Root
           htmlFor={id}
-          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3">
+          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
           {label}
         </Label.Root>
       )}
