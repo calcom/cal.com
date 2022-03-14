@@ -179,7 +179,6 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      console.log(input);
       const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
         input;
       const data: Prisma.EventTypeUpdateInput = rest;

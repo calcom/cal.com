@@ -206,6 +206,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     schedule.availability || (eventType.availability.length ? eventType.availability : user.availability)
   );
 
+  eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
   return {
