@@ -38,7 +38,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
-import { version } from "../package.json";
+import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
 import Button from "./ui/Button";
@@ -257,7 +257,7 @@ export default function Shell(props: {
                 </span>
               </div>
               <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-                &copy; {new Date().getFullYear()} Cal.com, Inc. v.{version + "-"}
+                &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
                 {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
                 <span className="lowercase">-{user && user.plan}</span>
               </small>
