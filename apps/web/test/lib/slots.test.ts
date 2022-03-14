@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import MockDate from "mockdate";
 
 import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
+import { getFilteredTimes } from "@lib/hooks/useSlots";
 import getSlots from "@lib/slots";
 
 dayjs.extend(utc);
@@ -26,6 +27,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(24);
 });
@@ -45,6 +47,7 @@ it("only shows future booking slots on the same day", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(12);
 });
@@ -62,6 +65,7 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(0);
 });
@@ -80,6 +84,7 @@ it("can cut off dates that due to invitee timezone differences fall on the previ
       frequency: 60,
       minimumBookingNotice: 0,
       workingHours,
+      eventLength: 60,
     })
   ).toHaveLength(0);
 });
@@ -98,6 +103,65 @@ it("adds minimum booking notice correctly", async () => {
           endTime: MINUTES_DAY_END,
         },
       ],
+      eventLength: 60,
     })
   ).toHaveLength(11);
+});
+
+it("adds buffer time", async () => {
+  expect(
+    getFilteredTimes({
+      times: getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        workingHours: [
+          {
+            days: Array.from(Array(7).keys()),
+            startTime: MINUTES_DAY_START,
+            endTime: MINUTES_DAY_END,
+          },
+        ],
+        eventLength: 60,
+      }),
+      busy: [
+        {
+          start: dayjs.utc("2021-06-21 12:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+          end: dayjs.utc("2021-06-21 13:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+        },
+      ],
+      eventLength: 60,
+      beforeBufferTime: 15,
+      afterBufferTime: 15,
+    })
+  ).toHaveLength(20);
+});
+
+it("adds buffer time with custom slot interval", async () => {
+  expect(
+    getFilteredTimes({
+      times: getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 5,
+        minimumBookingNotice: 0,
+        workingHours: [
+          {
+            days: Array.from(Array(7).keys()),
+            startTime: MINUTES_DAY_START,
+            endTime: MINUTES_DAY_END,
+          },
+        ],
+        eventLength: 60,
+      }),
+      busy: [
+        {
+          start: dayjs.utc("2021-06-21 12:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+          end: dayjs.utc("2021-06-21 13:50:00", "YYYY-MM-DD HH:mm:ss").toDate(),
+        },
+      ],
+      eventLength: 60,
+      beforeBufferTime: 15,
+      afterBufferTime: 15,
+    })
+  ).toHaveLength(239);
 });

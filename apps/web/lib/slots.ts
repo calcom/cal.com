@@ -15,26 +15,34 @@ export type GetSlots = {
   frequency: number;
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
+  eventLength: number;
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
 const splitAvailableTime = (
   startTimeMinutes: number,
   endTimeMinutes: number,
-  frequency: number
+  frequency: number,
+  eventLength: number
 ): Array<WorkingHoursTimeFrame> => {
   let initialTime = startTimeMinutes;
   const finalizationTime = endTimeMinutes;
   const result = [] as Array<WorkingHoursTimeFrame>;
   while (initialTime < finalizationTime) {
     const periodTime = initialTime + frequency;
-    result.push({ startTime: initialTime, endTime: periodTime });
+    const slotEndTime = initialTime + eventLength;
+    /*
+    check if the slot end time surpasses availability end time of the user 
+    1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
+    eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
+    */
+    if (slotEndTime <= finalizationTime + 1) result.push({ startTime: initialTime, endTime: periodTime });
     initialTime += frequency;
   }
   return result;
 };
 
-const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }: GetSlots) => {
+const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
   const startOfDay = dayjs.utc().startOf("day");
@@ -59,7 +67,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours }
 
   // Here we split working hour in chunks for every frequency available that can fit in whole working hour
   localWorkingHours.forEach((item, index) => {
-    slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency));
+    slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency, eventLength));
   });
 
   slotsTimeFrameAvailable.forEach((item) => {
