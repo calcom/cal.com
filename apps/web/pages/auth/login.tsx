@@ -58,8 +58,12 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  const callbackUrl =
-    typeof router.query?.callbackUrl === "string" ? `${WEBSITE_URL}/${router.query.callbackUrl}` : "/";
+  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
+
+  // If not absolute URL, make it absolute
+  if (!/^https?:\/\//.test(callbackUrl)) {
+    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
+  }
 
   const LoginFooter = (
     <span>
@@ -170,7 +174,7 @@ export default function Login({
             )}
             {isSAMLLoginEnabled && (
               <SAMLLogin
-                email={form.getValues("email")}
+                email={form.getValues("email").toLowerCase()}
                 samlTenantID={samlTenantID}
                 samlProductID={samlProductID}
                 hostedCal={hostedCal}

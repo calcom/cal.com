@@ -24,7 +24,7 @@ module.exports = {
       "zh-TW",
       "cs",
       "sr",
-      "sv"
+      "sv",
     ],
   },
   localePath: path.resolve("./public/static/locales"),

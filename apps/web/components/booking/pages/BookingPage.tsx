@@ -12,7 +12,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
-import { createPaymentLink } from "@ee/lib/stripe/client";
+import { createPaymentLink } from "@calcom/stripe/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -540,7 +540,9 @@ const BookingPage = (props: BookingPageProps) => {
                   </div>
                 </Form>
                 {mutation.isError && (
-                  <div className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                  <div
+                    data-testid="booking-fail"
+                    className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
                     <div className="flex">
                       <div className="flex-shrink-0">
                         <ExclamationIcon className="h-5 w-5 text-yellow-400" aria-hidden="true" />

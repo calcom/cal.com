@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getStripeCustomerId } from "@ee/lib/stripe/customer";
+import { getStripeCustomerId } from "@calcom/stripe/customer";
 
 import { getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
