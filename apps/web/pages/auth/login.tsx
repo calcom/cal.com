@@ -174,7 +174,7 @@ export default function Login({
             )}
             {isSAMLLoginEnabled && (
               <SAMLLogin
-                email={form.getValues("email")}
+                email={form.getValues("email").toLowerCase()}
                 samlTenantID={samlTenantID}
                 samlProductID={samlProductID}
                 hostedCal={hostedCal}
