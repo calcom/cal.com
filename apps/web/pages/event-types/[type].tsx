@@ -35,6 +35,7 @@ import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 
 import { StripeData } from "@calcom/stripe/server";
+import AttendeeReminderTypeFrom from "@ee/components/eventtype/AttendeeReminderTypeForm";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -55,7 +56,6 @@ import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
-import AttendeeReminderTypeFrom from "@components/pages/eventtypes/AttendeeReminderTypeForm";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -1356,71 +1356,75 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
 
-                        <hr className="border-neutral-200" />
-                        <div className="block items-center sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="attendeeReminders"
-                              className="flexflex mt-2 text-sm font-medium text-neutral-700">
-                              {t("attendee_reminders")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <ul className="mt-1">
-                              {attendeeReminders.map(
-                                (attendeeReminder: EventTypeAttendeeReminder, idx: number) => (
-                                  <li key={idx} className="bg-secondary-50 mb-2 border p-2">
-                                    <div className="flex justify-between">
-                                      <div className="w-0 flex-1">
-                                        <div className="truncate">
-                                          <span
-                                            className="text-sm ltr:ml-2 rtl:mr-2"
-                                            title={`${t("method")}: ${attendeeReminder.method}`}>
-                                            {t("method")}: {attendeeReminder.method}
-                                          </span>
+                        {(eventType.users[0].plan === "TRIAL" || eventType.users[0].plan === "PRO") && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block items-center sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="attendeeReminders"
+                                  className="flexflex mt-2 text-sm font-medium text-neutral-700">
+                                  {t("attendee_reminders")}
+                                </label>
+                              </div>
+                              <div className="w-full">
+                                <ul className="mt-1">
+                                  {attendeeReminders.map(
+                                    (attendeeReminder: EventTypeAttendeeReminder, idx: number) => (
+                                      <li key={idx} className="bg-secondary-50 mb-2 border p-2">
+                                        <div className="flex justify-between">
+                                          <div className="w-0 flex-1">
+                                            <div className="truncate">
+                                              <span
+                                                className="text-sm ltr:ml-2 rtl:mr-2"
+                                                title={`${t("method")}: ${attendeeReminder.method}`}>
+                                                {t("method")}: {attendeeReminder.method}
+                                              </span>
+                                            </div>
+                                            <div className="truncate">
+                                              <span
+                                                className="text-sm ltr:ml-2 rtl:mr-2"
+                                                title={`${t("placeholder")}: ${attendeeReminder.unitTime}`}>
+                                                {attendeeReminder.time} {attendeeReminder.unitTime}S{" "}
+                                                {t("send_before")}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className="flex">
+                                            <Button
+                                              onClick={() => {
+                                                setSelectedAttendeeReminder(attendeeReminder);
+                                                setSelectedAttendeeReminderModalOpen(true);
+                                              }}
+                                              color="minimal"
+                                              type="button">
+                                              {t("edit")}
+                                            </Button>
+                                            <button type="button" onClick={() => removeReminder(idx)}>
+                                              <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                            </button>
+                                          </div>
                                         </div>
-                                        <div className="truncate">
-                                          <span
-                                            className="text-sm ltr:ml-2 rtl:mr-2"
-                                            title={`${t("placeholder")}: ${attendeeReminder.unitTime}`}>
-                                            {attendeeReminder.time} {attendeeReminder.unitTime}S{" "}
-                                            {t("send_before")}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div className="flex">
-                                        <Button
-                                          onClick={() => {
-                                            setSelectedAttendeeReminder(attendeeReminder);
-                                            setSelectedAttendeeReminderModalOpen(true);
-                                          }}
-                                          color="minimal"
-                                          type="button">
-                                          {t("edit")}
-                                        </Button>
-                                        <button type="button" onClick={() => removeReminder(idx)}>
-                                          <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
-                                        </button>
-                                      </div>
-                                    </div>
+                                      </li>
+                                    )
+                                  )}
+                                  <li>
+                                    <Button
+                                      onClick={() => {
+                                        setSelectedAttendeeReminder(undefined);
+                                        setSelectedAttendeeReminderModalOpen(true);
+                                      }}
+                                      color="secondary"
+                                      type="button"
+                                      StartIcon={PlusIcon}>
+                                      {t("add_reminder")}
+                                    </Button>
                                   </li>
-                                )
-                              )}
-                              <li>
-                                <Button
-                                  onClick={() => {
-                                    setSelectedAttendeeReminder(undefined);
-                                    setSelectedAttendeeReminderModalOpen(true);
-                                  }}
-                                  color="secondary"
-                                  type="button"
-                                  StartIcon={PlusIcon}>
-                                  {t("add_reminder")}
-                                </Button>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
+                                </ul>
+                              </div>
+                            </div>
+                          </>
+                        )}
 
                         {hasPaymentIntegration && (
                           <>
@@ -1813,6 +1817,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    plan: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
