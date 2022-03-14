@@ -139,6 +139,7 @@ function DatePicker({
         frequency: eventLength,
         minimumBookingNotice,
         workingHours,
+        eventLength,
       }).length
     );
   };
@@ -181,7 +182,7 @@ function DatePicker({
 
     // Update dates with their availability
     doWorkAsync({
-      batch: 5,
+      batch: 1,
       name: "DatePicker",
       length: daysInMonth,
       callback: (i: number, isLast) => {
@@ -201,8 +202,8 @@ function DatePicker({
           date: day,
         };
       },
-      done: () => {
-        setDays(days);
+      batchDone: () => {
+        setDays([...days]);
       },
     });
 
@@ -278,7 +279,7 @@ function DatePicker({
                   "hover:border-brand hover:border dark:hover:border-white",
                   day.disabled ? "cursor-default font-light text-gray-400 hover:border-0" : "font-medium",
                   date && date.isSame(browsingDate.date(day.date), "day")
-                    ? "bg-brand text-brandcontrast"
+                    ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
                     : !day.disabled
                     ? " bg-gray-100 dark:bg-gray-600 dark:text-white"
                     : ""

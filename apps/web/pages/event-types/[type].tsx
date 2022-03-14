@@ -1,4 +1,4 @@
-import { PhoneIcon, XIcon } from "@heroicons/react/outline";
+import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
@@ -12,6 +12,8 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MembershipRole } from "@prisma/client";
 import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -26,8 +28,10 @@ import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
-import { StripeData } from "@ee/lib/stripe/server";
+import { StripeData } from "@calcom/stripe/server";
+import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -42,8 +46,10 @@ import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
+import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
@@ -51,12 +57,17 @@ import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeFor
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
+<<<<<<< HEAD
 import Switch from "@components/ui/Switch";
+=======
+import { Scheduler } from "@components/ui/Scheduler";
+>>>>>>> main
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
+import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
@@ -148,6 +159,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Link, label: t("link_meeting") },
     { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
   ];
@@ -292,13 +304,39 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                 defaultValue={
                   formMethods
                     .getValues("locations")
                     .find((location) => location.type === LocationType.InPerson)?.address
                 }
               />
+            </div>
+          </div>
+        );
+      case LocationType.Link:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_link_meeting")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationLink")}
+                id="address"
+                required
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                defaultValue={
+                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
+                    ?.link
+                }
+              />
+              {locationFormMethods.formState.errors.locationLink && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationLink.message}
+                </p>
+              )}
             </div>
           </div>
         );
@@ -380,7 +418,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
-    locations: { type: LocationType; address?: string }[];
+    locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     availability: {
@@ -393,6 +431,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     periodCountCalendarDays: "1" | "0";
     periodDates: { startDate: Date; endDate: Date };
     minimumBookingNotice: number;
+    beforeBufferTime: number;
+    afterBufferTime: number;
     slotInterval: number | null;
     destinationCalendar: {
       integration: string;
@@ -408,11 +448,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const locationFormSchema = z.object({
+    locationType: z.string(),
+    locationAddress: z.string().optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+  });
+
   const locationFormMethods = useForm<{
     locationType: LocationType;
-    locationAddress: string;
-  }>();
-
+    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
+    locationLink?: string; // Currently this only accepts links that are HTTPS://
+  }>({
+    resolver: zodResolver(locationFormSchema),
+  });
   const Locations = () => {
     return (
       <div className="w-full">
@@ -446,6 +494,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.address}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.Link && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.link}
                       />
                     </div>
                   )}
@@ -515,7 +573,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     </div>
                   )}
                   {location.type === LocationType.Daily && (
-                    <div className="flex flex-grow">
+                    <div className="flex flex-grow items-center">
                       <svg
                         id="svg"
                         version="1.1"
@@ -656,7 +714,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex rounded-sm px-3 py-2 hover:bg-gray-100"
+                    className="flex rounded-sm  py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
@@ -669,10 +727,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   };
 
+  const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
+  const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
   return (
     <div>
       <Shell
-        centered
         title={t("event_type_title", { eventTypeTitle: eventType.title })}
         heading={
           <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
@@ -702,518 +762,623 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           </div>
         }
         subtitle={eventType.description || ""}>
-        <div className="mx-auto block sm:flex md:max-w-5xl">
-          <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
-            <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
-              <Form
-                form={formMethods}
-                handleSubmit={async (values) => {
-                  const { periodDates, periodCountCalendarDays, smartContractAddress, ...input } = values;
-
-                  updateMutation.mutate({
-                    ...input,
-                    availability: availabilityState,
-                    periodStartDate: periodDates.startDate,
-                    periodEndDate: periodDates.endDate,
-                    periodCountCalendarDays: periodCountCalendarDays === "1",
-                    id: eventType.id,
-                    metadata: smartContractAddress
-                      ? {
-                          smartContractAddress,
-                        }
-                      : "",
-                  });
-                }}
-                className="space-y-6">
-                <div className="space-y-3">
-                  <div className="block items-center sm:flex">
-                    <div className="min-w-48 mb-4 sm:mb-0">
-                      <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
-                        <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                        {t("url")}
-                      </label>
-                    </div>
-                    <div className="w-full">
-                      <div className="flex rounded-sm shadow-sm">
-                        <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
-                          {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
-                          {team ? "team/" + team.slug : eventType.users[0].username}/
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
-                          defaultValue={eventType.slug}
-                          {...formMethods.register("slug", {
-                            setValueAs: (v) => slugify(v),
-                          })}
-                        />
+        <ClientSuspense fallback={<Loader />}>
+          <div className="flex flex-col-reverse lg:flex-row">
+            <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2 lg:w-9/12">
+              <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+                <Form
+                  form={formMethods}
+                  handleSubmit={async (values) => {
+                    const {
+                      periodDates,
+                      periodCountCalendarDays,
+                      smartContractAddress,
+                      beforeBufferTime,
+                      afterBufferTime,
+                      locations,
+                      ...input
+                    } = values;
+                    updateMutation.mutate({
+                      ...input,
+                      locations,
+                      availability: availabilityState,
+                      periodStartDate: periodDates.startDate,
+                      periodEndDate: periodDates.endDate,
+                      periodCountCalendarDays: periodCountCalendarDays === "1",
+                      id: eventType.id,
+                      beforeEventBuffer: beforeBufferTime,
+                      afterEventBuffer: afterBufferTime,
+                      metadata: smartContractAddress
+                        ? {
+                            smartContractAddress,
+                          }
+                        : "",
+                    });
+                  }}
+                  className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="block items-center sm:flex">
+                      <div className="min-w-48 mb-4 sm:mb-0">
+                        <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                          <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("url")}
+                        </label>
+                      </div>
+                      <div className="w-full">
+                        <div className="flex rounded-sm shadow-sm">
+                          <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+                            {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {team ? "team/" + team.slug : eventType.users[0].username}/
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+                            defaultValue={eventType.slug}
+                            {...formMethods.register("slug", {
+                              setValueAs: (v) => slugify(v),
+                            })}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Controller
-                    name="length"
-                    control={formMethods.control}
-                    defaultValue={eventType.length || 15}
-                    render={() => (
-                      <MinutesField
-                        label={
-                          <>
-                            <ClockIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                            {t("duration")}
-                          </>
-                        }
-                        id="length"
-                        required
-                        min="1"
-                        placeholder="15"
-                        defaultValue={eventType.length || 15}
-                        onChange={(e) => {
-                          formMethods.setValue("length", Number(e.target.value));
-                        }}
-                      />
-                    )}
-                  />
-                </div>
-                <hr />
-                <div className="space-y-3">
-                  <div className="block sm:flex">
-                    <div className="min-w-48 sm:mb-0">
-                      <label htmlFor="location" className="mt-2.5 flex text-sm font-medium text-neutral-700">
-                        <LocationMarkerIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                        {t("location")}
-                      </label>
-                    </div>
                     <Controller
-                      name="locations"
+                      name="length"
                       control={formMethods.control}
-                      defaultValue={eventType.locations || []}
-                      render={() => <Locations />}
+                      defaultValue={eventType.length || 15}
+                      render={() => (
+                        <MinutesField
+                          label={
+                            <>
+                              <ClockIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                              {t("duration")}
+                            </>
+                          }
+                          id="length"
+                          required
+                          min="1"
+                          placeholder="15"
+                          defaultValue={eventType.length || 15}
+                          onChange={(e) => {
+                            formMethods.setValue("length", Number(e.target.value));
+                          }}
+                        />
+                      )}
                     />
                   </div>
-                </div>
-                <hr className="border-neutral-200" />
-                <div className="space-y-3">
-                  <div className="block sm:flex">
-                    <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
-                      <label htmlFor="description" className="mt-0 flex text-sm font-medium text-neutral-700">
-                        <DocumentIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                        {t("description")}
-                      </label>
-                    </div>
-                    <div className="w-full">
-                      <textarea
-                        id="description"
-                        className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-                        placeholder={t("quick_video_meeting")}
-                        {...formMethods.register("description")}
-                        defaultValue={asStringOrUndefined(eventType.description)}></textarea>
-                    </div>
-                  </div>
-                </div>
-                {team && <hr className="border-neutral-200" />}
-                {team && (
+                  <hr />
                   <div className="space-y-3">
                     <div className="block sm:flex">
-                      <div className="min-w-48 mb-4 sm:mb-0">
+                      <div className="min-w-48 sm:mb-0">
                         <label
-                          htmlFor="schedulingType"
-                          className="mt-2 flex text-sm font-medium text-neutral-700">
-                          <UsersIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                          {t("scheduling_type")}
+                          htmlFor="location"
+                          className="mt-2.5 flex text-sm font-medium text-neutral-700">
+                          <LocationMarkerIcon className="mt-0.5 mb-4 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("location")}
                         </label>
                       </div>
                       <Controller
-                        name="schedulingType"
+                        name="locations"
                         control={formMethods.control}
-                        defaultValue={eventType.schedulingType}
-                        render={() => (
-                          <RadioArea.Select
-                            value={asStringOrUndefined(eventType.schedulingType)}
-                            options={schedulingTypeOptions}
-                            onChange={(val) => {
-                              // FIXME: Better types are needed
-                              formMethods.setValue("schedulingType", val as SchedulingType);
-                            }}
-                          />
-                        )}
+                        defaultValue={eventType.locations || []}
+                        render={() => <Locations />}
                       />
                     </div>
-
+                  </div>
+                  <hr className="border-neutral-200" />
+                  <div className="space-y-3">
                     <div className="block sm:flex">
-                      <div className="min-w-48 mb-4 sm:mb-0">
-                        <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
-                          <UserAddIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
-                          {t("attendees")}
+                      <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
+                        <label
+                          htmlFor="description"
+                          className="mt-0 flex text-sm font-medium text-neutral-700">
+                          <DocumentIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("description")}
                         </label>
                       </div>
-                      <div className="w-full space-y-2">
+                      <div className="w-full">
+                        <textarea
+                          id="description"
+                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                          placeholder={t("quick_video_meeting")}
+                          {...formMethods.register("description")}
+                          defaultValue={asStringOrUndefined(eventType.description)}></textarea>
+                      </div>
+                    </div>
+                  </div>
+                  {team && <hr className="border-neutral-200" />}
+                  {team && (
+                    <div className="space-y-3">
+                      <div className="block sm:flex">
+                        <div className="min-w-48 mb-4 sm:mb-0">
+                          <label
+                            htmlFor="schedulingType"
+                            className="mt-2 flex text-sm font-medium text-neutral-700">
+                            <UsersIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                            {t("scheduling_type")}
+                          </label>
+                        </div>
                         <Controller
-                          name="users"
+                          name="schedulingType"
                           control={formMethods.control}
-                          defaultValue={eventType.users.map((user) => user.id.toString())}
+                          defaultValue={eventType.schedulingType}
                           render={() => (
-                            <CheckedSelect
-                              disabled={false}
-                              onChange={(options) => {
-                                formMethods.setValue(
-                                  "users",
-                                  options.map((user) => user.value)
-                                );
+                            <RadioArea.Select
+                              value={asStringOrUndefined(eventType.schedulingType)}
+                              options={schedulingTypeOptions}
+                              onChange={(val) => {
+                                // FIXME: Better types are needed
+                                formMethods.setValue("schedulingType", val as SchedulingType);
                               }}
-                              defaultValue={eventType.users.map(mapUserToValue)}
-                              options={teamMembers.map(mapUserToValue)}
-                              placeholder={t("add_attendees")}
                             />
                           )}
                         />
                       </div>
+
+                      <div className="block sm:flex">
+                        <div className="min-w-48 mb-4 sm:mb-0">
+                          <label htmlFor="users" className="flex text-sm font-medium text-neutral-700">
+                            <UserAddIcon className="h-5 w-5 text-neutral-500 ltr:mr-2 rtl:ml-2" />{" "}
+                            {t("attendees")}
+                          </label>
+                        </div>
+                        <div className="w-full space-y-2">
+                          <Controller
+                            name="users"
+                            control={formMethods.control}
+                            defaultValue={eventType.users.map((user) => user.id.toString())}
+                            render={() => (
+                              <CheckedSelect
+                                disabled={false}
+                                onChange={(options) => {
+                                  formMethods.setValue(
+                                    "users",
+                                    options.map((user) => user.value)
+                                  );
+                                }}
+                                defaultValue={eventType.users.map(mapUserToValue)}
+                                options={teamMembers.map(mapUserToValue)}
+                                placeholder={t("add_attendees")}
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-                <Collapsible
-                  open={advancedSettingsVisible}
-                  onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
-                  <>
-                    <CollapsibleTrigger type="button" className="flex w-full">
-                      <ChevronRightIcon
-                        className={`${
-                          advancedSettingsVisible ? "rotate-90 transform" : ""
-                        } ml-auto h-5 w-5 text-neutral-500`}
-                      />
-                      <span className="text-sm font-medium text-neutral-700">
-                        {t("show_advanced_settings")}
-                      </span>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4 space-y-6">
-                      {/**
-                       * Only display calendar selector if user has connected calendars AND if it's not
-                       * a team event. Since we don't have logic to handle each attende calendar (for now).
-                       * This will fallback to each user selected destination calendar.
-                       */}
-                      {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
+                  )}
+                  <Collapsible
+                    open={advancedSettingsVisible}
+                    onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
+                    <>
+                      <CollapsibleTrigger type="button" className="flex w-full">
+                        <ChevronRightIcon
+                          className={`${
+                            advancedSettingsVisible ? "rotate-90 transform" : ""
+                          } ml-auto h-5 w-5 text-neutral-500`}
+                        />
+                        <span className="text-sm font-medium text-neutral-700">
+                          {t("show_advanced_settings")}
+                        </span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-4 space-y-6">
+                        {/**
+                         * Only display calendar selector if user has connected calendars AND if it's not
+                         * a team event. Since we don't have logic to handle each attende calendar (for now).
+                         * This will fallback to each user selected destination calendar.
+                         */}
+                        {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
+                          <div className="block items-center sm:flex">
+                            <div className="min-w-48 mb-4 sm:mb-0">
+                              <label
+                                htmlFor="createEventsOn"
+                                className="flex text-sm font-medium text-neutral-700">
+                                {t("create_events_on")}
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <div className="relative mt-1 rounded-sm shadow-sm">
+                                <Controller
+                                  control={formMethods.control}
+                                  name="destinationCalendar"
+                                  defaultValue={eventType.destinationCalendar || undefined}
+                                  render={({ field: { onChange, value } }) => (
+                                    <DestinationCalendarSelector
+                                      value={value ? value.externalId : undefined}
+                                      onChange={onChange}
+                                      hidePlaceholder
+                                    />
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="block items-center sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                              {t("event_name")} <InfoBadge content={t("event_name_tooltip")} />
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="relative mt-1 rounded-sm shadow-sm">
+                              <input
+                                type="text"
+                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                placeholder={t("meeting_with_user")}
+                                defaultValue={eventType.eventName || ""}
+                                {...formMethods.register("eventName")}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        {eventType.isWeb3Active && (
+                          <div className="block items-center sm:flex">
+                            <div className="min-w-48 mb-4 sm:mb-0">
+                              <label
+                                htmlFor="smartContractAddress"
+                                className="flex text-sm font-medium text-neutral-700">
+                                {t("Smart Contract Address")}
+                              </label>
+                            </div>
+                            <div className="w-full">
+                              <div className="relative mt-1 rounded-sm shadow-sm">
+                                {
+                                  <input
+                                    type="text"
+                                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                    placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
+                                    defaultValue={(eventType.metadata.smartContractAddress || "") as string}
+                                    {...formMethods.register("smartContractAddress")}
+                                  />
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         <div className="block items-center sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
-                              htmlFor="createEventsOn"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("create_events_on")}
+                              htmlFor="additionalFields"
+                              className="flexflex mt-2 text-sm font-medium text-neutral-700">
+                              {t("additional_inputs")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <ul className="mt-1">
+                              {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+                                <li key={idx} className="bg-secondary-50 mb-2 border p-2">
+                                  <div className="flex justify-between">
+                                    <div className="w-0 flex-1">
+                                      <div className="truncate">
+                                        <span
+                                          className="text-sm ltr:ml-2 rtl:mr-2"
+                                          title={`${t("label")}: ${customInput.label}`}>
+                                          {t("label")}: {customInput.label}
+                                        </span>
+                                      </div>
+                                      {customInput.placeholder && (
+                                        <div className="truncate">
+                                          <span
+                                            className="text-sm ltr:ml-2 rtl:mr-2"
+                                            title={`${t("placeholder")}: ${customInput.placeholder}`}>
+                                            {t("placeholder")}: {customInput.placeholder}
+                                          </span>
+                                        </div>
+                                      )}
+                                      <div>
+                                        <span className="text-sm ltr:ml-2 rtl:mr-2">
+                                          {t("type")}: {customInput.type}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-sm ltr:ml-2 rtl:mr-2">
+                                          {customInput.required ? t("required") : t("optional")}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex">
+                                      <Button
+                                        onClick={() => {
+                                          setSelectedCustomInput(customInput);
+                                          setSelectedCustomInputModalOpen(true);
+                                        }}
+                                        color="minimal"
+                                        type="button">
+                                        {t("edit")}
+                                      </Button>
+                                      <button type="button" onClick={() => removeCustom(idx)}>
+                                        <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </li>
+                              ))}
+                              <li>
+                                <Button
+                                  onClick={() => {
+                                    setSelectedCustomInput(undefined);
+                                    setSelectedCustomInputModalOpen(true);
+                                  }}
+                                  color="secondary"
+                                  type="button"
+                                  StartIcon={PlusIcon}>
+                                  {t("add_input")}
+                                </Button>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <Controller
+                          name="requiresConfirmation"
+                          control={formMethods.control}
+                          defaultValue={eventType.requiresConfirmation}
+                          render={() => (
+                            <CheckboxField
+                              id="requiresConfirmation"
+                              name="requiresConfirmation"
+                              label={t("opt_in_booking")}
+                              description={t("opt_in_booking_description")}
+                              defaultChecked={eventType.requiresConfirmation}
+                              onChange={(e) => {
+                                formMethods.setValue("requiresConfirmation", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="disableGuests"
+                          control={formMethods.control}
+                          defaultValue={eventType.disableGuests}
+                          render={() => (
+                            <CheckboxField
+                              id="disableGuests"
+                              name="disableGuests"
+                              label={t("disable_guests")}
+                              description={t("disable_guests_description")}
+                              defaultChecked={eventType.disableGuests}
+                              onChange={(e) => {
+                                formMethods.setValue("disableGuests", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
+
+                        <hr className="my-2 border-neutral-200" />
+                        <Controller
+                          name="minimumBookingNotice"
+                          control={formMethods.control}
+                          defaultValue={eventType.minimumBookingNotice}
+                          render={() => (
+                            <MinutesField
+                              label={t("minimum_booking_notice")}
+                              required
+                              min="0"
+                              placeholder="120"
+                              defaultValue={eventType.minimumBookingNotice}
+                              onChange={(e) => {
+                                formMethods.setValue("minimumBookingNotice", Number(e.target.value));
+                              }}
+                            />
+                          )}
+                        />
+
+                        <div className="block items-center sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
+                              {t("slot_interval")}
                             </label>
                           </div>
                           <div className="w-full">
                             <div className="relative mt-1 rounded-sm shadow-sm">
                               <Controller
+                                name="slotInterval"
                                 control={formMethods.control}
-                                name="destinationCalendar"
-                                defaultValue={eventType.destinationCalendar || undefined}
-                                render={({ field: { onChange, value } }) => (
-                                  <DestinationCalendarSelector
-                                    value={value ? value.externalId : undefined}
-                                    onChange={onChange}
-                                    hidePlaceholder
-                                  />
-                                )}
+                                render={() => {
+                                  const slotIntervalOptions = [
+                                    {
+                                      label: t("slot_interval_default"),
+                                      value: -1,
+                                    },
+                                    ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                      label: minutes + " " + t("minutes"),
+                                      value: minutes,
+                                    })),
+                                  ];
+                                  return (
+                                    <Select
+                                      isSearchable={false}
+                                      classNamePrefix="react-select"
+                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                      onChange={(val) => {
+                                        formMethods.setValue(
+                                          "slotInterval",
+                                          val && (val.value || 0) > 0 ? val.value : null
+                                        );
+                                      }}
+                                      defaultValue={
+                                        slotIntervalOptions.find(
+                                          (option) => option.value === eventType.slotInterval
+                                        ) || slotIntervalOptions[0]
+                                      }
+                                      options={slotIntervalOptions}
+                                    />
+                                  );
+                                }}
                               />
                             </div>
                           </div>
                         </div>
-                      )}
-                      <div className="block items-center sm:flex">
-                        <div className="min-w-48 mb-4 sm:mb-0">
-                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                            {t("event_name")} <InfoBadge content={t("event_name_tooltip")} />
-                          </label>
-                        </div>
-                        <div className="w-full">
-                          <div className="relative mt-1 rounded-sm shadow-sm">
-                            <input
-                              type="text"
-                              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-                              placeholder={t("meeting_with_user")}
-                              defaultValue={eventType.eventName || ""}
-                              {...formMethods.register("eventName")}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      {eventType.isWeb3Active && (
-                        <div className="block items-center sm:flex">
+                        <hr className="my-2 border-neutral-200" />
+
+                        <div className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
-                              htmlFor="smartContractAddress"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("Smart Contract Address")}
+                              htmlFor="inviteesCanSchedule"
+                              className="mt-2.5 flex text-sm font-medium text-neutral-700">
+                              {t("invitees_can_schedule")}
                             </label>
                           </div>
                           <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
-                              {
-                                <input
-                                  type="text"
-                                  className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
-                                  {...formMethods.register("smartContractAddress")}
-                                />
-                              }
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="block items-center sm:flex">
-                        <div className="min-w-48 mb-4 sm:mb-0">
-                          <label
-                            htmlFor="additionalFields"
-                            className="flexflex mt-2 text-sm font-medium text-neutral-700">
-                            {t("additional_inputs")}
-                          </label>
-                        </div>
-                        <div className="w-full">
-                          <ul className="mt-1">
-                            {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-                              <li key={idx} className="bg-secondary-50 mb-2 border p-2">
-                                <div className="flex justify-between">
-                                  <div className="w-0 flex-1">
-                                    <div className="truncate">
-                                      <span
-                                        className="text-sm ltr:ml-2 rtl:mr-2"
-                                        title={`${t("label")}: ${customInput.label}`}>
-                                        {t("label")}: {customInput.label}
-                                      </span>
-                                    </div>
-                                    {customInput.placeholder && (
-                                      <div className="truncate">
-                                        <span
-                                          className="text-sm ltr:ml-2 rtl:mr-2"
-                                          title={`${t("placeholder")}: ${customInput.placeholder}`}>
-                                          {t("placeholder")}: {customInput.placeholder}
-                                        </span>
-                                      </div>
-                                    )}
-                                    <div>
-                                      <span className="text-sm ltr:ml-2 rtl:mr-2">
-                                        {t("type")}: {customInput.type}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="text-sm ltr:ml-2 rtl:mr-2">
-                                        {customInput.required ? t("required") : t("optional")}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="flex">
-                                    <Button
-                                      onClick={() => {
-                                        setSelectedCustomInput(customInput);
-                                        setSelectedCustomInputModalOpen(true);
-                                      }}
-                                      color="minimal"
-                                      type="button">
-                                      {t("edit")}
-                                    </Button>
-                                    <button type="button" onClick={() => removeCustom(idx)}>
-                                      <XIcon className="h-6 w-6 border-l-2 pl-1 hover:text-red-500 " />
-                                    </button>
-                                  </div>
-                                </div>
-                              </li>
-                            ))}
-                            <li>
-                              <Button
-                                onClick={() => {
-                                  setSelectedCustomInput(undefined);
-                                  setSelectedCustomInputModalOpen(true);
-                                }}
-                                color="secondary"
-                                type="button"
-                                StartIcon={PlusIcon}>
-                                {t("add_input")}
-                              </Button>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <Controller
-                        name="requiresConfirmation"
-                        control={formMethods.control}
-                        defaultValue={eventType.requiresConfirmation}
-                        render={() => (
-                          <CheckboxField
-                            id="requiresConfirmation"
-                            name="requiresConfirmation"
-                            label={t("opt_in_booking")}
-                            description={t("opt_in_booking_description")}
-                            defaultChecked={eventType.requiresConfirmation}
-                            onChange={(e) => {
-                              formMethods.setValue("requiresConfirmation", e?.target.checked);
-                            }}
-                          />
-                        )}
-                      />
-
-                      <Controller
-                        name="disableGuests"
-                        control={formMethods.control}
-                        defaultValue={eventType.disableGuests}
-                        render={() => (
-                          <CheckboxField
-                            id="disableGuests"
-                            name="disableGuests"
-                            label={t("disable_guests")}
-                            description={t("disable_guests_description")}
-                            defaultChecked={eventType.disableGuests}
-                            onChange={(e) => {
-                              formMethods.setValue("disableGuests", e?.target.checked);
-                            }}
-                          />
-                        )}
-                      />
-
-                      <hr className="my-2 border-neutral-200" />
-                      <Controller
-                        name="minimumBookingNotice"
-                        control={formMethods.control}
-                        defaultValue={eventType.minimumBookingNotice}
-                        render={() => (
-                          <MinutesField
-                            label={t("minimum_booking_notice")}
-                            required
-                            min="0"
-                            placeholder="120"
-                            defaultValue={eventType.minimumBookingNotice}
-                            onChange={(e) => {
-                              formMethods.setValue("minimumBookingNotice", Number(e.target.value));
-                            }}
-                          />
-                        )}
-                      />
-
-                      <div className="block items-center sm:flex">
-                        <div className="min-w-48 mb-4 sm:mb-0">
-                          <label htmlFor="eventName" className="flex text-sm font-medium text-neutral-700">
-                            {t("slot_interval")}
-                          </label>
-                        </div>
-                        <div className="w-full">
-                          <div className="relative mt-1 rounded-sm shadow-sm">
                             <Controller
-                              name="slotInterval"
+                              name="periodType"
                               control={formMethods.control}
-                              render={() => {
-                                const slotIntervalOptions = [
-                                  {
-                                    label: t("slot_interval_default"),
-                                    value: -1,
-                                  },
-                                  ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
-                                    label: minutes + " " + t("minutes"),
-                                    value: minutes,
-                                  })),
-                                ];
-                                return (
-                                  <Select
-                                    isSearchable={false}
-                                    classNamePrefix="react-select"
-                                    className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                                    onChange={(val) => {
-                                      formMethods.setValue(
-                                        "slotInterval",
-                                        val && (val.value || 0) > 0 ? val.value : null
-                                      );
-                                    }}
-                                    defaultValue={
-                                      slotIntervalOptions.find(
-                                        (option) => option.value === eventType.slotInterval
-                                      ) || slotIntervalOptions[0]
-                                    }
-                                    options={slotIntervalOptions}
-                                  />
-                                );
-                              }}
+                              defaultValue={periodType?.type}
+                              render={() => (
+                                <RadioGroup.Root
+                                  defaultValue={periodType?.type}
+                                  onValueChange={(val) =>
+                                    formMethods.setValue("periodType", val as PeriodType)
+                                  }>
+                                  {PERIOD_TYPES.map((period) => (
+                                    <div className="mb-2 flex items-center text-sm" key={period.type}>
+                                      <RadioGroup.Item
+                                        id={period.type}
+                                        value={period.type}
+                                        className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                                        <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
+                                      </RadioGroup.Item>
+                                      {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
+                                      {period.type === "ROLLING" && (
+                                        <div className="inline-flex">
+                                          <input
+                                            type="number"
+                                            className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            placeholder="30"
+                                            {...formMethods.register("periodDays", { valueAsNumber: true })}
+                                            defaultValue={eventType.periodDays || 30}
+                                          />
+                                          <select
+                                            id=""
+                                            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+                                            {...formMethods.register("periodCountCalendarDays")}
+                                            defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
+                                            <option value="1">{t("calendar_days")}</option>
+                                            <option value="0">{t("business_days")}</option>
+                                          </select>
+                                        </div>
+                                      )}
+                                      {period.type === "RANGE" && (
+                                        <div className="inline-flex space-x-2 ltr:ml-2 rtl:mr-2 rtl:space-x-reverse">
+                                          <Controller
+                                            name="periodDates"
+                                            control={formMethods.control}
+                                            defaultValue={periodDates}
+                                            render={() => (
+                                              <DateRangePicker
+                                                startDate={formMethods.getValues("periodDates").startDate}
+                                                endDate={formMethods.getValues("periodDates").endDate}
+                                                onDatesChange={({ startDate, endDate }) => {
+                                                  formMethods.setValue("periodDates", { startDate, endDate });
+                                                }}
+                                              />
+                                            )}
+                                          />
+                                        </div>
+                                      )}
+                                      {period.suffix ? (
+                                        <span className="ltr:ml-2 rtl:mr-2">&nbsp;{period.suffix}</span>
+                                      ) : null}
+                                    </div>
+                                  ))}
+                                </RadioGroup.Root>
+                              )}
                             />
                           </div>
                         </div>
-                      </div>
-
-                      <div className="block sm:flex">
-                        <div className="min-w-48 mb-4 sm:mb-0">
-                          <label
-                            htmlFor="inviteesCanSchedule"
-                            className="mt-2.5 flex text-sm font-medium text-neutral-700">
-                            {t("invitees_can_schedule")}
-                          </label>
+                        <hr className="border-neutral-200" />
+                        <div className="block sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="bufferTime"
+                              className="mt-2.5 flex text-sm font-medium text-neutral-700">
+                              {t("buffer_time")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="inline-flex w-full space-x-2">
+                              <div className="w-full">
+                                <label
+                                  htmlFor="beforeBufferTime"
+                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                  {t("before_event")}
+                                </label>
+                                <Controller
+                                  name="beforeBufferTime"
+                                  control={formMethods.control}
+                                  defaultValue={eventType.beforeEventBuffer || 0}
+                                  render={({ field: { onChange, value } }) => {
+                                    const beforeBufferOptions = [
+                                      {
+                                        label: t("event_buffer_default"),
+                                        value: 0,
+                                      },
+                                      ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                        label: minutes + " " + t("minutes"),
+                                        value: minutes,
+                                      })),
+                                    ];
+                                    return (
+                                      <Select
+                                        isSearchable={false}
+                                        classNamePrefix="react-select"
+                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        onChange={(val) => {
+                                          if (val) onChange(val.value);
+                                        }}
+                                        defaultValue={
+                                          beforeBufferOptions.find((option) => option.value === value) ||
+                                          beforeBufferOptions[0]
+                                        }
+                                        options={beforeBufferOptions}
+                                      />
+                                    );
+                                  }}
+                                />
+                              </div>
+                              <div className="w-full">
+                                <label
+                                  htmlFor="afterBufferTime"
+                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                  {t("after_event")}
+                                </label>
+                                <Controller
+                                  name="afterBufferTime"
+                                  control={formMethods.control}
+                                  defaultValue={eventType.afterEventBuffer || 0}
+                                  render={({ field: { onChange, value } }) => {
+                                    const afterBufferOptions = [
+                                      {
+                                        label: t("event_buffer_default"),
+                                        value: 0,
+                                      },
+                                      ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                        label: minutes + " " + t("minutes"),
+                                        value: minutes,
+                                      })),
+                                    ];
+                                    return (
+                                      <Select
+                                        isSearchable={false}
+                                        classNamePrefix="react-select"
+                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        onChange={(val) => {
+                                          if (val) onChange(val.value);
+                                        }}
+                                        defaultValue={
+                                          afterBufferOptions.find((option) => option.value === value) ||
+                                          afterBufferOptions[0]
+                                        }
+                                        options={afterBufferOptions}
+                                      />
+                                    );
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="w-full">
-                          <Controller
-                            name="periodType"
-                            control={formMethods.control}
-                            defaultValue={periodType?.type}
-                            render={() => (
-                              <RadioGroup.Root
-                                defaultValue={periodType?.type}
-                                onValueChange={(val) =>
-                                  formMethods.setValue("periodType", val as PeriodType)
-                                }>
-                                {PERIOD_TYPES.map((period) => (
-                                  <div className="mb-2 flex items-center text-sm" key={period.type}>
-                                    <RadioGroup.Item
-                                      id={period.type}
-                                      value={period.type}
-                                      className="flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                                      <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
-                                    </RadioGroup.Item>
-                                    {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
-                                    {period.type === "ROLLING" && (
-                                      <div className="inline-flex">
-                                        <input
-                                          type="number"
-                                          className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                          placeholder="30"
-                                          {...formMethods.register("periodDays", { valueAsNumber: true })}
-                                          defaultValue={eventType.periodDays || 30}
-                                        />
-                                        <select
-                                          id=""
-                                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
-                                          {...formMethods.register("periodCountCalendarDays")}
-                                          defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
-                                          <option value="1">{t("calendar_days")}</option>
-                                          <option value="0">{t("business_days")}</option>
-                                        </select>
-                                      </div>
-                                    )}
-                                    {period.type === "RANGE" && (
-                                      <div className="inline-flex space-x-2 ltr:ml-2 rtl:mr-2 rtl:space-x-reverse">
-                                        <Controller
-                                          name="periodDates"
-                                          control={formMethods.control}
-                                          defaultValue={periodDates}
-                                          render={() => (
-                                            <DateRangePicker
-                                              startDate={formMethods.getValues("periodDates").startDate}
-                                              endDate={formMethods.getValues("periodDates").endDate}
-                                              onDatesChange={({ startDate, endDate }) => {
-                                                formMethods.setValue("periodDates", { startDate, endDate });
-                                              }}
-                                            />
-                                          )}
-                                        />
-                                      </div>
-                                    )}
-                                    {period.suffix ? (
-                                      <span className="ltr:ml-2 rtl:mr-2">&nbsp;{period.suffix}</span>
-                                    ) : null}
-                                  </div>
-                                ))}
-                              </RadioGroup.Root>
-                            )}
-                          />
-                        </div>
-                      </div>
-
-                      <hr className="border-neutral-200" />
-
                       <div className="block sm:flex">
                         <div className="min-w-48 mb-4 sm:mb-0">
                           <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
@@ -1237,305 +1402,317 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </a>
                           </Link>
                         </div>
-                      </div>
 
-                      {hasPaymentIntegration && (
-                        <>
-                          <hr className="border-neutral-200" />
-                          <div className="block sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <label
-                                htmlFor="payment"
-                                className="mt-2 flex text-sm font-medium text-neutral-700">
-                                {t("payment")}
-                              </label>
-                            </div>
-
-                            <div className="flex flex-col">
-                              <div className="w-full">
-                                <div className="block items-center sm:flex">
-                                  <div className="w-full">
-                                    <div className="relative flex items-start">
-                                      <div className="flex h-5 items-center">
-                                        <input
-                                          onChange={(event) => {
-                                            setRequirePayment(event.target.checked);
-                                            if (!event.target.checked) {
-                                              formMethods.setValue("price", 0);
-                                            }
-                                          }}
-                                          id="requirePayment"
-                                          name="requirePayment"
-                                          type="checkbox"
-                                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
-                                          defaultChecked={requirePayment}
-                                        />
-                                      </div>
-                                      <div className="text-sm ltr:ml-3 rtl:mr-3">
-                                        <p className="text-neutral-900">
-                                          {t("require_payment")} (0.5% +{" "}
-                                          <IntlProvider locale="en">
-                                            <FormattedNumber
-                                              value={0.1}
-                                              style="currency"
-                                              currency={currency}
-                                            />
-                                          </IntlProvider>{" "}
-                                          {t("commission_per_transaction")})
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                        {hasPaymentIntegration && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="payment"
+                                  className="mt-2 flex text-sm font-medium text-neutral-700">
+                                  {t("payment")}
+                                </label>
                               </div>
-                              {requirePayment && (
+
+                              <div className="flex flex-col">
                                 <div className="w-full">
                                   <div className="block items-center sm:flex">
                                     <div className="w-full">
-                                      <div className="relative mt-1 rounded-sm shadow-sm">
-                                        <Controller
-                                          defaultValue={eventType.price}
-                                          control={formMethods.control}
-                                          name="price"
-                                          render={({ field }) => (
-                                            <input
-                                              {...field}
-                                              step="0.01"
-                                              min="0.5"
-                                              type="number"
-                                              required
-                                              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
-                                              placeholder="Price"
-                                              onChange={(e) => {
-                                                field.onChange(e.target.valueAsNumber * 100);
-                                              }}
-                                              value={field.value > 0 ? field.value / 100 : 0}
-                                            />
-                                          )}
-                                        />
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                          <span className="text-gray-500 sm:text-sm" id="duration">
-                                            {new Intl.NumberFormat("en", {
-                                              style: "currency",
-                                              currency: currency,
-                                              maximumSignificantDigits: 1,
-                                              maximumFractionDigits: 0,
-                                            })
-                                              .format(0)
-                                              .replace("0", "")}
-                                          </span>
+                                      <div className="relative flex items-start">
+                                        <div className="flex h-5 items-center">
+                                          <input
+                                            onChange={(event) => {
+                                              setRequirePayment(event.target.checked);
+                                              if (!event.target.checked) {
+                                                formMethods.setValue("price", 0);
+                                              }
+                                            }}
+                                            id="requirePayment"
+                                            name="requirePayment"
+                                            type="checkbox"
+                                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                                            defaultChecked={requirePayment}
+                                          />
+                                        </div>
+                                        <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                          <p className="text-neutral-900">
+                                            {t("require_payment")} (0.5% +{" "}
+                                            <IntlProvider locale="en">
+                                              <FormattedNumber
+                                                value={0.1}
+                                                style="currency"
+                                                currency={currency}
+                                              />
+                                            </IntlProvider>{" "}
+                                            {t("commission_per_transaction")})
+                                          </p>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
-                              )}
+                                {requirePayment && (
+                                  <div className="w-full">
+                                    <div className="block items-center sm:flex">
+                                      <div className="w-full">
+                                        <div className="relative mt-1 rounded-sm shadow-sm">
+                                          <Controller
+                                            defaultValue={eventType.price}
+                                            control={formMethods.control}
+                                            name="price"
+                                            render={({ field }) => (
+                                              <input
+                                                {...field}
+                                                step="0.01"
+                                                min="0.5"
+                                                type="number"
+                                                required
+                                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                placeholder="Price"
+                                                onChange={(e) => {
+                                                  field.onChange(e.target.valueAsNumber * 100);
+                                                }}
+                                                value={field.value > 0 ? field.value / 100 : 0}
+                                              />
+                                            )}
+                                          />
+                                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                            <span className="text-gray-500 sm:text-sm" id="duration">
+                                              {new Intl.NumberFormat("en", {
+                                                style: "currency",
+                                                currency: currency,
+                                                maximumSignificantDigits: 1,
+                                                maximumFractionDigits: 0,
+                                              })
+                                                .format(0)
+                                                .replace("0", "")}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </>
-                      )}
-                    </CollapsibleContent>
-                  </>
-                  {/* )} */}
-                </Collapsible>
-                <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                  <Button href="/event-types" color="secondary" tabIndex={-1}>
-                    {t("cancel")}
-                  </Button>
-                  <Button type="submit" disabled={updateMutation.isLoading}>
-                    {t("update")}
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          </div>
-          <div className="mt-8 w-full min-w-[177px] px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 sm:w-3/12 ">
-            <div className="px-2">
-              <Controller
-                name="hidden"
-                control={formMethods.control}
-                defaultValue={eventType.hidden}
-                render={({ field }) => (
-                  <Switch
-                    defaultChecked={field.value}
-                    onCheckedChange={(isChecked) => {
-                      formMethods.setValue("hidden", isChecked);
-                    }}
-                    label={t("hide_event_type")}
-                  />
-                )}
-              />
-            </div>
-            <div className="mt-4 space-y-1.5">
-              <a
-                href={permalink}
-                target="_blank"
-                rel="noreferrer"
-                className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                <ExternalLinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
-                {t("preview")}
-              </a>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(permalink);
-                  showToast("Link copied!", "success");
-                }}
-                type="button"
-                className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-                <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                {t("copy_link")}
-              </button>
-              <Dialog>
-                <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
-                  <TrashIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                  {t("delete")}
-                </DialogTrigger>
-                <ConfirmationDialogContent
-                  variety="danger"
-                  title={t("delete_event_type")}
-                  confirmBtnText={t("confirm_delete_event_type")}
-                  onConfirm={deleteEventTypeHandler}>
-                  {t("delete_event_type_description")}
-                </ConfirmationDialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </div>
-        <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
-          <DialogContent asChild>
-            <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
-              <div className="mb-4 sm:flex sm:items-start">
-                <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-                  <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
-                </div>
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                    {t("edit_location")}
-                  </h3>
-                  <div>
-                    <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
+                          </>
+                        )}
+                      </CollapsibleContent>
+                    </>
+                    {/* )} */}
+                  </Collapsible>
+                  <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                    <Button href="/event-types" color="secondary" tabIndex={-1}>
+                      {t("cancel")}
+                    </Button>
+                    <Button type="submit" disabled={updateMutation.isLoading}>
+                      {t("update")}
+                    </Button>
                   </div>
-                </div>
+                </Form>
               </div>
-              <Form
-                form={locationFormMethods}
-                handleSubmit={async (values) => {
-                  const newLocation = values.locationType;
-
-                  let details = {};
-                  if (newLocation === LocationType.InPerson) {
-                    details = { address: values.locationAddress };
-                  }
-
-                  const existingIdx = formMethods
-                    .getValues("locations")
-                    .findIndex((loc) => values.locationType === loc.type);
-                  if (existingIdx !== -1) {
-                    const copy = formMethods.getValues("locations");
-                    copy[existingIdx] = {
-                      ...formMethods.getValues("locations")[existingIdx],
-                      ...details,
-                    };
-                    formMethods.setValue("locations", copy);
-                  } else {
-                    formMethods.setValue(
-                      "locations",
-                      formMethods.getValues("locations").concat({ type: values.locationType, ...details })
-                    );
-                  }
-
-                  setShowLocationModal(false);
-                }}>
+            </div>
+            <div className="m-0 mb-4 mt-0 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
+              <div className="px-2">
                 <Controller
-                  name="locationType"
-                  control={locationFormMethods.control}
-                  render={() => (
-                    <Select
-                      maxMenuHeight={100}
-                      name="location"
-                      defaultValue={selectedLocation}
-                      options={locationOptions}
-                      isSearchable={false}
-                      classNamePrefix="react-select"
-                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                      onChange={(val) => {
-                        if (val) {
-                          locationFormMethods.setValue("locationType", val.value);
-                          setSelectedLocation(val);
-                        }
+                  name="hidden"
+                  control={formMethods.control}
+                  defaultValue={eventType.hidden}
+                  render={({ field }) => (
+                    <Switch
+                      defaultChecked={field.value}
+                      onCheckedChange={(isChecked) => {
+                        formMethods.setValue("hidden", isChecked);
                       }}
+                      label={t("hide_event_type")}
                     />
                   )}
                 />
-                <LocationOptions />
-                <div className="mt-4 flex justify-end space-x-2">
-                  <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
-                    {t("cancel")}
-                  </Button>
-                  <Button type="submit">{t("update")}</Button>
-                </div>
-              </Form>
+              </div>
+              <div className="mt-4 space-y-1.5">
+                <a
+                  href={permalink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-md inline-flex items-center rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
+                  <ExternalLinkIcon
+                    className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2"
+                    aria-hidden="true"
+                  />
+                  {t("preview")}
+                </a>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Link copied!", "success");
+                  }}
+                  type="button"
+                  className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                  <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                  {t("copy_link")}
+                </button>
+                <Dialog>
+                  <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
+                    <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
+                    {t("delete")}
+                  </DialogTrigger>
+                  <ConfirmationDialogContent
+                    variety="danger"
+                    title={t("delete_event_type")}
+                    confirmBtnText={t("confirm_delete_event_type")}
+                    onConfirm={deleteEventTypeHandler}>
+                    {t("delete_event_type_description")}
+                  </ConfirmationDialogContent>
+                </Dialog>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
-        <Controller
-          name="customInputs"
-          control={formMethods.control}
-          defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
-          render={() => (
-            <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
-              <DialogContent asChild>
-                <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
-                  <div className="mb-4 sm:flex sm:items-start">
-                    <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-                      <PlusIcon className="text-primary-600 h-6 w-6" />
-                    </div>
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                        {t("add_new_custom_input_field")}
-                      </h3>
-                      <div>
-                        <p className="text-sm text-gray-400">
-                          {t("this_input_will_shown_booking_this_event")}
-                        </p>
-                      </div>
+          </div>
+          <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+            <DialogContent asChild>
+              <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+                <div className="mb-4 sm:flex sm:items-start">
+                  <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                    <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                      {t("edit_location")}
+                    </h3>
+                    <div>
+                      <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
                     </div>
                   </div>
-                  <CustomInputTypeForm
-                    selectedCustomInput={selectedCustomInput}
-                    onSubmit={(values) => {
-                      const customInput: EventTypeCustomInput = {
-                        id: -1,
-                        eventTypeId: -1,
-                        label: values.label,
-                        placeholder: values.placeholder,
-                        required: values.required,
-                        type: values.type,
-                      };
-
-                      if (selectedCustomInput) {
-                        selectedCustomInput.label = customInput.label;
-                        selectedCustomInput.placeholder = customInput.placeholder;
-                        selectedCustomInput.required = customInput.required;
-                        selectedCustomInput.type = customInput.type;
-                      } else {
-                        setCustomInputs(customInputs.concat(customInput));
-                        formMethods.setValue(
-                          "customInputs",
-                          formMethods.getValues("customInputs").concat(customInput)
-                        );
-                      }
-                      setSelectedCustomInputModalOpen(false);
-                    }}
-                    onCancel={() => {
-                      setSelectedCustomInputModalOpen(false);
-                    }}
-                  />
                 </div>
-              </DialogContent>
-            </Dialog>
+                <Form
+                  form={locationFormMethods}
+                  handleSubmit={async (values) => {
+                    const newLocation = values.locationType;
+
+                    let details = {};
+                    if (newLocation === LocationType.InPerson) {
+                      details = { address: values.locationAddress };
+                    }
+
+                    if (newLocation === LocationType.Link) {
+                      details = { link: values.locationLink };
+                    }
+                    const existingIdx = formMethods
+                      .getValues("locations")
+                      .findIndex((loc) => values.locationType === loc.type);
+                    if (existingIdx !== -1) {
+                      const copy = formMethods.getValues("locations");
+                      copy[existingIdx] = {
+                        ...formMethods.getValues("locations")[existingIdx],
+                        ...details,
+                      };
+                      formMethods.setValue("locations", copy);
+                    } else {
+                      formMethods.setValue(
+                        "locations",
+                        formMethods.getValues("locations").concat({ type: values.locationType, ...details })
+                      );
+                    }
+                    setShowLocationModal(false);
+                  }}>
+                  <Controller
+                    name="locationType"
+                    control={locationFormMethods.control}
+                    render={() => (
+                      <Select
+                        maxMenuHeight={100}
+                        name="location"
+                        defaultValue={selectedLocation}
+                        options={locationOptions}
+                        isSearchable={false}
+                        classNamePrefix="react-select"
+                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                        onChange={(val) => {
+                          if (val) {
+                            locationFormMethods.setValue("locationType", val.value);
+                            setSelectedLocation(val);
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                  <LocationOptions />
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
+                      {t("cancel")}
+                    </Button>
+                    <Button type="submit">{t("update")}</Button>
+                  </div>
+                </Form>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Controller
+            name="customInputs"
+            control={formMethods.control}
+            defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
+            render={() => (
+              <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
+                <DialogContent asChild>
+                  <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+                    <div className="mb-4 sm:flex sm:items-start">
+                      <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                        <PlusIcon className="text-primary-600 h-6 w-6" />
+                      </div>
+                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                          {t("add_new_custom_input_field")}
+                        </h3>
+                        <div>
+                          <p className="text-sm text-gray-400">
+                            {t("this_input_will_shown_booking_this_event")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <CustomInputTypeForm
+                      selectedCustomInput={selectedCustomInput}
+                      onSubmit={(values) => {
+                        const customInput: EventTypeCustomInput = {
+                          id: -1,
+                          eventTypeId: -1,
+                          label: values.label,
+                          placeholder: values.placeholder,
+                          required: values.required,
+                          type: values.type,
+                        };
+
+                        if (selectedCustomInput) {
+                          selectedCustomInput.label = customInput.label;
+                          selectedCustomInput.placeholder = customInput.placeholder;
+                          selectedCustomInput.required = customInput.required;
+                          selectedCustomInput.type = customInput.type;
+                        } else {
+                          setCustomInputs(customInputs.concat(customInput));
+                          formMethods.setValue(
+                            "customInputs",
+                            formMethods.getValues("customInputs").concat(customInput)
+                          );
+                        }
+                        setSelectedCustomInputModalOpen(false);
+                      }}
+                      onCancel={() => {
+                        setSelectedCustomInputModalOpen(false);
+                      }}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          />
+          {isAdmin && (
+            <WebhookListContainer
+              title={t("team_webhooks")}
+              subtitle={t("receive_cal_event_meeting_data")}
+              eventTypeId={props.eventType.id}
+            />
           )}
-        />
+        </ClientSuspense>
       </Shell>
     </div>
   );
@@ -1615,6 +1792,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       requiresConfirmation: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       slotInterval: true,
       team: {
         select: {
@@ -1624,6 +1803,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               accepted: true,
             },
             select: {
+              role: true,
               user: {
                 select: userSelect,
               },

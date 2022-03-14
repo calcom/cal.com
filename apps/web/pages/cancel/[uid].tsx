@@ -35,7 +35,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
         title={`${t("cancel")} ${props.booking && props.booking.title} | ${props.profile?.name}`}
         description={`${t("cancel")} ${props.booking && props.booking.title} | ${props.profile?.name}`}
       />
-      <CustomBranding val={props.profile?.brandColor} />
+      <CustomBranding lightVal={props.profile?.brandColor} darkVal={props.profile?.darkBrandColor} />
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -100,8 +100,10 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           className="mb-5 sm:mb-6"
                         />
                         <div className="space-x-2 text-center rtl:space-x-reverse">
+                          <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
+                            {t("reschedule_this")}
+                          </Button>
                           <Button
-                            color="secondary"
                             data-testid="cancel"
                             onClick={async () => {
                               setLoading(true);
@@ -141,9 +143,8 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               }
                             }}
                             loading={loading}>
-                            {t("cancel")}
+                            {t("cancel_event")}
                           </Button>
-                          <Button onClick={() => router.push("/reschedule/" + uid)}>{t("reschedule")}</Button>
                         </div>
                       </div>
                     )}
@@ -178,6 +179,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           username: true,
           name: true,
           brandColor: true,
+          darkBrandColor: true,
         },
       },
       eventType: {
@@ -209,6 +211,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     name: booking.eventType?.team?.name || booking.user?.name || null,
     slug: booking.eventType?.team?.slug || booking.user?.username || null,
     brandColor: booking.user?.brandColor || null,
+    darkBrandColor: booking.user?.darkBrandColor || null,
   };
 
   return {

@@ -45,6 +45,7 @@ async function getUserFromSession({
       twoFactorEnabled: true,
       identityProvider: true,
       brandColor: true,
+      darkBrandColor: true,
       plan: true,
       away: true,
       credentials: {
@@ -67,6 +68,8 @@ async function getUserFromSession({
       completedOnboarding: true,
       destinationCalendar: true,
       locale: true,
+      timeFormat: true,
+      trialEndsAt: true,
     },
   });
 

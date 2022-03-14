@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
-import { PaymentData } from "@ee/lib/stripe/server";
+import { PaymentData } from "@calcom/stripe/server";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";

@@ -1,6 +1,8 @@
 import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import Switch from "@calcom/ui/Switch";
+
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
@@ -11,7 +13,6 @@ import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
-import Switch from "@components/ui/Switch";
 
 import ConnectIntegration from "./ConnectIntegrations";
 import DisconnectIntegration from "./DisconnectIntegration";
