@@ -3,9 +3,10 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import twilio from "twilio";
 
+import reminderTemplate from "@ee/lib/reminders/templates/reminderTemplate";
+
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import reminderTemplate from "@lib/reminders/templates/reminderTemplate";
 
 dayjs.extend(isBetween);
 

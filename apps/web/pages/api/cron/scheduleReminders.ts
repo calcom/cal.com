@@ -4,8 +4,9 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
+import reminderTemplate from "@ee/lib/reminders/templates/reminderTemplate";
+
 import prisma from "@lib/prisma";
-import reminderTemplate from "@lib/reminders/templates/reminderTemplate";
 
 const TWILIO_SID = process.env.TWILIO_SID;
 const TWILIO_TOKEN = process.env.TWILIO_TOKEN;

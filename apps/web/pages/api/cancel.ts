@@ -3,6 +3,7 @@ import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { deleteScheduledSMSReminder } from "@ee/lib/reminders/smsReminderManager";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -12,7 +13,6 @@ import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdap
 import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import { deleteScheduledSMSReminder } from "@lib/reminders/smsReminderManager";
 import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";

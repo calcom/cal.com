@@ -9,6 +9,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import {
+  scheduleSMSAttendeeReminder,
+  deleteScheduledSMSReminder,
+} from "@ee/lib/reminders/smsReminderManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
@@ -28,7 +32,6 @@ import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office36
 import logger from "@lib/logger";
 import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
-import { scheduleSMSAttendeeReminder, deleteScheduledSMSReminder } from "@lib/reminders/smsReminderManager";
 import { BookingCreateBody } from "@lib/types/booking";
 import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
