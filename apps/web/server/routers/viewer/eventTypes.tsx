@@ -18,6 +18,16 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
 }
 
+function assertValidUrl(url) {
+  if (!url) {
+    return;
+  }
+
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+}
+
 function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
   if (typeof periodType !== "string") return undefined;
   const passedPeriodType = periodType.toUpperCase();
@@ -108,7 +118,7 @@ export const eventTypesRouter = createProtectedRouter()
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
-
+      assertValidUrl(input.successRedirect);
       const userId = ctx.user.id;
 
       const data: Prisma.EventTypeCreateInput = {
@@ -192,9 +202,9 @@ export const eventTypesRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
         input;
+      assertValidUrl(input.successRedirect);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
-
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
       }

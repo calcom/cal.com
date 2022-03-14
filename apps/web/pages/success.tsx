@@ -51,6 +51,7 @@ function RedirectionToast({ url }) {
         });
       } else {
         redirectToExternalUrl(url);
+        window.clearInterval(timerRef.current as number);
       }
     }, 1000);
     return () => {
