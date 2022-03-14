@@ -418,7 +418,7 @@ function UserDropdown({ small }: { small?: boolean }) {
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent portalled={true}>
         <DropdownMenuItem>
           <a
             onClick={() => {
