@@ -123,7 +123,7 @@ export default function MemberListItem(props: Props) {
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               {(props.team.membership.role === MembershipRole.OWNER ||
                 props.team.membership.role === MembershipRole.ADMIN) &&
-                props.member.role !== "OWNER" && (
+                props.member.role !== MembershipRole.OWNER && (
                   <>
                     <DropdownMenuItem>
                       <Button

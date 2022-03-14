@@ -39,20 +39,14 @@ export default function MemberChangeRoleModal(props: {
       role,
     });
 
-    if (role === "OWNER") {
+    if (role === MembershipRole.OWNER) {
       const members = props.team["members"];
-      let owner;
-
-      for (let i = 0; i < members.length; i++) {
-        if (members[i].role === "OWNER") {
-          owner = members[i].id;
-        }
-      }
+      const owner = members.find((member) => member.role === MembershipRole.OWNER);
 
       changeRoleMutation.mutate({
         teamId: props.teamId,
-        memberId: owner,
-        role: "ADMIN",
+        memberId: owner.id,
+        role: MembershipRole.ADMIN,
       });
     }
   }
@@ -79,7 +73,9 @@ export default function MemberChangeRoleModal(props: {
               className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm">
               <option value="MEMBER">{t("member")}</option>
               <option value="ADMIN">{t("admin")}</option>
-              {props.team["membership"].role === "OWNER" && <option value="OWNER">{t("owner")}</option>}
+              {props.team["membership"].role === MembershipRole.OWNER && (
+                <option value="OWNER">{t("owner")}</option>
+              )}
             </select>
           </div>
 
