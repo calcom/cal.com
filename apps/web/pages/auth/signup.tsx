@@ -158,7 +158,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   });
 
-  // for now, disable if no verificationTokenToken given or token expired
+  // for now, disable if no verificationToken given or token expired
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
