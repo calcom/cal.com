@@ -1,4 +1,4 @@
-import { PhoneIcon, XIcon } from "@heroicons/react/outline";
+import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
@@ -12,6 +12,7 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole } from "@prisma/client";
 import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
@@ -26,6 +27,7 @@ import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
 import { StripeData } from "@calcom/stripe/server";
 import Switch from "@calcom/ui/Switch";
@@ -147,6 +149,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Link, label: t("link_meeting") },
     { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
   ];
@@ -301,6 +304,32 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         );
+      case LocationType.Link:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_link_meeting")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationLink")}
+                id="address"
+                required
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                defaultValue={
+                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
+                    ?.link
+                }
+              />
+              {locationFormMethods.formState.errors.locationLink && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationLink.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       case LocationType.Phone:
         return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
       case LocationType.GoogleMeet:
@@ -379,7 +408,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
-    locations: { type: LocationType; address?: string }[];
+    locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     availability: {
@@ -409,11 +438,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const locationFormSchema = z.object({
+    locationType: z.string(),
+    locationAddress: z.string().optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+  });
+
   const locationFormMethods = useForm<{
     locationType: LocationType;
-    locationAddress: string;
-  }>();
-
+    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
+    locationLink?: string; // Currently this only accepts links that are HTTPS://
+  }>({
+    resolver: zodResolver(locationFormSchema),
+  });
   const Locations = () => {
     return (
       <div className="w-full">
@@ -447,6 +484,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.address}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.Link && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.link}
                       />
                     </div>
                   )}
@@ -718,10 +765,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       smartContractAddress,
                       beforeBufferTime,
                       afterBufferTime,
+                      locations,
                       ...input
                     } = values;
                     updateMutation.mutate({
                       ...input,
+                      locations,
                       availability: availabilityState,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
@@ -1555,6 +1604,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       details = { address: values.locationAddress };
                     }
 
+                    if (newLocation === LocationType.Link) {
+                      details = { link: values.locationLink };
+                    }
                     const existingIdx = formMethods
                       .getValues("locations")
                       .findIndex((loc) => values.locationType === loc.type);
@@ -1571,7 +1623,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         formMethods.getValues("locations").concat({ type: values.locationType, ...details })
                       );
                     }
-
                     setShowLocationModal(false);
                   }}>
                   <Controller

@@ -1,5 +1,3 @@
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -15,6 +13,8 @@ import Head from "next/head";
 import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { Button } from "@calcom/ui";
+
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -29,6 +29,11 @@ import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
+import Dropdown, {
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@components/ui/Dropdown";
 import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
@@ -194,101 +199,60 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 </div>
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
-                <Menu as="div" className="inline-block text-left">
-                  {({ open }) => (
-                    <>
-                      <div>
-                        <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
-                          <span className="sr-only">{t("open_options")}</span>
-                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                        </Menu.Button>
-                      </div>
-
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95">
-                        <Menu.Items
-                          static
-                          className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ExternalLinkIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  {t("preview")}
-                                </a>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
-                                    );
-                                    showToast(t("link_copied"), "success");
-                                  }}
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ClipboardCopyIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  {t("copy_link")}
-                                </button>
-                              )}
-                            </Menu.Item>
-                            {isNativeShare ? (
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    onClick={() => {
-                                      navigator
-                                        .share({
-                                          title: t("share"),
-                                          text: t("share_event"),
-                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
-                                        })
-                                        .then(() => showToast(t("link_shared"), "success"))
-                                        .catch(() => showToast(t("failed"), "error"));
-                                    }}
-                                    className={classNames(
-                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                      "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                    )}>
-                                    <UploadIcon
-                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    {t("share")}
-                                  </button>
-                                )}
-                              </Menu.Item>
-                            ) : null}
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </>
-                  )}
-                </Menu>
+                <Dropdown>
+                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent portalled>
+                    <DropdownMenuItem>
+                      <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}>
+                        <a target="_blank">
+                          <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
+                            {t("preview")}
+                          </Button>
+                        </a>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        className="w-full font-normal"
+                        data-testid={"event-type-duplicate-" + type.id}
+                        StartIcon={ClipboardCopyIcon}
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                          );
+                          showToast(t("link_copied"), "success");
+                        }}>
+                        {t("copy_link")}
+                      </Button>
+                    </DropdownMenuItem>
+                    {isNativeShare ? (
+                      <DropdownMenuItem>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          className="w-full font-normal"
+                          data-testid={"event-type-duplicate-" + type.id}
+                          StartIcon={UploadIcon}
+                          onClick={() => {
+                            navigator
+                              .share({
+                                title: t("share"),
+                                text: t("share_event"),
+                                url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
+                              })
+                              .then(() => showToast(t("link_shared"), "success"))
+                              .catch(() => showToast(t("failed"), "error"));
+                          }}>
+                          {t("share")}
+                        </Button>
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </Dropdown>
               </div>
             </div>
           </li>
