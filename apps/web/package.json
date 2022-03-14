@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -36,7 +36,6 @@
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.21.0",
     "@glidejs/glide": "^3.5.2",
-    "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.8.5",
