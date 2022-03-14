@@ -57,11 +57,6 @@ import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeFor
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
-<<<<<<< HEAD
-import Switch from "@components/ui/Switch";
-=======
-import { Scheduler } from "@components/ui/Scheduler";
->>>>>>> main
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
@@ -1379,28 +1374,31 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                      <div className="block sm:flex">
-                        <div className="min-w-48 mb-4 sm:mb-0">
-                          <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
-                            {t("availability")}
-                          </label>
-                        </div>
-                        <div className="w-full">
-                          <Controller
-                            name="schedule"
-                            control={formMethods.control}
-                            render={() => <AvailabilitySelect />}
-                          />
+                        <div className="block sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="availability"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("availability")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <Controller
+                              name="schedule"
+                              control={formMethods.control}
+                              render={() => <AvailabilitySelect />}
+                            />
 
-                          <Link href="/availability">
-                            <a>
-                              <Alert
-                                className="mt-1 text-xs"
-                                severity="info"
-                                message="You can manage your schedules on the Availability page."
-                              />
-                            </a>
-                          </Link>
+                            <Link href="/availability">
+                              <a>
+                                <Alert
+                                  className="mt-1 text-xs"
+                                  severity="info"
+                                  message="You can manage your schedules on the Availability page."
+                                />
+                              </a>
+                            </Link>
+                          </div>
                         </div>
 
                         {hasPaymentIntegration && (

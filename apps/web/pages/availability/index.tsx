@@ -67,23 +67,6 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <Link
-                      href={`?dialog=new-schedule&copy-schedule-id=${schedule.id}`}
-                      onClick={(e) => {
-                        e.target.blur();
-                      }}>
-                      <a>
-                        <Button
-                          type="button"
-                          color="minimal"
-                          className="w-full font-normal"
-                          StartIcon={DuplicateIcon}>
-                          {t("duplicate_schedule")}
-                        </Button>
-                      </a>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
                     <Button
                       onClick={() =>
                         deleteMutation.mutate({

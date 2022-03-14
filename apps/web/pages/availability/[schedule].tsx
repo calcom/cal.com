@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
+import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -17,7 +18,6 @@ import Schedule from "@components/availability/Schedule";
 import { Form } from "@components/form/fields";
 import Button from "@components/ui/Button";
 import EditableHeading from "@components/ui/EditableHeading";
-import Switch from "@components/ui/Switch";
 
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.schedule">) {
   const { t } = useLocale();
