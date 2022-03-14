@@ -1,7 +1,7 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
-const EditableHeading = ({ title }: { title: string }) => {
+const EditableHeading = ({ title, onChange }: { title: string; onChange: (value: string) => void }) => {
   const [editIcon, setEditIcon] = useState(true);
   return (
     <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
@@ -23,6 +23,7 @@ const EditableHeading = ({ title }: { title: string }) => {
             required
             className="relative h-10 w-full cursor-pointer border-none bg-transparent pl-0 text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
             defaultValue={title}
+            onChange={(e) => onChange(e.target.value)}
           />
         </div>
       )}

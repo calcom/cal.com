@@ -29,7 +29,7 @@ async function createUserAndEventType(opts: {
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
     locale: "en",
-    schedule: {
+    schedules: {
       create: {
         name: "Working Hours",
         availability: {

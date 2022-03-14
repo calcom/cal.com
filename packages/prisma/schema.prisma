@@ -62,7 +62,7 @@ model EventType {
   beforeEventBuffer       Int                    @default(0)
   afterEventBuffer        Int                    @default(0)
   schedulingType          SchedulingType?
-  Schedule                Schedule[]
+  schedule                Schedule?
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
@@ -128,7 +128,8 @@ model User {
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
-  schedule            Schedule?
+  schedules           Schedule[]
+  defaultScheduleId   Int?
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean              @default(false)
   locale              String?
@@ -261,6 +262,7 @@ model Schedule {
   eventType    EventType?     @relation(fields: [eventTypeId], references: [id])
   eventTypeId  Int?
   name         String
+  timeZone     String?
   availability Availability[]
 }
 

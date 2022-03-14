@@ -1,67 +1,45 @@
-import { Schedule, Availability } from "@prisma/client";
+import { DotsHorizontalIcon, DuplicateIcon, TrashIcon } from "@heroicons/react/solid";
+import { Availability } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 
+import { availabilityAsString } from "@calcom/lib/availability";
+import { Button } from "@calcom/ui";
+
 import { QueryCell } from "@lib/QueryCell";
-import { nameOfDay } from "@lib/core/i18n/weekday";
+import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
+import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
-import Button from "@components/ui/Button";
-
-function scheduleAsString(schedule: Schedule, locale: string) {
-  const weekSpan = (availability: Availability) => {
-    const days = availability.days.slice(1).reduce(
-      (days, day) => {
-        if (days[days.length - 1].length === 1 && days[days.length - 1][0] === day - 1) {
-          // append if the range is not complete (but the next day needs adding)
-          days[days.length - 1].push(day);
-        } else if (days[days.length - 1][days[days.length - 1].length - 1] === day - 1) {
-          // range complete, overwrite if the last day directly preceeds the current day
-          days[days.length - 1] = [days[days.length - 1][0], day];
-        } else {
-          // new range
-          days.push([day]);
-        }
-        return days;
-      },
-      [[availability.days[0]]] as number[][]
-    );
-    return days
-      .map((dayRange) => dayRange.map((day) => nameOfDay(locale, day, "short")).join(" - "))
-      .join(", ");
-  };
-
-  const timeSpan = (availability: Availability) => {
-    return (
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(availability.startTime) +
-      " - " +
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(availability.endTime)
-    );
-  };
-
-  return (
-    <>
-      {schedule.availability.map((availability: Availability) => (
-        <>
-          {weekSpan(availability)}, {timeSpan(availability)}
-          <br />
-        </>
-      ))}
-    </>
-  );
-}
+import { NewScheduleButton } from "@components/availability/NewScheduleButton";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@components/ui/Dropdown";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
+  const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
+    onSuccess: async () => {
+      showToast(t("availability_deleted_successfully"), "success");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="schedules">
         {schedules.map((schedule) => (
           <li key={schedule.id}>
-            <div className="flex items-center justify-between hover:bg-neutral-50">
-              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
+            <div className="flex items-center justify-between py-5 hover:bg-neutral-50">
+              <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
                 <Link href={"/availability/" + schedule.id}>
                   <a className="flex-grow truncate text-sm" title={schedule.name}>
                     <div>
@@ -73,11 +51,54 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                       )}
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {scheduleAsString(schedule, i18n.language)}
+                      {schedule.availability.map((availability: Availability) => (
+                        <>
+                          {availabilityAsString(availability, i18n.language)}
+                          <br />
+                        </>
+                      ))}
                     </p>
                   </a>
                 </Link>
               </div>
+              <Dropdown>
+                <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200">
+                  <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <Link
+                      href={`?dialog=new-schedule&copy-schedule-id=${schedule.id}`}
+                      onClick={(e) => {
+                        e.target.blur();
+                      }}>
+                      <a>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          className="w-full font-normal"
+                          StartIcon={DuplicateIcon}>
+                          {t("duplicate_schedule")}
+                        </Button>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() =>
+                        deleteMutation.mutate({
+                          scheduleId: schedule.id,
+                        })
+                      }
+                      type="button"
+                      color="minimal"
+                      className="w-full font-normal"
+                      StartIcon={TrashIcon}>
+                      {t("delete_schedule")}
+                    </Button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </Dropdown>
             </div>
           </li>
         ))}
@@ -91,14 +112,7 @@ export default function AvailabilityPage() {
   const query = trpc.useQuery(["viewer.availability.list"]);
   return (
     <div>
-      <Shell
-        heading={t("availability")}
-        subtitle={t("configure_availability")}
-        CTA={
-          <Link href="/availability/9">
-            <Button>New schedule</Button>
-          </Link>
-        }>
+      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
         <QueryCell query={query} success={({ data }) => <AvailabilityList {...data} />} />
       </Shell>
     </div>

@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
-import { getAvailabilityFromSchedule } from "@lib/availability";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
 import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
@@ -20,8 +19,8 @@ import {
   samlTenantProduct,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
-import { Schedule } from "@lib/types/schedule";
 
+import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -565,124 +564,6 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .query("availability.list", {
-    async resolve({ ctx }) {
-      const { prisma, user } = ctx;
-      const schedules = await prisma.schedule.findMany({
-        where: {
-          userId: user.id,
-        },
-        select: {
-          id: true,
-          name: true,
-          availability: true,
-        },
-      });
-      return {
-        schedules: schedules.map((schedule) => ({
-          ...schedule,
-          isDefault: user.schedule && schedule.id === user.schedule.id,
-        })),
-      };
-    },
-  })
-  .query("availability", {
-    input: z.object({
-      scheduleId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      const { prisma, user } = ctx;
-      const schedule = await prisma.schedule.findUnique({
-        where: {
-          id: input.scheduleId,
-        },
-        select: {
-          id: true,
-          userId: true,
-          name: true,
-          availability: true,
-        },
-      });
-      if (!schedule || schedule.userId !== user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-      const availability = schedule.availability.reduce(
-        (schedule: Schedule, availability) => {
-          availability.days.forEach((day) => {
-            schedule[day].push({
-              start: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.startTime.getUTCHours(),
-                  availability.startTime.getUTCMinutes()
-                )
-              ),
-              end: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.endTime.getUTCHours(),
-                  availability.endTime.getUTCMinutes()
-                )
-              ),
-            });
-          });
-          return schedule;
-        },
-        Array.from([...Array(7)]).map(() => [])
-      );
-      return {
-        schedule,
-        availability,
-        timeZone: user.timeZone,
-        isDefault: user.schedule && user.schedule.id === schedule.id,
-      };
-    },
-  })
-  .mutation("schedule.update", {
-    input: z.object({
-      scheduleId: z.number(),
-      timeZone: z.string().optional(),
-      schedule: z.array(
-        z.array(
-          z.object({
-            start: z.date(),
-            end: z.date(),
-          })
-        )
-      ),
-    }),
-    async resolve({ input, ctx }) {
-      const { user, prisma } = ctx;
-      const availability = getAvailabilityFromSchedule(input.schedule);
-      await prisma.schedule.update({
-        where: {
-          id: input.scheduleId,
-        },
-        data: {
-          availability: {
-            deleteMany: {
-              scheduleId: {
-                equals: input.scheduleId,
-              },
-            },
-            createMany: {
-              data: availability.map((schedule) => ({
-                days: schedule.days,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
-              })),
-            },
-          },
-        },
-      });
-    },
-  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -917,5 +798,6 @@ export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("eventTypes.", eventTypesRouter)
+  .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);
