@@ -175,6 +175,22 @@ function hexToRGB(hex: string) {
   return [parseInt(color.slice(0, 2), 16), parseInt(color.slice(2, 4), 16), parseInt(color.slice(4, 6), 16)];
 }
 
+function normalizeHexCode(hex: string | null, dark: boolean) {
+  if (!hex) {
+    return !dark ? brandColor : darkBrandColor;
+  }
+  hex = hex.replace("#", "");
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map(function (hex) {
+        return hex + hex;
+      })
+      .join("");
+  }
+  return hex;
+}
+
 function getContrastingTextColor(bgColor: string | null, dark: boolean): string {
   bgColor = bgColor == "" || bgColor == null ? (dark ? darkBrandColor : brandColor) : bgColor;
   const rgb = hexToRGB(bgColor);
@@ -204,6 +220,9 @@ const BrandColor = ({
   lightVal: string | undefined | null;
   darkVal: string | undefined | null;
 }) => {
+  // convert to 6 digit equivalent if 3 digit code is entered
+  lightVal = normalizeHexCode(lightVal, false);
+  darkVal = normalizeHexCode(darkVal, true);
   // ensure acceptable hex-code
   lightVal = isValidHexCode(lightVal)
     ? lightVal?.indexOf("#") === 0
