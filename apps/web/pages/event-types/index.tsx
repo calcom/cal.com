@@ -153,7 +153,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
-      <ul className="divide-neutral-200 divide-y" data-testid="event-types">
+      <ul className="divide-y divide-neutral-200" data-testid="event-types">
         {sortableTypes.map((type, index) => (
           <li
             key={type.id}
@@ -163,10 +163,10 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
-                "hover:bg-neutral-50 flex items-center justify-between ",
+                "flex items-center justify-between hover:bg-neutral-50 ",
                 type.$disabled && "pointer-events-none"
               )}>
-              <div className="group hover:bg-neutral-50 flex w-full items-center justify-between px-4 py-4 sm:px-6">
+              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
                 {sortableTypes.length > 1 && (
                   <>
                     <button
@@ -188,12 +188,12 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span
-                        className="text-neutral-900 truncate font-medium"
+                        className="truncate font-medium text-neutral-900"
                         data-testid={"event-type-title-" + type.id}>
                         {type.title}
                       </span>
                       <small
-                        className="text-neutral-500 hidden sm:inline"
+                        className="hidden text-neutral-500 sm:inline"
                         data-testid={
                           "event-type-slug-" + type.id
                         }>{`/${group.profile.slug}/${type.slug}`}</small>
@@ -249,7 +249,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="text-neutral-500 hover:text-neutral-900 h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent hover:border-gray-300"
+                        className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -310,7 +310,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="text-neutral-500 hover:text-neutral-900 h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent hover:border-gray-300">
+                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
                     <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
@@ -389,7 +389,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         <a className="font-bold">{profile?.name || ""}</a>
       </Link>
       {membershipCount && (
-        <span className="text-neutral-500 relative -top-px text-xs ltr:ml-2 rtl:mr-2">
+        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
           <Link href="/settings/teams">
             <a>
               <Badge variant="gray">
@@ -402,7 +402,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
       )}
       {profile?.slug && (
         <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
-          <a className="text-neutral-500 block text-xs">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
             "https://",
             ""
           )}/${profile.slug}`}</a>
@@ -419,8 +419,8 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
     <div className="md:py-20">
       <UserCalendarIllustration />
       <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="text-neutral-900 mt-2 text-xl font-bold">{t("new_event_type_heading")}</h3>
-        <p className="text-md text-neutral-600 mt-1 mb-2">{t("new_event_type_description")}</p>
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
+        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
         <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
       </div>
     </div>
