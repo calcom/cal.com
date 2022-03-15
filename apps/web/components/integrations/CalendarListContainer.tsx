@@ -109,7 +109,8 @@ function ConnectedCalendarsList(props: Props) {
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
-                    {...item.integration}
+                    title={item.integration.title}
+                    imageSrc={item.integration.imageSrc}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
                       <DisconnectIntegration
@@ -173,7 +174,9 @@ function CalendarList(props: Props) {
           {data.calendar.items.map((item) => (
             <IntegrationListItem
               key={item.title}
-              {...item}
+              title={item.title}
+              imageSrc={item.imageSrc}
+              description={item.description}
               actions={
                 <ConnectIntegration
                   type={item.type}
