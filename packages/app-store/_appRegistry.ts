@@ -4,20 +4,6 @@ export function getAppRegistry() {
   return [
     ...Object.values(appStore).map((app) => app.metadata),
     {
-      name: "Cal Video",
-      slug: "cal-video",
-      category: "video",
-      description:
-        "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
-      logo: "/apps/daily.svg",
-      publisher: "Cal.com",
-      url: "https://cal.com",
-      verified: true,
-      rating: 4.8,
-      trending: true,
-      reviews: 69,
-    },
-    {
       name: "Google Meet",
       slug: "google-meet",
       category: "video",
@@ -46,16 +32,6 @@ export function getAppRegistry() {
         "Google Calendar is the most popular calendar platform for personal and business calendars.",
       logo: "/apps/google-calendar.svg",
       rating: 4.9,
-      reviews: 69,
-    },
-    {
-      name: "Microsoft 365/Outlook Calendar",
-      slug: "microsoft-365",
-      category: "calendar",
-      description:
-        "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
-      logo: "/apps/outlook.svg",
-      rating: 4.2,
       reviews: 69,
     },
     {

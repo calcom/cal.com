@@ -47,6 +47,7 @@ model EventType {
   teamId                  Int?
   bookings                Booking[]
   availability            Availability[]
+  webhooks                Webhook[]
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
@@ -59,6 +60,8 @@ model EventType {
   requiresConfirmation    Boolean                @default(false)
   disableGuests           Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
+  beforeEventBuffer       Int                    @default(0)
+  afterEventBuffer        Int                    @default(0)
   schedulingType          SchedulingType?
   Schedule                Schedule[]
   price                   Int                    @default(0)
@@ -121,6 +124,7 @@ model User {
   hideBranding        Boolean              @default(false)
   theme               String?
   createdDate         DateTime             @default(now()) @map(name: "created")
+  trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
   credentials         Credential[]
   teams               Membership[]
@@ -139,6 +143,7 @@ model User {
   Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
+  darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
@@ -346,11 +351,13 @@ enum WebhookTriggerEvents {
 
 model Webhook {
   id              String                 @id @unique
-  userId          Int
+  userId          Int?
+  eventTypeId     Int?
   subscriberUrl   String
   payloadTemplate String?
   createdAt       DateTime               @default(now())
   active          Boolean                @default(true)
   eventTriggers   WebhookTriggerEvents[]
-  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 }

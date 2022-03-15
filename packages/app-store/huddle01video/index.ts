@@ -1,0 +1,27 @@
+import type { App } from "@calcom/types/App";
+
+import _package from "./package.json";
+
+export const metadata = {
+  name: "Huddle01",
+  description: _package.description,
+  installed: true,
+  type: "huddle01_video",
+  imageSrc: "apps/huddle.svg",
+  variant: "conferencing",
+  logo: "/apps/huddle.svg",
+  publisher: "Cal.com",
+  url: "https://huddle01.com/",
+  verified: true,
+  rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
+  reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
+  category: "video",
+  label: "Huddle01 Video",
+  slug: "huddle01_video",
+  title: "Huddle01",
+  trending: true,
+  isGlobal: true,
+  email: "help@cal.com",
+} as App;
+
+export * as lib from "./lib";

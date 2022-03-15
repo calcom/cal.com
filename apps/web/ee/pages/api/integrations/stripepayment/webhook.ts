@@ -2,8 +2,7 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
-import stripe from "@ee/lib/stripe/server";
+import stripe from "@calcom/stripe/server";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";

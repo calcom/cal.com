@@ -6,14 +6,12 @@ import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import { APPS as CalendarApps } from "@lib/apps/calendar/config";
-import { APPS as ConferencingApps } from "@lib/apps/conferencing/config";
 import { APPS as PaymentApps } from "@lib/apps/payment/config";
 
 const ALL_APPS_MAP = {
   ...Object.values(appStore).map((app) => app.metadata),
   /* To be deprecated start */
   ...CalendarApps,
-  ...ConferencingApps,
   ...PaymentApps,
   /* To be deprecated end */
 } as App[];
@@ -85,13 +83,7 @@ export type AppMeta = ReturnType<typeof getApps>;
 
 /** @deprecated use `getApps`  */
 export function hasIntegration(apps: AppMeta, type: string): boolean {
-  return !!apps.find(
-    (app) =>
-      app.type === type &&
-      !!app.installed &&
-      /* TODO: find a better way to do this */
-      (type === "jitsi_video" || type === "huddle01_video" || app.credentials.length > 0)
-  );
+  return !!apps.find((app) => app.type === type && !!app.installed && app.credentials.length > 0);
 }
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {

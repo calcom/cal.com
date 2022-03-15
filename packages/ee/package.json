@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/ee",
+  "description": "Cal.com Enterprise Edition features",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPLv3",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
+  }
+}

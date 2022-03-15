@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
 export function todo(title: string) {
@@ -65,4 +65,14 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
   }
+}
+
+export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
+  await page.click('[data-testid="incrementMonth"]');
+  // @TODO: Find a better way to make test wait for full month change render to end
+  // so it can click up on the right day, also when resolve remove other todos
+  // Waiting for full month increment
+  await page.waitForTimeout(400);
+  await page.click('[data-testid="day"][data-disabled="false"]');
+  await page.click('[data-testid="time"]');
 }

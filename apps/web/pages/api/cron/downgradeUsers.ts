@@ -27,9 +27,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     where: {
       plan: "TRIAL",
-      createdDate: {
-        lt: dayjs().subtract(TRIAL_LIMIT_DAYS, "day").toDate(),
-      },
+      OR: [
+        /**
+         * If the user doesn't have a trial end date,
+         * use the default 14 day trial from creation.
+         */
+        {
+          createdDate: {
+            lt: dayjs().subtract(TRIAL_LIMIT_DAYS, "day").toDate(),
+          },
+          trialEndsAt: null,
+        },
+        /** If it does, then honor the trial end date. */
+        {
+          trialEndsAt: {
+            lt: dayjs().toDate(),
+          },
+        },
+      ],
     },
   });
   res.json({ ok: true });

@@ -17,9 +17,10 @@ export const metadata = {
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
   label: "Zoom Video",
-  slug: "zoom_video",
+  slug: "zoom",
   title: "Zoom Video",
   trending: true,
+  email: "help@cal.com",
 } as App;
 
 export * as api from "./api";

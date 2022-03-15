@@ -44,4 +44,6 @@ export interface App {
    * Used to show Connect/Disconnect buttons in App Store
    * */
   isGlobal?: boolean;
+  /** A contact email, mainly to ask for support */
+  email: string;
 }

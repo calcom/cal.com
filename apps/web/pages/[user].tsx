@@ -1,6 +1,5 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
-import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -59,14 +58,25 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <p className="text-neutral-500 dark:text-white">{user.bio}</p>
           </div>
           <div className="space-y-6" data-testid="event-types">
-            {!user.away &&
+            {user.away ? (
+              <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+                <div className="p-8 text-center text-gray-400 dark:text-white">
+                  <h2 className="font-cal mb-2 text-3xl font-semibold text-gray-600 dark:text-white">
+                    😴{" " + t("user_away")}
+                  </h2>
+                  <p className="mx-auto max-w-md">{t("user_away_description")}</p>
+                </div>
+              </div>
+            ) : (
               eventTypes.map((type) => (
                 <div
                   key={type.id}
                   style={{ display: "flex" }}
-                  className="group hover:border-brand relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+                  className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
                   <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
+                    prefetch={false}
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
                       query,
@@ -100,12 +110,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                     />
                   )}
                 </div>
-              ))}
+              ))
+            )}
           </div>
           {eventTypes.length === 0 && (
-            <div className="overflow-hidden rounded-sm shadow">
+            <div className="overflow-hidden rounded-sm border dark:border-gray-900">
               <div className="p-8 text-center text-gray-400 dark:text-white">
-                <h2 className="font-cal text-3xl font-semibold text-gray-600 dark:text-white">
+                <h2 className="font-cal mb-2 text-3xl font-semibold text-gray-600 dark:text-white">
                   {t("uh_oh")}
                 </h2>
                 <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup")}</p>
@@ -121,9 +132,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
+  const crypto = require("crypto");
 
   const username = (context.query.user as string).toLowerCase();
-
+  const dataFetchStart = Date.now();
   const user = await prisma.user.findUnique({
     where: {
       username: username.toLowerCase(),
@@ -205,7 +217,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     take: user.plan === "FREE" ? 1 : undefined,
   });
-
+  const dataFetchEnd = Date.now();
+  if (context.query.log === "1") {
+    context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
+  }
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const eventTypes = eventTypesRaw.map((eventType) => ({

@@ -4,17 +4,17 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { FAKE_HUDDLE_CREDENTIAL } from "@calcom/app-store/huddle01video/lib/VideoApiAdapter";
+import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
+import { AdditionInformation } from "@calcom/lib/calendar/interfaces/Calendar";
+import { createEvent, updateEvent } from "@calcom/lib/calendar/managers/CalendarManager";
 import type { CalendarEvent } from "@calcom/types/CalendarEvent";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { FAKE_HUDDLE_CREDENTIAL } from "@lib/integrations/Huddle01/Huddle01VideoApiAdapter";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { createMeeting, updateMeeting } from "@lib/videoClient";
-
-import { AdditionInformation } from "../apps/calendar/interfaces/Calendar";
-import { createEvent, updateEvent } from "../apps/calendar/managers/CalendarManager";
 
 export type Event = AdditionInformation & VideoCallData;
 
@@ -53,8 +53,23 @@ export const isTandem = (location: string): boolean => {
   return location === "integrations:tandem";
 };
 
+export const isTeams = (location: string): boolean => {
+  return location === "integrations:office365_video";
+};
+
+export const isJitsi = (location: string): boolean => {
+  return location === "integrations:jitsi";
+};
+
 export const isDedicatedIntegration = (location: string): boolean => {
-  return isZoom(location) || isDaily(location) || isHuddle01(location) || isTandem(location);
+  return (
+    isZoom(location) ||
+    isDaily(location) ||
+    isHuddle01(location) ||
+    isTandem(location) ||
+    isJitsi(location) ||
+    isTeams(location)
+  );
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -64,7 +79,8 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.Daily.valueOf() ||
     location === LocationType.Jitsi.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf()
+    location === LocationType.Tandem.valueOf() ||
+    location === LocationType.Teams.valueOf()
   ) {
     const requestId = uuidv5(location, uuidv5.URL);
 
@@ -117,6 +133,7 @@ export default class EventManager {
       this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
     }
     this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
+    this.videoCredentials.push(FAKE_JITSI_CREDENTIAL);
   }
 
   /**

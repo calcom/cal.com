@@ -23,7 +23,7 @@ export default function App({
   body,
   categories,
   author,
-  price,
+  price = 0,
   commission,
   type,
   docs,
@@ -38,7 +38,7 @@ export default function App({
   categories: string[];
   author: string;
   pro?: boolean;
-  price: number;
+  price?: number;
   commission?: number;
   type?: "monthly" | "usage-based" | "one-time" | "free";
   docs?: string;

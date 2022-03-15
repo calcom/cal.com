@@ -27,13 +27,9 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
 export const getStaticProps = async () => {
   const appStore = getAppRegistry();
   const categories = appStore.reduce((c, app) => {
-    if (c[app.category]) {
-      c[app.category] = c[app.category]++;
-    } else {
-      c[app.category] = 1;
-    }
+    c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
     return c;
-  }, {});
+  }, {} as Record<string, number>);
 
   return {
     props: {

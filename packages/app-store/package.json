@@ -4,6 +4,8 @@
   "main": "./index.ts",
   "dependencies": {
     "@calcom/zoomvideo": "*",
-    "@calcom/dailyvideo": "*"
+    "@calcom/dailyvideo": "*",
+    "@calcom/office365video": "*",
+    "lodash": "^4.17.21"
   }
 }
