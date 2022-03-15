@@ -3,7 +3,7 @@ import { stringify } from "querystring";
 
 import { BASE_URL } from "@calcom/lib/constants";
 
-import { encodeOAuthState } from "../../utils";
+import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 
 const scopes = ["OnlineMeetings.ReadWrite"];
 

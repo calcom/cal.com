@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { BASE_URL } from "@calcom/lib/constants";
 
-import { encodeOAuthState } from "../../utils";
+import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS!;
 const scopes = [

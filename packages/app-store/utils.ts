@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { NextApiRequest } from "next";
 
 import { APPS as CalendarApps } from "@calcom/lib/calendar/config";
 import { LocationType } from "@calcom/lib/location";
@@ -7,25 +6,6 @@ import type { App } from "@calcom/types/App";
 
 import appStore from ".";
 import { APPS as PaymentApps } from "../../apps/web/lib/apps/payment/config";
-import { IntegrationOAuthCallbackState } from "./types";
-
-export function encodeOAuthState(req: NextApiRequest) {
-  if (typeof req.query.state !== "string") {
-    return undefined;
-  }
-  const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
-
-  return JSON.stringify(state);
-}
-
-export function decodeOAuthState(req: NextApiRequest) {
-  if (typeof req.query.state !== "string") {
-    return undefined;
-  }
-  const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
-
-  return state;
-}
 
 const APPSTORE_APPS = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;

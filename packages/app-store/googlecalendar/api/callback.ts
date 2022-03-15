@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import { decodeOAuthState } from "../../utils";
+import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 
 const credentials = process.env.GOOGLE_API_CREDENTIALS;
 
