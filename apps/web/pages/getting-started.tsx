@@ -31,12 +31,12 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
+import Schedule from "@components/availability/Schedule";
 import { Form } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule from "@components/ui/form/Schedule";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 

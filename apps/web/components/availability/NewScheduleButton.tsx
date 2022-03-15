@@ -16,7 +16,9 @@ export function NewScheduleButton() {
   const router = useRouter();
   const { t } = useLocale();
 
-  const form = useForm();
+  const form = useForm<{
+    name: string;
+  }>();
   const { register } = form;
 
   const createMutation = trpc.useMutation("viewer.availability.schedule.create", {
@@ -53,7 +55,11 @@ export function NewScheduleButton() {
             <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
           </div>
         </div>
-        <Form form={form} handleSubmit={createMutation.mutate}>
+        <Form
+          form={form}
+          handleSubmit={(values) => {
+            createMutation.mutate(values);
+          }}>
           <div className="mt-3 space-y-4">
             <TextField label={t("name")} {...register("name")} />
           </div>
