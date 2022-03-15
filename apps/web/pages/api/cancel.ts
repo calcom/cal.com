@@ -4,15 +4,15 @@ import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { getCalendar } from "@calcom/lib/calendar/managers/CalendarManager";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import { getCalendar } from "@calcom/core/CalendarManager";
+import { deleteMeeting } from "@calcom/core/videoClient";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
-import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 

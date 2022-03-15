@@ -17,17 +17,20 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { TIMEZONE_FORMAT } from "@calcom/lib/calendar/constants/format";
+import { DEFAULT_CALENDAR_TYPE } from "@calcom/lib/calendar/constants/general";
+import { convertDate, getAttendees, getDuration } from "@calcom/lib/calendar/utils/CalendarUtils";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
-
-import { symmetricDecrypt } from "@lib/crypto";
-import type { Event } from "@lib/events/EventManager";
-
-import { TIMEZONE_FORMAT } from "../constants/format";
-import { DEFAULT_CALENDAR_TYPE } from "../constants/general";
-import { Calendar, IntegrationCalendar } from "../interfaces/Calendar";
-import { CalendarEventType, EventBusyDate, NewCalendarEventType } from "../types/CalendarTypes";
-import { convertDate, getAttendees, getDuration } from "../utils/CalendarUtils";
+import type {
+  Calendar,
+  IntegrationCalendar,
+  CalendarEventType,
+  EventBusyDate,
+  NewCalendarEventType,
+  CalendarEvent,
+} from "@calcom/types/Calendar";
+import type { Event } from "@calcom/types/Event";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

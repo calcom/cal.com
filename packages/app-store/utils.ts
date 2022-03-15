@@ -1,12 +1,11 @@
 import { Prisma } from "@prisma/client";
-import _ from "lodash";
 import { NextApiRequest } from "next";
 
-import appStore from "@calcom/app-store";
 import { APPS as CalendarApps } from "@calcom/lib/calendar/config";
 import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
+import appStore from ".";
 import { APPS as PaymentApps } from "../../apps/web/lib/apps/payment/config";
 import { IntegrationOAuthCallbackState } from "./types";
 
@@ -28,16 +27,21 @@ export function decodeOAuthState(req: NextApiRequest) {
   return state;
 }
 
+const APPSTORE_APPS = Object.keys(appStore).reduce((store, key) => {
+  store[key] = appStore[key as keyof typeof appStore].metadata;
+  return store;
+}, {} as Record<string, App>);
+
 const ALL_APPS_MAP = {
-  ...Object.values(appStore).map((app) => app.metadata),
+  ...APPSTORE_APPS,
   /* To be deprecated start */
   ...CalendarApps,
   ...PaymentApps,
   /* To be deprecated end */
-} as App[];
+} as Record<string, App>;
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true },
+  select: { id: true, type: true, key: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -71,16 +75,25 @@ export function getLocationOptions(integrations: AppMeta) {
  */
 function getApps(userCredentials: CredentialData[]) {
   const apps = ALL_APPS.map((appMeta) => {
-    const appName = appMeta.type.split("_").join("");
-    const app = appStore[appName as keyof typeof appStore];
-    const credentials = userCredentials
-      .filter((credential) => credential.type === appMeta.type)
-      .map((credential) => _.pick(credential, ["id", "type"])); // ensure we don't leak `key` to frontend
+    const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
     let locationOption: OptionTypeBase | null = null;
 
-    /** Check if app has location option AND add it if user has credentials for it OR is a global one */
-    if (app && "lib" in app && "locationOption" in app.lib && (appMeta.isGlobal || credentials.length > 0)) {
-      locationOption = app.lib.locationOption;
+    /** If the app is a globally installed one, let's inject it's key */
+    if (appMeta.isGlobal) {
+      credentials.push({
+        id: +new Date().getTime(),
+        type: appMeta.type,
+        key: appMeta.key!,
+      });
+    }
+
+    /** Check if app has location option AND add it if user has credentials for it */
+    if (credentials.length > 0 && appMeta?.locationType) {
+      locationOption = {
+        value: appMeta.locationType as LocationType,
+        label: appMeta.label,
+        disabled: false,
+      };
     }
 
     const credential: typeof credentials[number] | null = credentials[0] || null;
@@ -110,12 +123,21 @@ export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
 }
 
+export function getLocationTypes(): string[] {
+  return ALL_APPS.reduce((locations, app) => {
+    if (typeof app.locationType === "string") {
+      locations.push(app.locationType);
+    }
+    return locations;
+  }, [] as string[]);
+}
+
 export function getAppName(name: string) {
-  return ALL_APPS_MAP[name].name;
+  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].name;
 }
 
 export function getAppType(name: string): string {
-  const type = ALL_APPS_MAP[name].type;
+  const type = ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].type;
 
   if (type.endsWith("_calendar")) {
     return "Calendar";

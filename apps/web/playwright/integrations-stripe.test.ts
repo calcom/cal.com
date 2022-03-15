@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "../lib/apps/utils/AppUtils";
+import { hasIntegrationInstalled } from "@calcom/app-store/utils";
+
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.describe.serial("Stripe integration", () => {

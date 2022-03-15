@@ -28,6 +28,7 @@
   "dependencies": {
     "@boxyhq/saml-jackson": "0.3.6",
     "@calcom/app-store": "*",
+    "@calcom/core": "*",
     "@calcom/ee": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",

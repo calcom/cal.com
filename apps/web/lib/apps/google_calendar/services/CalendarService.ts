@@ -2,13 +2,17 @@ import { Credential, Prisma } from "@prisma/client";
 import { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { Auth, calendar_v3, google } from "googleapis";
 
+import CalendarService from "@calcom/core/CalendarService";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
-import { Calendar, IntegrationCalendar } from "@calcom/lib/calendar/interfaces/Calendar";
-import CalendarService from "@calcom/lib/calendar/services/CalendarService";
-import { EventBusyDate, NewCalendarEventType } from "@calcom/lib/calendar/types/CalendarTypes";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type {
+  Calendar,
+  IntegrationCalendar,
+  CalendarEvent,
+  EventBusyDate,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
 
 import prisma from "@lib/prisma";
 

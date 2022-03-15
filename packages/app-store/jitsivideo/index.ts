@@ -10,6 +10,7 @@ export const metadata = {
   imageSrc: "apps/jitsi.svg",
   variant: "conferencing",
   logo: "/apps/jitsi.svg",
+  locationType: "integrations:jitsi",
   publisher: "Cal.com",
   url: "https://jitsi.org/",
   verified: true,

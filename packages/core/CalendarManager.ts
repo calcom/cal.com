@@ -3,20 +3,17 @@ import _ from "lodash";
 
 import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { APPS } from "@calcom/lib/calendar/config";
+import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import notEmpty from "@calcom/lib/notEmpty";
+import type { Calendar, CalendarEvent, CalendarServiceType, EventBusyDate } from "@calcom/types/Calendar";
+import { EventResult } from "@calcom/types/EventManager";
 
-import { EventResult } from "@lib/events/EventManager";
-import notEmpty from "@lib/notEmpty";
-
-import AppleCalendarService from "../../../../apps/web/lib/apps/apple_calendar/services/CalendarService";
-import CalDavCalendarService from "../../../../apps/web/lib/apps/caldav_calendar/services/CalendarService";
-import GoogleCalendarService from "../../../../apps/web/lib/apps/google_calendar/services/CalendarService";
-import { APPS } from "../config";
-import { APPS_TYPES } from "../constants/general";
-import { Calendar } from "../interfaces/Calendar";
-import { CalendarServiceType, EventBusyDate } from "../types/CalendarTypes";
+import AppleCalendarService from "../../apps/web/lib/apps/apple_calendar/services/CalendarService";
+import CalDavCalendarService from "../../apps/web/lib/apps/caldav_calendar/services/CalendarService";
+import GoogleCalendarService from "../../apps/web/lib/apps/google_calendar/services/CalendarService";
 
 const CALENDARS: Record<string, CalendarServiceType> = {
   [APPS_TYPES.apple]: AppleCalendarService,

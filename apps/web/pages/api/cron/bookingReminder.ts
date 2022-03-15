@@ -2,7 +2,7 @@ import { ReminderType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";

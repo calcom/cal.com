@@ -5,11 +5,9 @@ import { v5 as uuidv5 } from "uuid";
 import appStore from "@calcom/app-store";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
-import type { PartialReference } from "@calcom/types/EventManager";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory } from "@calcom/types/VideoApiAdapter";
-
-import { EventResult } from "@lib/events/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
@@ -19,8 +17,9 @@ const translator = short();
 const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
   withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    const makeVideoApiAdapter = appStore[appName].lib?.VideoApiAdapter as VideoApiAdapterFactory;
-    if (typeof makeVideoApiAdapter !== "undefined") {
+    const appLib = appStore[appName as keyof typeof appStore]?.lib;
+    if ("VideoApiAdapter" in appLib) {
+      const makeVideoApiAdapter = appLib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       acc.push(videoAdapter);
       return acc;

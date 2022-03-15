@@ -3,39 +3,26 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
+import appStore from "@calcom/app-store";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { FAKE_HUDDLE_CREDENTIAL } from "@calcom/app-store/huddle01video/lib/VideoApiAdapter";
 import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
-import { AdditionInformation } from "@calcom/lib/calendar/interfaces/Calendar";
-import { createEvent, updateEvent } from "@calcom/lib/calendar/managers/CalendarManager";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
-import type { PartialReference } from "@calcom/types/EventManager";
+import getApps from "@calcom/app-store/utils";
+import { LocationType } from "@calcom/lib/location";
+import prisma from "@calcom/prisma";
+import type { CalendarEvent, AdditionInformation } from "@calcom/types/Calendar";
+import type {
+  CreateUpdateResult,
+  EventResult,
+  PartialBooking,
+  PartialReference,
+} from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { LocationType } from "@lib/location";
-import prisma from "@lib/prisma";
-import { createMeeting, updateMeeting } from "@lib/videoClient";
+import { createEvent, updateEvent } from "./CalendarManager";
+import { createMeeting, updateMeeting } from "./videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
-
-export interface EventResult {
-  type: string;
-  success: boolean;
-  uid: string;
-  createdEvent?: Event;
-  updatedEvent?: Event | Event[];
-  originalEvent: CalendarEvent;
-}
-
-export interface CreateUpdateResult {
-  results: Array<EventResult>;
-  referencesToCreate: Array<PartialReference>;
-}
-
-export interface PartialBooking {
-  id: number;
-  references: Array<PartialReference>;
-}
 
 export const isZoom = (location: string): boolean => {
   return location === "integrations:zoom";
@@ -114,6 +101,7 @@ type EventManagerUser = {
   credentials: Credential[];
   destinationCalendar: DestinationCalendar | null;
 };
+
 export default class EventManager {
   calendarCredentials: Credential[];
   videoCredentials: Credential[];
@@ -124,16 +112,9 @@ export default class EventManager {
    * @param credentials
    */
   constructor(user: EventManagerUser) {
-    this.calendarCredentials = user.credentials.filter((cred) => cred.type.endsWith("_calendar"));
-    this.videoCredentials = user.credentials.filter((cred) => cred.type.endsWith("_video"));
-
-    //for  Daily.co video, temporarily pushes a credential for the daily-video-client
-    const hasDailyIntegration = process.env.DAILY_API_KEY;
-    if (hasDailyIntegration) {
-      this.videoCredentials.push(FAKE_DAILY_CREDENTIAL);
-    }
-    this.videoCredentials.push(FAKE_HUDDLE_CREDENTIAL);
-    this.videoCredentials.push(FAKE_JITSI_CREDENTIAL);
+    const appCredentials = getApps(user.credentials).map((app) => app.credential);
+    this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
+    this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
 
   /**

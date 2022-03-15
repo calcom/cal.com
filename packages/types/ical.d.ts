@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // https://github.com/mozilla-comm/ical.js/issues/367#issuecomment-568493517
 declare module "ical.js" {
-  function parse(input: string): any[];
+  function parse(input: string): unknown[];
 
   export class helpers {
     public updateTimezones(vcal: Component): Component;
@@ -13,14 +13,14 @@ declare module "ical.js" {
 
     public name: string;
 
-    constructor(jCal: any[] | string, parent?: Component);
+    constructor(jCal: unknown[] | string, parent?: Component);
 
-    public toJSON(): any[];
+    public toJSON(): unknown[];
 
     public getFirstSubcomponent(name?: string): Component | null;
     public getAllSubcomponents(name?: string): Component[];
 
-    public getFirstPropertyValue<T = any>(name?: string): T;
+    public getFirstPropertyValue<T = unknown>(name?: string): T;
 
     public getFirstProperty(name?: string): Property;
     public getAllProperties(name?: string): Property[];
@@ -55,7 +55,7 @@ declare module "ical.js" {
     /**
      * The duration. This can be the result directly from the property, or the
      * duration calculated from start date and end date. Setting the property
-     * will remove any `dtend` properties.
+     * will remove unknown `dtend` properties.
      *
      * @type {Duration}
      * @memberof Event
@@ -86,15 +86,15 @@ declare module "ical.js" {
     public name: string;
     public type: string;
 
-    constructor(jCal: any[] | string, parent?: Component);
+    constructor(jCal: unknown[] | string, parent?: Component);
 
-    public getFirstValue<T = any>(): T;
-    public getValues<T = any>(): T[];
+    public getFirstValue<T = unknown>(): T;
+    public getValues<T = unknown>(): T[];
 
     public setParameter(name: string, value: string | string[]): void;
     public setValue(value: string | Record<string, unknown>): void;
     public setValues(values: (string | Record<string, unknown>)[]): void;
-    public toJSON(): any;
+    public toJSON(): unknown;
   }
 
   interface TimeJsonData {

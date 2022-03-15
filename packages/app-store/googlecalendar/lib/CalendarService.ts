@@ -1,16 +1,16 @@
-import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
-import { Calendar, IntegrationCalendar } from "@calcom/lib/calendar/interfaces/Calendar";
-import { BatchResponse, EventBusyDate, NewCalendarEventType } from "@calcom/lib/calendar/types/CalendarTypes";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import type { Calendar, IntegrationCalendar } from "@calcom/types/Calendar";
+import type { BatchResponse, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { BufferedBusyTime, O365AuthCredentials } from "../types/Office365Calendar";
+import { O365AuthCredentials } from "../types/Office365Calendar";
 
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
@@ -168,7 +168,7 @@ export default class Office365CalendarService implements Calendar {
         },
       })
         .then(handleErrorsJson)
-        .then((responseBody: { value: OfficeCalendar[] }) => {
+        .then((responseBody: { value: unknown[] }) => {
           return responseBody.value.map((cal) => {
             const calendar: IntegrationCalendar = {
               externalId: cal.id ?? "No Id",

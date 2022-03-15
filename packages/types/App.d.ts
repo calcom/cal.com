@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 /**
  * This is the definition for an app store's app metadata.
  * This is used to display App info, categorize or hide certain apps in the app store.
@@ -46,4 +48,8 @@ export interface App {
   isGlobal?: boolean;
   /** A contact email, mainly to ask for support */
   email: string;
+  /** Add this value as a posible location option in event types */
+  locationType?: string;
+  /** Needed API Keys (usually for global apps) */
+  key?: Prisma.JsonValue;
 }

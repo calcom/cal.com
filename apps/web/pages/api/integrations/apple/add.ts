@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getCalendar } from "@calcom/lib/calendar/managers/CalendarManager";
+import { getCalendar } from "@calcom/core/CalendarManager";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 
 import { getSession } from "@lib/auth";
-import { symmetricEncrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

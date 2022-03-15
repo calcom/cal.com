@@ -2,12 +2,30 @@ import { Person } from "ics";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { getAppName } from "@calcom/app-store/utils";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { BASE_URL } from "./constants";
 
 const translator = short();
+
+export const getLocation = (calEvent: CalendarEvent) => {
+  let providerName = "";
+
+  if (calEvent.location && calEvent.location.includes("integrations:")) {
+    const location = calEvent.location.split(":")[1];
+    providerName = location[0].toUpperCase() + location.slice(1);
+  }
+
+  if (calEvent.videoCallData) {
+    return calEvent.videoCallData.url;
+  }
+
+  if (calEvent.additionInformation?.hangoutLink) {
+    return calEvent.additionInformation.hangoutLink;
+  }
+
+  return providerName || calEvent.location || "";
+};
 
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
@@ -51,25 +69,6 @@ export const getAdditionalNotes = (calEvent: CalendarEvent) => {
 ${calEvent.organizer.language.translate("additional_notes")}:
 ${calEvent.description}
   `;
-};
-
-export const getLocation = (calEvent: CalendarEvent) => {
-  let providerName = calEvent.location ? getAppName(calEvent.location) : "";
-
-  if (calEvent.location && calEvent.location.includes("integrations:")) {
-    const location = calEvent.location.split(":")[1];
-    providerName = location[0].toUpperCase() + location.slice(1);
-  }
-
-  if (calEvent.videoCallData) {
-    return calEvent.videoCallData.url;
-  }
-
-  if (calEvent.additionInformation?.hangoutLink) {
-    return calEvent.additionInformation.hangoutLink;
-  }
-
-  return providerName || calEvent.location || "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {

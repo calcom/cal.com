@@ -1,8 +1,8 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 
-import { getBusyCalendarTimes } from "@calcom/lib/calendar/managers/CalendarManager";
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";

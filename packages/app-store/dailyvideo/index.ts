@@ -22,6 +22,8 @@ export const metadata = {
   title: "Daily.co Video",
   isGlobal: true,
   email: "help@cal.com",
+  locationType: "integrations:daily",
+  key: { apikey: process.env.DAILY_API_KEY },
 } as App;
 
 export * as lib from "./lib";

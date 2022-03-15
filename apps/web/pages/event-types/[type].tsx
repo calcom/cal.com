@@ -35,10 +35,10 @@ import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
 import { StripeData } from "@calcom/stripe/server";
 import Switch from "@calcom/ui/Switch";
 
-import getApps, { getLocationOptions, hasIntegration } from "@lib/apps/utils/AppUtils";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
