@@ -52,7 +52,7 @@ export default function MemberListItem(props: Props) {
 
   const ownersInTeam = () => {
     const { members } = props.team;
-    const owners = members.filter((member) => member["role"] === MembershipRole.OWNER);
+    const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
     return owners.length;
   };
 
@@ -138,7 +138,8 @@ export default function MemberListItem(props: Props) {
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               {((props.team.membership.role === MembershipRole.OWNER &&
                 (props.member.role !== MembershipRole.OWNER ||
-                  (ownersInTeam() > 1 && props.member.id === currentUser))) ||
+                  ownersInTeam() > 1 ||
+                  props.member.id !== currentUser)) ||
                 (props.team.membership.role === MembershipRole.ADMIN &&
                   props.member.role !== MembershipRole.OWNER)) && (
                 <>
