@@ -1,4 +1,5 @@
 import { EventTypeAttendeeReminder } from "@prisma/client/";
+import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
@@ -10,6 +11,7 @@ import prisma from "@lib/prisma";
 const sendgridAPIKey = process.env.SENDGRID_API_KEY;
 
 sgMail.setApiKey(sendgridAPIKey);
+client.setApiKey(sendgridAPIKey);
 
 export const scheduleEmailReminder = async (
   evt: CalendarEvent,
@@ -98,5 +100,26 @@ export const scheduleEmailReminder = async (
         scheduled: false,
       },
     });
+  }
+};
+
+export const deleteScheduledEmailReminder = async (referenceId: string) => {
+  try {
+    await client.request({
+      url: "/v3/user/scheduled_sends",
+      method: "POST",
+      body: {
+        batch_id: referenceId,
+        status: "cancel",
+      },
+    });
+
+    await prisma.attendeeReminder.delete({
+      where: {
+        referenceId: referenceId,
+      },
+    });
+  } catch (error) {
+    console.log(`Error canceling reminder with error ${error}`);
   }
 };
