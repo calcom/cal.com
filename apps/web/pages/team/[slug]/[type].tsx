@@ -69,6 +69,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           timeZone: true,
           slotInterval: true,
           metadata: true,
+          schedule: {
+            select: {
+              timeZone: true,
+              availability: true,
+            },
+          },
         },
       },
     },
@@ -82,12 +88,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const [eventType] = team.eventTypes;
 
+  const timeZone = eventType.schedule?.timeZone || eventType.timeZone || undefined;
+
   const workingHours = getWorkingHours(
     {
-      timeZone: eventType.timeZone || undefined,
+      timeZone,
     },
-    eventType.availability
+    eventType.schedule?.availability || eventType.availability
   );
+
+  eventType.schedule = null;
 
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
