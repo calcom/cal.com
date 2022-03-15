@@ -1,4 +1,4 @@
-import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
+import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -164,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: any) => {
+  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
