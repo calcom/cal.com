@@ -212,7 +212,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       profile: {
-        name: user.name,
+        name: user.name || user.username,
         image: user.avatar,
         slug: user.username,
         theme: user.theme,
