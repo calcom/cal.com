@@ -22,6 +22,7 @@ export const metadata = {
   reviews: 0,
   isGlobal: false,
   email: "help@cal.com",
+  locationType: "integrations:tandem",
 } as App;
 
 export * as lib from "./lib";

@@ -21,6 +21,7 @@ export const metadata = {
   title: "Zoom Video",
   trending: true,
   email: "help@cal.com",
+  locationType: "integrations:zoom",
 } as App;
 
 export * as api from "./api";
