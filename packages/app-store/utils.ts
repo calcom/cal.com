@@ -21,7 +21,7 @@ const ALL_APPS_MAP = {
 } as Record<string, App>;
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true },
+  select: { id: true, type: true, key: true, userId: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -64,6 +64,7 @@ function getApps(userCredentials: CredentialData[]) {
         id: +new Date().getTime(),
         type: appMeta.type,
         key: appMeta.key!,
+        userId: +new Date().getTime(),
       });
     }
 

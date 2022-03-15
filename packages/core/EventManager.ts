@@ -3,14 +3,10 @@ import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { FAKE_HUDDLE_CREDENTIAL } from "@calcom/app-store/huddle01video/lib/VideoApiAdapter";
-import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
 import getApps from "@calcom/app-store/utils";
 import { LocationType } from "@calcom/lib/location";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent, AdditionInformation } from "@calcom/types/Calendar";
+import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type {
   CreateUpdateResult,
   EventResult,
@@ -112,7 +108,7 @@ export default class EventManager {
    * @param credentials
    */
   constructor(user: EventManagerUser) {
-    const appCredentials = getApps(user.credentials).map((app) => app.credential);
+    const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }

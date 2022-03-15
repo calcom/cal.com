@@ -702,6 +702,7 @@ export async function getServerSideProps(context: NextPageContext) {
       id: true,
       type: true,
       key: true,
+      userId: true,
     },
   });
 
