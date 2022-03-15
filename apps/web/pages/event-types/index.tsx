@@ -258,8 +258,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                           <Link href={"/event-types/" + type.id} passHref={true}>
                             <Button
                               type="button"
+                              size="lg"
                               color="minimal"
-                              className="w-full font-normal"
+                              className="w-full rounded-none font-normal"
                               StartIcon={PencilIcon}>
                               {" "}
                               {t("edit")}
@@ -270,7 +271,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                           <Button
                             type="button"
                             color="minimal"
-                            className="w-full font-normal"
+                            size="lg"
+                            className="w-full rounded-none font-normal"
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
@@ -286,8 +288,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                                   e.stopPropagation();
                                 }}
                                 color="warn"
+                                size="lg"
                                 StartIcon={TrashIcon}
-                                className="w-full font-normal">
+                                className="w-full rounded-none font-normal">
                                 {t("delete")}
                               </Button>
                             </DialogTrigger>
@@ -317,7 +320,11 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     <DropdownMenuItem>
                       <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}>
                         <a target="_blank">
-                          <Button color="minimal" StartIcon={ExternalLinkIcon} className="w-full font-normal">
+                          <Button
+                            color="minimal"
+                            size="lg"
+                            StartIcon={ExternalLinkIcon}
+                            className="w-full rounded-none font-normal">
                             {t("preview")}
                           </Button>
                         </a>
@@ -327,7 +334,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       <Button
                         type="button"
                         color="minimal"
-                        className="w-full font-normal"
+                        size="lg"
+                        className="w-full rounded-none text-left font-normal"
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={ClipboardCopyIcon}
                         onClick={() => {
@@ -344,7 +352,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         <Button
                           type="button"
                           color="minimal"
-                          className="w-full font-normal"
+                          size="lg"
+                          className="w-full rounded-none font-normal"
                           data-testid={"event-type-duplicate-" + type.id}
                           StartIcon={UploadIcon}
                           onClick={() => {

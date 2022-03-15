@@ -127,8 +127,9 @@ export default function TeamListItem(props: Props) {
                         <a>
                           <Button
                             type="button"
+                            size="lg"
                             color="minimal"
-                            className="w-full font-normal"
+                            className="w-full rounded-none font-normal"
                             StartIcon={PencilIcon}>
                             {t("edit_team")}
                           </Button>
@@ -141,8 +142,9 @@ export default function TeamListItem(props: Props) {
                       <a target="_blank">
                         <Button
                           type="button"
+                          size="lg"
                           color="minimal"
-                          className="w-full font-normal"
+                          className="w-full rounded-none font-normal"
                           StartIcon={ExternalLinkIcon}>
                           {" "}
                           {t("preview_team")}
@@ -160,8 +162,9 @@ export default function TeamListItem(props: Props) {
                               e.stopPropagation();
                             }}
                             color="warn"
+                            size="lg"
                             StartIcon={TrashIcon}
-                            className="w-full font-normal">
+                            className="w-full rounded-none font-normal">
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
@@ -183,8 +186,9 @@ export default function TeamListItem(props: Props) {
                           <Button
                             type="button"
                             color="warn"
+                            size="lg"
                             StartIcon={LogoutIcon}
-                            className="w-full"
+                            className="w-full rounded-none"
                             onClick={(e) => {
                               e.stopPropagation();
                             }}>

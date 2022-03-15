@@ -48,8 +48,9 @@ const TableActions: FC<Props> = ({ actions }) => {
               <DropdownMenuItem key={action.id}>
                 <Button
                   type="button"
+                  size="lg"
                   color="minimal"
-                  className="w-full font-normal"
+                  className="w-full rounded-none font-normal"
                   href={action.href}
                   StartIcon={action.icon}
                   onClick={action.onClick}>
