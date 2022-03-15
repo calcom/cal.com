@@ -675,6 +675,7 @@
   "new_schedule_btn": "New schedule",
   "add_new_schedule": "Add a new schedule",
   "delete_schedule": "Delete schedule",
+  "schedule_created_successfully": "{{scheduleName}} schedule created successfully",
   "schedule_deleted_successfully": "Schedule deleted successfully",
   "default_schedule_name": "Working Hours",
   "new_schedule_heading": "Create an availability schedule",

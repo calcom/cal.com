@@ -41,6 +41,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
       showToast(t("schedule_deleted_successfully"), "success");
+      window.location.reload();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
