@@ -46,7 +46,7 @@ cal.com/rick/quick-chat?metadata[user_id]=123
 As a result, the webhook will be returned in this format:
 
 ```text
-{ <other event details>, metadata: { user_id: 123 } }
+\{ <other event details>, metadata: \{ user_id: 123 \} \}
 ```
 
 ## Custom Webhooks template variable list
@@ -86,13 +86,13 @@ Customizable webhooks are a great way reduce the development effort and in many 
 ### Example usage of variables for custom template:
 
 ```sh
-{
+\{
 
     "content": "A new event has been scheduled",
-    "type": "{{type}}",
-    "name": "{{title}}",
-    "organizer": "{{organizer.name}}",
-    "booker": "{{attendees.0.name}}"
+    "type": "\{\{type\}\}",
+    "name": "\{\{title\}\}",
+    "organizer": "\{\{organizer.name\}\}",
+    "booker": "\{\{attendees.0.name\}\}"
 
-}
+\}
 ```
