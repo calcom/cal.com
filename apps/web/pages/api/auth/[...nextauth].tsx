@@ -167,6 +167,7 @@ export default NextAuth({
           return {
             id: existingUser.id,
             username: existingUser.username,
+            name: existingUser.name,
             email: existingUser.email,
           };
         }
