@@ -6,7 +6,7 @@ import _package from "./package.json";
 export const metadata = {
   name: "Apple Calendar",
   description: _package.description,
-  installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
+  installed: true,
   type: "apple_calendar",
   title: "Apple Calendar",
   imageSrc: "apps/apple-calendar.svg",

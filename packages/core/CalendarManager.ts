@@ -1,43 +1,30 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
-import appStore from "@calcom/app-store";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { APPS } from "@calcom/lib/calendar/config";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
-import type { Calendar, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential): Calendar | null => {
-  const { type: calendarType } = credential;
-  const calendarApp = appStore[calendarType as keyof typeof appStore];
-  if (!calendarApp || !("CalendarService" in calendarApp.lib)) {
-    log.warn(`calendar of type ${calendarType} does not implemented`);
-    return null;
-  }
-  const CalendarService = calendarApp.lib.CalendarService;
-  return new CalendarService(credential);
-};
+/** TODO: Remove once all references are updated to app-store */
+export { getCalendar };
 
-export const getCalendarCredentials = (credentials: Array<Omit<Credential, "userId">>, userId: number) => {
-  const calendarCredentials = credentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .flatMap((credential) => {
-      const integration = APPS[credential.type];
-
-      const calendar = getCalendar({
-        ...credential,
-        userId,
-      });
-      return integration && calendar && integration.variant === "calendar"
-        ? [{ integration, credential, calendar }]
+export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+  const calendarCredentials = getApps(credentials)
+    .filter((app) => app.type.endsWith("_calendar"))
+    .flatMap((app) => {
+      const credential = app.credential;
+      const calendar = getCalendar(credential);
+      return app && calendar && app.variant === "calendar"
+        ? [{ integration: app, credential, calendar }]
         : [];
     });
-
   return calendarCredentials;
 };
 
