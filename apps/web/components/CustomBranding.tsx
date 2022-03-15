@@ -179,6 +179,7 @@ function normalizeHexCode(hex: string | null, dark: boolean) {
   if (!hex) {
     return !dark ? brandColor : darkBrandColor;
   }
+  hex = hex.replace("#", "");
   if (hex.length === 3) {
     hex = hex
       .split("")
