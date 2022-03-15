@@ -136,9 +136,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
-      // FIXME
-      // @ts-ignore
-      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
+      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale) || "",
     }));
   }, [props.localeProp, router.locales]);
 
