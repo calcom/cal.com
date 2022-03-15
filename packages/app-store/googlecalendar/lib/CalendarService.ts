@@ -4,14 +4,13 @@ import { Auth, calendar_v3, google } from "googleapis";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import CalendarService from "@calcom/lib/CalendarService";
-import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
-  IntegrationCalendar,
   CalendarEvent,
   EventBusyDate,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
@@ -24,7 +23,7 @@ export default class GoogleCalendarService implements Calendar {
   private log: typeof logger;
 
   constructor(credential: Credential) {
-    this.integrationName = APPS_TYPES.google;
+    this.integrationName = "google_calendar";
 
     this.auth = this.googleAuth(credential);
 
