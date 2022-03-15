@@ -19,7 +19,6 @@ import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { CalendarListContainer } from "@calcom/lib/calendar/components/CalendarListContainer";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -31,6 +30,7 @@ import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
+import { CalendarListContainer } from "@components/CalendarListContainer";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";

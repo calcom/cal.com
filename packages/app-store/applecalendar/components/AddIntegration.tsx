@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+/* TODO: These should come from @calcom/ui */
 import {
   Dialog,
   DialogClose,
@@ -8,14 +9,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogProps,
-} from "@components/Dialog";
-import { Form, TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
+} from "../../../../apps/web/components/Dialog";
+import { Form, TextField } from "../../../../apps/web/components/form/fields";
+import { Alert } from "../../../../apps/web/components/ui/Alert";
+import Button from "../../../../apps/web/components/ui/Button";
 
 export const ADD_INTEGRATION_FORM_TITLE = "addAppleIntegration";
 
-export function AddIntegrationModal(props: DialogProps) {
+function AddIntegrationModal(props: DialogProps) {
   const form = useForm({
     defaultValues: {
       username: "",
@@ -100,3 +101,5 @@ export function AddIntegrationModal(props: DialogProps) {
     </Dialog>
   );
 }
+
+export default AddIntegrationModal;
