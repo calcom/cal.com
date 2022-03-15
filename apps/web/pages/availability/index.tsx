@@ -24,7 +24,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   const { t, i18n } = useLocale();
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
-      showToast(t("availability_deleted_successfully"), "success");
+      showToast(t("schedule_deleted_successfully"), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {

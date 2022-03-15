@@ -675,6 +675,7 @@
   "new_schedule_btn": "New schedule",
   "add_new_schedule": "Add a new schedule",
   "delete_schedule": "Delete schedule",
+  "schedule_deleted_successfully": "Schedule deleted successfully",
   "default_schedule_name": "Working Hours",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
   "example_name": "John Doe",
