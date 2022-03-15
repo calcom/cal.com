@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
-import reminderTemplate from "@ee/lib/reminders/templates/reminderSMSTemplate";
+import reminderTemplate from "@ee/lib/reminders/templates/reminderTemplate";
 
 import prisma from "@lib/prisma";
 
@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const unscheduledReminders = await prisma.attendeeReminder.findMany({
     where: {
       scheduled: false,
+      method: "SMS",
     },
   });
 
