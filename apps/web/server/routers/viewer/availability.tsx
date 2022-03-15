@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { getAvailabilityFromSchedule } from "@lib/availability";
@@ -95,18 +96,42 @@ export const availabilityRouter = createProtectedRouter()
     input: z.object({
       name: z.string(),
       copyScheduleId: z.number().optional(),
+      schedule: z
+        .array(
+          z.array(
+            z.object({
+              start: z.date(),
+              end: z.date(),
+            })
+          )
+        )
+        .optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
-      const schedule = await prisma.schedule.create({
-        data: {
-          name: input.name,
-          user: {
-            connect: {
-              id: user.id,
-            },
+      const data: Prisma.ScheduleCreateInput = {
+        name: input.name,
+        user: {
+          connect: {
+            id: user.id,
           },
         },
+      };
+
+      if (input.schedule) {
+        const availability = getAvailabilityFromSchedule(input.schedule);
+        data.availability = {
+          createMany: {
+            data: availability.map((schedule) => ({
+              days: schedule.days,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+            })),
+          },
+        };
+      }
+      const schedule = await prisma.schedule.create({
+        data,
       });
       return { schedule };
     },
