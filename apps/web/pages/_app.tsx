@@ -2,8 +2,6 @@ import { DefaultSeo } from "next-seo";
 // import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
-import ZendeskProvider from "@ee/lib/zendesk/ZendeskProvider";
-
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
@@ -27,7 +25,6 @@ function MyApp(props: AppProps) {
       <AppProviders {...props}>
         <DefaultSeo {...seoConfig.defaultNextSeo} />
         <I18nLanguageHandler />
-        <ZendeskProvider />
         <Component {...pageProps} err={err} />
       </AppProviders>
     </ContractsProvider>

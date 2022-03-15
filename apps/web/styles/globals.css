@@ -160,7 +160,7 @@
   #launcher {
     display: none !important;
   }
-  [title="Button to launch messaging window"] {
+  div[role="presentation"] > iframe {
     display: none !important;
   }
 }

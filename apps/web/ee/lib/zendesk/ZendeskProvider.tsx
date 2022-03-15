@@ -6,11 +6,6 @@ const setting = {
   color: {
     theme: "#292929",
   },
-  launcher: {
-    chatLabel: {
-      "en-US": "Need Help",
-    },
-  },
   contactForm: {
     fields: [{ id: "description", prefill: { "*": "My pre-filled description" } }],
   },
