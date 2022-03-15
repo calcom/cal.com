@@ -107,7 +107,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (error) {
-    return toErrorPage(error);
+    return {
+      redirect: {
+        destination: "/auth/error?error=" + error,
+        permanent: false,
+      },
+    };
   }
 
   return {
@@ -159,13 +164,4 @@ const getStripePremiumUsernameUrl = async ({
   });
 
   return checkoutSession.url;
-};
-
-const toErrorPage = (error: string) => {
-  return {
-    redirect: {
-      destination: "/auth/error?error=" + error,
-      permanent: false,
-    },
-  };
 };
