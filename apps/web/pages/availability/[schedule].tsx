@@ -23,9 +23,18 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
   const { t } = useLocale();
   const router = useRouter();
 
+  const form = useForm({
+    defaultValues: {
+      schedule: props.availability || DEFAULT_SCHEDULE,
+      isDefault: !!props.isDefault,
+      timeZone: props.timeZone,
+    },
+  });
+
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
     onSuccess: async () => {
       await router.push("/availability");
+      window.location.reload();
       showToast(t("availability_updated_successfully"), "success");
     },
     onError: (err) => {
@@ -33,14 +42,6 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-    },
-  });
-
-  const form = useForm({
-    defaultValues: {
-      schedule: props.availability || DEFAULT_SCHEDULE,
-      isDefault: !!props.isDefault,
-      timeZone: props.timeZone,
     },
   });
 
@@ -126,25 +127,24 @@ export default function Availability() {
       scheduleId: parseInt(router.query.schedule as string),
     },
   ]);
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string>();
   return (
     <div>
       <QueryCell
         query={query}
         success={({ data }) => {
-          if (!name) {
-            setName(data.schedule.name);
-          }
           return (
             <Shell
-              heading={<EditableHeading title={name} onChange={setName} />}
+              heading={<EditableHeading title={data.schedule.name} onChange={setName} />}
               subtitle={data.schedule.availability.map((availability) => (
                 <>
                   {availabilityAsString(availability, i18n.language)}
                   <br />
                 </>
               ))}>
-              <AvailabilityForm {...{ ...data, schedule: { ...data.schedule, name } }} />
+              <AvailabilityForm
+                {...{ ...data, schedule: { ...data.schedule, name: name || data.schedule.name } }}
+              />
             </Shell>
           );
         }}
