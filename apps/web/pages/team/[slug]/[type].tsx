@@ -100,7 +100,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       profile: {
-        name: team.name,
+        name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
         theme: null,
