@@ -2,6 +2,7 @@ import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroi
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -51,12 +52,11 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = (props: BookingPageProps) => {
+const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
-  const { eventType } = props;
-
+  const { data: session } = useSession();
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -95,8 +95,8 @@ const BookingPage = (props: BookingPageProps) => {
         pathname: "/success",
         query: {
           date,
-          type: props.eventType.id,
-          user: props.profile.slug,
+          type: eventType.id,
+          user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -107,18 +107,18 @@ const BookingPage = (props: BookingPageProps) => {
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
-  const { isReady, Theme } = useTheme(props.profile.theme);
+  const { isReady, Theme } = useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
 
-  const [guestToggle, setGuestToggle] = useState(props.booking && props.booking.attendees.length > 1);
+  const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
 
-  const eventTypeDetail = { isWeb3Active: false, ...props.eventType };
+  const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
   type Location = { type: LocationType; address?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
-    () => (props.eventType.locations as Location[]) || [],
-    [props.eventType.locations]
+    () => (eventType.locations as Location[]) || [],
+    [eventType.locations]
   );
 
   useEffect(() => {
@@ -142,15 +142,15 @@ const BookingPage = (props: BookingPageProps) => {
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
   };
-
+  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
-        name: (router.query.name as string) || "",
-        email: (router.query.email as string) || "",
+        name: loggedInIsOwner ? "" : session?.user?.name || (router.query.name as string) || "",
+        email: loggedInIsOwner ? "" : session?.user?.email || (router.query.email as string) || "",
         notes: (router.query.notes as string) || "",
         guests: ensureArray(router.query.guest) as string[],
-        customInputs: props.eventType.customInputs.reduce(
+        customInputs: eventType.customInputs.reduce(
           (customInputs, input) => ({
             ...customInputs,
             [input.id]: router.query[slugify(input.label)],
@@ -159,17 +159,17 @@ const BookingPage = (props: BookingPageProps) => {
         ),
       };
     }
-    if (!props.booking || !props.booking.attendees.length) {
+    if (!booking || !booking.attendees.length) {
       return {};
     }
-    const primaryAttendee = props.booking.attendees[0];
+    const primaryAttendee = booking.attendees[0];
     if (!primaryAttendee) {
       return {};
     }
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: props.booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
     };
   };
 
@@ -245,8 +245,8 @@ const BookingPage = (props: BookingPageProps) => {
       ...booking,
       web3Details,
       start: dayjs(date).format(),
-      end: dayjs(date).add(props.eventType.length, "minute").format(),
-      eventTypeId: props.eventType.id,
+      end: dayjs(date).add(eventType.length, "minute").format(),
+      eventTypeId: eventType.id,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
@@ -256,7 +256,7 @@ const BookingPage = (props: BookingPageProps) => {
       ),
       metadata,
       customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        label: props.eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+        label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
     });
@@ -269,18 +269,18 @@ const BookingPage = (props: BookingPageProps) => {
         <title>
           {rescheduleUid
             ? t("booking_reschedule_confirmation", {
-                eventTypeTitle: props.eventType.title,
-                profileName: props.profile.name,
+                eventTypeTitle: eventType.title,
+                profileName: profile.name,
               })
             : t("booking_confirmation", {
-                eventTypeTitle: props.eventType.title,
-                profileName: props.profile.name,
+                eventTypeTitle: eventType.title,
+                profileName: profile.name,
               })}{" "}
           | Cal.com
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
+      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
           <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
@@ -289,33 +289,31 @@ const BookingPage = (props: BookingPageProps) => {
                 <AvatarGroup
                   border="border-2 border-white dark:border-gray-900"
                   size={14}
-                  items={[{ image: props.profile.image || "", alt: props.profile.name || "" }].concat(
-                    props.eventType.users
-                      .filter((user) => user.name !== props.profile.name)
+                  items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
+                    eventType.users
+                      .filter((user) => user.name !== profile.name)
                       .map((user) => ({
                         image: user.avatar || "",
                         alt: user.name || "",
                       }))
                   )}
                 />
-                <h2 className="font-cal mt-2 font-medium text-gray-500 dark:text-gray-300">
-                  {props.profile.name}
-                </h2>
+                <h2 className="font-cal mt-2 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
-                  {props.eventType.title}
+                  {eventType.title}
                 </h1>
                 <p className="mb-2 text-gray-500">
                   <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                  {props.eventType.length} {t("minutes")}
+                  {eventType.length} {t("minutes")}
                 </p>
-                {props.eventType.price > 0 && (
+                {eventType.price > 0 && (
                   <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
                     <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
-                        value={props.eventType.price / 100.0}
+                        value={eventType.price / 100.0}
                         style="currency"
-                        currency={props.eventType.currency.toUpperCase()}
+                        currency={eventType.currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>
@@ -329,7 +327,7 @@ const BookingPage = (props: BookingPageProps) => {
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
-                <p className="mb-8 text-gray-600 dark:text-white">{props.eventType.description}</p>
+                <p className="mb-8 text-gray-600 dark:text-white">{eventType.description}</p>
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
@@ -404,7 +402,7 @@ const BookingPage = (props: BookingPageProps) => {
                       </div>
                     </div>
                   )}
-                  {props.eventType.customInputs
+                  {eventType.customInputs
                     .sort((a, b) => a.id - b.id)
                     .map((input) => (
                       <div className="mb-4" key={input.id}>
@@ -468,7 +466,7 @@ const BookingPage = (props: BookingPageProps) => {
                         )}
                       </div>
                     ))}
-                  {!props.eventType.disableGuests && (
+                  {!eventType.disableGuests && (
                     <div className="mb-4">
                       {!guestToggle && (
                         <label
