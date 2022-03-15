@@ -119,7 +119,7 @@ export default function ImageUploader({
       <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
               {t("upload_target", { target })}
             </h3>
           </div>
