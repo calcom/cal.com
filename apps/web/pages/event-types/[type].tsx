@@ -191,13 +191,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       );
     },
     onError: (err) => {
+      let message = "";
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to update this event`;
+        message = `${err.data.code}: You are not able to update this event`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR") {
+        message = `${err.data.code}: ${err.message}`;
+      }
+
+      if (message) {
         showToast(message, "error");
       }
     },

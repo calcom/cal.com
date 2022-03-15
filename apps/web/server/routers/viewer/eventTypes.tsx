@@ -18,13 +18,19 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
 }
 
+/**
+ * Ensures that it is a valid HTTP URL
+ * It automatically avoids
+ * -  XSS attempts through javascript:alert('hi')
+ * - mailto: links
+ */
 function assertValidUrl(url) {
   if (!url) {
     return;
   }
 
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    throw new TRPCError({ code: "FORBIDDEN" });
+    throw new TRPCError({ code: "PARSE_ERROR", message: "Invalid URL" });
   }
 }
 
