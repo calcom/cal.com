@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getSession } from "@calcom/lib/auth";
 import { BASE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import { decodeOAuthState } from "../../utils";
+import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 
 const scopes = ["OnlineMeetings.ReadWrite"];
 
@@ -12,12 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   console.log("🚀 ~ file: callback.ts ~ line 14 ~ handler ~ code", req.query);
 
-  // Check that user is authenticated
-  const session = await getSession({ req: req });
-  if (!session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
   if (typeof code !== "string") {
     res.status(400).json({ message: "No code returned" });
     return;
@@ -65,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       type: "office365_video",
       key: responseBody,
-      userId: session.user.id,
+      userId: req.session?.user.id,
     },
   });
 

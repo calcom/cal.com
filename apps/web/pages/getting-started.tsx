@@ -17,9 +17,9 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
-import { CalendarListContainer } from "@lib/apps/calendar/components/CalendarListContainer";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
-import getApps from "@lib/apps/utils/AppUtils";
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -30,6 +30,7 @@ import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
+import { CalendarListContainer } from "@components/CalendarListContainer";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";
@@ -701,6 +702,7 @@ export async function getServerSideProps(context: NextPageContext) {
       id: true,
       type: true,
       key: true,
+      userId: true,
     },
   });
 

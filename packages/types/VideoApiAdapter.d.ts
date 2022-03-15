@@ -1,13 +1,13 @@
 import type { Credential } from "@prisma/client";
 
+import type { EventBusyDate } from "./Calendar";
+
 export interface VideoCallData {
   type: string;
   id: string;
   password: string;
   url: string;
 }
-
-export type EventBusyDate = Record<"start" | "end", Date>;
 
 export interface VideoApiAdapter {
   createMeeting(event: CalendarEvent): Promise<VideoCallData>;

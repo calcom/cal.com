@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
 import { QueryCell } from "@lib/QueryCell";
-import { CalendarListContainer } from "@lib/apps/calendar/components/CalendarListContainer";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
+import { CalendarListContainer } from "@components/CalendarListContainer";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";

@@ -2,12 +2,12 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+import EventManager from "@calcom/core/EventManager";
 import stripe from "@calcom/stripe/server";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
 import { getErrorFromUnknown } from "@lib/errors";
-import EventManager from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";

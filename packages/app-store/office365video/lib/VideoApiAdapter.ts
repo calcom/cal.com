@@ -2,7 +2,7 @@ import { Credential } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 

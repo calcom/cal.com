@@ -9,13 +9,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import EventManager from "@calcom/core/EventManager";
+import { getBusyVideoTimes } from "@calcom/core/videoClient";
+import logger from "@calcom/lib/logger";
+import notEmpty from "@calcom/lib/notEmpty";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import type { CalendarEvent, AdditionInformation, EventBusyDate } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
-import { AdditionInformation } from "@lib/apps/calendar/interfaces/Calendar";
-import { getBusyCalendarTimes } from "@lib/apps/calendar/managers/CalendarManager";
-import { BufferedBusyTime } from "@lib/apps/office365_calendar/types/Office365Calendar";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -25,12 +28,8 @@ import {
 import { ensureArray } from "@lib/ensureArray";
 import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
-import EventManager from "@lib/events/EventManager";
-import logger from "@lib/logger";
-import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
-import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 

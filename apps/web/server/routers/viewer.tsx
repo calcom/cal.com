@@ -3,10 +3,10 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/apps/calendar/managers/CalendarManager";
-import { ALL_APPS } from "@lib/apps/utils/AppUtils";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
 import {
@@ -519,7 +519,7 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const apps = ALL_APPS.map((app) => ({
+      const apps = getApps(credentials).map((app) => ({
         ...app,
         credentialIds: credentials
           .filter((credential) => credential.type === app.type)

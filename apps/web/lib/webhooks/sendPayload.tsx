@@ -1,6 +1,6 @@
 import { compile } from "handlebars";
 
-import type { CalendarEvent } from "@calcom/types/CalendarEvent";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 

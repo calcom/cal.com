@@ -22,6 +22,7 @@ export const metadata = {
   trending: true,
   isGlobal: true,
   email: "help@cal.com",
+  locationType: "integrations:huddle01",
 } as App;
 
 export * as lib from "./lib";

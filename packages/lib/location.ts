@@ -2,6 +2,7 @@
 export enum LocationType {
   InPerson = "inPerson",
   Phone = "phone",
+  Link = "link",
   GoogleMeet = "integrations:google:meet",
   Zoom = "integrations:zoom",
   Daily = "integrations:daily",

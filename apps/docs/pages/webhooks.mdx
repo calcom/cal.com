@@ -42,3 +42,53 @@ As a result, the webhook will be returned in this format:
 ```text
 { <other event details>, metadata: { user_id: 123 } }
 ```
+
+## Custom Webhooks template variable list
+
+Customizable webhooks are a great way reduce the development effort and in many cases remove the need for a developer to build an additional integration service. Using a custom template you can easily decide what data you receive in your webhook endpoint, manage the payload and setup related workflows accordingly. Here’s a breakdown of the payload that you would receive via an incoming webhook.
+
+### Webhook structure 
+
+| Variable            | Type     | Description                                                                            |
+|---------------------|----------|----------------------------------------------------------------------------------------|
+| triggerEvent        | String   | The name of the trigger event [BOOKING_CREATED, BOOKING_RESHEDULED, BOOKING_CANCELLED] |
+| createdAt           | String   | The time of the webhook trigger                                                        |
+| type                | String   | The event-type slug                                                                    |
+| title               | String   | The event-type name                                                                    |
+| startTime           | String   | The event's start time                                                                 |
+| endTime             | String   | The event's end time                                                                   |
+| description?        | String   | The event's description as described in the event type                                 |
+| location?           | String   | Location of the event                                                                  |
+| organizer           | Person   | The organizer of the event                                                             |
+| attendees           | Person[] | The event booker & any guests                                                          |
+| uid?                | String   | The UID of the booking                                                                 |
+| resheduleUid?       | String   | The UID for the rescheduling                                                           |
+| cancellationReason? | String   | Reason for cancellation                                                                |
+| rejectionReason?    | String   | Reason for rejection                                                                   |
+| team?.name          | String   | Name of the team booked                                                                |
+| team?.members       | String[] | Members of the team booked                                                             |
+
+### Person structure 
+
+| Variable        | Type   | Description                                                           |
+|-----------------|--------|-----------------------------------------------------------------------|
+| name            | String | Name of the individual                                                |
+| email           | String | Email of the individual                                               |
+| timeZone        | String | Timezone of the individual ("America/New_York", "Asia/Kolkata", etc.) |
+| language.locale | String | Locale of the individual ("en", "fr", etc.)                           |
+
+### Example usage of variables for custom template:
+
+{
+   
+    "content": "A new event has been scheduled",
+    "type": "{{type}}", 
+    "name": "{{title}}",
+    "organizer": "{{organizer.name}}",
+    "booker": "{{attendees.0.name}}"
+   
+ }
+
+
+
+

@@ -3,9 +3,13 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
+    "@calcom/lib": "*",
     "@calcom/zoomvideo": "*",
     "@calcom/dailyvideo": "*",
     "@calcom/office365video": "*",
     "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
   }
 }

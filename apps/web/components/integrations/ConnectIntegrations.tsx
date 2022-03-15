@@ -1,13 +1,15 @@
-import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 
+import { DialogProps } from "@components/Dialog";
 import { ButtonBaseProps } from "@components/ui/Button";
 
-import { AddIntegrationModal as AddAppleIntegrationModal } from "../../lib/apps/apple_calendar/components/AddIntegration";
-import { AddIntegrationModal as AddCalDavIntegrationModal } from "../../lib/apps/caldav_calendar/components/AddIntegration";
+type AddIntegrationModalType = (props: DialogProps) => JSX.Element;
 
 export default function ConnectIntegration(props: {
   type: string;
@@ -37,6 +39,10 @@ export default function ConnectIntegration(props: {
     _setIsModalOpen(v);
     props.onOpenChange(v);
   };
+  const newPath = `@calcom/app-store/${type.split("_").join("")}/components/AddIntegration`;
+  const AddIntegrationModal = dynamic(() =>
+    import("" + newPath).catch(() => null)
+  ) as AddIntegrationModalType;
 
   return (
     <>
@@ -53,13 +59,7 @@ export default function ConnectIntegration(props: {
         loading: mutation.isLoading || isLoading,
         disabled: isModalOpen,
       })}
-      {type === "caldav_calendar" && (
-        <AddCalDavIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
-
-      {type === "apple_calendar" && (
-        <AddAppleIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      )}
+      {<AddIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />}
     </>
   );
 }

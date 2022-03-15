@@ -21,6 +21,7 @@ export const metadata = {
   title: "MS Teams",
   trending: true,
   email: "help@cal.com",
+  locationType: "integrations:office365_video",
 } as App;
 
 export * as api from "./api";

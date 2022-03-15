@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/applecalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "For personal and business calendars",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "react-hook-form": "^7.20.4"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

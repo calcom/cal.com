@@ -6,6 +6,7 @@
   "main": "./index.ts",
   "description": "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
   "dependencies": {
+    "@calcom/lib": "*",
     "@calcom/prisma": "*"
   },
   "devDependencies": {
