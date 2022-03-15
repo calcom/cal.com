@@ -3,6 +3,7 @@ import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { deleteScheduledEmailReminder } from "@ee/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@ee/lib/reminders/smsReminderManager";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -232,6 +233,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const reminder of bookingToDelete.attendeeReminders) {
     if (reminder.method === "SMS") {
       deleteScheduledSMSReminder(reminder.referenceId);
+    }
+    if (reminder.method === "EMAIL") {
+      deleteScheduledEmailReminder(reminder.referenceId);
     }
   }
 

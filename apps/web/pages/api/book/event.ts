@@ -568,6 +568,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (reminder.method === "SMS" && evt.reminderPhone) {
           await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
         }
+        if (reminder.method === "EMAIL" && evt.reminderPhone) {
+          await scheduleEmailReminder(evt, evt.attendees[0].email, reminder);
+        }
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
