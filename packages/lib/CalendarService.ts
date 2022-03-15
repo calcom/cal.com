@@ -1,3 +1,4 @@
+/// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -16,12 +17,6 @@ import {
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
 
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { TIMEZONE_FORMAT } from "@calcom/lib/calendar/constants/format";
-import { DEFAULT_CALENDAR_TYPE } from "@calcom/lib/calendar/constants/general";
-import { convertDate, getAttendees, getDuration } from "@calcom/lib/calendar/utils/CalendarUtils";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
 import type {
   Calendar,
   IntegrationCalendar,
@@ -31,6 +26,13 @@ import type {
   CalendarEvent,
 } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
+
+import { getLocation, getRichDescription } from "./CalEventParser";
+import { TIMEZONE_FORMAT } from "./calendar/constants/format";
+import { DEFAULT_CALENDAR_TYPE } from "./calendar/constants/general";
+import { convertDate, getAttendees, getDuration } from "./calendar/utils/CalendarUtils";
+import { symmetricDecrypt } from "./crypto";
+import logger from "./logger";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

@@ -6,7 +6,8 @@
   "main": "./index.ts",
   "description": "For personal and business calendars",
   "dependencies": {
-    "@calcom/prisma": "*"
+    "@calcom/prisma": "*",
+    "googleapis": "^84.0.0"
   },
   "devDependencies": {
     "@calcom/types": "*"

@@ -1,6 +1,6 @@
 import { Credential } from "@prisma/client";
 
-import CalendarService from "@calcom/core/CalendarService";
+import CalendarService from "@calcom/lib/CalendarService";
 import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
 
 export default class CalDavCalendarService extends CalendarService {
