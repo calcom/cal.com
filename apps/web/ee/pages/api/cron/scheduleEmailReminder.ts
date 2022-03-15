@@ -1,9 +1,12 @@
 /* Schedule any attendee reminder that falls within 72 hours for email */
+import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { v4 as uuidv4 } from "uuid";
 
+import reminderTemplate from "@ee/lib/reminders/templates/reminderEmailTemplate";
+
+import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY;
@@ -20,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const unscheduledReminders = await prisma.attendeeReminder.findMany({
     where: {
       scheduled: false,
+      method: "EMAIL",
     },
   });
 
@@ -35,21 +39,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: {
           title: true,
+          eventType: true,
           startTime: true,
+          endTime: true,
           user: true,
           attendees: true,
+          references: true,
         },
       });
 
-      const emailId = uuidv4();
+      const batchIdResponse = await client.request({
+        url: "/v3/mail/batch",
+        method: "POST",
+      });
 
       try {
         const response = await sgMail.send({
           to: booking.attendees[0].email,
           from: "j.auyeung419@gmail.com",
           subject: "Test email",
-          text: "This is a test email",
-          batchId: emailId,
+          content: [
+            {
+              type: "text/html",
+              value: new reminderTemplate(booking, booking.attendees[0]).getHtmlBody(),
+            },
+          ],
+          batchId: batchIdResponse[1].batch_id,
         });
 
         await prisma.attendeeReminder.update({
@@ -58,11 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           data: {
             scheduled: true,
-            referenceId: emailId,
+            referenceId: batchIdResponse[1].batch_id,
           },
         });
       } catch (error) {
-        console.log(`Error scheduling SMS with error ${error}`);
+        console.log(`Error scheduling email with error ${error}`);
       }
     }
   }

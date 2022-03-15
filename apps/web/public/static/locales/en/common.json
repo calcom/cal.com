@@ -675,10 +675,11 @@
   "24_hour": "24 hour",
   "attendee_reminders": "Attendee Reminders",
   "add_reminder": "Add Reminder",
-  "day": "Days",
+  "days": "Days",
   "sms": "SMS",
   "method": "Method",
   "send_before": "before the meeting",
   "when_to_send": "When to send reminder",
-  "phone_reminder": "Phone number for reminders (incl. country code)"
+  "phone_reminder": "Phone number for reminders (incl. country code)",
+  "reminder": "This is a reminder about your booking"
 }

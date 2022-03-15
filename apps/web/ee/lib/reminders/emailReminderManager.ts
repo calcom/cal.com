@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from "uuid";
 import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
+import reminderTemplate from "./templates/reminderEmailTemplate";
+
 const sendgridAPIKey = process.env.SENDGRID_API_KEY;
 
 sgMail.setApiKey(sendgridAPIKey);
@@ -22,7 +24,10 @@ export const scheduleEmailReminder = async (
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
-  const emailId = uuidv4();
+  const batchIdResponse = await client.request({
+    url: "/v3/mail/batch",
+    method: "POST",
+  });
 
   // Check the scheduled date and right now
   // Can only schedule at least 60 minutes in advance so send a reminder
@@ -32,8 +37,13 @@ export const scheduleEmailReminder = async (
         to: email,
         from: "j.auyeung419@gmail.com",
         subject: "Test email",
-        text: "This is a test email",
-        batchId: emailId,
+        content: [
+          {
+            type: "text/html",
+            value: new reminderTemplate(evt, evt.attendees[0]).getHtmlBody(),
+          },
+        ],
+        batchId: batchIdResponse[1].batch_id,
       });
 
       await prisma.attendeeReminder.create({
@@ -45,13 +55,13 @@ export const scheduleEmailReminder = async (
           },
           method: "EMAIL",
           sendTo: email,
-          referenceId: emailId,
+          referenceId: batchIdResponse[1].batch_id,
           scheduledDate: dayjs().toDate(),
           scheduled: true,
         },
       });
     } catch (error) {
-      console.log(`Error sending SMS with error ${error}`);
+      console.log(`Error sending email with error ${error}`);
     }
   }
   // Can only schedule emails 72 hours in advance
@@ -61,8 +71,13 @@ export const scheduleEmailReminder = async (
         to: email,
         from: "j.auyeung419@gmail.com",
         subject: "Test email",
-        text: "This is a test email",
-        batchId: emailId,
+        content: [
+          {
+            type: "text/html",
+            value: new reminderTemplate(evt, evt.attendees[0]).getHtmlBody(),
+          },
+        ],
+        batchId: batchIdResponse[1].batch_id,
       });
 
       await prisma.attendeeReminder.create({
@@ -73,19 +88,19 @@ export const scheduleEmailReminder = async (
             },
           },
           method: "EMAIL",
-          sendTo: emailId,
-          referenceId: response.sid,
+          sendTo: email,
+          referenceId: batchIdResponse[1].batch_id,
           scheduledDate: scheduledDate.toDate(),
           scheduled: true,
         },
       });
     } catch (error) {
-      console.log(`Error scheduling SMS with error ${error}`);
+      console.log(`Error scheduling email with error ${error}`);
     }
   }
 
   if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-    // Write to DB and send to CRON if scheduled reminder date is past 7 days
+    // Write to DB and send to CRON if scheduled reminder date is past 72 hours
     await prisma.attendeeReminder.create({
       data: {
         booking: {
