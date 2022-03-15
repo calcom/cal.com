@@ -132,6 +132,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
   // TODO: Move to translations
+  // Also TODO: Get these dynamically from App Store
   const locationLabels = {
     [LocationType.InPerson]: t("in_person_meeting"),
     [LocationType.Phone]: t("phone_call"),
