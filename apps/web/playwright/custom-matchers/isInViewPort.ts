@@ -9,6 +9,7 @@ declare global {
 }
 
 expect.extend({
+  // Taken from https://github.com/puppeteer/puppeteer/blob/682f3407dc520a0276acac4b0e914e02f4e6e454/experimental/puppeteer-firefox/lib/JSHandle.js#L190
   isInViewPort: async function isInViewPort(selector, page) {
     const res = await page.$eval(selector, async (el) => {
       const visibleRatio = await new Promise((resolve) => {
