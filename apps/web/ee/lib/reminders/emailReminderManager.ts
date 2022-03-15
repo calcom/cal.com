@@ -36,7 +36,7 @@ export const scheduleEmailReminder = async (
       const response = await sgMail.send({
         to: email,
         from: "j.auyeung419@gmail.com",
-        subject: "Test email",
+        subject: "Booking Reminder",
         content: [
           {
             type: "text/html",
@@ -70,7 +70,7 @@ export const scheduleEmailReminder = async (
       const response = await sgMail.send({
         to: email,
         from: "j.auyeung419@gmail.com",
-        subject: "Test email",
+        subject: "Booking Reminder",
         content: [
           {
             type: "text/html",
@@ -78,6 +78,7 @@ export const scheduleEmailReminder = async (
           },
         ],
         batchId: batchIdResponse[1].batch_id,
+        sendAt: scheduledDate.unix(),
       });
 
       await prisma.attendeeReminder.create({
