@@ -67,7 +67,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           </div>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
+              <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
                 {t("only_available_on_pro_plan")}
               </h3>
             </div>

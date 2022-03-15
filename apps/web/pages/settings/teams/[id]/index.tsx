@@ -120,7 +120,7 @@ export function TeamSettingsPage() {
                 )}
               </div>
               <div className="mb-3 mt-7 flex items-center justify-between">
-                <h3 className="font-cal text-xl font-bold leading-6 text-gray-900">{t("members")}</h3>
+                <h3 className="font-cal text-xl leading-6 text-gray-900">{t("members")}</h3>
                 {isAdmin && (
                   <div className="relative flex items-center">
                     <Button
