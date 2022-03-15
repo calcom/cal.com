@@ -37,9 +37,28 @@ function redirectToExternalUrl(url) {
   window.parent.location.href = url;
 }
 
-function RedirectionToast({ url }) {
+/**
+ * Redirects to external URL with query params from current URL.
+ * Query Params and Hash Fragment if present in external URL are kept intact.
+ */
+function RedirectionToast({ url }: { url: string }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [isToastVisible, setIsToastVisible] = useState(true);
+  const parsedSuccessUrl = new URL(document.URL);
+  const parsedExternalUrl = new URL(url);
+
+  /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
+  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+    parsedSuccessUrl.searchParams.set(name, value);
+  }
+
+  const urlWithSuccessParams =
+    parsedExternalUrl.origin +
+    parsedExternalUrl.pathname +
+    "?" +
+    parsedSuccessUrl.searchParams.toString() +
+    parsedExternalUrl.hash;
+
   const { t } = useLocale();
   const timerRef = useRef<number | null>(null);
 
@@ -50,14 +69,14 @@ function RedirectionToast({ url }) {
           return timeRemaining - 1;
         });
       } else {
-        redirectToExternalUrl(url);
+        redirectToExternalUrl(urlWithSuccessParams);
         window.clearInterval(timerRef.current as number);
       }
     }, 1000);
     return () => {
       window.clearInterval(timerRef.current as number);
     };
-  }, [timeRemaining, url]);
+  }, [timeRemaining, urlWithSuccessParams]);
 
   if (!isToastVisible) {
     return null;
@@ -72,7 +91,7 @@ function RedirectionToast({ url }) {
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex w-0 flex-1 items-center">
                 <p className="ml-3 truncate font-medium text-white">
-                  <span className="md:hidden">Redirecting ...</span>
+                  <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
                     You are being redirected to {url} in {timeRemaining}{" "}
                     {timeRemaining === 1 ? "second" : "seconds"}.
@@ -82,7 +101,7 @@ function RedirectionToast({ url }) {
               <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
                 <button
                   onClick={() => {
-                    redirectToExternalUrl(url);
+                    redirectToExternalUrl(urlWithSuccessParams);
                   }}
                   className="flex items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm hover:bg-indigo-50">
                   {t("Continue")}
