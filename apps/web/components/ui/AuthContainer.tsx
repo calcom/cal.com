@@ -21,7 +21,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
           <img className="mx-auto h-6" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
         )}
         {props.heading && (
-          <h2 className="font-cal mt-6 text-center text-3xl font-bold text-neutral-900">{props.heading}</h2>
+          <h2 className="font-cal mt-6 text-center text-3xl text-neutral-900">{props.heading}</h2>
         )}
       </div>
       {props.loading && (
