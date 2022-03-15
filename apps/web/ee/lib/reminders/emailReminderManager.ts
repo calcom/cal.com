@@ -11,6 +11,7 @@ import prisma from "@lib/prisma";
 import reminderTemplate from "./templates/reminderEmailTemplate";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY;
+const senderEmail = process.env.SENDGRID_EMAIL;
 
 sgMail.setApiKey(sendgridAPIKey);
 client.setApiKey(sendgridAPIKey);
@@ -35,7 +36,7 @@ export const scheduleEmailReminder = async (
     try {
       const response = await sgMail.send({
         to: email,
-        from: "j.auyeung419@gmail.com",
+        from: senderEmail,
         subject: "Booking Reminder",
         content: [
           {
@@ -69,7 +70,7 @@ export const scheduleEmailReminder = async (
     try {
       const response = await sgMail.send({
         to: email,
-        from: "j.auyeung419@gmail.com",
+        from: senderEmail,
         subject: "Booking Reminder",
         content: [
           {

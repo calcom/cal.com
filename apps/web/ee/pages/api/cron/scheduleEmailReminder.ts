@@ -10,6 +10,7 @@ import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Cal
 import prisma from "@lib/prisma";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY;
+const senderEmail = process.env.SENDGRID_EMAIL;
 
 sgMail.setApiKey(sendgridAPIKey);
 
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const response = await sgMail.send({
           to: booking.attendees[0].email,
-          from: "j.auyeung419@gmail.com",
+          from: senderEmail,
           subject: "Test email",
           content: [
             {
