@@ -1,5 +1,4 @@
-/* Schedule any attendee reminder that falls within 7 days for SMS 
-and 72 hours for email */
+/* Schedule any attendee reminder that falls within 7 days for SMS */
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
@@ -65,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           data: {
             scheduled: true,
+            referenceId: response.sid,
           },
         });
       } catch (error) {
