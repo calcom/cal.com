@@ -16,7 +16,7 @@ import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { CalendarEvent, AdditionInformation, EventBusyDate } from "@calcom/types/Calendar";
-import type { PartialReference } from "@calcom/types/EventManager";
+import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {

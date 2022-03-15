@@ -4,6 +4,7 @@ import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
 import stripe from "@calcom/stripe/server";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
