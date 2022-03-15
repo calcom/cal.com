@@ -1,12 +1,13 @@
 import { ChatAltIcon } from "@heroicons/react/solid";
+import Script from "next/script";
 import { useState } from "react";
-
-import ZendeskProvider from "@ee/lib/zendesk/ZendeskProvider";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { DropdownMenuItem } from "@components/ui/Dropdown";
+
+const ZENDESK_KEY = process.env.NEXT_PUBLIC_ZENDESK_KEY;
 
 export default function ZendeskMenuItem() {
   const [active, setActive] = useState(false);
@@ -30,7 +31,9 @@ export default function ZendeskMenuItem() {
             {t("help")}
           </button>
         </DropdownMenuItem>
-        {active && <ZendeskProvider />}
+        {active && (
+          <Script id="ze-snippet" src={"https://static.zdassets.com/ekr/snippet.js?key=" + ZENDESK_KEY} />
+        )}
       </>
     );
 }
