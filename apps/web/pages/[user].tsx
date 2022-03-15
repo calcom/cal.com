@@ -49,7 +49,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
             <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
-            <h1 className="font-cal mb-1 text-3xl font-bold text-neutral-900 dark:text-white">
+            <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
               {nameOrUsername}
               {user.verified && (
                 <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
@@ -61,7 +61,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-cal mb-2 text-3xl font-semibold text-gray-600 dark:text-white">
+                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
                     😴{" " + t("user_away")}
                   </h2>
                   <p className="mx-auto max-w-md">{t("user_away_description")}</p>
@@ -116,9 +116,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           {eventTypes.length === 0 && (
             <div className="overflow-hidden rounded-sm border dark:border-gray-900">
               <div className="p-8 text-center text-gray-400 dark:text-white">
-                <h2 className="font-cal mb-2 text-3xl font-semibold text-gray-600 dark:text-white">
-                  {t("uh_oh")}
-                </h2>
+                <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{t("uh_oh")}</h2>
                 <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup")}</p>
               </div>
             </div>
