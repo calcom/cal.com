@@ -155,13 +155,12 @@
   }
 }
 
-#launcher {
-  display: block;
-}
-
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
   #launcher {
+    display: none !important;
+  }
+  [title="Button to launch messaging window"] {
     display: none !important;
   }
 }
