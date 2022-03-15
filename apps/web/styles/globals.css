@@ -155,9 +155,13 @@
   }
 }
 
-/* hide intercom chat bubble on mobile */
+#launcher {
+  display: block;
+}
+
+/* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
-  .intercom-launcher-frame {
+  #launcher {
     display: none !important;
   }
 }
@@ -166,13 +170,6 @@
 @media all and (display-mode: standalone) {
   .bottom-nav {
     padding-bottom: 24px;
-  }
-}
-
-/* hide intercom chat bubble on mobile */
-@media only screen and (max-width: 768px) {
-  .intercom-launcher-frame {
-    display: none !important;
   }
 }
 
