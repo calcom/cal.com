@@ -30,10 +30,10 @@ import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
-import { CalendarListContainer } from "@components/CalendarListContainer";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";

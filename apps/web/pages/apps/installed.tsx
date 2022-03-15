@@ -10,11 +10,11 @@ import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
-import { CalendarListContainer } from "@components/CalendarListContainer";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import ConnectIntegration from "@components/integrations/ConnectIntegrations";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";

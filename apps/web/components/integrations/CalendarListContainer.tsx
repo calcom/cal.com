@@ -8,15 +8,15 @@ import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
-import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { List } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
-import ConnectIntegration from "@components/integrations/ConnectIntegrations";
-import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
-import IntegrationListItem from "@components/integrations/IntegrationListItem";
-import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
+import DestinationCalendarSelector from "../DestinationCalendarSelector";
+import { List } from "../List";
+import { ShellSubHeading } from "../Shell";
+import { Alert } from "../ui/Alert";
+import Button from "../ui/Button";
+import ConnectIntegration from "./ConnectIntegrations";
+import DisconnectIntegration from "./DisconnectIntegration";
+import IntegrationListItem from "./IntegrationListItem";
+import SubHeadingTitleWithConnections from "./SubHeadingTitleWithConnections";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
