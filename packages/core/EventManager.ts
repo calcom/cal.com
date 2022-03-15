@@ -57,6 +57,7 @@ export const isDedicatedIntegration = (location: string): boolean => {
 
 export const getLocationRequestFromIntegration = (location: string) => {
   if (
+    /** TODO: Handle this dynamically */
     location === LocationType.GoogleMeet.valueOf() ||
     location === LocationType.Zoom.valueOf() ||
     location === LocationType.Daily.valueOf() ||
