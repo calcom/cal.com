@@ -310,6 +310,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         );
       case LocationType.Phone:
         return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
+      /* TODO: Render this dynamically from App Store */
       case LocationType.GoogleMeet:
         return <p className="text-sm">{t("cal_provide_google_meet_location")}</p>;
       case LocationType.Zoom:
