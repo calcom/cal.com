@@ -118,7 +118,6 @@ export const eventTypesRouter = createProtectedRouter()
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
-      assertValidUrl(input.successRedirect);
       const userId = ctx.user.id;
 
       const data: Prisma.EventTypeCreateInput = {
