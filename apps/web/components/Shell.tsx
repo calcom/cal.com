@@ -377,7 +377,9 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="group flex w-full cursor-pointer appearance-none items-center">
+        <div
+          data-testid="user-dropdown-trigger"
+          className="group flex w-full cursor-pointer appearance-none items-center">
           <span
             className={classNames(
               small ? "h-8 w-8" : "h-10 w-10",
@@ -418,7 +420,7 @@ function UserDropdown({ small }: { small?: boolean }) {
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent portalled={true}>
+      <DropdownMenuContent data-testid="user-dropdown-content" portalled={true}>
         <DropdownMenuItem>
           <a
             onClick={() => {

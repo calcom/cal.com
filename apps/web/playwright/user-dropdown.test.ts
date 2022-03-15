@@ -5,7 +5,7 @@ import "./custom-matchers";
 // Using logged in state from globalSteup
 test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
-test.only("User Dropdown should open up on click", async ({ page }) => {
+test("User Dropdown should open up on click", async ({ page }) => {
   // Try to go homepage
   await page.goto("/");
 
