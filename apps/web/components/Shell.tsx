@@ -248,7 +248,7 @@ export default function Shell(props: {
                 </nav>
               </div>
               <TrialBanner />
-              <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+              <div className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
                 <span className="hidden lg:inline">
                   <UserDropdown />
                 </span>
@@ -309,9 +309,7 @@ export default function Shell(props: {
               <div className="block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8">
                 {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="mb-8 w-full">
-                  <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900">
-                    {props.heading}
-                  </h1>
+                  <h1 className="font-cal mb-1 text-xl text-gray-900">{props.heading}</h1>
                   <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                 </div>
                 <div className="mb-4 flex-shrink-0">{props.CTA}</div>
