@@ -12,7 +12,7 @@ import { trpc } from "@lib/trpc";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import { Form, TextField } from "@components/form/fields";
 
-export function NewScheduleButton() {
+export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
   const { t } = useLocale();
 
@@ -40,9 +40,9 @@ export function NewScheduleButton() {
   });
 
   return (
-    <Dialog name="new-schedule" clearQueryParamsOnClose={["copy-schedule-id"]}>
+    <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button data-testid="new-schedule" StartIcon={PlusIcon}>
+        <Button data-testid={name} StartIcon={PlusIcon}>
           {t("new_schedule_btn")}
         </Button>
       </DialogTrigger>

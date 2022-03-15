@@ -1,4 +1,5 @@
-import { DotsHorizontalIcon, DuplicateIcon, TrashIcon } from "@heroicons/react/solid";
+import { ClockIcon } from "@heroicons/react/outline";
+import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import { Availability } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
@@ -20,6 +21,21 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@components/ui/Dropdown";
 
+const CreateFirstScheduleView = () => {
+  const { t } = useLocale();
+
+  return (
+    <div className="md:py-20">
+      <div className="mx-auto block text-center md:max-w-screen-sm">
+        <ClockIcon className="inline w-12 text-neutral-400" />
+        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_schedule_heading")}</h3>
+        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_schedule_description")}</p>
+        <NewScheduleButton name="first-new-schedule" />
+      </div>
+    </div>
+  );
+};
+
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
@@ -35,6 +51,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   });
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
+      {schedules.length === 0 && <CreateFirstScheduleView />}
       <ul className="divide-y divide-neutral-200" data-testid="schedules">
         {schedules.map((schedule) => (
           <li key={schedule.id}>
