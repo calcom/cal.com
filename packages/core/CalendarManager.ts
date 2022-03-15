@@ -1,39 +1,26 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
-import Office365CalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
+import appStore from "@calcom/app-store";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { APPS } from "@calcom/lib/calendar/config";
-import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
-import type { Calendar, CalendarEvent, CalendarServiceType, EventBusyDate } from "@calcom/types/Calendar";
-import { EventResult } from "@calcom/types/EventManager";
-
-import AppleCalendarService from "../../apps/web/lib/apps/apple_calendar/services/CalendarService";
-import CalDavCalendarService from "../../apps/web/lib/apps/caldav_calendar/services/CalendarService";
-import GoogleCalendarService from "../../apps/web/lib/apps/google_calendar/services/CalendarService";
-
-const CALENDARS: Record<string, CalendarServiceType> = {
-  [APPS_TYPES.apple]: AppleCalendarService,
-  [APPS_TYPES.caldav]: CalDavCalendarService,
-  [APPS_TYPES.google]: GoogleCalendarService,
-  [APPS_TYPES.office365]: Office365CalendarService,
-};
+import type { Calendar, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = (credential: Credential): Calendar | null => {
   const { type: calendarType } = credential;
-
-  const calendar = CALENDARS[calendarType];
-  if (!calendar) {
+  const calendarApp = appStore[calendarType as keyof typeof appStore];
+  if (!calendarApp || !("CalendarService" in calendarApp.lib)) {
     log.warn(`calendar of type ${calendarType} does not implemented`);
     return null;
   }
-
-  return new calendar(credential);
+  const CalendarService = calendarApp.lib.CalendarService;
+  return new CalendarService(credential);
 };
 
 export const getCalendarCredentials = (credentials: Array<Omit<Credential, "userId">>, userId: number) => {
