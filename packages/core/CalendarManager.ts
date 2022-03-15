@@ -18,13 +18,14 @@ export { getCalendar };
 export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
-    .flatMap((app) => {
-      const credential = app.credential;
-      const calendar = getCalendar(credential);
-      return app && calendar && app.variant === "calendar"
-        ? [{ integration: app, credential, calendar }]
-        : [];
-    });
+    .flatMap((app) =>
+      credentials.flatMap((credential) => {
+        const calendar = getCalendar(credential);
+        return app && calendar && app.variant === "calendar"
+          ? [{ integration: app, credential, calendar }]
+          : [];
+      })
+    );
   return calendarCredentials;
 };
 
