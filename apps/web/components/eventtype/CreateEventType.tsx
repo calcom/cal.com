@@ -7,6 +7,13 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/Dropdown";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -19,17 +26,10 @@ import { Form, InputLeading, TextAreaField, TextField } from "@components/form/f
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/Dropdown";
 import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
-interface EventTypeParent {
+export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
   name?: string | null;
   slug?: string | null;
@@ -56,12 +56,23 @@ export default function CreateEventTypeButton(props: Props) {
       : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
+  const title: string =
+    typeof router.query.title === "string" && router.query.title ? router.query.title : "";
+  const length: number =
+    typeof router.query.length === "string" && router.query.length ? parseInt(router.query.length) : 15;
+  const description: string =
+    typeof router.query.description === "string" && router.query.description ? router.query.description : "";
+  const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
+  const type: string = typeof router.query.type == "string" && router.query.type ? router.query.type : "";
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
-    defaultValues: { length: 15 },
   });
   const { setValue, watch, register } = form;
+  setValue("title", title);
+  setValue("length", length);
+  setValue("description", description);
+  setValue("slug", slug);
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
@@ -113,7 +124,9 @@ export default function CreateEventTypeButton(props: Props) {
   };
 
   return (
-    <Dialog name="new-eventtype" clearQueryParamsOnClose={["eventPage", "teamId"]}>
+    <Dialog
+      name="new-eventtype"
+      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}
@@ -196,7 +209,6 @@ export default function CreateEventTypeButton(props: Props) {
                 required
                 min="10"
                 placeholder="15"
-                defaultValue={15}
                 label={t("length")}
                 className="pr-20"
                 {...register("length", { valueAsNumber: true })}
@@ -222,11 +234,17 @@ export default function CreateEventTypeButton(props: Props) {
                   {...register("schedulingType")}
                   onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
                   className="relative mt-1 flex space-x-6 rounded-sm shadow-sm rtl:space-x-reverse">
-                  <RadioArea.Item value={SchedulingType.COLLECTIVE} className="w-1/2 text-sm">
+                  <RadioArea.Item
+                    value={SchedulingType.COLLECTIVE}
+                    defaultChecked={type === SchedulingType.COLLECTIVE}
+                    className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
-                  <RadioArea.Item value={SchedulingType.ROUND_ROBIN} className="w-1/2 text-sm">
+                  <RadioArea.Item
+                    value={SchedulingType.ROUND_ROBIN}
+                    defaultChecked={type === SchedulingType.ROUND_ROBIN}
+                    className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
