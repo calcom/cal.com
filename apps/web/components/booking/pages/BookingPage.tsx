@@ -142,7 +142,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
   };
-  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
+  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
