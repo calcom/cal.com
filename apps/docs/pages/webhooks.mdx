@@ -3,6 +3,7 @@ title: Webhooks
 ---
 
 # Webhooks
+
 ## Create a new Webhook
 
 1. Go to [Your Integrations](https://app.cal.com/integrations).
@@ -23,22 +24,27 @@ title: Webhooks
 3. Press the button and from here your webhook will no longer work and be deleted.
 
 ## Webhook metadata
+
 Metadata is a way to pass extra information to Cal.com about a booking that is returned through a webhook.
 
 ### Example
+
 The best way to explain this is with an example. Let's say you're a bank, and people register an account on your website, but you want them to book an onboarding call with your team to get set up. You could send them to your Cal.com booking link as part of your onboarding process, but when the webhook is returned, it may be difficult to match up which user booked a meeting with the user's account in your own database. Hence, you can pass a `user_id` value for instance as a URL parameter, which makes no difference to the booking process, but when the webhook is returned, you will receive the metadata as part of the webhook payload.
 
 Metadata is passed as a URL parameter on top of your booking link and follows the following syntax:
+
 ```text
 metadata[key_name]=value
 ```
 
 For example, if your booking link is `cal.com/rick/quick-chat`, you can pass a user ID of 123 like so:
+
 ```text
 cal.com/rick/quick-chat?metadata[user_id]=123
 ```
 
 As a result, the webhook will be returned in this format:
+
 ```text
 { <other event details>, metadata: { user_id: 123 } }
 ```
@@ -47,10 +53,10 @@ As a result, the webhook will be returned in this format:
 
 Customizable webhooks are a great way reduce the development effort and in many cases remove the need for a developer to build an additional integration service. Using a custom template you can easily decide what data you receive in your webhook endpoint, manage the payload and setup related workflows accordingly. Here’s a breakdown of the payload that you would receive via an incoming webhook.
 
-### Webhook structure 
+### Webhook structure
 
 | Variable            | Type     | Description                                                                            |
-|---------------------|----------|----------------------------------------------------------------------------------------|
+| ------------------- | -------- | -------------------------------------------------------------------------------------- |
 | triggerEvent        | String   | The name of the trigger event [BOOKING_CREATED, BOOKING_RESHEDULED, BOOKING_CANCELLED] |
 | createdAt           | String   | The time of the webhook trigger                                                        |
 | type                | String   | The event-type slug                                                                    |
@@ -68,10 +74,10 @@ Customizable webhooks are a great way reduce the development effort and in many 
 | team?.name          | String   | Name of the team booked                                                                |
 | team?.members       | String[] | Members of the team booked                                                             |
 
-### Person structure 
+### Person structure
 
 | Variable        | Type   | Description                                                           |
-|-----------------|--------|-----------------------------------------------------------------------|
+| --------------- | ------ | --------------------------------------------------------------------- |
 | name            | String | Name of the individual                                                |
 | email           | String | Email of the individual                                               |
 | timeZone        | String | Timezone of the individual ("America/New_York", "Asia/Kolkata", etc.) |
@@ -79,16 +85,14 @@ Customizable webhooks are a great way reduce the development effort and in many 
 
 ### Example usage of variables for custom template:
 
+```sh
 {
-   
+
     "content": "A new event has been scheduled",
-    "type": "{{type}}", 
+    "type": "{{type}}",
     "name": "{{title}}",
     "organizer": "{{organizer.name}}",
     "booker": "{{attendees.0.name}}"
-   
- }
 
-
-
-
+}
+```

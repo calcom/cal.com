@@ -63,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     await sendPasswordResetEmail(passwordEmail);
-    console.log("FORGOT PASSWORD", process.env.PLAYWRIGHT_SECRET);
     /** So we can test the password reset flow on CI */
     if (
       process.env.PLAYWRIGHT_SECRET &&
