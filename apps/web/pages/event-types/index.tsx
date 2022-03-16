@@ -258,9 +258,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                           <Link href={"/event-types/" + type.id} passHref={true}>
                             <Button
                               type="button"
-                              size="lg"
+                              size="sm"
                               color="minimal"
-                              className="w-full rounded-none font-normal"
+                              className="w-full rounded-none"
                               StartIcon={PencilIcon}>
                               {" "}
                               {t("edit")}
@@ -271,8 +271,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                           <Button
                             type="button"
                             color="minimal"
-                            size="lg"
-                            className="w-full rounded-none font-normal"
+                            size="sm"
+                            className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
@@ -288,9 +288,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                                   e.stopPropagation();
                                 }}
                                 color="warn"
-                                size="lg"
+                                size="sm"
                                 StartIcon={TrashIcon}
-                                className="w-full rounded-none font-normal">
+                                className="w-full rounded-none">
                                 {t("delete")}
                               </Button>
                             </DialogTrigger>
@@ -322,9 +322,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         <a target="_blank">
                           <Button
                             color="minimal"
-                            size="lg"
+                            size="sm"
                             StartIcon={ExternalLinkIcon}
-                            className="w-full rounded-none font-normal">
+                            className="w-full rounded-none">
                             {t("preview")}
                           </Button>
                         </a>
@@ -334,8 +334,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       <Button
                         type="button"
                         color="minimal"
-                        size="lg"
-                        className="w-full rounded-none text-left font-normal"
+                        size="sm"
+                        className="w-full rounded-none text-left"
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={ClipboardCopyIcon}
                         onClick={() => {
@@ -352,8 +352,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         <Button
                           type="button"
                           color="minimal"
-                          size="lg"
-                          className="w-full rounded-none font-normal"
+                          size="sm"
+                          className="w-full rounded-none"
                           data-testid={"event-type-duplicate-" + type.id}
                           StartIcon={UploadIcon}
                           onClick={() => {
@@ -374,9 +374,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       <Link href={"/event-types/" + type.id} passHref={true}>
                         <Button
                           type="button"
-                          size="lg"
+                          size="sm"
                           color="minimal"
-                          className="w-full rounded-none font-normal"
+                          className="w-full rounded-none"
                           StartIcon={PencilIcon}>
                           {" "}
                           {t("edit")}
@@ -387,8 +387,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       <Button
                         type="button"
                         color="minimal"
-                        size="lg"
-                        className="w-full rounded-none font-normal"
+                        size="sm"
+                        className="w-full rounded-none"
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={DuplicateIcon}
                         onClick={() => openModal(group, type)}>
@@ -404,9 +404,9 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                               e.stopPropagation();
                             }}
                             color="warn"
-                            size="lg"
+                            size="sm"
                             StartIcon={TrashIcon}
-                            className="w-full rounded-none font-normal">
+                            className="w-full rounded-none">
                             {t("delete")}
                           </Button>
                         </DialogTrigger>
