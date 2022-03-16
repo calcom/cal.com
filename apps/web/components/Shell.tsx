@@ -17,6 +17,7 @@ import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import Button from "@calcom/ui/Button";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import IntercomMenuItem from "@ee/lib/intercom/IntercomMenuItem";
@@ -42,7 +43,6 @@ import Dropdown, {
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-import Button from "./ui/Button";
 
 export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
