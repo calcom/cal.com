@@ -1,7 +1,7 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import React from "react";
 
-import { Button, ButtonBaseProps } from "@components/ui/Button";
+import { Button, ButtonBaseProps } from "@calcom/ui/Button";
 
 import { sandboxPage } from ".";
 

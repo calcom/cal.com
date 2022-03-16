@@ -4,10 +4,10 @@ import React from "react";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
+import showToast from "@calcom/lib/notification";
+import { Button } from "@calcom/ui/Button";
 
-import { Button } from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";

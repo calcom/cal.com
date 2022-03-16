@@ -17,7 +17,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
+import { Alert } from "@calcom/ui/Alert";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -28,17 +32,13 @@ import Dropdown, {
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";

@@ -3,12 +3,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 
+import showToast from "@calcom/lib/notification";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import LinkIconButton from "@components/ui/LinkIconButton";
