@@ -11,8 +11,7 @@ import {
   DialogHeader,
   DialogProps,
 } from "@calcom/ui/Dialog";
-
-import { Form, TextField } from "@components/form/fields";
+import { Form, TextField } from "@calcom/ui/form/fields";
 
 export const ADD_APPLE_INTEGRATION_FORM_TITLE = "addAppleIntegration";
 

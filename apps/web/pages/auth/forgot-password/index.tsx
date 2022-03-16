@@ -5,11 +5,11 @@ import Link from "next/link";
 import React, { SyntheticEvent } from "react";
 
 import Button from "@calcom/ui/Button";
+import { EmailField } from "@calcom/ui/form/fields";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import { EmailField } from "@components/form/fields";
 import AuthContainer from "@components/ui/AuthContainer";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {

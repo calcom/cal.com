@@ -3,13 +3,13 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/Button";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
