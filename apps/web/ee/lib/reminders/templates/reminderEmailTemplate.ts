@@ -230,11 +230,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location
-      ? getIntegrationName(this.calEvent.location)
-      : this.calEvent.references
-      ? getIntegrationName(this.calEvent.references)
-      : "";
+    let providerName = this.calEvent.location ? getIntegrationName(this.calEvent.location) : "";
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];

@@ -25,7 +25,8 @@ export const scheduleSMSAttendeeReminder = async (
   reminderPhone: string,
   attendeeReminder: EventTypeAttendeeReminder
 ) => {
-  const { startTime, uid } = evt;
+  const { startTime } = evt;
+  const uid = evt.uid as string;
   const currentDate = dayjs();
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);

@@ -36,7 +36,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     { value: EventTypeAttendeeReminderUnitTime.MINUTE, label: t("minutes").toUpperCase() },
   ];
   const { selectedAttendeeReminder } = props;
-  const defaultValues = selectedAttendeeReminder || { type: unitTimeOptions[0].value };
+  const defaultValues = selectedAttendeeReminder;
   const { register, control, handleSubmit } = useForm<IFormInput>({
     defaultValues,
   });
