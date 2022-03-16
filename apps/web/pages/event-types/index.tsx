@@ -370,6 +370,58 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         </Button>
                       </DropdownMenuItem>
                     ) : null}
+                    <DropdownMenuItem>
+                      <Link href={"/event-types/" + type.id} passHref={true}>
+                        <Button
+                          type="button"
+                          size="lg"
+                          color="minimal"
+                          className="w-full rounded-none font-normal"
+                          StartIcon={PencilIcon}>
+                          {" "}
+                          {t("edit")}
+                        </Button>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        size="lg"
+                        className="w-full rounded-none font-normal"
+                        data-testid={"event-type-duplicate-" + type.id}
+                        StartIcon={DuplicateIcon}
+                        onClick={() => openModal(group, type)}>
+                        {t("duplicate")}
+                      </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="warn"
+                            size="lg"
+                            StartIcon={TrashIcon}
+                            className="w-full rounded-none font-normal">
+                            {t("delete")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("delete_event_type")}
+                          confirmBtnText={t("confirm_delete_event_type")}
+                          onConfirm={(e) => {
+                            e.preventDefault();
+                            deleteEventTypeHandler(type.id);
+                          }}>
+                          {t("delete_event_type_description")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
               </div>
