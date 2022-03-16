@@ -142,7 +142,11 @@ export function TeamSettingsPage() {
             </div>
           </div>
           {showMemberInvitationModal && (
-            <MemberInvitationModal team={team} onExit={() => setShowMemberInvitationModal(false)} />
+            <MemberInvitationModal
+              isOpen={showMemberInvitationModal}
+              team={team}
+              onExit={() => setShowMemberInvitationModal(false)}
+            />
           )}
         </>
       )}
