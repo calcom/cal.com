@@ -3,6 +3,7 @@ import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/reac
 import Link from "next/link";
 import React, { useState } from "react";
 
+import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
@@ -14,7 +15,6 @@ import { trpc, inferQueryOutput } from "@lib/trpc";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
 import ModalContainer from "@components/ui/ModalContainer";
 
 import Dropdown, {

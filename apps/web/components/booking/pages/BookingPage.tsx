@@ -14,6 +14,7 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
 import { createPaymentLink } from "@calcom/stripe/client";
+import { Button } from "@calcom/ui/Button";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -30,7 +31,6 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import CustomBranding from "@components/CustomBranding";
 import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import { Button } from "@components/ui/Button";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 
@@ -11,7 +12,6 @@ import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
 
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@components/form/fields";
-import Button from "@components/ui/Button";
 import { TWebhook } from "@components/webhook/WebhookListItem";
 import WebhookTestDisclosure from "@components/webhook/WebhookTestDisclosure";
 

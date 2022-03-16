@@ -18,6 +18,7 @@ import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -35,7 +36,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import { Form } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Schedule from "@components/ui/form/Schedule";
 

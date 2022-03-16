@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
+import Button from "@calcom/ui/Button";
 import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@calcom/ui/Dialog";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
@@ -8,7 +9,6 @@ import { useFileReader } from "@lib/hooks/useFileReader";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Slider from "@components/Slider";
-import Button from "@components/ui/Button";
 
 type ImageUploaderProps = {
   id: string;

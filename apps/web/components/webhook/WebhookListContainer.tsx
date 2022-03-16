@@ -2,6 +2,7 @@ import classNames from "classnames";
 import Image from "next/image";
 import { useState } from "react";
 
+import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -10,7 +11,6 @@ import { trpc } from "@lib/trpc";
 
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
-import Button from "@components/ui/Button";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 

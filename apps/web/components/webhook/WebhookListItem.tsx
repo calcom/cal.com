@@ -1,6 +1,7 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 
 import classNames from "@calcom/lib/classNames";
+import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -9,7 +10,6 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 import { ListItem } from "@components/List";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Button from "@components/ui/Button";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 

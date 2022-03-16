@@ -2,6 +2,7 @@ import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -12,7 +13,6 @@ import { trpc } from "@lib/trpc";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
-import Button from "@components/ui/Button";
 
 import ConnectIntegration from "./ConnectIntegrations";
 import DisconnectIntegration from "./DisconnectIntegration";

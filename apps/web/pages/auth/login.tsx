@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBSITE_URL } from "@lib/config/constants";
@@ -21,7 +22,6 @@ import SAMLLogin from "@components/auth/SAMLLogin";
 import TwoFactor from "@components/auth/TwoFactor";
 import { EmailField, PasswordField, Form } from "@components/form/fields";
 import AuthContainer from "@components/ui/AuthContainer";
-import Button from "@components/ui/Button";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";

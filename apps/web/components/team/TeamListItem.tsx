@@ -2,6 +2,7 @@ import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/
 import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
+import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import classNames from "@lib/classNames";
@@ -13,7 +14,6 @@ import { trpc, inferQueryOutput } from "@lib/trpc";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,

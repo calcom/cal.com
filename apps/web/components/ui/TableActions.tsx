@@ -1,6 +1,8 @@
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC } from "react";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -9,8 +11,6 @@ import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@components/ui/Dropdown";
-
-import Button from "./Button";
 
 export type ActionType = {
   id: string;

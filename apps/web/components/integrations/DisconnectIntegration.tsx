@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { ButtonBaseProps } from "@calcom/ui/Button";
 import { Dialog } from "@calcom/ui/Dialog";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { ButtonBaseProps } from "@components/ui/Button";
 
 export default function DisconnectIntegration(props: {
   /** Integration credential id */

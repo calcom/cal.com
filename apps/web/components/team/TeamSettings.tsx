@@ -2,6 +2,7 @@ import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@h
 import React, { useRef, useState } from "react";
 
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
@@ -10,7 +11,6 @@ import { trpc } from "@lib/trpc";
 
 import ImageUploader from "@components/ImageUploader";
 import { TextField } from "@components/form/fields";
-import Button from "@components/ui/Button";
 import SettingInputContainer from "@components/ui/SettingInputContainer";
 
 interface Props {

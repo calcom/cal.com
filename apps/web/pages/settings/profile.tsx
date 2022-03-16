@@ -10,6 +10,7 @@ import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -30,7 +31,6 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import { TextField } from "@components/form/fields";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 import ColorPicker from "@components/ui/colorpicker";
 
 type Props = inferSSRProps<typeof getServerSideProps>;

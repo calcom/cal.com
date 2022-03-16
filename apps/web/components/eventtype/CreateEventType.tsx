@@ -8,6 +8,7 @@ import type { z } from "zod";
 
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { Alert } from "@calcom/ui/Alert";
+import { Button } from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
 import { HttpError } from "@lib/core/http/error";
@@ -18,7 +19,6 @@ import { trpc } from "@lib/trpc";
 
 import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
 import Avatar from "@components/ui/Avatar";
-import { Button } from "@components/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
