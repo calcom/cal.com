@@ -2,12 +2,12 @@ import { useId } from "@radix-ui/react-id";
 import { forwardRef, ReactElement, ReactNode, Ref } from "react";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
+import { Alert } from "@calcom/ui/Alert";
+
 import classNames from "@lib/classNames";
 import { getErrorFromUnknown } from "@lib/errors";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
-
-import { Alert } from "@components/ui/Alert";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 

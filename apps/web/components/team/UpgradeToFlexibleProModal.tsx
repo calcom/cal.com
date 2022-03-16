@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
 import {
   Dialog,
   DialogTrigger,
@@ -13,7 +14,6 @@ import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
-import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 interface Props {

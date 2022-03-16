@@ -2,6 +2,8 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
+
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
@@ -11,7 +13,6 @@ import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
-import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];

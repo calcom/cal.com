@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { Alert } from "@calcom/ui/Alert";
 import {
   DialogHeader,
   DialogProps,
@@ -11,7 +12,6 @@ import {
 } from "@calcom/ui/Dialog";
 
 import { Form, TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";
 
 type Props = {

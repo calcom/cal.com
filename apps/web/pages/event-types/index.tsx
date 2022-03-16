@@ -14,6 +14,7 @@ import Link from "next/link";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui";
+import { Alert } from "@calcom/ui/Alert";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -25,7 +26,6 @@ import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";

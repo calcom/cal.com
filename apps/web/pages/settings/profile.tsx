@@ -9,6 +9,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -27,7 +28,6 @@ import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";

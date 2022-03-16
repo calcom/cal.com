@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -9,7 +10,6 @@ import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { TextArea } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 

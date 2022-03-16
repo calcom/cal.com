@@ -3,6 +3,7 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -17,7 +18,6 @@ import MemberList from "@components/team/MemberList";
 import TeamSettings from "@components/team/TeamSettings";
 import TeamSettingsRightSidebar from "@components/team/TeamSettingsRightSidebar";
 import { UpgradeToFlexibleProModal } from "@components/team/UpgradeToFlexibleProModal";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import { Button } from "@components/ui/Button";
 
