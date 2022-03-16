@@ -660,7 +660,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="flex">
                     <button
                       type="button"
-                      onClick={() => openLocationModal(location.type)}
+                      onClick={() => {
+                        locationFormMethods.setValue("locationType", location.type);
+                        locationFormMethods.unregister("locationLink");
+                        locationFormMethods.unregister("locationAddress");
+                        openLocationModal(location.type);
+                      }}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
@@ -1610,6 +1615,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister("locationLink");
+                            locationFormMethods.unregister("locationAddress");
                             setSelectedLocation(val);
                           }
                         }}

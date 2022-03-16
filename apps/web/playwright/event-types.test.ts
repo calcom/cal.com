@@ -39,6 +39,27 @@ test.describe("pro user", () => {
 
     await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
   });
+
+  test("can duplicate an existing event type", async ({ page }) => {
+    const firstTitle = await page.locator("[data-testid=event-type-title-3]").innerText();
+    const firstFullSlug = await page.locator("[data-testid=event-type-slug-3]").innerText();
+    const firstSlug = firstFullSlug.split("/")[2];
+
+    await page.click("[data-testid=event-type-options-3]");
+    await page.click("[data-testid=event-type-duplicate-3]");
+
+    const url = await page.url();
+    const params = new URLSearchParams(url);
+
+    await expect(params.get("title")).toBe(firstTitle);
+    await expect(params.get("slug")).toBe(firstSlug);
+
+    const formTitle = await page.inputValue("[name=title]");
+    const formSlug = await page.inputValue("[name=slug]");
+
+    await expect(formTitle).toBe(firstTitle);
+    await expect(formSlug).toBe(firstSlug);
+  });
 });
 
 test.describe("free user", () => {
