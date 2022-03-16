@@ -1,4 +1,4 @@
-import { Alert } from "../Alert";
+import { Alert } from "@calcom/ui/Alert";
 
 /**
  * @deprecated use `<Alert severity="error" message="x" />` instead
