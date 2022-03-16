@@ -1,6 +1,8 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { TrashIcon } from "@heroicons/react/solid";
+import { StarIcon, TrashIcon } from "@heroicons/react/solid";
+import classNames from "classnames";
 import crypto from "crypto";
+import _ from "lodash";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { Trans } from "next-i18next";
@@ -8,6 +10,9 @@ import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
+
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { UserPlan } from "@calcom/prisma/client";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -25,7 +30,7 @@ import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { TextField } from "@components/form/fields";
+import { Input, Label, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
@@ -35,6 +40,7 @@ import ColorPicker from "@components/ui/colorpicker";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
+  const { user } = props;
   const { t } = useLocale();
   const [modelOpen, setModalOpen] = useState(false);
 
@@ -45,12 +51,12 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
         name="hide-branding"
         type="checkbox"
         ref={props.hideBrandingRef}
-        defaultChecked={isBrandingHidden(props.user)}
+        defaultChecked={isBrandingHidden(user)}
         className={
           "h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800 disabled:opacity-50"
         }
         onClick={(e) => {
-          if (!e.currentTarget.checked || props.user.plan !== "FREE") {
+          if (!e.currentTarget.checked || user.plan !== "FREE") {
             return;
           }
 
@@ -97,7 +103,65 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
   );
 }
 
+const CustomUsernameTextfield = (props) => {
+  const {
+    currentUsername,
+    setCurrentUsername,
+    usernameChange,
+    setUsernameChange,
+    usernameRef,
+    premiumUsername,
+  } = props;
+  return (
+    <>
+      <div style={{ display: "flex", justifyItems: "center" }}>
+        <Label htmlFor={"username"}>{premiumUsername ? "Premium Username" : "Username"}</Label>
+        <Button
+          color="secondary"
+          type="button"
+          className="ml-2 px-1 py-1 text-xs"
+          onClick={() => setUsernameChange(!usernameChange)}>
+          {!usernameChange ? "Change" : "Cancel"}
+        </Button>
+      </div>
+      <div className="mt-1 flex rounded-md shadow-sm">
+        <span
+          className={classNames(
+            "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
+            premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
+          )}>
+          {process.env.NEXT_PUBLIC_APP_URL}/
+        </span>
+        <div style={{ position: "relative", width: "100%" }}>
+          <Input
+            ref={usernameRef}
+            name={"username"}
+            className={classNames(
+              "mt-0 rounded-l-none",
+              premiumUsername ? "border-yellow-300 border-l-gray-300 pr-10" : ""
+            )}
+            defaultValue={currentUsername}
+            onChange={(event) => setCurrentUsername(event.target.value)}
+            disabled={!usernameChange && !!premiumUsername}
+          />
+          <span
+            className="text-yellow-300"
+            style={{
+              position: "absolute",
+              top: "calc(50% - 0.7em)",
+              right: 0,
+              marginRight: 8,
+            }}>
+            <StarIcon className="w-6" />
+          </span>
+        </div>
+      </div>
+    </>
+  );
+};
+
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
+  const { user } = props;
   const utils = trpc.useContext();
   const { t } = useLocale();
   const router = useRouter();
@@ -124,7 +188,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
         "Content-Type": "application/json",
       },
     }).catch((e) => {
-      console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
+      console.error(`Error Removing user: ${user.id}, email: ${user.email} :`, e);
     });
     if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
@@ -159,28 +223,28 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeFormat, setSelectedTimeFormat] = useState({
-    value: props.user.timeFormat || 12,
-    label: timeFormatOptions.find((option) => option.value === props.user.timeFormat)?.label || 12,
+    value: user.timeFormat || 12,
+    label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
   });
-  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(props.user.timeZone);
+  const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(user.timeZone);
   const [selectedWeekStartDay, setSelectedWeekStartDay] = useState({
-    value: props.user.weekStart,
-    label: nameOfDay(props.localeProp, props.user.weekStart === "Sunday" ? 0 : 1),
+    value: user.weekStart,
+    label: nameOfDay(props.localeProp, user.weekStart === "Sunday" ? 0 : 1),
   });
 
   const [selectedLanguage, setSelectedLanguage] = useState({
     value: props.localeProp || "",
     label: localeOptions.find((option) => option.value === props.localeProp)?.label || "",
   });
-  const [imageSrc, setImageSrc] = useState<string>(props.user.avatar || "");
+  const [imageSrc, setImageSrc] = useState<string>(user.avatar || "");
   const [hasErrors, setHasErrors] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [brandColor, setBrandColor] = useState(props.user.brandColor);
-  const [darkBrandColor, setDarkBrandColor] = useState(props.user.darkBrandColor);
+  const [brandColor, setBrandColor] = useState(user.brandColor);
+  const [darkBrandColor, setDarkBrandColor] = useState(user.darkBrandColor);
 
   useEffect(() => {
-    if (!props.user.theme) return;
-    const userTheme = themeOptions.find((theme) => theme.value === props.user.theme);
+    if (!user.theme) return;
+    const userTheme = themeOptions.find((theme) => theme.value === user.theme);
     if (!userTheme) return;
     setSelectedTheme(userTheme);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,6 +284,11 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       timeFormat: enteredTimeFormat,
     });
   }
+  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
+  const [usernameChange, setUsernameChange] = useState(false);
+  useEffect(() => {
+    console.log("new value for username", currentUsername);
+  }, [currentUsername]);
 
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
@@ -229,15 +298,34 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
               <div className="mb-6 w-full sm:w-1/2">
-                <TextField
-                  name="username"
+                {/* <TextField
+                  className={user.premiumUsername ? "border-r-0 border-yellow-300 border-l-gray-300" : ""}
+                  name={user.premiumUsername ? "Premium Username" : "Username"}
                   addOnLeading={
-                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+                    <span
+                      className={classNames(
+                        "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
+                        user.premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
+                      )}>
                       {process.env.NEXT_PUBLIC_APP_URL}/
                     </span>
                   }
+                  addOnEnding={
+                    <StarIcon className="color-yellow-300 fill-none  border-1 w-8 border-l-0 border-yellow-300" />
+                  }
                   ref={usernameRef}
-                  defaultValue={props.user.username || undefined}
+                  defaultValue={user.username || undefined}
+                  disabled={!!user.premiumUsername}
+                /> */}
+                <CustomUsernameTextfield
+                  {...{
+                    usernameRef,
+                    currentUsername,
+                    setCurrentUsername,
+                    usernameChange,
+                    setUsernameChange,
+                    premiumUsername: user.premiumUsername,
+                  }}
                 />
               </div>
               <div className="w-full sm:w-1/2">
@@ -253,7 +341,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("your_name")}
                   required
                   className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
-                  defaultValue={props.user.name || undefined}
+                  defaultValue={user.name || undefined}
                 />
               </div>
             </div>
@@ -269,7 +357,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="email"
                   placeholder={t("your_email")}
                   className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
-                  defaultValue={props.user.email}
+                  defaultValue={user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
                   {t("change_email_tip")}
@@ -288,16 +376,16 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="about"
                   placeholder={t("little_something_about")}
                   rows={3}
-                  defaultValue={props.user.bio || undefined}
+                  defaultValue={user.bio || undefined}
                   className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
               </div>
             </div>
             <div>
               <div className="mt-1 flex">
                 <Avatar
-                  alt={props.user.name || ""}
+                  alt={user.name || ""}
                   className="relative h-10 w-10 rounded-full"
-                  gravatarFallbackMd5={props.user.emailMd5}
+                  gravatarFallbackMd5={user.emailMd5}
                   imageSrc={imageSrc}
                 />
                 <input
@@ -368,7 +456,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               <div className="mt-1">
                 <Select
                   id="timeFormatSelect"
-                  value={selectedTimeFormat || props.user.timeFormat}
+                  value={selectedTimeFormat || user.timeFormat}
                   onChange={(v) => v && setSelectedTimeFormat(v)}
                   classNamePrefix="react-select"
                   className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
@@ -432,25 +520,24 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                   {t("light_brand_color")}
                 </label>
-                <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
+                <ColorPicker defaultValue={user.brandColor} onChange={setBrandColor} />
               </div>
               <div className="mb-6 w-full sm:w-1/2">
                 <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
                   {t("dark_brand_color")}
                 </label>
-                <ColorPicker defaultValue={props.user.darkBrandColor} onChange={setDarkBrandColor} />
+                <ColorPicker defaultValue={user.darkBrandColor} onChange={setDarkBrandColor} />
               </div>
               <hr className="mt-6" />
             </div>
             <div>
               <div className="relative flex items-start">
                 <div className="flex h-5 items-center">
-                  <HideBrandingInput user={props.user} hideBrandingRef={hideBrandingRef} />
+                  <HideBrandingInput user={user} hideBrandingRef={hideBrandingRef} />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
                   <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding")}{" "}
-                    {props.user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                    {t("disable_cal_branding")} {user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
                   </label>
                   <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                 </div>
@@ -538,6 +625,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
+      premiumUsername: true,
     },
   });
 
@@ -545,6 +633,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User seems logged in but cannot be found in the db");
   }
 
+  // if user is marked as no premiumUsername but its username could be due to length we check in remote
+  if (!user.premiumUsername && user.username && user?.username?.length > 0 && user?.username?.length <= 4) {
+    try {
+      const isPremium = await checkPremiumUsername(user?.username);
+      if (isPremium) {
+        user.premiumUsername = isPremium.premium;
+      }
+    } catch (error) {
+      console.error(error);
+      // @TODO: report it to analytics?
+      // do nothing but dont crash ServerSide
+    }
+  }
   return {
     props: {
       user: {

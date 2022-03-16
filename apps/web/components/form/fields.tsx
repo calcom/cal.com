@@ -59,6 +59,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
+
     ...passThrough
   } = props;
   return (
