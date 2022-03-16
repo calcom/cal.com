@@ -3,9 +3,10 @@ import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
+import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
+
 import { useLocale } from "@lib/hooks/useLocale";
 
-import { DialogClose, DialogContent } from "@components/Dialog";
 import { Button } from "@components/ui/Button";
 
 export type ConfirmationDialogContentProps = {

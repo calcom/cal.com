@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -14,7 +15,6 @@ import showToast from "@lib/notification";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
 import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";

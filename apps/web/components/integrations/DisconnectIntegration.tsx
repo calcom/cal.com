@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { Dialog } from "@components/Dialog";
+import { Dialog } from "@calcom/ui/Dialog";
+
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { ButtonBaseProps } from "@components/ui/Button";
 

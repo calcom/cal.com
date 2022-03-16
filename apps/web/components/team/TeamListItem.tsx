@@ -2,13 +2,14 @@ import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/
 import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 import showToast from "@lib/notification";
 import { trpc, inferQueryOutput } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";

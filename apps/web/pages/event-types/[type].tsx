@@ -30,6 +30,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/stripe/server";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -46,7 +47,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";

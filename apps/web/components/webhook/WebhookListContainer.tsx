@@ -2,11 +2,12 @@ import classNames from "classnames";
 import Image from "next/image";
 import { useState } from "react";
 
+import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
-import { Dialog, DialogContent } from "@components/Dialog";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 import Button from "@components/ui/Button";

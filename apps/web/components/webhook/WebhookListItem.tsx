@@ -1,11 +1,11 @@
 import { PencilAltIcon, TrashIcon } from "@heroicons/react/outline";
 
 import classNames from "@calcom/lib/classNames";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import { ListItem } from "@components/List";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";

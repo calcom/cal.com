@@ -8,7 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogProps,
-} from "@components/Dialog";
+} from "@calcom/ui/Dialog";
+
 import { Form, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Button from "@components/ui/Button";

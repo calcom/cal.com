@@ -9,6 +9,8 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -20,7 +22,6 @@ import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";

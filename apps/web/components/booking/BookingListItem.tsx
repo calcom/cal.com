@@ -4,11 +4,12 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
 import { useMeQuery } from "@components/Shell";
 import { TextArea } from "@components/form/fields";
 import Button from "@components/ui/Button";
