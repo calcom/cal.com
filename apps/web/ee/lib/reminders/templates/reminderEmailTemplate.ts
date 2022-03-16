@@ -195,7 +195,7 @@ ${getRichDescription(this.calEvent)}
     } - ${this.calEvent.attendees[0].language.translate(
       "organizer"
     )} <span style="color: #888888"><a href="mailto:${
-      this.calEvent.organizer ? this.calEvent.organizer.name : this.calEvent.user.name
+      this.calEvent.organizer.name
     }" style="color: #888888;">${this.calEvent.organizer.email}</a></span></div>`;
 
     return `

@@ -244,6 +244,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 
     mutation.mutate({
       ...booking,
+      reminderPhone: booking.reminderPhone ? booking.reminderPhone : "",
       web3Details,
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),

@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import twilio from "twilio";
 
-import reminderTemplate from "@ee/lib/reminders/templates/reminderTemplate";
+import reminderSMSTemplate from "@ee/lib/reminders/templates/reminderSMSTemplate";
 
 import prisma from "@lib/prisma";
 
@@ -25,6 +25,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       scheduled: false,
       method: "SMS",
     },
+    include: {
+      booking: {
+        include: {
+          user: true,
+          attendees: true,
+        },
+      },
+    },
   });
 
   if (!unscheduledReminders.length) res.json({ ok: true });
@@ -33,25 +41,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
-      const booking = prisma.booking.findUnique({
-        where: {
-          uid: reminder.bookingUid,
-        },
-        select: {
-          title: true,
-          startTime: true,
-          user: true,
-          attendees: true,
-        },
-      });
+      // const booking = prisma.booking.findUnique({
+      //   where: {
+      //     uid: reminder.bookingUid,
+      //   },
+      //   select: {
+      //     title: true,
+      //     startTime: true,
+      //     user: true,
+      //     attendees: true,
+      //   },
+      // });
 
       try {
         const response = await client.messages.create({
-          body: reminderTemplate(
-            booking.title,
-            booking.user.name,
-            booking.startTime,
-            booking.attendees[0].timeZone
+          body: reminderSMSTemplate(
+            reminder!.booking!.title,
+            reminder!.booking!.user!.name as string,
+            reminder!.booking!.startTime as unknown as string,
+            reminder!.booking!.attendees[0].timeZone
           ),
           messagingServiceSid: TWILIO_MESSAGING_SID,
           to: reminder.sendTo,
