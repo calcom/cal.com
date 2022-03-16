@@ -144,7 +144,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.Tandem]: "Tandem Video",
     [LocationType.Teams]: "MS Teams",
   };
-  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
+  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
