@@ -2,11 +2,16 @@ import { ChevronDownIcon, PlusIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { Alert } from "@calcom/ui/Alert";
+import { Button } from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -14,18 +19,13 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import { Form, InputLeading, TextAreaField, TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
-import { Button } from "@components/ui/Button";
 import * as RadioArea from "@components/ui/form/radio-area";
 
 // this describes the uniform data needed to create a new event type on Profile or Team

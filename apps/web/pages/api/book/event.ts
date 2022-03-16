@@ -9,6 +9,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
@@ -18,7 +19,6 @@ import {
   sendAttendeeRequestEmail,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
-import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";

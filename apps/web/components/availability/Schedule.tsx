@@ -5,13 +5,14 @@ import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import Button from "@calcom/ui/Button";
+
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
 
 import { useMeQuery } from "@components/Shell";
-import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
 
 dayjs.extend(utc);

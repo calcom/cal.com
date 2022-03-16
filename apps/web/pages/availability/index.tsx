@@ -2,24 +2,19 @@ import { ClockIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import { Availability } from "@prisma/client";
 import Link from "next/link";
-import React from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
 import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@components/ui/Dropdown";
 
 const CreateFirstScheduleView = () => {
   const { t } = useLocale();

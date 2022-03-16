@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Prisma, IdentityProvider } from "@prisma/client";
+import { IdentityProvider, Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -17,6 +17,10 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Form } from "@calcom/ui/form/fields";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -32,10 +36,7 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
-import { Form } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
