@@ -2,6 +2,10 @@ import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/
 import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -11,15 +15,11 @@ import Dropdown, {
 
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { trpc, inferQueryOutput } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
 
 import { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";

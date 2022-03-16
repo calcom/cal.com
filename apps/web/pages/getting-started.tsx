@@ -17,6 +17,10 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Form } from "@calcom/ui/form/fields";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -31,10 +35,7 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
-import { Form } from "@components/form/fields";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 import Schedule from "@components/ui/form/Schedule";
 

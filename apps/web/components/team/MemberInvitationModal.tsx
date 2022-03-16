@@ -4,12 +4,12 @@ import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 import React, { SyntheticEvent } from "react";
 
+import Button from "@calcom/ui/Button";
+import { TextField } from "@calcom/ui/form/fields";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
-
-import { TextField } from "@components/form/fields";
-import Button from "@components/ui/Button";
 
 export default function MemberInvitationModal(props: { team: TeamWithMembers | null; onExit: () => void }) {
   const [errorMessage, setErrorMessage] = useState("");

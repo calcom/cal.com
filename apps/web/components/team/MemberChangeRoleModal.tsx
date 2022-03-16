@@ -2,10 +2,11 @@ import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 import React, { SyntheticEvent } from "react";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
-import Button from "@components/ui/Button";
 import ModalContainer from "@components/ui/ModalContainer";
 
 export default function MemberChangeRoleModal(props: {

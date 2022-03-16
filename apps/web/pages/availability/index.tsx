@@ -5,17 +5,18 @@ import utc from "dayjs/plugin/utc";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import showToast from "@calcom/lib/notification";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Form } from "@calcom/ui/form/fields";
+
 import { QueryCell } from "@lib/QueryCell";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import Shell from "@components/Shell";
-import { Form } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import Schedule from "@components/ui/form/Schedule";
 
 dayjs.extend(utc);
