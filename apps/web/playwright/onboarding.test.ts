@@ -11,17 +11,4 @@ test.describe("Onboarding", () => {
       },
     });
   });
-
-  const username = "calendso";
-  test(`/getting-started?username=${username} shows the first step of onboarding with username field populated`, async ({
-    page,
-  }) => {
-    await page.goto("/getting-started?username=" + username);
-
-    await page.waitForSelector("[data-testid=username]");
-
-    await expect(await page.$eval("[data-testid=username]", (el: HTMLInputElement) => el.value)).toEqual(
-      username
-    );
-  });
 });
