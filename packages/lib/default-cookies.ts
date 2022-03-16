@@ -25,7 +25,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
       name: `${cookiePrefix}next-auth.session-token`,
       options: {
         httpOnly: true,
-
+        domain: isENVDev ? undefined : process.env.NEXTAUTH_DOMAIN,
         sameSite,
         path: "/",
         secure: useSecureCookies,
@@ -34,6 +34,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
     callbackUrl: {
       name: `${cookiePrefix}next-auth.callback-url`,
       options: {
+        domain: isENVDev ? undefined : process.env.NEXTAUTH_DOMAIN,
         sameSite,
         path: "/",
         secure: useSecureCookies,
@@ -44,6 +45,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
       // NB: The `__Host-` prefix is stricter than the `__Secure-` prefix.
       name: `${useSecureCookies ? "__Host-" : ""}next-auth.csrf-token`,
       options: {
+        domain: isENVDev ? undefined : process.env.NEXTAUTH_DOMAIN,
         httpOnly: true,
         sameSite,
         path: "/",
@@ -53,6 +55,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
     pkceCodeVerifier: {
       name: `${cookiePrefix}next-auth.pkce.code_verifier`,
       options: {
+        domain: isENVDev ? undefined : process.env.NEXTAUTH_DOMAIN,
         httpOnly: true,
         sameSite,
         path: "/",
@@ -62,6 +65,7 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
     state: {
       name: `${cookiePrefix}next-auth.state`,
       options: {
+        domain: isENVDev ? undefined : process.env.NEXTAUTH_DOMAIN,
         httpOnly: true,
         sameSite,
         path: "/",
