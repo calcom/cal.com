@@ -449,7 +449,7 @@
   "continue": "Continue",
   "confirm": "Confirm",
   "disband_team": "Disband Team",
-  "disband_team_confirmation_message": "Are you sure you want to disband this team? Anyone who you&apos;ve shared this team link with will no longer be able to book using it.",
+  "disband_team_confirmation_message": "Are you sure you want to disband this team? Anyone who you've shared this team link with will no longer be able to book using it.",
   "remove_member_confirmation_message": "Are you sure you want to remove this member from the team?",
   "confirm_disband_team": "Yes, disband team",
   "confirm_remove_member": "Yes, remove member",
@@ -674,5 +674,6 @@
   "example_name": "John Doe",
   "time_format": "Time format",
   "12_hour": "12 hour",
-  "24_hour": "24 hour"
+  "24_hour": "24 hour",
+  "duplicate": "Duplicate"
 }
