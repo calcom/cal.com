@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import prisma from "@lib/prisma";
 
-import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+import {
+  selectFirstAvailableTimeSlotNextMonth,
+  selectSecondAvailableTimeSlotNextMonth,
+  todo,
+} from "./lib/testUtils";
 
 const deleteBookingsByEmail = async (email: string) =>
   prisma.booking.deleteMany({
@@ -12,6 +16,23 @@ const deleteBookingsByEmail = async (email: string) =>
       },
     },
   });
+
+async function bookFirstEvent(page) {
+  // Click first event type
+  await page.click('[data-testid="event-type-link"]');
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+
+  // Make sure we're navigated to the success page
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/success");
+    },
+  });
+}
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
@@ -71,12 +92,22 @@ test.describe("free user", () => {
     await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
   });
 
+  // Why do we need this test. The previous test is testing /30min booking only ?
   todo("`/free/30min` is bookable");
 
-  todo("`/free/60min` is not bookable");
+  test("`/free/60min` is not bookable", async ({ page }) => {
+    // Not available in listing
+    await expect(page.locator('[href="/free/60min"]')).toHaveCount(0);
+
+    await page.goto("/free/60min");
+    // Not available on a direct visit to event type page
+    await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
+  });
 });
 
 test.describe("pro user", () => {
+  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/pro");
   });
@@ -107,8 +138,43 @@ test.describe("pro user", () => {
       },
     });
   });
+  test("can reschedule a booking", async ({ page }) => {
+    await bookFirstEvent(page);
 
-  todo("Can reschedule the recently created booking");
+    await page.goto("/bookings/upcoming");
+    await page.locator('[data-testid="reschedule"]').click();
+    await page.waitForNavigation({
+      url: (url) => {
+        const bookingId = url.searchParams.get("rescheduleUid");
+        return !!bookingId;
+      },
+    });
+    await selectSecondAvailableTimeSlotNextMonth(page);
+    // --- fill form
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname === "/success" && url.searchParams.get("reschedule") === "true";
+      },
+    });
+  });
 
-  todo("Can cancel the recently created booking");
+  test("Can cancel the recently created booking", async ({ page }) => {
+    await bookFirstEvent(page);
+
+    await page.goto("/bookings/upcoming");
+    await page.locator('[data-testid="cancel"]').click();
+    await page.waitForNavigation({
+      url: (url) => {
+        return url.pathname.startsWith("/cancel");
+      },
+    });
+    // --- fill form
+    await page.locator('[data-testid="cancel"]').click();
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname === "/cancel/success";
+      },
+    });
+  });
 });
