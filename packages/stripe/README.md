@@ -30,7 +30,7 @@ The [/ee](https://github.com/calcom/cal.com/tree/main/apps/web/ee) subfolder is 
 
 1. Set SAML_DATABASE_URL to a postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`
 2. Set SAML_ADMINS to a comma separated list of admin emails from where the SAML metadata can be uploaded and configured.
-3. Create a SAML application with your Identity Provider (IdP) using the instructions here - [SAML Setup](../docs/saml-setup.md)
+3. Create a SAML application with your Identity Provider (IdP) using the instructions here - [SAML Setup](../../apps/web/docs/saml-setup.md)
 4. Remember to configure access to the IdP SAML app for all your users (who need access to Cal).
 5. You will need the XML metadata from your IdP later, so keep it accessible.
 6. Log in to one of the admin accounts configured in SAML_ADMINS and then navigate to Settings -> Security.
