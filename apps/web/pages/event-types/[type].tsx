@@ -14,28 +14,32 @@ import {
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole } from "@prisma/client";
-import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import Select from "react-select";
+import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -54,7 +58,6 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import InfoBadge from "@components/ui/InfoBadge";
-import { Scheduler } from "@components/ui/Scheduler";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
@@ -77,7 +80,6 @@ interface NFT extends Token {
   // Some OpenSea NFTs have several contracts
   contracts: Array<Token>;
 }
-type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
   label: string;
@@ -96,6 +98,41 @@ const addDefaultLocationOptions = (
       locationOptions.push(item);
     }
   });
+};
+
+const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+  const query = trpc.useQuery(["viewer.availability.list"]);
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => {
+        const options = data.schedules.map((schedule) => ({
+          value: schedule.id,
+          label: schedule.name,
+        }));
+
+        const value = options.find((option) =>
+          props.value
+            ? option.value === props.value
+            : option.value === data.schedules.find((schedule) => schedule.isDefault)?.id
+        );
+        return (
+          <Select
+            {...props}
+            options={options}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className={classNames(
+              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
+              className
+            )}
+            value={value}
+          />
+        );
+      }}
+    />
+  );
 };
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -169,7 +206,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
@@ -184,11 +220,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-
-  const [availabilityState, setAvailabilityState] = useState<{
-    openingHours: AvailabilityInput[];
-    dateOverrides: AvailabilityInput[];
-  }>({ openingHours: [], dateOverrides: [] });
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -223,10 +254,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
     fetchTokens();
-  }, []);
-
-  useEffect(() => {
-    setSelectedTimeZone(eventType.timeZone || "");
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -383,11 +410,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
-    availability: {
-      openingHours: AvailabilityInput[];
-      dateOverrides: AvailabilityInput[];
-    };
-    timeZone: string;
+    schedule: number;
     periodType: PeriodType;
     periodDays: number;
     periodCountCalendarDays: "1" | "0";
@@ -403,6 +426,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -748,7 +772,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     updateMutation.mutate({
                       ...input,
                       locations,
-                      availability: availabilityState,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -1346,8 +1369,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-
-                        <hr className="border-neutral-200" />
                         <div className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
@@ -1358,33 +1379,27 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                           <div className="w-full">
                             <Controller
-                              name="availability"
+                              name="schedule"
                               control={formMethods.control}
-                              render={() => (
-                                <Scheduler
-                                  setAvailability={(val) => {
-                                    const schedule = {
-                                      openingHours: val.openingHours,
-                                      dateOverrides: val.dateOverrides,
-                                    };
-                                    // Updating internal state that would be sent on mutation
-                                    setAvailabilityState(schedule);
-                                    // Updating form values displayed, but this one doesn't reach form submit scope
-                                    formMethods.setValue("availability", schedule);
-                                  }}
-                                  setTimeZone={(timeZone) => {
-                                    formMethods.setValue("timeZone", timeZone);
-                                    setSelectedTimeZone(timeZone);
-                                  }}
-                                  timeZone={selectedTimeZone}
-                                  availability={availability.map((schedule) => ({
-                                    ...schedule,
-                                    startTime: new Date(schedule.startTime),
-                                    endTime: new Date(schedule.endTime),
-                                  }))}
+                              render={({ field }) => (
+                                <AvailabilitySelect
+                                  {...field}
+                                  onChange={(selected: { label: string; value: number }) =>
+                                    field.onChange(selected.value)
+                                  }
                                 />
                               )}
                             />
+
+                            <Link href="/availability">
+                              <a>
+                                <Alert
+                                  className="mt-1 text-xs"
+                                  severity="info"
+                                  message="You can manage your schedules on the Availability page."
+                                />
+                              </a>
+                            </Link>
                           </div>
                         </div>
 
@@ -1802,6 +1817,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         select: userSelect,
       },
       schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+        },
+      },
       userId: true,
       price: true,
       currency: true,
