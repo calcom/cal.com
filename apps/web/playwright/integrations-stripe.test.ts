@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "@calcom/app-store/utils";
-
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
+const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
+
 test.describe.serial("Stripe integration", () => {
-  test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
+  test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
   test.describe.serial("Stripe integration dashboard", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });
