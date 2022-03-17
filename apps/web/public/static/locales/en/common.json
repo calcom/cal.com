@@ -685,5 +685,6 @@
   "time_format": "Time format",
   "12_hour": "12 hour",
   "24_hour": "24 hour",
-  "duplicate": "Duplicate"
+  "duplicate": "Duplicate",
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
 }
