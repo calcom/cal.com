@@ -51,7 +51,12 @@ test.describe("free user", () => {
       },
     });
 
-    await page.screenshot({ path: "tests/screenshots/booking-success-page.png", fullPage: true });
+    expect(await page.screenshot()).toMatchSnapshot("booking-success-page.png");
+    // Change color scheme for the page
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(await page.screenshot()).toMatchSnapshot("booking-success-page-dark.png");
+    // Change color scheme for the page
+    await page.emulateMedia({ colorScheme: "light" });
 
     // return to same time spot booking page
     await page.goto(bookingUrl);
