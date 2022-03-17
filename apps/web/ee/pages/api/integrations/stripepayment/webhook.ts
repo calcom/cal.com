@@ -3,13 +3,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
-import { getErrorFromUnknown } from "@lib/errors";
-import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
 

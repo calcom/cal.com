@@ -6,9 +6,9 @@ import utc from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
 
-import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { WeekdaySelect } from "./WeekdaySelect";
 import SetTimesModal from "./modal/SetTimesModal";

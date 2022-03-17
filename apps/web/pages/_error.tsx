@@ -6,10 +6,10 @@ import { NextPage, NextPageContext } from "next";
 import NextError, { ErrorProps } from "next/error";
 import React from "react";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 
 import { HttpError } from "@lib/core/http/error";
-import { getErrorFromUnknown } from "@lib/errors";
 
 import { ErrorPage } from "@components/error/error-page";
 

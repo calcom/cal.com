@@ -1,18 +1,19 @@
 import React, { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import showToast from "@calcom/lib/notification";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
-import DestinationCalendarSelector from "../DestinationCalendarSelector";
-import { List } from "../List";
-import { ShellSubHeading } from "../Shell";
-import { Alert } from "../ui/Alert";
-import Button from "../ui/Button";
+import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import { List } from "@components/List";
+import { ShellSubHeading } from "@components/Shell";
+
 import ConnectIntegration from "./ConnectIntegrations";
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";

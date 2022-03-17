@@ -12,10 +12,11 @@ import { v5 as uuidv5 } from "uuid";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { CalendarEvent, AdditionInformation, EventBusyDate } from "@calcom/types/Calendar";
+import type { AdditionInformation, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -26,7 +27,6 @@ import {
   sendScheduledEmails,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
-import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";

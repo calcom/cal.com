@@ -3,11 +3,10 @@ import { useState } from "react";
 import { useMutation } from "react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+import { ButtonBaseProps } from "@calcom/ui/Button";
+import { DialogProps } from "@calcom/ui/Dialog";
 
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
-
-import { DialogProps } from "@components/Dialog";
-import { ButtonBaseProps } from "@components/ui/Button";
 
 type AddIntegrationModalType = (props: DialogProps) => JSX.Element;
 
