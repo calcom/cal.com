@@ -15,7 +15,7 @@ test.describe.serial("Stripe integration", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
     test("Can add Stripe integration", async ({ page }) => {
-      await page.goto("/integrations");
+      await page.goto("/apps/installed");
       /** We should see the "Connect" button for Stripe */
       await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
@@ -28,7 +28,7 @@ test.describe.serial("Stripe integration", () => {
       ]);
 
       await Promise.all([
-        page.waitForNavigation({ url: "/integrations" }),
+        page.waitForNavigation({ url: "/apps/installed" }),
         /** We skip filling Stripe forms (testing mode only) */
         page.click('[id="skip-account-app"]'),
       ]);
