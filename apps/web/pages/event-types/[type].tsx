@@ -875,6 +875,38 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           defaultValue={asStringOrUndefined(eventType.description)}></textarea>
                       </div>
                     </div>
+
+                    <div className="block sm:flex">
+                      <div className="min-w-48 mb-4 sm:mb-0">
+                        <label htmlFor="availability" className="flex text-sm font-medium text-neutral-700">
+                          {t("availability")}
+                        </label>
+                      </div>
+                      <div className="w-full">
+                        <Controller
+                          name="schedule"
+                          control={formMethods.control}
+                          render={({ field }) => (
+                            <AvailabilitySelect
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
+                            />
+                          )}
+                        />
+
+                        <Link href="/availability">
+                          <a>
+                            <Alert
+                              className="mt-1 text-xs"
+                              severity="info"
+                              message={t("you_can_manage_your_schedules")}
+                            />
+                          </a>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                   {team && <hr className="border-neutral-200" />}
                   {team && (
@@ -1367,39 +1399,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 />
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="block sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("availability")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Controller
-                              name="schedule"
-                              control={formMethods.control}
-                              render={({ field }) => (
-                                <AvailabilitySelect
-                                  {...field}
-                                  onChange={(selected: { label: string; value: number }) =>
-                                    field.onChange(selected.value)
-                                  }
-                                />
-                              )}
-                            />
-
-                            <Link href="/availability">
-                              <a>
-                                <Alert
-                                  className="mt-1 text-xs"
-                                  severity="info"
-                                  message="You can manage your schedules on the Availability page."
-                                />
-                              </a>
-                            </Link>
                           </div>
                         </div>
 
