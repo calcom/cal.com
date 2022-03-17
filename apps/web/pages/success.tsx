@@ -11,7 +11,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
