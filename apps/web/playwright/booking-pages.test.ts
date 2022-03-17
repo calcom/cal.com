@@ -51,6 +51,8 @@ test.describe("free user", () => {
       },
     });
 
+    await page.screenshot({ path: "tests/screenshots/booking-success-page.png", fullPage: true });
+
     // return to same time spot booking page
     await page.goto(bookingUrl);
 
