@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const responseBody = await response.json();
 
   if (!response.ok) {
-    return res.redirect("/integrations?error=" + JSON.stringify(responseBody));
+    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
   }
 
   const whoami = await fetch("https://graph.microsoft.com/v1.0/me", {

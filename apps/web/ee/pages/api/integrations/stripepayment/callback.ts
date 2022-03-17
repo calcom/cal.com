@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (error) {
     const query = stringify({ error, error_description });
-    res.redirect("/integrations?" + query);
+    res.redirect("/apps/installed?" + query);
     return;
   }
 
