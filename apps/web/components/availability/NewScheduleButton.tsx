@@ -60,7 +60,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
             createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
-            <TextField label={t("name")} {...register("name")} />
+            <TextField placeholder={t("default_schedule_name")} label={t("name")} {...register("name")} />
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>
