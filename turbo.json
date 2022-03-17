@@ -20,7 +20,6 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
-        "@calcom/prisma#db-deploy",
         "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
@@ -46,7 +45,6 @@
         "$PAYMENT_FEE_FIXED",
         "$PAYMENT_FEE_PERCENTAGE",
         "$PGSSLMODE",
-        "$PLAYWRIGHT_SECRET",
         "$SAML_ADMINS",
         "$SAML_DATABASE_URL",
         "$STRIPE_CLIENT_ID",
@@ -64,7 +62,9 @@
     "@calcom/web#dx": {
       "dependsOn": ["@calcom/prisma#dx"]
     },
-    "@calcom/web#start": {},
+    "@calcom/web#start": {
+      "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
     "@calcom/website#build": {
       "dependsOn": ["$WEBSITE_BASE_URL"],
       "outputs": [".next/**"]
@@ -97,12 +97,11 @@
     },
     "start": {},
     "test": {
-      "dependsOn": []
+      "dependsOn": ["^test"]
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["^test", "@calcom/web#build", "@calcom/prisma#db-reset"],
-      "outputs": ["playwright", "test-results"]
+      "dependsOn": ["test", "@calcom/web#build", "@calcom/prisma#db-reset"]
     },
     "type-check": {
       "outputs": []
