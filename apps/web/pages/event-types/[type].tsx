@@ -22,7 +22,6 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -33,7 +32,6 @@ import { z } from "zod";
 
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
-import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -876,6 +874,35 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
+
+                  <hr className="border-neutral-200" />
+                  <div className="space-y-3">
+                    <div className="block sm:flex">
+                      <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
+                        <label
+                          htmlFor="availability"
+                          className="mt-0 flex text-sm font-medium text-neutral-700">
+                          <ClockIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
+                        </label>
+                      </div>
+                      <div className="w-full">
+                        <Controller
+                          name="schedule"
+                          control={formMethods.control}
+                          render={({ field }) => (
+                            <AvailabilitySelect
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {team && <hr className="border-neutral-200" />}
                   {team && (
                     <div className="space-y-3">
@@ -1367,39 +1394,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 />
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="block sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("availability")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Controller
-                              name="schedule"
-                              control={formMethods.control}
-                              render={({ field }) => (
-                                <AvailabilitySelect
-                                  {...field}
-                                  onChange={(selected: { label: string; value: number }) =>
-                                    field.onChange(selected.value)
-                                  }
-                                />
-                              )}
-                            />
-
-                            <Link href="/availability">
-                              <a>
-                                <Alert
-                                  className="mt-1 text-xs"
-                                  severity="info"
-                                  message="You can manage your schedules on the Availability page."
-                                />
-                              </a>
-                            </Link>
                           </div>
                         </div>
 
