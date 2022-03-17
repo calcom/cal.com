@@ -115,12 +115,6 @@ const AvailabilityInput = _AvailabilityModel.pick({
 const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
-    availability: z
-      .object({
-        openingHours: z.array(AvailabilityInput).optional(),
-        dateOverrides: z.array(AvailabilityInput).optional(),
-      })
-      .optional(),
     customInputs: z.array(_EventTypeCustomInputModel),
     attendeeReminders: z.array(_EventTypeAttendeeReminderModel),
     destinationCalendar: _DestinationCalendarModel.pick({
@@ -128,6 +122,7 @@ const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    schedule: z.number().optional(),
   })
   .partial()
   .merge(
@@ -243,6 +238,7 @@ export const eventTypesRouter = createProtectedRouter()
         attendeeReminders,
         users,
         id,
+        schedule,
         ...rest
       } = input;
       const data: Prisma.EventTypeUpdateInput = rest;
@@ -266,26 +262,18 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (attendeeReminders) {
         data.attendeeReminders = handleAttendeeReminders(attendeeReminders, id);
+      if (schedule) {
+        data.schedule = {
+          connect: {
+            id: schedule,
+          },
+        };
       }
 
       if (users) {
         data.users = {
           set: [],
           connect: users.map((userId) => ({ id: userId })),
-        };
-      }
-
-      if (availability?.openingHours) {
-        await ctx.prisma.availability.deleteMany({
-          where: {
-            eventTypeId: input.id,
-          },
-        });
-
-        data.availability = {
-          createMany: {
-            data: availability.openingHours,
-          },
         };
       }
 

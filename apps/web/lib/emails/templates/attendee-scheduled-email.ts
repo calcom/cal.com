@@ -6,8 +6,9 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 import nodemailer from "nodemailer";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
-import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
 import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
