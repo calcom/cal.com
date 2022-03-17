@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Prisma, IdentityProvider } from "@prisma/client";
+import { IdentityProvider, Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -35,9 +35,9 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
+import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import Text from "@components/ui/Text";
-import Schedule from "@components/ui/form/Schedule";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -134,21 +134,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async ({ schedule }: ScheduleFormValues) => {
-    const res = await fetch(`/api/schedule`, {
-      method: "POST",
-      body: JSON.stringify({ schedule }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
+    onError: (err) => {
+      throw new Error(err.message);
+    },
+  });
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
@@ -444,7 +434,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           handleSubmit={async (values) => {
             try {
               setSubmitting(true);
-              await createSchedule({ ...values });
+              await createSchedule.mutate({
+                name: t("default_schedule_name"),
+                ...values,
+              });
               debouncedHandleConfirmStep();
               setSubmitting(false);
             } catch (error) {

@@ -147,7 +147,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   };
 
   return (
-    <fieldset className="flex min-h-[86px] flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+    <fieldset className="flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
       <div className="w-1/3">
         <label className="flex items-center space-x-2 rtl:space-x-reverse">
           <input

@@ -520,5 +520,8 @@
   "calendar": "Agenda",
   "not_installed": "Niet geïnstalleerd",
   "error_password_mismatch": "Wachtwoorden komen niet overeen.",
-  "error_required_field": "Dit veld is verplicht."
+  "error_required_field": "Dit veld is verplicht.",
+  "default": "standaard keuze",
+  "set_to_default": "Zet als standaard keuze",
+  "click_here_to_add_a_new_schedule": "Klik hier om een nieuwe planning aan te maken"
 }

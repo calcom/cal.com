@@ -19,8 +19,8 @@ import {
   samlTenantProduct,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
-import { Schedule } from "@lib/types/schedule";
 
+import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -564,48 +564,6 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .query("availability", {
-    async resolve({ ctx }) {
-      const { prisma, user } = ctx;
-      const availabilityQuery = await prisma.availability.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
-      const schedule = availabilityQuery.reduce(
-        (schedule: Schedule, availability) => {
-          availability.days.forEach((day) => {
-            schedule[day].push({
-              start: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.startTime.getUTCHours(),
-                  availability.startTime.getUTCMinutes()
-                )
-              ),
-              end: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.endTime.getUTCHours(),
-                  availability.endTime.getUTCMinutes()
-                )
-              ),
-            });
-          });
-          return schedule;
-        },
-        Array.from([...Array(7)]).map(() => [])
-      );
-      return {
-        schedule,
-        timeZone: user.timeZone,
-      };
-    },
-  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -840,5 +798,6 @@ export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("eventTypes.", eventTypesRouter)
+  .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

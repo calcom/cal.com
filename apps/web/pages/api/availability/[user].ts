@@ -37,6 +37,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: true,
       endTime: true,
       selectedCalendars: true,
+      schedules: {
+        select: {
+          availability: true,
+          timeZone: true,
+          id: true,
+        },
+      },
+      defaultScheduleId: true,
     },
   });
 
@@ -45,6 +53,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id },
       select: {
         timeZone: true,
+        schedule: {
+          select: {
+            availability: true,
+            timeZone: true,
+          },
+        },
         availability: {
           select: {
             startTime: true,
@@ -77,10 +91,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
   }));
 
-  const timeZone = eventType?.timeZone || currentUser.timeZone;
+  const schedule = eventType?.schedule
+    ? { ...eventType?.schedule }
+    : {
+        ...currentUser.schedules.filter(
+          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+        )[0],
+      };
+
+  const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
+
   const workingHours = getWorkingHours(
-    { timeZone },
-    eventType?.availability.length ? eventType.availability : currentUser.availability
+    {
+      timeZone,
+    },
+    schedule.availability ||
+      (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
 
   res.status(200).json({
