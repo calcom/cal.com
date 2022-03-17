@@ -196,7 +196,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
 ### E2E-Testing
 
 ```sh
-# In first terminal
+# In first terminal. Must run on port 3000.
 yarn dx
 # In second terminal
 yarn workspace @calcom/web test-e2e
