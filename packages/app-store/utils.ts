@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 
-import { APPS as CalendarApps } from "@calcom/lib/calendar/config";
 import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
@@ -15,7 +14,6 @@ const APPSTORE_APPS = Object.keys(appStore).reduce((store, key) => {
 const ALL_APPS_MAP = {
   ...APPSTORE_APPS,
   /* To be deprecated start */
-  ...CalendarApps,
   ...PaymentApps,
   /* To be deprecated end */
 } as Record<string, App>;
