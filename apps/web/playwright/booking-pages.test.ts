@@ -18,7 +18,8 @@ test.describe("free user", () => {
     await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
   });
 
-  test("cannot book same slot multiple times", async ({ page }) => {
+  test("cannot book same slot multiple times", async ({ page }, testInfo) => {
+    testInfo.snapshotSuffix = ""; // Prevents `darwin`, `linux`, `windows` suffixes.
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
@@ -52,10 +53,10 @@ test.describe("free user", () => {
     });
 
     expect(await page.screenshot()).toMatchSnapshot("booking-success-page.png");
-    // Change color scheme for the page
+    // Switch to dark mode for screenshot
     await page.emulateMedia({ colorScheme: "dark" });
     expect(await page.screenshot()).toMatchSnapshot("booking-success-page-dark.png");
-    // Change color scheme for the page
+    // Revert color scheme to light mode
     await page.emulateMedia({ colorScheme: "light" });
 
     // return to same time spot booking page
