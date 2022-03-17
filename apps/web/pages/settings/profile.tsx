@@ -14,7 +14,6 @@ import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
-import username from "pages/api/username";
 import {
   ComponentProps,
   FormEvent,
