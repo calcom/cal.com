@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import * as teardown from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
@@ -9,6 +10,10 @@ const IS_STRIPE_ENABLED = !!(
 );
 
 test.describe.serial("Stripe integration", () => {
+  test.afterAll(() => {
+    teardown.deleteAllPaymentsByEmail("pro@example.com");
+    teardown.deleteAllBookingsByEmail("pro@example.com");
+  });
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
   test.describe.serial("Stripe integration dashboard", () => {
