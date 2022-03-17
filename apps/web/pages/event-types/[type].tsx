@@ -883,7 +883,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           htmlFor="availability"
                           className="mt-0 flex text-sm font-medium text-neutral-700">
                           <ClockIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
-                          {t("availability")} <InfoBadge content={t("event_name_tooltip")} />
+                          {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
                         </label>
                       </div>
                       <div className="w-full">
