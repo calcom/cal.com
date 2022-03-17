@@ -58,7 +58,9 @@ export default function Teams() {
             className="my-4"
           />
         )}
-        {showCreateTeamModal && <TeamCreateModal onClose={() => setShowCreateTeamModal(false)} />}
+        {showCreateTeamModal && (
+          <TeamCreateModal isOpen={showCreateTeamModal} onClose={() => setShowCreateTeamModal(false)} />
+        )}
         <div className={classNames("my-4 flex justify-end", isFreePlan && "opacity-50")}>
           <Button
             disabled={isFreePlan}

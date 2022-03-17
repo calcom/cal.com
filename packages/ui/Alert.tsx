@@ -1,4 +1,4 @@
-import { CheckCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
+import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { ReactNode } from "react";
 
@@ -7,7 +7,7 @@ export interface AlertProps {
   message?: ReactNode;
   actions?: ReactNode;
   className?: string;
-  severity: "success" | "warning" | "error";
+  severity: "success" | "warning" | "error" | "info";
 }
 export function Alert(props: AlertProps) {
   const { severity } = props;
@@ -19,6 +19,7 @@ export function Alert(props: AlertProps) {
         props.className,
         severity === "error" && "border-red-900 bg-red-50 text-red-800",
         severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",
+        severity === "info" && "border-sky-700 bg-sky-50 text-sky-700",
         severity === "success" && "bg-gray-900 text-white"
       )}>
       <div className="flex">
@@ -27,7 +28,10 @@ export function Alert(props: AlertProps) {
             <XCircleIcon className={classNames("h-5 w-5 text-red-400")} aria-hidden="true" />
           )}
           {severity === "warning" && (
-            <InformationCircleIcon className={classNames("h-5 w-5 text-yellow-400")} aria-hidden="true" />
+            <ExclamationIcon className={classNames("h-5 w-5 text-yellow-400")} aria-hidden="true" />
+          )}
+          {severity === "info" && (
+            <InformationCircleIcon className={classNames("h-5 w-5 text-sky-400")} aria-hidden="true" />
           )}
           {severity === "success" && (
             <CheckCircleIcon className={classNames("h-5 w-5 text-gray-400")} aria-hidden="true" />

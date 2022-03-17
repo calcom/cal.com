@@ -674,5 +674,6 @@
   "example_name": "Max Mustermann",
   "time_format": "Zeitformat",
   "12_hour": "12 Stunden",
-  "24_hour": "24 Stunden"
+  "24_hour": "24 Stunden",
+  "duplicate": "Duplizieren"
 }

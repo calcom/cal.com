@@ -9,6 +9,14 @@
   --brand-text-color-dark-mode: #292929;
 }
 
+button[role="switch"][data-state="checked"] {
+  @apply bg-gray-900;
+}
+
+button[role="switch"][data-state="checked"] span {
+  transform: translateX(16px);
+}
+
 /* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
 .PhoneInputInput {
   @apply border-0 text-sm focus:ring-0;
