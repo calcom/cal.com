@@ -3,11 +3,10 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 
-import { useLocale } from "@lib/hooks/useLocale";
-
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
 import { HeadSeo } from "@components/seo/head-seo";
 
 export default function CancelSuccess() {
