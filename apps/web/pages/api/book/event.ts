@@ -14,6 +14,7 @@ import {
   scheduleSMSAttendeeReminder,
   deleteScheduledSMSReminder,
 } from "@ee/lib/reminders/smsReminderManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
@@ -23,7 +24,6 @@ import {
   sendAttendeeRequestEmail,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
-import { getErrorFromUnknown } from "@lib/errors";
 import { getEventName } from "@lib/event";
 import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
 import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";

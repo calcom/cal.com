@@ -1,1 +1,5 @@
-module.exports = require("@calcom/config/tailwind-preset");
+const base = require("@calcom/config/tailwind-preset");
+module.exports = {
+  ...base,
+  content: [...base.content, "../../packages/ui/**/*.{js,ts,jsx,tsx}"],
+};
