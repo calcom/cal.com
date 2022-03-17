@@ -12,7 +12,7 @@ import Button from "@calcom/ui/Button";
 import { EmailField, PasswordField, Form } from "@calcom/ui/form/fields";
 
 import { ErrorCode, getSession } from "@lib/auth";
-import { WEBSITE_URL } from "@lib/config/constants";
+import { WEBSITE_URL, APP_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -58,13 +58,9 @@ export default function Login({
   };
 
   const telemetry = useTelemetry();
-
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
-
-  // If not absolute URL, make it absolute
-  if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
-  }
+  // allow callbackUrl to redirect only either "/" or to APP_URL + callback.
+  const callbackUrl =
+    typeof router.query?.callbackUrl === "string" ? `${APP_URL}/${router.query.callbackUrl}` : "/";
 
   const LoginFooter = (
     <span>
