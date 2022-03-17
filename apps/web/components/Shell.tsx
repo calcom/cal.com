@@ -307,7 +307,7 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8">
+              <div className="block justify-between px-4 sm:flex sm:px-6 md:px-8">
                 {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="mb-8 w-full">
                   <h1 className="font-cal mb-1 text-xl text-gray-900">{props.heading}</h1>
