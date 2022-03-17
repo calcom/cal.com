@@ -2,15 +2,14 @@ import { PlusIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
-
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
