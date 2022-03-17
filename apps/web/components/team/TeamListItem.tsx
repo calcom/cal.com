@@ -1,5 +1,11 @@
-import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/react/outline";
-import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
+import { LogoutIcon } from "@heroicons/react/outline";
+import {
+  ExternalLinkIcon,
+  TrashIcon,
+  LinkIcon,
+  DotsHorizontalIcon,
+  PencilIcon,
+} from "@heroicons/react/solid";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -126,10 +132,9 @@ export default function TeamListItem(props: Props) {
                       <Link href={"/settings/teams/" + team.id}>
                         <a>
                           <Button
-                            type="button"
-                            size="lg"
                             color="minimal"
-                            className="w-full rounded-none font-normal"
+                            size="sm"
+                            className="w-full rounded-none font-medium"
                             StartIcon={PencilIcon}>
                             {t("edit_team")}
                           </Button>
@@ -141,12 +146,10 @@ export default function TeamListItem(props: Props) {
                     <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button
-                          type="button"
-                          size="lg"
                           color="minimal"
-                          className="w-full rounded-none font-normal"
+                          size="sm"
+                          className="w-full rounded-none font-medium"
                           StartIcon={ExternalLinkIcon}>
-                          {" "}
                           {t("preview_team")}
                         </Button>
                       </a>
@@ -162,9 +165,9 @@ export default function TeamListItem(props: Props) {
                               e.stopPropagation();
                             }}
                             color="warn"
-                            size="lg"
-                            StartIcon={TrashIcon}
-                            className="w-full rounded-none font-normal">
+                            size="sm"
+                            className="w-full rounded-none font-medium"
+                            StartIcon={TrashIcon}>
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
