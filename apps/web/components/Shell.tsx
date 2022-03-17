@@ -17,9 +17,17 @@ import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import Button from "@calcom/ui/Button";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/Dropdown";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
-import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+import IntercomMenuItem from "@ee/lib/intercom/IntercomMenuItem";
+import ZendeskMenuItem from "@ee/lib/zendesk/ZendeskMenuItem";
 
 import classNames from "@lib/classNames";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
@@ -31,17 +39,10 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/Dropdown";
 
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-import Button from "./ui/Button";
 
 export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
@@ -306,7 +307,7 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8">
+              <div className="block justify-between px-4 sm:flex sm:px-6 md:px-8">
                 {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                 <div className="mb-8 w-full">
                   <h1 className="font-cal mb-1 text-xl text-gray-900">{props.heading}</h1>
@@ -459,7 +460,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               viewBox="0 0 2447.6 2452.5"
               className={classNames(
                 "text-gray-500 group-hover:text-gray-700",
-                "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
+                "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-4 rtl:ml-4"
               )}
               xmlns="http://www.w3.org/2000/svg">
               <g clipRule="evenodd" fillRule="evenodd">
@@ -489,7 +490,8 @@ function UserDropdown({ small }: { small?: boolean }) {
             <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
-        <HelpMenuItemDynamic />
+        <IntercomMenuItem />
+        <ZendeskMenuItem />
         <DropdownMenuSeparator className="h-px bg-gray-200" />
         <DropdownMenuItem>
           <a

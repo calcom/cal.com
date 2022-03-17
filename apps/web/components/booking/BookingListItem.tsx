@@ -4,14 +4,15 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { TextArea } from "@calcom/ui/form/fields";
+
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@components/Dialog";
 import { useMeQuery } from "@components/Shell";
-import { TextArea } from "@components/form/fields";
-import Button from "@components/ui/Button";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
