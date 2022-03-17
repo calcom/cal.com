@@ -3,26 +3,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    // Check that user is authenticated
-    const session = await getSession({ req });
-
-    if (!session?.user?.id) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
     const { username, password, url } = req.body;
     // Get user
     const user = await prisma.user.findFirst({
       rejectOnNotFound: true,
       where: {
-        id: session?.user?.id,
+        id: req.session?.user?.id,
       },
       select: {
         id: true,
