@@ -1,10 +1,10 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
-
-import { Alert } from "@components/ui/Alert";
 
 interface Props {
   onClose: () => void;

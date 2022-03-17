@@ -1,7 +1,8 @@
 import { Credential } from "@prisma/client";
 
+import { handleErrorsJson } from "@calcom/lib/errors";
+
 import { BASE_URL } from "@lib/config/constants";
-import { handleErrorsJson } from "@lib/errors";
 import { PartialReference } from "@lib/events/EventManager";
 import prisma from "@lib/prisma";
 import { VideoApiAdapter, VideoCallData } from "@lib/videoClient";

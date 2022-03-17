@@ -3,10 +3,10 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useRef, useState } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
+import showToast from "@calcom/lib/notification";
+import Button from "@calcom/ui/Button";
 
-import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 dayjs.extend(customParseFormat);
 

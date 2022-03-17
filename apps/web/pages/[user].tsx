@@ -85,7 +85,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                       onClick={async (e) => {
                         // If a token is required for this event type, add a click listener that checks whether the user verified their wallet or not
                         if (type.metadata.smartContractAddress && !evtsToVerify[type.id]) {
-                          const showToast = (await import("@lib/notification")).default;
+                          const showToast = (await import("@calcom/lib/notification")).default;
                           e.preventDefault();
                           showToast(
                             "You must verify a wallet with a token belonging to the specified smart contract first",
