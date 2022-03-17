@@ -262,6 +262,8 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (attendeeReminders) {
         data.attendeeReminders = handleAttendeeReminders(attendeeReminders, id);
+      }
+
       if (schedule) {
         data.schedule = {
           connect: {

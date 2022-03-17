@@ -62,7 +62,7 @@ model EventType {
   beforeEventBuffer       Int                         @default(0)
   afterEventBuffer        Int                         @default(0)
   schedulingType          SchedulingType?
-  Schedule                Schedule[]
+  schedule                Schedule?
   price                   Int                         @default(0)
   currency                String                      @default("usd")
   slotInterval            Int?

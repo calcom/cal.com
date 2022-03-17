@@ -6,6 +6,8 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+
 import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
 import {
   emailHead,
@@ -15,7 +17,6 @@ import {
   emailSchedulingBodyDivider,
   linkIcon,
 } from "@lib/emails/templates/common";
-import { getErrorFromUnknown } from "@lib/errors";
 import { getIntegrationName } from "@lib/integrations";
 import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
