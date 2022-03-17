@@ -9,12 +9,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { scheduleEmailReminder } from "@ee/lib/reminders/emailReminderManager";
 import {
   scheduleSMSAttendeeReminder,
   deleteScheduledSMSReminder,
 } from "@ee/lib/reminders/smsReminderManager";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
