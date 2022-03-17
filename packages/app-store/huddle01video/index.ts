@@ -1,3 +1,4 @@
+import { randomString } from "@calcom/lib/random";
 import type { App } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -23,6 +24,7 @@ export const metadata = {
   isGlobal: true,
   email: "help@cal.com",
   locationType: "integrations:huddle01",
+  key: { apikey: randomString(12) },
 } as App;
 
 export * as lib from "./lib";

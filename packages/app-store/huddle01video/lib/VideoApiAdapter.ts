@@ -1,16 +1,7 @@
-import { Credential } from "@prisma/client";
-
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { randomString } from "@calcom/lib/random";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
-export const FAKE_HUDDLE_CREDENTIAL: Credential = {
-  id: +new Date().getTime(),
-  type: "huddle01_video",
-  key: { apikey: randomString(12) },
-  userId: +new Date().getTime(),
-};
 
 const Huddle01VideoApiAdapter = (): VideoApiAdapter => {
   return {

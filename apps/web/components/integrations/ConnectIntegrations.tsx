@@ -1,7 +1,7 @@
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { AddIntegration } from "@calcom/app-store/components";
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { DialogProps } from "@calcom/ui/Dialog";
@@ -10,12 +10,15 @@ import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 
 type AddIntegrationModalType = (props: DialogProps) => JSX.Element;
 
+const DummyComponent = ({ children, ...props }: any) => <>{children}</>;
+
 export default function ConnectIntegration(props: {
   type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
   const { type } = props;
+  const appName = type.replace("_", "");
   const [isLoading, setIsLoading] = useState(false);
 
   const mutation = useMutation(async () => {
@@ -24,7 +27,7 @@ export default function ConnectIntegration(props: {
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
-    const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add" + searchParams);
+    const res = await fetch(`/api/integrations/${appName}/add` + searchParams);
     if (!res.ok) {
       throw new Error("Something went wrong");
     }
@@ -38,16 +41,14 @@ export default function ConnectIntegration(props: {
     _setIsModalOpen(v);
     props.onOpenChange(v);
   };
-  const newPath = `@calcom/app-store/${type.split("_").join("")}/components/AddIntegration`;
-  const AddIntegrationModal = dynamic(() =>
-    import("" + newPath).catch(() => null)
-  ) as AddIntegrationModalType;
+
+  const DynamicAddIntegration: AddIntegrationModalType = AddIntegration[appName] || DummyComponent;
 
   return (
     <>
       {props.render({
         onClick() {
-          if (["caldav_calendar", "apple_calendar"].includes(type)) {
+          if (!!AddIntegration[appName]) {
             // special handlers
             setIsModalOpen(true);
             return;
@@ -58,7 +59,7 @@ export default function ConnectIntegration(props: {
         loading: mutation.isLoading || isLoading,
         disabled: isModalOpen,
       })}
-      {<AddIntegrationModal open={isModalOpen} onOpenChange={setIsModalOpen} />}
+      <DynamicAddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

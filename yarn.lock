@@ -1663,11 +1663,6 @@
   resolved "https://registry.yarnpkg.com/@microsoft/microsoft-graph-types-beta/-/microsoft-graph-types-beta-0.15.0-preview.tgz#fed0a99be4e1151d566cf063f024913fb48640cd"
   integrity sha512-M0zC4t3pmkDz7Qsjx/iZcS+zRuckzsbHESvT9qjLFv64RUgkRmDdmhcvPMiUqUzw/h3YxfYAq9MU+XWjROk/dg==
 
-"@next-auth/prisma-adapter@^1.0.1":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@next-auth/prisma-adapter/-/prisma-adapter-1.0.2.tgz#f4f50f198d6e93732526e2a63a731bf03b3886d1"
-  integrity sha512-uGAn73Rtc6H7EiDmQE0os4GyswGJqC8A2HKM704PFihpUzqdu0fVe9Esdj6z8VPdY+Fq3LKyFd1/p7inVdJghQ==
-
 "@next/bundle-analyzer@12.1.0":
   version "12.1.0"
   resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-12.1.0.tgz#9f6d6cda2a26220c936805be407243e22790f4b7"
@@ -12099,11 +12094,6 @@ scheduler@^0.20.2:
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-
-scripts@*:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/scripts/-/scripts-0.1.0.tgz#3eb19713b5ad1f58bc3e39ce63606d6beaa00693"
-  integrity sha1-PrGXE7WtH1i8PjnOY2Bta+qgBpM=
 
 scrypt-js@^3.0.0, scrypt-js@^3.0.1:
   version "3.0.1"

@@ -21,14 +21,6 @@ export function getAppRegistry() {
       trending: true,
       reviews: 69,
     },
-    {
-      name: "CalDAV",
-      slug: "caldav",
-      category: "calendar",
-      description: "CalDAV is an open calendar standard which connects to virtually every calendar.",
-      logo: "/apps/caldav.svg",
-      rating: 3.6,
-      reviews: 69,
-    },
+    ,
   ] as App[];
 }
