@@ -124,6 +124,7 @@ export const Scheduler = ({ availability, setAvailability, timeZone, setTimeZone
       </div>
       {editSchedule >= 0 && (
         <SetTimesModal
+          isOpen={true}
           startTime={
             openingHours[editSchedule]
               ? new Date(openingHours[editSchedule].startTime).getUTCHours() * 60 +

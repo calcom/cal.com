@@ -2,14 +2,15 @@ import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
 import React, { SyntheticEvent } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 import ModalContainer from "@components/ui/ModalContainer";
 
 export default function MemberChangeRoleModal(props: {
+  isOpen: boolean;
   memberId: number;
   teamId: number;
   initialRole: MembershipRole;
@@ -41,7 +42,7 @@ export default function MemberChangeRoleModal(props: {
   }
 
   return (
-    <ModalContainer>
+    <ModalContainer isOpen={props.isOpen} onExit={props.onExit}>
       <>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="text-center sm:text-left">

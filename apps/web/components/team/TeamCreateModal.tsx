@@ -1,12 +1,15 @@
 import { UsersIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 interface Props {
+  isOpen: boolean;
   onClose: () => void;
 }
 
@@ -32,24 +35,12 @@ export default function TeamCreate(props: Props) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      aria-labelledby="modal-title"
-      role="dialog"
-      aria-modal="true">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          className="fixed inset-0 z-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          aria-hidden="true"></div>
-
-        <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-          &#8203;
-        </span>
-
-        <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+    <>
+      <Dialog open={props.isOpen} onOpenChange={props.onClose}>
+        <DialogContent>
           <div className="mb-4 sm:flex sm:items-start">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 sm:mx-0 sm:h-10 sm:w-10">
-              <UsersIcon className="h-6 w-6 text-neutral-900" />
+            <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
+              <UsersIcon className="text-brandcontrast h-6 w-6" />
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -76,17 +67,21 @@ export default function TeamCreate(props: Props) {
               />
             </div>
             {errorMessage && <Alert severity="error" title={errorMessage} />}
-            <div className="mt-5 flex flex-row-reverse sm:mt-4">
-              <button type="submit" className="btn btn-primary">
-                {t("create_team")}
-              </button>
-              <button onClick={props.onClose} type="button" className="btn btn-white ltr:mr-2">
+            <DialogFooter>
+              <Button type="button" color="secondary" onClick={props.onClose}>
                 {t("cancel")}
-              </button>
-            </div>
+              </Button>
+              <Button
+                type="submit"
+                color="primary"
+                className="ltr:ml-2 rtl:mr-2"
+                data-testid="create-new-team-button">
+                {t("create_team")}
+              </Button>
+            </DialogFooter>
           </form>
-        </div>
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

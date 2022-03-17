@@ -3,14 +3,15 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useRef, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 
 dayjs.extend(customParseFormat);
 
 interface SetTimesModalProps {
+  isOpen: boolean;
   startTime: number;
   endTime: number;
   onChange: (times: { startTime: number; endTime: number }) => void;
@@ -86,153 +87,136 @@ export default function SetTimesModal(props: SetTimesModalProps) {
   )(STEP);
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      aria-labelledby="modal-title"
-      role="dialog"
-      aria-modal="true">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          className="fixed inset-0 z-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          aria-hidden="true"></div>
-
-        <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-          &#8203;
-        </span>
-
-        <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
-          <div className="mb-4 sm:flex sm:items-start">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-              <ClockIcon className="h-6 w-6 text-black" />
-            </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                {t("change_bookings_availability")}
-              </h3>
-              <div>
-                <p className="text-sm text-gray-500">{t("set_work_schedule")}</p>
-              </div>
-            </div>
+    <Dialog open={props.isOpen} onOpenChange={props.onExit}>
+      <DialogContent>
+        <div className="mb-4 sm:flex sm:items-start">
+          <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+            <ClockIcon className="h-6 w-6 text-black" />
           </div>
-          <div className="mb-4 flex">
-            <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
-            <div className="w-1/6">
-              <label htmlFor="startHours" className="sr-only">
-                {t("hours")}
-              </label>
-              <input
-                ref={startHoursRef}
-                type="number"
-                min="0"
-                max={maximumStartTime.hour}
-                minLength={2}
-                name="hours"
-                id="startHours"
-                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
-                placeholder="9"
-                defaultValue={startHours}
-                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
-              />
+          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+              {t("change_bookings_availability")}
+            </h3>
+            <div>
+              <p className="text-sm text-gray-500">{t("set_work_schedule")}</p>
             </div>
-            <span className="mx-2 pt-1">:</span>
-            <div className="w-1/6">
-              <label htmlFor="startMinutes" className="sr-only">
-                {t("minutes")}
-              </label>
-              <input
-                ref={startMinsRef}
-                type="number"
-                min="0"
-                max={maximumStartTime.minute}
-                step={STEP}
-                maxLength={2}
-                name="minutes"
-                id="startMinutes"
-                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
-                placeholder="30"
-                defaultValue={startMinutes}
-                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
-              />
-            </div>
-          </div>
-          <div className="flex">
-            <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("end_time")}</label>
-            <div className="w-1/6">
-              <label htmlFor="endHours" className="sr-only">
-                {t("hours")}
-              </label>
-              <input
-                ref={endHoursRef}
-                type="number"
-                min={minimumEndTime.hour}
-                max="24"
-                maxLength={2}
-                name="hours"
-                id="endHours"
-                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
-                placeholder="17"
-                defaultValue={endHours}
-                onChange={(e) => {
-                  if (endHoursRef.current.value === "24") endMinsRef.current.value = "0";
-                  setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef);
-                  setEndMinuteDisable(endHoursRef.current.value === "24");
-                }}
-              />
-            </div>
-            <span className="mx-2 pt-1">:</span>
-            <div className="w-1/6">
-              <label htmlFor="endMinutes" className="sr-only">
-                {t("minutes")}
-              </label>
-              <input
-                ref={endMinsRef}
-                type="number"
-                min={minimumEndTime.minute}
-                max="59"
-                maxLength={2}
-                step={STEP}
-                name="minutes"
-                id="endMinutes"
-                className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
-                placeholder="30"
-                defaultValue={endMinutes}
-                disabled={endMinuteDisable}
-                onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
-              />
-            </div>
-          </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <Button
-              onClick={(event) => {
-                event.preventDefault();
-
-                const enteredStartHours = parseInt(startHoursRef.current.value);
-                const enteredStartMins = parseInt(startMinsRef.current.value);
-                const enteredEndHours = parseInt(endHoursRef.current.value);
-                const enteredEndMins = parseInt(endMinsRef.current.value);
-
-                if (
-                  isValidTime(
-                    enteredStartHours * 60 + enteredStartMins,
-                    enteredEndHours * 60 + enteredEndMins
-                  )
-                ) {
-                  props.onChange({
-                    startTime: enteredStartHours * 60 + enteredStartMins,
-                    endTime: enteredEndHours * 60 + enteredEndMins,
-                  });
-                  props.onExit(0);
-                }
-              }}
-              type="submit">
-              {t("save")}
-            </Button>
-            <Button onClick={props.onExit} type="button" color="secondary" className="ltr:mr-2">
-              {t("cancel")}
-            </Button>
           </div>
         </div>
-      </div>
-    </div>
+        <div className="mb-4 flex">
+          <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("start_time")}</label>
+          <div className="w-1/6">
+            <label htmlFor="startHours" className="sr-only">
+              {t("hours")}
+            </label>
+            <input
+              ref={startHoursRef}
+              type="number"
+              min="0"
+              max={maximumStartTime.hour}
+              minLength={2}
+              name="hours"
+              id="startHours"
+              className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+              placeholder="9"
+              defaultValue={startHours}
+              onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
+            />
+          </div>
+          <span className="mx-2 pt-1">:</span>
+          <div className="w-1/6">
+            <label htmlFor="startMinutes" className="sr-only">
+              {t("minutes")}
+            </label>
+            <input
+              ref={startMinsRef}
+              type="number"
+              min="0"
+              max={maximumStartTime.minute}
+              step={STEP}
+              maxLength={2}
+              name="minutes"
+              id="startMinutes"
+              className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+              placeholder="30"
+              defaultValue={startMinutes}
+              onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
+            />
+          </div>
+        </div>
+        <div className="flex">
+          <label className="block w-1/4 pt-2 text-sm font-medium text-gray-700">{t("end_time")}</label>
+          <div className="w-1/6">
+            <label htmlFor="endHours" className="sr-only">
+              {t("hours")}
+            </label>
+            <input
+              ref={endHoursRef}
+              type="number"
+              min={minimumEndTime.hour}
+              max="24"
+              maxLength={2}
+              name="hours"
+              id="endHours"
+              className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+              placeholder="17"
+              defaultValue={endHours}
+              onChange={(e) => {
+                if (endHoursRef.current.value === "24") endMinsRef.current.value = "0";
+                setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef);
+                setEndMinuteDisable(endHoursRef.current.value === "24");
+              }}
+            />
+          </div>
+          <span className="mx-2 pt-1">:</span>
+          <div className="w-1/6">
+            <label htmlFor="endMinutes" className="sr-only">
+              {t("minutes")}
+            </label>
+            <input
+              ref={endMinsRef}
+              type="number"
+              min={minimumEndTime.minute}
+              max="59"
+              maxLength={2}
+              step={STEP}
+              name="minutes"
+              id="endMinutes"
+              className="focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+              placeholder="30"
+              defaultValue={endMinutes}
+              disabled={endMinuteDisable}
+              onChange={() => setEdgeTimes(startHoursRef, startMinsRef, endHoursRef, endMinsRef)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            onClick={(event) => {
+              event.preventDefault();
+
+              const enteredStartHours = parseInt(startHoursRef.current.value);
+              const enteredStartMins = parseInt(startMinsRef.current.value);
+              const enteredEndHours = parseInt(endHoursRef.current.value);
+              const enteredEndMins = parseInt(endMinsRef.current.value);
+
+              if (
+                isValidTime(enteredStartHours * 60 + enteredStartMins, enteredEndHours * 60 + enteredEndMins)
+              ) {
+                props.onChange({
+                  startTime: enteredStartHours * 60 + enteredStartMins,
+                  endTime: enteredEndHours * 60 + enteredEndMins,
+                });
+                props.onExit(0);
+              }
+            }}
+            type="submit">
+            {t("save")}
+          </Button>
+          <Button onClick={props.onExit} type="button" color="secondary" className="ltr:mr-2">
+            {t("cancel")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
