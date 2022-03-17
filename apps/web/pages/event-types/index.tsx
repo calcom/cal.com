@@ -1,3 +1,4 @@
+import { CalendarIcon } from "@heroicons/react/outline";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -34,6 +35,7 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -42,7 +44,6 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
-import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
@@ -477,14 +478,11 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
   const { t } = useLocale();
 
   return (
-    <div className="md:py-20">
-      <UserCalendarIllustration />
-      <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
-        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
-        <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
-      </div>
-    </div>
+    <EmptyScreen
+      Icon={CalendarIcon}
+      headline={t("new_event_type_heading")}
+      description={t("new_event_type_description")}
+    />
   );
 };
 
