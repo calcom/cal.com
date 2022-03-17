@@ -230,7 +230,6 @@ export const eventTypesRouter = createProtectedRouter()
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
       const {
-        availability,
         periodType,
         locations,
         destinationCalendar,

@@ -45,6 +45,7 @@ import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { Form } from "@calcom/ui/form/fields";
+import AttendeeReminderTypeForm from "@ee/components/eventtype/AttendeeReminderTypeForm";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -1823,7 +1824,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                       </div>
                     </div>
-                    <AttendeeReminderTypeFrom
+                    <AttendeeReminderTypeForm
                       selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
                         const attendeeReminder: EventTypeAttendeeReminder = {
