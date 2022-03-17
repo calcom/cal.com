@@ -42,5 +42,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.redirect("/integrations");
+  res.redirect("/apps/installed");
 }
