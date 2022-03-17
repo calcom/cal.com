@@ -164,6 +164,7 @@ export default function MemberListItem(props: Props) {
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
+          isOpen={showChangeMemberRoleModal}
           teamId={props.team?.id}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
@@ -171,9 +172,13 @@ export default function MemberListItem(props: Props) {
         />
       )}
       {showTeamAvailabilityModal && (
-        <ModalContainer wide noPadding>
+        <ModalContainer
+          wide
+          noPadding
+          isOpen={showTeamAvailabilityModal}
+          onExit={() => setShowTeamAvailabilityModal(false)}>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="space-x-2 border-t p-5 rtl:space-x-reverse">
+          <div className="space-x-2 border-t py-5 rtl:space-x-reverse">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
               <Link href={`/settings/teams/${props.team.id}/availability`}>
