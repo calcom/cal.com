@@ -13,7 +13,6 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       BASE_URL: http://localhost:3000
       JWT_SECRET: secret
-      PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx

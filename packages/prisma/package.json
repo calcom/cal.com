@@ -14,7 +14,7 @@
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
     "deploy": "run-s build db-deploy",
-    "dx": "yarn db-setup",
+    "dx": "yarn db-reset",
     "generate-schemas": "prisma generate && prisma format",
     "postinstall": "yarn generate-schemas"
   },
