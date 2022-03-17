@@ -1,5 +1,12 @@
 import slugify from "@calcom/lib/slugify";
 
+export type ResponseUsernameApi = {
+  available: boolean;
+  premium: boolean;
+  message?: string;
+  suggestion?: string;
+};
+
 export async function checkPremiumUsername(_username: string): Promise<{
   available: boolean;
   premium: boolean;
@@ -7,6 +14,7 @@ export async function checkPremiumUsername(_username: string): Promise<{
   suggestion?: string;
 }> {
   const username = slugify(_username);
+  // @TODO: edit fetch url so it can handle dev and localhost
   const response = await fetch("https://cal.com/api/username", {
     credentials: "include",
     headers: {

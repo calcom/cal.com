@@ -1,18 +1,35 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
-import { StarIcon, TrashIcon } from "@heroicons/react/solid";
+import {
+  ArrowNarrowRightIcon,
+  CheckIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  StarIcon,
+  TrashIcon,
+} from "@heroicons/react/solid";
 import classNames from "classnames";
 import crypto from "crypto";
-import _ from "lodash";
+import { debounce } from "lodash";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
-import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import username from "pages/api/username";
+import {
+  ComponentProps,
+  FormEvent,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useForm } from "react-hook-form";
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
-import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
-import { UserPlan } from "@calcom/prisma/client";
+import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -29,8 +46,9 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/D
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
+import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { Input, Label, TextField } from "@components/form/fields";
+import { Form, Input, Label, TextField } from "@components/form/fields";
 import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
@@ -102,33 +120,119 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
     </>
   );
 }
+const fetchUsername = async (username: string) => {
+  // process.env.NEXT_PUBLIC_BASE_URL
+  const response = await fetch(`/api/username`, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username: username.trim() }),
+    method: "POST",
+    mode: "cors",
+  });
+  const data = (await response.json()) as ResponseUsernameApi;
+  return { response, data };
+};
+
+export enum UsernameChangeStatusEnum {
+  NORMAL = "NORMAL",
+  UPGRADE = "UPGRADE",
+  DOWNGRADE = "DOWNGRADE",
+}
 
 const CustomUsernameTextfield = (props) => {
+  const [isHoveredLock, setHoveredLock] = useState(false);
   const {
     currentUsername,
-    setCurrentUsername,
-    usernameChange,
-    setUsernameChange,
+    userIsPremium,
+    inputUsernameValue,
+    setInputUsernameValue,
+    usernameLock,
+    setUsernameLock,
     usernameRef,
     premiumUsername,
+    setPremiumUsername,
   } = props;
+  const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
+  const [markAsError, setMarkAsError] = useState(false);
+  const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
+
+  const debouncedApiCall = useCallback(
+    debounce(async (username) => {
+      const { response } = await fetchUsername(username);
+      console.log(response);
+      if (response.status === 200) {
+        setMarkAsError(false);
+        setUsernameIsAvailable(true);
+        setPremiumUsername(false);
+      }
+      if (response.status === 418) {
+        setMarkAsError(true);
+        setUsernameIsAvailable(false);
+        setPremiumUsername(false);
+      }
+      if (response.status === 402) {
+        setMarkAsError(false);
+        setPremiumUsername(true);
+        setUsernameIsAvailable(false);
+      }
+    }, 150),
+    []
+  );
+
+  useEffect(() => {
+    if (currentUsername !== inputUsernameValue) {
+      debouncedApiCall(inputUsernameValue);
+    } else if (inputUsernameValue === "") {
+      setMarkAsError(false);
+      setPremiumUsername(false);
+      setUsernameIsAvailable(false);
+    }
+  }, [inputUsernameValue]);
+
+  useEffect(() => {
+    if (openDialogSaveUsername) {
+      const condition = obtainNewUsernameChangeCondition({
+        userIsPremium,
+        isNewUsernamePremium: premiumUsername,
+      });
+      setUsernameChangeCondition(condition);
+    }
+  }, [openDialogSaveUsername]);
+
+  const form = useForm<{
+    name: string;
+  }>();
+  const [usernameChangeCondition, setUsernameChangeCondition] = useState(null);
+  const obtainNewUsernameChangeCondition = ({
+    userIsPremium,
+    isNewUsernamePremium,
+  }: {
+    userIsPremium: boolean;
+    isNewUsernamePremium: boolean;
+  }) => {
+    let resultCondition: UsernameChangeStatusEnum;
+    if (!userIsPremium && isNewUsernamePremium) {
+      resultCondition = UsernameChangeStatusEnum.UPGRADE;
+    } else if (userIsPremium && !isNewUsernamePremium) {
+      resultCondition = UsernameChangeStatusEnum.DOWNGRADE;
+    } else {
+      resultCondition = UsernameChangeStatusEnum.NORMAL;
+    }
+    return resultCondition;
+  };
+
   return (
     <>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor={"username"}>{premiumUsername ? "Premium Username" : "Username"}</Label>
-        <Button
-          color="secondary"
-          type="button"
-          className="ml-2 px-1 py-1 text-xs"
-          onClick={() => setUsernameChange(!usernameChange)}>
-          {!usernameChange ? "Change" : "Cancel"}
-        </Button>
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
         <span
           className={classNames(
             "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
-            premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
+            premiumUsername ? "border-[2px] border-yellow-300" : ""
           )}>
           {process.env.NEXT_PUBLIC_APP_URL}/
         </span>
@@ -136,26 +240,137 @@ const CustomUsernameTextfield = (props) => {
           <Input
             ref={usernameRef}
             name={"username"}
+            autoComplete={"none"}
+            autoCapitalize={"none"}
+            autoCorrect={"none"}
             className={classNames(
               "mt-0 rounded-l-none",
-              premiumUsername ? "border-yellow-300 border-l-gray-300 pr-10" : ""
+              premiumUsername ? "border-[2px] border-l-[1px] border-yellow-300 border-l-gray-300 pr-16" : "",
+              usernameLock ? "cursor-not-allowed" : "",
+              markAsError
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 pr-8 focus:border-red-500 focus:outline-none focus:ring-0"
+                : "",
+              "delay-10 transition ease-in-out disabled:bg-gray-200"
             )}
             defaultValue={currentUsername}
-            onChange={(event) => setCurrentUsername(event.target.value)}
-            disabled={!usernameChange && !!premiumUsername}
+            onChange={(event) => setInputUsernameValue(event.target.value)}
+            disabled={usernameLock}
           />
-          <span
-            className="text-yellow-300"
+          <div
+            className="top-0"
             style={{
               position: "absolute",
-              top: "calc(50% - 0.7em)",
               right: 0,
-              marginRight: 8,
+              display: "flex",
+              flexDirection: "row",
             }}>
-            <StarIcon className="w-6" />
-          </span>
+            <span
+              className={classNames(
+                "mx-1 my-[2px] py-1",
+                premiumUsername ? "text-yellow-300" : "",
+                usernameIsAvailable ? "text-green-500" : ""
+              )}>
+              {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
+              {usernameIsAvailable ? <CheckIcon className="mt-[1px] w-6" /> : <></>}
+            </span>
+            <span className="mt-[2px] mb-[2px] h-[2.25rem] w-[1px] bg-gray-300" />
+
+            {usernameLock ? (
+              <Tooltip content={"Unlock and edit"}>
+                <button
+                  type="button"
+                  className={classNames(isHoveredLock ? "text-green-500" : "", "px-2")}
+                  onClick={() => setUsernameLock(false)}
+                  onMouseEnter={() => setHoveredLock(true)}
+                  onMouseLeave={() => setHoveredLock(false)}>
+                  {!isHoveredLock ? <LockClosedIcon className="w-6" /> : <LockOpenIcon className="w-6" />}
+                </button>
+              </Tooltip>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className={classNames("px-2 text-green-500", markAsError ? "cursor-not-allowed" : "")}
+                  disabled={markAsError}
+                  onClick={() => {
+                    if (currentUsername === inputUsernameValue) {
+                      setUsernameLock(true);
+                    } else {
+                      setOpenDialogSaveUsername(true);
+                    }
+                  }}>
+                  <LockOpenIcon className="w-6" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {!usernameLock && usernameIsAvailable && (
+        <p
+          className={classNames(
+            "mt-1 text-xs",
+            usernameIsAvailable ? "text-green-500" : "",
+            premiumUsername ? "text-yellow-300" : ""
+          )}>
+          Username is available Lock In to review changes
+        </p>
+      )}
+      <Dialog open={openDialogSaveUsername}>
+        <DialogContent>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+              {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
+                "Upgrading to a premium username plan"}
+              {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Changing username"}
+              {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
+                "Downgrading from premium username plan"}
+            </h3>
+            <div>
+              <p className="text-sm text-gray-500">
+                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
+                  "We need to take you to checkout yo upgrade to your new PREMIUM billing PLAN"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
+                  "We need to take you to checkout to change your current billing"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Confirm username change"}
+              </p>
+            </div>
+          </div>
+          <Form
+            form={form}
+            handleSubmit={(values) => {
+              // createMutation.mutate(values);
+            }}>
+            <p style={{ display: "flex", flexDirection: "row" }}>
+              <strike>
+                <strong>{currentUsername}</strong>{" "}
+              </strike>
+              <ArrowNarrowRightIcon className="mx-4 w-4" /> {inputUsernameValue}
+            </p>
+            {/* <div className="mt-3 space-y-4">
+              <TextField
+                name={"username"}
+                label={"username"}
+                // {...register("name")}
+              />
+            </div> */}
+            <div className="mt-8 flex flex-row-reverse gap-x-2">
+              <Button
+                type="submit"
+                // loading={createMutation.isLoading}
+              >
+                Save
+              </Button>
+              <DialogClose asChild>
+                <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+                  Cancel
+                </Button>
+              </DialogClose>
+            </div>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
@@ -284,11 +499,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       timeFormat: enteredTimeFormat,
     });
   }
-  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
-  const [usernameChange, setUsernameChange] = useState(false);
-  useEffect(() => {
-    console.log("new value for username", currentUsername);
-  }, [currentUsername]);
+  const currentUsername = user.username || undefined;
+  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
+  const [usernameLock, setUsernameLock] = useState(true);
+  const [premiumUsername, setPremiumUsername] = useState(user.premiumUsername);
 
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
@@ -321,10 +535,13 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   {...{
                     usernameRef,
                     currentUsername,
-                    setCurrentUsername,
-                    usernameChange,
-                    setUsernameChange,
-                    premiumUsername: user.premiumUsername,
+                    inputUsernameValue,
+                    setInputUsernameValue,
+                    usernameLock,
+                    setUsernameLock,
+                    premiumUsername,
+                    setPremiumUsername,
+                    userIsPremium: user.premiumUsername,
                   }}
                 />
               </div>
