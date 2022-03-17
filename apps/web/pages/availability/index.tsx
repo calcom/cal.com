@@ -13,6 +13,7 @@ import { QueryCell } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 
@@ -20,14 +21,11 @@ const CreateFirstScheduleView = () => {
   const { t } = useLocale();
 
   return (
-    <div className="md:py-20">
-      <div className="mx-auto block text-center md:max-w-screen-sm">
-        <ClockIcon className="inline w-12 text-neutral-400" />
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_schedule_heading")}</h3>
-        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_schedule_description")}</p>
-        <NewScheduleButton name="first-new-schedule" />
-      </div>
-    </div>
+    <EmptyScreen
+      Icon={ClockIcon}
+      headline={t("new_schedule_heading")}
+      description={t("new_schedule_description")}
+    />
   );
 };
 
