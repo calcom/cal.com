@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/exchangecalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "For calendars hosted on Microsoft Exchange",
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/ui": "*",
+    "react-hook-form": "^7.20.4"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
