@@ -196,8 +196,17 @@ function IntegrationsContainer() {
             {data.payment.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
-                {...item}
-                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                imageSrc={item.imageSrc}
+                title={item.title}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
               />
             ))}
           </List>

@@ -1,4 +1,4 @@
-import showToast from "@lib/notification";
+import showToast from "@calcom/lib/notification";
 
 import App from "@components/App";
 

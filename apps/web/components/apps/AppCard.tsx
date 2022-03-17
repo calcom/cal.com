@@ -1,7 +1,7 @@
 import { StarIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 
-import Button from "@components/ui/Button";
+import Button from "@calcom/ui/Button";
 
 interface AppCardProps {
   logo: string;

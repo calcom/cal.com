@@ -3,12 +3,12 @@ import { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
-import Button from "@components/ui/Button";
 
 export default function Apps({ appStore }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();

@@ -10,12 +10,13 @@ import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React from "react";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 
 //import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 
 export default function App({
   name,
