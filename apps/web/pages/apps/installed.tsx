@@ -180,8 +180,17 @@ function IntegrationsContainer() {
             {data.conferencing.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
-                {...item}
-                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                title={item.title}
+                imageSrc={item.imageSrc}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
               />
             ))}
           </List>

@@ -320,7 +320,7 @@ export default abstract class BaseCalendarService implements Calendar {
           const event = new ICAL.Event(vevent);
 
           const calendarTimezone =
-            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
+            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue<string>("tzid") || "";
 
           const startDate = calendarTimezone
             ? dayjs.tz(event.startDate.toString(), calendarTimezone)
