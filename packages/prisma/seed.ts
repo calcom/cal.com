@@ -29,11 +29,18 @@ async function createUserAndEventType(opts: {
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
     locale: "en",
-    availability: {
-      createMany: {
-        data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-      },
-    },
+    schedules: opts.user.completedOnboarding
+      ? {
+          create: {
+            name: "Working Hours",
+            availability: {
+              createMany: {
+                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+              },
+            },
+          },
+        }
+      : undefined,
   };
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },

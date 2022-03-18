@@ -1,16 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 
+import showToast from "@calcom/lib/notification";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { TextArea } from "@calcom/ui/form/fields";
+
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
-import { Dialog, DialogTrigger } from "@components/Dialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { TextArea } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 
 export default function SAMLConfiguration({
   teamsView,
