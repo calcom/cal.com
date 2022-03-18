@@ -4,6 +4,7 @@ import path from "path";
 import { parse } from "url";
 
 export const nextServer = async ({ dev = false } = { dev: false }) => {
+  console.log("Starting Next Server", { dev });
   const app = next({
     dev: dev,
     dir: path.resolve(__dirname, "../../"),
