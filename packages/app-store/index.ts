@@ -2,6 +2,7 @@ import * as example from "./_example";
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
+import * as exchangecalendar from "./exchangecalendar";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
 import * as huddle01video from "./huddle01video";
@@ -24,6 +25,7 @@ const appStore = {
   office365video,
   tandemvideo,
   zoomvideo,
+  exchangecalendar,
 };
 
 export default appStore;
