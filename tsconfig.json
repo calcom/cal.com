@@ -1,0 +1,23 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2015"
+    ],
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "target": "es5",
+    "allowJs": true,
+    "noEmit": true,
+    "incremental": true,
+    "resolveJsonModule": true,
+    "jsx": "preserve"
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src"
+  ]
+}

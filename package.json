@@ -1,0 +1,27 @@
+{
+  "name": "@calcom/api",
+  "version": "1.0.0",
+  "description": "Public API for Cal.com",
+  "main": "index.ts",
+  "repository": "git@github.com:calcom/api.git",
+  "author": "Cal.com Inc.",
+  "private": true,
+  "scripts": {
+    "dev": "PORT=3002 next",
+    "start": "next start",
+    "build": "next build",
+    "lint": "next lint",
+    "type-check": "tsc --pretty --noEmit",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "devDependencies": {
+    "@calcom/prisma": "*",
+    "@calcom/tsconfig": "*",
+    "scripts": "*",
+    "typescript": "^4.5.3"
+  },
+  "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.1",
+    "next": "^12.1.0"
+  }
+}
