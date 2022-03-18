@@ -177,7 +177,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDownIcon />
                     </button>
@@ -189,7 +189,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span
-                        className="truncate font-medium text-neutral-900"
+                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
                         data-testid={"event-type-title-" + type.id}>
                         {type.title}
                       </span>
@@ -218,6 +218,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
+                        className="relative top-1 right-3"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -250,7 +251,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -314,7 +315,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
                     <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
