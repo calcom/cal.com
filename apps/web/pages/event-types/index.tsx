@@ -501,8 +501,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={
-          query.data &&
-          query.data.eventTypeGroups.length !== 0 && (
+          query.data && (
             <CreateEventTypeButton
               canAddEvents={query.data.viewer.canAddEvents}
               options={query.data.profiles}
