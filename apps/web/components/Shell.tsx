@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
+import { HelpScout } from "react-live-chat-loader";
 
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -26,6 +27,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
+import HelpscoutMenuItem from "@ee/lib/helpscout/HelpscoutMenuItem";
 import IntercomMenuItem from "@ee/lib/intercom/IntercomMenuItem";
 import ZendeskMenuItem from "@ee/lib/zendesk/ZendeskMenuItem";
 
@@ -492,6 +494,8 @@ function UserDropdown({ small }: { small?: boolean }) {
         </DropdownMenuItem>
         <IntercomMenuItem />
         <ZendeskMenuItem />
+        <HelpscoutMenuItem />
+
         <DropdownMenuSeparator className="h-px bg-gray-200" />
         <DropdownMenuItem>
           <a
