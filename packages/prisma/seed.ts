@@ -334,10 +334,61 @@ async function main() {
     eventTypes: [],
   });
 
+  const pro2UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro2@example.com",
+      password: "teampro2",
+      username: "teampro2",
+      name: "Team Pro Example 2",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
+  const pro3UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro3@example.com",
+      password: "teampro3",
+      username: "teampro3",
+      name: "Team Pro Example 3",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
+  const pro4UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro4@example.com",
+      password: "teampro4",
+      username: "teampro4",
+      name: "Team Pro Example 4",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
   await createTeamAndAddUsers(
     {
       name: "Seeded Team",
       slug: "seeded-team",
+      eventTypes: {
+        createMany: {
+          data: [
+            {
+              title: "Collective Seeded Team Event",
+              slug: "collective-seeded-team-event",
+              length: 15,
+              schedulingType: "COLLECTIVE",
+            },
+            {
+              title: "Round Robin Seeded Team Event",
+              slug: "round-robin-seeded-team-event",
+              length: 15,
+              schedulingType: "ROUND_ROBIN",
+            },
+          ],
+        },
+      },
     },
     [
       {
@@ -347,6 +398,18 @@ async function main() {
       {
         id: freeUserTeam.id,
         username: freeUserTeam.name || "Unknown",
+      },
+      {
+        id: pro2UserTeam.id,
+        username: pro2UserTeam.name || "Unknown",
+      },
+      {
+        id: pro3UserTeam.id,
+        username: pro3UserTeam.name || "Unknown",
+      },
+      {
+        id: pro4UserTeam.id,
+        username: pro4UserTeam.name || "Unknown",
       },
     ]
   );
