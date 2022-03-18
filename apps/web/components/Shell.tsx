@@ -26,8 +26,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
-import IntercomMenuItem from "@ee/lib/intercom/IntercomMenuItem";
-import ZendeskMenuItem from "@ee/lib/zendesk/ZendeskMenuItem";
+import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import classNames from "@lib/classNames";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
@@ -490,8 +489,9 @@ function UserDropdown({ small }: { small?: boolean }) {
             <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
-        <IntercomMenuItem />
-        <ZendeskMenuItem />
+
+        <HelpMenuItem />
+
         <DropdownMenuSeparator className="h-px bg-gray-200" />
         <DropdownMenuItem>
           <a

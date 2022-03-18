@@ -87,6 +87,7 @@
     "react-hook-form": "^7.20.4",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.22.0",
+    "react-live-chat-loader": "^2.7.3",
     "react-multi-email": "^0.5.3",
     "react-phone-number-input": "^3.1.41",
     "react-query": "^3.33.7",
