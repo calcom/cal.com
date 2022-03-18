@@ -685,5 +685,6 @@
   "time_format": "Zeitformat",
   "12_hour": "12 Stunden",
   "24_hour": "24 Stunden",
-  "duplicate": "Duplizieren"
+  "duplicate": "Duplizieren",
+  "you_can_manage_your_schedules": "Sie können Ihre Zeitpläne bei Ihren Verfügbarkeitszeiten ändern."
 }
