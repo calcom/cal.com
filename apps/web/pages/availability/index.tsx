@@ -44,7 +44,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
               <li key={schedule.id}>
-                <div className="flex items-center justify-between py-5 hover:bg-neutral-50">
+                <div className="flex items-center justify-between py-5 hover:bg-neutral-50 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
                   <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
                     <Link href={"/availability/" + schedule.id}>
                       <a className="flex-grow truncate text-sm" title={schedule.name}>
