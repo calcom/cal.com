@@ -3,6 +3,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
+import { nameOfDay } from "@calcom/lib/weekday";
 import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";
 
@@ -38,7 +39,9 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
       let idx;
       if (
         (idx = availability.findIndex(
-          (schedule) => schedule.startTime === time.start && schedule.endTime === time.end
+          (schedule) =>
+            schedule.startTime.toString() === time.start.toString() &&
+            schedule.endTime.toString() === time.end.toString()
         )) !== -1
       ) {
         availability[idx].days.push(day);
@@ -123,4 +126,42 @@ export function getWorkingHours(
   workingHours.sort((a, b) => a.startTime - b.startTime);
 
   return workingHours;
+}
+
+export function availabilityAsString(availability: Availability, locale: string) {
+  const weekSpan = (availability: Availability) => {
+    const days = availability.days.slice(1).reduce(
+      (days, day) => {
+        if (days[days.length - 1].length === 1 && days[days.length - 1][0] === day - 1) {
+          // append if the range is not complete (but the next day needs adding)
+          days[days.length - 1].push(day);
+        } else if (days[days.length - 1][days[days.length - 1].length - 1] === day - 1) {
+          // range complete, overwrite if the last day directly preceeds the current day
+          days[days.length - 1] = [days[days.length - 1][0], day];
+        } else {
+          // new range
+          days.push([day]);
+        }
+        return days;
+      },
+      [[availability.days[0]]] as number[][]
+    );
+    return days
+      .map((dayRange) => dayRange.map((day) => nameOfDay(locale, day, "short")).join(" - "))
+      .join(", ");
+  };
+
+  const timeSpan = (availability: Availability) => {
+    return (
+      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(
+        new Date(availability.startTime.toISOString().slice(0, -1))
+      ) +
+      " - " +
+      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(
+        new Date(availability.endTime.toISOString().slice(0, -1))
+      )
+    );
+  };
+
+  return weekSpan(availability) + ", " + timeSpan(availability);
 }
