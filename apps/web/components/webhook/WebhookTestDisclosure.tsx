@@ -4,13 +4,12 @@ import { useState } from "react";
 import { useWatch } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
+import showToast from "@calcom/lib/notification";
+import Button from "@calcom/ui/Button";
+import { InputGroupBox } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
-
-import { InputGroupBox } from "@components/form/fields";
-import Button from "@components/ui/Button";
 
 export default function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
