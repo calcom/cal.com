@@ -21,12 +21,17 @@ import {
   LegacyFreeBusyStatus,
 } from "ews-javascript-api";
 
-import { symmetricDecrypt } from "@lib/crypto";
-import { CALENDAR_INTEGRATIONS_TYPES } from "@lib/integrations/calendar/constants/generals";
-import logger from "@lib/logger";
-
-import { EventBusyDate, NewCalendarEventType } from "../constants/types";
-import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Calendar";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+// Probably don't need
+// import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
+import logger from "@calcom/lib/logger";
+import {
+  EventBusyDate,
+  NewCalendarEventType,
+  Calendar,
+  CalendarEvent,
+  IntegrationCalendar,
+} from "@calcom/types/Calendar";
 
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
