@@ -29,7 +29,7 @@ export default function HelpscoutMenuItem() {
             <ChatAltIcon
               className={classNames(
                 "text-neutral-400 group-hover:text-neutral-500",
-                "h-5 w-5 flex-shrink-0 ltr:mr-2"
+                "h-5 w-5 flex-shrink-0 ltr:mr-3"
               )}
               aria-hidden="true"
             />
