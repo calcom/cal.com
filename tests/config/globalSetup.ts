@@ -3,6 +3,10 @@ import fs from "fs";
 
 import { nextServer } from "../../apps/web/playwright/lib/next-server";
 
+//FIXME: Remove once these environment variables are updated in GH secrets.
+process.env.ZOOM_CLIENT_ID = "ZOOM_CLIENT_ID";
+process.env.ZOOM_CLIENT_SECRET = "ZOOM_CLIENT_SECRET";
+
 async function loginAsUser(username: string, browser: Browser) {
   // Skip is file exists
   if (fs.existsSync(`playwright/artifacts/${username}StorageState.json`)) return;
