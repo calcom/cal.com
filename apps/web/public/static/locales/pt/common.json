@@ -670,9 +670,20 @@
   "prisma_studio_tip_description": "Saiba como configurar o seu primeiro utilizador",
   "contact_sales": "Contacte as vendas",
   "error_404": "Erro 404",
+  "default": "Por omissão",
+  "set_to_default": "Definir por omissão",
+  "new_schedule_btn": "Novo horário",
+  "add_new_schedule": "Adicionar novo horário",
+  "delete_schedule": "Eliminar horário",
+  "schedule_created_successfully": "Horário {{scheduleName}} criado com sucesso",
+  "schedule_deleted_successfully": "Horário eliminado com sucesso",
+  "default_schedule_name": "Horário de trabalho",
+  "new_schedule_heading": "Criar um horário de disponibilidade",
+  "new_schedule_description": "Criar horários de disponibilidade permite-lhe gerir a disponibilidade de todos os tipos de eventos. Podem ser aplicados a um ou mais tipos de eventos.",
   "requires_ownership_of_a_token": "Requer a propriedade de um token pertencente ao seguinte endereço:",
   "example_name": "José Ninguém",
   "time_format": "Formato da hora",
   "12_hour": "12 horas",
-  "24_hour": "24 horas"
+  "24_hour": "24 horas",
+  "you_can_manage_your_schedules": "Pode gerir os seus horários na página de Disponibilidade."
 }
