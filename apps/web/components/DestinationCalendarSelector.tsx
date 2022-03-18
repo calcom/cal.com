@@ -26,10 +26,12 @@ const DestinationCalendarSelector = ({
 
   useEffect(() => {
     if (!selectedOption) {
-      const selected = query.data?.connectedCalendars
-        .map((connected) => connected.calendars ?? [])
-        .flat()
-        .find((cal) => cal.externalId === value);
+      const selected = value
+        ? query.data?.connectedCalendars
+            .map((connected) => connected.calendars ?? [])
+            .flat()
+            .find((cal) => cal.externalId === value)
+        : query.data?.connectedCalendars[0]?.calendars?.[0];
 
       if (selected) {
         setSelectedOption({
