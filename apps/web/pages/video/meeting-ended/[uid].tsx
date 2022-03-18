@@ -6,9 +6,7 @@ import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 
 import prisma from "@lib/prisma";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
@@ -18,7 +16,6 @@ import { HeadSeo } from "@components/seo/head-seo";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
-  const { t } = useLocale();
   // if no booking redirectis to the 404 page
   const emptyBooking = props.booking === null;
   useEffect(() => {
@@ -31,38 +28,49 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
       <div>
         <HeadSeo title={`Meeting Unavaialble`} description={`Meeting Unavailable`} />
         <main className="mx-auto my-24 max-w-3xl">
-          <Dialog defaultOpen={true}>
-            <DialogContent
-              onInteractOutside={(e) => {
-                e.preventDefault();
-              }}>
-              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <XIcon className="h-6 w-6 text-red-600" />
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
+                  &#8203;
+                </span>
+                <div
+                  className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="modal-headline">
+                  <div>
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                      <XIcon className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div className="mt-3 text-center sm:mt-5">
+                      <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
+                        This meeting is in the past.
+                      </h3>
+                    </div>
+                    <div className="mt-4 border-t border-b py-4">
+                      <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
+                        {props.booking.title}
+                      </h2>
+                      <p className="text-center text-gray-500">
+                        <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                        {dayjs(props.booking.startTime).format(
+                          detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 text-center sm:mt-6">
+                    <div className="mt-5">
+                      <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
+                        Go back home
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-5 flex justify-center">
-                <DialogHeader title={props.booking.title} />
-              </div>
-              <h3
-                className="flex justify-center text-center text-lg font-medium leading-6 text-gray-900"
-                id="modal-headline">
-                This meeting is in the past.
-              </h3>
-              <p className="-mt-4 flex justify-center text-sm text-gray-500">
-                <CalendarIcon className="mr-1 inline-block h-4 w-4" />
-                {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
-              </p>
-              <p className="flex justify-center text-center text-sm text-gray-500">
-                This meeting will be accessible 60 minutes in advance.
-              </p>
-              <div className="flex justify-center">
-                <DialogFooter>
-                  <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
-                    {t("go_back_home")}
-                  </Button>
-                </DialogFooter>
-              </div>
-            </DialogContent>
-          </Dialog>
+            </div>
+          </div>
         </main>
       </div>
     );
