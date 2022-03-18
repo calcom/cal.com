@@ -1,8 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { BASE_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 
+import test from "../lib/fixtures";
 import { todo } from "../lib/testUtils";
 
 test.describe("Can signup from a team invite", async () => {

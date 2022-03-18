@@ -33,10 +33,9 @@ test.describe("integrations", () => {
         });
       });
 
-      //TODO: Add Basic auth check
       requestInterceptor.use(
         rest.post("https://zoom.us/oauth/*", async (req, res, ctx) => {
-          const authorization = req.headers.get("authorization");
+          const authorization = req.headers.get("authorization").replace("Basic ", "");
           const clientPair = Buffer.from(authorization, "base64").toString();
           const [clientId, clientSecret] = clientPair.split(":");
           if (clientId !== process.env.ZOOM_CLIENT_ID || clientSecret != process.env.ZOOM_CLIENT_SECRET) {

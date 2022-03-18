@@ -5,7 +5,7 @@ import { parse } from "url";
 
 export const nextServer = async ({ dev = false } = { dev: false }) => {
   const app = next({
-    dev: true,
+    dev: dev,
     dir: path.resolve(__dirname, "../../"),
   });
   await app.prepare();

@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+
+import test from "../lib/fixtures";
 
 test("Can delete user account", async ({ page }) => {
   // Login to account to delete
