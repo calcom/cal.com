@@ -30,9 +30,11 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import showToast from "@calcom/lib/notification";
+import { proratePreview, retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Form, Input, Label, TextField } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -49,7 +51,6 @@ import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { Form, Input, Label, TextField } from "@components/form/fields";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import ColorPicker from "@components/ui/colorpicker";
@@ -152,10 +153,14 @@ const CustomUsernameTextfield = (props) => {
     usernameRef,
     premiumUsername,
     setPremiumUsername,
+    subscriptionId,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
+  const [usernameChangeCondition, setUsernameChangeCondition] = useState<UsernameChangeStatusEnum | null>(
+    null
+  );
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
@@ -198,12 +203,30 @@ const CustomUsernameTextfield = (props) => {
       });
       setUsernameChangeCondition(condition);
     }
+    console.log("opendialog changed", openDialogSaveUsername);
   }, [openDialogSaveUsername]);
+
+  useEffect(() => {
+    async function fetchPreviewProrate(subscriptionId: string) {
+      console.log({ subscriptionId }, "2");
+      const result = await proratePreview({ subscriptionId });
+      console.log({ result });
+      return result;
+    }
+    if (
+      subscriptionId &&
+      usernameChangeCondition &&
+      usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL
+    ) {
+      console.log({ subscriptionId });
+      fetchPreviewProrate(subscriptionId);
+    }
+    console.log("usernameChangeCondition changed", usernameChangeCondition, subscriptionId);
+  }, [usernameChangeCondition]);
 
   const form = useForm<{
     name: string;
   }>();
-  const [usernameChangeCondition, setUsernameChangeCondition] = useState(null);
   const obtainNewUsernameChangeCondition = ({
     userIsPremium,
     isNewUsernamePremium,
@@ -226,6 +249,7 @@ const CustomUsernameTextfield = (props) => {
     <>
       <div style={{ display: "flex", justifyItems: "center" }}>
         <Label htmlFor={"username"}>{premiumUsername ? "Premium Username" : "Username"}</Label>
+        {subscriptionId}
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
         <span
@@ -342,9 +366,7 @@ const CustomUsernameTextfield = (props) => {
               // createMutation.mutate(values);
             }}>
             <p style={{ display: "flex", flexDirection: "row" }}>
-              <strike>
-                <strong>{currentUsername}</strong>{" "}
-              </strike>
+              <span className="font-bold line-through">{currentUsername}</span>
               <ArrowNarrowRightIcon className="mx-4 w-4" /> {inputUsernameValue}
             </p>
             {/* <div className="mt-3 space-y-4">
@@ -356,10 +378,16 @@ const CustomUsernameTextfield = (props) => {
             </div> */}
             <div className="mt-8 flex flex-row-reverse gap-x-2">
               <Button
-                type="submit"
+                type="button"
                 // loading={createMutation.isLoading}
-              >
-                Save
+                onClick={() => {
+                  if (!subscriptionId && usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
+                    // redirect to checkout
+                  }
+                }}>
+                {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && "Upgrade"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && "Downgrade"}
               </Button>
               <DialogClose asChild>
                 <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
@@ -539,6 +567,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     premiumUsername,
                     setPremiumUsername,
                     userIsPremium: user.premiumUsername,
+                    subscriptionId: user.subscriptionId,
                   }}
                 />
               </div>
@@ -839,12 +868,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
+      // @NOTE: should replace premiumUsername with userPlanId or userPlanName when available on DB
       premiumUsername: true,
     },
   });
 
   if (!user) {
     throw new Error("User seems logged in but cannot be found in the db");
+  }
+  let subscriptionId = "";
+  const stripeCustomerId = user?.metadata?.stripeCustomerId as string;
+
+  if (stripeCustomerId) {
+    const retrieveResult = await retrieveSubscriptionIdFromStripeCustomerId(stripeCustomerId);
+    subscriptionId = retrieveResult?.subscriptionId || "";
   }
 
   // if user is marked as no premiumUsername but its username could be due to length we check in remote
@@ -865,6 +902,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+        subscriptionId,
       },
     },
   };
