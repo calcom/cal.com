@@ -37,6 +37,7 @@ async function getUserFromSession({
       weekStart: true,
       startTime: true,
       endTime: true,
+      defaultScheduleId: true,
       bufferTime: true,
       theme: true,
       createdDate: true,

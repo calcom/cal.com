@@ -3,26 +3,26 @@ import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/reac
 import Link from "next/link";
 import React, { useState } from "react";
 
-import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
-
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc, inferQueryOutput } from "@lib/trpc";
-
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import { Tooltip } from "@components/Tooltip";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
-import ModalContainer from "@components/ui/ModalContainer";
-
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/Dropdown";
+} from "@calcom/ui/Dropdown";
+import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
+
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
+import { Tooltip } from "@components/Tooltip";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Avatar from "@components/ui/Avatar";
+import ModalContainer from "@components/ui/ModalContainer";
+
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 import { MembershipRole } from ".prisma/client";
@@ -164,6 +164,7 @@ export default function MemberListItem(props: Props) {
       </div>
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
+          isOpen={showChangeMemberRoleModal}
           teamId={props.team?.id}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
@@ -171,9 +172,13 @@ export default function MemberListItem(props: Props) {
         />
       )}
       {showTeamAvailabilityModal && (
-        <ModalContainer wide noPadding>
+        <ModalContainer
+          wide
+          noPadding
+          isOpen={showTeamAvailabilityModal}
+          onExit={() => setShowTeamAvailabilityModal(false)}>
           <TeamAvailabilityModal team={props.team} member={props.member} />
-          <div className="space-x-2 border-t p-5 rtl:space-x-reverse">
+          <div className="space-x-2 border-t py-5 rtl:space-x-reverse">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
               <Link href={`/settings/teams/${props.team.id}/availability`}>

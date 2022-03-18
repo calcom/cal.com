@@ -1,21 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import prisma from "@lib/prisma";
-
+import { deleteAllBookingsByEmail } from "./lib/teardown";
 import {
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
   todo,
 } from "./lib/testUtils";
-
-const deleteBookingsByEmail = async (email: string) =>
-  prisma.booking.deleteMany({
-    where: {
-      user: {
-        email,
-      },
-    },
-  });
 
 async function bookFirstEvent(page) {
   // Click first event type
@@ -41,7 +31,7 @@ test.describe("free user", () => {
 
   test.afterEach(async () => {
     // delete test bookings
-    await deleteBookingsByEmail("free@example.com");
+    await deleteAllBookingsByEmail("free@example.com");
   });
 
   test("only one visible event", async ({ page }) => {
@@ -112,14 +102,15 @@ test.describe("pro user", () => {
     await page.goto("/pro");
   });
 
-  test.afterEach(async () => {
+  test.afterAll(async () => {
     // delete test bookings
-    await deleteBookingsByEmail("pro@example.com");
+    await deleteAllBookingsByEmail("pro@example.com");
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
-    const $eventTypes = await page.$$("[data-testid=event-types] > *");
-    expect($eventTypes.length).toBeGreaterThanOrEqual(2);
+    // await page.pause();
+    const $eventTypes = await page.locator("[data-testid=event-types] > *");
+    expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
 
   test("book an event first day in next month", async ({ page }) => {
