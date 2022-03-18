@@ -31,7 +31,7 @@ const test = base.extend<{
     },
     {
       //@ts-ignore
-      scope: "test",
+      scope: "worker",
     },
   ],
   rest,

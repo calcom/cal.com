@@ -19,13 +19,13 @@ test.describe.serial("Stripe integration", () => {
       await page.goto("/integrations");
       /** We should see the "Connect" button for Stripe */
       await expect(
-        page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
+        page.locator(`[data-testid="stripe_payment-integration-connection-button"]`)
       ).toContainText("Connect");
 
       /** We start the Stripe flow */
       await Promise.all([
         page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-        page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+        page.click('[data-testid="stripe_payment-integration-connection-button"]'),
       ]);
 
       await Promise.all([
@@ -36,7 +36,7 @@ test.describe.serial("Stripe integration", () => {
 
       /** If Stripe is added correctly we should see the "Disconnect" button */
       await expect(
-        page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
+        page.locator(`[data-testid="stripe_payment-integration-connection-button"]`)
       ).toContainText("Disconnect");
     });
   });

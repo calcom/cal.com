@@ -3,7 +3,8 @@ import next from "next";
 import path from "path";
 import { parse } from "url";
 
-export const nextServer = async ({ dev = false } = { dev: false }) => {
+export const nextServer = async ({ port = 3000 } = { port: 3000 }) => {
+  const dev = process.env.PLAYWRIGHT_USE_NEXTJS_DEV_SERVER === "1" ? true : false;
   console.log("Starting Next Server", { dev });
   const app = next({
     dev: dev,
@@ -20,7 +21,7 @@ export const nextServer = async ({ dev = false } = { dev: false }) => {
       const parsedUrl = parse(req.url, true);
       handle(req, res, parsedUrl);
     });
-    server.listen({ port: process.env.PORT }, () => {
+    server.listen({ port: port }, () => {
       resolve(server);
     });
     server.on("error", (error) => {
