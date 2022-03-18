@@ -1,4 +1,3 @@
-import { validJson } from "@calcom/lib/jsonUtils";
 import type { App } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -25,5 +24,6 @@ export const metadata = {
   email: "help@cal.com",
 } as App;
 
+export * as api from "./api";
 export * as components from "./components";
 export * as lib from "./lib";
