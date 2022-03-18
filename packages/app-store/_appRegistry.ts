@@ -21,6 +21,5 @@ export function getAppRegistry() {
       trending: true,
       reviews: 69,
     },
-    ,
   ] as App[];
 }
