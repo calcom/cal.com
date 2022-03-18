@@ -29,8 +29,12 @@ import Select from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Form } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -38,7 +42,6 @@ import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
-import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -46,13 +49,10 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
-import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
 import CheckboxField from "@components/ui/form/CheckboxField";
@@ -660,7 +660,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="flex">
                     <button
                       type="button"
-                      onClick={() => openLocationModal(location.type)}
+                      onClick={() => {
+                        locationFormMethods.setValue("locationType", location.type);
+                        locationFormMethods.unregister("locationLink");
+                        locationFormMethods.unregister("locationAddress");
+                        openLocationModal(location.type);
+                      }}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
@@ -1610,6 +1615,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister("locationLink");
+                            locationFormMethods.unregister("locationAddress");
                             setSelectedLocation(val);
                           }
                         }}
