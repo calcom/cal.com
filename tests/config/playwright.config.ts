@@ -13,10 +13,9 @@ addAliases({
   "@server": __dirname + "/apps/web/server",
   "@ee": __dirname + "/apps/web/ee",
 });
-
+process.env.PLAYWRIGHT_TEST_BASE_URL = "http://localhost:3000";
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
-
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: 1,
@@ -29,12 +28,6 @@ const config: PlaywrightTestConfig = {
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,
-  webServer: {
-    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
-    port: 3000,
-    timeout: 60_000,
-    reuseExistingServer: !process.env.CI,
-  },
   use: {
     baseURL: "http://localhost:3000",
     locale: "en-US",

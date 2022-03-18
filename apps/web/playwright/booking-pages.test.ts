@@ -1,5 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
+import test from "./lib/fixtures";
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 

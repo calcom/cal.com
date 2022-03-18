@@ -1,6 +1,5 @@
-import { test } from "@playwright/test";
-
 import { IS_SAML_LOGIN_ENABLED } from "../server/lib/constants";
+import test from "./lib/fixtures";
 
 test.describe("SAML tests", () => {
   // Using logged in state from globalSteup

@@ -33,6 +33,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const responseBody = await result.json();
 
+  if (responseBody.error) {
+    res.status(400).json({ message: responseBody.error });
+    return;
+  }
+
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 

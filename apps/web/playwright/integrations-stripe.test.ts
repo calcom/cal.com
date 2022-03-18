@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
+import test from "./lib/fixtures";
 import * as teardown from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
