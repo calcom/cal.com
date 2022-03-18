@@ -13,7 +13,8 @@ const test = base.extend<{
   server: [
     async ({}, use) => {
       const server = await nextServer();
-      use(server);
+      await use(server);
+      server.close();
     },
     {
       //@ts-ignore

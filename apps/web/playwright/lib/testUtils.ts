@@ -1,5 +1,7 @@
-import { Page, test } from "@playwright/test";
+import { Page } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
+
+import test from "./fixtures";
 
 export function todo(title: string) {
   test.skip(title, () => {});
