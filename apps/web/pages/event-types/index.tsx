@@ -230,7 +230,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="btn-icon appearance-none">
+                        className="btn-icon appearance-none"
+                        aria-label={t("preview")}>
                         <ExternalLinkIcon className="h-5 w-5 group-hover:text-black" />
                       </a>
                     </Tooltip>
@@ -243,7 +244,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                             `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
                           );
                         }}
-                        className="btn-icon">
+                        className="btn-icon"
+                        aria-label={t("copy_link")}>
                         <LinkIcon className="h-5 w-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
@@ -252,6 +254,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                        <p className="sr-only">Open context menu</p>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
