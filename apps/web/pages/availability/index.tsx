@@ -92,7 +92,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
         }}
         className="col-span-3 space-y-2 lg:col-span-2">
         <div className="divide-y rounded-sm border border-gray-200 bg-white px-4 py-5 sm:p-6">
-          <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h3>
+          <h1 className="mb-5 text-base font-medium leading-6 text-gray-900">{t("change_start_end")}</h1>
           <Schedule name="schedule" />
         </div>
         {form.formState.errors.schedule && (
@@ -110,9 +110,9 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability">)
       </Form>
       <div className="min-w-40 col-span-3 ltr:ml-2 rtl:mr-2 lg:col-span-1">
         <div className="rounded-sm border border-gray-200 px-4 py-5 sm:p-6 ">
-          <h3 className="text-base font-medium leading-6 text-gray-900">
+          <h2 className="text-base font-medium leading-6 text-gray-900">
             {t("something_doesnt_look_right")}
-          </h3>
+          </h2>
           <div className="mt-2 max-w-xl text-sm text-gray-500">
             <p>{t("troubleshoot_availability")}</p>
           </div>
