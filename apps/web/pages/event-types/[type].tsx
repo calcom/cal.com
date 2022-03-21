@@ -274,6 +274,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   };
 
+  const addLocation = (newLocationType: LocationType, details = {}) => {
+    const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
+    if (existingIdx !== -1) {
+      const copy = formMethods.getValues("locations");
+      copy[existingIdx] = {
+        ...formMethods.getValues("locations")[existingIdx],
+        ...details,
+      };
+      formMethods.setValue("locations", copy);
+    } else {
+      formMethods.setValue(
+        "locations",
+        formMethods.getValues("locations").concat({ type: newLocationType, ...details })
+      );
+    }
+  };
+
   const LocationOptions = () => {
     if (!selectedLocation) {
       return null;
@@ -457,8 +474,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
-                  locationFormMethods.setValue("locationType", e.value);
-                  openLocationModal(e.value);
+                  const newLocationType: LocationType = e.value;
+                  locationFormMethods.setValue("locationType", newLocationType);
+                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                    openLocationModal(newLocationType);
+                  } else {
+                    addLocation(newLocationType);
+                  }
                 }
               }}
             />
@@ -1587,26 +1609,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.InPerson) {
                       details = { address: values.locationAddress };
                     }
-
                     if (newLocation === LocationType.Link) {
                       details = { link: values.locationLink };
                     }
-                    const existingIdx = formMethods
-                      .getValues("locations")
-                      .findIndex((loc) => values.locationType === loc.type);
-                    if (existingIdx !== -1) {
-                      const copy = formMethods.getValues("locations");
-                      copy[existingIdx] = {
-                        ...formMethods.getValues("locations")[existingIdx],
-                        ...details,
-                      };
-                      formMethods.setValue("locations", copy);
-                    } else {
-                      formMethods.setValue(
-                        "locations",
-                        formMethods.getValues("locations").concat({ type: values.locationType, ...details })
-                      );
-                    }
+
+                    addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
                   <Controller
