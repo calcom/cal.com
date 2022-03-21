@@ -373,17 +373,16 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem>
-                      <Link href={"/event-types/" + type.id} passHref={true}>
-                        <Button
-                          type="button"
-                          size="sm"
-                          color="minimal"
-                          className="w-full rounded-none"
-                          StartIcon={PencilIcon}>
-                          {" "}
-                          {t("edit")}
-                        </Button>
-                      </Link>
+                      <Button
+                        type="button"
+                        size="sm"
+                        href={"/event-types/" + type.id}
+                        color="minimal"
+                        className="w-full rounded-none"
+                        StartIcon={PencilIcon}>
+                        {" "}
+                        {t("edit")}
+                      </Button>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Button
@@ -501,8 +500,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={
-          query.data &&
-          query.data.eventTypeGroups.length !== 0 && (
+          query.data && (
             <CreateEventTypeButton
               canAddEvents={query.data.viewer.canAddEvents}
               options={query.data.profiles}
