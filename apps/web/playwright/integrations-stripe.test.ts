@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "@calcom/app-store/utils";
-
 import * as teardown from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
@@ -16,7 +14,7 @@ test.describe.serial("Stripe integration", () => {
     teardown.deleteAllPaymentsByEmail("pro@example.com");
     teardown.deleteAllBookingsByEmail("pro@example.com");
   });
-  test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
+  test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
   test.describe.serial("Stripe integration dashboard", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });

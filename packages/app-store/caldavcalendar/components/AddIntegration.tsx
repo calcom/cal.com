@@ -35,7 +35,7 @@ export function AddIntegrationModal(props: DialogProps) {
   });
   const [errorMessage, setErrorMessage] = useState("");
   return (
-    <Dialog {...props}>
+    <Dialog name={ADD_INTEGRATION_FORM_TITLE} {...props}>
       <DialogContent>
         <DialogHeader
           title="Connect to CalDav Server"
@@ -46,7 +46,7 @@ export function AddIntegrationModal(props: DialogProps) {
           form={form}
           handleSubmit={async (values) => {
             setErrorMessage("");
-            const res = await fetch("/api/integrations/caldav/add", {
+            const res = await fetch("/api/integrations/caldavcalendar/add", {
               method: "POST",
               body: JSON.stringify(values),
               headers: {

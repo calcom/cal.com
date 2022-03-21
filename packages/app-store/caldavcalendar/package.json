@@ -4,7 +4,7 @@
   "name": "@calcom/caldavcalendar",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "For personal and business calendars",
+  "description": "CalDAV is an open calendar standard which connects to virtually every calendar.",
   "dependencies": {
     "@calcom/core": "*",
     "@calcom/lib": "*",
