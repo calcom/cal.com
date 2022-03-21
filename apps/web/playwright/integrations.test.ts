@@ -1,8 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+import * as teardown from "./lib/teardown";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth, todo, waitFor } from "./lib/testUtils";
 
 test.describe("integrations", () => {
+  //teardown
+  test.afterAll(async () => {
+    await teardown.deleteAllWebhooksByEmail("pro@example.com");
+    await teardown.deleteAllBookingsByEmail("pro@example.com");
+  });
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {

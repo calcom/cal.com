@@ -1,3 +1,4 @@
+import { CalendarIcon } from "@heroicons/react/outline";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -34,6 +35,7 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -42,7 +44,6 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
-import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
@@ -176,7 +177,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDownIcon />
                     </button>
@@ -188,7 +189,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span
-                        className="truncate font-medium text-neutral-900"
+                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
                         data-testid={"event-type-title-" + type.id}>
                         {type.title}
                       </span>
@@ -217,6 +218,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
+                        className="relative top-1 right-3"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -249,7 +251,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -313,7 +315,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
                     <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
@@ -371,17 +373,16 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem>
-                      <Link href={"/event-types/" + type.id} passHref={true}>
-                        <Button
-                          type="button"
-                          size="sm"
-                          color="minimal"
-                          className="w-full rounded-none"
-                          StartIcon={PencilIcon}>
-                          {" "}
-                          {t("edit")}
-                        </Button>
-                      </Link>
+                      <Button
+                        type="button"
+                        size="sm"
+                        href={"/event-types/" + type.id}
+                        color="minimal"
+                        className="w-full rounded-none"
+                        StartIcon={PencilIcon}>
+                        {" "}
+                        {t("edit")}
+                      </Button>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Button
@@ -477,14 +478,11 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
   const { t } = useLocale();
 
   return (
-    <div className="md:py-20">
-      <UserCalendarIllustration />
-      <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
-        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
-        <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
-      </div>
-    </div>
+    <EmptyScreen
+      Icon={CalendarIcon}
+      headline={t("new_event_type_heading")}
+      description={t("new_event_type_description")}
+    />
   );
 };
 
@@ -502,8 +500,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={
-          query.data &&
-          query.data.eventTypeGroups.length !== 0 && (
+          query.data && (
             <CreateEventTypeButton
               canAddEvents={query.data.viewer.canAddEvents}
               options={query.data.profiles}

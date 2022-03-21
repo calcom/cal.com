@@ -26,8 +26,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
-import IntercomMenuItem from "@ee/lib/intercom/IntercomMenuItem";
-import ZendeskMenuItem from "@ee/lib/zendesk/ZendeskMenuItem";
+import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import classNames from "@lib/classNames";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
@@ -429,7 +428,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="group flex w-full cursor-pointer appearance-none items-center">
+        <button className="group flex w-full cursor-pointer appearance-none items-center text-left">
           <span
             className={classNames(
               small ? "h-8 w-8" : "h-10 w-10",
@@ -468,7 +467,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               />
             </span>
           )}
-        </div>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent portalled={true}>
         <DropdownMenuItem>
@@ -477,7 +476,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               mutation.mutate({ away: !user?.away });
               utils.invalidateQueries("viewer.me");
             }}
-            className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+            className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
             <MoonIcon
               className={classNames(
                 user?.away
@@ -543,8 +542,9 @@ function UserDropdown({ small }: { small?: boolean }) {
             <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
-        <IntercomMenuItem />
-        <ZendeskMenuItem />
+
+        <HelpMenuItem />
+
         <DropdownMenuSeparator className="h-px bg-gray-200" />
         <DropdownMenuItem>
           <a
