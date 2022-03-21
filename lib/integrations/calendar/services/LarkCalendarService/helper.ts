@@ -1,4 +1,7 @@
 import logger from "@lib/logger";
+import prisma from "@lib/prisma";
+
+import { INTEGRATION_CREDENTIAL_KEY } from "./AppCredential";
 
 export const LARK_HOST = "open.feishu-boe.cn";
 
@@ -10,15 +13,18 @@ export async function handleLarkError<T extends { code: number; msg: string }>(
   response: Response,
   log: typeof logger
 ): Promise<T> {
-  if (!response.ok) {
-    response.json().then(log.error);
-    throw Error(response.statusText);
-  }
-
   const data: T = await response.json();
-  if (data.code !== 0) {
-    log.error("lark error with none 0 code: ", data, response.headers.get("X-Log-Id"));
-    throw Error(data.msg);
+  if (!response.ok || data.code !== 0) {
+    log.error("lark error with error: ", data, ", logid is:", response.headers.get("X-Tt-Logid"));
+    // appticket invalid
+    if (data.code === 10012) {
+      await prisma.integrationCredential.delete({
+        where: {
+          key: INTEGRATION_CREDENTIAL_KEY,
+        },
+      });
+    }
+    throw data;
   }
   return data;
 }

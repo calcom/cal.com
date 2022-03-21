@@ -123,12 +123,15 @@ export type FreeBusyResp = {
   code: number;
   msg: string;
   data: {
-    freebusy_list?: [
-      {
-        start_time: string;
-        end_time: string;
-      }
-    ];
+    error_calendar_list: {
+      calendar_id: string;
+      error_msg: string;
+    }[];
+    freebusy_list: {
+      calendar_id: string;
+      end_time: string;
+      start_time: string;
+    }[];
   };
 };
 

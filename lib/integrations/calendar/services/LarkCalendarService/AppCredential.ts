@@ -47,6 +47,7 @@ class LarkAppCredential {
       },
     });
     const appTicket = (credentialValue?.value as AppCredential)?.appTicket;
+
     if (appTicket) {
       log.debug("has app ticket", appTicket);
       return appTicket;

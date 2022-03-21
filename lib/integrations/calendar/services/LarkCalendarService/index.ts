@@ -22,10 +22,6 @@ import {
 import larkAppCredential from "./AppCredential";
 import { LARK_HOST, handleLarkError, isExpired } from "./helper";
 
-// For testing only
-const TENANT_KEY = "736588c9260f175d";
-const OPEN_ID = "ou_0ec66c34a7137a0a73a145de099c8613";
-
 function parseEventTime2Timestamp(eventTime: string): string {
   return String(+new Date(eventTime) / 1000);
 }
@@ -325,43 +321,42 @@ export default class LarkCalendarService implements Calendar {
       dateTo,
       selectedCalendars
     );
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId)
+      .filter(Boolean);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return Promise.resolve([]);
+    }
+
     try {
-      const appAccessToken = await larkAppCredential.getAppAccessToken();
-
-      // To be modified
-      const tenantAccessTokenResponse = await fetch(
-        `https://${LARK_HOST}/open-apis/auth/v3/tenant_access_token`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            app_access_token: appAccessToken,
-            tenant_key: TENANT_KEY,
-          }),
+      let queryIds = selectedCalendarIds;
+      if (queryIds.length === 0) {
+        queryIds = (await this.listCalendars()).map((e) => e.externalId).filter(Boolean) || [];
+        if (queryIds.length === 0) {
+          return Promise.resolve([]);
         }
-      );
+      }
 
-      const { tenant_access_token } = await handleLarkError<{
-        code: number;
-        msg: string;
-        tenant_access_token: string;
-      }>(tenantAccessTokenResponse, this.log);
+      const accessToken = await this.auth.getToken();
 
-      const response = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/freebusy/list`, {
+      const response = await fetch(`https://${LARK_HOST}/open-apis/calendar/v4/freebusy/batch_get`, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + tenant_access_token,
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+          "x-tt-env": "boe_wangzichao",
         },
         body: JSON.stringify({
           time_min: dateFrom,
           time_max: dateTo,
-          user_id: OPEN_ID,
+          calendar_ids: queryIds,
         }),
       });
 
       const data = await handleLarkError<FreeBusyResp>(response, this.log);
+      this.log.debug("H!cc ~ file: index.ts ~ line 357 ~ LarkCalendarService ~ data", data);
 
       const busyData =
         data.data.freebusy_list?.reduce<BufferedBusyTime[]>((acc, cur) => {
@@ -371,8 +366,10 @@ export default class LarkCalendarService implements Calendar {
           });
           return acc;
         }, []) || [];
+      this.log.debug("H!cc ~ file: index.ts ~ line 362 ~ LarkCalendarService ~ busyData", busyData);
       return busyData;
     } catch (error) {
+      this.log.error("H!cc ~ file: index.ts ~ line 369 ~ LarkCalendarService ~ error", error);
       this.log.error(error);
       return [];
     }
