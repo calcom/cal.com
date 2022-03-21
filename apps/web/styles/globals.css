@@ -165,11 +165,22 @@ button[role="switch"][data-state="checked"] span {
 
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
+  /* Intercom FAB*/
   #launcher {
     display: none !important;
   }
+
+  /* Zendesk FAB*/
   div[role="presentation"] > iframe {
     display: none !important;
+  }
+
+  /* Helpscout FAB*/
+  .BeaconFabButtonFrame {
+    margin-left: -30px;
+    left: 50%;
+    bottom: 28px !important;
+    z-index: 1058 !important;
   }
 }
 

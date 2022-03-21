@@ -694,5 +694,6 @@
   "when_to_send": "When to send reminder",
   "phone_reminder": "Phone number for reminders (incl. country code)",
   "reminder": "This is a reminder about your booking",
-  "duplicate": "Duplicate"
+  "duplicate": "Duplicate",
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
 }

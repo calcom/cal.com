@@ -44,7 +44,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
               <li key={schedule.id}>
-                <div className="flex items-center justify-between py-5 hover:bg-neutral-50">
+                <div className="flex items-center justify-between py-5 hover:bg-neutral-50 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
                   <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
                     <Link href={"/availability/" + schedule.id}>
                       <a className="flex-grow truncate text-sm" title={schedule.name}>
@@ -68,7 +68,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                     </Link>
                   </div>
                   <Dropdown>
-                    <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200">
+                    <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
                       <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -80,7 +80,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                             })
                           }
                           type="button"
-                          color="minimal"
+                          color="warn"
                           className="w-full font-normal"
                           StartIcon={TrashIcon}>
                           {t("delete_schedule")}
