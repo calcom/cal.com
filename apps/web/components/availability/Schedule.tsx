@@ -159,7 +159,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
-      <div className="flex-grow">
+      <div className="flex-grow">   {/** ISSUE*/}
         {fields.map((field, index) => (
           <div key={field.id} className="mb-1 flex justify-between">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
