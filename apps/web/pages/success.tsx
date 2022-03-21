@@ -19,6 +19,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
+import { fireEvent } from "@lib/sdk-event";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -42,6 +43,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
+    fireEvent("bookingSuccessful", {
+      // TODO: Add more props
+      eventType: props.eventType,
+    });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
   }, []);

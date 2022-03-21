@@ -1,0 +1,24 @@
+<script>
+  // TODO: How would someone inform Cal SDK of something before that SDK is installed ? We need a separate queue global variable for that.
+  // FIXME: Remove import and move to non module script once we have build process that generates sdk-event.js
+  window.Cal =
+    window.Cal ||
+    (function Cal() {
+      Cal.q ? Cal.q.push(arguments) : (Cal.q = Cal.q || []) && import("http://localhost:3000/embed.js").then(function () {
+        Cal.init({
+          calendarLink: "pro"
+        });
+      });
+      return Cal;
+    })();
+</script>
+<body>
+  <div id="booking-status">
+    You would see Booking status here
+  </div>
+  <script>
+    window.addEventListener("Cal.bookingSuccessful", function (e) {
+      document.getElementById("booking-status").innerHTML = "Booking successful - " + e.detail;
+    });
+  </script>
+</body>

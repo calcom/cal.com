@@ -4,6 +4,7 @@ import superjson from "superjson";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
+import "@lib/embed-iframe";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
