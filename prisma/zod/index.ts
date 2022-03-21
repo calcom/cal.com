@@ -1,5 +1,6 @@
 export * from "./eventtype";
 export * from "./credential";
+export * from "./integrationcredential";
 export * from "./destinationcalendar";
 export * from "./user";
 export * from "./team";

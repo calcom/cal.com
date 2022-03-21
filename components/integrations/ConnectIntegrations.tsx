@@ -22,10 +22,12 @@ export default function ConnectIntegration(props: {
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
     const res = await fetch("/api/integrations/" + type.replace("_", "") + "/add" + searchParams);
+    console.log("H!cc ~ file: ConnectIntegrations.tsx ~ line 25 ~ mutation ~ res", res);
     if (!res.ok) {
       throw new Error("Something went wrong");
     }
     const json = await res.json();
+    console.log("H!cc ~ file: ConnectIntegrations.tsx ~ line 29 ~ mutation ~ json", json);
     window.location.href = json.url;
     setIsLoading(true);
   });
