@@ -630,7 +630,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}>
+                  EndIcon={ArrowRightIcon}
+                  data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
