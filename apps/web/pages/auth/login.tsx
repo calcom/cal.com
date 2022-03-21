@@ -59,9 +59,10 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
+  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
 
   // If not absolute URL, make it absolute
+  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
   if (!/^https?:\/\//.test(callbackUrl)) {
     callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
   }

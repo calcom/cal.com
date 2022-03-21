@@ -1,25 +1,30 @@
 import { ChatAltIcon } from "@heroicons/react/solid";
-import Script from "next/script";
 import { useState } from "react";
+import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DropdownMenuItem } from "@calcom/ui/Dropdown";
 
 import classNames from "@lib/classNames";
 
-const ZENDESK_KEY = process.env.NEXT_PUBLIC_ZENDESK_KEY;
-
-export default function ZendeskMenuItem() {
-  const [active, setActive] = useState(false);
+export default function HelpscoutMenuItem() {
   const { t } = useLocale();
+  const [active, setActive] = useState(false);
 
-  if (!process.env.NEXT_PUBLIC_ZENDESK_KEY) return null;
+  const [state, loadChat] = useChat();
+
+  function handleClick() {
+    setActive(true);
+    loadChat({ open: true });
+  }
+
+  if (!process.env.NEXT_PUBLIC_HELPSCOUT_KEY) return null;
   else
     return (
       <>
         <DropdownMenuItem>
           <button
-            onClick={() => setActive(true)}
+            onClick={handleClick}
             className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
             <ChatAltIcon
               className={classNames(
@@ -31,9 +36,7 @@ export default function ZendeskMenuItem() {
             {t("help")}
           </button>
         </DropdownMenuItem>
-        {active && (
-          <Script id="ze-snippet" src={"https://static.zdassets.com/ekr/snippet.js?key=" + ZENDESK_KEY} />
-        )}
+        {active && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
       </>
     );
 }
