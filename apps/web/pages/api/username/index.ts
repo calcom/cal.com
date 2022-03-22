@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 
-import usernameHandler, { RequestWithUsernameStatus } from "../../../../website/lib/username";
+import usernameHandler, { RequestWithUsernameStatus } from "@calcom/lib/username";
 
 type Response = {
   available: boolean;

@@ -5,6 +5,20 @@ import prisma from "@lib/prisma";
 test.describe("Onboarding", () => {
   test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });
 
+  // You want to always reset account completedOnboarding after each test
+  test.afterEach(async () => {
+    // Revert DB change
+    await prisma.user.update({
+      where: {
+        email: "onboarding@example.com",
+      },
+      data: {
+        username: "onboarding",
+        completedOnboarding: false,
+      },
+    });
+  });
+
   test("redirects to /getting-started after login", async ({ page }) => {
     await page.goto("/event-types");
     await page.waitForNavigation({
@@ -30,16 +44,6 @@ test.describe("Onboarding", () => {
       });
 
       expect(updatedUser?.username).toBe("alwaysavailable");
-
-      // Revert DB change
-      await prisma.user.update({
-        where: {
-          email: "onboarding@example.com",
-        },
-        data: {
-          completedOnboarding: false,
-        },
-      });
     });
   });
 });
