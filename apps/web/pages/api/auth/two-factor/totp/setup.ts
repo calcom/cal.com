@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
@@ -5,8 +6,6 @@ import qrcode from "qrcode";
 import { ErrorCode, getSession, verifyPassword } from "@lib/auth";
 import { symmetricEncrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
-
-import { IdentityProvider } from ".prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
