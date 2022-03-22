@@ -121,9 +121,9 @@ export default function App({
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
-          <div className="flex justify-between px-10 py-10">
+          <div className="justify-between px-10 py-10 md:flex">
             <div className="prose-sm prose">{body}</div>
-            <div className="max-w-80 flex-1">
+            <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
                 {categories.map((category) => (
