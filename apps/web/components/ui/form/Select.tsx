@@ -16,7 +16,8 @@ function Select<
         colors: {
           ...theme.colors,
           primary: "rgba(17, 17, 17, var(--tw-bg-opacity))",
-          primary50: "rgba(17, 17, 17, var(--tw-bg-opacity))",
+
+          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
       })}
