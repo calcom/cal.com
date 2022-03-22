@@ -1,6 +1,6 @@
 name: Lint
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 jobs:
@@ -8,9 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
