@@ -1,4 +1,5 @@
 import { ClockIcon, ExternalLinkIcon, LinkIcon, LogoutIcon, TrashIcon } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
@@ -13,8 +14,6 @@ import { trpc } from "@lib/trpc";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import LinkIconButton from "@components/ui/LinkIconButton";
-
-import { MembershipRole } from ".prisma/client";
 
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {
   const { t } = useLocale();
