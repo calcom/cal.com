@@ -369,18 +369,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </div>
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
-              {(props.usernameParam || props.user?.identityProvider !== IdentityProvider.CAL) && (
-                <input
-                  ref={usernameRef}
-                  type="text"
-                  name="username"
-                  id="username"
-                  defaultValue={props.usernameParam ? props.usernameParam : props.user?.username ?? ""}
-                  hidden
-                  // Hidden so it cannot be updated from this form
-                />
-              )}
-
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -435,25 +423,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
             resolve(null);
           };
         });
-        const newUsername = usernameRef.current?.value;
+
         const userUpdateData = {
           name: nameRef.current?.value,
           timeZone: selectedTimeZone,
         };
-
-        // The logic behind it's that if username is being received from query params it should fetch from api
-        // if its available if its not we don't update from this mutation, but should keep its original from signup website
-        if (newUsername) {
-          try {
-            const { data } = await fetchUsername(newUsername);
-            if (data.available) {
-              userUpdateData["username"] = newUsername;
-            }
-          } catch (error) {
-            // @TODO: call sentry alert form here or display and alert on client
-            console.log(error);
-          }
-        }
 
         mutation.mutate(userUpdateData);
 
