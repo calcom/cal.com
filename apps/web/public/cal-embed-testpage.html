@@ -1,4 +1,5 @@
 <html><head>
+  <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
   <script>
     if(!location.search.includes("nonResponsive")) {
       document.write('<meta name="viewport" content="width=device-width"/>')
@@ -33,59 +34,71 @@
       return Cal;
     };
     Cal("init")
+    
+    // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
     Cal("init", "second")
+
+    // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
     Cal("init", "third")
 </script>
 <style>
   .debug {
     border: 1px solid black;
+    margin-bottom: 5px;
   }
 </style>
 </head>
 <body>
-  <strong>This page has a non responsive version accessible at <a href="?nonResponsive"></a></strong>
+  <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
   <div>
+    <button data-cal-link="free">Book with Free User</button> 
+    <div><i>Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this as you are reading this text, it would open up super fast. Try switching to slow 3G or create a custom Network configuration which is impossibly slow </span></div>
+  </i>
+
+  <div class="debug">
     <h2>
-      Booking Status
+      Default Namespace(Cal)
     </h2>
     <div id="booking-status-">
-      You would see Booking status here
-    </div>
+      <i>You would see last Booking page action in my place</i>
   </div>
   <div id="cal-booking-place-" style="max-height:30vh;overflow:scroll">
-    <div class="debug">
+    <div>
       if you render booking embed in me, I would not let it be more than 30vh in height. So you would have to scroll to see the entire content
     </div>
   </div>
+</div>
 
-  <div>
+
+  <div class="debug">
     <h2>
-      Booking Status
+      Namespace "second"(Cal.ns.second)
     </h2>
     <div id="booking-status-second">
-      You would see Booking status here
+      <i>You would see last Booking page action in my place</i>
     </div>
-  </div>
   <div id="cal-booking-place-second">
-    <div class="debug">
+    <div>
       If you render booking embed in me, I won't restrict you. The entire page is yours.
     </div>
   </div>
+</div>
 
 
-  <div>
+  <div class="debug">
     <h2>
-      Booking Status
+      Namespace "third"(Cal.ns.third)
     </h2>
     <div id="booking-status-third">
-      You would see Booking status here
+      <i>You would see last Booking page action in my place</i>
     </div>
-  </div>
   <div id="cal-booking-place-third" style="width:30%" >
-    <div class="debug">
+    <div>
       If you render booking embed in me, I would not let you be more than 30% wide
     </div>
   </div>
+</div>
+
 
   <script type="module">
     await window.promise;
@@ -103,6 +116,11 @@
       elementOrSelector: "#cal-booking-place-third",
       calendarLink: "pro?case=3"
     });
+
+  Cal("preload", {
+    fullCalendarLink: 'http://localhost:3000/free'
+  }); 
+
   </script>
   <script>
     const callback = function (e) {

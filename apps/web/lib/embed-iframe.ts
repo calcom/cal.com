@@ -17,6 +17,7 @@ if (typeof window !== "undefined") {
       if (knownHiddenHeight !== hiddenHeight) {
         knownHiddenHeight = hiddenHeight;
         numDimensionChanges++;
+        // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
         sdkEventManager?.fire("dimension-changed", {
           hiddenHeight,
         });
