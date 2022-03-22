@@ -19,7 +19,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { fireEvent } from "@lib/sdk-event";
+import { sdkEventManager } from "@lib/sdk-event";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -43,7 +43,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { isReady, Theme } = useTheme(props.profile.theme);
 
   useEffect(() => {
-    fireEvent("bookingSuccessful", {
+    sdkEventManager.fire("bookingSuccessful", {
       // TODO: Add more props
       eventType: props.eventType,
     });

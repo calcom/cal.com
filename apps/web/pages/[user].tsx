@@ -11,6 +11,7 @@ import { JSONObject } from "superjson/dist/types";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
+import { sdkEventManager } from "@lib/sdk-event";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -91,6 +92,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                             "You must verify a wallet with a token belonging to the specified smart contract first",
                             "error"
                           );
+                        } else {
+                          sdkEventManager?.fire("event-type-selected", {
+                            eventType: type,
+                          });
                         }
                       }}
                       className="block w-full px-6 py-4"

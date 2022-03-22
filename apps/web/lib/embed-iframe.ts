@@ -1,7 +1,7 @@
-import { addEventListener, fireEvent } from "@lib/sdk-event";
+import { sdkEventManager } from "@lib/sdk-event";
 
 if (typeof window !== "undefined") {
-  addEventListener("*", (e) => {
+  sdkEventManager?.on("*", (e) => {
     const detail = e.detail;
     //console.log(detail.fullType, detail.type, detail.data);
     parent.postMessage(detail, "*");
@@ -13,10 +13,11 @@ if (typeof window !== "undefined") {
     requestAnimationFrame(function informAboutScroll() {
       // Because of scroll="no", this much is hidden from the user.
       const hiddenHeight = document.documentElement.scrollHeight - window.innerHeight;
+      // TODO: Handle height as well.
       if (knownHiddenHeight !== hiddenHeight) {
         knownHiddenHeight = hiddenHeight;
         numDimensionChanges++;
-        fireEvent("dimension-changed", {
+        sdkEventManager?.fire("dimension-changed", {
           hiddenHeight,
         });
       }

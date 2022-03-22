@@ -9,12 +9,32 @@
   // FIXME: Remove import and move to non module script once we have build process that generates sdk-event.js
   window.Cal =
     window.Cal ||
-    (function Cal() {
-      Cal.q ? Cal.q.push(arguments) : (Cal.q = Cal.q || []) && import("http://localhost:3000/embed.js").then(function () {
-        window.promise = Promise.resolve()
-      });
+    function Cal() {
+      if (!Cal.loaded) {
+        Cal.ns = {};
+        Cal.q = Cal.q || [];
+        // TODO: Remove import once embed.js is built using some build tool.
+        import("http://localhost:3000/embed.js").then(function () {
+          window.promise = Promise.resolve();
+        });
+        Cal.loaded = true;
+      }
+      
+      if (arguments[0] === 'init') {
+        const api = function () {
+          api.q.push(arguments)
+        };
+        const namespace = arguments[1]
+        api.q = api.q || [];
+        namespace ? (Cal.ns[namespace] = api) : null;
+        return;
+      }
+      Cal.q.push(arguments)
       return Cal;
-    })();
+    };
+    Cal("init")
+    Cal("init", "second")
+    Cal("init", "third")
 </script>
 <style>
   .debug {
@@ -23,49 +43,82 @@
 </style>
 </head>
 <body>
+  <strong>This page has a non responsive version accessible at <a href="?nonResponsive"></a></strong>
   <div>
     <h2>
       Booking Status
     </h2>
-    <div id="booking-status">
+    <div id="booking-status-">
       You would see Booking status here
     </div>
   </div>
-  <div id="cal-booking-place-1" style="max-height:30vh;overflow:scroll">
+  <div id="cal-booking-place-" style="max-height:30vh;overflow:scroll">
     <div class="debug">
       if you render booking embed in me, I would not let it be more than 30vh in height. So you would have to scroll to see the entire content
     </div>
   </div>
-  <div id="cal-booking-place-2">
+
+  <div>
+    <h2>
+      Booking Status
+    </h2>
+    <div id="booking-status-second">
+      You would see Booking status here
+    </div>
+  </div>
+  <div id="cal-booking-place-second">
     <div class="debug">
       If you render booking embed in me, I won't restrict you. The entire page is yours.
     </div>
   </div>
-  <div id="cal-booking-place-3" style="width:30%" >
+
+
+  <div>
+    <h2>
+      Booking Status
+    </h2>
+    <div id="booking-status-third">
+      You would see Booking status here
+    </div>
+  </div>
+  <div id="cal-booking-place-third" style="width:30%" >
     <div class="debug">
       If you render booking embed in me, I would not let you be more than 30% wide
     </div>
   </div>
+
   <script type="module">
     await window.promise;
     Cal("inline", {
-      elementOrSelector: "#cal-booking-place-1",
+      elementOrSelector: "#cal-booking-place-",
       calendarLink: "pro?case=1"
     });
     
-    Cal("inline", {
-      elementOrSelector: "#cal-booking-place-2",
+    Cal.ns.second("inline", {
+      elementOrSelector: "#cal-booking-place-second",
       calendarLink: "pro?case=2"
     });
 
-    Cal("inline", {
-      elementOrSelector: "#cal-booking-place-3",
+    Cal.ns.third("inline", {
+      elementOrSelector: "#cal-booking-place-third",
       calendarLink: "pro?case=3"
     });
   </script>
   <script>
-    window.addEventListener("Cal.bookingSuccessful", function (e) {
-      document.getElementById("booking-status").innerHTML = "Booking successful - " + e.detail;
+    const callback = function (e) {
+      document.getElementById(`booking-status-${e.detail.namespace}`).innerHTML = JSON.stringify(e.detail);
+    };
+    Cal("on", {
+      action: "*", 
+      callback
+    });
+    Cal.ns.second("on", {
+      action: "*", 
+      callback
+    });
+    Cal.ns.third("on", {
+      action: "*", 
+      callback
     });
   </script>
 </body>
