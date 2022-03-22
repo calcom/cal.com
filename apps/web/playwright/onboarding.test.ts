@@ -15,16 +15,13 @@ test.describe("Onboarding", () => {
   });
 
   test.describe("Onboarding", () => {
-    // Using logged in state from globalSetup
-    test.use({ storageState: "playwright/artifacts/onboardingStorageState.json" });
-
-    test("update onboarding username", async ({ page }) => {
+    test("update onboarding username via localstorage", async ({ page }) => {
+      await page.addInitScript(() => {
+        window.localStorage.setItem("username", "alwaysavailable");
+      }, {});
       // Try to go getting started with a available username
-      await page.goto("/getting-started?username=alwaysavailable");
-      // It should redirect you to the getting-started page
-      await page.waitForSelector("[data-testid=onboarding]");
-      const continueButton = page.locator("[data-testid=continue-button-0]");
-      await continueButton.click();
+      await page.goto("/getting-started");
+      // Wait for useEffectUpdate to run
       await page.waitForTimeout(1000);
 
       const updatedUser = await prisma.user.findUnique({

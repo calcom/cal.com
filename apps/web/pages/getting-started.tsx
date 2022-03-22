@@ -153,15 +153,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
+    // Always set timezone if new user
     let step = 0;
-    const hasSetUserNameOrTimeZone =
-      props.user?.name &&
-      props.user?.timeZone &&
-      !props.usernameParam &&
-      props.user?.identityProvider === IdentityProvider.CAL;
-    if (hasSetUserNameOrTimeZone) {
-      step = 1;
-    }
 
     const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
@@ -260,19 +253,37 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
 
-  async function fetchUsername(username) {
-    const response = await fetch("/api/username", {
-      method: "POST",
-      body: JSON.stringify({
-        username: username.trim(),
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = (await response.json()) as ResponseUsernameApi;
-    return { response, data };
-  }
+  // Should update username on user when being redirected from sign up and doing google/saml
+  useEffect(() => {
+    async function validateAndSave(username) {
+      const response = await fetch("/api/username", {
+        method: "POST",
+        body: JSON.stringify({
+          username: username.trim(),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = (await response.json()) as ResponseUsernameApi;
+      const updateUsernameData = {
+        username,
+      };
+      // Only persist username if its available and not premium
+      // premium usernames are saved via stripe webhook
+      if (data.available && !data.premium) {
+        mutation.mutate(updateUsernameData);
+      }
+      // Remove it from localStorage
+      window.localStorage.removeItem("username");
+      return;
+    }
+    // Looking for username on localStorage
+    const username = window.localStorage.getItem("username");
+    if (username) {
+      validateAndSave(username);
+    }
+  }, []);
 
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
@@ -662,8 +673,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 }
 
 export async function getServerSideProps(context: NextPageContext) {
-  const usernameParam = asStringOrNull(context.query.username);
-
   const session = await getSession(context);
 
   if (!session?.user?.id) {
@@ -762,7 +771,6 @@ export async function getServerSideProps(context: NextPageContext) {
       connectedCalendars,
       eventTypes,
       schedules,
-      usernameParam,
     },
   };
 }
