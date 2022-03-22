@@ -1,3 +1,9 @@
+<html><head>
+  <script>
+    if(!location.search.includes("nonResponsive")) {
+      document.write('<meta name="viewport" content="width=device-width"/>')
+    }
+  </script>
 <script>
   // TODO: How would someone inform Cal SDK of something before that SDK is installed ? We need a separate queue global variable for that.
   // FIXME: Remove import and move to non module script once we have build process that generates sdk-event.js
@@ -5,20 +11,62 @@
     window.Cal ||
     (function Cal() {
       Cal.q ? Cal.q.push(arguments) : (Cal.q = Cal.q || []) && import("http://localhost:3000/embed.js").then(function () {
-        Cal.init({
-          calendarLink: "pro"
-        });
+        window.promise = Promise.resolve()
       });
       return Cal;
     })();
 </script>
+<style>
+  .debug {
+    border: 1px solid black;
+  }
+</style>
+</head>
 <body>
-  <div id="booking-status">
-    You would see Booking status here
+  <div>
+    <h2>
+      Booking Status
+    </h2>
+    <div id="booking-status">
+      You would see Booking status here
+    </div>
   </div>
+  <div id="cal-booking-place-1" style="max-height:30vh;overflow:scroll">
+    <div class="debug">
+      if you render booking embed in me, I would not let it be more than 30vh in height. So you would have to scroll to see the entire content
+    </div>
+  </div>
+  <div id="cal-booking-place-2">
+    <div class="debug">
+      If you render booking embed in me, I won't restrict you. The entire page is yours.
+    </div>
+  </div>
+  <div id="cal-booking-place-3" style="width:30%" >
+    <div class="debug">
+      If you render booking embed in me, I would not let you be more than 30% wide
+    </div>
+  </div>
+  <script type="module">
+    await window.promise;
+    Cal("inline", {
+      elementOrSelector: "#cal-booking-place-1",
+      calendarLink: "pro?case=1"
+    });
+    
+    Cal("inline", {
+      elementOrSelector: "#cal-booking-place-2",
+      calendarLink: "pro?case=2"
+    });
+
+    Cal("inline", {
+      elementOrSelector: "#cal-booking-place-3",
+      calendarLink: "pro?case=3"
+    });
+  </script>
   <script>
     window.addEventListener("Cal.bookingSuccessful", function (e) {
       document.getElementById("booking-status").innerHTML = "Booking successful - " + e.detail;
     });
   </script>
 </body>
+</html>
