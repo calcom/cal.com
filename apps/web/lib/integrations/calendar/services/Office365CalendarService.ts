@@ -1,8 +1,9 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential } from "@prisma/client";
 
+import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+
 import { getLocation, getRichDescription } from "@lib/CalEventParser";
-import { handleErrorsJson, handleErrorsRaw } from "@lib/errors";
 import { CALENDAR_INTEGRATIONS_TYPES } from "@lib/integrations/calendar/constants/generals";
 import logger from "@lib/logger";
 import prisma from "@lib/prisma";
@@ -35,7 +36,7 @@ export default class Office365CalendarService implements Calendar {
         ? `${event.destinationCalendar.externalId}/`
         : "";
 
-      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/${calendarId}events`, {
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + accessToken,

@@ -1,7 +1,8 @@
 import { v4 } from "uuid";
 import { z } from "zod";
 
-import { getErrorFromUnknown } from "@lib/errors";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import sendPayload from "@lib/webhooks/sendPayload";
 
@@ -146,6 +147,7 @@ export const webhookRouter = createProtectedRouter()
       };
 
       const data = {
+        triggerEvent: "PING",
         type: "Test",
         title: "Test trigger event",
         description: "",
@@ -161,7 +163,7 @@ export const webhookRouter = createProtectedRouter()
         ],
         organizer: {
           name: "Cal",
-          email: "",
+          email: "no-reply@cal.com",
           timeZone: "Europe/London",
           language,
         },

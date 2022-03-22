@@ -34,6 +34,70 @@ type UseSlotsProps = {
   afterBufferTime?: number;
 };
 
+type getFilteredTimesProps = {
+  times: dayjs.Dayjs[];
+  busy: TimeRange[];
+  eventLength: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
+};
+
+export const getFilteredTimes = (props: getFilteredTimesProps) => {
+  const { times, busy, eventLength, beforeBufferTime, afterBufferTime } = props;
+  const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
+  // Check for conflicts
+  for (let i = times.length - 1; i >= 0; i -= 1) {
+    // const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
+    // Check if the slot surpasses the user's availability end time
+    const slotEndTimeWithAfterBuffer = times[i].add(eventLength + afterBufferTime, "minutes");
+    if (slotEndTimeWithAfterBuffer.isAfter(finalizationTime, "minute")) {
+      times.splice(i, 1);
+    } else {
+      const slotStartTime = times[i];
+      const slotEndTime = times[i].add(eventLength, "minutes");
+      const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
+      busy.every((busyTime): boolean => {
+        const startTime = dayjs(busyTime.start);
+        const endTime = dayjs(busyTime.end);
+        // Check if start times are the same
+        if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
+          times.splice(i, 1);
+        }
+        // Check if slot end time is between start and end time
+        else if (slotEndTime.isBetween(startTime, endTime)) {
+          times.splice(i, 1);
+        }
+        // Check if startTime is between slot
+        else if (startTime.isBetween(slotStartTime, slotEndTime)) {
+          times.splice(i, 1);
+        }
+        // Check if timeslot has before buffer time space free
+        else if (
+          slotStartTimeWithBeforeBuffer.isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
+        ) {
+          times.splice(i, 1);
+        }
+        // Check if timeslot has after buffer time space free
+        else if (
+          slotEndTimeWithAfterBuffer.isBetween(
+            startTime.subtract(beforeBufferTime, "minutes"),
+            endTime.add(afterBufferTime, "minutes")
+          )
+        ) {
+          times.splice(i, 1);
+        } else {
+          return true;
+        }
+        return false;
+      });
+    }
+  }
+  return times;
+};
+
 export const useSlots = (props: UseSlotsProps) => {
   const {
     slotInterval,
@@ -118,56 +182,19 @@ export const useSlots = (props: UseSlotsProps) => {
       inviteeDate: date,
       workingHours: responseBody.workingHours,
       minimumBookingNotice,
+      eventLength,
     });
-    // Check for conflicts
-    for (let i = times.length - 1; i >= 0; i -= 1) {
-      responseBody.busy.every((busyTime): boolean => {
-        const startTime = dayjs(busyTime.start);
-        const endTime = dayjs(busyTime.end);
-        // Check if start times are the same
-        if (times[i].isBetween(startTime, endTime, null, "[)")) {
-          times.splice(i, 1);
-        }
-        // Check if slot end time is between start and end time
-        else if (times[i].add(eventLength, "minutes").isBetween(startTime, endTime)) {
-          times.splice(i, 1);
-        }
-        // Check if startTime is between slot
-        else if (startTime.isBetween(times[i], times[i].add(eventLength, "minutes"))) {
-          times.splice(i, 1);
-        }
-        // Check if time is between afterBufferTime and beforeBufferTime
-        else if (
-          times[i].isBetween(
-            startTime.subtract(beforeBufferTime, "minutes"),
-            endTime.add(afterBufferTime, "minutes")
-          )
-        ) {
-          times.splice(i, 1);
-        }
-        // considering preceding event's after buffer time
-        else if (
-          i > 0 &&
-          times[i - 1]
-            .add(eventLength + afterBufferTime, "minutes")
-            .isBetween(
-              startTime.subtract(beforeBufferTime, "minutes"),
-              endTime.add(afterBufferTime, "minutes"),
-              null,
-              "[)"
-            )
-        ) {
-          times.splice(i, 1);
-        } else {
-          return true;
-        }
-        return false;
-      });
-    }
-
+    const filterTimeProps = {
+      times,
+      busy: responseBody.busy,
+      eventLength,
+      beforeBufferTime,
+      afterBufferTime,
+    };
+    const filteredTimes = getFilteredTimes(filterTimeProps);
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
-    return times.map((time) => ({
+    return filteredTimes.map((time) => ({
       time,
       users: [user],
     }));

@@ -2,11 +2,11 @@ import type { IntegrationOAuthCallbackState } from "pages/api/integrations/types
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { ButtonBaseProps } from "@calcom/ui/Button";
+
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { AddAppleIntegrationModal } from "@lib/integrations/calendar/components/AddAppleIntegration";
 import { AddCalDavIntegrationModal } from "@lib/integrations/calendar/components/AddCalDavIntegration";
-
-import { ButtonBaseProps } from "@components/ui/Button";
 
 export default function ConnectIntegration(props: {
   type: string;

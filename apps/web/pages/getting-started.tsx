@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Prisma, IdentityProvider } from "@prisma/client";
+import { IdentityProvider, Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -17,6 +17,10 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Form } from "@calcom/ui/form/fields";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
@@ -31,12 +35,9 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
-import { Form } from "@components/form/fields";
+import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule from "@components/ui/form/Schedule";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -133,21 +134,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async ({ schedule }: ScheduleFormValues) => {
-    const res = await fetch(`/api/schedule`, {
-      method: "POST",
-      body: JSON.stringify({ schedule }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
+    onError: (err) => {
+      throw new Error(err.message);
+    },
+  });
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
@@ -352,25 +343,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </div>
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
-              {(props.usernameParam || props.user?.identityProvider !== IdentityProvider.CAL) && (
-                <fieldset>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    {t("username")}
-                  </label>
-                  <input
-                    ref={usernameRef}
-                    type="text"
-                    name="username"
-                    id="username"
-                    data-testid="username"
-                    placeholder={t("username")}
-                    defaultValue={props.usernameParam ? props.usernameParam : props.user?.username ?? ""}
-                    required
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  />
-                </fieldset>
-              )}
-
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -462,7 +434,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           handleSubmit={async (values) => {
             try {
               setSubmitting(true);
-              await createSchedule({ ...values });
+              await createSchedule.mutate({
+                name: t("default_schedule_name"),
+                ...values,
+              });
               debouncedHandleConfirmStep();
               setSubmitting(false);
             } catch (error) {

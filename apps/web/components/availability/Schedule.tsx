@@ -5,13 +5,14 @@ import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import Button from "@calcom/ui/Button";
+
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
 
 import { useMeQuery } from "@components/Shell";
-import Button from "@components/ui/Button";
 import Select from "@components/ui/form/Select";
 
 dayjs.extend(utc);
@@ -146,7 +147,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   };
 
   return (
-    <fieldset className="flex min-h-[86px] flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+    <fieldset className="flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
       <div className="w-1/3">
         <label className="flex items-center space-x-2 rtl:space-x-reverse">
           <input

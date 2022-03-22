@@ -1,4 +1,4 @@
-import { PhoneIcon, XIcon } from "@heroicons/react/outline";
+import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
@@ -12,10 +12,12 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole } from "@prisma/client";
-import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -24,18 +26,24 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import Select from "react-select";
+import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
+import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import Switch from "@calcom/ui/Switch";
+import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
-import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -43,16 +51,11 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
-import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
-import { Scheduler } from "@components/ui/Scheduler";
-import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
@@ -75,7 +78,6 @@ interface NFT extends Token {
   // Some OpenSea NFTs have several contracts
   contracts: Array<Token>;
 }
-type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
   label: string;
@@ -94,6 +96,41 @@ const addDefaultLocationOptions = (
       locationOptions.push(item);
     }
   });
+};
+
+const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+  const query = trpc.useQuery(["viewer.availability.list"]);
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => {
+        const options = data.schedules.map((schedule) => ({
+          value: schedule.id,
+          label: schedule.name,
+        }));
+
+        const value = options.find((option) =>
+          props.value
+            ? option.value === props.value
+            : option.value === data.schedules.find((schedule) => schedule.isDefault)?.id
+        );
+        return (
+          <Select
+            {...props}
+            options={options}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className={classNames(
+              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
+              className
+            )}
+            value={value}
+          />
+        );
+      }}
+    />
+  );
 };
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -119,6 +156,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Link, label: t("link_meeting") },
     { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
   ];
@@ -166,7 +204,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
@@ -181,11 +218,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-
-  const [availabilityState, setAvailabilityState] = useState<{
-    openingHours: AvailabilityInput[];
-    dateOverrides: AvailabilityInput[];
-  }>({ openingHours: [], dateOverrides: [] });
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -222,10 +254,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     fetchTokens();
   }, []);
 
-  useEffect(() => {
-    setSelectedTimeZone(eventType.timeZone || "");
-  }, []);
-
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
 
@@ -244,6 +272,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type),
       { shouldValidate: true }
     );
+  };
+
+  const addLocation = (newLocationType: LocationType, details = {}) => {
+    const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
+    if (existingIdx !== -1) {
+      const copy = formMethods.getValues("locations");
+      copy[existingIdx] = {
+        ...formMethods.getValues("locations")[existingIdx],
+        ...details,
+      };
+      formMethods.setValue("locations", copy);
+    } else {
+      formMethods.setValue(
+        "locations",
+        formMethods.getValues("locations").concat({ type: newLocationType, ...details })
+      );
+    }
   };
 
   const LocationOptions = () => {
@@ -270,6 +315,32 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     .find((location) => location.type === LocationType.InPerson)?.address
                 }
               />
+            </div>
+          </div>
+        );
+      case LocationType.Link:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_link_meeting")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationLink")}
+                id="address"
+                required
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                defaultValue={
+                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
+                    ?.link
+                }
+              />
+              {locationFormMethods.formState.errors.locationLink && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationLink.message}
+                </p>
+              )}
             </div>
           </div>
         );
@@ -351,14 +422,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
-    locations: { type: LocationType; address?: string }[];
+    locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
-    availability: {
-      openingHours: AvailabilityInput[];
-      dateOverrides: AvailabilityInput[];
-    };
-    timeZone: string;
+    schedule: number;
     periodType: PeriodType;
     periodDays: number;
     periodCountCalendarDays: "1" | "0";
@@ -374,6 +441,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -381,11 +449,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const locationFormSchema = z.object({
+    locationType: z.string(),
+    locationAddress: z.string().optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+  });
+
   const locationFormMethods = useForm<{
     locationType: LocationType;
-    locationAddress: string;
-  }>();
-
+    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
+    locationLink?: string; // Currently this only accepts links that are HTTPS://
+  }>({
+    resolver: zodResolver(locationFormSchema),
+  });
   const Locations = () => {
     return (
       <div className="w-full">
@@ -398,8 +474,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
-                  locationFormMethods.setValue("locationType", e.value);
-                  openLocationModal(e.value);
+                  const newLocationType: LocationType = e.value;
+                  locationFormMethods.setValue("locationType", newLocationType);
+                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                    openLocationModal(newLocationType);
+                  } else {
+                    addLocation(newLocationType);
+                  }
                 }
               }}
             />
@@ -419,6 +500,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.address}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.Link && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.link}
                       />
                     </div>
                   )}
@@ -613,7 +704,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="flex">
                     <button
                       type="button"
-                      onClick={() => openLocationModal(location.type)}
+                      onClick={() => {
+                        locationFormMethods.setValue("locationType", location.type);
+                        locationFormMethods.unregister("locationLink");
+                        locationFormMethods.unregister("locationAddress");
+                        openLocationModal(location.type);
+                      }}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
@@ -690,11 +786,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       smartContractAddress,
                       beforeBufferTime,
                       afterBufferTime,
+                      locations,
                       ...input
                     } = values;
                     updateMutation.mutate({
                       ...input,
-                      availability: availabilityState,
+                      locations,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -799,6 +896,35 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
+
+                  <hr className="border-neutral-200" />
+                  <div className="space-y-3">
+                    <div className="block sm:flex">
+                      <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
+                        <label
+                          htmlFor="availability"
+                          className="mt-0 flex text-sm font-medium text-neutral-700">
+                          <ClockIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
+                        </label>
+                      </div>
+                      <div className="w-full">
+                        <Controller
+                          name="schedule"
+                          control={formMethods.control}
+                          render={({ field }) => (
+                            <AvailabilitySelect
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {team && <hr className="border-neutral-200" />}
                   {team && (
                     <div className="space-y-3">
@@ -1293,47 +1419,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
 
-                        <hr className="border-neutral-200" />
-                        <div className="block sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("availability")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Controller
-                              name="availability"
-                              control={formMethods.control}
-                              render={() => (
-                                <Scheduler
-                                  setAvailability={(val) => {
-                                    const schedule = {
-                                      openingHours: val.openingHours,
-                                      dateOverrides: val.dateOverrides,
-                                    };
-                                    // Updating internal state that would be sent on mutation
-                                    setAvailabilityState(schedule);
-                                    // Updating form values displayed, but this one doesn't reach form submit scope
-                                    formMethods.setValue("availability", schedule);
-                                  }}
-                                  setTimeZone={(timeZone) => {
-                                    formMethods.setValue("timeZone", timeZone);
-                                    setSelectedTimeZone(timeZone);
-                                  }}
-                                  timeZone={selectedTimeZone}
-                                  availability={availability.map((schedule) => ({
-                                    ...schedule,
-                                    startTime: new Date(schedule.startTime),
-                                    endTime: new Date(schedule.endTime),
-                                  }))}
-                                />
-                              )}
-                            />
-                          </div>
-                        </div>
-
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -1524,24 +1609,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.InPerson) {
                       details = { address: values.locationAddress };
                     }
-
-                    const existingIdx = formMethods
-                      .getValues("locations")
-                      .findIndex((loc) => values.locationType === loc.type);
-                    if (existingIdx !== -1) {
-                      const copy = formMethods.getValues("locations");
-                      copy[existingIdx] = {
-                        ...formMethods.getValues("locations")[existingIdx],
-                        ...details,
-                      };
-                      formMethods.setValue("locations", copy);
-                    } else {
-                      formMethods.setValue(
-                        "locations",
-                        formMethods.getValues("locations").concat({ type: values.locationType, ...details })
-                      );
+                    if (newLocation === LocationType.Link) {
+                      details = { link: values.locationLink };
                     }
 
+                    addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
                   <Controller
@@ -1559,6 +1631,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister("locationLink");
+                            locationFormMethods.unregister("locationAddress");
                             setSelectedLocation(val);
                           }
                         }}
@@ -1744,6 +1818,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         select: userSelect,
       },
       schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+        },
+      },
       userId: true,
       price: true,
       currency: true,

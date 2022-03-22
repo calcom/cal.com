@@ -1,9 +1,8 @@
-// TODO: replace headlessui with radix-ui
-import { Switch } from "@headlessui/react";
 import { FC, useEffect, useState } from "react";
 import TimezoneSelect, { ITimezoneOption } from "react-timezone-select";
 
-import classNames from "@lib/classNames";
+import Switch from "@calcom/ui/Switch";
+
 import { useLocale } from "@lib/hooks/useLocale";
 
 import { is24h, timeZone } from "../../lib/clock";
@@ -36,34 +35,17 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone }) => {
   return selectedTimeZone !== "" ? (
     <div className="max-w-80 absolute z-10 w-full rounded-sm border border-gray-200 bg-white px-4 py-2 dark:border-0 dark:bg-gray-700">
       <div className="mb-4 flex">
-        <div className="w-1/2 font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
-        <div className="w-1/2">
-          <Switch.Group as="div" className="flex items-center justify-end">
-            <Switch.Label as="span" className="ltr:mr-3">
-              <span className="text-sm text-gray-500 dark:text-white">{t("am_pm")}</span>
-            </Switch.Label>
-            <Switch
-              checked={is24hClock}
-              onChange={handle24hClockToggle}
-              className={classNames(
-                is24hClock
-                  ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
-                  : "bg-gray-200 dark:bg-gray-600",
-                "relative inline-flex h-5 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-              )}>
-              <span className="sr-only">{t("use_setting")}</span>
-              <span
-                aria-hidden="true"
-                className={classNames(
-                  is24hClock ? "translate-x-3" : "translate-x-0",
-                  "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                )}
-              />
-            </Switch>
-            <Switch.Label as="span" className="ltr:ml-3 rtl:mr-3">
-              <span className="text-sm text-gray-500 dark:text-white">{t("24_h")}</span>
-            </Switch.Label>
-          </Switch.Group>
+        <div className="font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
+        <div className="ml-auto flex items-center">
+          <label className="ltl:mr-3 mr-2 align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
+            {t("am_pm")}
+          </label>
+          <Switch
+            name="24hClock"
+            label={t("24_h")}
+            defaultChecked={is24hClock}
+            onCheckedChange={handle24hClockToggle}
+          />
         </div>
       </div>
       <TimezoneSelect

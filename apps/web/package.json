@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.0.0",
+  "version": "1.4.1",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -34,7 +34,6 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.21.0",
-    "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.8.5",
@@ -88,6 +87,7 @@
     "react-hook-form": "^7.20.4",
     "react-hot-toast": "^2.1.0",
     "react-intl": "^5.22.0",
+    "react-live-chat-loader": "^2.7.3",
     "react-multi-email": "^0.5.3",
     "react-phone-number-input": "^3.1.41",
     "react-query": "^3.33.7",

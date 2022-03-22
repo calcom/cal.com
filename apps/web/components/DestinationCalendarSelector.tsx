@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
-
-import Button from "@components/ui/Button";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;

@@ -1,69 +1,75 @@
-// TODO: replace headlessui with radix-ui
-import { Menu, Transition } from "@headlessui/react";
+import { CalendarIcon } from "@heroicons/react/outline";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   DotsHorizontalIcon,
   ExternalLinkIcon,
+  DuplicateIcon,
   LinkIcon,
-  UsersIcon,
   UploadIcon,
   ClipboardCopyIcon,
+  TrashIcon,
+  PencilIcon,
 } from "@heroicons/react/solid";
+import { UsersIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import { Button } from "@calcom/ui";
+import { Alert } from "@calcom/ui/Alert";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import Dropdown, {
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@calcom/ui/Dropdown";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
+import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
-import UserCalendarIllustration from "@components/ui/svg/UserCalendarIllustration";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
-type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
-type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
 interface CreateEventTypeProps {
   canAddEvents: boolean;
   profiles: Profiles;
 }
 
-const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
-  const { t } = useLocale();
-
-  return (
-    <div className="md:py-20">
-      <UserCalendarIllustration />
-      <div className="mx-auto block text-center md:max-w-screen-sm">
-        <h3 className="mt-2 text-xl font-bold text-neutral-900">{t("new_event_type_heading")}</h3>
-        <p className="text-md mt-1 mb-2 text-neutral-600">{t("new_event_type_description")}</p>
-        <CreateEventTypeButton canAddEvents={canAddEvents} options={profiles} />
-      </div>
-    </div>
-  );
-};
+type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
+type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+interface EventTypeListHeadingProps {
+  profile: EventTypeGroupProfile;
+  membershipCount: number;
+}
 
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
-  profile: { slug: string | null };
+  group: EventTypeGroup;
   readOnly: boolean;
   types: EventType[];
 }
-const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.Element => {
+
+export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
@@ -93,6 +99,50 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
       ids: newList.map((type) => type.id),
     });
   }
+
+  async function deleteEventTypeHandler(id: number) {
+    const payload = { id };
+    deleteMutation.mutate(payload);
+  }
+
+  // inject selection data into url for correct router history
+  const openModal = (group: EventTypeGroup, type: EventType) => {
+    const query = {
+      ...router.query,
+      dialog: "new-eventtype",
+      eventPage: group.profile.slug,
+      title: type.title,
+      slug: type.slug,
+      description: type.description,
+      length: type.length,
+      type: type.schedulingType,
+      teamId: group.teamId,
+    };
+    if (!group.teamId) {
+      delete query.teamId;
+    }
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
+
+  const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
+    onSuccess: async () => {
+      await utils.invalidateQueries(["viewer.eventTypes"]);
+      showToast(t("event_type_deleted_successfully"), "success");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   const [isNativeShare, setNativeShare] = useState(true);
 
@@ -127,7 +177,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDownIcon />
                     </button>
@@ -138,8 +188,16 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     className="flex-grow truncate text-sm"
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
-                      <span className="truncate font-medium text-neutral-900">{type.title} </span>
-                      <small className="hidden text-neutral-500 sm:inline">{`/${profile.slug}/${type.slug}`}</small>
+                      <span
+                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
+                        data-testid={"event-type-title-" + type.id}>
+                        {type.title}
+                      </span>
+                      <small
+                        className="hidden text-neutral-500 sm:inline"
+                        data-testid={
+                          "event-type-slug-" + type.id
+                        }>{`/${group.profile.slug}/${type.slug}`}</small>
                       {type.hidden && (
                         <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
                           {t("hidden")}
@@ -156,10 +214,11 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                 </Link>
 
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                  <div className="flex items-center space-x-2 overflow-hidden rtl:space-x-reverse">
+                  <div className="flex justify-between rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
+                        className="relative top-1 right-3"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -170,7 +229,7 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                     )}
                     <Tooltip content={t("preview")}>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-icon appearance-none">
@@ -183,112 +242,189 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
                         onClick={() => {
                           showToast(t("link_copied"), "success");
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
                           );
                         }}
                         className="btn-icon">
                         <LinkIcon className="h-5 w-5 group-hover:text-black" />
                       </button>
                     </Tooltip>
+                    <Dropdown>
+                      <DropdownMenuTrigger
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        data-testid={"event-type-options-" + type.id}>
+                        <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <Link href={"/event-types/" + type.id} passHref={true}>
+                            <Button
+                              type="button"
+                              size="sm"
+                              color="minimal"
+                              className="w-full rounded-none"
+                              StartIcon={PencilIcon}>
+                              {" "}
+                              {t("edit")}
+                            </Button>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="sm"
+                            className="w-full rounded-none"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={DuplicateIcon}
+                            onClick={() => openModal(group, type)}>
+                            {t("duplicate")}
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuItem>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                color="warn"
+                                size="sm"
+                                StartIcon={TrashIcon}
+                                className="w-full rounded-none">
+                                {t("delete")}
+                              </Button>
+                            </DialogTrigger>
+                            <ConfirmationDialogContent
+                              variety="danger"
+                              title={t("delete_event_type")}
+                              confirmBtnText={t("confirm_delete_event_type")}
+                              onConfirm={(e) => {
+                                e.preventDefault();
+                                deleteEventTypeHandler(type.id);
+                              }}>
+                              {t("delete_event_type_description")}
+                            </ConfirmationDialogContent>
+                          </Dialog>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </Dropdown>
                   </div>
                 </div>
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
-                <Menu as="div" className="inline-block text-left">
-                  {({ open }) => (
-                    <>
-                      <div>
-                        <Menu.Button className="mt-1 border border-transparent p-2 text-neutral-400 hover:border-gray-200">
-                          <span className="sr-only">{t("open_options")}</span>
-                          <DotsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-                        </Menu.Button>
-                      </div>
-
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95">
-                        <Menu.Items
-                          static
-                          className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-neutral-100 rounded-sm bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <a
-                                  href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ExternalLinkIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  {t("preview")}
-                                </a>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`
-                                    );
-                                    showToast(t("link_copied"), "success");
-                                  }}
-                                  className={classNames(
-                                    active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                    "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                  )}>
-                                  <ClipboardCopyIcon
-                                    className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                    aria-hidden="true"
-                                  />
-                                  {t("copy_link")}
-                                </button>
-                              )}
-                            </Menu.Item>
-                            {isNativeShare ? (
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    onClick={() => {
-                                      navigator
-                                        .share({
-                                          title: t("share"),
-                                          text: t("share_event"),
-                                          url: `${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}/${type.slug}`,
-                                        })
-                                        .then(() => showToast(t("link_shared"), "success"))
-                                        .catch(() => showToast(t("failed"), "error"));
-                                    }}
-                                    className={classNames(
-                                      active ? "bg-neutral-100 text-neutral-900" : "text-neutral-700",
-                                      "group flex w-full items-center px-4 py-2 text-sm font-medium"
-                                    )}>
-                                    <UploadIcon
-                                      className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-neutral-500"
-                                      aria-hidden="true"
-                                    />
-                                    {t("share")}
-                                  </button>
-                                )}
-                              </Menu.Item>
-                            ) : null}
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </>
-                  )}
-                </Menu>
+                <Dropdown>
+                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                    <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent portalled>
+                    <DropdownMenuItem>
+                      <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}>
+                        <a target="_blank">
+                          <Button
+                            color="minimal"
+                            size="sm"
+                            StartIcon={ExternalLinkIcon}
+                            className="w-full rounded-none">
+                            {t("preview")}
+                          </Button>
+                        </a>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        size="sm"
+                        className="w-full rounded-none text-left"
+                        data-testid={"event-type-duplicate-" + type.id}
+                        StartIcon={ClipboardCopyIcon}
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                          );
+                          showToast(t("link_copied"), "success");
+                        }}>
+                        {t("copy_link")}
+                      </Button>
+                    </DropdownMenuItem>
+                    {isNativeShare ? (
+                      <DropdownMenuItem>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          size="sm"
+                          className="w-full rounded-none"
+                          data-testid={"event-type-duplicate-" + type.id}
+                          StartIcon={UploadIcon}
+                          onClick={() => {
+                            navigator
+                              .share({
+                                title: t("share"),
+                                text: t("share_event"),
+                                url: `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`,
+                              })
+                              .then(() => showToast(t("link_shared"), "success"))
+                              .catch(() => showToast(t("failed"), "error"));
+                          }}>
+                          {t("share")}
+                        </Button>
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        size="sm"
+                        href={"/event-types/" + type.id}
+                        color="minimal"
+                        className="w-full rounded-none"
+                        StartIcon={PencilIcon}>
+                        {" "}
+                        {t("edit")}
+                      </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        size="sm"
+                        className="w-full rounded-none"
+                        data-testid={"event-type-duplicate-" + type.id}
+                        StartIcon={DuplicateIcon}
+                        onClick={() => openModal(group, type)}>
+                        {t("duplicate")}
+                      </Button>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            color="warn"
+                            size="sm"
+                            StartIcon={TrashIcon}
+                            className="w-full rounded-none">
+                            {t("delete")}
+                          </Button>
+                        </DialogTrigger>
+                        <ConfirmationDialogContent
+                          variety="danger"
+                          title={t("delete_event_type")}
+                          confirmBtnText={t("confirm_delete_event_type")}
+                          onConfirm={(e) => {
+                            e.preventDefault();
+                            deleteEventTypeHandler(type.id);
+                          }}>
+                          {t("delete_event_type_description")}
+                        </ConfirmationDialogContent>
+                      </Dialog>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </Dropdown>
               </div>
             </div>
           </li>
@@ -298,10 +434,6 @@ const EventTypeList = ({ readOnly, types, profile }: EventTypeListProps): JSX.El
   );
 };
 
-interface EventTypeListHeadingProps {
-  profile: EventTypeGroupProfile;
-  membershipCount: number;
-}
 const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
   <div className="mb-4 flex">
     <Link href="/settings/teams">
@@ -342,6 +474,18 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
   </div>
 );
 
+const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
+  const { t } = useLocale();
+
+  return (
+    <EmptyScreen
+      Icon={CalendarIcon}
+      headline={t("new_event_type_heading")}
+      description={t("new_event_type_description")}
+    />
+  );
+};
+
 const EventTypesPage = () => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.eventTypes"]);
@@ -356,8 +500,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={
-          query.data &&
-          query.data.eventTypeGroups.length !== 0 && (
+          query.data && (
             <CreateEventTypeButton
               canAddEvents={query.data.viewer.canAddEvents}
               options={query.data.profiles}
@@ -393,11 +536,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList
-                    types={group.eventTypes}
-                    profile={group.profile}
-                    readOnly={group.metadata.readOnly}
-                  />
+                  <EventTypeList types={group.eventTypes} group={group} readOnly={group.metadata.readOnly} />
                 </Fragment>
               ))}
 

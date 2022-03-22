@@ -72,7 +72,7 @@ model EventType {
   bookingLimit            Int?
   bookingLimitType        BookingLimitType?
   schedulingType          SchedulingType?
-  Schedule                Schedule[]
+  schedule                Schedule?
   price                   Int                    @default(0)
   currency                String                 @default("usd")
   slotInterval            Int?
@@ -138,7 +138,8 @@ model User {
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
-  availability        Availability[]
+  schedules           Schedule[]
+  defaultScheduleId   Int?
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean              @default(false)
   locale              String?
@@ -147,9 +148,9 @@ model User {
   twoFactorEnabled    Boolean              @default(false)
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
+  availability        Availability[]
   invitedTo           Int?
   plan                UserPlan             @default(TRIAL)
-  Schedule            Schedule[]
   webhooks            Webhook[]
   brandColor          String               @default("#292929")
   darkBrandColor      String               @default("#fafafa")
@@ -265,18 +266,18 @@ model Booking {
 }
 
 model Schedule {
-  id            Int        @id @default(autoincrement())
-  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int?
-  eventType     EventType? @relation(fields: [eventTypeId], references: [id])
-  eventTypeId   Int?
-  title         String?
-  freeBusyTimes Json?
+  id           Int            @id @default(autoincrement())
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  eventType    EventType?     @relation(fields: [eventTypeId], references: [id])
+  eventTypeId  Int?           @unique
+  name         String
+  timeZone     String?
+  availability Availability[]
 }
 
 model Availability {
   id          Int        @id @default(autoincrement())
-  label       String?
   user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -285,6 +286,8 @@ model Availability {
   startTime   DateTime   @db.Time
   endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
+  Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
+  scheduleId  Int?
 }
 
 model SelectedCalendar {
