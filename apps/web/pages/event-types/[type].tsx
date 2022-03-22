@@ -49,6 +49,7 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
+import Badge from "@components/ui/Badge";
 import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
 import { Scheduler } from "@components/ui/Scheduler";
@@ -366,6 +367,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     minimumBookingNotice: number;
     beforeBufferTime: number;
     afterBufferTime: number;
+    seatsPerTimeSlot: number;
+    seatsPerAttendee: number;
+    bookingLimit: number;
+    bookingLimitType: BookingLimitType;
     slotInterval: number | null;
     destinationCalendar: {
       integration: string;
@@ -690,6 +695,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       smartContractAddress,
                       beforeBufferTime,
                       afterBufferTime,
+                      seatsPerTimeSlot,
+                      seatsPerAttendee,
+                      bookingLimit,
+                      bookingLimitType,
                       ...input
                     } = values;
                     updateMutation.mutate({
@@ -701,6 +710,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
+                      seatsPerTimeSlot,
+                      seatsPerAttendee,
+                      bookingLimit,
+                      bookingLimitType,
                       metadata: smartContractAddress
                         ? {
                             smartContractAddress,
@@ -1333,6 +1346,127 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                         </div>
+
+                        <>
+                          <hr className="border-neutral-200" />
+                          <div className="block sm:flex">
+                            <div className="min-w-48 mb-4 sm:mb-0">
+                              <label
+                                htmlFor="seats"
+                                className="mt-2 flex text-sm font-medium text-neutral-700">
+                                Seats per time-slot
+                              </label>
+                            </div>
+                            <div className="flex-column flex w-full">
+                              <div className="w-64">
+                                <Controller
+                                  name="seatsPerTimeSlot"
+                                  control={formMethods.control}
+                                  render={() => {
+                                    const selectSeatsPerTimeSlotOptions = [
+                                      { value: 2, label: "2" },
+                                      { value: 3, label: "3" },
+                                      { value: 4, label: "4" },
+                                      { value: 5, label: "5" },
+                                      {
+                                        value: -1,
+                                        isDisabled: true,
+                                        label: (
+                                          <div className="flex flex-row justify-between">
+                                            <span>6 +</span>
+                                            <Badge variant="default">PRO</Badge>
+                                          </div>
+                                        ),
+                                      },
+                                    ];
+                                    return (
+                                      <Select
+                                        isSearchable={false}
+                                        classNamePrefix="react-select"
+                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        onChange={(val) => {
+                                          formMethods.setValue("seatsPerTimeSlot", val ? Number(val) : 0);
+                                        }}
+                                        defaultValue={2}
+                                        options={selectSeatsPerTimeSlotOptions}
+                                      />
+                                    );
+                                  }}
+                                />
+                              </div>
+                              {/* PRO OPTION */}
+                              {/* <input
+                                type="number"
+                                className="focus:border-primary-500 focus:ring-primary-500 block w-14 rounded-sm border-gray-300 pl-2 pr-2 sm:text-sm"
+                                placeholder="2 minimum"
+                                {...formMethods.register("seatsPerTimeSlot", { valueAsNumber: true })}
+                                defaultValue={2}
+                              /> */}
+                              <Controller
+                                name="seatsPerTimeSlot"
+                                control={formMethods.control}
+                                render={() => (
+                                  <CheckboxField
+                                    id="noSeats"
+                                    name="noSeats"
+                                    label={""}
+                                    description={"Don't offer any seats"}
+                                    defaultChecked={eventType.disableGuests}
+                                    onChange={(e) => {
+                                      formMethods.setValue("seatsPerTimeSlot", null);
+                                    }}
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+                          <div className="block sm:flex">
+                            <div className="min-w-48 mb-4 sm:mb-0">
+                              <label
+                                htmlFor="seats"
+                                className="mt-2 flex text-sm font-medium text-neutral-700">
+                                Max. Seats per attendee
+                              </label>
+                            </div>
+                            <div className="flex-column flex w-64">
+                              <Controller
+                                name="seatsPerAttendee"
+                                control={formMethods.control}
+                                render={() => {
+                                  const selectSeatsPerTimeSlotOptions = [
+                                    { value: 2, label: "2" },
+                                    { value: 3, label: "3" },
+                                    { value: 4, label: "4" },
+                                    { value: 5, label: "5" },
+                                    {
+                                      value: -1,
+                                      isDisabled: true,
+                                      label: (
+                                        <div className="flex flex-row justify-between">
+                                          <span>6 +</span>
+                                          <Badge variant="default">PRO</Badge>
+                                        </div>
+                                      ),
+                                    },
+                                  ];
+                                  return (
+                                    <Select
+                                      isSearchable={false}
+                                      classNamePrefix="react-select"
+                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                      onChange={(val) => {
+                                        formMethods.setValue("seatsPerTimeSlot", val ? Number(val) : 0);
+                                      }}
+                                      defaultValue={2}
+                                      options={selectSeatsPerTimeSlotOptions}
+                                    />
+                                  );
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <hr className="border-neutral-200" />
+                        </>
 
                         {hasPaymentIntegration && (
                           <>
