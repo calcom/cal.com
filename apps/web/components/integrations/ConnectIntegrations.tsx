@@ -12,6 +12,7 @@ type AddIntegrationModalType = (props: DialogProps) => JSX.Element;
 
 const DummyComponent = ({ children, ...props }: any) => <>{children}</>;
 
+/** @deprecated You should create an `InstallAppButton` component in `packages/app-store/[appname]/components` */
 export default function ConnectIntegration(props: {
   type: string;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
