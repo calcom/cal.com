@@ -1,34 +1,16 @@
 import { useState } from "react";
-import { useMutation } from "react-query";
 
-import { NEXT_PUBLIC_BASE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/Button";
+import { Button, ButtonBaseProps } from "@calcom/ui/Button";
 
-import type { IntegrationOAuthCallbackState } from "../../types";
+import useAddIntegrationMutation from "../../_utils/useAddIntegrationMutation";
 import AddIntegration from "./AddIntegration";
 
-function useAddIntegrationMutation() {
-  const mutation = useMutation(async () => {
-    const state: IntegrationOAuthCallbackState = {
-      returnTo: NEXT_PUBLIC_BASE_URL + "/apps/installed" + location.search,
-    };
-    const stateStr = encodeURIComponent(JSON.stringify(state));
-    const searchParams = `?state=${stateStr}`;
-    const res = await fetch(`/api/integrations/applecalendar/add` + searchParams);
-    if (!res.ok) {
-      throw new Error("Something went wrong");
-    }
-    const json = await res.json();
-    window.location.href = json.url;
-  });
-
-  return mutation;
-}
-
-export default function InstallAppButton() {
+export default function InstallAppButton(props: {
+  buttonProps?: ButtonBaseProps & { children?: React.ReactChildren };
+}) {
   const { t } = useLocale();
-  const mutation = useAddIntegrationMutation();
+  const mutation = useAddIntegrationMutation("applecalendar");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -38,8 +20,9 @@ export default function InstallAppButton() {
           setIsModalOpen(true);
         }}
         loading={mutation.isLoading}
-        disabled={isModalOpen}>
-        {t("install_app")}
+        disabled={isModalOpen}
+        {...props.buttonProps}>
+        {props.buttonProps?.children || t("install_app")}
       </Button>
       <AddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
