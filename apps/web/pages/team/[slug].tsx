@@ -74,7 +74,9 @@ function TeamPage({ team }: TeamPageProps) {
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
               className="mx-auto mb-4 h-20 w-20 rounded-full"
             />
-            <Text variant="largetitle">{teamName}</Text>
+            <Text variant="largetitle" className="text-gray-900 dark:text-white">
+              {teamName}
+            </Text>
             <Text variant="subtitle" className="mt-2">
               {team.bio}
             </Text>
