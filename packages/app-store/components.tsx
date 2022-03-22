@@ -4,7 +4,9 @@ import dynamic from "next/dynamic";
 import { NEXT_PUBLIC_BASE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
-import Button, { ButtonBaseProps, ButtonProps } from "@calcom/ui/Button";
+import Button from "@calcom/ui/Button";
+
+import { InstallAppButtonProps } from "./types";
 
 export const AddIntegration = {
   applecalendar: dynamic(() => import("./applecalendar/components/AddIntegration")),
@@ -13,12 +15,14 @@ export const AddIntegration = {
 
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
+  caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
 };
 
-export const InstallAppButton = (props: {
-  type: App["type"];
-  buttonProps?: ButtonBaseProps & { children?: React.ReactChildren };
-}) => {
+export const InstallAppButton = (
+  props: {
+    type: App["type"];
+  } & InstallAppButtonProps
+) => {
   const { status } = useSession();
   const { t } = useLocale();
   const appName = props.type.replace("_", "") as keyof typeof InstallAppButtonMap;
@@ -34,5 +38,5 @@ export const InstallAppButton = (props: {
         {t("install_app")}
       </Button>
     );
-  return <InstallAppButtonComponent buttonProps={props.buttonProps} />;
+  return <InstallAppButtonComponent buttonProps={props.buttonProps} onChanged={props.onChanged} />;
 };

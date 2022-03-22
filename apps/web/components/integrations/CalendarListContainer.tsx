@@ -185,6 +185,7 @@ function CalendarList(props: Props) {
                     color: "secondary",
                     children: t("connect"),
                   }}
+                  onChanged={() => props.onChanged()}
                 />
               }
             />
