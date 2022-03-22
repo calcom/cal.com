@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
-import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
@@ -253,31 +253,37 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
 
+  const fetchUsername = async (username: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/username`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: username.trim() }),
+      method: "POST",
+      mode: "cors",
+    });
+    const data = (await response.json()) as ResponseUsernameApi;
+    return { response, data };
+  };
+
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
     async function validateAndSave(username) {
-      const response = await fetch("/api/username", {
-        method: "POST",
-        body: JSON.stringify({
-          username: username.trim(),
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = (await response.json()) as ResponseUsernameApi;
-      const updateUsernameData = {
-        username,
-      };
+      const { data } = await fetchUsername(username);
+
       // Only persist username if its available and not premium
       // premium usernames are saved via stripe webhook
       if (data.available && !data.premium) {
-        mutation.mutate(updateUsernameData);
+        await updateUser({
+          username,
+        });
       }
       // Remove it from localStorage
       window.localStorage.removeItem("username");
       return;
     }
+
     // Looking for username on localStorage
     const username = window.localStorage.getItem("username");
     if (username) {
