@@ -88,7 +88,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
           handleSelected(value);
-          return ( //issue #2178
+          return (
             <Select
               className="w-30"
               options={options}
