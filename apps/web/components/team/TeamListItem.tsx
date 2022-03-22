@@ -6,6 +6,7 @@ import {
   DotsHorizontalIcon,
   PencilIcon,
 } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,7 +29,6 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import Avatar from "@components/ui/Avatar";
 
 import { TeamRole } from "./TeamPill";
-import { MembershipRole } from ".prisma/client";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.list">[number];
