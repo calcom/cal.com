@@ -30,13 +30,18 @@ export const InstallAppButton = (
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")
     return (
-      <Button
-        href={`${NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${
-          NEXT_PUBLIC_BASE_URL + location.pathname + location.search
-        }`}
-        {...props.buttonProps}>
-        {t("install_app")}
-      </Button>
+      <InstallAppButtonComponent
+        render={() => (
+          <Button
+            color="primary"
+            href={`${NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${
+              NEXT_PUBLIC_BASE_URL + location.pathname + location.search
+            }`}>
+            {t("install_app")}
+          </Button>
+        )}
+        onChanged={props.onChanged}
+      />
     );
-  return <InstallAppButtonComponent buttonProps={props.buttonProps} onChanged={props.onChanged} />;
+  return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 };

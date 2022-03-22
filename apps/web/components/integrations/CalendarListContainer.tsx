@@ -181,10 +181,11 @@ function CalendarList(props: Props) {
               actions={
                 <InstallAppButton
                   type={item.type}
-                  buttonProps={{
-                    color: "secondary",
-                    children: t("connect"),
-                  }}
+                  render={(buttonProps) => (
+                    <Button color="secondary" {...buttonProps}>
+                      {t("connect")}
+                    </Button>
+                  )}
                   onChanged={() => props.onChanged()}
                 />
               }

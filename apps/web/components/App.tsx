@@ -13,6 +13,7 @@ import React from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
+import { Button } from "@calcom/ui";
 
 //import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
@@ -95,7 +96,10 @@ export default function App({
               </div>
 
               <div className="text-right">
-                <InstallAppButton type={type} />
+                <InstallAppButton
+                  type={type}
+                  render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                />
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"

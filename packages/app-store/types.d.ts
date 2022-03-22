@@ -3,6 +3,6 @@ export type IntegrationOAuthCallbackState = {
 };
 
 export interface InstallAppButtonProps {
-  buttonProps?: ButtonBaseProps & { children?: React.ReactChildren };
+  render: (renderProps: ButtonBaseProps) => JSX.Element;
   onChanged?: () => unknown;
 }
