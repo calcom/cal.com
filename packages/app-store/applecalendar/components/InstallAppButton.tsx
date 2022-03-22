@@ -11,7 +11,7 @@ import AddIntegration from "./AddIntegration";
 function useAddIntegrationMutation() {
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
-      returnTo: NEXT_PUBLIC_BASE_URL + location.pathname + location.search,
+      returnTo: NEXT_PUBLIC_BASE_URL + "/apps/installed" + location.search,
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
