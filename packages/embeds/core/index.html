@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
+    <script>
+      if (!location.search.includes("nonResponsive")) {
+        document.write('<meta name="viewport" content="width=device-width"/>');
+      }
+    </script>
+    <script>
+      (function (c, a, l) {
+        let d = c.document;
+        c.Cal =
+          c.Cal ||
+          function () {
+            let C = c.Cal;
+            let ar = arguments;
+            if (!C.loaded) {
+              C.ns = {};
+              C.q = C.q || [];
+              d.getElementsByTagName("head")[0].appendChild(d.createElement("script")).src = a;
+              C.loaded = true;
+            }
+            if (ar[0] === l) {
+              const api = function () {
+                api.q.push(arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              namespace ? (C.ns[namespace] = api) : null;
+              return;
+            }
+            C.q.push(ar);
+          };
+      })(window, "http://localhost:3001/dist/embed.es.js", "init");
+    </script>
+    <script>
+      Cal("init");
+
+      // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+      Cal("init", "second");
+
+      // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
+      Cal("init", "third");
+    </script>
+    <style>
+      .debug {
+        border: 1px solid black;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
+    <div>
+      <button data-cal-link="free">Book with Free User</button>
+      <div>
+        <i
+          >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
+          as you are reading this text, it would open up super fast. Try switching to slow 3G or create a
+          custom Network configuration which is impossibly slow</i
+        >
+      </div>
+
+      <div class="debug">
+        <h2>Default Namespace(Cal)</h2>
+        <div id="booking-status-">
+          <i>You would see last Booking page action in my place</i>
+        </div>
+        <div id="cal-booking-place-" style="max-height: 30vh; overflow: scroll">
+          <div>
+            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
+            have to scroll to see the entire content
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug">
+      <h2>Namespace "second"(Cal.ns.second)</h2>
+      <div id="booking-status-second">
+        <i>You would see last Booking page action in my place</i>
+      </div>
+      <div id="cal-booking-place-second">
+        <div>If you render booking embed in me, I won't restrict you. The entire page is yours.</div>
+      </div>
+    </div>
+
+    <div class="debug">
+      <h2>Namespace "third"(Cal.ns.third)</h2>
+      <div id="booking-status-third">
+        <i>You would see last Booking page action in my place</i>
+      </div>
+      <div id="cal-booking-place-third" style="width: 30%">
+        <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+      </div>
+    </div>
+
+    <script>
+      Cal("inline", {
+        elementOrSelector: "#cal-booking-place-",
+        calendarLink: "pro?case=1",
+        config: {
+          name: "Hariom Balhara",
+          email: "hariombalhara@gmail.com",
+          notes: "Test Meeting",
+          guests: JSON.stringify(["hariom@gmail.com"]),
+          theme: "dark",
+        },
+      });
+
+      Cal.ns.second("inline", {
+        elementOrSelector: "#cal-booking-place-second",
+        calendarLink: "pro?case=2",
+      });
+
+      Cal.ns.third("inline", {
+        elementOrSelector: "#cal-booking-place-third",
+        calendarLink: "pro?case=3",
+      });
+
+      Cal("preload", {
+        fullCalendarLink: "http://localhost:3000/free",
+      });
+    </script>
+    <script>
+      const callback = function (e) {
+        document.getElementById(`booking-status-${e.detail.namespace}`).innerHTML = JSON.stringify(e.detail);
+      };
+      Cal("on", {
+        action: "*",
+        callback,
+      });
+      Cal.ns.second("on", {
+        action: "*",
+        callback,
+      });
+      Cal.ns.third("on", {
+        action: "*",
+        callback,
+      });
+    </script>
+  </body>
+</html>

@@ -2,8 +2,6 @@
   "name": "@calcom/cal-react",
   "version": "0.1.0",
   "description": "Embed Cal Booking anywhere",
-  "main": "index.js",
-  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
