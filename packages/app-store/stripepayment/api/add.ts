@@ -1,26 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { getSession } from "@lib/auth";
-import { BASE_URL } from "@lib/config/constants";
-import prisma from "@lib/prisma";
+import { BASE_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
 const client_id = process.env.STRIPE_CLIENT_ID;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Check that user is authenticated
-    const session = await getSession({ req: req });
-
-    if (!session) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
     // Get user
     const user = await prisma.user.findUnique({
       where: {
-        id: session.user?.id,
+        id: req.session?.user?.id,
       },
       select: {
         email: true,

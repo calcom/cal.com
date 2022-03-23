@@ -3,19 +3,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getStripeCustomerIdFromUserId } from "@calcom/stripe/customer";
 import stripe from "@calcom/stripe/server";
 
-import { getSession } from "@lib/auth";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    // Check that user is authenticated
-    const session = await getSession({ req });
-
-    if (!session) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
-    const customerId = await getStripeCustomerIdFromUserId(session.user.id);
+    const customerId = await getStripeCustomerIdFromUserId(req.session!.user.id);
 
     if (!customerId) {
       res.status(500).json({ message: "Missing customer id" });

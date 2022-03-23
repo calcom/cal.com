@@ -18,6 +18,7 @@ export const InstallAppButtonMap = {
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
+  stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
