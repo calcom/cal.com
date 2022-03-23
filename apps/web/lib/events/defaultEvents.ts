@@ -7,7 +7,7 @@ const min15Event = {
   length: 15,
   price: 0,
   currency: "usd",
-  schedulingType: "collective",
+  schedulingType: "COLLECTIVE",
   slug: "15min",
   title: "15min",
 };
@@ -20,7 +20,7 @@ const min30Event = {
   length: 30,
   price: 0,
   currency: "usd",
-  schedulingType: "collective",
+  schedulingType: "COLLECTIVE",
   slug: "30min",
   title: "30min",
 };
@@ -33,7 +33,7 @@ const min60Event = {
   length: 60,
   price: 0,
   currency: "usd",
-  schedulingType: "collective",
+  schedulingType: "COLLECTIVE",
   slug: "60min",
   title: "60min",
 };
