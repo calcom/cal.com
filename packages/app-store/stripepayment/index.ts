@@ -16,7 +16,7 @@ export const metadata = {
   rating: 4.6,
   trending: true,
   reviews: 69,
-  imageSrc: "apps/stripe.svg",
+  imageSrc: "/apps/stripe.svg",
   label: "Stripe",
   publisher: "Cal.com",
   title: "Stripe",

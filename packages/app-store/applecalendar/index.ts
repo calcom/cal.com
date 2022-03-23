@@ -9,7 +9,7 @@ export const metadata = {
   installed: true,
   type: "apple_calendar",
   title: "Apple Calendar",
-  imageSrc: "apps/apple-calendar.svg",
+  imageSrc: "/apps/apple-calendar.svg",
   variant: "calendar",
   category: "calendar",
   label: "Apple Calendar",

@@ -8,7 +8,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   type: "huddle01_video",
-  imageSrc: "apps/huddle.svg",
+  imageSrc: "/apps/huddle.svg",
   variant: "conferencing",
   logo: "/apps/huddle.svg",
   publisher: "Cal.com",
