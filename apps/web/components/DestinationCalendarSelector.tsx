@@ -34,13 +34,16 @@ const DestinationCalendarSelector = ({
         : query.data?.connectedCalendars[0]?.calendars?.[0];
 
       if (selected) {
+        const { integration = "", externalId, name = "" } = selected;
         setSelectedOption({
-          value: `${selected.integration}:${selected.externalId}`,
-          label: selected.name || "",
+          value: `${integration}:${externalId}`,
+          label: name,
         });
+        // Save default value to database
+        if (!value) onChange({ integration, externalId });
       }
     }
-  }, [query.data?.connectedCalendars, selectedOption, value]);
+  }, [query.data?.connectedCalendars, selectedOption, value, onChange]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
