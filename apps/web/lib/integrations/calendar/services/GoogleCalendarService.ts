@@ -12,6 +12,7 @@ import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Cale
 import CalendarService from "./BaseCalendarService";
 
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
+console.log(GOOGLE_API_CREDENTIALS);
 
 export default class GoogleCalendarService implements Calendar {
   private url = "";
@@ -238,8 +239,8 @@ export default class GoogleCalendarService implements Calendar {
 
         (selectedCalendarIds.length === 0
           ? calendar.calendarList
-              .list()
-              .then((cals) => cals.data.items?.map((cal) => cal.id).filter(Boolean) || [])
+            .list()
+            .then((cals) => cals.data.items?.map((cal) => cal.id).filter(Boolean) || [])
           : Promise.resolve(selectedCalendarIds)
         )
           .then((calsIds) => {

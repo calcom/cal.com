@@ -12,17 +12,17 @@ type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 export type Integration = {
   installed: boolean;
   type:
-    | "google_calendar"
-    | "office365_calendar"
-    | "zoom_video"
-    | "daily_video"
-    | "tandem_video"
-    | "caldav_calendar"
-    | "apple_calendar"
-    | "stripe_payment"
-    | "jitsi_video"
-    | "huddle01_video"
-    | "metamask_web3";
+  | "google_calendar"
+  | "office365_calendar"
+  | "zoom_video"
+  | "daily_video"
+  | "tandem_video"
+  | "caldav_calendar"
+  | "apple_calendar"
+  | "stripe_payment"
+  | "jitsi_video"
+  | "huddle01_video"
+  | "metamask_web3";
   title: string;
   imageSrc: string;
   description: string;

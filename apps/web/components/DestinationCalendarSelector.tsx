@@ -22,6 +22,9 @@ const DestinationCalendarSelector = ({
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  // console.log("DESTINATION CALENDAT");
+
+  // console.log(query);
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
@@ -30,12 +33,27 @@ const DestinationCalendarSelector = ({
         .map((connected) => connected.calendars ?? [])
         .flat()
         .find((cal) => cal.externalId === value);
+      let defaultValue = query.data?.connectedCalendars
+        .map((connected) => connected.calendars ?? []);
 
       if (selected) {
         setSelectedOption({
           value: `${selected.integration}:${selected.externalId}`,
           label: selected.name || "",
         });
+      }
+      else {
+        let defaultValue: Array = query.data?.connectedCalendars
+          .map((connected) => connected.calendars ?? []);
+        if (defaultValue?.length > 0) {
+          defaultValue = defaultValue[0];
+          console.log(defaultValue[0]);
+          setSelectedOption({
+            value: `${defaultValue[0].integration}:${defaultValue[0].externalId}`,
+            label: defaultValue[0].name || "",
+          });
+        }
+
       }
     }
   }, [query.data?.connectedCalendars, selectedOption, value]);
