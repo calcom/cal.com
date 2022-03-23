@@ -22,6 +22,7 @@ export const metadata = {
   title: "Stripe",
   type: "stripe_payment",
   url: "https://cal.com/",
+  docsUrl: "https://stripe.com/docs",
   variant: "payment",
   verified: true,
   email: "help@cal.com",

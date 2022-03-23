@@ -11,7 +11,7 @@ export interface App {
    * */
   installed: boolean;
   /** The app type */
-  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3`;
+  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3` | `${string}_other`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */
@@ -33,6 +33,8 @@ export interface App {
   publisher: string;
   /** App's website */
   url: string;
+  /** Optional documentation website URL */
+  docsUrl?: string;
   /** Wether if the app is verified by Cal.com or not */
   verified: boolean;
   /** Wether the app should appear in the trending section of the app store */
@@ -52,4 +54,12 @@ export interface App {
   locationType?: string;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
+  /** Needed API Keys (usually for global apps) */
+  key?: Prisma.JsonValue;
+  /** If not free, what kind of fees does the app have */
+  feeType?: "monthly" | "usage-based" | "one-time" | "free";
+  /** 0 = free. if type="usage-based" it's the price per booking */
+  price?: number;
+  /** only required for "usage-based" billing. % of commission for paid bookings */
+  commission?: number;
 }

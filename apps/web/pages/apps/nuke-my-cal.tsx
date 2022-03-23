@@ -5,11 +5,12 @@ import App from "@components/App";
 export default function NukeMyCal() {
   return (
     <App
-      name="Nuke my Cal"
+      name="Wipe my Cal"
+      type="wipemycal_other"
       logo="/apps/nuke-my-cal.svg"
       categories={["fun", "productivity"]}
       author="/peer"
-      type="free" // "usage-based", "monthly", "one-time" or "free"
+      feeType="free" // "usage-based", "monthly", "one-time" or "free"
       price={0} // 0 = free. if type="usage-based" it's the price per booking
       commission={0} // only required for "usage-based" billing. % of commission for paid bookings
       website="https://cal.com"

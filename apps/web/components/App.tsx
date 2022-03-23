@@ -46,7 +46,7 @@ export default function App({
   pro?: boolean;
   price?: number;
   commission?: number;
-  feeType?: "monthly" | "usage-based" | "one-time" | "free";
+  feeType?: AppType["feeType"];
   docs?: string;
   website?: string;
   email: string; // required
