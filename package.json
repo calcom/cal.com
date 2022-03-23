@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/app-store/*"
   ],
   "scripts": {
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",
