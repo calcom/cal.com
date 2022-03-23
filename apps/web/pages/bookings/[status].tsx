@@ -2,11 +2,11 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
-import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";

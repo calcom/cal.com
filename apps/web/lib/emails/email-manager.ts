@@ -14,6 +14,8 @@ import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-e
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
 import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 
+import OrganizerRequestRescheduledEmail from "./templates/organizer-request-reschedule-email";
+
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -204,6 +206,17 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
       resolve(teamInviteEmail.sendEmail());
     } catch (e) {
       reject(console.error("TeamInviteEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendRescheduleEmail = async (calEvent: CalendarEvent) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const rescheduleEmail = new OrganizerRequestRescheduledEmail(calEvent);
+      resolve(rescheduleEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("RescheduleEmail.sendEmail failed", e));
     }
   });
 };

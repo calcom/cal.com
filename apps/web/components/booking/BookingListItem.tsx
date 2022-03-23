@@ -4,18 +4,82 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
+import * as fetch from "@lib/core/http/fetch-wrapper";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+
+interface IRescheduleDialog {
+  isOpenDialog: boolean;
+  setIsOpenDialog: () => void;
+  bookingUId: string;
+}
+
+const RescheduleDialog = (props: IRescheduleDialog) => {
+  const { t } = useLocale();
+  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
+  const [rescheduleReason, setRescheduleReason] = useState("");
+
+  const rescheduleApi = async () => {
+    await fetch.post(`${process.env.BASE_URL}/api/reschedule`, { bookingId, rescheduleReason });
+  };
+
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogContent>
+        <DialogClose asChild>
+          <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
+            <XIcon className="w-4" />
+          </div>
+        </DialogClose>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
+            <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
+          </div>
+          <div className="px-4 pt-1">
+            <DialogHeader title={"Send reschedule request"} />
+
+            <p className="-mt-8 text-sm text-gray-500">
+              This will cancel the scheduled meeting, notify the scheduler and ask them to pick a new time.
+            </p>
+            <p className="mt-6 mb-2 text-sm font-bold text-black">
+              Reason for reschedule request
+              <span className="font-normal text-gray-500"> (Optional)</span>
+            </p>
+            <TextArea
+              name={t("rejection_reason")}
+              value={rescheduleReason}
+              onChange={(e) => setRescheduleReason(e.target.value)}
+              className="mb-5 sm:mb-6"
+            />
+
+            <DialogFooter>
+              <DialogClose>
+                <Button color="secondary">{t("cancel")}</Button>
+              </DialogClose>
+              <Button
+                // disabled={mutation.isLoading}
+                onClick={() => {
+                  // mutation.mutate(false);
+                }}>
+                Send reschedule request
+              </Button>
+            </DialogFooter>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 function BookingListItem(booking: BookingItem) {
   // Get user so we can determine 12/24 hour format preferences
@@ -80,15 +144,29 @@ function BookingListItem(booking: BookingItem) {
     {
       id: "reschedule",
       label: t("reschedule"),
-      href: `/reschedule/${booking.uid}`,
       icon: ClockIcon,
+      actions: [
+        {
+          id: "edit",
+          // @TODO: add translate
+          label: "Edit booking",
+          href: "",
+        },
+        {
+          id: "reschedule_request",
+          // @TODO: add translate
+          label: "Reschedule booking",
+          onClick: () => setIsOpenRescheduleDialog(true),
+        },
+      ],
     },
   ];
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
-
+  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   return (
     <>
+      <RescheduleDialog isOpenDialog={isOpenRescheduleDialog} setIsOpenDialog={setIsOpenRescheduleDialog} />
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
           <DialogHeader title={t("rejection_reason_title")} />
