@@ -104,7 +104,14 @@
     await window.promise;
     Cal("inline", {
       elementOrSelector: "#cal-booking-place-",
-      calendarLink: "pro?case=1"
+      calendarLink: "pro?case=1",
+      config: {
+        name: "Hariom Balhara",
+        email: "hariombalhara@gmail.com",
+        notes: "Test Meeting",
+        guests: JSON.stringify(["hariom@gmail.com"]),
+        theme: "dark",
+      }
     });
     
     Cal.ns.second("inline", {

@@ -49,6 +49,15 @@ function log(...args) {
 }
 
 class Cal {
+	static getQueryObject(config) {
+		config = config || {};
+		return {
+			...config,
+			// guests is better for API but Booking Page accepts guest. So do the mapping
+			// FIXME: Currently multiple guests are expected using guest=1&guest=b approach which is not possible with an object approach
+			guest: config.guests
+		}
+	}
 	processInstruction(instruction) {
 		const [method, argument] = instruction;
 		if (!this[method]) {
@@ -75,14 +84,18 @@ class Cal {
 		}
 	}
 
-	createIframe({ calendarLink }) {
+	createIframe({ calendarLink, queryObject }) {
 		const iframe = this.iframe = document.createElement('iframe');
 		// FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
 		iframe.scrolling = "no";
 		iframe.className = "cal-embed";
 		const config = this.getConfig();
+		const searchParams = new URLSearchParams(queryObject);
 		const urlInstance = new URL(`${config.origin}/${calendarLink}`)
 		urlInstance.searchParams.set("embed", this.namespace);
+		for (let [key, value] of searchParams) {
+			urlInstance.searchParams.set(key, value);
+		}
 		iframe.src = urlInstance.toString();
 		return iframe;
 	}
@@ -95,8 +108,8 @@ class Cal {
 		return this.__config;
 	}
 
-	inline({ calendarLink, elementOrSelector }) {
-		const iframe = this.createIframe({ calendarLink })
+	inline({ calendarLink, elementOrSelector, config }) {
+		const iframe = this.createIframe({ calendarLink, queryObject: Cal.getQueryObject(config) });
 		iframe.style.height = "100%";
 		iframe.style.width = "100%";
 		let element = elementOrSelector instanceof HTMLElement ? elementOrSelector : document.querySelector(elementOrSelector)
