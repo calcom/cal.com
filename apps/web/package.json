@@ -108,6 +108,7 @@
     "zod": "^3.8.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.17.8",
     "@calcom/config": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
