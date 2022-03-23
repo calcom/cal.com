@@ -11,7 +11,7 @@ import { JSONObject } from "superjson/dist/types";
 import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import defaultEvents, { getUsernameSlugLink } from "@lib/events/defaultEvents";
+import defaultEvents, { getUsernameSlugLink } from "@lib/events/DefaultEvents";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";

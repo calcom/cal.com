@@ -1,5 +1,3 @@
-import { User } from "@calcom/prisma/client";
-
 const min15Event = {
   id: 0,
   metadata: {},
