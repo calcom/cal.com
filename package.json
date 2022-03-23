@@ -22,16 +22,12 @@
     "@calcom/prisma": "*",
     "@calcom/tsconfig": "*",
     "babel-jest": "^27.5.1",
-    "install": "^0.13.0",
     "jest": "^27.5.1",
     "node-mocks-http": "^1.11.0",
-    "npm": "^8.5.5",
     "typescript": "^4.5.3",
     "zod": "^3.14.2"
   },
   "dependencies": {
-    "@next-auth/prisma-adapter": "^1.0.1",
-    "next": "^12.1.0",
-    "next-auth": "^4.3.1"
+    "next": "^12.1.0"
   }
 }
