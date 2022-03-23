@@ -33,7 +33,7 @@ const DropdownActions = ({ actions, actionTrigger }: { actions: ActionType[]; ac
           <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
             <Button
               type="button"
-              size="lg"
+              size="sm"
               color="minimal"
               className="w-full rounded-none font-normal"
               href={action.href}

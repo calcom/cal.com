@@ -17,7 +17,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       where: {
         uid: bookingId,
         NOT: {
-          // status: BookingStatus.CANCELLED,
+          status: BookingStatus.CANCELLED,
         },
       },
     });
@@ -27,10 +27,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           id: bookingToReschedule.id,
         },
         data: {
-          cancellationReason,
-          updatedAt: dayjs().toISOString(),
-          status: BookingStatus.CANCELLED,
           rescheduled: true,
+          cancellationReason,
+          status: BookingStatus.CANCELLED,
+          updatedAt: dayjs().toISOString(),
         },
       });
     }
@@ -41,9 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(error);
     // throw new Error(error?.message);
   }
-  // Change it to cancelled and update reschedule sent field
 
-  // Send email about rescheduling
   return res.status(204);
 };
 

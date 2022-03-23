@@ -1,16 +1,19 @@
 import { BanIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
+import { PaperAirplaneIcon } from "@heroicons/react/outline";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useMutation } from "react-query";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import * as fetch from "@lib/core/http/fetch-wrapper";
+import * as fetchWrapper from "@lib/core/http/fetch-wrapper";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
@@ -20,18 +23,41 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
-  setIsOpenDialog: () => void;
+  setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingUId: string;
 }
 
 const RescheduleDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const rescheduleApi = useMutation(
+    async () => {
+      setIsLoading(true);
+      try {
+        const result = await fetchWrapper.post<any, any>("/api/book/reschedule", {
+          bookingId,
+          rescheduleReason,
+        });
 
-  const rescheduleApi = async () => {
-    await fetch.post(`${process.env.BASE_URL}/api/reschedule`, { bookingId, rescheduleReason });
-  };
+        if (result) {
+          showToast("Reschedule request sent", "success");
+          setIsOpenDialog(false);
+        }
+      } catch (error) {
+        showToast("There was a problem", "error");
+        console.log(error);
+      }
+      setIsLoading(false);
+    },
+    {
+      async onSettled() {
+        await utils.invalidateQueries(["viewer.bookings"]);
+      },
+    }
+  );
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -67,9 +93,9 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
                 <Button color="secondary">{t("cancel")}</Button>
               </DialogClose>
               <Button
-                // disabled={mutation.isLoading}
+                disabled={isLoading}
                 onClick={() => {
-                  // mutation.mutate(false);
+                  rescheduleApi.mutate();
                 }}>
                 Send reschedule request
               </Button>
@@ -162,11 +188,24 @@ function BookingListItem(booking: BookingItem) {
     },
   ];
 
+  const RequestSentMessage = () => {
+    return (
+      <div className="ml-1 mr-8 flex flex text-gray-500">
+        <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
+        <p className="ml-2 ">Reschedule request sent</p>
+      </div>
+    );
+  };
+
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   return (
     <>
-      <RescheduleDialog isOpenDialog={isOpenRescheduleDialog} setIsOpenDialog={setIsOpenRescheduleDialog} />
+      <RescheduleDialog
+        isOpenDialog={isOpenRescheduleDialog}
+        setIsOpenDialog={setIsOpenRescheduleDialog}
+        bookingUId={booking.uid}
+      />
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
           <DialogHeader title={t("rejection_reason_title")} />
@@ -224,7 +263,10 @@ function BookingListItem(booking: BookingItem) {
           </div>
           <div
             title={booking.title}
-            className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
+            className={classNames(
+              "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
+              isCancelled ? "line-through" : ""
+            )}>
             {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
             {booking.title}
             {!!booking?.eventType?.price && !booking.paid && (
@@ -239,9 +281,15 @@ function BookingListItem(booking: BookingItem) {
               &quot;{booking.description}&quot;
             </div>
           )}
+
           {booking.attendees.length !== 0 && (
             <div className="text-sm text-gray-900 hover:text-blue-500">
               <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
+            </div>
+          )}
+          {isCancelled && booking.rescheduled && (
+            <div className="mt-2 inline-block text-left text-sm md:hidden">
+              <RequestSentMessage />
             </div>
           )}
         </td>
@@ -258,6 +306,11 @@ function BookingListItem(booking: BookingItem) {
               )}
             </>
           ) : null}
+          {isCancelled && booking.rescheduled && (
+            <div className="hidden h-full items-center md:flex">
+              <RequestSentMessage />
+            </div>
+          )}
         </td>
       </tr>
     </>

@@ -101,8 +101,8 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           className="mb-5 sm:mb-6"
                         />
                         <div className="space-x-2 text-center rtl:space-x-reverse">
-                          <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
-                            {t("reschedule_this")}
+                          <Button color="secondary" onClick={() => router.back()}>
+                            {t("back_to_bookings")}
                           </Button>
                           <Button
                             data-testid="cancel"
