@@ -8,7 +8,7 @@ export const metadata = {
   installed: true,
   type: "caldav_calendar",
   title: "CalDav Server",
-  imageSrc: "apps/caldav.svg",
+  imageSrc: "/apps/caldav.svg",
   variant: "calendar",
   category: "calendar",
   label: "CalDav Calendar",

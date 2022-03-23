@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   type: "jitsi_video",
-  imageSrc: "apps/jitsi.svg",
+  imageSrc: "/apps/jitsi.svg",
   variant: "conferencing",
   logo: "/apps/jitsi.svg",
   locationType: "integrations:jitsi",

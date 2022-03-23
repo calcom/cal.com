@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
   type: "zoom_video",
-  imageSrc: "apps/zoom.svg",
+  imageSrc: "/apps/zoom.svg",
   variant: "conferencing",
   logo: "/apps/zoom.svg",
   publisher: "Cal.com",

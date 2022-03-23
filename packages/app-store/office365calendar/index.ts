@@ -8,7 +8,7 @@ export const metadata = {
   installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
   type: "office365_calendar",
   title: "Office 365 / Outlook.com Calendar",
-  imageSrc: "apps/outlook.svg",
+  imageSrc: "/apps/outlook.svg",
   variant: "calendar",
   category: "calendar",
   label: "Example App",
