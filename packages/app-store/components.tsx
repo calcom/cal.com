@@ -8,11 +8,6 @@ import Button from "@calcom/ui/Button";
 
 import { InstallAppButtonProps } from "./types";
 
-export const AddIntegration = {
-  applecalendar: dynamic(() => import("./applecalendar/components/AddIntegration")),
-  caldavcalendar: dynamic(() => import("./caldavcalendar/components/AddIntegration")),
-};
-
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
