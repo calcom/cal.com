@@ -1,4 +1,4 @@
-import * as example from "./_example";
+// import * as example from "./_example";
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
@@ -13,7 +13,7 @@ import * as tandemvideo from "./tandemvideo";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
-  example,
+  //   example,
   applecalendar,
   caldavcalendar,
   dailyvideo,
