@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
     requestAnimationFrame(function informAboutScroll() {
       // Because of scroll="no", this much is hidden from the user.
       const hiddenHeight = document.documentElement.scrollHeight - window.innerHeight;
-      // TODO: Handle height as well.
+      // TODO: Handle width as well.
       if (knownHiddenHeight !== hiddenHeight) {
         knownHiddenHeight = hiddenHeight;
         numDimensionChanges++;
