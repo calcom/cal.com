@@ -96,3 +96,5 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
     </Dialog>
   );
 }
+
+export default AddExchangeIntegrationModal;
