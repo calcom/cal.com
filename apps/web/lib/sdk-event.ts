@@ -1,7 +1,6 @@
 /**
  * @file
  * This module is supposed to instantiate the SDK with appropriate namespace
- * This isn't required to be shared with any other package.
  */
 import { SdkEventManager } from "@calcom/embed-core/sdk-event-manager";
 

@@ -13,3 +13,15 @@ See [index.html](index.html) to understand how it can be used.
     - `email`
     - `notes`
     - `guests`
+
+
+## How to test
+
+Create embed.es.js in `dist`
+```bash
+yarn build
+```
+
+```bash
+npx http-server .
+```
