@@ -1,4 +1,10 @@
 dist
 node_modules/
 .env
+<<<<<<< HEAD
 .next
+=======
+.next/
+.turbo/
+.tsconfig.tsbuildinfo
+>>>>>>> 5a71055 (feat: Initial work on event-types, add jest for testing w node-http-mocks)
