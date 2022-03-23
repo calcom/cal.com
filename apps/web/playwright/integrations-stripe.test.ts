@@ -1,21 +1,26 @@
 import { expect, test } from "@playwright/test";
 
-import { hasIntegrationInstalled } from "../lib/integrations/getIntegrations";
 import * as teardown from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+
+const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
 
 test.describe.serial("Stripe integration", () => {
   test.afterAll(() => {
     teardown.deleteAllPaymentsByEmail("pro@example.com");
     teardown.deleteAllBookingsByEmail("pro@example.com");
   });
-  test.skip(!hasIntegrationInstalled("stripe_payment"), "It should only run if Stripe is installed");
+  test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
   test.describe.serial("Stripe integration dashboard", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
     test("Can add Stripe integration", async ({ page }) => {
-      await page.goto("/integrations");
+      await page.goto("/apps/installed");
       /** We should see the "Connect" button for Stripe */
       await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
@@ -28,7 +33,7 @@ test.describe.serial("Stripe integration", () => {
       ]);
 
       await Promise.all([
-        page.waitForNavigation({ url: "/integrations" }),
+        page.waitForNavigation({ url: "/apps/installed" }),
         /** We skip filling Stripe forms (testing mode only) */
         page.click('[id="skip-account-app"]'),
       ]);
