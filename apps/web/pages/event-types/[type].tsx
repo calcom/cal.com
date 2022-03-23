@@ -418,6 +418,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     length: number;
     description: string;
     disableGuests: boolean;
+    disableNotes: boolean;
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
@@ -1149,6 +1150,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
 
                         <Controller
+                          name="disableNotes"
+                          control={formMethods.control}
+                          defaultValue={eventType.disableNotes}
+                          render={() => (
+                            <CheckboxField
+                              id="disableNotes"
+                              name="disableNotes"
+                              label={t("disable_notes")}
+                              description={t("disable_notes_description")}
+                              defaultChecked={eventType.disableNotes}
+                              onChange={(e) => {
+                                formMethods.setValue("disableNotes", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
+
+                        <Controller
                           name="requiresConfirmation"
                           control={formMethods.control}
                           defaultValue={eventType.requiresConfirmation}
@@ -1794,6 +1813,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodCountCalendarDays: true,
       requiresConfirmation: true,
       disableGuests: true,
+      disableNotes: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,

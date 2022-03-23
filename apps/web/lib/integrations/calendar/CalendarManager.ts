@@ -127,6 +127,11 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
   const calendar = getCalendar(credential);
   let success = true;
 
+  // Check if the disabledNotes flag is set to true
+  if (calEvent.disableNotes) {
+    calEvent.description = "Notes have been hidden by the organiser"; // TODO: i18n this string?
+  }
+
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch((e) => {
         log.error("createEvent failed", e, calEvent);

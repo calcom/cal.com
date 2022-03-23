@@ -566,6 +566,8 @@
   "type": "Type",
   "edit": "Edit",
   "add_input": "Add an Input",
+  "disable_notes": "Hide notes in calendar",
+  "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
   "opt_in_booking": "Opt-in Booking",
   "opt_in_booking_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
   "disable_guests": "Disable Guests",
