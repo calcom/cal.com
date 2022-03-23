@@ -1,3 +1,6 @@
+/**
+ * @deprecated create new a new set of components, waiting for designs
+ */
 import React from "react";
 
 import Body from "./Body";
