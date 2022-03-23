@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import test from "./lib/fixtures";
 
 test.describe("Login tests", () => {
   // Using logged in state from globalSteup

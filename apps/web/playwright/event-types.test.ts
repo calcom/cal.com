@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { randomString } from "../lib/random";
+import test from "./lib/fixtures";
 import { deleteEventTypeByTitle } from "./lib/teardown";
 
 test.describe("Event Types tests", () => {

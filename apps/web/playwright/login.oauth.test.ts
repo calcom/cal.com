@@ -1,6 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { IS_GOOGLE_LOGIN_ENABLED, IS_SAML_LOGIN_ENABLED } from "../server/lib/constants";
+import test from "./lib/fixtures";
 
 test("Should display Google Login button", async ({ page }) => {
   test.skip(!IS_GOOGLE_LOGIN_ENABLED, "It should only run if Google Login is installed");

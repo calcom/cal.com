@@ -18,6 +18,19 @@ import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
+export const requestInterceptor =
+  process.env.NEXT_PUBLIC_IS_E2E === "1" && typeof window === "undefined"
+    ? (() => {
+        const { setupServer } = require("msw/node");
+        const requestInterceptor = setupServer();
+        requestInterceptor.listen({
+          // silence warnings when actual requests are made
+          // https://github.com/mswjs/msw/issues/191#issuecomment-652292341
+          onUnhandledRequest: "bypass",
+        });
+        return requestInterceptor;
+      })()
+    : undefined;
 function MyApp(props: AppProps) {
   const { Component, pageProps, err } = props;
   return (

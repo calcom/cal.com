@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+
+import test from "./lib/fixtures";
 
 test.describe("Change Passsword Test", () => {
   // Using logged in state from globalSteup
