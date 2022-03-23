@@ -19,7 +19,7 @@ const CreateEventModal = (
     .blocks(
       Blocks.Section({ text: `Hey there, *${data?.user?.username}!*` }),
       Blocks.Divider(),
-      Blocks.Input({ label: "Event Name", blockId: "eventName" }).element(
+      Blocks.Input({ label: "Your Name", blockId: "eventName" }).element(
         Elements.TextInput({ placeholder: "Event Name" }).actionId("event_name")
       ),
       Blocks.Input({ label: "Which event would you like to create?", blockId: "eventType" }).element(
@@ -51,7 +51,3 @@ const CreateEventModal = (
 };
 
 export default CreateEventModal;
-
-// Elements.StaticSelect({ placeholder: "Which event would you like to create?" })
-//   .actionId("events_types")
-//   .options(data.events.map((item) => Bits.Option({ text: item.name, value: item.id })))

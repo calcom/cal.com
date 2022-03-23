@@ -7,6 +7,7 @@ import db from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
 import { getUserEmail } from "../utils";
+import BookingSuccess from "../views/BookingSuccess";
 
 // TODO: Move this type to a shared location - being used in more than one package.
 export type BookingCreateBody = {
@@ -80,6 +81,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
           select: {
             id: true,
             length: true,
+            locations: true,
           },
         },
         credentials: {
@@ -114,7 +116,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     email: foundUser?.email ?? "",
     name: selected_name,
     guests: await Promise.all(invitedGuestsEmails),
-    location: "inPerson",
+    location: "inPerson", // TODO: Make this pickable in the future - defaulting to in person as any video provider that does not exist within the monorepo will crash the app.
     timeZone: foundUser?.timeZone ?? "",
     language: foundUser?.locale ?? "en",
     customInputs: [{ label: "", value: "" }],
@@ -134,7 +136,8 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   })
     .then((res) => res.json())
     .catch((error) =>
-      res.status(200).json({ text: "Event creation failed. Please try again", response_action: "clear" })
+      res.status(200).json({ text: "Event creation failed. Please try again", response_action: "update" })
     );
-  res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
+  res.status(200).json({ response_action: "update", view: BookingSuccess() }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
+  // res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
 }

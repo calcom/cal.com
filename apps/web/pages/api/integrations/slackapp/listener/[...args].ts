@@ -46,7 +46,7 @@ function verifyHash(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // TODO: verifyHash(req, res); // Verify that this request is coming from slack
+  verifyHash(req, res); // Verify that this request is coming from slack
 
   const { args } = req.query;
   if (!Array.isArray(args)) {
