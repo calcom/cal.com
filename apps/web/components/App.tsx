@@ -28,6 +28,7 @@ export default function App({
   author,
   price = 0,
   commission,
+  isGlobal = false,
   feeType,
   docs,
   website,
@@ -37,6 +38,7 @@ export default function App({
 }: {
   name: string;
   type: AppType["type"];
+  isGlobal?: AppType["isGlobal"];
   logo: string;
   body: React.ReactNode;
   categories: string[];
@@ -96,10 +98,16 @@ export default function App({
               </div>
 
               <div className="text-right">
-                <InstallAppButton
-                  type={type}
-                  render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
-                />
+                {isGlobal ? (
+                  <Button color="secondary" disabled title="This app is globally installed">
+                    {t("installed")}
+                  </Button>
+                ) : (
+                  <InstallAppButton
+                    type={type}
+                    render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                  />
+                )}
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"

@@ -10,6 +10,7 @@ function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
       name={data.name}
+      isGlobal={data.isGlobal}
       type={data.type}
       logo={data.logo}
       categories={[data.category]}
