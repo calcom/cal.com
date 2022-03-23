@@ -16,7 +16,7 @@ export default function AppStoreCategories(props: any) {
                 <CreditCardIcon className="mx-auto h-6 w-6 self-center" />
               </div>
               <div>
-                <h3 className="font-medium">{category.name}</h3>
+                <h3 className="font-medium capitalize">{category.name}</h3>
                 <p className="text-sm text-gray-500">{category.count} apps</p>
               </div>
             </a>
