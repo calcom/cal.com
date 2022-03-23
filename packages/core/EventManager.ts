@@ -106,7 +106,7 @@ export default class EventManager {
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
-   * @param credentials
+   * @param user
    */
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
