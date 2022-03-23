@@ -31,6 +31,13 @@ const bookTimeSlot = async (page: Page) => {
   await page.press('[name="email"]', "Enter");
 };
 
+const bookTimeSlot = async (page: Page) => {
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+};
+
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/free");

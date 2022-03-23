@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+<<<<<<< HEAD:packages/app-store/exchangecalendar/api/add.ts
 import { getSession } from "@calcom/lib/auth";
+=======
+>>>>>>> f536d104 (App Store (#1869)):packages/app-store/caldavcalendar/api/add.ts
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -9,20 +12,12 @@ import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    // Check that user is authenticated
-    const session = await getSession({ req });
-
-    if (!session?.user?.id) {
-      res.status(401).json({ message: "You must be logged in to do this" });
-      return;
-    }
-
     const { username, password, url } = req.body;
     // Get user
     const user = await prisma.user.findFirst({
       rejectOnNotFound: true,
       where: {
-        id: session?.user?.id,
+        id: req.session?.user?.id,
       },
       select: {
         id: true,

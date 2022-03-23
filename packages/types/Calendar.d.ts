@@ -111,6 +111,23 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+export interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+export interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
+}
+
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
