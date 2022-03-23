@@ -1,6 +1,8 @@
+import type { CalWindow } from "@calcom/embed-snippet";
+
 import { SdkEventManager } from "./sdk-event-manager";
 
-const globalCal = window.Cal;
+const globalCal = (window as CalWindow).Cal;
 
 //TODO: Move it to a CSS file and import
 const css = `

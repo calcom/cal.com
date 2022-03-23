@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import useEmbed from "./useEmbed";
 
-export default function Cal() {
+export default function Cal({ calendarLink, config }: { calendarLink: string; config?: any }) {
   const Cal = useEmbed();
   const ref = useRef();
   useEffect(() => {
@@ -12,18 +12,14 @@ export default function Cal() {
     Cal("init");
     Cal("inline", {
       elementOrSelector: ref.current,
-      calendarLink: "pro?case=1",
-      config: {
-        name: "Hariom Balhara",
-        email: "hariombalhara@gmail.com",
-        notes: "Test Meeting",
-        guests: JSON.stringify(["hariom@gmail.com"]),
-        theme: "dark",
-      },
+      calendarLink,
+      config,
     });
-  }, [Cal]);
+  }, [Cal, calendarLink, config]);
+
   if (!Cal) {
-    return null;
+    return <div>Loading {calendarLink}</div>;
   }
+
   return <div ref={ref}></div>;
 }

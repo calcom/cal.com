@@ -2,8 +2,8 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-interface Cal {
-  (): void;
+export interface Cal {
+  (method, arg): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
@@ -12,7 +12,7 @@ interface Cal {
   ns?: Record<string, Cal>;
 }
 
-interface CalWindow extends Window {
+export interface CalWindow extends Window {
   Cal?: Cal;
 }
 
