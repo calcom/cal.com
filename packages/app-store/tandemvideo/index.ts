@@ -25,4 +25,5 @@ export const metadata = {
   locationType: "integrations:tandem",
 } as App;
 
+export * as api from "./api";
 export * as lib from "./lib";
