@@ -16,6 +16,7 @@ import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -31,6 +32,37 @@ interface EvtsToVerify {
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   // console.log("=>", props);
   const eventTypes = props.users.length > 1 ? defaultEvents : props.eventTypes;
+  const groupEventTypes = (
+    <ul className="space-y-3">
+      {eventTypes.map((type) => (
+        <li
+          key={type.id}
+          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+          <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
+            <a className="flex justify-between px-6 py-4">
+              <div className="flex-shrink">
+                <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
+                <EventTypeDescription className="text-sm" eventType={type} />
+              </div>
+              <div className="mt-1">
+                <AvatarGroup
+                  border="border-2 border-white"
+                  truncateAfter={4}
+                  className="flex-shrink-0"
+                  size={10}
+                  items={props.users.map((user) => ({
+                    alt: user.name || "",
+                    image: user.avatar || "",
+                  }))}
+                />
+              </div>
+            </a>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
   console.log("et;=>", getUsernameSlugLink({ users: props.users, slug: "30min" }));
   const { Theme } = useTheme(props.users[0].theme);
   const { users } = props;
@@ -54,16 +86,18 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       />
       <div className="h-screen dark:bg-neutral-900">
         <main className="mx-auto max-w-3xl px-4 py-24">
-          <div className="mb-8 text-center">
-            <AvatarSSR user={users[0]} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
-            <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
-              {nameOrUsername}
-              {users[0].verified && (
-                <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
-              )}
-            </h1>
-            <p className="text-neutral-500 dark:text-white">{users[0].bio}</p>
-          </div>
+          {props.users.length < 2 && (
+            <div className="mb-8 text-center">
+              <AvatarSSR user={users[0]} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+              <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
+                {nameOrUsername}
+                {users[0].verified && (
+                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                )}
+              </h1>
+              <p className="text-neutral-500 dark:text-white">{users[0].bio}</p>
+            </div>
+          )}
           <div className="space-y-6" data-testid="event-types">
             {users[0].away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -74,6 +108,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <p className="mx-auto max-w-md">{t("user_away_description")}</p>
                 </div>
               </div>
+            ) : props.users.length > 1 ? (
+              groupEventTypes
             ) : (
               eventTypes.map((type) => (
                 <div
@@ -85,7 +121,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <Link
                     prefetch={false}
                     href={{
-                      pathname: getUsernameSlugLink({ users: props.users, slug: type.slug }),
+                      pathname: `/${users[0].username}/${type.slug}`,
                       query,
                     }}>
                     <a

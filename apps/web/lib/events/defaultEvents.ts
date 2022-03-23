@@ -39,9 +39,8 @@ const min60Event = {
 };
 
 const defaultEvents = [min15Event, min30Event, min60Event];
-// const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 export const getUsernameSlugLink = ({ users, slug }): string => {
-  let slugLink = ``; //`/${users[0].username}/${type.slug}`
+  let slugLink = ``;
   if (users.length > 1) {
     let combinedUsername = ``;
     for (let i = 0; i < users.length - 1; i++) {
