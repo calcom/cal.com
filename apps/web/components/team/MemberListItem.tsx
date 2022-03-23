@@ -1,5 +1,6 @@
 import { UserRemoveIcon, PencilIcon } from "@heroicons/react/outline";
 import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -25,7 +26,6 @@ import ModalContainer from "@components/ui/ModalContainer";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
-import { MembershipRole } from ".prisma/client";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.get">;

@@ -4,19 +4,11 @@ import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import appStore from ".";
-import { APPS as PaymentApps } from "../../apps/web/lib/apps/payment/config";
 
-const APPSTORE_APPS = Object.keys(appStore).reduce((store, key) => {
+const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;
   return store;
 }, {} as Record<string, App>);
-
-const ALL_APPS_MAP = {
-  ...APPSTORE_APPS,
-  /* To be deprecated start */
-  ...PaymentApps,
-  /* To be deprecated end */
-} as Record<string, App>;
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true, key: true, userId: true },

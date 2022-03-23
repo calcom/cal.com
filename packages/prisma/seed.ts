@@ -23,25 +23,27 @@ async function createUserAndEventType(opts: {
     }
   >;
 }) {
-  const userData: Prisma.UserCreateArgs["data"] = {
+  const userData = {
     ...opts.user,
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
     locale: "en",
-    schedules: opts.user.completedOnboarding
-      ? {
-          create: {
-            name: "Working Hours",
-            availability: {
-              createMany: {
-                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+    schedules:
+      opts.user.completedOnboarding ?? true
+        ? {
+            create: {
+              name: "Working Hours",
+              availability: {
+                createMany: {
+                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                },
               },
             },
-          },
-        }
-      : undefined,
+          }
+        : undefined,
   };
+
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },
     update: userData,

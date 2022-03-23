@@ -3,7 +3,9 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
+import { InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
+import { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
@@ -108,7 +110,7 @@ function IframeEmbedContainer() {
 function ConnectOrDisconnectIntegrationButton(props: {
   //
   credentialIds: number[];
-  type: string;
+  type: App["type"];
   isGlobal?: boolean;
   installed: boolean;
 }) {
@@ -148,14 +150,14 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   return (
-    <ConnectIntegration
+    <InstallAppButton
       type={props.type}
-      render={(btnProps) => (
-        <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
+      render={(buttonProps) => (
+        <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
           {t("connect")}
         </Button>
       )}
-      onOpenChange={handleOpenChange}
+      onChanged={handleOpenChange}
     />
   );
 }

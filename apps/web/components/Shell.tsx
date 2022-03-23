@@ -309,7 +309,8 @@ export default function Shell(props: {
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <main
             className={classNames(
-              "relative z-0 max-w-[1700px] flex-1 overflow-y-auto focus:outline-none",
+              "relative z-0 flex-1 overflow-y-auto focus:outline-none",
+              status === "authenticated" && "max-w-[1700px]",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}

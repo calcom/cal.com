@@ -668,7 +668,7 @@
   "features": "Features",
   "permissions": "Permissions",
   "terms_and_privacy": "Terms and Privacy",
-  "build_by": "Build by {{author}}",
+  "published_by": "Published by {{author}}",
   "subscribe": "Subscribe",
   "buy": "Buy",
   "install_app": "Install App",

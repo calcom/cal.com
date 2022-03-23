@@ -10,9 +10,10 @@ import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React from "react";
 
-import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { InstallAppButton } from "@calcom/app-store/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { App as AppType } from "@calcom/types/App";
+import { Button } from "@calcom/ui";
 
 //import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
@@ -20,13 +21,14 @@ import Badge from "@components/ui/Badge";
 
 export default function App({
   name,
+  type,
   logo,
   body,
   categories,
   author,
   price = 0,
   commission,
-  type,
+  feeType,
   docs,
   website,
   email,
@@ -34,6 +36,7 @@ export default function App({
   privacy,
 }: {
   name: string;
+  type: AppType["type"];
   logo: string;
   body: React.ReactNode;
   categories: string[];
@@ -41,7 +44,7 @@ export default function App({
   pro?: boolean;
   price?: number;
   commission?: number;
-  type?: "monthly" | "usage-based" | "one-time" | "free";
+  feeType?: "monthly" | "usage-based" | "one-time" | "free";
   docs?: string;
   website?: string;
   email: string; // required
@@ -87,32 +90,22 @@ export default function App({
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
-                    <span className="capitalize">{categories[0]}</span> • {t("build_by", { author })}
+                    <span className="capitalize">{categories[0]}</span> • {t("published_by", { author })}
                   </h2>
                 </header>
               </div>
 
               <div className="text-right">
-                {type === "free" && (
-                  <Button onClick={() => alert("TODO: installed free app")}>{t("install_app")}</Button>
-                )}
-
-                {type === "usage-based" && (
-                  <Button onClick={() => alert("TODO: installed usage based app")}>{t("install_app")}</Button>
-                )}
-
-                {type === "monthly" && (
-                  <Button onClick={() => alert("TODO: installed monthly billed app")}>
-                    {t("subscribe")}
-                  </Button>
-                )}
-
+                <InstallAppButton
+                  type={type}
+                  render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                />
                 {price !== 0 && (
                   <small className="block text-right">
-                    {type === "usage-based"
+                    {feeType === "usage-based"
                       ? commission + "% + " + priceInDollar + "/booking"
                       : priceInDollar}
-                    {type === "monthly" && "/" + t("month")}
+                    {feeType === "monthly" && "/" + t("month")}
                   </small>
                 )}
               </div>
@@ -121,9 +114,9 @@ export default function App({
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
-          <div className="flex justify-between px-10 py-10">
+          <div className="justify-between px-10 py-10 md:flex">
             <div className="prose-sm prose">{body}</div>
-            <div className="max-w-80 flex-1">
+            <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
                 {categories.map((category) => (
@@ -145,7 +138,7 @@ export default function App({
                       currency: "USD",
                       useGrouping: false,
                     }).format(price)}
-                    {type === "monthly" && "/" + t("month")}
+                    {feeType === "monthly" && "/" + t("month")}
                   </>
                 )}
               </small>

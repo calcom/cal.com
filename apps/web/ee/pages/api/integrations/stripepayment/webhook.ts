@@ -138,6 +138,11 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
 };
 
+/**
+ * @deprecated
+ * We need to create a PaymentManager in `@calcom/core`
+ * to prevent circular dependencies on App Store migration
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {

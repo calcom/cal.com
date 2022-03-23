@@ -1,6 +1,7 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import { InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -14,7 +15,6 @@ import DestinationCalendarSelector from "@components/DestinationCalendarSelector
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 
-import ConnectIntegration from "./ConnectIntegrations";
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";
 import SubHeadingTitleWithConnections from "./SubHeadingTitleWithConnections";
@@ -179,14 +179,14 @@ function CalendarList(props: Props) {
               imageSrc={item.imageSrc}
               description={item.description}
               actions={
-                <ConnectIntegration
+                <InstallAppButton
                   type={item.type}
-                  render={(btnProps) => (
-                    <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
+                  render={(buttonProps) => (
+                    <Button color="secondary" {...buttonProps}>
                       {t("connect")}
                     </Button>
                   )}
-                  onOpenChange={() => props.onChanged()}
+                  onChanged={() => props.onChanged()}
                 />
               }
             />

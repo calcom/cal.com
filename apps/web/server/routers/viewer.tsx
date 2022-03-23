@@ -519,12 +519,12 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const apps = getApps(credentials).map((app) => ({
-        ...app,
-        credentialIds: credentials
-          .filter((credential) => credential.type === app.type)
-          .map((credential) => credential.id),
-      }));
+      const apps = getApps(credentials).map(
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
+          ...app,
+          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
+        })
+      );
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));

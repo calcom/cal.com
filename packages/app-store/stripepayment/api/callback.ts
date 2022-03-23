@@ -2,20 +2,11 @@ import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
+import prisma from "@calcom/prisma";
 import stripe, { StripeData } from "@calcom/stripe/server";
-
-import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;
-  // Check that user is authenticated
-  const session = await getSession({ req: req });
-
-  if (!session?.user) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
 
   if (error) {
     const query = stringify({ error, error_description });
@@ -38,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       type: "stripe_payment",
       key: data as unknown as Prisma.InputJsonObject,
-      userId: session.user.id,
+      userId: req.session?.user.id,
     },
   });
 
