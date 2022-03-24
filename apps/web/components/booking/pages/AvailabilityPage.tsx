@@ -126,12 +126,12 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
             (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-900 sm:dark:border-gray-600 md:border">
+            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
-                    border="border-2 dark:border-gray-900 border-white"
+                    border="border-2 dark:border-gray-800 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
@@ -176,11 +176,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
                 <div
                   className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:flex md:flex-col " +
+                    "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
-                    border="border-2 dark:border-gray-900 border-white"
+                    border="border-2 dark:border-gray-800 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
