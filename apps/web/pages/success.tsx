@@ -11,6 +11,8 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
 import { EventType, Team, User } from "@calcom/prisma/client";
+import Button from "@calcom/ui/Button";
+import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
@@ -23,9 +25,7 @@ import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
-import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
-import Button from "@components/ui/Button";
 
 import { ssrInit } from "@server/lib/ssr";
 

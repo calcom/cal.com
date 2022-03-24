@@ -3,6 +3,10 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import stripe from "@calcom/stripe/server";
+import { getPremiumPlanPrice } from "@calcom/stripe/utils";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -44,7 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const providerParam = asStringOrNull(context.query.provider);
   const emailParam = asStringOrNull(context.query.email);
   const usernameParam = asStringOrNull(context.query.username);
-
+  const successDestination = "/getting-started" + (usernameParam ? `?username=${usernameParam}` : "");
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
   }
@@ -55,9 +59,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
 
   if (session) {
+    // Validating if username is Premium, while this is true an email its required for stripe user confirmation
+    if (usernameParam && session.user.email) {
+      const availability = await checkPremiumUsername(usernameParam);
+      if (availability.available && availability.premium) {
+        const stripePremiumUrl = await getStripePremiumUsernameUrl({
+          userEmail: session.user.email,
+          username: usernameParam,
+          successDestination,
+        });
+        if (stripePremiumUrl) {
+          return {
+            redirect: {
+              destination: stripePremiumUrl,
+              permanent: false,
+            },
+          };
+        }
+      }
+    }
+
     return {
       redirect: {
-        destination: "/getting-started" + (usernameParam ? `?username=${usernameParam}` : ""),
+        destination: successDestination,
         permanent: false,
       },
     };
@@ -102,4 +126,42 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       error,
     },
   };
+};
+
+type GetStripePremiumUsernameUrl = {
+  userEmail: string;
+  username: string;
+  successDestination: string;
+};
+
+const getStripePremiumUsernameUrl = async ({
+  userEmail,
+  username,
+  successDestination,
+}: GetStripePremiumUsernameUrl): Promise<string | null> => {
+  // @TODO: probably want to check if stripe user email already exists? or not
+  const customer = await stripe.customers.create({
+    email: userEmail,
+    metadata: {
+      email: userEmail,
+      username,
+    },
+  });
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    payment_method_types: ["card"],
+    customer: customer.id,
+    line_items: [
+      {
+        price: getPremiumPlanPrice(),
+        quantity: 1,
+      },
+    ],
+    success_url: `${process.env.NEXT_PUBLIC_APP_BASE_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.cal.com",
+    allow_promotion_codes: true,
+  });
+
+  return checkoutSession.url;
 };
