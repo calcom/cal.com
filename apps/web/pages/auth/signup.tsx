@@ -3,6 +3,10 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -10,10 +14,7 @@ import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { EmailField, PasswordField, TextField } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";

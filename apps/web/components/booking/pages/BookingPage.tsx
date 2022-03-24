@@ -6,14 +6,16 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
+import { Button } from "@calcom/ui/Button";
+import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -28,9 +30,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
-import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import { Button } from "@components/ui/Button";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
@@ -132,6 +132,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
   // TODO: Move to translations
+  // Also TODO: Get these dynamically from App Store
   const locationLabels = {
     [LocationType.InPerson]: t("in_person_meeting"),
     [LocationType.Phone]: t("phone_call"),
@@ -141,8 +142,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
+    [LocationType.Teams]: "MS Teams",
   };
-  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
+  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
@@ -287,7 +289,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
                 <AvatarGroup
-                  border="border-2 border-white dark:border-gray-900"
+                  border="border-2 border-white dark:border-gray-800"
                   size={14}
                   items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
                     eventType.users
@@ -359,6 +361,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         required
                         className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
+                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       />
                     </div>
                   </div>
@@ -529,7 +532,10 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
-                    <Button type="submit" loading={mutation.isLoading}>
+                    <Button
+                      type="submit"
+                      data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
+                      loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
@@ -547,7 +553,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       </div>
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+                          {(mutation.error as HttpError)?.message}
                         </p>
                       </div>
                     </div>

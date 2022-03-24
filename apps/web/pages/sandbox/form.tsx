@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Label, Input, TextField } from "@components/form/fields";
+import { Label, Input, TextField } from "@calcom/ui/form/fields";
 
 import { sandboxPage } from ".";
 

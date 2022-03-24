@@ -1,9 +1,8 @@
 import { useState } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc } from "@lib/trpc";
-
+import showToast from "@calcom/lib/notification";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import {
   Dialog,
   DialogTrigger,
@@ -11,9 +10,10 @@ import {
   DialogClose,
   DialogFooter,
   DialogHeader,
-} from "@components/Dialog";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
+} from "@calcom/ui/Dialog";
+
+import { useLocale } from "@lib/hooks/useLocale";
+import { trpc } from "@lib/trpc";
 
 interface Props {
   teamId: number;

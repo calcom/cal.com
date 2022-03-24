@@ -2,10 +2,10 @@ import { ChatAltIcon } from "@heroicons/react/solid";
 import Script from "next/script";
 import { useState } from "react";
 
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { DropdownMenuItem } from "@calcom/ui/Dropdown";
 
-import { DropdownMenuItem } from "@components/ui/Dropdown";
+import classNames from "@lib/classNames";
 
 const ZENDESK_KEY = process.env.NEXT_PUBLIC_ZENDESK_KEY;
 
@@ -24,7 +24,7 @@ export default function ZendeskMenuItem() {
             <ChatAltIcon
               className={classNames(
                 "text-neutral-400 group-hover:text-neutral-500",
-                "h-5 w-5 flex-shrink-0 ltr:mr-2"
+                "h-5 w-5 flex-shrink-0 ltr:mr-3"
               )}
               aria-hidden="true"
             />
