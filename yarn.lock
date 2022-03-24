@@ -1879,6 +1879,15 @@
     graceful-fs "^4.2.9"
     source-map "^0.6.0"
 
+"@jest/source-map@^27.5.1":
+  version "27.5.1"
+  resolved "https://registry.yarnpkg.com/@jest/source-map/-/source-map-27.5.1.tgz#6608391e465add4205eae073b55e7f279e04e8cf"
+  integrity sha512-y9NIHUYF3PJRlHk98NdC/N1gl88BL08aQQgu4k4ZopQkCw9t9cV8mtl3TV8b/YCB8XaVTFrmUTAJvjsntDireg==
+  dependencies:
+    callsites "^3.0.0"
+    graceful-fs "^4.2.9"
+    source-map "^0.6.0"
+
 "@jest/test-result@^26.6.2":
   version "26.6.2"
   resolved "https://registry.yarnpkg.com/@jest/test-result/-/test-result-26.6.2.tgz#55da58b62df134576cc95476efa5f7949e3f5f18"
@@ -9824,6 +9833,34 @@ jest-snapshot@^26.6.2:
     jest-resolve "^26.6.2"
     natural-compare "^1.4.0"
     pretty-format "^26.6.2"
+    semver "^7.3.2"
+
+jest-snapshot@^27.5.1:
+  version "27.5.1"
+  resolved "https://registry.yarnpkg.com/jest-snapshot/-/jest-snapshot-27.5.1.tgz#b668d50d23d38054a51b42c4039cab59ae6eb6a1"
+  integrity sha512-yYykXI5a0I31xX67mgeLw1DZ0bJB+gpq5IpSuCAoyDi0+BhgU/RIrL+RTzDmkNTchvDFWKP8lp+w/42Z3us5sA==
+  dependencies:
+    "@babel/core" "^7.7.2"
+    "@babel/generator" "^7.7.2"
+    "@babel/plugin-syntax-typescript" "^7.7.2"
+    "@babel/traverse" "^7.7.2"
+    "@babel/types" "^7.0.0"
+    "@jest/transform" "^27.5.1"
+    "@jest/types" "^27.5.1"
+    "@types/babel__traverse" "^7.0.4"
+    "@types/prettier" "^2.1.5"
+    babel-preset-current-node-syntax "^1.0.0"
+    chalk "^4.0.0"
+    expect "^27.5.1"
+    graceful-fs "^4.2.9"
+    jest-diff "^27.5.1"
+    jest-get-type "^27.5.1"
+    jest-haste-map "^27.5.1"
+    jest-matcher-utils "^27.5.1"
+    jest-message-util "^27.5.1"
+    jest-util "^27.5.1"
+    natural-compare "^1.4.0"
+    pretty-format "^27.5.1"
     semver "^7.3.2"
 
 jest-snapshot@^27.5.1:
