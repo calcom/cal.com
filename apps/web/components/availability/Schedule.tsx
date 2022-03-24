@@ -5,11 +5,11 @@ import utc from "dayjs/plugin/utc";
 import React, { useCallback, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
-import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
 
 import { useMeQuery } from "@components/Shell";
@@ -169,6 +169,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
               size="icon"
               color="minimal"
               StartIcon={TrashIcon}
+              aria-label={t("remove")}
               type="button"
               onClick={() => remove(index)}
             />
@@ -183,6 +184,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           size="icon"
           className={fields.length > 0 ? "visible" : "invisible"}
           StartIcon={PlusIcon}
+          aria-label={t("add")}
           onClick={handleAppend}
         />
       </div>
