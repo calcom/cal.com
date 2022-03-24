@@ -3,7 +3,7 @@
   "name": "@calcom/huddle01video",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Video conferencing",
+  "description": "One-click Meetings in your Metaversical. Login with Web3, create token-gated spaces, use NFT avatars and decentralized storage.",
   "dependencies": {
     "@calcom/lib": "*"
   },

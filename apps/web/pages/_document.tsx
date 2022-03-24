@@ -22,7 +22,6 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         </Head>
         <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />

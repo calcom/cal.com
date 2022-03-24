@@ -1,6 +1,5 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 import AppCard from "./AppCard";
 
