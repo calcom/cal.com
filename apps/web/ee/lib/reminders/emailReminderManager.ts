@@ -10,17 +10,23 @@ import prisma from "@lib/prisma";
 
 import reminderTemplate from "./templates/reminderEmailTemplate";
 
-const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-const senderEmail = process.env.SENDGRID_EMAIL as string;
+let sendgridAPIKey, senderEmail;
 
-sgMail.setApiKey(sendgridAPIKey);
-client.setApiKey(sendgridAPIKey);
+if (process.env.SENDGRID_API_KEY) {
+  sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
+  senderEmail = process.env.SENDGRID_EMAIL as string;
+
+  sgMail.setApiKey(sendgridAPIKey);
+  client.setApiKey(sendgridAPIKey);
+}
 
 export const scheduleEmailReminder = async (
   evt: CalendarEvent,
   email: string,
   attendeeReminder: EventTypeAttendeeReminder
 ) => {
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) return;
+
   const { startTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();

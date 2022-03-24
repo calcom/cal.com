@@ -10,11 +10,15 @@ import prisma from "@lib/prisma";
 
 dayjs.extend(isBetween);
 
-const TWILIO_SID = process.env.TWILIO_SID;
-const TWILIO_TOKEN = process.env.TWILIO_TOKEN;
-const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
+let TWILIO_SID, TWILIO_TOKEN, TWILIO_MESSAGING_SID, client;
+// Only assign the API keys if they exist in .env
+if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
+  TWILIO_SID = process.env.TWILIO_SID;
+  TWILIO_TOKEN = process.env.TWILIO_TOKEN;
+  TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
 
-const client = twilio(TWILIO_SID, TWILIO_TOKEN);
+  client = twilio(TWILIO_SID, TWILIO_TOKEN);
+}
 
 interface reminderPhone {
   reminderPhone: string;
@@ -25,6 +29,8 @@ export const scheduleSMSAttendeeReminder = async (
   reminderPhone: string,
   attendeeReminder: EventTypeAttendeeReminder
 ) => {
+  if (!process.env.TWILIO_SID || !process.env.TWILIO_TOKEN || !process.env.TWILIO_MESSAGING_SID) return;
+
   const { startTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
