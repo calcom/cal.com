@@ -15,7 +15,7 @@
     "@calcom/lib": "*",
     "@stripe/react-stripe-js": "^1.4.1",
     "@stripe/stripe-js": "^1.25.0",
-    "dayjs": "^1.11.0",
+    "dayjs": "^1.10.4",
     "stripe": "^8.210.0"
   },
   "main": "index.ts",
