@@ -33,7 +33,7 @@ export default function AppCard(props: AppCardProps) {
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
           <span className="pl-1 text-gray-500">{props.reviews} reviews</span>
         </div> */}
-        <p className="mt-2 text-sm text-gray-500">{props.description}</p>
+        <p className="mt-2 truncate text-sm text-gray-500">{props.description}</p>
       </a>
     </Link>
   );
