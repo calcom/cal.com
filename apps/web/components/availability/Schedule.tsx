@@ -1,15 +1,17 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
+import { DuplicateIcon } from "@heroicons/react/solid";
 import dayjs, { Dayjs, ConfigType } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import React, { useCallback, useState } from "react";
-import { Controller, useFieldArray } from "react-hook-form";
+import React, { useCallback, useEffect, useState } from "react";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
+import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/Dropdown";
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
-import { useLocale } from "@lib/hooks/useLocale";
 import { TimeRange } from "@lib/types/schedule";
 
 import { useMeQuery } from "@components/Shell";
@@ -127,11 +129,61 @@ type ScheduleBlockProps = {
   name: string;
 };
 
-const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
-  const { t } = useLocale();
-  const { fields, append, remove, replace } = useFieldArray({
-    name: `${name}.${day}`,
+const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (selected: number[]) => void }) => {
+  const [selected, setSelected] = useState<number[]>([]);
+  const { i18n, t } = useLocale();
+  return (
+    <div className="m-4 space-y-2 py-4">
+      <p className="h6 text-xs font-medium uppercase text-neutral-400">Copy times to</p>
+      <ol className="space-y-2">
+        {weekdayNames(i18n.language).map((weekday, num) => (
+          <li key={weekday}>
+            <label className="flex w-full items-center justify-between">
+              <span>{weekday}</span>
+              <input
+                value={num}
+                defaultChecked={disabled.includes(num)}
+                disabled={disabled.includes(num)}
+                onChange={(e) => {
+                  if (e.target.checked && !selected.includes(num)) {
+                    setSelected(selected.concat([num]));
+                  } else if (!e.target.checked && selected.includes(num)) {
+                    setSelected(selected.slice(selected.indexOf(num), 1));
+                  }
+                }}
+                type="checkbox"
+                className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+              />
+            </label>
+          </li>
+        ))}
+      </ol>
+      <div className="pt-2">
+        <Button className="w-full justify-center" color="primary" onClick={() => onApply(selected)}>
+          {t("apply")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export const DayRanges = ({
+  name,
+  defaultValue = [defaultDayRange],
+}: {
+  name: string;
+  defaultValue?: TimeRange[];
+}) => {
+  const { setValue } = useFormContext();
+  const { fields, replace, append, remove } = useFieldArray({
+    name,
   });
+
+  useEffect(() => {
+    if (defaultValue.length && !fields.length) {
+      replace(defaultValue);
+    }
+  }, [replace, defaultValue, fields.length]);
 
   const handleAppend = () => {
     // FIXME: Fix type-inference, can't get this to work. @see https://github.com/react-hook-form/react-hook-form/issues/4499
@@ -147,24 +199,11 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   };
 
   return (
-    <fieldset className="flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
-      <div className="w-1/3">
-        <label className="flex items-center space-x-2 rtl:space-x-reverse">
-          <input
-            type="checkbox"
-            checked={fields.length > 0}
-            onChange={(e) => (e.target.checked ? replace([defaultDayRange]) : replace([]))}
-            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
-          />
-          <span className="inline-block text-sm capitalize">{weekday}</span>
-        </label>
-      </div>
-      <div className="flex-grow">
-        {fields.map((field, index) => (
-          <div key={field.id} className="mb-1 flex justify-between">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <TimeRangeField name={`${name}.${day}.${index}`} />
-            </div>
+    <>
+      {fields.map((field, index) => (
+        <div key={field.id} className="mb-1 flex justify-between">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <TimeRangeField name={`${name}.${index}`} />
             <Button
               size="icon"
               color="minimal"
@@ -173,18 +212,69 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
               onClick={() => remove(index)}
             />
           </div>
-        ))}
-        <span className="block text-sm text-gray-500">{!fields.length && t("no_availability")}</span>
+          {index === 0 && (
+            <span>
+              <Button
+                className="text-neutral-400"
+                type="button"
+                color="minimal"
+                size="icon"
+                StartIcon={PlusIcon}
+                onClick={handleAppend}
+              />
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    color="minimal"
+                    size="icon"
+                    StartIcon={DuplicateIcon}
+                    onClick={handleAppend}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <CopyTimes
+                    disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
+                    onApply={(selected) =>
+                      selected.forEach((day) => {
+                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, fields);
+                      })
+                    }
+                  />
+                </DropdownMenuContent>
+              </Dropdown>
+            </span>
+          )}
+        </div>
+      ))}
+    </>
+  );
+};
+
+const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
+  const { t } = useLocale();
+
+  const form = useFormContext();
+  const watchAvailable = form.watch(`${name}.${day}`, []);
+
+  return (
+    <fieldset className="flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+      <div className="w-1/3">
+        <label className="flex items-center space-x-2 rtl:space-x-reverse">
+          <input
+            type="checkbox"
+            checked={watchAvailable.length}
+            onChange={(e) => form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : [])}
+            className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
+          />
+          <span className="inline-block text-sm capitalize">{weekday}</span>
+        </label>
       </div>
-      <div>
-        <Button
-          type="button"
-          color="minimal"
-          size="icon"
-          className={fields.length > 0 ? "visible" : "invisible"}
-          StartIcon={PlusIcon}
-          onClick={handleAppend}
-        />
+      <div className="flex-grow">
+        {!!watchAvailable.length && <DayRanges name={`${name}.${day}`} />}
+        {!watchAvailable.length && (
+          <span className="block text-sm text-gray-500">{t("no_availability")}</span>
+        )}
       </div>
     </fieldset>
   );
