@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/office365calendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Microsoft 365 calendars for business users, and Outlook is a popular calendar platform for personal users.",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
