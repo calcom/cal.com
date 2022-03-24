@@ -232,7 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: true,
       metadata: true,
       destinationCalendar: true,
-      disableNotes: true,
+      hideCalendarNotes: true,
     },
   });
 
@@ -293,16 +293,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
+        return {
+          email: user.email || "",
+          name: user.name || "",
+          timeZone: user.timeZone,
+          language: {
+            translate: await getTranslation(user.locale ?? "en", "common"),
+            locale: user.locale ?? "en",
+          },
+        };
+      })
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
@@ -343,7 +343,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
-    disableNotes: eventType.disableNotes,
+    hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -405,8 +405,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         destinationCalendar: evt.destinationCalendar
           ? {
-              connect: { id: evt.destinationCalendar.id },
-            }
+            connect: { id: evt.destinationCalendar.id },
+          }
           : undefined,
       },
     });

@@ -374,26 +374,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     label: string;
     description: string;
   }[] = [
-    {
-      value: SchedulingType.COLLECTIVE,
-      label: t("collective"),
-      description: t("collective_description"),
-    },
-    {
-      value: SchedulingType.ROUND_ROBIN,
-      label: t("round_robin"),
-      description: t("round_robin_description"),
-    },
-  ];
+      {
+        value: SchedulingType.COLLECTIVE,
+        label: t("collective"),
+        description: t("collective_description"),
+      },
+      {
+        value: SchedulingType.ROUND_ROBIN,
+        label: t("round_robin"),
+        description: t("round_robin_description"),
+      },
+    ];
 
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${
-    team ? `team/${team.slug}` : eventType.users[0].username
-  }/${eventType.slug}`;
+  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${team ? `team/${team.slug}` : eventType.users[0].username
+    }/${eventType.slug}`;
 
   const mapUserToValue = ({
     id,
@@ -418,7 +417,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     length: number;
     description: string;
     disableGuests: boolean;
-    disableNotes: boolean;
+    hideCalendarNotes: boolean;
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
@@ -801,8 +800,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       afterEventBuffer: afterBufferTime,
                       metadata: smartContractAddress
                         ? {
-                            smartContractAddress,
-                          }
+                          smartContractAddress,
+                        }
                         : "",
                     });
                   }}
@@ -992,9 +991,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <>
                       <CollapsibleTrigger type="button" className="flex w-full">
                         <ChevronRightIcon
-                          className={`${
-                            advancedSettingsVisible ? "rotate-90 transform" : ""
-                          } ml-auto h-5 w-5 text-neutral-500`}
+                          className={`${advancedSettingsVisible ? "rotate-90 transform" : ""
+                            } ml-auto h-5 w-5 text-neutral-500`}
                         />
                         <span className="text-sm font-medium text-neutral-700">
                           {t("show_advanced_settings")}
@@ -1150,18 +1148,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
 
                         <Controller
-                          name="disableNotes"
+                          name="hideCalendarNotes"
                           control={formMethods.control}
-                          defaultValue={eventType.disableNotes}
+                          defaultValue={eventType.hideCalendarNotes}
                           render={() => (
                             <CheckboxField
-                              id="disableNotes"
-                              name="disableNotes"
+                              id="hideCalendarNotes"
+                              name="hideCalendarNotes"
                               label={t("disable_notes")}
                               description={t("disable_notes_description")}
-                              defaultChecked={eventType.disableNotes}
+                              defaultChecked={eventType.hideCalendarNotes}
                               onChange={(e) => {
-                                formMethods.setValue("disableNotes", e?.target.checked);
+                                formMethods.setValue("hideCalendarNotes", e?.target.checked);
                               }}
                             />
                           )}
@@ -1813,7 +1811,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodCountCalendarDays: true,
       requiresConfirmation: true,
       disableGuests: true,
-      disableNotes: true,
+      hideCalendarNotes: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -1944,10 +1942,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const getAvailability = (availability: Availability) =>
     availability?.length
       ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: new Date(new Date().toDateString() + " " + schedule.startTime.toTimeString()).valueOf(),
-          endTime: new Date(new Date().toDateString() + " " + schedule.endTime.toTimeString()).valueOf(),
-        }))
+        ...schedule,
+        startTime: new Date(new Date().toDateString() + " " + schedule.startTime.toTimeString()).valueOf(),
+        endTime: new Date(new Date().toDateString() + " " + schedule.endTime.toTimeString()).valueOf(),
+      }))
       : null;
 
   const availability = getAvailability(eventType.availability) || [];
@@ -1961,10 +1959,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
-        const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
-        return user;
-      })
+      const user = member.user;
+      user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
+      return user;
+    })
     : [];
 
   return {

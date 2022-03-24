@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "disableNotes" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "EventType" ADD COLUMN     "hideCalendarNotes" BOOLEAN NOT NULL DEFAULT false;
