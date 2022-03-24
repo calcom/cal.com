@@ -1,86 +1,49 @@
+import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { withValidation } from "next-validations";
+import { z } from "zod";
 
-import prisma from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
+const prisma = new PrismaClient();
+
+const schema = z
+  .object({
+    title: z.string().min(3),
+    slug: z.string().min(3),
+    length: z.number().min(1).max(1440), // max is a full day.
+    description: z.string().min(3).optional(),
+  })
+  .strict(); // Adding strict so that we can disallow passing in extra fields
+
+const validate = withValidation({
+  schema,
+  type: "Zod",
+  mode: "body",
+});
 
 interface Body {
-  userId: string;
-
-  newOrganization: {
-    name: string;
-    users: string[];
-  };
+  title: string;
+  slug: string;
+  length: number;
 }
 type Data = {
-  event?: EventType;
+  data?: EventType;
   error?: string;
 };
 
-export default async function createEventLink(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const {
-    body: {
-      title,
-      slug,
-      description,
-      position,
-      locations,
-      hidden,
-      teamId,
-      eventName,
-      timeZone,
-      periodType,
-      periodStartDate,
-      periodEndDate,
-      periodDays,
-      periodCountCalendarDays,
-      requiresConfirmation,
-      disableGuests,
-      minimumBookingNotice,
-      beforeEventBuffer,
-      afterEventBuffer,
-      schedulingType,
-      price,
-      currency,
-      slotInterval,
-      metadata,
-      length,
-    },
-    method,
-  } = req;
+type NextApiRequestWithBody = NextApiRequest & {
+  body: Body;
+};
+
+async function createEventType(req: NextApiRequestWithBody, res: NextApiResponse<Data>) {
+  const { body, method }: { body: Body; method?: string } = req;
   if (method === "POST") {
-    // Process a POST request
-    const newEvent = await prisma.eventType.create({
-      data: {
-        title: `${title}`,
-        slug: `${slug}`,
-        length: Number(length),
-        // description: description as string,
-        // position: Number(position),
-        // locations: locations,
-        // hidden: Boolean(hidden) as boolean,
-        // teamId: Number.isInteger(teamId) ? Number(teamId) : null,
-        // eventName: eventName,
-        // timeZone: timeZone,
-        // periodType: periodType,
-        // periodStartDate: periodStartDate,
-        // periodEndDate: periodEndDate,
-        // periodDays: periodDays,
-        // periodCountCalendarDays: periodCountCalendarDays,
-        // requiresConfirmation: requiresConfirmation,
-        // disableGuests: disableGuests,
-        // minimumBookingNotice: minimumBookingNotice,
-        // beforeEventBuffer: beforeEventBuffer,
-        // afterEventBuffer: afterEventBuffer,
-        // schedulingType: schedulingType,
-        // price: price,
-        // currency: currency,
-        // slotInterval: slotInterval,
-        // metadata: metadata,
-      },
-    });
-    res.status(201).json({ event: newEvent });
+    schema.safeParse(body);
+    const newEvent = await prisma.eventType.create({ data: body });
+    res.status(201).json({ data: newEvent });
   } else {
-    // Handle any other HTTP method
+    // Reject any other HTTP method than POST
     res.status(405).json({ error: "Only POST Method allowed" });
   }
 }
+
+export default validate(createEventType);

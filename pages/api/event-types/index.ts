@@ -1,17 +1,16 @@
+import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
-
-type Data = {
-  events?: EventType[];
+const prisma = new PrismaClient();
+type ResponseData = {
+  data?: EventType[];
   error?: any;
 };
 
-export default async function eventType(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
     const eventTypes = await prisma.eventType.findMany({ where: { id: Number(req.query.eventTypeId) } });
-    res.status(200).json({ events: { ...eventTypes } });
+    res.status(200).json({ data: { ...eventTypes } });
   } catch (error) {
     console.log(error);
     // FIXME: Add zod for validation/error handling

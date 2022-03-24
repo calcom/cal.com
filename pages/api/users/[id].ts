@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// This local import doesn't work
-// import { PrismaClient } from "@calcom/prisma";
-const prisma = new PrismaClient();
+import prisma from "@calcom/prisma";
+import { User } from "@calcom/prisma/client";
 
 type Data = {
   message: string;

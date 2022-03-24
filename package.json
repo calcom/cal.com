@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "next": "^12.1.0",
+    "next-validations": "^0.1.11",
     "zod": "^3.14.2"
   }
 }
