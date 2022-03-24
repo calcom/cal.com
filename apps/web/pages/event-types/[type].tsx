@@ -884,7 +884,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="space-y-3">
                     <div className="block items-center sm:flex">
                       <div className="min-w-48 mb-4 sm:mb-0">
-                        <label id="slug" htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                        <label
+                          id="slug-label"
+                          htmlFor="slug"
+                          className="flex text-sm font-medium text-neutral-700">
                           <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("url")}
                         </label>
@@ -897,7 +900,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </span>
                           <input
                             type="text"
-                            aria-labelledby="slug"
+                            id="slug"
+                            aria-labelledby="slug-label"
                             required
                             className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
