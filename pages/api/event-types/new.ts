@@ -1,7 +1,8 @@
-import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const prisma = new PrismaClient();
+import prisma from "@calcom/prisma";
+import { EventType } from "@calcom/prisma/client";
+
 interface Body {
   userId: string;
 
@@ -10,12 +11,12 @@ interface Body {
     users: string[];
   };
 }
-type EventsData = {
+type Data = {
   event?: EventType;
   error?: string;
 };
 
-export default async function createEventLink(req: NextApiRequest, res: NextApiResponse<EventsData>) {
+export default async function createEventLink(req: NextApiRequest, res: NextApiResponse<Data>) {
   const {
     body: {
       title,

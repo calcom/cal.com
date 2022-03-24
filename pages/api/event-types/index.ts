@@ -1,14 +1,14 @@
-import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-type EventTypeIdData = {
+import prisma from "@calcom/prisma";
+import { EventType } from "@calcom/prisma/client";
+
+type Data = {
   events?: EventType[];
   error?: any;
 };
 
-const prisma = new PrismaClient();
-
-export default async function eventType(req: NextApiRequest, res: NextApiResponse<EventTypeIdData>) {
+export default async function eventType(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     const eventTypes = await prisma.eventType.findMany({ where: { id: Number(req.query.eventTypeId) } });
     res.status(200).json({ events: { ...eventTypes } });
