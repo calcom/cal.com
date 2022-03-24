@@ -14,7 +14,7 @@ const schema = z
   })
   .strict(); // Adding strict so that we can disallow passing in extra fields
 
-type schema = z.infer<typeof schema>;
+// type schema = z.infer<typeof schema>;
 const validate = withValidation({
   schema,
   type: "Zod",

@@ -5,7 +5,7 @@
   ],
   "compilerOptions": {
     "strictNullChecks": true,
-    "baseUrl": "./",
+    "baseUrl": ".",
     "target": "es5",
     "lib": [
       "dom",
@@ -17,9 +17,9 @@
     "incremental": true,
     "module": "esnext",
     "resolveJsonModule": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
   },
   "include": [
-    "./"
+    "./**/*.ts"
   ]
 }

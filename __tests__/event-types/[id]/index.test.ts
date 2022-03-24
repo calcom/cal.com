@@ -2,14 +2,14 @@ import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
 
-import handleEvent from "../pages/api/event-types/[id]";
+import handleEvent from "../../../pages/api/event-types/[id]";
 
 afterAll((done) => {
   prisma.$disconnect().then();
   done();
 });
 
-describe("/api/event-types/[id] with valid id as string returns an event-type", () => {
+describe("GET /api/event-types/[id] with valid id as string returns an event-type", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
       method: "GET",
@@ -27,7 +27,7 @@ describe("/api/event-types/[id] with valid id as string returns an event-type", 
 
 // This can never happen under our normal nextjs setup where query is always a string | string[].
 // But seemed a good example for testing an error validation
-describe("/api/event-types/[id] errors if query id is number, requires a string", () => {
+describe("GET /api/event-types/[id] errors if query id is number, requires a string", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
       method: "GET",
@@ -50,7 +50,7 @@ describe("/api/event-types/[id] errors if query id is number, requires a string"
   });
 });
 
-describe("/api/event-types/[id] an id not present in db like 0, throws 404 not found", () => {
+describe("GET /api/event-types/[id] an id not present in db like 0, throws 404 not found", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
       method: "GET",
@@ -65,7 +65,7 @@ describe("/api/event-types/[id] an id not present in db like 0, throws 404 not f
   });
 });
 
-describe("/api/event-types/[id] only allow GET, fails with POST", () => {
+describe("POST /api/event-types/[id] fails, only GET allowed", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
       method: "POST", // This POST method is not allowed
