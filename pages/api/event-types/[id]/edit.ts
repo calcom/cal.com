@@ -1,19 +1,11 @@
 import { PrismaClient, EventType } from "@prisma/client";
-import schemaQuery from "lib/validations/queryIdTransformParseInt";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withValidation } from "next-validations";
-import { z } from "zod";
+
+import schema from "@lib/validation/eventType";
+import schemaQuery from "@lib/validation/queryIdTransformParseInt";
 
 const prisma = new PrismaClient();
-
-const schema = z
-  .object({
-    title: z.string().min(3),
-    slug: z.string().min(3),
-    length: z.number().min(1).max(1440), // max is a full day.
-    description: z.string().min(3).optional(),
-  })
-  .strict(); // Adding strict so that we can disallow passing in extra fields
 
 type ResponseData = {
   data?: EventType;

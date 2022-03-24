@@ -1,7 +1,8 @@
 import { PrismaClient, EventType } from "@prisma/client";
-import schema from "lib/validations/queryIdTransformParseInt";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withValidation } from "next-validations";
+
+import schema from "@lib/validation/queryIdTransformParseInt";
 
 const prisma = new PrismaClient();
 

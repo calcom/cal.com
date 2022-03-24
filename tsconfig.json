@@ -6,6 +6,7 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
+    
     "target": "es5",
     "lib": [
       "dom",
@@ -18,6 +19,10 @@
     "module": "esnext",
     "resolveJsonModule": true,
     "jsx": "preserve",
+    "paths": {
+    "@api/*": ["pages/api/*"],
+    "@lib/*": ["lib/*"]
+},
   },
   "include": [
     "./**/*.ts"

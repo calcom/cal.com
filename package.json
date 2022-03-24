@@ -24,8 +24,7 @@
     "babel-jest": "^27.5.1",
     "jest": "^27.5.1",
     "node-mocks-http": "^1.11.0",
-    "typescript": "^4.5.3",
-    "zod": "^3.14.2"
+    "typescript": "^4.5.3"
   },
   "dependencies": {
     "next": "^12.1.0",
