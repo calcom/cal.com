@@ -1,7 +1,14 @@
-import { expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+
+const bookTimeSlot = async (page: Page) => {
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+};
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
@@ -34,15 +41,8 @@ test.describe("free user", () => {
     // save booking url
     const bookingUrl: string = page.url();
 
-    const bookTimeSlot = async () => {
-      // --- fill form
-      await page.fill('[name="name"]', "Test Testson");
-      await page.fill('[name="email"]', "test@example.com");
-      await page.press('[name="email"]', "Enter");
-    };
-
     // book same time spot twice
-    await bookTimeSlot();
+    await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
     await page.waitForNavigation({
@@ -55,7 +55,7 @@ test.describe("free user", () => {
     await page.goto(bookingUrl);
 
     // book same time spot again
-    await bookTimeSlot();
+    await bookTimeSlot(page);
 
     // check for error message
     await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
@@ -86,10 +86,7 @@ test.describe("pro user", () => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
     await selectFirstAvailableTimeSlotNextMonth(page);
-    // --- fill form
-    await page.fill('[name="name"]', "Test Testson");
-    await page.fill('[name="email"]', "test@example.com");
-    await page.press('[name="email"]', "Enter");
+    await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
     await page.waitForNavigation({

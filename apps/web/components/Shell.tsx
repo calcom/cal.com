@@ -1,20 +1,20 @@
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
   CalendarIcon,
-  ArrowLeftIcon,
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
   LinkIcon,
   LogoutIcon,
-  PuzzleIcon,
+  ViewGridIcon,
   MoonIcon,
   MapIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/solid";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Button from "@calcom/ui/Button";
@@ -59,6 +59,10 @@ function useRedirectToLoginIfUnauthenticated() {
   const router = useRouter();
 
   useEffect(() => {
+    if (router.pathname.startsWith("/apps")) {
+      return;
+    }
+
     if (!loading && !session) {
       router.replace({
         pathname: "/auth/login",
@@ -121,10 +125,11 @@ export function ShellSubHeading(props: {
 export default function Shell(props: {
   centered?: boolean;
   title?: string;
-  heading: ReactNode;
+  heading?: ReactNode;
   subtitle?: ReactNode;
   children: ReactNode;
   CTA?: ReactNode;
+  large?: boolean;
   HeadingLeftIcon?: ReactNode;
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
@@ -157,10 +162,22 @@ export default function Shell(props: {
       current: router.asPath.startsWith("/availability"),
     },
     {
-      name: t("integrations"),
-      href: "/integrations",
-      icon: PuzzleIcon,
-      current: router.asPath.startsWith("/integrations"),
+      name: t("apps"),
+      href: "/apps",
+      icon: ViewGridIcon,
+      current: router.asPath.startsWith("/apps"),
+      child: [
+        {
+          name: t("app_store"),
+          href: "/apps",
+          current: router.asPath === "/apps",
+        },
+        {
+          name: t("installed_apps"),
+          href: "/apps/installed",
+          current: router.asPath === "/apps/installed",
+        },
+      ],
     },
     {
       name: t("settings"),
@@ -182,6 +199,7 @@ export default function Shell(props: {
   const user = query.data;
 
   const i18n = useViewerI18n();
+  const { status } = useSession();
 
   if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
@@ -206,95 +224,121 @@ export default function Shell(props: {
         <Toaster position="bottom-right" />
       </div>
 
-      <div className="flex h-screen overflow-hidden bg-gray-100" data-testid="dashboard-shell">
-        <div className="hidden md:flex lg:flex-shrink-0">
-          <div className="flex w-14 flex-col lg:w-56">
-            <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-              <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                <Link href="/event-types">
-                  <a className="px-4 md:hidden lg:inline">
-                    <Logo small />
-                  </a>
-                </Link>
-                {/* logo icon for tablet */}
-                <Link href="/event-types">
-                  <a className="md:inline lg:hidden">
-                    <Logo small icon />
-                  </a>
-                </Link>
-                <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                  {navigation.map((item) => (
-                    <Link key={item.name} href={item.href}>
-                      <a
-                        className={classNames(
-                          item.current
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                          "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
-                        )}>
-                        <item.icon
-                          className={classNames(
-                            item.current
-                              ? "text-neutral-500"
-                              : "text-neutral-400 group-hover:text-neutral-500",
-                            "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
-                          )}
-                          aria-hidden="true"
-                        />
-                        <span className="hidden lg:inline">{item.name}</span>
-                      </a>
-                    </Link>
-                  ))}
-                </nav>
+      <div
+        className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
+        data-testid="dashboard-shell">
+        {status === "authenticated" && (
+          <div className="hidden md:flex lg:flex-shrink-0">
+            <div className="flex w-14 flex-col lg:w-56">
+              <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+                <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
+                  <Link href="/event-types">
+                    <a className="px-4 md:hidden lg:inline">
+                      <Logo small />
+                    </a>
+                  </Link>
+                  {/* logo icon for tablet */}
+                  <Link href="/event-types">
+                    <a className="md:inline lg:hidden">
+                      <Logo small icon />
+                    </a>
+                  </Link>
+                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+                    {navigation.map((item) => (
+                      <Fragment key={item.name}>
+                        <Link href={item.href}>
+                          <a
+                            className={classNames(
+                              item.current
+                                ? "bg-neutral-100 text-neutral-900"
+                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                              "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                            )}>
+                            <item.icon
+                              className={classNames(
+                                item.current
+                                  ? "text-neutral-500"
+                                  : "text-neutral-400 group-hover:text-neutral-500",
+                                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="hidden lg:inline">{item.name}</span>
+                          </a>
+                        </Link>
+                        {item.child &&
+                          router.asPath.startsWith(item.href) &&
+                          item.child.map((item) => {
+                            return (
+                              <Link key={item.name} href={item.href}>
+                                <a
+                                  className={classNames(
+                                    item.current
+                                      ? "text-neutral-900"
+                                      : "text-neutral-500 hover:text-neutral-900",
+                                    "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
+                                  )}>
+                                  <span className="hidden lg:inline">{item.name}</span>
+                                </a>
+                              </Link>
+                            );
+                          })}
+                      </Fragment>
+                    ))}
+                  </nav>
+                </div>
+                <TrialBanner />
+                <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+                  <span className="hidden lg:inline">
+                    <UserDropdown />
+                  </span>
+                  <span className="hidden md:inline lg:hidden">
+                    <UserDropdown small />
+                  </span>
+                </div>
+                <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
+                  &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+                  {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
+                  <span className="lowercase">-{user && user.plan}</span>
+                </small>
               </div>
-              <TrialBanner />
-              <div className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
-                <span className="hidden lg:inline">
-                  <UserDropdown />
-                </span>
-                <span className="hidden md:inline lg:hidden">
-                  <UserDropdown small />
-                </span>
-              </div>
-              <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-                &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-                {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
-                <span className="lowercase">-{user && user.plan}</span>
-              </small>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <main
             className={classNames(
-              "relative z-0 max-w-[1700px] flex-1 overflow-y-auto focus:outline-none",
+              "relative z-0 flex-1 overflow-y-auto focus:outline-none",
+              status === "authenticated" && "max-w-[1700px]",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
-            <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
-              <Link href="/event-types">
-                <a>
-                  <Logo />
-                </a>
-              </Link>
-              <div className="flex items-center gap-3 self-center">
-                <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                  <span className="sr-only">{t("view_notifications")}</span>
-                  <Link href="/settings/profile">
-                    <a>
-                      <CogIcon className="h-6 w-6" aria-hidden="true" />
-                    </a>
-                  </Link>
-                </button>
-                <UserDropdown small />
-              </div>
-            </nav>
+            {status === "authenticated" && (
+              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+                <Link href="/event-types">
+                  <a>
+                    <Logo />
+                  </a>
+                </Link>
+                <div className="flex items-center gap-3 self-center">
+                  <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+                    <span className="sr-only">{t("view_notifications")}</span>
+                    <Link href="/settings/profile">
+                      <a>
+                        <CogIcon className="h-6 w-6" aria-hidden="true" />
+                      </a>
+                    </Link>
+                  </button>
+                  <UserDropdown small />
+                </div>
+              </nav>
+            )}
             <div
               className={classNames(
                 props.centered && "mx-auto md:max-w-5xl",
                 props.flexChildrenContainer && "flex flex-1 flex-col",
-                "py-8"
+                !props.large && "py-8"
               )}>
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
@@ -306,14 +350,22 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              <div className="block justify-between px-4 sm:flex sm:px-6 md:px-8">
-                {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-                <div className="mb-8 w-full">
-                  <h1 className="font-cal mb-1 text-xl text-gray-900">{props.heading}</h1>
-                  <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+              {props.heading && props.subtitle && (
+                <div
+                  className={classNames(
+                    props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
+                    "block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8"
+                  )}>
+                  {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+                  <div className="mb-8 w-full">
+                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                      {props.heading}
+                    </h1>
+                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                  </div>
+                  {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
-                <div className="mb-4 flex-shrink-0">{props.CTA}</div>
-              </div>
+              )}
               <div
                 className={classNames(
                   "px-4 sm:px-6 md:px-8",
@@ -322,34 +374,36 @@ export default function Shell(props: {
                 {props.children}
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
-              <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
-                {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                {navigation.flatMap((item, itemIdx) =>
-                  item.href === "/settings/profile" ? (
-                    []
-                  ) : (
-                    <Link key={item.name} href={item.href}>
-                      <a
-                        className={classNames(
-                          item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                          itemIdx === 0 ? "rounded-l-lg" : "",
-                          itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                          "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
-                        )}
-                        aria-current={item.current ? "page" : undefined}>
-                        <item.icon
+              {status === "authenticated" && (
+                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                  {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
+                  {navigation.flatMap((item, itemIdx) =>
+                    item.href === "/settings/profile" ? (
+                      []
+                    ) : (
+                      <Link key={item.name} href={item.href}>
+                        <a
                           className={classNames(
-                            item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                            "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                            item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
+                            itemIdx === 0 ? "rounded-l-lg" : "",
+                            itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
                           )}
-                          aria-hidden="true"
-                        />
-                        <span className="truncate">{item.name}</span>
-                      </a>
-                    </Link>
-                  )
-                )}
-              </nav>
+                          aria-current={item.current ? "page" : undefined}>
+                          <item.icon
+                            className={classNames(
+                              item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                              "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span className="truncate">{item.name}</span>
+                        </a>
+                      </Link>
+                    )
+                  )}
+                </nav>
+              )}
               {/* add padding to content for mobile navigation*/}
               <div className="block pt-12 md:hidden" />
             </div>

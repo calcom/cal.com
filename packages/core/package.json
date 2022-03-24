@@ -1,0 +1,23 @@
+{
+  "name": "@calcom/core",
+  "description": "Cal.com core functionality",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "./index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "dependencies": {
+    "@calcom/app-store": "*",
+    "@calcom/lib": "*",
+    "dayjs": "^1.10.4",
+    "ical.js": "^1.4.0",
+    "ics": "^2.31.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*",
+    "@calcom/types": "*"
+  }
+}

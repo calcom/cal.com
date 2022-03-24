@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@calcom/zoomvideo",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Zoom is the most popular video conferencing platform, joinable on the web or via desktop/mobile apps.",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
