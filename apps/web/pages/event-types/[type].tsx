@@ -784,10 +784,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.unregister("locationAddress");
                         openLocationModal(location.type);
                       }}
+                      aria-label={t("edit")}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => removeLocation(location)}>
+                    <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
                       <XIcon className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                     </button>
                   </div>
@@ -883,7 +884,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="space-y-3">
                     <div className="block items-center sm:flex">
                       <div className="min-w-48 mb-4 sm:mb-0">
-                        <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                        <label
+                          id="slug-label"
+                          htmlFor="slug"
+                          className="flex text-sm font-medium text-neutral-700">
                           <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("url")}
                         </label>
@@ -896,6 +900,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </span>
                           <input
                             type="text"
+                            id="slug"
+                            aria-labelledby="slug-label"
                             required
                             className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
