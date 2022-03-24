@@ -9,6 +9,14 @@
   --brand-text-color-dark-mode: #292929;
 }
 
+button[role="switch"][data-state="checked"] {
+  @apply bg-gray-900;
+}
+
+button[role="switch"][data-state="checked"] span {
+  transform: translateX(16px);
+}
+
 /* PhoneInput dark-mode overrides (it would add a lot of boilerplate to do this in JavaScript) */
 .PhoneInputInput {
   @apply border-0 text-sm focus:ring-0;
@@ -157,11 +165,22 @@
 
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
+  /* Intercom FAB*/
   #launcher {
     display: none !important;
   }
+
+  /* Zendesk FAB*/
   div[role="presentation"] > iframe {
     display: none !important;
+  }
+
+  /* Helpscout FAB*/
+  .BeaconFabButtonFrame {
+    margin-left: -30px;
+    left: 50%;
+    bottom: 28px !important;
+    z-index: 1058 !important;
   }
 }
 
