@@ -28,15 +28,20 @@ type ResponseData = {
 export async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
   if (method === "GET") {
-    const safe = await schema.safeParse(query);
-    if (safe.success) {
-      try {
+    try {
+      const safe = await schema.safeParse(query);
+      // if (!safe.success) {
+      //   res.status(500).json({ error: safe.error.message });
+      // }
+      if (safe.success) {
         const event = await prisma.eventType.findUnique({ where: { id: safe.data.id } });
-        res.status(200).json({ data: event });
-      } catch (error) {
-        console.log(error);
-        res.status(400).json({ error: error });
+
+        if (event) res.status(200).json({ data: event });
+        if (!event) res.status(404).json({ error: "Event type not found" });
       }
+    } catch (error) {
+      console.log("catched", error);
+      res.status(500).json({ error: error });
     }
   } else {
     // Reject any other HTTP method than POST
