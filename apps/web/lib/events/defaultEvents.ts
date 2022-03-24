@@ -10,6 +10,7 @@ const min15Event = {
   schedulingType: "COLLECTIVE",
   slug: "15min",
   title: "15min",
+  minimumBookingNotice: 120,
 };
 const min30Event = {
   id: 0,
@@ -23,6 +24,7 @@ const min30Event = {
   schedulingType: "COLLECTIVE",
   slug: "30min",
   title: "30min",
+  minimumBookingNotice: 120,
 };
 const min60Event = {
   id: 0,
@@ -36,6 +38,7 @@ const min60Event = {
   schedulingType: "COLLECTIVE",
   slug: "60min",
   title: "60min",
+  minimumBookingNotice: 120,
 };
 
 const defaultEvents = [min15Event, min30Event, min60Event];
