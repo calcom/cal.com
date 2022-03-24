@@ -9,7 +9,7 @@ afterAll((done) => {
   done();
 });
 
-describe("/api/event-types/[id]", () => {
+describe("/api/event-types/[id] with valid id as string returns an event-type", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
       method: "GET",
@@ -47,5 +47,35 @@ describe("/api/event-types/[id] errors if query id is number, requires a string"
         message: "Expected string, received number",
       },
     ]);
+  });
+});
+
+describe("/api/event-types/[id] an id not present in db like 0, throws 404 not found", () => {
+  it("returns a message with the specified events", async () => {
+    const { req, res } = createMocks({
+      method: "GET",
+      query: {
+        id: "0", // There's no event type with id 0
+      },
+    });
+    await handleEvent(req, res);
+
+    expect(res._getStatusCode()).toBe(404);
+    expect(JSON.parse(res._getData())).toStrictEqual({ error: "Event type not found" });
+  });
+});
+
+describe("/api/event-types/[id] only allow GET, fails with POST", () => {
+  it("returns a message with the specified events", async () => {
+    const { req, res } = createMocks({
+      method: "POST", // This POST method is not allowed
+      query: {
+        id: "1",
+      },
+    });
+    await handleEvent(req, res);
+
+    expect(res._getStatusCode()).toBe(405);
+    expect(JSON.parse(res._getData())).toStrictEqual({ error: "Only GET Method allowed" });
   });
 });
