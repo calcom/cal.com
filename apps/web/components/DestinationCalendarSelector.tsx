@@ -26,24 +26,19 @@ const DestinationCalendarSelector = ({
 
   useEffect(() => {
     if (!selectedOption) {
-      const selected = value
-        ? query.data?.connectedCalendars
-            .map((connected) => connected.calendars ?? [])
-            .flat()
-            .find((cal) => cal.externalId === value)
-        : query.data?.connectedCalendars[0]?.calendars?.[0];
+      const selected = query.data?.connectedCalendars
+        .map((connected) => connected.calendars ?? [])
+        .flat()
+        .find((cal) => cal.externalId === value);
 
       if (selected) {
-        const { integration = "", externalId, name = "" } = selected;
         setSelectedOption({
-          value: `${integration}:${externalId}`,
-          label: name,
+          value: `${selected.integration}:${selected.externalId}`,
+          label: selected.name || "",
         });
-        // Save default value to database
-        if (!value) onChange({ integration, externalId });
       }
     }
-  }, [query.data?.connectedCalendars, selectedOption, value, onChange]);
+  }, [query.data?.connectedCalendars, selectedOption, value]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
