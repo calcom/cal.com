@@ -15,6 +15,7 @@ import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
+import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";
@@ -307,13 +308,15 @@ export default function IntegrationsPage() {
 
   return (
     <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
-        <CalendarListContainer />
-        <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
-        <IframeEmbedContainer />
-        <Web3Container />
-      </ClientSuspense>
+      <AppsShell>
+        <ClientSuspense fallback={<Loader />}>
+          <IntegrationsContainer />
+          <CalendarListContainer />
+          <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <IframeEmbedContainer />
+          <Web3Container />
+        </ClientSuspense>
+      </AppsShell>
     </Shell>
   );
 }
