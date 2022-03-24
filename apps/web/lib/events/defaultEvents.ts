@@ -1,7 +1,20 @@
-import { PeriodType, SchedulingType } from "@calcom/prisma/client";
+import { PeriodType, SchedulingType, Availability } from "@calcom/prisma/client";
+
+const availability: Availability[] = [
+  {
+    id: 0,
+    userId: 0 || null,
+    eventTypeId: 0 || null,
+    days: [1, 2, 3, 4, 5],
+    startTime: new Date(),
+    endTime: new Date(),
+    date: new Date(),
+    scheduleId: null,
+  },
+];
 
 const commons = {
-  periodCountCalendarDays: null,
+  periodCountCalendarDays: true,
   periodStartDate: Date.now(),
   periodEndDate: Date.now(),
   beforeEventBuffer: 0,
@@ -20,15 +33,14 @@ const commons = {
   metadata: {},
   description: "",
   hidden: false,
-  isWeb3Active: false,
   users: [
     {
-      name: "" || null,
-      username: "" || null,
-      avatar: null,
+      name: "test",
+      username: "test",
+      avatar: "",
       hideBranding: true,
-      timeZone: null,
-      availability: [],
+      timeZone: "",
+      availability,
     },
   ],
 };

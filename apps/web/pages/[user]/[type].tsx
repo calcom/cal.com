@@ -58,7 +58,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     beforeEventBuffer: true,
     afterEventBuffer: true,
     timeZone: true,
-    isWeb3Active: true,
     metadata: true,
     slotInterval: true,
     users: {
@@ -164,12 +163,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (users.length > 1) {
     eventType["users"] = users.map((user) => {
       return {
-        avatar: user.avatar,
-        name: user.name,
-        username: user.username,
+        avatar: user.avatar as string,
+        name: user.name as string,
+        username: user.username as string,
         hideBranding: user.hideBranding,
         plan: user.plan,
-        timeZone: user.timeZone,
+        timeZone: user.timeZone as string,
+        availability: user.availability,
       };
     });
   }
