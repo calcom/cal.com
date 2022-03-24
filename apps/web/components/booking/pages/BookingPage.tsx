@@ -6,13 +6,13 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
@@ -361,6 +361,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         required
                         className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
+                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       />
                     </div>
                   </div>
@@ -549,7 +550,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       </div>
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+                          {(mutation.error as HttpError)?.message}
                         </p>
                       </div>
                     </div>
