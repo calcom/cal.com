@@ -33,7 +33,7 @@ function TeamPage({ team }: TeamPageProps) {
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-0 dark:bg-neutral-900 dark:hover:border-neutral-600">
+          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600">
           <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
@@ -43,7 +43,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
               <div className="mt-1">
                 <AvatarGroup
-                  border="border-2 border-white"
+                  border="border-2 border-white dark:border-neutral-800"
                   truncateAfter={4}
                   className="flex-shrink-0"
                   size={10}
@@ -88,7 +88,7 @@ function TeamPage({ team }: TeamPageProps) {
 
               <div className="relative mt-12">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-900" />
+                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
                 </div>
                 <div className="relative flex justify-center">
                   <span className="dark:bg-brand dark:text-brandcontrast bg-gray-100 px-2 text-sm text-gray-500">
