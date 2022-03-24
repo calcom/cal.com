@@ -104,7 +104,7 @@ export function getLocationTypes(): string[] {
 }
 
 export function getAppName(name: string) {
-  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].name;
+  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name || "No App Name";
 }
 
 export function getAppType(name: string): string {
