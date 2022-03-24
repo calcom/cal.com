@@ -94,6 +94,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       brandColor: true,
       darkBrandColor: true,
       defaultScheduleId: true,
+      isWeb3Active: true,
       schedules: {
         select: {
           availability: true,
@@ -157,41 +158,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     users[0].eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  let eventType = {
-    id: 0,
-    metadata: {},
-    description: "",
-    hidden: false,
-    isWeb3Active: false,
-    length: 0,
-    price: 0,
-    currency: "",
-    schedulingType: null,
-    slug: "",
-    title: "",
-    minimumBookingNotice: 0,
-    periodCountCalendarDays: null,
-    periodStartDate: null,
-    periodEndDate: null,
-    schedule: null,
-    timeZone: null,
-    availability: [],
-    beforeEventBuffer: 0,
-    afterEventBuffer: 0,
-    periodType: null,
-    periodDays: null,
-    slotInterval: null,
-    hidden: false,
-    isWeb3Active: false,
-    users: [],
-    
-
-  };
+  let eventType = getDefaultEvent(typeParam);
 
   [eventType] = users[0].eventTypes;
   if (users.length > 1) {
-    eventType = getDefaultEvent(typeParam);
-    eventType.users = users.map((user) => {
+    eventType["users"] = users.map((user) => {
       return {
         avatar: user.avatar,
         name: user.name,

@@ -1,53 +1,46 @@
-const min15Event = {
+import { PeriodType, SchedulingType } from "@calcom/prisma/client";
+
+const commons = {
+  periodCountCalendarDays: null,
+  periodStartDate: Date.now(),
+  periodEndDate: Date.now(),
+  beforeEventBuffer: 0,
+  afterEventBuffer: 0,
+  periodType: PeriodType.UNLIMITED,
+  periodDays: null,
+  slotInterval: null,
+  minimumBookingNotice: 120,
+  schedule: null,
+  timeZone: null,
+  availability: [],
+  price: 0,
+  currency: "usd",
+  schedulingType: SchedulingType.COLLECTIVE,
   id: 0,
   metadata: {},
   description: "",
   hidden: false,
   isWeb3Active: false,
+  users: [{}],
+};
+
+const min15Event = {
   length: 15,
-  price: 0,
-  currency: "usd",
-  schedulingType: "COLLECTIVE",
   slug: "15min",
   title: "15min",
-  minimumBookingNotice: 120,
-  schedule: null,
-  timeZone: null,
-  availability: [],
+  ...commons,
 };
 const min30Event = {
-  id: 0,
-  metadata: {},
-  description: "",
-  hidden: false,
-  isWeb3Active: false,
   length: 30,
-  price: 0,
-  currency: "usd",
-  schedulingType: "COLLECTIVE",
   slug: "30min",
   title: "30min",
-  minimumBookingNotice: 120,
-  schedule: null,
-  timeZone: null,
-  availability: [],
+  ...commons,
 };
 const min60Event = {
-  id: 0,
-  metadata: {},
-  description: "",
-  hidden: false,
-  isWeb3Active: false,
   length: 60,
-  price: 0,
-  currency: "usd",
-  schedulingType: "COLLECTIVE",
   slug: "60min",
   title: "60min",
-  minimumBookingNotice: 120,
-  schedule: null,
-  timeZone: null,
-  availability: [],
+  ...commons,
 };
 
 const defaultEvents = [min15Event, min30Event, min60Event];
