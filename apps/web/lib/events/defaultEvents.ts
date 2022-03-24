@@ -1,6 +1,4 @@
-import { PeriodType, SchedulingType, Availability } from "@calcom/prisma/client";
-
-const availability: Availability[] = [
+const availability = [
   {
     id: 0,
     userId: 0 || null,
@@ -15,11 +13,11 @@ const availability: Availability[] = [
 
 const commons = {
   periodCountCalendarDays: true,
-  periodStartDate: Date.now(),
-  periodEndDate: Date.now(),
+  periodStartDate: new Date(),
+  periodEndDate: new Date(),
   beforeEventBuffer: 0,
   afterEventBuffer: 0,
-  periodType: PeriodType.UNLIMITED,
+  periodType: "UNLIMITED",
   periodDays: null,
   slotInterval: null,
   minimumBookingNotice: 120,
@@ -28,7 +26,7 @@ const commons = {
   availability: [],
   price: 0,
   currency: "usd",
-  schedulingType: SchedulingType.COLLECTIVE,
+  schedulingType: "COLLECTIVE",
   id: 0,
   metadata: {},
   description: "",
