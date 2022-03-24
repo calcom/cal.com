@@ -24,7 +24,7 @@ class MyDocument extends Document<Props> {
           <meta name="theme-color" content="#ffffff" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         </Head>
-        <body className="bg-gray-100 dark:bg-black">
+        <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />
           <NextScript />
         </body>
