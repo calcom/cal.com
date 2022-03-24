@@ -532,7 +532,10 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
-                    <Button type="submit" loading={mutation.isLoading}>
+                    <Button
+                      type="submit"
+                      data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
+                      loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
