@@ -28,7 +28,7 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
         </div>
         <div className="mb-16">
           <h2 className="mb-2 text-lg font-semibold text-gray-900">All {router.query.category} apps</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {appStore.map((app) => {
               return (
                 app.category === router.query.category && (
