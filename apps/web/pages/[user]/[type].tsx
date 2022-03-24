@@ -155,7 +155,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     users[0].eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  let eventType = {};
+  let eventType = {
+    id: 0,
+    metadata: {},
+    description: "",
+    hidden: false,
+    isWeb3Active: false,
+    length: 0,
+    price: 0,
+    currency: "",
+    schedulingType: "COLLECTIVE",
+    slug: "",
+    title: "",
+    minimumBookingNotice: 0,
+    periodCountCalendarDays: null,
+    periodStartDate: null,
+    periodEndDate: null,
+    schedule: null,
+    timeZone: null,
+    availability: [],
+    beforeEventBuffer: 0,
+    afterEventBuffer: 0,
+  };
 
   [eventType] = users[0].eventTypes;
   if (users.length > 1) {
@@ -209,6 +230,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const eventTypeObject = Object.assign({}, eventType, {
+    users,
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
