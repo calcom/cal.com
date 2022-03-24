@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import React from "react";
 
 import SAMLConfiguration from "@ee/components/saml/Configuration";
@@ -10,8 +11,6 @@ import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
-
-import { IdentityProvider } from ".prisma/client";
 
 export default function Security() {
   const user = trpc.useQuery(["viewer.me"]).data;

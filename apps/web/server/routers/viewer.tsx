@@ -3,11 +3,11 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -519,16 +519,16 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const integrations = ALL_INTEGRATIONS.map((integration) => ({
-        ...integration,
-        credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
-          .map((credential) => credential.id),
-      }));
+      const apps = getApps(credentials).map(
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
+          ...app,
+          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
+        })
+      );
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       return {
         conferencing: {

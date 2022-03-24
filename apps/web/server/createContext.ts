@@ -54,6 +54,7 @@ async function getUserFromSession({
           id: true,
           type: true,
           key: true,
+          userId: true,
         },
         orderBy: {
           id: "asc",
