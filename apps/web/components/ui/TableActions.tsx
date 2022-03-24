@@ -1,16 +1,11 @@
 import { DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
+import Dropdown, { DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@calcom/ui/Dropdown";
+
 import { SVGComponent } from "@lib/types/SVGComponent";
-
-import Dropdown, {
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@components/ui/Dropdown";
-
-import Button from "./Button";
 
 export type ActionType = {
   id: string;
@@ -52,8 +47,9 @@ const TableActions: FC<Props> = ({ actions }) => {
               <DropdownMenuItem key={action.id}>
                 <Button
                   type="button"
+                  size="lg"
                   color="minimal"
-                  className="w-full font-normal"
+                  className="w-full rounded-none font-normal"
                   href={action.href}
                   StartIcon={action.icon}
                   onClick={action.onClick}>

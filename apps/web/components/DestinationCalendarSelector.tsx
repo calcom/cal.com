@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
-
-import Button from "@components/ui/Button";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -67,7 +67,7 @@ const DestinationCalendarSelector = ({
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         isSearchable={false}
-        className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
+        className="focus:ring-primary-500 focus:border-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
         onChange={(option) => {
           setSelectedOption(option);
           if (!option) {

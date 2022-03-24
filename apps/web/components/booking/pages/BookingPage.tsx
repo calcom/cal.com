@@ -14,6 +14,8 @@ import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 
 import { createPaymentLink } from "@calcom/stripe/client";
+import { Button } from "@calcom/ui/Button";
+import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -28,9 +30,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/t
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
-import { EmailInput, Form } from "@components/form/fields";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import { Button } from "@components/ui/Button";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
@@ -132,6 +132,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
 
   // TODO: Move to translations
+  // Also TODO: Get these dynamically from App Store
   const locationLabels = {
     [LocationType.InPerson]: t("in_person_meeting"),
     [LocationType.Phone]: t("phone_call"),
@@ -141,8 +142,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.Daily]: "Daily.co Video",
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
+    [LocationType.Teams]: "MS Teams",
   };
-  const loggedInIsOwner = eventType.users[0].name === session?.user.name;
+  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 import { useFormContext } from "react-hook-form";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { Input } from "@calcom/ui/form/fields";
 
-import { Input } from "@components/form/fields";
+import { useLocale } from "@lib/hooks/useLocale";
 
 export default function TwoFactor() {
   const [value, onChange] = useState("");

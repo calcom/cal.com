@@ -670,9 +670,21 @@
   "prisma_studio_tip_description": "Erfahren Sie, wie Sie Ihren ersten Benutzer einrichten können",
   "contact_sales": "Vertrieb kontaktieren",
   "error_404": "Fehler 404",
+  "default": "Standard",
+  "set_to_default": "Auf Standard setzen",
+  "new_schedule_btn": "Neuer Zeitplan",
+  "add_new_schedule": "Neuen Zeitplan hinzufügen",
+  "delete_schedule": "Zeitplan löschen",
+  "schedule_created_successfully": "{{scheduleName}} -Zeitplan erfolgreich erstellt",
+  "schedule_deleted_successfully": "Zeitplan erfolgreich gelöscht",
+  "default_schedule_name": "Arbeitszeiten",
+  "new_schedule_heading": "Erstelle einen Verfügbarkeitsplan",
+  "new_schedule_description": "Das Erstellen von Verfügbarkeits-Zeitplänen sorgt dafür, dass Ihre Verfügbarkeit bei mehreren Events genutzt werden kann.",
   "requires_ownership_of_a_token": "Erfordert Besitz eines Tokens, das zu der folgenden Adresse gehört:",
   "example_name": "Max Mustermann",
   "time_format": "Zeitformat",
   "12_hour": "12 Stunden",
-  "24_hour": "24 Stunden"
+  "24_hour": "24 Stunden",
+  "duplicate": "Duplizieren",
+  "you_can_manage_your_schedules": "Sie können Ihre Zeitpläne bei Ihren Verfügbarkeitszeiten ändern."
 }
