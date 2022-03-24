@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IdentityProvider, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -19,11 +19,11 @@ import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Form } from "@calcom/ui/form/fields";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -152,15 +152,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
+    // Always set timezone if new user
     let step = 0;
-    const hasSetUserNameOrTimeZone =
-      props.user?.name &&
-      props.user?.timeZone &&
-      !props.usernameParam &&
-      props.user?.identityProvider === IdentityProvider.CAL;
-    if (hasSetUserNameOrTimeZone) {
-      step = 1;
-    }
 
     const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
@@ -258,6 +251,44 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const formMethods = useForm<{
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
+
+  const fetchUsername = async (username: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/username`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: username.trim() }),
+      method: "POST",
+      mode: "cors",
+    });
+    const data = (await response.json()) as ResponseUsernameApi;
+    return { response, data };
+  };
+
+  // Should update username on user when being redirected from sign up and doing google/saml
+  useEffect(() => {
+    async function validateAndSave(username) {
+      const { data } = await fetchUsername(username);
+
+      // Only persist username if its available and not premium
+      // premium usernames are saved via stripe webhook
+      if (data.available && !data.premium) {
+        await updateUser({
+          username,
+        });
+      }
+      // Remove it from localStorage
+      window.localStorage.removeItem("username");
+      return;
+    }
+
+    // Looking for username on localStorage
+    const username = window.localStorage.getItem("username");
+    if (username) {
+      validateAndSave(username);
+    }
+  }, []);
 
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
@@ -398,11 +429,12 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           };
         });
 
-        mutation.mutate({
-          username: usernameRef.current?.value,
+        const userUpdateData = {
           name: nameRef.current?.value,
           timeZone: selectedTimeZone,
-        });
+        };
+
+        mutation.mutate(userUpdateData);
 
         if (mutationComplete) {
           await mutationAsync;
@@ -588,7 +620,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}>
+                  EndIcon={ArrowRightIcon}
+                  data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
@@ -619,8 +652,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 }
 
 export async function getServerSideProps(context: NextPageContext) {
-  const usernameParam = asStringOrNull(context.query.username);
-
   const session = await getSession(context);
 
   if (!session?.user?.id) {
@@ -720,7 +751,6 @@ export async function getServerSideProps(context: NextPageContext) {
       connectedCalendars,
       eventTypes,
       schedules,
-      usernameParam,
     },
   };
 }
