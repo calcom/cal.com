@@ -636,7 +636,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   );
   await Promise.all(promises);
-
+  // Avoid passing referencesToCreate with id unique constrain values
   await prisma.booking.update({
     where: {
       uid: booking.uid,
