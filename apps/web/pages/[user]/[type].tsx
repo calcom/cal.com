@@ -58,6 +58,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     beforeEventBuffer: true,
     afterEventBuffer: true,
     timeZone: true,
+    isWeb3Active: true,
     metadata: true,
     slotInterval: true,
     users: {
@@ -94,7 +95,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       brandColor: true,
       darkBrandColor: true,
       defaultScheduleId: true,
-      isWeb3Active: true,
       schedules: {
         select: {
           availability: true,

@@ -21,7 +21,16 @@ const commons = {
   description: "",
   hidden: false,
   isWeb3Active: false,
-  users: [{}],
+  users: [
+    {
+      name: "" || null,
+      username: "" || null,
+      avatar: null,
+      hideBranding: true,
+      timeZone: null,
+      availability: [],
+    },
+  ],
 };
 
 const min15Event = {
