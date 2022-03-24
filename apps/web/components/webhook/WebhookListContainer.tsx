@@ -43,7 +43,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
             <ListItem className={classNames("flex-col")}>
               <div
                 className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-                <Image width={40} height={40} src="/integrations/webhooks.svg" alt="Webhooks" />
+                <Image width={40} height={40} src="/apps/webhooks.svg" alt="Webhooks" />
                 <div className="flex-grow truncate pl-2">
                   <ListItemTitle component="h3">Webhooks</ListItemTitle>
                   <ListItemText component="p">{t("automation")}</ListItemText>

@@ -2,14 +2,14 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+import EventManager from "@calcom/core/EventManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
-import EventManager from "@lib/events/EventManager";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
-import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -138,6 +138,11 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
 };
 
+/**
+ * @deprecated
+ * We need to create a PaymentManager in `@calcom/core`
+ * to prevent circular dependencies on App Store migration
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {

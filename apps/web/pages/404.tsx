@@ -51,7 +51,7 @@ export default function Custom404() {
           noindex: true,
         }}
       />
-      <div className="min-h-screen bg-white px-4">
+      <div className="min-h-screen bg-white px-4" data-testid="404-page">
         <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
           {isSignup && process.env.NEXT_PUBLIC_BASE_URL !== "https://app.cal.com" ? (
             <div>

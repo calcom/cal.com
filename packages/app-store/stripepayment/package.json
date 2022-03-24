@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "license": "AGPLv3 (see LICENSE file)",
+  "name": "@calcom/stripepayment",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Stripe is the world's leading payment provider. Start charging for your bookings today.",
+  "dependencies": {
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
