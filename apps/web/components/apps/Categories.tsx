@@ -1,7 +1,7 @@
 import { CreditCardIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function AppStoreCategories(props: any) {
   const { t } = useLocale();

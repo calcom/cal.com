@@ -55,21 +55,6 @@ export default function App({
 }) {
   const { t } = useLocale();
 
-  /*const tabs = [
-    {
-      name: t("description"),
-      href: "?description",
-    },
-    {
-      name: t("features"),
-      href: "?features",
-    },
-    {
-      name: t("permissions"),
-      href: "?permissions",
-    },
-  ];*/
-
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -88,7 +73,7 @@ export default function App({
             </Link>
             <div className="flex items-center justify-between py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt="" />
+                <img className="h-16 w-16" src={logo} alt={name} />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
