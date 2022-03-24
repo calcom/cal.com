@@ -43,12 +43,12 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
         });
 
         if (result) {
-          showToast("Reschedule request sent", "success");
+          showToast(t("reschedule_request_sent"), "success");
           setIsOpenDialog(false);
         }
       } catch (error) {
-        showToast("There was a problem", "error");
-        console.log(error);
+        showToast(t("unexpected_error_try_again"), "error");
+        // @TODO: notify sentry
       }
       setIsLoading(false);
     },
@@ -72,17 +72,15 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
           </div>
           <div className="px-4 pt-1">
-            <DialogHeader title={"Send reschedule request"} />
+            <DialogHeader title={t("send_request_reschedule")} />
 
-            <p className="-mt-8 text-sm text-gray-500">
-              This will cancel the scheduled meeting, notify the scheduler and ask them to pick a new time.
-            </p>
+            <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
             <p className="mt-6 mb-2 text-sm font-bold text-black">
-              Reason for reschedule request
+              {t("reason_for_reschedule_request")}
               <span className="font-normal text-gray-500"> (Optional)</span>
             </p>
             <TextArea
-              name={t("rejection_reason")}
+              name={t("reschedule_reason")}
               value={rescheduleReason}
               onChange={(e) => setRescheduleReason(e.target.value)}
               className="mb-5 sm:mb-6"
@@ -97,7 +95,7 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
                 onClick={() => {
                   rescheduleApi.mutate();
                 }}>
-                Send reschedule request
+                {t("send_reschedule_request")}
               </Button>
             </DialogFooter>
           </div>
@@ -174,14 +172,12 @@ function BookingListItem(booking: BookingItem) {
       actions: [
         {
           id: "edit",
-          // @TODO: add translate
-          label: "Edit booking",
+          label: t("edit_booking"),
           href: "",
         },
         {
           id: "reschedule_request",
-          // @TODO: add translate
-          label: "Reschedule booking",
+          label: t("reschedule_booking"),
           onClick: () => setIsOpenRescheduleDialog(true),
         },
       ],
@@ -192,7 +188,7 @@ function BookingListItem(booking: BookingItem) {
     return (
       <div className="ml-1 mr-8 flex flex text-gray-500">
         <PaperAirplaneIcon className="-mt-[1px] w-4 rotate-45" />
-        <p className="ml-2 ">Reschedule request sent</p>
+        <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
   };
@@ -206,6 +202,8 @@ function BookingListItem(booking: BookingItem) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
+
+      {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
           <DialogHeader title={t("rejection_reason_title")} />

@@ -406,7 +406,7 @@
   "booking_confirmation": "Confirm your {{eventTypeTitle}} with {{profileName}}",
   "booking_reschedule_confirmation": "Reschedule your {{eventTypeTitle}} with {{profileName}}",
   "in_person_meeting": "In-person meeting",
-  "link_meeting":"Link meeting",
+  "link_meeting": "Link meeting",
   "phone_call": "Phone call",
   "phone_number": "Phone Number",
   "enter_phone_number": "Enter phone number",
@@ -686,5 +686,14 @@
   "12_hour": "12 hour",
   "24_hour": "24 hour",
   "duplicate": "Duplicate",
-  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
+  "request_reschedule_booking": "Request to reschedule your booking",
+  "reason_for_reschedule": "Reason for reschedule",
+  "book_a_new_time": "Book a new time",
+  "reschedule_request_sent": "Reschedule request sent",
+  "reschedule_modal_description": "This will cancel the scheduled meeting, notify the scheduler and ask them to pick a new time.",
+  "reason_for_reschedule_request": "Reason for reschedule request",
+  "send_request_reschedule": "Send reschedule request",
+  "edit_booking": "Edit booking",
+  "reschedule_booking": "Reschedule booking"
 }
