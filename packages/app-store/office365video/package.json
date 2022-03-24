@@ -3,7 +3,7 @@
   "name": "@calcom/office365video",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Use your Office 365 account to book video calls through MS Teams NOTE: MUST HAVE A WORK / SCHOOL ACCOUNT",
+  "description": "Use your Office 365 account to book video calls through MS Teams. NOTE: MUST HAVE A WORK / SCHOOL ACCOUNT",
   "dependencies": {
     "@calcom/prisma": "*",
     "@calcom/lib": "*"
