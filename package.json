@@ -11,7 +11,7 @@
     "start": "next start",
     "build": "next build",
     "lint": "next lint",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "type-check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },

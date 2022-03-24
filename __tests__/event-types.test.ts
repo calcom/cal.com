@@ -5,6 +5,11 @@ import { EventType } from "@calcom/prisma/client";
 
 import handleEvent from "../pages/api/event-types/[id]";
 
+afterAll((done) => {
+  prisma.$disconnect().then();
+  done();
+});
+
 describe("/api/event-types/[id]", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
