@@ -4,7 +4,7 @@
   "name": "@calcom/applecalendar",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "For personal and business calendars",
+  "description": "Apple Calendar is a personal calendar app made by Apple Inc. that runs on both the macOS desktop operating system and the iOS mobile operating system.",
   "dependencies": {
     "@calcom/prisma": "*",
     "react-hook-form": "^7.20.4"
