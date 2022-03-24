@@ -4,6 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import defaultEvents, { getDefaultEvent, getGroupName } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -21,6 +22,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
+  const usernameList = (context.query.user as string).toLowerCase().split("+");
+
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
@@ -67,9 +70,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const user = await prisma.user.findUnique({
+  const users = await prisma.user.findMany({
     where: {
-      username: userParam.toLowerCase(),
+      username: {
+        in: usernameList,
+      },
     },
     select: {
       id: true,
@@ -112,18 +117,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!user) {
+  if (!users) {
     return {
       notFound: true,
     };
   }
 
-  if (user.eventTypes.length !== 1) {
+  if (users.length < 2 && users[0].eventTypes.length !== 1) {
     const eventTypeBackwardsCompat = await prisma.eventType.findFirst({
       where: {
         AND: [
           {
-            userId: user.id,
+            userId: users[0].id,
           },
           {
             slug: typeParam,
@@ -139,18 +144,33 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     eventTypeBackwardsCompat.users.push({
-      avatar: user.avatar,
-      name: user.name,
-      username: user.username,
-      hideBranding: user.hideBranding,
-      plan: user.plan,
-      timeZone: user.timeZone,
+      avatar: users[0].avatar,
+      name: users[0].name,
+      username: users[0].username,
+      hideBranding: users[0].hideBranding,
+      plan: users[0].plan,
+      timeZone: users[0].timeZone,
     });
 
-    user.eventTypes.push(eventTypeBackwardsCompat);
+    users[0].eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  const [eventType] = user.eventTypes;
+  let eventType = {};
+
+  [eventType] = users[0].eventTypes;
+  if (users.length > 1) {
+    eventType = getDefaultEvent(typeParam);
+    eventType.users = users.map((user) => {
+      return {
+        avatar: user.avatar,
+        name: user.name,
+        username: user.username,
+        hideBranding: user.hideBranding,
+        plan: user.plan,
+        timeZone: user.timeZone,
+      };
+    });
+  }
 
   // check this is the first event
   if (user.plan === "FREE") {
@@ -197,34 +217,50 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const schedule = eventType.schedule
     ? { ...eventType.schedule }
     : {
-        ...user.schedules.filter(
-          (schedule) => !user.defaultScheduleId || schedule.id === user.defaultScheduleId
+        ...users[0].schedules.filter(
+          (schedule) => !users[0].defaultScheduleId || schedule.id === users[0].defaultScheduleId
         )[0],
       };
 
-  const timeZone = schedule.timeZone || eventType.timeZone || user.timeZone;
+  const timeZone =
+    users.length > 1 ? undefined : schedule.timeZone || eventType.timeZone || users[0].timeZone;
 
   const workingHours = getWorkingHours(
     {
       timeZone,
     },
-    schedule.availability || (eventType.availability.length ? eventType.availability : user.availability)
+    users.length > 1
+      ? eventType.schedule?.availability || eventType.availability || undefined
+      : schedule.availability ||
+          (eventType.availability.length ? eventType.availability : users[0].availability)
   );
-
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  const profile =
+    users.length > 1
+      ? {
+          name: getGroupName(usernameList),
+          image: null,
+          slug: typeParam,
+          theme: null,
+          weekStart: "Sunday",
+          brandColor: "",
+          darkBrandColor: "",
+        }
+      : {
+          name: users[0].name || users[0].username,
+          image: users[0].avatar,
+          slug: users[0].username,
+          theme: users[0].theme,
+          weekStart: users[0].weekStart,
+          brandColor: users[0].brandColor,
+          darkBrandColor: users[0].darkBrandColor,
+        };
+
   return {
     props: {
-      profile: {
-        name: user.name || user.username,
-        image: user.avatar,
-        slug: user.username,
-        theme: user.theme,
-        weekStart: user.weekStart,
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-      },
+      profile,
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,

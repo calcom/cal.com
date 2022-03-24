@@ -11,6 +11,9 @@ const min15Event = {
   slug: "15min",
   title: "15min",
   minimumBookingNotice: 120,
+  schedule: null,
+  timeZone: null,
+  availability: [],
 };
 const min30Event = {
   id: 0,
@@ -25,6 +28,9 @@ const min30Event = {
   slug: "30min",
   title: "30min",
   minimumBookingNotice: 120,
+  schedule: null,
+  timeZone: null,
+  availability: [],
 };
 const min60Event = {
   id: 0,
@@ -39,9 +45,24 @@ const min60Event = {
   slug: "60min",
   title: "60min",
   minimumBookingNotice: 120,
+  schedule: null,
+  timeZone: null,
+  availability: [],
 };
 
 const defaultEvents = [min15Event, min30Event, min60Event];
+
+export const getDefaultEvent = (slug: string) => {
+  const event = defaultEvents.find((obj) => {
+    return obj.slug === slug;
+  });
+  return event || min15Event;
+};
+
+export const getGroupName = (usernameList: string[]): string => {
+  return usernameList.toString();
+};
+
 export const getUsernameSlugLink = ({ users, slug }): string => {
   let slugLink = ``;
   if (users.length > 1) {
