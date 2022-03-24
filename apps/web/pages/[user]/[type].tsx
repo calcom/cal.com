@@ -52,6 +52,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         timeZone: true,
       },
     },
+    hidden: true,
+    slug: true,
     minimumBookingNotice: true,
     beforeEventBuffer: true,
     afterEventBuffer: true,
@@ -164,7 +166,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     length: 0,
     price: 0,
     currency: "",
-    schedulingType: "COLLECTIVE",
+    schedulingType: null,
     slug: "",
     title: "",
     minimumBookingNotice: 0,
@@ -176,6 +178,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     availability: [],
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
+    periodType: null,
+    periodDays: null,
+    slotInterval: null,
+    hidden: false,
+    isWeb3Active: false,
+    users: [],
+    
+
   };
 
   [eventType] = users[0].eventTypes;
@@ -252,7 +262,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       timeZone,
     },
     users.length > 1
-      ? eventType.schedule?.availability || eventType.availability || undefined
+      ? eventType.availability || undefined
       : schedule.availability ||
           (eventType.availability.length ? eventType.availability : users[0].availability)
   );
