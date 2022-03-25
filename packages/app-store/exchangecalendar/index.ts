@@ -26,3 +26,4 @@ export const metadata = {
 
 export * as components from "./components";
 export * as lib from "./lib";
+export * as api from "./api";

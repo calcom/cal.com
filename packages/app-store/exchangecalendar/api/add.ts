@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getCalendar } from "@calcom/core/CalendarManager";
 import { getSession } from "@calcom/lib/auth";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+
+import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -38,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const dav = getCalendar({
+      const dav = new CalendarService({
         id: 0,
         ...data,
       });

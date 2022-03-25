@@ -41,7 +41,8 @@ export default class ExchangeCalendarService implements Calendar {
   private credentials: Record<string, string>;
 
   constructor(credential: Credential) {
-    this.integrationName = CALENDAR_INTEGRATIONS_TYPES.exchange;
+    // this.integrationName = CALENDAR_INTEGRATIONS_TYPES.exchange;
+    this.integrationName = "exchange_calendar";
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
@@ -58,7 +59,7 @@ export default class ExchangeCalendarService implements Calendar {
       username,
       password,
     };
-    this.exchangeVersion = ExchangeVersion.Exchange2013;
+    this.exchangeVersion = ExchangeVersion.Exchange2016;
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
@@ -180,6 +181,7 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
+    console.log("This triggers");
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()
@@ -221,6 +223,10 @@ export default class ExchangeCalendarService implements Calendar {
 
   private getExchangeService(): ExchangeService {
     const exch1 = new ExchangeService(this.exchangeVersion);
+    console.log(
+      "🚀 ~ file: CalendarService.ts ~ line 226 ~ ExchangeCalendarService ~ getExchangeService ~ exch1",
+      exch1
+    );
     exch1.Credentials = new WebCredentials(this.credentials.username, this.credentials.password);
     exch1.Url = new Uri(this.url);
     return exch1;
