@@ -437,12 +437,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             )}>
             <img
               className="rounded-full"
-              src={
-                (process.env.NEXT_PUBLIC_WEBSITE_URL || process.env.NEXT_PUBLIC_BASE_URL) +
-                "/" +
-                user?.username +
-                "/avatar.png"
-              }
+              src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
               alt={user?.username || "Nameless User"}
             />
             {!user?.away && (

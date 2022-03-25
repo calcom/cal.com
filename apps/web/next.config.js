@@ -21,7 +21,6 @@ if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-process.env.NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 
 if (!process.env.EMAIL_FROM) {
   console.warn(
