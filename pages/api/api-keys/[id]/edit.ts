@@ -1,37 +1,37 @@
-import { PrismaClient, EventType } from "@prisma/client";
+import prisma from "@calcom/prisma";
+
+import { ApiKey } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
-import { schemaQueryId, withValidQueryId } from "@lib/validations/queryIdTransformParseInt";
-
-const prisma = new PrismaClient();
+import { schemaApiKey, withValidApiKey } from "@lib/validations/apiKey";
+import { schemaQueryId, withValidQueryIdString } from "@lib/validations/queryIdString";
 
 type ResponseData = {
-  data?: EventType;
+  data?: ApiKey;
   message?: string;
   error?: unknown;
 };
 
-export async function editEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export async function editApiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, body, method } = req;
   const safeQuery = await schemaQueryId.safeParse(query);
-  const safeBody = await schemaEventType.safeParse(body);
+  const safeBody = await schemaApiKey.safeParse(body);
 
   if (method === "PATCH") {
     if (safeQuery.success && safeBody.success) {
-      await prisma.eventType.update({
+      await prisma.apiKey.update({
         where: { id: safeQuery.data.id },
         data: safeBody.data,
-      }).then(event => {
-        res.status(200).json({ data: event });
+      }).then(apiKey => {
+        res.status(200).json({ data: apiKey });
       }).catch(error => {
         res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
     }
   } else {
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating event-types"  });
+    res.status(405).json({ message: "Only PATCH Method allowed for updating apiKey-types"  });
   }
 }
 
-export default withValidQueryId(withValidEventType(editEventType));
+export default withValidQueryIdString(withValidApiKey(editApiKey));

@@ -1,7 +1,10 @@
+// https://www.npmjs.com/package/next-transpile-modules
+// This makes our @calcom/prisma package from the monorepo to be transpiled and usable by API
 const withTM = require("next-transpile-modules")([
   "@calcom/prisma",
 ]);
 
+// use something like withPlugins([withTM], {}) if more plugins added later.
 
 module.exports = withTM({
   async rewrites() {

@@ -1,9 +1,9 @@
-import { PrismaClient, EventType } from "@prisma/client";
+import prisma from "@calcom/prisma";
+
+import { EventType } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryId, withValidQueryId } from "@lib/validations/queryIdTransformParseInt";
-
-const prisma = new PrismaClient();
+import { schemaQueryId, withValidQueryIdTransformParseInt } from "@lib/validations/queryIdTransformParseInt";
 
 type ResponseData = {
   data?: EventType;
@@ -28,4 +28,4 @@ export async function eventType(req: NextApiRequest, res: NextApiResponse<Respon
 }
 
 
-export default withValidQueryId(eventType);
+export default withValidQueryIdTransformParseInt(eventType);

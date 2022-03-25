@@ -1,7 +1,7 @@
-import { PrismaClient, ApiKey } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@calcom/prisma";
 
-const prisma = new PrismaClient();
+import { ApiKey } from "@calcom/prisma/client";import type { NextApiRequest, NextApiResponse } from "next";
+
 type ResponseData = {
   data?: ApiKey[];
   error?: unknown;
