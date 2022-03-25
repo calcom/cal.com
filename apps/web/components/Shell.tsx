@@ -361,7 +361,7 @@ export default function Shell(props: {
                     <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
                       {props.heading}
                     </h1>
-                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>

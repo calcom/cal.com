@@ -48,7 +48,7 @@ function IframeEmbedContainer() {
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
               </div>
-              <div>
+              <div className="text-right">
                 <input
                   id="iframe"
                   className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
@@ -307,7 +307,7 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
+    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
       <AppsShell>
         <ClientSuspense fallback={<Loader />}>
           <IntegrationsContainer />
