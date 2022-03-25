@@ -9,6 +9,12 @@ jobs:
   test:
     timeout-minutes: 10
     name: Testing ${{ matrix.node }} and ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
@@ -45,11 +51,6 @@ jobs:
           POSTGRES_DB: calendso
         ports:
           - 5432:5432
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node: ["14.x"]
-        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
