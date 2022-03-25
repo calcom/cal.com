@@ -4,7 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import defaultEvents, { getDefaultEvent, getGroupName } from "@lib/events/DefaultEvents";
+import { getDefaultEvent, getGroupName } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -168,13 +168,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         hideBranding: user.hideBranding,
         plan: user.plan,
         timeZone: user.timeZone as string,
-        availability: user.availability,
       };
     });
   }
 
   // check this is the first event
-  if (users[0].plan === "FREE") {
+  if (users.length < 2 && users[0].plan === "FREE") {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [

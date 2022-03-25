@@ -1,13 +1,8 @@
-import { PeriodType, SchedulingType, UserPlan } from "@calcom/prisma/client";
-
 const availability = [
   {
-    id: 0,
-    userId: 0 || null,
-    eventTypeId: 0 || null,
     days: [1, 2, 3, 4, 5],
-    startTime: new Date(),
-    endTime: new Date(),
+    startTime: new Date().getTime(),
+    endTime: new Date().getTime(),
     date: new Date(),
     scheduleId: null,
   },
@@ -19,7 +14,7 @@ const commons = {
   periodEndDate: new Date(),
   beforeEventBuffer: 0,
   afterEventBuffer: 0,
-  periodType: PeriodType.UNLIMITED,
+  periodType: "UNLIMITED",
   periodDays: null,
   slotInterval: null,
   minimumBookingNotice: 120,
@@ -28,14 +23,14 @@ const commons = {
   availability: [],
   price: 0,
   currency: "usd",
-  schedulingType: SchedulingType.COLLECTIVE,
+  schedulingType: "COLLECTIVE",
   id: 0,
   metadata: {},
   description: "",
   hidden: false,
   users: [
     {
-      plan: UserPlan.PRO,
+      plan: "PRO",
       name: "test",
       username: "test",
       avatar: "",
