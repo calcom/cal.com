@@ -1,4 +1,9 @@
-module.exports = {
+const withTM = require("next-transpile-modules")([
+  "@calcom/prisma",
+]);
+
+
+module.exports = withTM({
   async rewrites() {
     return [
       // This redirects requests recieved at / the root to the /api/ folder.
@@ -13,4 +18,4 @@ module.exports = {
       },
     ];
   },
-};
+});

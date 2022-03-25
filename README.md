@@ -39,3 +39,6 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 
 Since this will only support an API, we redirect the requests to root to the /api folder.
 We also added a redirect for future-proofing API versioning when we might need it, without having to resort to dirty hacks like a v1/v2 folders with lots of duplicated code, instead we redirect /api/v*/:rest to /api/:rest?version=*
+
+
+The priority is the booking-related API routes so people can build their own booking flow, then event type management routes, then availability management routes etc

@@ -31,9 +31,10 @@
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
-    "typescript": "^4.6.3",
     "next": "^12.1.0",
+    "next-transpile-modules": "^9.0.0",
     "next-validations": "^0.1.11",
+    "typescript": "^4.6.3",
     "zod": "^3.14.2"
   }
 }
