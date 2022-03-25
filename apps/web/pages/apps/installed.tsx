@@ -307,7 +307,7 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
+    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
       <AppsShell>
         <ClientSuspense fallback={<Loader />}>
           <IntegrationsContainer />
