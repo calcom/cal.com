@@ -33,9 +33,6 @@ const DestinationCalendarSelector = ({
         .map((connected) => connected.calendars ?? [])
         .flat()
         .find((cal) => cal.externalId === value);
-      let defaultValue = query.data?.connectedCalendars
-        .map((connected) => connected.calendars ?? []);
-
       if (selected) {
         setSelectedOption({
           value: `${selected.integration}:${selected.externalId}`,
@@ -43,7 +40,7 @@ const DestinationCalendarSelector = ({
         });
       }
       else {
-        let defaultValue: Array = query.data?.connectedCalendars
+        let defaultValue: Arrayy = query.data?.connectedCalendars
           .map((connected) => connected.calendars ?? []);
         if (defaultValue?.length > 0) {
           defaultValue = defaultValue[0];
