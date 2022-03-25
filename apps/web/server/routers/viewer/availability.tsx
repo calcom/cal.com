@@ -191,7 +191,7 @@ export const availabilityRouter = createProtectedRouter()
         });
       }
 
-      await prisma.schedule.update({
+      const schedule = await prisma.schedule.update({
         where: {
           id: input.scheduleId,
         },
@@ -214,5 +214,9 @@ export const availabilityRouter = createProtectedRouter()
           },
         },
       });
+
+      return {
+        schedule,
+      };
     },
   });

@@ -216,7 +216,6 @@ async function main() {
       username: "pro",
       plan: "PRO",
     },
-
     eventTypes: [
       {
         title: "30min",
@@ -248,6 +247,30 @@ async function main() {
         slug: "paid",
         length: 60,
         price: 50,
+      },
+      {
+        title: "In person meeting",
+        slug: "in-person",
+        length: 60,
+        locations: [{ type: "inPerson", address: "London" }],
+      },
+      {
+        title: "Zoom Event",
+        slug: "zoom",
+        length: 60,
+        locations: [{ type: "integrations:zoom" }],
+      },
+      {
+        title: "Daily Event",
+        slug: "daily",
+        length: 60,
+        locations: [{ type: "integrations:daily" }],
+      },
+      {
+        title: "Google Meet",
+        slug: "google-meet",
+        length: 60,
+        locations: [{ type: "integrations:google:meet" }],
       },
     ],
   });

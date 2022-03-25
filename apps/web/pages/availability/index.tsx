@@ -19,10 +19,11 @@ import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
+  const utils = trpc.useContext();
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
+      await utils.invalidateQueries(["viewer.availability.list"]);
       showToast(t("schedule_deleted_successfully"), "success");
-      window.location.reload();
     },
     onError: (err) => {
       if (err instanceof HttpError) {

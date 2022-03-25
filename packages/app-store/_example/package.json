@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/example-app",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "This is a brief description for the Example App.",
+  "dependencies": {
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
