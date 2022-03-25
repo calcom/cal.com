@@ -61,8 +61,8 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 
-// prettier-ignore
-module.exports = () => plugins.reduce((acc, next) => next(acc), {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
   i18n,
   eslint: {
     // This allows production builds to successfully complete even if the project has ESLint errors.
@@ -86,7 +86,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
       },
-    ]
+    ];
   },
   async redirects() {
     return [
@@ -101,10 +101,12 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         permanent: true,
       },
       {
-        source: '/call/:path*',
-        destination: '/video/:path*',
-        permanent: false
-      }
+        source: "/call/:path*",
+        destination: "/video/:path*",
+        permanent: false,
+      },
     ];
   },
-});
+};
+
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
