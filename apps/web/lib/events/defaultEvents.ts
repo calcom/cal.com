@@ -1,4 +1,4 @@
-import { PeriodType, SchedulingType, UserPlan } from "@calcom/prisma/client/index";
+import { PeriodType, SchedulingType, UserPlan } from "@calcom/prisma/client";
 
 const availability = [
   {
