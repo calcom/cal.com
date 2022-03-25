@@ -10,37 +10,84 @@ document.head.appendChild(document.createElement("style")).innerHTML = css;
 // FIXME: See how we want to manage the UI. If the UI is not complex we can go for Web Components - We get the automatic benefit of Style Encapsulation
 class ModalBox extends HTMLElement {
   element: HTMLElement;
-  open() {
-    this.element.style.display = "block";
+
+  connectedCallback() {
+    this.shadowRoot.querySelector(".close").onclick = () => {
+      this.shadowRoot.host.remove();
+    };
   }
 
-  close() {
-    this.element.style.display = "none";
-  }
-
-  constructor({ contentEl, style }) {
+  constructor() {
     super();
-    const modalBox = document.body.appendChild(document.createElement("div"));
-    style = style || {};
-    modalBox.className = "cal-embed-modal-box";
-    // FIXME: Ensure better implementation of modal box.
-    modalBox.style.position = "fixed";
-    modalBox.style.width = "100%";
-    modalBox.style.height = "100%";
-    modalBox.style.top = "0";
-    modalBox.style.left = "0";
-    modalBox.style.zIndex = "99999999";
-    modalBox.style.display = "none";
-    modalBox.style.backgroundColor = "rgba(0,0,0,0.4)";
-    const contentElWrapper = modalBox.appendChild(document.createElement("div"));
-    contentElWrapper.style.margin = "0 auto";
-    contentElWrapper.style.marginTop = "20px";
-    contentElWrapper.style.marginBottom = "20px";
-    contentElWrapper.style.width = "80%";
-    this.element = modalBox;
-    contentElWrapper.appendChild(contentEl);
+    const modalHtml = `
+      <style>
+      .backdrop {
+        position:fixed;
+        width:100%;
+        height:100%;
+        top:0;
+        left:0;
+        z-index:99999999;
+        display:block;
+        background-color:rgb(5,5,5, 0.8)
+      }
+      @media only screen and (min-width:600px) {
+        .modal-box {
+          margin:0 auto; 
+          margin-top:20px; 
+          margin-bottom:20px;
+          position:absolute;
+          width:50%;
+          height: 80%;
+          top:50%;
+          left:50%;
+          transform: translateY(-50%) translateX(-50%);
+          overflow: scroll;
+        }
+      }
+
+      @media only screen and (max-width:600px) {
+        .modal-box {
+          width: 100%;
+          height: 80%;
+          position:fixed;
+          top:50px;
+          left:0;
+          right: 0;
+          margin: 0;
+        }
+      }
+
+      .header {
+        position: relative;
+        float:right;
+        top: 10px;
+      }
+      .close {
+        font-size: 30px;
+        left: -20px;
+        position: relative;
+        color:white;
+        cursor: pointer;
+      }
+      </style>
+      <div class="backdrop">
+      <div class="header">
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-box">
+          <div class="body">
+              <slot></slot>
+          </div>
+        </div>
+      </div>
+    `;
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot.innerHTML = modalHtml;
   }
 }
+
+customElements.define("cal-modal-box", ModalBox);
 
 function log(...args) {
   console.log(...args);
@@ -52,8 +99,6 @@ export class Cal {
   __config: any;
 
   namespace: string;
-
-  modalBox?: ModalBox;
 
   actionManager: SdkEventManager;
 
@@ -71,6 +116,7 @@ export class Cal {
       guest: config.guests,
     };
   }
+
   processInstruction(instruction) {
     instruction = [].slice.call(instruction, 0);
     const isBulkInstruction = instruction[0] instanceof Array;
@@ -150,13 +196,14 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calendarLink, style }) {
+  modal({ calendarLink }) {
     const iframe = this.createIframe({ calendarLink });
-    style = style || {};
     iframe.style.height = "100%";
     iframe.style.width = "100%";
-    this.modalBox = this.modalBox || new ModalBox({ contentEl: iframe, style });
-    this.modalBox.open();
+    const template = document.createElement("template");
+    template.innerHTML = `<cal-modal-box></cal-modal-box>`;
+    template.content.children[0].appendChild(iframe);
+    document.body.appendChild(template.content);
   }
 
   on({ action, callback }) {
