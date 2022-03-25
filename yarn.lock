@@ -2338,11 +2338,6 @@
   resolved "https://registry.yarnpkg.com/@microsoft/microsoft-graph-types-beta/-/microsoft-graph-types-beta-0.15.0-preview.tgz#fed0a99be4e1151d566cf063f024913fb48640cd"
   integrity sha512-M0zC4t3pmkDz7Qsjx/iZcS+zRuckzsbHESvT9qjLFv64RUgkRmDdmhcvPMiUqUzw/h3YxfYAq9MU+XWjROk/dg==
 
-"@next-auth/prisma-adapter@^1.0.1":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@next-auth/prisma-adapter/-/prisma-adapter-1.0.3.tgz#cd6b866a3e281370ce64aa67daf320322a42a2b9"
-  integrity sha512-3Lq1cD3ytKM3EGKJZ4UZvlqshLtlPvYxLeCrUV9ifYwYlq51kmDaHjsIawlp8EbH5pE1UhlsvtlXMery7RghtA==
-
 "@next/bundle-analyzer@12.1.0":
   version "12.1.0"
   resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-12.1.0.tgz#9f6d6cda2a26220c936805be407243e22790f4b7"
