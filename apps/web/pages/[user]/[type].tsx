@@ -157,10 +157,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     users[0].eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  let eventType = getDefaultEvent(typeParam);
-
-  [eventType] = users[0].eventTypes;
+  let [eventType] = users[0].eventTypes;
   if (users.length > 1) {
+    eventType = getDefaultEvent(typeParam);
     eventType["users"] = users.map((user) => {
       return {
         avatar: user.avatar as string,
@@ -175,17 +174,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   // check this is the first event
-  if (user.plan === "FREE") {
+  if (users[0].plan === "FREE") {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [
           {
-            userId: user.id,
+            userId: users[0].id,
           },
           {
             users: {
               some: {
-                id: user.id,
+                id: users[0].id,
               },
             },
           },
