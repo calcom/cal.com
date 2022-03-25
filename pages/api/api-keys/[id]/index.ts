@@ -19,7 +19,7 @@ export async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseD
       const apiKey = await prisma.apiKey.findUnique({ where: { id: safe.data.id } });
 
       if (apiKey) res.status(200).json({ data: apiKey });
-      if (!apiKey) res.status(404).json({ message: "Event type not found" });
+      if (!apiKey) res.status(404).json({ message: "API key was not found" });
     } else {
       // Reject any other HTTP method than POST
       res.status(405).json({ message: "Only GET Method allowed" });

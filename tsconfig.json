@@ -21,7 +21,6 @@
     "jsx": "preserve",
     "paths": {
     "@api/*": ["pages/api/*"],
-    "@prisma/client/*": ["@calcom/prisma/client/*"],
     "@lib/*": ["lib/*"]
 
 },
