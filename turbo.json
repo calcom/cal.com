@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
-  "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
+  "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
     "@calcom/prisma#build": {
       "dependsOn": ["$DATABASE_URL"],

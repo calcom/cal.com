@@ -241,8 +241,8 @@ async function createCheckoutSession(
     payment_method_types: ["card"],
     customer: customerId,
     line_items,
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+    success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/`,
     allow_promotion_codes: true,
   };
 

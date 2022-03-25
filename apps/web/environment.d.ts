@@ -1,10 +1,23 @@
 declare namespace NodeJS {
   interface ProcessEnv {
+    /**
+     * Set this value to 'agree' to accept our license:
+     * LICENSE: https://github.com/calendso/calendso/blob/main/LICENSE
+     *
+     * Summary of terms:
+     * - The codebase has to stay open source, whether it was modified or not
+     * - You can not repackage or sell the codebase
+     * - Acquire a commercial license to remove these terms by visiting: cal.com/sales
+     **/
+    readonly NEXT_PUBLIC_LICENSE_CONSENT: "agree" | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
+    /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
     readonly BASE_URL: string | undefined;
+    /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
     readonly NEXT_PUBLIC_BASE_URL: string | undefined;
+    /** @deprecated use `NEXT_PUBLIC_WEBSITE_URL` */
     readonly NEXT_PUBLIC_APP_URL: string | undefined;
     readonly JWT_SECRET: string | undefined;
     readonly NEXT_PUBLIC_TELEMETRY_KEY: string | undefined;
@@ -29,5 +42,17 @@ declare namespace NodeJS {
     readonly TANDEM_CLIENT_ID: string | undefined;
     readonly TANDEM_CLIENT_SECRET: string | undefined;
     readonly TANDEM_BASE_URL: string | undefined;
+    readonly WEBSITE_BASE_URL: string | undefined;
+    /** @deprecated use `NEXT_PUBLIC_WEBSITE_URL` */
+    readonly NEXT_PUBLIC_WEBSITE_BASE_URL: string;
+    readonly NEXT_PUBLIC_WEBSITE_URL: string;
+    readonly APP_BASE_URL: string | undefined;
+    /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
+    readonly NEXT_PUBLIC_APP_BASE_URL: string;
+    readonly NEXT_PUBLIC_WEBAPP_URL: string;
+    /** The Environment that the app is deployed an running on. */
+    readonly VERCEL_ENV: "production" | "preview" | "development" | undefined;
+    /** The URL of the deployment. Example: my-site-7q03y4pi5.vercel.app. */
+    readonly VERCEL_URL: string | undefined;
   }
 }

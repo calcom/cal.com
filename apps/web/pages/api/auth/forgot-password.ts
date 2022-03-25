@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       passwordRequest = createdResetPasswordRequest;
     }
 
-    const resetLink = `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordRequest.id}`;
     const passwordEmail: PasswordReset = {
       language: t,
       user: maybeUser,
