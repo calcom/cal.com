@@ -72,7 +72,7 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
           </div>
           <div className="px-4 pt-1">
-            <DialogHeader title={t("send_request_reschedule")} />
+            <DialogHeader title={t("send_reschedule_request")} />
 
             <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
             <p className="mt-6 mb-2 text-sm font-bold text-black">

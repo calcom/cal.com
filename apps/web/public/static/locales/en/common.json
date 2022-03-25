@@ -715,7 +715,7 @@
   "reschedule_request_sent": "Reschedule request sent",
   "reschedule_modal_description": "This will cancel the scheduled meeting, notify the scheduler and ask them to pick a new time.",
   "reason_for_reschedule_request": "Reason for reschedule request",
-  "send_request_reschedule": "Send reschedule request",
+  "send_reschedule_request": "Send reschedule request",
   "edit_booking": "Edit booking",
   "reschedule_booking": "Reschedule booking"
 }
