@@ -2,6 +2,8 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
+import { Cal as CalClass } from "@calcom/embed-core/embed";
+
 export interface Cal {
   (method, arg): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
@@ -14,6 +16,7 @@ export interface Cal {
 
 export interface CalWindow extends Window {
   Cal?: Cal;
+  instance?: CalClass;
 }
 
 export default function EmbedSnippet(url = "https://cal.com/embed.js") {
@@ -27,7 +30,7 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
         if (!C.loaded) {
           C.ns = {};
           C.q = C.q || [];
-          d.getElementsByTagName("head")[0].appendChild(d.createElement("script")).src = a;
+          d.head.appendChild(d.createElement("script")).src = a;
           C.loaded = true;
         }
 

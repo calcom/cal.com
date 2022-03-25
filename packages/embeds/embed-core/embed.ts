@@ -1,19 +1,14 @@
+import { doc } from "prettier";
+
 import type { CalWindow } from "@calcom/embed-snippet";
 
+import css from "./embed.css";
 import { SdkEventManager } from "./sdk-event-manager";
 
 const globalCal = (window as CalWindow).Cal;
-
-//TODO: Move it to a CSS file and import
-const css = `
-	.cal-embed {
-		border: 0px;
-	}
-`;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
-
 // FIXME: See how we want to manage the UI. If the UI is not complex we can go for Web Components - We get the automatic benefit of Style Encapsulation
-class ModalBox {
+class ModalBox extends HTMLElement {
   element: HTMLElement;
   open() {
     this.element.style.display = "block";
@@ -24,6 +19,7 @@ class ModalBox {
   }
 
   constructor({ contentEl, style }) {
+    super();
     const modalBox = document.body.appendChild(document.createElement("div"));
     style = style || {};
     modalBox.className = "cal-embed-modal-box";
@@ -50,7 +46,22 @@ function log(...args) {
   console.log(...args);
 }
 
-class Cal {
+export class Cal {
+  iframe?: HTMLIFrameElement;
+
+  __config: any;
+
+  namespace: string;
+
+  modalBox?: ModalBox;
+
+  actionManager: SdkEventManager;
+
+  iframeReady: boolean;
+
+  iframeDoQueue: { method: (arg: any) => any; arg: any }[] = [];
+
+  static actionsManagers: SdkEventManager[];
   static getQueryObject(config) {
     config = config || {};
     return {
@@ -61,6 +72,15 @@ class Cal {
     };
   }
   processInstruction(instruction) {
+    instruction = [].slice.call(instruction, 0);
+    const isBulkInstruction = instruction[0] instanceof Array;
+    if (isBulkInstruction) {
+      // It is an instruction
+      instruction.forEach((instruction) => {
+        this.processInstruction(instruction);
+      });
+      return;
+    }
     const [method, argument] = instruction;
     if (!this[method]) {
       // Instead of throwing error, log and move forward in the queue
@@ -86,7 +106,13 @@ class Cal {
     };
   }
 
-  createIframe({ calendarLink, queryObject }) {
+  createIframe({
+    calendarLink,
+    queryObject,
+  }: {
+    calendarLink: string;
+    queryObject?: Record<string, string>;
+  }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
     iframe.scrolling = "no";
@@ -148,6 +174,22 @@ class Cal {
     iframe.style.display = "none";
   }
 
+  ui(cssConfig) {
+    if (!cssConfig) {
+      throw new Error("css is required");
+    }
+    this.doInIframe({ method: "ui", arg: cssConfig });
+  }
+
+  doInIframe({ method, arg }) {
+    if (!this.iframeReady) {
+      this.iframeDoQueue.push({ method, arg });
+      return;
+    }
+    // TODO: Ensure that origin is as defined by user. Generally it would be cal.com but in case of self hosting it can be anything.
+    this.iframe.contentWindow.postMessage({ originator: "CAL", method, arg }, "*");
+  }
+
   constructor(namespace, q) {
     this.__config = {
       origin: "http://localhost:3000",
@@ -174,6 +216,14 @@ class Cal {
       let proposedHeightByIframeWebsite =
         parseFloat(getComputedStyle(this.iframe).height) + data.hiddenHeight;
       setAppropriateHeight({ iframe, proposedHeightByIframeWebsite });
+    });
+
+    this.actionManager.on("iframeReady", (e) => {
+      this.iframeReady = true;
+      this.doInIframe({ method: "parentKnowsIframeReady", arg: {} });
+      this.iframeDoQueue.forEach(({ method, arg }) => {
+        this.doInIframe({ method, arg });
+      });
     });
   }
 }
