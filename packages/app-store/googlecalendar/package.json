@@ -4,7 +4,7 @@
   "name": "@calcom/googlecalendar",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "For personal and business calendars",
+  "description": "Google Calendar is a time management and scheduling service developed by Google. Allows users to create and edit events, with options available for type and time. Available to anyone that has a Gmail account on both mobile and web versions.",
   "dependencies": {
     "@calcom/prisma": "*",
     "googleapis": "^84.0.0"

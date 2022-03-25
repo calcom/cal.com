@@ -64,7 +64,7 @@ export default function App({
   return (
     <>
       <Shell large>
-        <div className="-mx-4">
+        <div className="-mx-4 md:-mx-8">
           <div className="bg-gray-50 px-4">
             <Link href="/apps">
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
