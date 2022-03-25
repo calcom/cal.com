@@ -12,25 +12,21 @@ const validate = withValidation({
   mode: "body",
 });
 
-type Data = {
+type ResponseData = {
   data?: EventType;
+  message?: string;
   error?: string;
 };
 
-async function createEventType(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function createEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { body, method } = req;
   if (method === "POST") {
     const safe = schema.safeParse(body);
     if (safe.success && safe.data) {
       await prisma.eventType
-        .create({
-          data: safe.data,
-        })
+        .create({ data: safe.data })
         .then((event) => res.status(201).json({ data: event }))
-        .catch((error) => {
-          console.log(error);
-          res.status(400).json({ error: "Could not create event type" });
-        });
+        .catch((error) => res.status(400).json({ message: "Could not create event type", error: error }));
     }
   } else {
     // Reject any other HTTP method than POST
