@@ -1,0 +1,15 @@
+// FIXME: import eslint-config-calcom-base from '@calcom/config/eslint
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@next/next/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": { "project": ["./tsconfig.json"] },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "ignorePatterns": ["src/**/*.test.ts", "src/frontend/generated/*"]
+}

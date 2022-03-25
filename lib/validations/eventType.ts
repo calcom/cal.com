@@ -1,6 +1,7 @@
+import { withValidation } from "next-validations";
 import { z } from "zod";
 
-const schema = z
+const schemaEventType = z
   .object({
     title: z.string().min(3),
     slug: z.string().min(3),
@@ -8,5 +9,10 @@ const schema = z
     description: z.string().min(3).optional(),
   })
   .strict(); // Adding strict so that we can disallow passing in extra fields
+const withValidEventType = withValidation({
+  schema: schemaEventType,
+  type: "Zod",
+  mode: "body",
+});
 
-export default schema;
+export { schemaEventType, withValidEventType };

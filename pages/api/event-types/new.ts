@@ -1,17 +1,9 @@
 import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withValidation } from "next-validations";
 
-import schema from "@lib/validation/eventType";
+import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
 
 const prisma = new PrismaClient();
-
-const validate = withValidation({
-  schema,
-  type: "Zod",
-  mode: "body",
-});
-
 type ResponseData = {
   data?: EventType;
   message?: string;
@@ -21,7 +13,7 @@ type ResponseData = {
 async function createEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { body, method } = req;
   if (method === "POST") {
-    const safe = schema.safeParse(body);
+    const safe = schemaEventType.safeParse(body);
     if (safe.success && safe.data) {
       await prisma.eventType
         .create({ data: safe.data })
@@ -34,4 +26,4 @@ async function createEventType(req: NextApiRequest, res: NextApiResponse<Respons
   }
 }
 
-export default validate(createEventType);
+export default withValidEventType(createEventType);

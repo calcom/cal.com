@@ -12,7 +12,7 @@
     "build": "next build",
     "lint": "next lint",
     "lint-fix": "next lint --fix",
-    "test": "jest --detectOpenHandles",
+    "test": "jest --detectOpenHandles --verbose",
     "type-check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "prepare": "husky install",
@@ -24,13 +24,14 @@
     "@babel/preset-typescript": "^7.16.7",
     "@calcom/prisma": "*",
     "@calcom/tsconfig": "*",
+    "@typescript-eslint/eslint-plugin": "^5.16.0",
     "babel-jest": "^27.5.1",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "node-mocks-http": "^1.11.0",
-    "typescript": "^4.6.3"
+    "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
+    "typescript": "^4.6.3",
     "next": "^12.1.0",
     "next-validations": "^0.1.11",
     "zod": "^3.14.2"

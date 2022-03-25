@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 const prisma = new PrismaClient();
 type ResponseData = {
   data?: EventType[];
-  error?: any;
+  error?: unknown;
 };
 
 export default async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

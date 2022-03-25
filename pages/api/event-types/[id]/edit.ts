@@ -1,41 +1,37 @@
 import { PrismaClient, EventType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withValidation } from "next-validations";
 
-import schema from "@lib/validation/eventType";
-import schemaQuery from "@lib/validation/queryIdTransformParseInt";
+import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
+import { schemaQueryId, withValidQueryId } from "@lib/validations/queryIdTransformParseInt";
 
 const prisma = new PrismaClient();
 
 type ResponseData = {
   data?: EventType;
-  error?: any;
+  message?: string;
+  error?: unknown;
 };
 
 export async function editEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, body, method } = req;
-  const safeQuery = await schemaQuery.safeParse(query);
-  const safeBody = await schema.safeParse(body);
+  const safeQuery = await schemaQueryId.safeParse(query);
+  const safeBody = await schemaEventType.safeParse(body);
 
-  if (safeQuery.success && safeBody.success) {
-    if (method === "PATCH") {
-      const event = await prisma.eventType.update({
+  if (method === "PATCH") {
+    if (safeQuery.success && safeBody.success) {
+      await prisma.eventType.update({
         where: { id: safeQuery.data.id },
-        data: { ...safeBody.data },
+        data: safeBody.data,
+      }).then(event => {
+        res.status(200).json({ data: event });
+      }).catch(error => {
+        res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
-      if (event) res.status(200).json({ data: event });
-      if (!event) res.status(404).json({ error: "Event type not found" });
-    } else {
-      // Reject any other HTTP method than POST
-      res.status(405).json({ error: "Only GET Method allowed" });
     }
+  } else {
+    // Reject any other HTTP method than POST
+    res.status(405).json({ message: "Only PATCH Method allowed for updating event-types"  });
   }
 }
 
-const validate = withValidation({
-  schema,
-  type: "Zod",
-  mode: "body",
-});
-
-export default validate(editEventType);
+export default withValidQueryId(withValidEventType(editEventType));

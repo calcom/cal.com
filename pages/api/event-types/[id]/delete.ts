@@ -1,19 +1,18 @@
-import { PrismaClient, EventType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withValidation } from "next-validations";
 
-import schema from "@lib/validation/queryIdTransformParseInt";
+import { schemaQueryId, withValidQueryId } from "@lib/validations/queryIdTransformParseInt";
 
 const prisma = new PrismaClient();
 
 type ResponseData = {
   message?: string;
-  error?: any;
+  error?: unknown;
 };
 
 export async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
-  const safe = await schema.safeParse(query);
+  const safe = await schemaQueryId.safeParse(query);
   if (safe.success) {
     if (method === "DELETE") {
       // DELETE WILL DELETE THE EVENT TYPE
@@ -25,19 +24,13 @@ export async function eventType(req: NextApiRequest, res: NextApiResponse<Respon
         })
         .catch((error) => {
           // This catches the error thrown by prisma.eventType.delete() if the resource is not found.
-          res.status(400).json({ error: error });
+          res.status(400).json({ message: `Resource with id:${safe.data.id} was not found`, error: error });
         });
     } else {
       // Reject any other HTTP method than POST
-      res.status(405).json({ error: "Only DELETE Method allowed in /event-types/[id]/delete endpoint" });
+      res.status(405).json({ message: "Only DELETE Method allowed in /event-types/[id]/delete endpoint" });
     }
   }
 }
 
-const validate = withValidation({
-  schema,
-  type: "Zod",
-  mode: "query",
-});
-
-export default validate(eventType);
+export default withValidQueryId(eventType);
