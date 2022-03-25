@@ -81,6 +81,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           (!selected || time.isAfter(selected))
       ).map((t) => getOption(t));
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -264,14 +265,16 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           <input
             type="checkbox"
             checked={watchAvailable.length}
-            onChange={(e) => form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : [])}
+            onChange={(e) => {
+              form.setValue(`${name}.${day}`, e.target.checked ? [defaultDayRange] : []);
+            }}
             className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
           <span className="inline-block text-sm capitalize">{weekday}</span>
         </label>
       </div>
       <div className="flex-grow">
-        {!!watchAvailable.length && <DayRanges name={`${name}.${day}`} />}
+        {!!watchAvailable.length && <DayRanges name={`${name}.${day}`} defaultValue={[]} />}
         {!watchAvailable.length && (
           <span className="block text-sm text-gray-500">{t("no_availability")}</span>
         )}
