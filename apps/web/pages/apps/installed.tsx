@@ -48,7 +48,7 @@ function IframeEmbedContainer() {
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
               </div>
-              <div>
+              <div className="text-right">
                 <input
                   id="iframe"
                   className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
