@@ -4,11 +4,6 @@ import prisma from "@calcom/prisma";
 
 import handleEvent from "../../../pages/api/event-types/[id]";
 
-afterAll((done) => {
-  prisma.$disconnect().then();
-  done();
-});
-
 describe("GET /api/event-types/[id] with valid id as string returns an event-type", () => {
   it("returns a message with the specified events", async () => {
     const { req, res } = createMocks({
@@ -78,4 +73,26 @@ describe("POST /api/event-types/[id] fails, only GET allowed", () => {
     expect(res._getStatusCode()).toBe(405);
     expect(JSON.parse(res._getData())).toStrictEqual({ error: "Only GET Method allowed" });
   });
+});
+
+describe("PATCH /api/event-types/[id]/edit with valid id and body updates an event-type", () => {
+  it("returns a message with the specified events", async () => {
+    const { req, res } = createMocks({
+      method: "PATCH",
+      query: {
+        id: "1",
+      },
+    });
+    const event = await prisma.eventType.findUnique({ where: { id: 1 } });
+    await handleEvent(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    if (event) event.title = "Updated title";
+    expect(JSON.parse(res._getData())).toStrictEqual({ data: event });
+  });
+});
+
+afterAll((done) => {
+  prisma.$disconnect().then();
+  done();
 });
