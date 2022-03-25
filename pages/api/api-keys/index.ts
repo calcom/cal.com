@@ -9,7 +9,7 @@ type ResponseData = {
 
 export default async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    const apiKeys = await prisma.apiKey.findMany({ where: { id: `${req.query.eventTypeId}` } });
+    const apiKeys = await prisma.apiKey.findMany({});
     res.status(200).json({ data: { ...apiKeys } });
   } catch (error) {
     console.log(error);

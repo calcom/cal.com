@@ -7,7 +7,7 @@ const schemaQueryId = z
   .object({
     // since nextjs parses query params as strings,
     // we need to cast them to numbers using z.transform() and parseInt()
-    id: z.string().uuid()
+    id: z.string()
   })
   .strict();
 

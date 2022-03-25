@@ -16,10 +16,17 @@ async function createApiKey(req: NextApiRequest, res: NextApiResponse<ResponseDa
     const safe = schemaApiKey.safeParse(body);
     if (safe.success && safe.data) {
       await prisma.apiKey
-        .create({ data: { ...safe.data, user: { connect: { id: 1 } }
-}})
+        .create({
+          data: {
+            ...safe.data, user: { connect: { id: 1 } }
+          }
+        })
         .then((apiKey) => res.status(201).json({ data: apiKey }))
-        .catch((error) => res.status(400).json({ message: "Could not create apiKey", error: error }));
+        .catch((error) => {
+          console.log(error);
+          res.status(400).json({ message: "Could not create apiKey", error: error })
+        }
+        )
     }
   } else {
     // Reject any other HTTP method than POST

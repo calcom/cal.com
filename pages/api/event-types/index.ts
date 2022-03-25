@@ -9,7 +9,7 @@ type ResponseData = {
 
 export default async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    const eventTypes = await prisma.eventType.findMany({ where: { id: Number(req.query.eventTypeId) } });
+    const eventTypes = await prisma.eventType.findMany();
     res.status(200).json({ data: { ...eventTypes } });
   } catch (error) {
     console.log(error);
