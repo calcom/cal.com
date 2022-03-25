@@ -11,9 +11,12 @@
     "start": "next start",
     "build": "next build",
     "lint": "next lint",
+    "lint-fix": "next lint --fix",
     "test": "jest --detectOpenHandles",
     "type-check": "tsc --pretty --noEmit",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "prepare": "husky install",
+    "pre-commit": "next lint"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
@@ -22,9 +25,10 @@
     "@calcom/prisma": "*",
     "@calcom/tsconfig": "*",
     "babel-jest": "^27.5.1",
+    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "node-mocks-http": "^1.11.0",
-    "typescript": "^4.5.3"
+    "typescript": "^4.6.3"
   },
   "dependencies": {
     "next": "^12.1.0",
