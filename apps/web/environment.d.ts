@@ -37,7 +37,6 @@ declare namespace NodeJS {
     readonly STRIPE_WEBHOOK_SECRET: string | undefined;
     readonly PAYMENT_FEE_PERCENTAGE: number | undefined;
     readonly PAYMENT_FEE_FIXED: number | undefined;
-    readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly NEXT_PUBLIC_INTERCOM_APP_ID: string | undefined;
     readonly TANDEM_CLIENT_ID: string | undefined;
     readonly TANDEM_CLIENT_SECRET: string | undefined;

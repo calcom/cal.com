@@ -5,6 +5,8 @@ import { uuid } from "short-uuid";
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
+require("dotenv").config({ path: "../../.env" });
+
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
