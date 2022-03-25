@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import React from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import NavTabs from "./NavTabs";
 
