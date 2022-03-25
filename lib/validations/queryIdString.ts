@@ -7,17 +7,14 @@ const schemaQueryId = z
   .object({
     // since nextjs parses query params as strings,
     // we need to cast them to numbers using z.transform() and parseInt()
-    id: z
-      .string()
-      .regex(/^\d+$/)
-      .transform((id) => parseInt(id)),
+    id: z.string()
   })
   .strict();
 
-const withValidQueryIdTransformParseInt = withValidation({
+const withValidQueryIdString = withValidation({
   schema: schemaQueryId,
   type: "Zod",
   mode: "query",
 });
 
-export { schemaQueryId, withValidQueryIdTransformParseInt };
+export { schemaQueryId, withValidQueryIdString };
