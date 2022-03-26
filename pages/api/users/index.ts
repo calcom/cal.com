@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 
-import { User } from "@calcom/prisma/client";import type { NextApiRequest, NextApiResponse } from "next";
+import { User } from "@calcom/prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 type ResponseData = {
   data?: User[];

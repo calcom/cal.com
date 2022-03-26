@@ -89,7 +89,4 @@ describe("POST /api/event-types/[id]/edit fails, only PATCH allowed", () => {
   });
 });
 
-afterAll((done) => {
-  prisma.$disconnect().then();
-  done();
-});
+

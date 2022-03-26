@@ -12,7 +12,7 @@
     "build": "next build",
     "lint": "next lint",
     "lint-fix": "next lint --fix",
-    "test": "jest --detectOpenHandles --verbose",
+    "test": "jest --detectOpenHandles",
     "type-check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "prepare": "husky install",

@@ -4,8 +4,8 @@ import { createMocks } from "node-mocks-http";
 import prisma from "@calcom/prisma";
 import {stringifyISODate} from "@lib/utils/stringifyISODate";
 
-describe("PATCH /api/api-keys/[id]/edit with valid id and body updates an apiKey-type", () => {
-  it("returns a message with the specified apiKeys", async () => {
+describe("PATCH /api/api-keys/[id]/edit with valid id and body with note", () => {
+  it("returns a 200 and the updated apiKey note", async () => {
     const { req, res } = createMocks({
       method: "PATCH",
       query: {
@@ -86,7 +86,4 @@ describe("POST /api/api-keys/[id]/edit fails, only PATCH allowed", () => {
   });
 });
 
-afterAll((done) => {
-  prisma.$disconnect().then();
-  done();
-});
+

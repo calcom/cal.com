@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 
-import { User } from "@calcom/prisma/client";import type { NextApiRequest, NextApiResponse } from "next";
+import { User } from "@calcom/prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaUser, withValidUser } from "@lib/validations/user";
 

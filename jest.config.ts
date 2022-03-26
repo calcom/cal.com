@@ -10,6 +10,7 @@ const config = {
   "collectCoverageFrom": [
     "pages/api/**/*.ts"
   ],
+  
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
   //   "/node_modules/"
@@ -27,8 +28,14 @@ const config = {
   ],
 
   // An object that configures minimum threshold enforcement for coverage results
-  // coverageThreshold: undefined,
-
+  coverageThreshold: {
+    global: {
+      lines: 50,
+      functions: 40,
+      branches: 50,
+      statements: 50,
+    },
+  },
   // A path to a custom dependency extractor
   // dependencyExtractor: undefined,
 
@@ -62,10 +69,10 @@ const config = {
   // setupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
-  slowTestThreshold: 1,
+  slowTestThreshold: 0.1,
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
