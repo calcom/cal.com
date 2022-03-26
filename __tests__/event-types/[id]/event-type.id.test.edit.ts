@@ -1,4 +1,4 @@
-import handleEventEdit from "@api/event-types/[id]/edit";
+import handleEventTypeEdit from "@api/event-types/[id]/edit";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
@@ -16,8 +16,8 @@ describe("PATCH /api/event-types/[id]/edit with valid id and body updates an eve
         length: 1,
       },
     });
-    const event = await prisma.eventType.findUnique({ where: { id: 2 } });
-    await handleEventEdit(req, res);
+    const event = await prisma.eventType.findUnique({ where: { id: parseInt(req.query.id) } });
+    await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(200);
     if (event) event.title = "Updated title";
@@ -38,8 +38,8 @@ describe("PATCH /api/event-types/[id]/edit with invalid id returns 404", () => {
         length: 1,
       },
     });
-    const event = await prisma.eventType.findUnique({ where: { id: 2 } });
-    await handleEventEdit(req, res);
+    const event = await prisma.eventType.findUnique({ where: { id: parseInt(req.query.id) } });
+    await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(404);
     if (event) event.title = "Updated title";
@@ -62,7 +62,7 @@ describe("PATCH /api/event-types/[id]/edit with valid id and no body returns 400
         id: "2",
       },
     });
-    await handleEventEdit(req, res);
+    await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(400);
     expect(JSON.parse(res._getData())).toStrictEqual([{"code": "invalid_type", "expected": "string", "message": "Required", "path": ["title"], "received": "undefined"}, {"code": "invalid_type", "expected": "string", "message": "Required", "path": ["slug"], "received": "undefined"}, {"code": "invalid_type", "expected": "number", "message": "Required", "path": ["length"], "received": "undefined"}]);
@@ -82,7 +82,7 @@ describe("POST /api/event-types/[id]/edit fails, only PATCH allowed", () => {
         length: 1,
       },
     });
-    await handleEventEdit(req, res);
+    await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(405);
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only PATCH Method allowed for updating event-types" });

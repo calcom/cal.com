@@ -12,7 +12,6 @@ export default async function eventType(req: NextApiRequest, res: NextApiRespons
     const eventTypes = await prisma.eventType.findMany();
     res.status(200).json({ data: { ...eventTypes } });
   } catch (error) {
-    console.log(error);
     // FIXME: Add zod for validation/error handling
     res.status(400).json({ error: error });
   }
