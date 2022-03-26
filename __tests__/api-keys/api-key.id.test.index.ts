@@ -2,10 +2,8 @@ import handleApiKey from "@api/api-keys/[id]";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
+import {stringifyISODate} from "@lib/utils/stringifyISODate";
 
-const stringifyISODate = (date: Date|undefined): string => {
-  return `${date?.toISOString()}`
-}
 describe("GET /api/api-keys/[id] with valid id as string returns an apiKey", () => {
   it("returns a message with the specified apiKeys", async () => {
     const { req, res } = createMocks({

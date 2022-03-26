@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 
-import { ApiKey } from "@calcom/prisma/client";import type { NextApiRequest, NextApiResponse } from "next";
+import { ApiKey } from "@calcom/prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaApiKey, withValidApiKey } from "@lib/validations/apiKey";
 
@@ -23,7 +24,7 @@ async function createApiKey(req: NextApiRequest, res: NextApiResponse<ResponseDa
         })
         .then((apiKey) => res.status(201).json({ data: apiKey }))
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           res.status(400).json({ message: "Could not create apiKey", error: error })
         }
         )

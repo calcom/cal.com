@@ -16,7 +16,7 @@ describe("PATCH /api/event-types/[id]/edit with valid id and body updates an eve
         length: 1,
       },
     });
-    const event = await prisma.eventType.findUnique({ where: { id: 2 } });
+    const event = await prisma.eventType.findUnique({ where: { id: parseInt(req.query.id) } });
     await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(200);
@@ -38,7 +38,7 @@ describe("PATCH /api/event-types/[id]/edit with invalid id returns 404", () => {
         length: 1,
       },
     });
-    const event = await prisma.eventType.findUnique({ where: { id: 2 } });
+    const event = await prisma.eventType.findUnique({ where: { id: parseInt(req.query.id) } });
     await handleEventTypeEdit(req, res);
 
     expect(res._getStatusCode()).toBe(404);

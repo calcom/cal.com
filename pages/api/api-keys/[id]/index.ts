@@ -1,9 +1,9 @@
 import prisma from "@calcom/prisma";
 
-import { ApiKey } from "@calcom/prisma/client";
+import { ApiKey } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryId, withValidQueryIdString } from "@lib/validations/queryIdString";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/queryIdString";
 
 type ResponseData = {
   data?: ApiKey;
@@ -13,7 +13,7 @@ type ResponseData = {
 
 export async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
-  const safe = await schemaQueryId.safeParse(query);
+  const safe = await schemaQueryIdAsString.safeParse(query);
   if (safe.success) {
     if (method === "GET") {
       const apiKey = await prisma.apiKey.findUnique({ where: { id: safe.data.id } });
