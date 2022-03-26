@@ -1,3 +1,5 @@
+import { PeriodType, SchedulingType, UserPlan } from "@prisma/client";
+
 const availability = [
   {
     days: [1, 2, 3, 4, 5],
@@ -14,7 +16,7 @@ const commons = {
   periodEndDate: new Date(),
   beforeEventBuffer: 0,
   afterEventBuffer: 0,
-  periodType: "UNLIMITED",
+  periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
   minimumBookingNotice: 120,
@@ -23,14 +25,14 @@ const commons = {
   availability: [],
   price: 0,
   currency: "usd",
-  schedulingType: "COLLECTIVE",
+  schedulingType: SchedulingType.COLLECTIVE,
   id: 0,
   metadata: {},
   description: "",
   hidden: false,
   users: [
     {
-      plan: "PRO",
+      plan: UserPlan.PRO,
       name: "test",
       username: "test",
       avatar: "",
