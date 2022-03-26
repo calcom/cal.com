@@ -273,8 +273,6 @@ export const DayRanges = ({
                     disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
                     onApply={(selected) =>
                       selected.forEach((day) => {
-                        console.log(fields);
-
                         setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, fields);
                       })
                     }
