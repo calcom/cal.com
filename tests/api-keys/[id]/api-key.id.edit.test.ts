@@ -23,32 +23,32 @@ describe("PATCH /api/api-keys/[id]/edit with valid id and body with note", () =>
   });
 });
 
-// describe("PATCH /api/api-keys/[id]/edit with invalid id returns 404", () => {
-//   it("returns a message with the specified apiKeys", async () => {
-//     const { req, res } = createMocks({
-//       method: "PATCH",
-//       query: {
-//         id: "cl16zg6860000wwylnsgva00a",
-//       },
-//       body: {
-//         note: "Updated note",
-//       },
-//     });
-//     const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id } });
-//     await handleapiKeyEdit(req, res);
+describe("PATCH /api/api-keys/[id]/edit with invalid id returns 404", () => {
+  it("returns a message with the specified apiKeys", async () => {
+    const { req, res } = createMocks({
+      method: "PATCH",
+      query: {
+        id: "cl16zg6860000wwylnsgva00a",
+      },
+      body: {
+        note: "Updated note",
+      },
+    });
+    const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id } });
+    await handleapiKeyEdit(req, res);
 
-//     expect(res._getStatusCode()).toBe(404);
-//     if (apiKey) apiKey.note = "Updated note";
-//     expect(JSON.parse(res._getData())).toStrictEqual({       "error":  {
-//         "clientVersion": "3.10.0",
-//         "code": "P2025",
-//         "meta":  {
-//           "cause": "Record to update not found.",
-//           },
-//       },
-//       "message": "apiKey with ID cl16zg6860000wwylnsgva00a not found and wasn't updated", });
-//   });
-// });
+    expect(res._getStatusCode()).toBe(404);
+    if (apiKey) apiKey.note = "Updated note";
+    expect(JSON.parse(res._getData())).toStrictEqual({       "error":  {
+        "clientVersion": "3.10.0",
+        "code": "P2025",
+        "meta":  {
+          "cause": "Record to update not found.",
+          },
+      },
+      "message": "apiKey with ID cl16zg6860000wwylnsgva00a not found and wasn't updated", });
+  });
+});
 
 describe("PATCH /api/api-keys/[id]/edit with valid id and no body returns 200 with an apiKey with no note and default expireAt", () => {
   it("returns a message with the specified apiKeys", async () => {

@@ -4,7 +4,7 @@ import { ApiKey } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaApiKey, withValidApiKey } from "@lib/validations/apiKey";
-import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/queryIdString";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 type ResponseData = {
   data?: ApiKey;
@@ -17,8 +17,7 @@ export async function editApiKey(req: NextApiRequest, res: NextApiResponse<Respo
   const safeQuery = await schemaQueryIdAsString.safeParse(query);
   const safeBody = await schemaApiKey.safeParse(body);
 
-  if (method === "PATCH") {
-    if (safeQuery.success && safeBody.success) {
+  if (method === "PATCH" && safeQuery.success && safeBody.success) {
       await prisma.apiKey.update({
         where: { id: safeQuery.data.id },
         data: safeBody.data,
@@ -27,7 +26,6 @@ export async function editApiKey(req: NextApiRequest, res: NextApiResponse<Respo
       }).catch(error => {
         res.status(404).json({ message: `apiKey with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
-    }
   } else {
     // Reject any other HTTP method than POST
     res.status(405).json({ message: "Only PATCH Method allowed for updating API keys"  });

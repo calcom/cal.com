@@ -13,9 +13,8 @@ type ResponseData = {
 
 async function createApiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { body, method } = req;
-  if (method === "POST") {
-    const safe = schemaApiKey.safeParse(body);
-    if (safe.success && safe.data) {
+  const safe = schemaApiKey.safeParse(body);
+  if (method === "POST" && safe.success) {
       const apiKey = await prisma.apiKey
         .create({
           data: {
@@ -24,17 +23,9 @@ async function createApiKey(req: NextApiRequest, res: NextApiResponse<ResponseDa
         })
         if (apiKey) {
           res.status(201).json({ data: apiKey });
-        }  else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ error: "Only POST Method allowed" });
-  }
-      
-        // .then((apiKey) => res.status(201).json({ data: apiKey }))
-        // .catch((error) => {
-        //   res.status(400).json({ message: "Could not create apiKey", error: error })
-        // }
-        // )
-    }
+        } else {
+          res.status(404).json({message: "API Key not created"});
+        }
   } else {
     // Reject any other HTTP method than POST
     res.status(405).json({ error: "Only POST Method allowed" });
