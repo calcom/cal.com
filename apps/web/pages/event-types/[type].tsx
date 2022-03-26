@@ -393,7 +393,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
@@ -408,7 +408,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${process.env.NEXT_PUBLIC_APP_URL}/${username}/avatar.png`,
+    avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<{
@@ -895,7 +895,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <div className="flex rounded-sm shadow-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                            {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
                           <input
@@ -1994,7 +1994,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
+        user.avatar = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];

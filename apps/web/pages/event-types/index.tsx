@@ -223,13 +223,13 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
-                          image: `${process.env.NEXT_PUBLIC_APP_URL}/${organizer.username}/avatar.png`,
+                          image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${organizer.username}/avatar.png`,
                         }))}
                       />
                     )}
                     <Tooltip content={t("preview")}>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-icon appearance-none">
@@ -242,7 +242,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         onClick={() => {
                           showToast(t("link_copied"), "success");
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
                           );
                         }}
                         className="btn-icon">
@@ -320,7 +320,8 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
                     <DropdownMenuItem>
-                      <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}>
+                      <Link
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}>
                         <a target="_blank">
                           <Button
                             color="minimal"
@@ -342,7 +343,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         StartIcon={ClipboardCopyIcon}
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
                           );
                           showToast(t("link_copied"), "success");
                         }}>
@@ -363,7 +364,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                               .share({
                                 title: t("share"),
                                 text: t("share_event"),
-                                url: `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`,
+                                url: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`,
                               })
                               .then(() => showToast(t("link_shared"), "success"))
                               .catch(() => showToast(t("failed"), "error"));
@@ -463,8 +464,8 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         </span>
       )}
       {profile?.slug && (
-        <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+        <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
+          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
             "https://",
             ""
           )}/${profile.slug}`}</a>

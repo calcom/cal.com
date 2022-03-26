@@ -534,7 +534,6 @@
   "billing": "청구",
   "manage_your_billing_info": "결제 정보를 관리하고 구독을 취소하세요.",
   "availability": "유효성",
-  "availability_updated_successfully": "사용성이 성공적으로 업데이트되었습니다.",
   "configure_availability": "예약 가능한 시간을 구성하십시오.",
   "change_weekly_schedule": "주간 일정 변경",
   "logo": "로고",
@@ -656,6 +655,7 @@
   "prisma_studio_tip_description": "첫 사용자 설정 방법 알아보기",
   "contact_sales": "영업팀에 문의",
   "error_404": "오류 404",
+  "availability_updated_successfully": "사용성이 성공적으로 업데이트되었습니다.",
   "requires_ownership_of_a_token": "다음 주소에 속한 토큰의 소유권이 필요합니다:",
   "example_name": "홍길동"
 }
