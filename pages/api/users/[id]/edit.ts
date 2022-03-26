@@ -30,7 +30,7 @@ export async function editUser(req: NextApiRequest, res: NextApiResponse<Respons
     }
   } else {
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating user-types"  });
+    res.status(405).json({ message: "Only PATCH Method allowed for updating users"  });
   }
 }
 

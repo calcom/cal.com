@@ -30,7 +30,7 @@ export async function editTeam(req: NextApiRequest, res: NextApiResponse<Respons
     }
   } else {
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating team-types"  });
+    res.status(405).json({ message: "Only PATCH Method allowed for updating teams"  });
   }
 }
 
