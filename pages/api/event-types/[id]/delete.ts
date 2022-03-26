@@ -2,7 +2,7 @@ import prisma from "@calcom/prisma";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryId, withValidQueryIdTransformParseInt } from "@lib/validations/queryIdTransformParseInt";
+import { schemaQueryId, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 
 type ResponseData = {

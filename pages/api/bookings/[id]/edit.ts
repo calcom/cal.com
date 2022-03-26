@@ -1,37 +1,37 @@
 import prisma from "@calcom/prisma";
 
-import { EventType } from "@calcom/prisma/client";
+import { Booking } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
+import { schemaBooking, withValidBooking } from "@lib/validations/booking";
 import { schemaQueryId, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
-  data?: EventType;
+  data?: Booking;
   message?: string;
   error?: unknown;
 };
 
-export async function editEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export async function editBooking(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, body, method } = req;
   const safeQuery = await schemaQueryId.safeParse(query);
-  const safeBody = await schemaEventType.safeParse(body);
+  const safeBody = await schemaBooking.safeParse(body);
 
   if (method === "PATCH") {
     if (safeQuery.success && safeBody.success) {
-      await prisma.eventType.update({
+      await prisma.booking.update({
         where: { id: safeQuery.data.id },
         data: safeBody.data,
-      }).then(event => {
-        res.status(200).json({ data: event });
+      }).then(booking => {
+        res.status(200).json({ data: booking });
       }).catch(error => {
         res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
     }
   } else {
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating event-types"  });
+    res.status(405).json({ message: "Only PATCH Method allowed for updating bookings"  });
   }
 }
 
-export default withValidQueryIdTransformParseInt(withValidEventType(editEventType));
+export default withValidQueryIdTransformParseInt(withValidBooking(editBooking));

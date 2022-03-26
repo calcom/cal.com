@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/queryIdString";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 type ResponseData = {
   message?: string;
