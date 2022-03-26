@@ -1,4 +1,5 @@
 import { DefaultSeo } from "next-seo";
+import Head from "next/head";
 // import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
@@ -25,6 +26,9 @@ function MyApp(props: AppProps) {
       <AppProviders {...props}>
         <DefaultSeo {...seoConfig.defaultNextSeo} />
         <I18nLanguageHandler />
+        <Head>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        </Head>
         <Component {...pageProps} err={err} />
       </AppProviders>
     </ContractsProvider>

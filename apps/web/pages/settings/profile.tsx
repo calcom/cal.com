@@ -127,7 +127,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }).catch((e) => {
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
-    if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
+    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
@@ -232,7 +232,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="username"
                   addOnLeading={
                     <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                      {process.env.NEXT_PUBLIC_APP_URL}/
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                     </span>
                   }
                   ref={usernameRef}

@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       passwordRequest = createdResetPasswordRequest;
     }
 
-    const resetLink = `${process.env.BASE_URL}/auth/forgot-password/${passwordRequest.id}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordRequest.id}`;
     const passwordEmail: PasswordReset = {
       language: t,
       user: maybeUser,
@@ -67,9 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     /** So we can test the password reset flow on CI */
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       return res.status(201).json({ message: "Reset Requested", resetLink });
+    } else {
+      return res.status(201).json({ message: "Reset Requested" });
     }
-
-    return res.status(201).json({ message: "Reset Requested" });
   } catch (reason) {
     // console.error(reason);
     return res.status(500).json({ message: "Unable to create password reset request" });

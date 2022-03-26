@@ -1,25 +1,28 @@
 name: Lint
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
-          cache: "yarn"
-          cache-dependency-path: yarn.lock
+          node-version: ${{ matrix.node }}
+          # cache: "yarn"
+          # cache-dependency-path: yarn.lock
 
       - name: Install deps
         if: steps.yarn-cache.outputs.cache-hit != 'true'

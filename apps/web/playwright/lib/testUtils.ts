@@ -76,3 +76,13 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.click('[data-testid="day"][data-disabled="false"]');
   await page.click('[data-testid="time"]');
 }
+
+export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
+  await page.click('[data-testid="incrementMonth"]');
+  // @TODO: Find a better way to make test wait for full month change render to end
+  // so it can click up on the right day, also when resolve remove other todos
+  // Waiting for full month increment
+  await page.waitForTimeout(400);
+  await page.click('[data-testid="day"][data-disabled="false"]');
+  await page.locator('[data-testid="time"]').nth(1).click();
+}
