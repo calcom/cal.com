@@ -87,7 +87,4 @@ describe("POST /api/teams/[id]/edit fails, only PATCH allowed", () => {
   });
 });
 
-afterAll((done) => {
-  prisma.$disconnect().then();
-  done();
-});
+

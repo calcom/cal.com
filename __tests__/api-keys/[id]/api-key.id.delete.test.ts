@@ -1,36 +1,37 @@
-import handleApiKey from "@api/api-keys/[id]";
+import handleDeleteApiKey from "@api/api-keys/[id]/delete";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
-import {stringifyISODate} from "@lib/utils/stringifyISODate";
 
-describe("GET /api/api-keys/[id] with valid id as string returns an apiKey", () => {
+describe("DELETE /api/api-keys/[id]/delete with valid id as string returns an apiKey", () => {
   it("returns a message with the specified apiKeys", async () => {
+    const apiKey = await prisma.apiKey.findFirst()
     const { req, res } = createMocks({
-      method: "GET",
+      method: "DELETE",
       query: {
-        id: "cl16zg6860000wwylnsgva00b",
+        id: apiKey?.id,
       },
     });
-    const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id} });
-    await handleApiKey(req, res);
+    // const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id} });
+    await handleDeleteApiKey(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    expect(JSON.parse(res._getData())).toEqual({ data: {...apiKey, createdAt: stringifyISODate(apiKey?.createdAt), expiresAt: stringifyISODate(apiKey?.expiresAt)} });
+    // console.log(res)
+    expect(res._getStatusCode()).toBe(204);
+    expect(JSON.parse(res._getData())).toEqual({message: `api-key with id: ${apiKey?.id} deleted successfully`});
   });
 });
 
 // This can never happen under our normal nextjs setup where query is always a string | string[].
 // But seemed a good example for testing an error validation
-describe("GET /api/api-keys/[id] errors if query id is number, requires a string", () => {
+describe("DELETE /api/api-keys/[id]/delete errors if query id is number, requires a string", () => {
   it("returns a message with the specified apiKeys", async () => {
     const { req, res } = createMocks({
-      method: "GET",
+      method: "DELETE",
       query: {
         id: 1, // passing query as a number, which should fail as nextjs will try to parse it as a string
       },
     });
-    await handleApiKey(req, res);
+    await handleDeleteApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(400);
     expect(JSON.parse(res._getData())).toStrictEqual([
@@ -45,22 +46,31 @@ describe("GET /api/api-keys/[id] errors if query id is number, requires a string
   });
 });
 
-describe("GET /api/api-keys/[id] an id not present in db like 0, throws 404 not found", () => {
+describe("DELETE /api/api-keys/[id]/delete an id not present in db like 0, throws 404 not found", () => {
   it("returns a message with the specified apiKeys", async () => {
     const { req, res } = createMocks({
-      method: "GET",
+      method: "DELETE",
       query: {
         id: "0", // There's no apiKey  with id 0
       },
     });
-    await handleApiKey(req, res);
+    await handleDeleteApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(404);
-    expect(JSON.parse(res._getData())).toStrictEqual({ message: "API key was not found" });
+    expect(JSON.parse(res._getData())).toStrictEqual({
+      "error": {
+     "clientVersion": "3.10.0",
+     "code": "P2025",
+     "meta": {
+       "cause": "Record to delete does not exist.",
+     },
+   },
+   "message": "Resource with id:0 was not found",
+     });
   });
 });
 
-describe("POST /api/api-keys/[id] fails, only GET allowed", () => {
+describe("POST /api/api-keys/[id]/delete fails, only DELETE allowed", () => {
   it("returns a message with the specified apiKeys", async () => {
     const { req, res } = createMocks({
       method: "POST", // This POST method is not allowed
@@ -68,14 +78,11 @@ describe("POST /api/api-keys/[id] fails, only GET allowed", () => {
         id: "1",
       },
     });
-    await handleApiKey(req, res);
+    await handleDeleteApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(405);
-    expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only GET Method allowed" });
+    expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only DELETE Method allowed" });
   });
 });
 
-afterAll((done) => {
-  prisma.$disconnect().then();
-  done();
-});
+

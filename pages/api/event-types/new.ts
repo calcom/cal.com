@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 
-import { EventType } from "@calcom/prisma/client";import type { NextApiRequest, NextApiResponse } from "next";
+import { EventType } from "@calcom/prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
 
