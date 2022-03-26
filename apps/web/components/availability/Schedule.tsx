@@ -1,5 +1,6 @@
 import { PlusIcon, TrashIcon } from "@heroicons/react/outline";
 import { DuplicateIcon } from "@heroicons/react/solid";
+import classNames from "classnames";
 import dayjs, { Dayjs, ConfigType } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -47,9 +48,10 @@ type Option = {
 
 type TimeRangeFieldProps = {
   name: string;
+  className?: string;
 };
 
-const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
+const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
@@ -86,14 +88,14 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
   );
 
   return (
-    <>
+    <div className={classNames("flex flex-grow items-center space-x-3", className)}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
           handleSelected(value);
           return (
             <Select
-              className="w-30"
+              className="w-[120px]"
               options={options}
               onFocus={() => setOptions(timeOptions())}
               onBlur={() => setOptions([])}
@@ -111,7 +113,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
           <Select
-            className="w-30"
+            className="flex-grow sm:w-[120px]"
             options={options}
             onFocus={() => setOptions(timeOptions({ selected }))}
             onBlur={() => setOptions([])}
@@ -120,7 +122,7 @@ const TimeRangeField = ({ name }: TimeRangeFieldProps) => {
           />
         )}
       />
-    </>
+    </div>
   );
 };
 
@@ -200,10 +202,10 @@ export const DayRanges = ({
   };
 
   return (
-    <>
+    <div className="space-y-2">
       {fields.map((field, index) => (
-        <div key={field.id} className="mb-1 flex justify-between">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <div key={field.id} className="flex items-center rtl:space-x-reverse">
+          <div className="flex flex-grow sm:flex-grow-0">
             <TimeRangeField name={`${name}.${index}`} />
             <Button
               size="icon"
@@ -214,7 +216,7 @@ export const DayRanges = ({
             />
           </div>
           {index === 0 && (
-            <span>
+            <div className="absolute top-2 right-0 text-right sm:relative sm:top-0 sm:flex-grow">
               <Button
                 className="text-neutral-400"
                 type="button"
@@ -244,11 +246,11 @@ export const DayRanges = ({
                   />
                 </DropdownMenuContent>
               </Dropdown>
-            </span>
+            </div>
           )}
         </div>
       ))}
-    </>
+    </div>
   );
 };
 
@@ -259,9 +261,13 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const watchAvailable = form.watch(`${name}.${day}`, []);
 
   return (
-    <fieldset className="flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
-      <div className="w-1/3">
-        <label className="flex items-center space-x-2 rtl:space-x-reverse">
+    <fieldset className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+      <label
+        className={classNames(
+          "flex space-x-2 rtl:space-x-reverse",
+          !watchAvailable.length ? "w-full" : "w-1/3"
+        )}>
+        <div className={classNames(!watchAvailable.length ? "w-1/3" : "w-full")}>
           <input
             type="checkbox"
             checked={watchAvailable.length}
@@ -270,15 +276,19 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
             }}
             className="inline-block rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-500"
           />
-          <span className="inline-block text-sm capitalize">{weekday}</span>
-        </label>
-      </div>
-      <div className="flex-grow">
-        {!!watchAvailable.length && <DayRanges name={`${name}.${day}`} defaultValue={[]} />}
+          <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
+        </div>
         {!watchAvailable.length && (
-          <span className="block text-sm text-gray-500">{t("no_availability")}</span>
+          <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
+            {t("no_availability")}
+          </div>
         )}
-      </div>
+      </label>
+      {!!watchAvailable.length && (
+        <div className="flex-grow">
+          <DayRanges name={`${name}.${day}`} defaultValue={[]} />
+        </div>
+      )}
     </fieldset>
   );
 };
