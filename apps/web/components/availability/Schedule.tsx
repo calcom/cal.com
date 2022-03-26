@@ -4,8 +4,9 @@ import classNames from "classnames";
 import dayjs, { Dayjs, ConfigType } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { GroupBase, Props, SingleValue } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -23,27 +24,71 @@ dayjs.extend(timezone);
 
 /** Begin Time Increments For Select */
 const increment = 15;
+
+type Option = {
+  readonly label: string;
+  readonly value: number;
+};
+
 /**
  * Creates an array of times on a 15 minute interval from
  * 00:00:00 (Start of day) to
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
-const TIMES = (() => {
-  const end = dayjs().utc().endOf("day");
-  let t: Dayjs = dayjs().utc().startOf("day");
+const useOptions = () => {
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const { timeFormat } = query.data || { timeFormat: null };
 
-  const times: Dayjs[] = [];
-  while (t.isBefore(end)) {
-    times.push(t);
-    t = t.add(increment, "minutes");
-  }
-  return times;
-})();
-/** End Time Increments For Select */
+  const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
 
-type Option = {
-  readonly label: string;
-  readonly value: number;
+  const options = useMemo(() => {
+    const end = dayjs().utc().endOf("day");
+    let t: Dayjs = dayjs().utc().startOf("day");
+
+    const options: Option[] = [];
+    while (t.isBefore(end)) {
+      options.push({
+        value: t.toDate().valueOf(),
+        label: dayjs(t)
+          .utc()
+          .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+      });
+      t = t.add(increment, "minutes");
+    }
+    return options;
+  }, []);
+
+  const filter = useCallback(
+    ({
+      selected,
+      offset,
+      limit,
+      current,
+    }: {
+      selected?: ConfigType;
+      offset?: ConfigType;
+      limit?: ConfigType;
+      current?: ConfigType;
+    }) => {
+      if (current) {
+        setFilteredOptions([options.find((option) => option.value === dayjs(current).toDate().valueOf())!]);
+      } else
+        setFilteredOptions(
+          options.filter((option) => {
+            const time = dayjs(option.value);
+            return (
+              (!limit || time.isBefore(limit)) &&
+              (!offset || time.isAfter(offset)) &&
+              (!selected || time.isAfter(selected))
+            );
+          })
+        );
+    },
+    [options]
+  );
+
+  return { options: filteredOptions, filter };
 };
 
 type TimeRangeFieldProps = {
@@ -51,58 +96,48 @@ type TimeRangeFieldProps = {
   className?: string;
 };
 
-const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
-
+const LazySelect = ({
+  value,
+  selected,
+  ...props
+}: Omit<Props<Option, false, GroupBase<Option>>, "value"> & {
+  value: ConfigType;
+  selected?: ConfigType;
+}) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
-  const [options, setOptions] = useState<Option[]>([]);
-  const [selected, setSelected] = useState<number | undefined>();
-  // const { i18n } = useLocale();
+  const { options, filter } = useOptions();
 
-  const handleSelected = (value: number | undefined) => {
-    setSelected(value);
-  };
+  useEffect(() => {
+    filter({ current: value });
+  }, [filter, value]);
 
-  const getOption = (time: ConfigType) => ({
-    value: dayjs(time).toDate().valueOf(),
-    label: dayjs(time)
-      .utc()
-      .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm"),
-    // .toLocaleTimeString(i18n.language, { minute: "numeric", hour: "numeric" }),
-  });
-
-  const timeOptions = useCallback(
-    (offsetOrLimitorSelected: { offset?: number; limit?: number; selected?: number } = {}) => {
-      const { limit, offset, selected } = offsetOrLimitorSelected;
-      return TIMES.filter(
-        (time) =>
-          (!limit || time.isBefore(limit)) &&
-          (!offset || time.isAfter(offset)) &&
-          (!selected || time.isAfter(selected))
-      ).map((t) => getOption(t));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+  return (
+    <Select
+      options={options}
+      onMenuOpen={() => {
+        filter({ selected });
+      }}
+      value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
+      onMenuClose={() => filter({ current: value })}
+      {...props}
+    />
   );
+};
 
+const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
+  const { watch } = useFormContext();
+  const selected = watch(`${name}.start`);
   return (
     <div className={classNames("flex flex-grow items-center space-x-3", className)}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
-          handleSelected(value);
           return (
-            <Select
+            <LazySelect
               className="w-[120px]"
-              options={options}
-              onFocus={() => setOptions(timeOptions())}
-              onBlur={() => setOptions([])}
-              defaultValue={getOption(value)}
+              value={value}
               onChange={(option) => {
                 onChange(new Date(option?.value as number));
-                handleSelected(option?.value);
               }}
             />
           );
@@ -112,12 +147,10 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
       <Controller
         name={`${name}.end`}
         render={({ field: { onChange, value } }) => (
-          <Select
+          <LazySelect
             className="flex-grow sm:w-[120px]"
-            options={options}
-            onFocus={() => setOptions(timeOptions({ selected }))}
-            onBlur={() => setOptions([])}
-            defaultValue={getOption(value)}
+            value={value}
+            selected={selected}
             onChange={(option) => onChange(new Date(option?.value as number))}
           />
         )}
@@ -240,6 +273,8 @@ export const DayRanges = ({
                     disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
                     onApply={(selected) =>
                       selected.forEach((day) => {
+                        console.log(fields);
+
                         setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, fields);
                       })
                     }
