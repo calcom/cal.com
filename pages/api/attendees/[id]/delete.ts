@@ -10,25 +10,26 @@ type ResponseData = {
   error?: unknown;
 };
 
-export async function user(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export async function attendee(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
   const safe = await schemaQueryIdParseInt.safeParse(query);
+  
   if (method === "DELETE" && safe.success) {
     // DELETE WILL DELETE THE EVENT TYPE
-    prisma.user
+    prisma.attendee
       .delete({ where: { id: safe.data.id } })
       .then(() => {
-        // We only remove the user type from the database if there's an existing resource.
-        res.status(200).json({ message: `user-type with id: ${safe.data.id} deleted successfully` });
+        // We only remove the attendee type from the database if there's an existing resource.
+        res.status(200).json({ message: `attendee-type with id: ${safe.data.id} deleted successfully` });
       })
       .catch((error) => {
-        // This catches the error thrown by prisma.user.delete() if the resource is not found.
+        // This catches the error thrown by prisma.attendee.delete() if the resource is not found.
         res.status(400).json({ message: `Resource with id:${safe.data.id} was not found`, error: error });
       });
   } else {
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only DELETE Method allowed in /user-types/[id]/delete endpoint" });
+    res.status(405).json({ message: "Only DELETE Method allowed in /attendee-types/[id]/delete endpoint" });
   }
 }
 
-export default withValidQueryIdTransformParseInt(user);
+export default withValidQueryIdTransformParseInt(attendee);

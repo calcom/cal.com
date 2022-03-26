@@ -45,6 +45,7 @@ yarn-error.log*
 .idea
 
 ### VisualStudioCode template
+.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

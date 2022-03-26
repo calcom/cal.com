@@ -11,6 +11,7 @@ type ResponseData = {
 export async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
   const safe = await schemaQueryIdAsString.safeParse(query);
+
   if (method === "DELETE" && safe.success) {
       // DELETE WILL DELETE THE EVENT TYPE
       await prisma.apiKey
@@ -23,10 +24,8 @@ export async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseD
           // This catches the error thrown by prisma.apiKey.delete() if the resource is not found.
           res.status(404).json({ message: `Resource with id:${safe.data.id} was not found`, error: error });
         });
-  } else {
-      // Reject any other HTTP method than POST
-      res.status(405).json({ message: "Only DELETE Method allowed" });
-    }
+    // Reject any other HTTP method than POST
+  } else res.status(405).json({ message: "Only DELETE Method allowed" });
 }
 
 export default withValidQueryIdString(apiKey);

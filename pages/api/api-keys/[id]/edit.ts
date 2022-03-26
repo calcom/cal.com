@@ -26,10 +26,8 @@ export async function editApiKey(req: NextApiRequest, res: NextApiResponse<Respo
       }).catch(error => {
         res.status(404).json({ message: `apiKey with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating API keys"  });
-  }
+      // Reject any other HTTP method than POST
+  } else res.status(405).json({ message: "Only PATCH Method allowed for updating API keys"  });
 }
 
 export default withValidQueryIdString(withValidApiKey(editApiKey));

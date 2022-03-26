@@ -4,7 +4,7 @@ import { Booking } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaBooking, withValidBooking } from "@lib/validations/booking";
-import { schemaQueryId, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
   data?: Booking;
@@ -14,7 +14,7 @@ type ResponseData = {
 
 export async function editBooking(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, body, method } = req;
-  const safeQuery = await schemaQueryId.safeParse(query);
+  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
   const safeBody = await schemaBooking.safeParse(body);
 
   if (method === "PATCH") {
