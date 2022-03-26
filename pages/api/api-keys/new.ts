@@ -24,7 +24,6 @@ async function createApiKey(req: NextApiRequest, res: NextApiResponse<ResponseDa
         })
         .then((apiKey) => res.status(201).json({ data: apiKey }))
         .catch((error) => {
-          // console.log(error);
           res.status(400).json({ message: "Could not create apiKey", error: error })
         }
         )

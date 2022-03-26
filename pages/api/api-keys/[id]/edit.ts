@@ -25,7 +25,6 @@ export async function editApiKey(req: NextApiRequest, res: NextApiResponse<Respo
       }).then(apiKey => {
         res.status(200).json({ data: apiKey });
       }).catch(error => {
-        console.log(error)
         res.status(404).json({ message: `apiKey with ID ${safeQuery.data.id} not found and wasn't updated`, error })
       });
     }
