@@ -1,6 +1,6 @@
 name: E2E test
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
     paths-ignore:
@@ -56,8 +56,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v2
