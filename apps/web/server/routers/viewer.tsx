@@ -30,7 +30,7 @@ import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
-  process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
+  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -762,8 +762,8 @@ const loggedInViewerRouter = createProtectedRouter()
       try {
         return await apiController.config({
           encodedRawMetadata,
-          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
-          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,
           product: samlProductID,
         });
