@@ -139,7 +139,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -189,7 +189,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
