@@ -7,7 +7,9 @@ const config = {
   clearMocks: true,
   coverageDirectory: "./coverage",
   collectCoverage: true,
-
+  "collectCoverageFrom": [
+    "pages/api/**/*.ts"
+  ],
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
   //   "/node_modules/"

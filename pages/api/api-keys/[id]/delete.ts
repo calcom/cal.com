@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryId, withValidQueryIdString } from "@lib/validations/queryIdString";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/queryIdString";
 
 type ResponseData = {
   message?: string;
@@ -10,7 +10,7 @@ type ResponseData = {
 
 export async function apiKey(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
-  const safe = await schemaQueryId.safeParse(query);
+  const safe = await schemaQueryIdAsString.safeParse(query);
   if (safe.success) {
     if (method === "DELETE") {
       // DELETE WILL DELETE THE EVENT TYPE
