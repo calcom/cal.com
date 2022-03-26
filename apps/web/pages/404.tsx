@@ -39,7 +39,7 @@ export default function Custom404() {
 
   const isSubpage = router.asPath.includes("/", 2);
   const isSignup = router.asPath.includes("/signup");
-  const isCalcom = process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com";
+  const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
 
   return (
     <>
@@ -53,7 +53,7 @@ export default function Custom404() {
       />
       <div className="min-h-screen bg-white px-4" data-testid="404-page">
         <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
-          {isSignup && process.env.NEXT_PUBLIC_BASE_URL !== "https://app.cal.com" ? (
+          {isSignup && process.env.NEXT_PUBLIC_WEBAPP_URL !== "https://app.cal.com" ? (
             <div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-black">

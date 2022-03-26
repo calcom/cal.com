@@ -1,24 +1,30 @@
+import { ChevronLeftIcon } from "@heroicons/react/outline";
 import { InferGetStaticPropsType } from "next";
+import Link from "next/link";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import AppsShell from "@components/AppsShell";
 import Shell from "@components/Shell";
-import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
-import Slider from "@components/apps/Slider";
 
-export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("app_store")} subtitle={t("app_store_description")} large>
-      <AppsShell>
+    <Shell large>
+      <div className="-mx-4 md:-mx-8">
+        <div className="mb-10 bg-gray-50 px-4 pb-2">
+          <Link href="/apps">
+            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+              <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
+            </a>
+          </Link>
+        </div>
+      </div>
+      <div className="mb-16">
         <AppStoreCategories categories={categories} />
-        <Slider items={appStore} />
-        <AllApps apps={appStore} />
-      </AppsShell>
+      </div>
     </Shell>
   );
 }
@@ -33,7 +39,6 @@ export const getStaticProps = async () => {
   return {
     props: {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-      appStore,
     },
   };
 };
