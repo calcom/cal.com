@@ -21,7 +21,7 @@ export async function attendee(req: NextApiRequest, res: NextApiResponse<Respons
     // This catches the error thrown by prisma.attendee.delete() if the resource is not found.
     else res.status(400).json({ message: `Resource with id:${safe.data.id} was not found`});
     // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only DELETE Method allowed in /availabilities/[id]/delete endpoint" });
+  } else res.status(405).json({ message: "Only DELETE Method allowed" });
 }
 
 export default withValidQueryIdTransformParseInt(attendee);

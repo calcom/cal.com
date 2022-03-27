@@ -10,7 +10,7 @@ const schemaBooking = z
     endTime: z.date(),
     location: z.string().min(3).optional(),
     createdAt: z.date().or(z.string()),
-    updatedAt: z.date(),
+    updatedAt: z.date().or(z.string()),
     confirmed: z.boolean().default(true),
     rejected: z.boolean().default(false),
     paid: z.boolean().default(false),

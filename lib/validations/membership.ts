@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const schemaMembership = z
   .object({})
-  .strict(); // Adding strict so that we can disallow passing in extra fields
+  .strict(); 
 const withValidMembership = withValidation({
   schema: schemaMembership,
   type: "Zod",
