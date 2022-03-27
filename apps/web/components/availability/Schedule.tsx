@@ -60,28 +60,14 @@ const useOptions = () => {
   }, []);
 
   const filter = useCallback(
-    ({
-      selected,
-      offset,
-      limit,
-      current,
-    }: {
-      selected?: ConfigType;
-      offset?: ConfigType;
-      limit?: ConfigType;
-      current?: ConfigType;
-    }) => {
+    ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
       if (current) {
         setFilteredOptions([options.find((option) => option.value === dayjs(current).toDate().valueOf())!]);
       } else
         setFilteredOptions(
           options.filter((option) => {
             const time = dayjs(option.value);
-            return (
-              (!limit || time.isBefore(limit)) &&
-              (!offset || time.isAfter(offset)) &&
-              (!selected || time.isAfter(selected))
-            );
+            return (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset));
           })
         );
     },
@@ -98,11 +84,13 @@ type TimeRangeFieldProps = {
 
 const LazySelect = ({
   value,
-  selected,
+  min,
+  max,
   ...props
 }: Omit<Props<Option, false, GroupBase<Option>>, "value"> & {
   value: ConfigType;
-  selected?: ConfigType;
+  min?: ConfigType;
+  max?: ConfigType;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticable redraw delay.
   const { options, filter } = useOptions();
@@ -115,7 +103,8 @@ const LazySelect = ({
     <Select
       options={options}
       onMenuOpen={() => {
-        filter({ selected });
+        if (min) filter({ offset: min });
+        if (max) filter({ limit: max });
       }}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
@@ -126,7 +115,8 @@ const LazySelect = ({
 
 const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const { watch } = useFormContext();
-  const selected = watch(`${name}.start`);
+  const minEnd = watch(`${name}.start`);
+  const maxStart = watch(`${name}.end`);
   return (
     <div className={classNames("flex flex-grow items-center space-x-3", className)}>
       <Controller
@@ -136,6 +126,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
             <LazySelect
               className="w-[120px]"
               value={value}
+              max={maxStart}
               onChange={(option) => {
                 onChange(new Date(option?.value as number));
               }}
@@ -150,8 +141,10 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
           <LazySelect
             className="flex-grow sm:w-[120px]"
             value={value}
-            selected={selected}
-            onChange={(option) => onChange(new Date(option?.value as number))}
+            min={minEnd}
+            onChange={(option) => {
+              onChange(new Date(option?.value as number));
+            }}
           />
         )}
       />
@@ -210,7 +203,10 @@ export const DayRanges = ({
   name: string;
   defaultValue?: TimeRange[];
 }) => {
-  const { setValue } = useFormContext();
+  const { setValue, watch } = useFormContext();
+  // XXX: Hack to make copying times work; `fields` is out of date until save.
+  const watcher = watch(name);
+
   const { fields, replace, append, remove } = useFieldArray({
     name,
   });
@@ -273,7 +269,9 @@ export const DayRanges = ({
                     disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
                     onApply={(selected) =>
                       selected.forEach((day) => {
-                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, fields);
+                        // TODO: Figure out why this is different?
+                        // console.log(watcher, fields);
+                        setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
                       })
                     }
                   />
