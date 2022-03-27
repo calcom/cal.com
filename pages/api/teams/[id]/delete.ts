@@ -10,25 +10,18 @@ type ResponseData = {
   error?: unknown;
 };
 
-export async function team(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export async function deleteTeam(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { query, method } = req;
   const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "DELETE" && safe.success) {
-    // DELETE WILL DELETE THE EVENT TYPE
-    prisma.team
+  if (method === "DELETE" && safe.success && safe.data) {
+    const team = await prisma.team
       .delete({ where: { id: safe.data.id } })
-      .then(() => {
-        // We only remove the team type from the database if there's an existing resource.
-        res.status(200).json({ message: `team-type with id: ${safe.data.id} deleted successfully` });
-      })
-      .catch((error) => {
-        // This catches the error thrown by prisma.team.delete() if the resource is not found.
-        res.status(400).json({ message: `Resource with id:${safe.data.id} was not found`, error: error });
-      });
-  } else {
+    // We only remove the team type from the database if there's an existing resource.
+    if (team) res.status(200).json({ message: `team with id: ${safe.data.id} deleted successfully` });
+    // This catches the error thrown by prisma.team.delete() if the resource is not found.
+    else res.status(400).json({ message: `Resource with id:${safe.data.id} was not found`});
     // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only DELETE Method allowed in /team-types/[id]/delete endpoint" });
-  }
+  } else res.status(405).json({ message: "Only DELETE Method allowed" });
 }
 
-export default withValidQueryIdTransformParseInt(team);
+export default withValidQueryIdTransformParseInt(deleteTeam);
