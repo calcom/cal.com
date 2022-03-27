@@ -240,7 +240,6 @@ export const DayRanges = ({
               size="icon"
               color="minimal"
               StartIcon={TrashIcon}
-              aria-label={t("remove")}
               type="button"
               onClick={() => remove(index)}
             />
