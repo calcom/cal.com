@@ -55,7 +55,7 @@ const schemaAvailability = z
     // metadata: z.object({}).optional(),
     // verified: z.boolean().default(false),
   })
-  .strict(); // Adding strict so that we can disallow passing in extra fields
+  .strict(); 
 const withValidAvailability = withValidation({
   schema: schemaAvailability,
   type: "Zod",
