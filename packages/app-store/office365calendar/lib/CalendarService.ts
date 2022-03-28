@@ -2,7 +2,6 @@ import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-bet
 import { Credential } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { APPS_TYPES } from "@calcom/lib/calendar/constants/general";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -28,7 +27,7 @@ export default class Office365CalendarService implements Calendar {
   auth: { getToken: () => Promise<string> };
 
   constructor(credential: Credential) {
-    this.integrationName = APPS_TYPES.office365;
+    this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });

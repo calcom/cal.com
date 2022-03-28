@@ -1,27 +1,34 @@
-import { ExternalLinkIcon, TrashIcon, LogoutIcon, PencilIcon } from "@heroicons/react/outline";
-import { LinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
+import { LogoutIcon } from "@heroicons/react/outline";
+import {
+  ExternalLinkIcon,
+  TrashIcon,
+  LinkIcon,
+  DotsHorizontalIcon,
+  PencilIcon,
+} from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 
-import classNames from "@lib/classNames";
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
-import { trpc, inferQueryOutput } from "@lib/trpc";
-
-import { Dialog, DialogTrigger } from "@components/Dialog";
-import { Tooltip } from "@components/Tooltip";
-import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@components/ui/Dropdown";
+} from "@calcom/ui/Dropdown";
+
+import classNames from "@lib/classNames";
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { trpc, inferQueryOutput } from "@lib/trpc";
+
+import { Tooltip } from "@components/Tooltip";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import Avatar from "@components/ui/Avatar";
 
 import { TeamRole } from "./TeamPill";
-import { MembershipRole } from ".prisma/client";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.list">[number];
@@ -65,7 +72,7 @@ export default function TeamListItem(props: Props) {
       <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
-          {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
+          {process.env.NEXT_PUBLIC_WEBSITE_URL}/team/{team.slug}
         </span>
       </div>
     </div>
@@ -105,7 +112,7 @@ export default function TeamListItem(props: Props) {
               <Tooltip content={t("copy_link_team")}>
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_APP_URL + "/team/" + team.slug);
+                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug);
                     showToast(t("link_copied"), "success");
                   }}
                   className="h-10 w-10 transition-none"
@@ -125,9 +132,9 @@ export default function TeamListItem(props: Props) {
                       <Link href={"/settings/teams/" + team.id}>
                         <a>
                           <Button
-                            type="button"
                             color="minimal"
-                            className="w-full font-normal"
+                            size="sm"
+                            className="w-full rounded-none font-medium"
                             StartIcon={PencilIcon}>
                             {t("edit_team")}
                           </Button>
@@ -135,16 +142,14 @@ export default function TeamListItem(props: Props) {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {isAdmin && <DropdownMenuSeparator className="h-px bg-gray-200" />}
                   <DropdownMenuItem>
-                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
+                    <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button
-                          type="button"
                           color="minimal"
-                          className="w-full font-normal"
+                          size="sm"
+                          className="w-full rounded-none font-medium"
                           StartIcon={ExternalLinkIcon}>
-                          {" "}
                           {t("preview_team")}
                         </Button>
                       </a>
@@ -160,8 +165,9 @@ export default function TeamListItem(props: Props) {
                               e.stopPropagation();
                             }}
                             color="warn"
-                            StartIcon={TrashIcon}
-                            className="w-full font-normal">
+                            size="sm"
+                            className="w-full rounded-none font-medium"
+                            StartIcon={TrashIcon}>
                             {t("disband_team")}
                           </Button>
                         </DialogTrigger>
@@ -183,8 +189,9 @@ export default function TeamListItem(props: Props) {
                           <Button
                             type="button"
                             color="warn"
+                            size="lg"
                             StartIcon={LogoutIcon}
-                            className="w-full"
+                            className="w-full rounded-none"
                             onClick={(e) => {
                               e.stopPropagation();
                             }}>

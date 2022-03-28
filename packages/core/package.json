@@ -14,7 +14,6 @@
     "dayjs": "^1.10.4",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
-    "tsdav": "2.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

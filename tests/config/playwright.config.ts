@@ -19,6 +19,8 @@ const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
+  retries: 1,
+  workers: 1,
   timeout: 60_000,
   reporter: [
     [process.env.CI ? "github" : "list"],
@@ -28,7 +30,7 @@ const config: PlaywrightTestConfig = {
   globalSetup: require.resolve("./globalSetup"),
   outputDir,
   webServer: {
-    command: "yarn workspace @calcom/web start -p 3000",
+    command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,

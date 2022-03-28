@@ -1,24 +1,14 @@
 import { Prisma } from "@prisma/client";
 
-import { APPS as CalendarApps } from "@calcom/lib/calendar/config";
 import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import appStore from ".";
-import { APPS as PaymentApps } from "../../apps/web/lib/apps/payment/config";
 
-const APPSTORE_APPS = Object.keys(appStore).reduce((store, key) => {
+const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;
   return store;
 }, {} as Record<string, App>);
-
-const ALL_APPS_MAP = {
-  ...APPSTORE_APPS,
-  /* To be deprecated start */
-  ...CalendarApps,
-  ...PaymentApps,
-  /* To be deprecated end */
-} as Record<string, App>;
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true, key: true, userId: true },
@@ -114,7 +104,7 @@ export function getLocationTypes(): string[] {
 }
 
 export function getAppName(name: string) {
-  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].name;
+  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name || "No App Name";
 }
 
 export function getAppType(name: string): string {

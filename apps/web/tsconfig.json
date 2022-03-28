@@ -7,11 +7,8 @@
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@ee/*": ["ee/*"],
-      "@apps/*": ["lib/apps/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
-    },
-    "typeRoots": ["./types", "@calcom/types"],
-    "types": ["@types/jest"]
+    }
   },
   "include": [
     "next-env.d.ts",

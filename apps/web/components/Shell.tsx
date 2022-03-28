@@ -17,9 +17,16 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import Button from "@calcom/ui/Button";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@calcom/ui/Dropdown";
 import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
-import HelpMenuItemDynamic from "@ee/lib/intercom/HelpMenuItemDynamic";
+import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import classNames from "@lib/classNames";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
@@ -31,17 +38,10 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/Dropdown";
 
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-import Button from "./ui/Button";
 
 export function useMeQuery() {
   const meQuery = trpc.useQuery(["viewer.me"], {
@@ -298,7 +298,7 @@ export default function Shell(props: {
                 </div>
                 <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
                   &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-                  {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
+                  {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
                   <span className="lowercase">-{user && user.plan}</span>
                 </small>
               </div>
@@ -309,7 +309,8 @@ export default function Shell(props: {
         <div className="flex w-0 flex-1 flex-col overflow-hidden">
           <main
             className={classNames(
-              "relative z-0 max-w-[1700px] flex-1 overflow-y-auto focus:outline-none",
+              "relative z-0 flex-1 overflow-y-auto focus:outline-none",
+              status === "authenticated" && "max-w-[1700px]",
               props.flexChildrenContainer && "flex flex-col"
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
@@ -357,10 +358,10 @@ export default function Shell(props: {
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
-                    <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900">
+                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
                       {props.heading}
                     </h1>
-                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
@@ -428,7 +429,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="group flex w-full cursor-pointer appearance-none items-center">
+        <button className="group flex w-full cursor-pointer appearance-none items-center text-left">
           <span
             className={classNames(
               small ? "h-8 w-8" : "h-10 w-10",
@@ -436,12 +437,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             )}>
             <img
               className="rounded-full"
-              src={
-                (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL) +
-                "/" +
-                user?.username +
-                "/avatar.png"
-              }
+              src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
               alt={user?.username || "Nameless User"}
             />
             {!user?.away && (
@@ -467,7 +463,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               />
             </span>
           )}
-        </div>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent portalled={true}>
         <DropdownMenuItem>
@@ -476,7 +472,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               mutation.mutate({ away: !user?.away });
               utils.invalidateQueries("viewer.me");
             }}
-            className="flex cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+            className="flex min-w-max cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
             <MoonIcon
               className={classNames(
                 user?.away
@@ -495,7 +491,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <a
               target="_blank"
               rel="noopener noreferrer"
-              href={`${process.env.NEXT_PUBLIC_APP_URL}/${user.username}`}
+              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
               className="flex items-center px-4 py-2 text-sm text-gray-700">
               <ExternalLinkIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("view_public_page")}
             </a>
@@ -512,7 +508,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               viewBox="0 0 2447.6 2452.5"
               className={classNames(
                 "text-gray-500 group-hover:text-gray-700",
-                "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
+                "mt-0.5 h-4 w-4 flex-shrink-0 ltr:mr-4 rtl:ml-4"
               )}
               xmlns="http://www.w3.org/2000/svg">
               <g clipRule="evenodd" fillRule="evenodd">
@@ -542,7 +538,9 @@ function UserDropdown({ small }: { small?: boolean }) {
             <MapIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("visit_roadmap")}
           </a>
         </DropdownMenuItem>
-        <HelpMenuItemDynamic />
+
+        <HelpMenuItem />
+
         <DropdownMenuSeparator className="h-px bg-gray-200" />
         <DropdownMenuItem>
           <a

@@ -51,6 +51,7 @@ type DailyKey = {
   apikey: string;
 };
 
+/** @deprecated use metadata on index file */
 export const FAKE_DAILY_CREDENTIAL: Credential = {
   id: +new Date().getTime(),
   type: "daily_video",

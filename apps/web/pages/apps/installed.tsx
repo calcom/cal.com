@@ -3,24 +3,27 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
+import { InstallAppButton } from "@calcom/app-store/components";
+import showToast from "@calcom/lib/notification";
+import { App } from "@calcom/types/App";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
 import { trpc } from "@lib/trpc";
 
-import { CalendarListContainer } from "@components/CalendarListContainer";
+import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
-import ConnectIntegration from "@components/integrations/ConnectIntegrations";
+import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 function IframeEmbedContainer() {
@@ -28,7 +31,7 @@ function IframeEmbedContainer() {
   // doesn't need suspense as it should already be loaded
   const user = trpc.useQuery(["viewer.me"]).data;
 
-  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
@@ -45,7 +48,7 @@ function IframeEmbedContainer() {
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
               </div>
-              <div>
+              <div className="text-right">
                 <input
                   id="iframe"
                   className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
@@ -107,7 +110,7 @@ function IframeEmbedContainer() {
 function ConnectOrDisconnectIntegrationButton(props: {
   //
   credentialIds: number[];
-  type: string;
+  type: App["type"];
   isGlobal?: boolean;
   installed: boolean;
 }) {
@@ -147,14 +150,14 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   return (
-    <ConnectIntegration
+    <InstallAppButton
       type={props.type}
-      render={(btnProps) => (
-        <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
+      render={(buttonProps) => (
+        <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
           {t("connect")}
         </Button>
       )}
-      onOpenChange={handleOpenChange}
+      onChanged={handleOpenChange}
     />
   );
 }
@@ -179,8 +182,17 @@ function IntegrationsContainer() {
             {data.conferencing.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
-                {...item}
-                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                title={item.title}
+                imageSrc={item.imageSrc}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
               />
             ))}
           </List>
@@ -195,8 +207,17 @@ function IntegrationsContainer() {
             {data.payment.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
-                {...item}
-                actions={<ConnectOrDisconnectIntegrationButton {...item} />}
+                imageSrc={item.imageSrc}
+                title={item.title}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
               />
             ))}
           </List>
@@ -286,14 +307,16 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
-        <CalendarListContainer />
-        <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
-        <IframeEmbedContainer />
-        <Web3Container />
-      </ClientSuspense>
+    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
+      <AppsShell>
+        <ClientSuspense fallback={<Loader />}>
+          <IntegrationsContainer />
+          <CalendarListContainer />
+          <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <IframeEmbedContainer />
+          <Web3Container />
+        </ClientSuspense>
+      </AppsShell>
     </Shell>
   );
 }

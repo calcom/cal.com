@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
   type: "office365_video",
-  imageSrc: "apps/msteams.svg",
+  imageSrc: "/apps/msteams.svg",
   variant: "conferencing",
   logo: "/apps/msteams.svg",
   publisher: "Cal.com",

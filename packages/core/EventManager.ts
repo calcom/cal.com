@@ -106,7 +106,7 @@ export default class EventManager {
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
-   * @param credentials
+   * @param user
    */
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
@@ -176,8 +176,9 @@ export default class EventManager {
       select: {
         id: true,
         references: {
+          // NOTE: id field removed from select as we don't require for deletingMany
+          // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
           select: {
-            id: true,
             type: true,
             uid: true,
             meetingId: true,

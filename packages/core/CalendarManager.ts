@@ -1,41 +1,31 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 
-import appStore from "@calcom/app-store";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { APPS } from "@calcom/lib/calendar/config";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
-import type { Calendar, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential): Calendar | null => {
-  const { type: calendarType } = credential;
-  const calendarApp = appStore[calendarType as keyof typeof appStore];
-  if (!calendarApp || !("CalendarService" in calendarApp.lib)) {
-    log.warn(`calendar of type ${calendarType} does not implemented`);
-    return null;
-  }
-  const CalendarService = calendarApp.lib.CalendarService;
-  return new CalendarService(credential);
-};
+/** TODO: Remove once all references are updated to app-store */
+export { getCalendar };
 
-export const getCalendarCredentials = (credentials: Array<Omit<Credential, "userId">>, userId: number) => {
-  const calendarCredentials = credentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    .flatMap((credential) => {
-      const integration = APPS[credential.type];
-
-      const calendar = getCalendar({
-        ...credential,
-        userId,
+export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+  const calendarCredentials = getApps(credentials)
+    .filter((app) => app.type.endsWith("_calendar"))
+    .flatMap((app) => {
+      const credentials = app.credentials.flatMap((credential) => {
+        const calendar = getCalendar(credential);
+        return app && calendar && app.variant === "calendar"
+          ? [{ integration: app, credential, calendar }]
+          : [];
       });
-      return integration && calendar && integration.variant === "calendar"
-        ? [{ integration, credential, calendar }]
-        : [];
+      return credentials.length ? credentials : [];
     });
 
   return calendarCredentials;
@@ -112,12 +102,17 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
   const calendar = getCalendar(credential);
   let success = true;
 
+  // Check if the disabledNotes flag is set to true
+  if (calEvent.hideCalendarNotes) {
+    calEvent.description = "Notes have been hidden by the organiser"; // TODO: i18n this string?
+  }
+
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch((e) => {
-        log.error("createEvent failed", e, calEvent);
-        success = false;
-        return undefined;
-      })
+      log.error("createEvent failed", e, calEvent);
+      success = false;
+      return undefined;
+    })
     : undefined;
 
   return {
@@ -141,10 +136,10 @@ export const updateEvent = async (
   const updatedResult =
     calendar && bookingRefUid
       ? await calendar.updateEvent(bookingRefUid, calEvent).catch((e) => {
-          log.error("updateEvent failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
+        log.error("updateEvent failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
       : undefined;
 
   return {

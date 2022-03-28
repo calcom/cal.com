@@ -17,9 +17,9 @@ const translator = short();
 const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
   withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    const appLib = appStore[appName as keyof typeof appStore]?.lib;
-    if ("VideoApiAdapter" in appLib) {
-      const makeVideoApiAdapter = appLib.VideoApiAdapter as VideoApiAdapterFactory;
+    const app = appStore[appName as keyof typeof appStore];
+    if (app && "lib" in app && "VideoApiAdapter" in app.lib) {
+      const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       acc.push(videoAdapter);
       return acc;

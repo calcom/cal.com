@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
-
-import Button from "@components/ui/Button";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -53,11 +53,14 @@ const DestinationCalendarSelector = ({
       })),
     })) ?? [];
   return (
-    <div className="relative">
+    <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
       {!hidePlaceholder && (
-        <div className="pointer-events-none absolute z-10">
-          <Button size="sm" color="secondary" className="m-[1px] rounded-sm border-transparent">
+        <div className="pointer-events-none absolute z-10 w-full">
+          <Button
+            size="sm"
+            color="secondary"
+            className="m-[1px] w-[calc(100%_-_40px)] overflow-hidden overflow-ellipsis whitespace-nowrap rounded-sm border-none leading-5">
             {t("select_destination_calendar")}: {selectedOption?.label || ""}
           </Button>
         </div>

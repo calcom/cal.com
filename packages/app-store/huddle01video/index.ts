@@ -1,3 +1,4 @@
+import { randomString } from "@calcom/lib/random";
 import type { App } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -7,11 +8,11 @@ export const metadata = {
   description: _package.description,
   installed: true,
   type: "huddle01_video",
-  imageSrc: "apps/huddle.svg",
+  imageSrc: "/apps/huddle.svg",
   variant: "conferencing",
   logo: "/apps/huddle.svg",
-  publisher: "Cal.com",
-  url: "https://huddle01.com/",
+  publisher: "huddle01.com",
+  url: "https://huddle01.com",
   verified: true,
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
@@ -21,8 +22,9 @@ export const metadata = {
   title: "Huddle01",
   trending: true,
   isGlobal: true,
-  email: "help@cal.com",
+  email: "support@huddle01.com",
   locationType: "integrations:huddle01",
+  key: { apikey: randomString(12) },
 } as App;
 
 export * as lib from "./lib";

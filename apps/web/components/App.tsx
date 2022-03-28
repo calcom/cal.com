@@ -10,22 +10,26 @@ import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import React from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { InstallAppButton } from "@calcom/app-store/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { App as AppType } from "@calcom/types/App";
+import { Button } from "@calcom/ui";
 
 //import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 
 export default function App({
   name,
+  type,
   logo,
   body,
   categories,
   author,
   price = 0,
   commission,
-  type,
+  isGlobal = false,
+  feeType,
   docs,
   website,
   email,
@@ -33,6 +37,8 @@ export default function App({
   privacy,
 }: {
   name: string;
+  type: AppType["type"];
+  isGlobal?: AppType["isGlobal"];
   logo: string;
   body: React.ReactNode;
   categories: string[];
@@ -40,7 +46,7 @@ export default function App({
   pro?: boolean;
   price?: number;
   commission?: number;
-  type?: "monthly" | "usage-based" | "one-time" | "free";
+  feeType?: AppType["feeType"];
   docs?: string;
   website?: string;
   email: string; // required
@@ -48,21 +54,6 @@ export default function App({
   privacy?: string;
 }) {
   const { t } = useLocale();
-
-  /*const tabs = [
-    {
-      name: t("description"),
-      href: "?description",
-    },
-    {
-      name: t("features"),
-      href: "?features",
-    },
-    {
-      name: t("permissions"),
-      href: "?permissions",
-    },
-  ];*/
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -73,45 +64,41 @@ export default function App({
   return (
     <>
       <Shell large>
-        <div className="-mx-8">
-          <div className="bg-gray-50 px-10">
+        <div className="-mx-4 md:-mx-8">
+          <div className="bg-gray-50 px-4">
             <Link href="/apps">
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
               </a>
             </Link>
-            <div className="flex items-center justify-between py-8">
+            <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt="" />
+                <img className="h-16 w-16" src={logo} alt={name} />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
-                    <span className="capitalize">{categories[0]}</span> • {t("build_by", { author })}
+                    <span className="capitalize">{categories[0]}</span> • {t("published_by", { author })}
                   </h2>
                 </header>
               </div>
 
-              <div className="text-right">
-                {type === "free" && (
-                  <Button onClick={() => alert("TODO: installed free app")}>{t("install_app")}</Button>
-                )}
-
-                {type === "usage-based" && (
-                  <Button onClick={() => alert("TODO: installed usage based app")}>{t("install_app")}</Button>
-                )}
-
-                {type === "monthly" && (
-                  <Button onClick={() => alert("TODO: installed monthly billed app")}>
-                    {t("subscribe")}
+              <div className="mt-4 sm:mt-0 sm:text-right">
+                {isGlobal ? (
+                  <Button color="secondary" disabled title="This app is globally installed">
+                    {t("installed")}
                   </Button>
+                ) : (
+                  <InstallAppButton
+                    type={type}
+                    render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                  />
                 )}
-
                 {price !== 0 && (
                   <small className="block text-right">
-                    {type === "usage-based"
+                    {feeType === "usage-based"
                       ? commission + "% + " + priceInDollar + "/booking"
                       : priceInDollar}
-                    {type === "monthly" && "/" + t("month")}
+                    {feeType === "monthly" && "/" + t("month")}
                   </small>
                 )}
               </div>
@@ -120,9 +107,9 @@ export default function App({
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
-          <div className="flex justify-between px-10 py-10">
+          <div className="justify-between px-4 py-10 md:flex">
             <div className="prose-sm prose">{body}</div>
-            <div className="max-w-80 flex-1">
+            <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
                 {categories.map((category) => (
@@ -144,7 +131,7 @@ export default function App({
                       currency: "USD",
                       useGrouping: false,
                     }).format(price)}
-                    {type === "monthly" && "/" + t("month")}
+                    {feeType === "monthly" && "/" + t("month")}
                   </>
                 )}
               </small>

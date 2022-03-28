@@ -41,5 +41,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
   const state = decodeOAuthState(req);
-  res.redirect(state?.returnTo ?? "/integrations");
+  res.redirect(state?.returnTo ?? "/apps/installed");
 }

@@ -167,6 +167,7 @@ export default NextAuth({
           return {
             id: existingUser.id,
             username: existingUser.username,
+            name: existingUser.name,
             email: existingUser.email,
           };
         }
@@ -181,6 +182,7 @@ export default NextAuth({
       if (account && account.type === "credentials") {
         return {
           id: user.id,
+          name: user.name,
           username: user.username,
           email: user.email,
         };
@@ -213,6 +215,7 @@ export default NextAuth({
 
         return {
           id: existingUser.id,
+          name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
         };
@@ -226,6 +229,7 @@ export default NextAuth({
         user: {
           ...session.user,
           id: token.id as number,
+          name: token.name,
           username: token.username as string,
         },
       };

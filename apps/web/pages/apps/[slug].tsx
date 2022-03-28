@@ -10,13 +10,15 @@ function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
       name={data.name}
+      isGlobal={data.isGlobal}
+      type={data.type}
       logo={data.logo}
       categories={[data.category]}
       author="Cal.com"
-      type="usage-based" // "usage-based" or "monthly" or "one-time"
-      //   price={0} // 0 = free. if type="usage-based" it's the price per booking
-      //   commission={0.5} // only required for "usage-based" billing. % of commission for paid bookings
-      //   docs="https://zoom.us/download"
+      feeType={data.feeType || "usage-based"}
+      price={data.price || 0}
+      commission={data.commission || 0}
+      docs={data.docsUrl}
       website={data.url}
       email={data.email}
       //   tos="https://zoom.us/terms"

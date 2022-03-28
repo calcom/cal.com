@@ -8,9 +8,9 @@ import nodemailer from "nodemailer";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getErrorFromUnknown } from "@lib/errors";
 import { serverConfig } from "@lib/serverConfig";
 
 import {

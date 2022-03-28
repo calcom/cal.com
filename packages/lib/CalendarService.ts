@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
-import { createEvent } from "ics";
+import { Attendee, createEvent, DateArray, DurationObject, Person } from "ics";
 import {
   createAccount,
   createCalendarObject,
@@ -19,25 +19,39 @@ import { v4 as uuidv4 } from "uuid";
 
 import type {
   Calendar,
-  IntegrationCalendar,
+  CalendarEvent,
   CalendarEventType,
   EventBusyDate,
+  IntegrationCalendar,
   NewCalendarEventType,
-  CalendarEvent,
 } from "@calcom/types/Calendar";
 import type { Event } from "@calcom/types/Event";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
-import { TIMEZONE_FORMAT } from "./calendar/constants/format";
-import { DEFAULT_CALENDAR_TYPE } from "./calendar/constants/general";
-import { convertDate, getAttendees, getDuration } from "./calendar/utils/CalendarUtils";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
+
+const TIMEZONE_FORMAT = "YYYY-MM-DDTHH:mm:ss[Z]";
+const DEFAULT_CALENDAR_TYPE = "caldav";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
+const convertDate = (date: string): DateArray =>
+  dayjs(date)
+    .utc()
+    .toArray()
+    .slice(0, 6)
+    .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
+
+const getDuration = (start: string, end: string): DurationObject => ({
+  minutes: dayjs(end).diff(dayjs(start), "minute"),
+});
+
+const getAttendees = (attendees: Person[]): Attendee[] =>
+  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
@@ -306,7 +320,7 @@ export default abstract class BaseCalendarService implements Calendar {
           const event = new ICAL.Event(vevent);
 
           const calendarTimezone =
-            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue("tzid") || "";
+            vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue<string>("tzid") || "";
 
           const startDate = calendarTimezone
             ? dayjs.tz(event.startDate.toString(), calendarTimezone)

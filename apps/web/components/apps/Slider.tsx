@@ -4,9 +4,9 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import useMediaQuery from "@lib/hooks/useMediaQuery";
 
 import AppCard from "./AppCard";
@@ -25,14 +25,26 @@ const Slider = <T extends App>({ items }: { items: T[] }) => {
   }, [isMobile]);
 
   useEffect(() => {
-    new Glide(".glide", {
+    const slider = new Glide(".glide", {
       type: "carousel",
       perView: size,
-    }).mount();
-  });
+    });
+
+    slider.mount();
+
+    // @ts-ignore TODO: This method is missing in types
+    return () => slider.destroy();
+  }, [size]);
 
   return (
     <div className="mb-16">
+      <style jsx global>
+        {`
+          .glide__slide {
+            height: auto !important;
+          }
+        `}
+      </style>
       <div className="glide">
         <div className="flex cursor-default">
           <div>
@@ -52,7 +64,7 @@ const Slider = <T extends App>({ items }: { items: T[] }) => {
             {items.map((app) => {
               return (
                 app.trending && (
-                  <li key={app.name} className="glide__slide">
+                  <li key={app.name} className="glide__slide h-auto">
                     <AppCard
                       key={app.name}
                       name={app.name}

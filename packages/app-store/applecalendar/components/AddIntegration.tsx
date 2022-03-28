@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-/* TODO: These should come from @calcom/ui */
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
 import {
   Dialog,
   DialogClose,
@@ -9,10 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogProps,
-} from "../../../../apps/web/components/Dialog";
-import { Form, TextField } from "../../../../apps/web/components/form/fields";
-import { Alert } from "../../../../apps/web/components/ui/Alert";
-import Button from "../../../../apps/web/components/ui/Button";
+} from "@calcom/ui/Dialog";
+import { Form, TextField } from "@calcom/ui/form/fields";
 
 export const ADD_INTEGRATION_FORM_TITLE = "addAppleIntegration";
 
@@ -25,7 +24,7 @@ function AddIntegrationModal(props: DialogProps) {
   });
   const [errorMessage, setErrorMessage] = useState("");
   return (
-    <Dialog {...props}>
+    <Dialog name={ADD_INTEGRATION_FORM_TITLE} {...props}>
       <DialogContent>
         <DialogHeader
           title="Connect to Apple Server"
@@ -48,7 +47,7 @@ function AddIntegrationModal(props: DialogProps) {
           form={form}
           handleSubmit={async (values) => {
             setErrorMessage("");
-            const res = await fetch("/api/integrations/apple/add", {
+            const res = await fetch("/api/integrations/applecalendar/add", {
               method: "POST",
               body: JSON.stringify(values),
               headers: {
