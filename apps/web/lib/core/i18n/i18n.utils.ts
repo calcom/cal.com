@@ -1,11 +1,12 @@
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
-import { i18n } from "next-i18next.config";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 import { Maybe } from "@trpc/server";
+
+import { i18n } from "../../../next-i18next.config";
 
 export function getLocaleFromHeaders(req: IncomingMessage): string {
   let preferredLocale: string | null | undefined;
