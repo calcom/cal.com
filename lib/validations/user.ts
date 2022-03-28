@@ -1,15 +1,16 @@
 import { withValidation } from "next-validations";
-import { schemaEventType } from "./eventType";
-// import { schemaCredential } from "./credential";
-// import { schemaMembership } from "./membership";
-// import { schemaBooking } from "./booking";
-// import { schemaSchedule } from "./schedule";
-// import { schemaSelectedCalendar } from "./selectedCalendar";
-// import { schemaAvailability } from "./availability";
-// import { schemaWebhook } from "./webhook";
-
 import { z } from "zod";
+
+import { schemaEventType } from "./eventType";
 import { schemaApiKey } from "./apiKey";
+import { schemaDestinationCalendar } from "./destination-calendar";
+import { schemaWebhook } from "./webhook";
+import { schemaAvailability } from "./availability";
+import { schemaSelectedCalendar } from "./selected-calendar";
+import { schemaBooking } from "./booking";
+import { schemaMembership } from "./membership";
+import { schemaSchedule } from "./schedule";
+import { schemaCredential } from "./credential";
 
 const schemaUser = z
   .object({
@@ -27,12 +28,12 @@ const schemaUser = z
     theme: z.string().optional(),
     trialEndsAt: z.date().optional(),
     eventTypes: z.array((schemaEventType)).optional(),
-    // credentials: z.array((schemaCredentials)).optional(),
-    // teams: z.array((schemaMembership)).optional(),
-    // bookings: z.array((schemaBooking)).optional(),
-    // schedules: z.array((schemaSchedule)).optional(),
+    credentials: z.array((schemaCredential)).optional(),
+    teams: z.array((schemaMembership)).optional(),
+    bookings: z.array((schemaBooking)).optional(),
+    schedules: z.array((schemaSchedule)).optional(),
     defaultScheduleId: z.number().optional(),
-    // selectedCalendars: z.array((schemaSelectedCalendar)).optional(),
+    selectedCalendars: z.array((schemaSelectedCalendar)).optional(),
     completedOnboarding: z.boolean().default(false),
     locale: z.string().optional(),
     timeFormat: z.number().optional().default(12),
@@ -40,19 +41,19 @@ const schemaUser = z
     twoFactorSecret: z.string().optional(),
     identityProvider: z.enum(["CAL", "SAML", "GOOGLE"]).optional().default("CAL"),
     identityProviderId: z.string().optional(),
-    // availavility: z.array((schemaAvailavility)).optional(),
+    availability: z.array((schemaAvailability)).optional(),
     invitedTo: z.number().optional(),
     plan: z.enum(['FREE', 'TRIAL', 'PRO']).default("TRIAL"),
-    // webhooks: z.array((schemaWebhook)).optional(),
+    webhooks: z.array((schemaWebhook)).optional(),
     brandColor: z.string().default("#292929"),
     darkBrandColor: z.string().default("#fafafa"),
-    // destinationCalendar:  z.instanceof(schemaEventType).optional(), // FIXME: instanceof doesnt work here
+    destinationCalendar:  z.array(schemaDestinationCalendar).optional(), // FIXME: instanceof doesnt work here
     away: z.boolean().default(false),
     metadata: z.object({}).optional(),
     verified: z.boolean().default(false),
     apiKeys: z.array((schemaApiKey)).optional(),
   })
-  .strict(); // Adding strict so that we can disallow passing in extra fields
+  .strict(); 
 const withValidUser = withValidation({
   schema: schemaUser,
   type: "Zod",

@@ -1,16 +1,16 @@
 import prisma from "@calcom/prisma";
 
-import { Team } from "@calcom/prisma/client";
+import { Availability } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type ResponseData = {
-  data?: Team[];
+  data?: Availability[];
   error?: unknown;
 };
 
-export default async function team(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export default async function availability(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    const data = await prisma.team.findMany();
+    const data = await prisma.availability.findMany();
     res.status(200).json({ data });
   } catch (error) {
     // FIXME: Add zod for validation/error handling

@@ -9,7 +9,7 @@ const schemaTeam = z
     bio: z.string().min(3).optional(),
     logo: z.string().optional(),
   })
-  .strict(); // Adding strict so that we can disallow passing in extra fields
+  .strict(); 
 const withValidTeam = withValidation({
   schema: schemaTeam,
   type: "Zod",

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // Extracted out as utility function so can be reused
 // at different endpoints that require this validation.
-const schemaQueryId = z
+const schemaQueryIdParseInt = z
   .object({
     // since nextjs parses query params as strings,
     // we need to cast them to numbers using z.transform() and parseInt()
@@ -15,9 +15,9 @@ const schemaQueryId = z
   .strict();
 
 const withValidQueryIdTransformParseInt = withValidation({
-  schema: schemaQueryId,
+  schema: schemaQueryIdParseInt,
   type: "Zod",
   mode: "query",
 });
 
-export { schemaQueryId, withValidQueryIdTransformParseInt };
+export { schemaQueryIdParseInt, withValidQueryIdTransformParseInt };
