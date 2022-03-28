@@ -1,6 +1,8 @@
 import { WebClient } from "@slack/web-api";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+
 import { WhereCredsEqualsId } from "./WhereCredsEqualsID";
 import { CreateEventModal, NoUserMessage } from "./views";
 

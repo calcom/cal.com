@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
-
 import { showCreateEventMessage, showTodayMessage } from "../lib";
 
 export enum SlackAppCommands {
