@@ -2,48 +2,48 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-import { Cal as CalClass } from "@calcom/embed-core/embed";
+import { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/embed";
 
-export interface Cal {
-  (method, arg): void;
+export interface GlobalCal {
+  (methodName: string, arg?: any): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
-  q?: unknown[];
+  q?: InstructionQueue;
   /** If user registers multiple namespaces, those are available here */
-  ns?: Record<string, Cal>;
-}
-
-export interface CalWindow extends Window {
-  Cal?: Cal;
+  ns?: Record<string, GlobalCal>;
   instance?: CalClass;
 }
 
+export interface CalWindow extends Window {
+  Cal?: GlobalCal;
+}
+
 export default function EmbedSnippet(url = "https://cal.com/embed.js") {
-  (function (c: CalWindow, a, l) {
-    let d = c.document;
-    c.Cal =
-      c.Cal ||
+  (function (C: CalWindow, A, L) {
+    let d = C.document;
+    C.Cal =
+      C.Cal ||
       function () {
-        let C = c.Cal;
+        let cal = C.Cal!;
         let ar = arguments;
-        if (!C.loaded) {
-          C.ns = {};
-          C.q = C.q || [];
-          d.head.appendChild(d.createElement("script")).src = a;
-          C.loaded = true;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
         }
 
-        if (ar[0] === l) {
-          const api = function () {
+        if (ar[0] === L) {
+          const api: { (): void; q: any[] } = function () {
             api.q.push(arguments);
           };
           const namespace = arguments[1];
           api.q = api.q || [];
-          namespace ? (C.ns[namespace] = api) : null;
+          namespace ? (cal.ns![namespace] = api) : null;
           return;
         }
-        C.q.push(ar);
+        cal.q!.push(ar);
       };
   })(window, url, "init");
   return (window as CalWindow).Cal;

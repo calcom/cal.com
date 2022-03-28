@@ -1,4 +1,9 @@
 {
   "name": "@calcom/embed-snippet",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite --port=3002",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
 }

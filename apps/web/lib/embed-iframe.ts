@@ -1,10 +1,23 @@
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useState, useLayoutEffect, useEffect, CSSProperties } from "react";
 
 import { sdkEventManager } from "@lib/sdk-event";
 
 let setEmbedStyles;
+
+// Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
+// Keep this list to minimum, only adding those styles which are really needed.
+interface EmbedStyles {
+  body?: Pick<CSSProperties, "background">;
+  eventTypeListItem?: Pick<CSSProperties, "background">;
+}
+
+export interface UiConfig {
+  theme: string;
+  styles: EmbedStyles;
+}
+
 export const useEmbedStyles = () => {
-  const [styles, setStyles] = useState({});
+  const [styles, setStyles] = useState({} as EmbedStyles);
   // FIXME: We are overriding setEmbedStyles with the last component that has it's useEffect hook called.
   // It for sure has bug but not able to reproduce it yet. Look into it later.
   // Ideally we should maintain the list of setStyles for all the components using this hook and update all those components or select few of them
@@ -14,9 +27,9 @@ export const useEmbedStyles = () => {
   return styles;
 };
 
-const methods = {
-  // TODO: Give typesafety for methods to parent embed.ts
-  ui: function style(uiConfig) {
+// If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
+export const methods = {
+  ui: function style(uiConfig: UiConfig) {
     const stylesConfig = uiConfig.styles;
 
     // In case where parent gives instructions before setEmbedStyles is set.
@@ -27,7 +40,7 @@ const methods = {
     }
 
     if (stylesConfig.body?.background) {
-      document.body.style.background = stylesConfig.body.background;
+      document.body.style.background = stylesConfig.body.background as string;
     }
 
     setEmbedStyles((styles) => {

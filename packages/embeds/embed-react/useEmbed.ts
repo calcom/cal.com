@@ -4,12 +4,11 @@ import EmbedSnippet from "../embed-snippet";
 
 export default function useEmbed() {
   const embedUrl = "http://localhost:3001/dist/embed.es.js";
-  const [Cal, setCal] = useState(null);
+  const [globalCal, setGlobalCal] = useState<ReturnType<typeof EmbedSnippet>>();
   useEffect(() => {
-    const Cal = EmbedSnippet(embedUrl);
-    setCal(() => {
-      return Cal;
+    setGlobalCal(() => {
+      return EmbedSnippet(embedUrl);
     });
   }, []);
-  return Cal;
+  return globalCal;
 }

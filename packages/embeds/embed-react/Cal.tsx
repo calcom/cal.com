@@ -4,7 +4,7 @@ import useEmbed from "./useEmbed";
 
 export default function Cal({ calendarLink, config }: { calendarLink: string; config?: any }) {
   const Cal = useEmbed();
-  const ref = useRef();
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!Cal) {
       return;
