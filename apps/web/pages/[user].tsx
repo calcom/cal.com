@@ -98,7 +98,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                             "error"
                           );
                         } else {
-                          sdkEventManager?.fire("event-type-selected", {
+                          sdkEventManager?.fire("eventTypeSelected", {
                             eventType: type,
                           });
                         }
