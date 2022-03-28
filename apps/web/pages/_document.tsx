@@ -25,8 +25,9 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
         </Head>
+
         {/* Keep the embed hidden till parent initializes and gives it the appropritate styles */}
-        <body className="bg-gray-100 dark:bg-black" style={props.isEmbed ? { display: "none" } : {}}>
+        <body className="bg-gray-100 dark:bg-neutral-900" style={props.isEmbed ? { display: "none" } : {}}>
           <Main />
           <NextScript />
         </body>

@@ -6,11 +6,11 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 import nodemailer from "nodemailer";
 
+import { getAppName } from "@calcom/app-store/utils";
+import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
-import { getIntegrationName } from "@lib/integrations";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
 
 import {
@@ -300,7 +300,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getIntegrationName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];

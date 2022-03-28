@@ -1,4 +1,5 @@
 import { ClockIcon, ExternalLinkIcon, LinkIcon, LogoutIcon, TrashIcon } from "@heroicons/react/solid";
+import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
@@ -14,14 +15,12 @@ import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogCont
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import LinkIconButton from "@components/ui/LinkIconButton";
 
-import { MembershipRole } from ".prisma/client";
-
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team?.slug}`;
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${props.team?.slug}`;
 
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
