@@ -20,7 +20,7 @@ function log(...args: any[]) {
   console.log(...args);
 }
 
-type Instruction = [method: string, argument: any] | [method: string, argument: any][];
+export type Instruction = [method: string, argument: any] | [method: string, argument: any][];
 export type InstructionQueue = Instruction[];
 
 export class Cal {

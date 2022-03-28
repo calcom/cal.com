@@ -2,7 +2,7 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-import { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/embed";
+import { Cal as CalClass, Instruction, InstructionQueue } from "@calcom/embed-core/embed";
 
 export interface GlobalCal {
   (methodName: string, arg?: any): void;
@@ -20,6 +20,7 @@ export interface CalWindow extends Window {
 }
 
 export default function EmbedSnippet(url = "https://cal.com/embed.js") {
+  /*!  Copy the code below and paste it in script tag of your website */
   (function (C: CalWindow, A, L) {
     let d = C.document;
     C.Cal =
@@ -43,8 +44,10 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
           namespace ? (cal.ns![namespace] = api) : null;
           return;
         }
-        cal.q!.push(ar);
+        cal.q!.push(ar as unknown as Instruction);
       };
   })(window, url, "init");
+  /*!  Copying ends here. */
+
   return (window as CalWindow).Cal;
 }
