@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { parse } from "querystring";
 
 import createEvent from "../lib/actions/createEvent";
 

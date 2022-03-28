@@ -7,6 +7,11 @@ const client_id = process.env.SLACK_CLIENT_ID;
 const client_secret = process.env.SLACK_CLIENT_SECRET;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.session?.user?.id) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
   if (req.method === "GET") {
     // Get user
     const { code } = req.query;
@@ -30,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.user.update({
       where: {
-        id: req.session?.user.id,
+        id: req.session.user.id,
       },
       data: {
         credentials: {

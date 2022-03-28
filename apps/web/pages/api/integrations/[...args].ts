@@ -9,11 +9,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getSession({ req });
 
-  if (!req.session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
-
   const { args } = req.query;
 
   if (!Array.isArray(args)) {

@@ -7,12 +7,17 @@ const client_id = process.env.SLACK_CLIENT_ID;
 const scopes = ["commands", "users:read", "users:read.email"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.session?.user?.id) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
   if (req.method === "GET") {
     // Get user
     await prisma.user.findFirst({
       rejectOnNotFound: true,
       where: {
-        id: req.session?.user?.id,
+        id: req.session.user.id,
       },
       select: {
         id: true,

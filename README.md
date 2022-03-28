@@ -335,11 +335,11 @@ features:
     always_online: false
   slash_commands:
     - command: /create-event
-      url: https://YOUR_DOMAIN/api/integrations/slackapp/listener/slackapp/commandHandler
+      url: https://YOUR_DOMAIN/api/integrations/slackapp/commandHandler
       description: Create an event within Cal!
       should_escape: false
     - command: /today
-      url: https://YOUR_DOMAIN/api/integrations/slackapp/listener/slackapp/commandHandler
+      url: https://YOUR_DOMAIN/api/integrations/slackapp/commandHandler
       description: View all your bookings for today
       should_escape: false
 oauth_config:
@@ -352,8 +352,8 @@ oauth_config:
 settings:
   interactivity:
     is_enabled: true
-    request_url: https://YOUR_DOMAIN/api/integrations/slackapp/listener/slackapp/interactiveHandler
-    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackapp/listener/slackapp/interactiveHandler
+    request_url: https://YOUR_DOMAIN/api/integrations/slackapp/interactiveHandler
+    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackapp/interactiveHandler
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false
