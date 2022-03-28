@@ -175,6 +175,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
+  const [inputSeatNumber, setInputSeatNumber] = useState(false);
+
+  useEffect(() => {
+    console.log("🚀 ~ file: [type].tsx ~ line 179 ~ EventTypePage ~ inputSeatNumber", inputSeatNumber);
+  }, [inputSeatNumber]);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -1349,75 +1354,107 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                         <>
                           <hr className="border-neutral-200" />
-                          <div className="block sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <label
-                                htmlFor="seats"
-                                className="mt-2 flex text-sm font-medium text-neutral-700">
-                                Seats per time-slot
-                              </label>
-                            </div>
-                            <div className="flex-column flex w-full">
-                              <div className="w-64">
-                                <Controller
-                                  name="seatsPerTimeSlot"
-                                  control={formMethods.control}
-                                  render={() => {
-                                    const selectSeatsPerTimeSlotOptions = [
-                                      { value: 2, label: "2" },
-                                      { value: 3, label: "3" },
-                                      { value: 4, label: "4" },
-                                      { value: 5, label: "5" },
-                                      {
-                                        value: -1,
-                                        isDisabled: true,
-                                        label: (
-                                          <div className="flex flex-row justify-between">
-                                            <span>6 +</span>
-                                            <Badge variant="default">PRO</Badge>
-                                          </div>
-                                        ),
-                                      },
-                                    ];
-                                    return (
-                                      <Select
-                                        isSearchable={false}
-                                        classNamePrefix="react-select"
-                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                                        onChange={(val) => {
-                                          formMethods.setValue("seatsPerTimeSlot", val ? Number(val) : 0);
-                                        }}
-                                        defaultValue={2}
-                                        options={selectSeatsPerTimeSlotOptions}
-                                      />
-                                    );
+                          <div className="block flex-col sm:flex">
+                            <Controller
+                              name="disableGuests"
+                              control={formMethods.control}
+                              render={() => (
+                                <CheckboxField
+                                  id="noSeats"
+                                  name="noSeats"
+                                  label={"Offer seats"}
+                                  description={"Offer seats to bookings"}
+                                  defaultChecked={eventType.disableGuests}
+                                  onChange={(e) => {
+                                    formMethods.setValue("disableGuests", e?.target.checked);
                                   }}
                                 />
+                              )}
+                            />
+
+                            {formMethods.watch("disableGuests") === true && (
+                              <div className="block sm:flex">
+                                <div className="ml-48 mt-2 inline-flex w-full space-x-2">
+                                  <div className="w-full">
+                                    <label
+                                      htmlFor="beforeBufferTime"
+                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                      Number of seats per booking
+                                    </label>
+                                    <Controller
+                                      name="seatsPerTimeSlot"
+                                      control={formMethods.control}
+                                      render={() => {
+                                        const selectSeatsPerTimeSlotOptions = [
+                                          { value: 2, label: "2" },
+                                          { value: 3, label: "3" },
+                                          { value: 4, label: "4" },
+                                          { value: 5, label: "5" },
+                                          {
+                                            value: -1,
+                                            isDisabled: false,
+                                            label: (
+                                              <div className="flex flex-row justify-between">
+                                                <span>6 +</span>
+                                                <Badge variant="default">PRO</Badge>
+                                              </div>
+                                            ),
+                                          },
+                                        ];
+                                        return (
+                                          <>
+                                            <Select
+                                              isSearchable={false}
+                                              classNamePrefix="react-select"
+                                              className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                              onChange={(val: { label: string; value: number }) => {
+                                                console.log(
+                                                  "🚀 ~ file: [type].tsx ~ line 1420 ~ EventTypePage ~ val",
+                                                  val
+                                                );
+
+                                                if (val.value === -1) {
+                                                  setInputSeatNumber(true);
+                                                } else {
+                                                  formMethods.setValue(
+                                                    "seatsPerTimeSlot",
+                                                    val ? Number(val) : 0
+                                                  );
+                                                }
+                                              }}
+                                              defaultValue={{ value: 2, label: "2" }}
+                                              options={selectSeatsPerTimeSlotOptions}
+                                            />
+                                            {inputSeatNumber && (
+                                              <input
+                                                type="number"
+                                                className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                placeholder="30"
+                                                {...formMethods.register("periodDays", {
+                                                  valueAsNumber: true,
+                                                })}
+                                                defaultValue={eventType.periodDays || 30}
+                                              />
+                                            )}
+                                          </>
+                                        );
+                                      }}
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              {/* PRO OPTION */}
-                              {/* <input
+                            )}
+                          </div>
+
+                          {/* PRO OPTION */}
+                          {/* <input
                                 type="number"
                                 className="focus:border-primary-500 focus:ring-primary-500 block w-14 rounded-sm border-gray-300 pl-2 pr-2 sm:text-sm"
                                 placeholder="2 minimum"
                                 {...formMethods.register("seatsPerTimeSlot", { valueAsNumber: true })}
                                 defaultValue={2}
                               /> */}
-                              <Controller
-                                name="seatsPerTimeSlot"
-                                control={formMethods.control}
-                                render={() => (
-                                  <CheckboxField
-                                    id="noSeats"
-                                    name="noSeats"
-                                    label={""}
-                                    description={"Don't offer any seats"}
-                                    defaultChecked={eventType.disableGuests}
-                                    onChange={(e) => {
-                                      formMethods.setValue("seatsPerTimeSlot", null);
-                                    }}
-                                  />
-                                )}
-                              />
+                          {/*
                             </div>
                           </div>
                           <div className="block sm:flex">
@@ -1465,6 +1502,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               />
                             </div>
                           </div>
+                          */}
                           <hr className="border-neutral-200" />
                         </>
 
