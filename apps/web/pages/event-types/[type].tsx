@@ -1418,6 +1418,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
                                                   onChange={(val) => {
                                                     if (val!.value === -1) {
+                                                      formMethods.setValue("seatsPerTimeSlot", 6);
                                                       setInputSeatNumber(true);
                                                     } else {
                                                       setInputSeatNumber(false);
