@@ -1,6 +1,6 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
-  extends: ["plugin:playwright/playwright-test", "next", "prettier"],
+  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended"],
   settings: {
     next: {
       rootDir: ["apps/*/", "packages/*/"],
