@@ -11,7 +11,7 @@ export const metadata = {
     process.env.SLACK_SIGNING_SECRET
   ),
   category: "messaging",
-  imageSrc: "apps/slack.svg",
+  imageSrc: "/apps/slack.svg",
   label: "Slack App",
   logo: "/apps/slack.svg",
   publisher: "Cal.com",

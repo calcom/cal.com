@@ -2,7 +2,7 @@ import { WebClient } from "@slack/web-api";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
@@ -127,17 +127,20 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
   // Possible make the fetch_wrapped into a shared package?
   console.log(JSON.stringify(PostData, null, 2));
 
-  fetch(`${BASE_URL}/api/book/event`, {
-    method: "POST",
-    body: JSON.stringify(PostData),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((res) => res.json())
-    .catch((error) =>
-      res.status(200).json({ text: "Event creation failed. Please try again", response_action: "update" })
-    );
-  res.status(200).json({ response_action: "update", view: BookingSuccess() }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
-  // res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
+  try {
+    await fetch(`${WEBAPP_URL}/api/book/event`, {
+      method: "POST",
+      body: JSON.stringify(PostData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return res.status(200).json({ response_action: "update", view: BookingSuccess() }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
+    // res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
+  } catch (error) {
+    return res
+      .status(200)
+      .json({ text: "Event creation failed. Please try again", response_action: "update" });
+  }
 }

@@ -1,8 +1,4 @@
-import { Booking } from "@prisma/client";
-import dayjs from "dayjs";
-import { Modal, Blocks, Elements, Bits, Message } from "slack-block-builder";
-
-import { BASE_URL } from "@calcom/lib/constants";
+import { Blocks, Message } from "slack-block-builder";
 
 const BookingSuccess = () => {
   return Message()

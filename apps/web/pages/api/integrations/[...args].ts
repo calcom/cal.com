@@ -28,7 +28,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const response = await handler(req, res);
     console.log("response", response);
 
-    res.status(200);
+    return res.status(200);
   } catch (error) {
     console.error(error);
     if (error instanceof HttpError) {
