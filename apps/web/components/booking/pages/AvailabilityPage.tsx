@@ -59,12 +59,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
-      // todo some extra validation maybe.
-      const utcOffsetAsDate = dayjs(dateString.substr(11, 14), "Hmm");
-      const utcOffset = parseInt(
-        dateString.substr(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
-      );
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffset, true);
+      const offsetString = dateString.substr(11, 14); // hhmm
+      const offsetSign = dateString.substr(10, 1); // + or -
+
+      const offsetHour = offsetString.slice(0, -2);
+      const offsetMinute = offsetString.slice(-2);
+
+      const utcOffsetInMinutes =
+        (offsetSign === "-" ? -1 : 1) *
+        (60 * (offsetHour !== "" ? parseInt(offsetHour) : 0) +
+          (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
+
+      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
       return date.isValid() ? date : null;
     }
     return null;
