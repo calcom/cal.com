@@ -19,8 +19,9 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(({ label, description,
             <input
               {...rest}
               ref={ref}
+              disabled={rest.disabled}
               type="checkbox"
-              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+              className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 disabled:opacity-50"
             />
           </div>
           <div className="text-sm ltr:ml-3 rtl:mr-3">

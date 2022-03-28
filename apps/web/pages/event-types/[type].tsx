@@ -176,11 +176,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
   const [enableSeats, setEnableSeats] = useState(eventType.seatsPerTimeSlot ? true : false);
-  const [inputSeatNumber, setInputSeatNumber] = useState(false);
-
-  useEffect(() => {
-    console.log("🚀 ~ file: [type].tsx ~ line 179 ~ EventTypePage ~ inputSeatNumber", inputSeatNumber);
-  }, [inputSeatNumber]);
+  const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= 6 ? true : false);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -1070,6 +1066,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
+                              // If we have seats per booking then we need to disable guests
+                              disabled={enableSeats}
                               onChange={(e) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
@@ -1361,18 +1359,20 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               control={formMethods.control}
                               render={() => (
                                 <CheckboxField
-                                  id="noSeats"
-                                  name="noSeats"
-                                  label={"Offer seats"}
-                                  description={"Offer seats to bookings"}
+                                  id="seats"
+                                  name="seats"
+                                  label={t("offer_seats")}
+                                  description={t("offer_seats_description")}
                                   defaultChecked={eventType.seatsPerTimeSlot !== null}
                                   onChange={(e) => {
                                     if (e?.target.checked) {
                                       setEnableSeats(true);
                                       // Want to disable individuals from taking multiple seats
+                                      formMethods.setValue("seatsPerTimeSlot", 2);
                                       formMethods.setValue("disableGuests", true);
                                     } else {
                                       formMethods.setValue("seatsPerTimeSlot", null);
+                                      setEnableSeats(false);
                                     }
                                   }}
                                 />
@@ -1425,8 +1425,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     }
                                                   }}
                                                   defaultValue={{
-                                                    value: eventType.seatsPerTimeSlot,
-                                                    label: `${eventType.seatsPerTimeSlot}`,
+                                                    value: eventType.seatsPerTimeSlot || 2,
+                                                    label: `${eventType.seatsPerTimeSlot || 2}`,
                                                   }}
                                                   options={selectSeatsPerTimeSlotOptions}
                                                 />
