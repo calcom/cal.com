@@ -199,7 +199,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!users) {
+  if (!users.length) {
     return {
       notFound: true,
     };

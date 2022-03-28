@@ -208,18 +208,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const eventTypeObject =
-    users.length > 1
-      ? Object.assign({}, eventType, {
-          metadata: (eventType.metadata || {}) as JSONObject,
-          periodStartDate: eventType.periodStartDate?.toString() ?? null,
-          periodEndDate: eventType.periodEndDate?.toString() ?? null,
-        })
-      : Object.assign({}, eventType, {
-          metadata: (eventType.metadata || {}) as JSONObject,
-          periodStartDate: eventType.periodStartDate?.toString() ?? null,
-          periodEndDate: eventType.periodEndDate?.toString() ?? null,
-        });
+  const eventTypeObject = Object.assign({}, eventType, {
+    metadata: (eventType.metadata || {}) as JSONObject,
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
 
   const schedule = eventType.schedule
     ? { ...eventType.schedule }

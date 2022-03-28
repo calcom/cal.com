@@ -6,6 +6,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { getDefaultEvent } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -24,9 +25,14 @@ export default function Book(props: BookPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const user = await prisma.user.findUnique({
+  const usernameList = asStringOrThrow(context.query.user as string)
+    .toLowerCase()
+    .split("+");
+  const users = await prisma.user.findMany({
     where: {
-      username: asStringOrThrow(context.query.user).toLowerCase(),
+      username: {
+        in: usernameList,
+      },
     },
     select: {
       id: true,
@@ -41,47 +47,52 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!user) return { notFound: true };
+  if (!users.length) return { notFound: true };
 
-  const eventTypeRaw = await prisma.eventType.findUnique({
-    where: {
-      id: parseInt(asStringOrThrow(context.query.type)),
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      locations: true,
-      customInputs: true,
-      periodType: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      metadata: true,
-      periodCountCalendarDays: true,
-      price: true,
-      currency: true,
-      disableGuests: true,
-      users: {
-        select: {
-          username: true,
-          name: true,
-          email: true,
-          bio: true,
-          avatar: true,
-          theme: true,
-        },
-      },
-    },
-  });
+  const eventTypeRaw =
+    usernameList.length > 1
+      ? getDefaultEvent("30min")
+      : await prisma.eventType.findUnique({
+          where: {
+            id: parseInt(asStringOrThrow(context.query.type)),
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            length: true,
+            locations: true,
+            customInputs: true,
+            periodType: true,
+            periodDays: true,
+            periodStartDate: true,
+            periodEndDate: true,
+            metadata: true,
+            periodCountCalendarDays: true,
+            price: true,
+            currency: true,
+            disableGuests: true,
+            users: {
+              select: {
+                username: true,
+                name: true,
+                email: true,
+                bio: true,
+                avatar: true,
+                theme: true,
+              },
+            },
+          },
+        });
 
   if (!eventTypeRaw) return { notFound: true };
 
   const credentials = await prisma.credential.findMany({
     where: {
-      userId: user.id,
+      userId: {
+        in: users.map((user) => user.id),
+      },
     },
     select: {
       id: true,
@@ -136,12 +147,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       profile: {
-        slug: user.username,
-        name: user.name,
-        image: user.avatar,
-        theme: user.theme,
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
+        slug: users[0].username,
+        name: users[0].name,
+        image: users[0].avatar,
+        theme: users[0].theme,
+        brandColor: users[0].brandColor,
+        darkBrandColor: users[0].darkBrandColor,
       },
       eventType: eventTypeObject,
       booking,
