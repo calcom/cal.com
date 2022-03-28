@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "next": "^12.1.0",
+    "next-api-middleware": "^1.0.1",
     "next-transpile-modules": "^9.0.0",
     "next-validations": "^0.1.11",
     "typescript": "^4.6.3",
