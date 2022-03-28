@@ -43,7 +43,7 @@ export const createUsersFixture = (page: Page): UsersFixture => {
   };
 };
 
-// creates the single user ficture
+// creates the single user fixture
 const createUserFixture = (user: Prisma.User, page: Page): UserFixture => {
   const store = { user, page };
 
