@@ -12,7 +12,7 @@ type ResponseData = {
 export default async function apiKeys(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { method } = req;
   if (method === "GET") {
-    const apiKeys = await prisma.apiKey.findMany({});
-    res.status(200).json({ data: { ...apiKeys } });
+    const data = await prisma.apiKey.findMany({});
+    res.status(200).json({ data });
   } else res.status(405).json({ message: "Only GET Method allowed" });
 }

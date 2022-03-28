@@ -12,8 +12,8 @@ type ResponseData = {
 export default async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const { method } = req;
   if (method === "GET") {
-    const eventTypes = await prisma.eventType.findMany();
-    res.status(200).json({ data: { ...eventTypes } });
+    const data = await prisma.eventType.findMany();
+    res.status(200).json({ data });
   } else {
       // Reject any other HTTP method than POST
       res.status(405).json({ message: "Only GET Method allowed" });

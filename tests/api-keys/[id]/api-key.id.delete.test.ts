@@ -14,8 +14,6 @@ describe("DELETE /api/api-keys/[id]/delete with valid id as string returns an ap
     });
     // const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id} });
     await handleDeleteApiKey(req, res);
-
-    // console.log(res)
     expect(res._getStatusCode()).toBe(204);
     expect(JSON.parse(res._getData())).toEqual({message: `api-key with id: ${apiKey?.id} deleted successfully`});
   });

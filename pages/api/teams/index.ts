@@ -10,8 +10,8 @@ type ResponseData = {
 
 export default async function team(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    const teams = await prisma.team.findMany();
-    res.status(200).json({ data: { ...teams } });
+    const data = await prisma.team.findMany();
+    res.status(200).json({ data });
   } catch (error) {
     // FIXME: Add zod for validation/error handling
     res.status(400).json({ error: error });

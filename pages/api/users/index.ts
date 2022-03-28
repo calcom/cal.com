@@ -23,10 +23,9 @@ export default async function user(req: NextApiRequest, res: NextApiResponse<Res
   const { expiresAt } = apiInDb;
   // if (!apiInDb) res.status(400).json({ error: 'Your api key is not valid' });
   if (expiresAt && dateInPast(expiresAt, today)) {
-    console.log(apiInDb)
     try {
-      const users = await prisma.user.findMany();
-      res.status(200).json({ data: { ...users } });
+      const data = await prisma.user.findMany();
+      res.status(200).json({ data });
     } catch (error) {
       // FIXME: Add zod for validation/error handling
       res.status(400).json({ error: error });
