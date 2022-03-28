@@ -1,5 +1,5 @@
-import { User } from "@prisma/client";
-import { Modal, Blocks, Elements, Bits, Message, setIfTruthy } from "slack-block-builder";
+import { Credential } from "@prisma/client";
+import { Bits, Blocks, Elements, Modal, setIfTruthy } from "slack-block-builder";
 
 const CreateEventModal = (
   data:

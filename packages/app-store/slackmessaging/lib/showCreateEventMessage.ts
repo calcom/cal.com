@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { WebClient } from "@slack/web-api";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -28,8 +29,7 @@ export default async function showCreateEventMessage(req: NextApiRequest, res: N
 
   if (!data) return res.status(200).json(NoUserMessage);
   const slackCredentials = data?.key; // Only one slack credential for user
-  // @ts-ignore access_token must exist on slackCredentials otherwise we have wouldnt have reached this endpoint
-  const access_token = slackCredentials?.access_token;
+  const access_token = (slackCredentials as Prisma.JsonObject)?.access_token as string;
   const slackClient = new WebClient(access_token);
   await slackClient.views.open({
     trigger_id: body.trigger_id,
