@@ -5,6 +5,8 @@ import { uuid } from "short-uuid";
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
+require("dotenv").config({ path: "../../.env" });
+
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
@@ -23,25 +25,27 @@ async function createUserAndEventType(opts: {
     }
   >;
 }) {
-  const userData: Prisma.UserCreateArgs["data"] = {
+  const userData = {
     ...opts.user,
     password: await hashPassword(opts.user.password),
     emailVerified: new Date(),
     completedOnboarding: opts.user.completedOnboarding ?? true,
     locale: "en",
-    schedules: opts.user.completedOnboarding
-      ? {
-          create: {
-            name: "Working Hours",
-            availability: {
-              createMany: {
-                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+    schedules:
+      opts.user.completedOnboarding ?? true
+        ? {
+            create: {
+              name: "Working Hours",
+              availability: {
+                createMany: {
+                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                },
               },
             },
-          },
-        }
-      : undefined,
+          }
+        : undefined,
   };
+
   const user = await prisma.user.upsert({
     where: { email: opts.user.email },
     update: userData,
@@ -49,7 +53,7 @@ async function createUserAndEventType(opts: {
   });
 
   console.log(
-    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.BASE_URL}/${opts.user.username}`
+    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${opts.user.username}`
   );
 
   for (const eventTypeInput of opts.eventTypes) {
@@ -73,7 +77,7 @@ async function createUserAndEventType(opts: {
 
     if (eventType) {
       console.log(
-        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
+        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
       );
       continue;
     }
@@ -82,7 +86,7 @@ async function createUserAndEventType(opts: {
     });
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({
@@ -144,7 +148,9 @@ async function createTeamAndAddUsers(
     return;
   }
 
-  console.log(`🏢 Created team '${teamInput.name}' - ${process.env.BASE_URL}/team/${team.slug}`);
+  console.log(
+    `🏢 Created team '${teamInput.name}' - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/team/${team.slug}`
+  );
 
   for (const user of users) {
     const { role = MembershipRole.OWNER, id, username } = user;
@@ -214,7 +220,6 @@ async function main() {
       username: "pro",
       plan: "PRO",
     },
-
     eventTypes: [
       {
         title: "30min",
@@ -246,6 +251,30 @@ async function main() {
         slug: "paid",
         length: 60,
         price: 50,
+      },
+      {
+        title: "In person meeting",
+        slug: "in-person",
+        length: 60,
+        locations: [{ type: "inPerson", address: "London" }],
+      },
+      {
+        title: "Zoom Event",
+        slug: "zoom",
+        length: 60,
+        locations: [{ type: "integrations:zoom" }],
+      },
+      {
+        title: "Daily Event",
+        slug: "daily",
+        length: 60,
+        locations: [{ type: "integrations:daily" }],
+      },
+      {
+        title: "Google Meet",
+        slug: "google-meet",
+        length: 60,
+        locations: [{ type: "integrations:google:meet" }],
       },
     ],
   });

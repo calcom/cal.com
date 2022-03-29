@@ -534,7 +534,6 @@
   "billing": "請求書",
   "manage_your_billing_info": "支払い情報を管理し、サブスクリプションをキャンセルします。",
   "availability": "利用可能期間",
-  "availability_updated_successfully": "利用可否の更新に成功しました",
   "configure_availability": "予約が可能な時間を設定してください。",
   "change_weekly_schedule": "ウィークリースケジュールを変更する",
   "logo": "ロゴ",
@@ -656,6 +655,7 @@
   "prisma_studio_tip_description": "最初のユーザーを設定する方法を学ぶ",
   "contact_sales": "営業担当に問い合わせる",
   "error_404": "404 エラー",
+  "availability_updated_successfully": "利用可否の更新に成功しました",
   "requires_ownership_of_a_token": "次のアドレスに属するトークンの所有権が必要となります:",
   "example_name": "山田太朗"
 }

@@ -91,7 +91,7 @@ export default function TeamSettings(props: Props) {
                       id="team-url"
                       addOnLeading={
                         <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                          {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
+                          {process.env.NEXT_PUBLIC_WEBSITE_URL}/{"team/"}
                         </span>
                       }
                       ref={teamUrlRef}

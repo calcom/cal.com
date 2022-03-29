@@ -1,3 +1,4 @@
+import { loadEnvConfig } from "@next/env";
 import { Browser, chromium } from "@playwright/test";
 import fs from "fs";
 
@@ -25,6 +26,7 @@ async function loginAsUser(username: string, browser: Browser) {
 }
 
 async function globalSetup(/* config: FullConfig */) {
+  loadEnvConfig(process.env.PWD);
   const browser = await chromium.launch();
   await loginAsUser("onboarding", browser);
   //   await loginAsUser("free-first-hidden", browser);
