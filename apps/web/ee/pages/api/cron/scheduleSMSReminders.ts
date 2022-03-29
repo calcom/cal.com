@@ -39,11 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       reminder!.booking!.user!.name as string,
       reminder!.booking!.startTime as unknown as string,
       reminder!.booking!.attendees[0].timeZone
-    );
+    ) as string;
 
     if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
       try {
-        const response = await twilio.sendSMS(reminder.sendTo, smsBody, reminder.scheduledDate);
+        const response = await twilio.scheduleSMS(reminder.sendTo, smsBody, reminder.scheduledDate);
 
         await prisma.attendeeReminder.update({
           where: {

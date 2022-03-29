@@ -25,7 +25,12 @@ export const scheduleSMSAttendeeReminder = async (
   const startTimeObject = dayjs(startTime);
   const scheduledDate = dayjs(startTime).subtract(attendeeReminder.time, attendeeReminder.unitTime);
 
-  const smsBody = reminderTemplate(evt.title, evt.organizer.name, evt.startTime, evt.attendees[0].timeZone);
+  const smsBody = reminderTemplate(
+    evt.title,
+    evt.organizer.name,
+    evt.startTime,
+    evt.attendees[0].timeZone
+  ) as string;
 
   // Check the scheduled date and right now
   // Can only schedule at least 60 minutes in advance so send a reminder
@@ -54,7 +59,7 @@ export const scheduleSMSAttendeeReminder = async (
   // Can only schedule text messages 7 days in advance
   if (scheduledDate.isBetween(currentDate, currentDate.add(7, "day"))) {
     try {
-      const response = await twilio.sendSMS(reminderPhone, smsBody, scheduledDate.toDate());
+      const response = await twilio.scheduleSMS(reminderPhone, smsBody, scheduledDate.toDate());
 
       await prisma.attendeeReminder.create({
         data: {

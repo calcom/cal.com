@@ -19,17 +19,19 @@ export const sendSMS = async (phoneNumber: string, body: string) => {
     to: phoneNumber,
   });
 
-  return response;
+  return response.sid;
 };
 
 export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date) => {
-  await client.messages.create({
+  const response = await client.messages.create({
     body: body,
     messagingServiceSid: TWILIO_MESSAGING_SID,
     to: phoneNumber,
     scheduleType: "fixed",
     sendAt: scheduledDate,
   });
+
+  return response;
 };
 
 export const cancelSMS = async (referenceId: string) => {
