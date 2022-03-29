@@ -2,10 +2,13 @@ import { InformationCircleIcon } from "@heroicons/react/outline";
 import {
   ArrowNarrowRightIcon,
   CheckIcon,
+  ClockIcon,
   LockClosedIcon,
   LockOpenIcon,
+  PencilAltIcon,
   StarIcon,
   TrashIcon,
+  XIcon,
 } from "@heroicons/react/solid";
 import classNames from "classnames";
 import crypto from "crypto";
@@ -33,7 +36,7 @@ import showToast from "@calcom/lib/notification";
 import { proratePreview, retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@calcom/ui/Dialog";
 import { Form, Input, Label, TextField } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -121,7 +124,6 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
   );
 }
 const fetchUsername = async (username: string) => {
-  // process.env.NEXT_PUBLIC_BASE_URL
   const response = await fetch(`/api/username`, {
     credentials: "include",
     headers: {
@@ -164,22 +166,24 @@ const CustomUsernameTextfield = (props) => {
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
-      const { response } = await fetchUsername(username);
-      console.log(response);
-      if (response.status === 200) {
+      const { data } = await fetchUsername(username);
+      console.log({ data });
+      if (data.premium && data.available) {
+        setMarkAsError(false);
+        setPremiumUsername(true);
+        setUsernameIsAvailable(false);
+      }
+
+      if (!data.premium && data.available) {
         setMarkAsError(false);
         setUsernameIsAvailable(true);
         setPremiumUsername(false);
       }
-      if (response.status === 418) {
+
+      if (!data.available) {
         setMarkAsError(true);
         setUsernameIsAvailable(false);
         setPremiumUsername(false);
-      }
-      if (response.status === 402) {
-        setMarkAsError(false);
-        setPremiumUsername(true);
-        setUsernameIsAvailable(false);
       }
     }, 150),
     []
@@ -192,19 +196,23 @@ const CustomUsernameTextfield = (props) => {
       setMarkAsError(false);
       setPremiumUsername(false);
       setUsernameIsAvailable(false);
+    } else {
+      setPremiumUsername(userIsPremium);
+      setUsernameIsAvailable(false);
     }
   }, [inputUsernameValue]);
 
   useEffect(() => {
-    if (openDialogSaveUsername) {
+    if (usernameIsAvailable || premiumUsername) {
       const condition = obtainNewUsernameChangeCondition({
         userIsPremium,
         isNewUsernamePremium: premiumUsername,
       });
+      console.log({ condition });
       setUsernameChangeCondition(condition);
     }
-    console.log("opendialog changed", openDialogSaveUsername);
-  }, [openDialogSaveUsername]);
+    console.log("usernameIsAvailable changed", usernameIsAvailable);
+  }, [usernameIsAvailable, premiumUsername]);
 
   useEffect(() => {
     async function fetchPreviewProrate(subscriptionId: string) {
@@ -244,20 +252,41 @@ const CustomUsernameTextfield = (props) => {
     }
     return resultCondition;
   };
+  const ActionButtons = () => {
+    return (
+      (usernameIsAvailable || premiumUsername) &&
+      currentUsername !== inputUsernameValue && (
+        <div className="flex flex-row">
+          <Button type="button" className="mx-2" onClick={() => setOpenDialogSaveUsername(true)}>
+            Update
+          </Button>
+          <Button
+            type="button"
+            color="minimal"
+            className="mx-2"
+            onClick={() => {
+              setInputUsernameValue(currentUsername);
+              usernameRef.current.value = currentUsername;
+            }}>
+            Cancel
+          </Button>
+        </div>
+      )
+    );
+  };
 
   return (
     <>
       <div style={{ display: "flex", justifyItems: "center" }}>
-        <Label htmlFor={"username"}>{premiumUsername ? "Premium Username" : "Username"}</Label>
+        <Label htmlFor={"username"}>Username</Label>
         {subscriptionId}
       </div>
       <div className="mt-1 flex rounded-md shadow-sm">
         <span
           className={classNames(
-            "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
-            premiumUsername ? "border-[2px] border-yellow-300" : ""
+            "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
           )}>
-          {process.env.NEXT_PUBLIC_APP_URL}/
+          {process.env.NEXT_PUBLIC_WEBSITE_URL}/
         </span>
         <div style={{ position: "relative", width: "100%" }}>
           <Input
@@ -268,96 +297,87 @@ const CustomUsernameTextfield = (props) => {
             autoCorrect={"none"}
             className={classNames(
               "mt-0 rounded-l-none",
-              premiumUsername ? "border-[2px] border-l-[1px] border-yellow-300 border-l-gray-300 pr-16" : "",
-              usernameLock ? "cursor-not-allowed" : "",
               markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 pr-8 focus:border-red-500 focus:outline-none focus:ring-0"
-                : "",
-              "delay-10 transition ease-in-out disabled:bg-gray-200"
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
+                : ""
             )}
             defaultValue={currentUsername}
             onChange={(event) => setInputUsernameValue(event.target.value)}
-            disabled={usernameLock}
           />
           <div
             className="top-0"
             style={{
               position: "absolute",
-              right: 0,
+              right: 2,
               display: "flex",
               flexDirection: "row",
             }}>
             <span
               className={classNames(
-                "mx-1 my-[2px] py-1",
-                premiumUsername ? "text-yellow-300" : "",
-                usernameIsAvailable ? "text-green-500" : ""
+                "mx-2 py-1",
+                premiumUsername ? "text-orange-500" : "",
+                usernameIsAvailable ? "" : ""
               )}>
               {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
-              {usernameIsAvailable ? <CheckIcon className="mt-[1px] w-6" /> : <></>}
+              {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
             </span>
-            <span className="mt-[2px] mb-[2px] h-[2.25rem] w-[1px] bg-gray-300" />
-
-            {usernameLock ? (
-              <Tooltip content={"Unlock and edit"}>
-                <button
-                  type="button"
-                  className={classNames(isHoveredLock ? "text-green-500" : "", "px-2")}
-                  onClick={() => setUsernameLock(false)}
-                  onMouseEnter={() => setHoveredLock(true)}
-                  onMouseLeave={() => setHoveredLock(false)}>
-                  {!isHoveredLock ? <LockClosedIcon className="w-6" /> : <LockOpenIcon className="w-6" />}
-                </button>
-              </Tooltip>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className={classNames("px-2 text-green-500", markAsError ? "cursor-not-allowed" : "")}
-                  disabled={markAsError}
-                  onClick={() => {
-                    if (currentUsername === inputUsernameValue) {
-                      setUsernameLock(true);
-                    } else {
-                      setOpenDialogSaveUsername(true);
-                    }
-                  }}>
-                  <LockOpenIcon className="w-6" />
-                </button>
-              </>
-            )}
           </div>
+        </div>
+        <div className="xs:hidden">
+          <ActionButtons />
         </div>
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
-      {!usernameLock && usernameIsAvailable && (
-        <p
-          className={classNames(
-            "mt-1 text-xs",
-            usernameIsAvailable ? "text-green-500" : "",
-            premiumUsername ? "text-yellow-300" : ""
-          )}>
-          Username is available Lock In to review changes
+      {usernameIsAvailable && (
+        <p className={classNames("mt-1 text-xs text-gray-900")}>
+          {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
+            "This is a standard username and updating will take you to billing to downgrade."}
+          {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
+            <>
+              This is a premium username. You will take you to billing to upgrade. Learn more.
+              {/* @TODO: Add learn more link */}
+            </>
+          )}
         </p>
+      )}
+      {(usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue && (
+        <div className="mt-2 flex justify-end md:hidden">
+          <ActionButtons />
+        </div>
       )}
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
-          <div className="mb-4">
-            <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-              {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
-                "Upgrading to a premium username plan"}
-              {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Changing username"}
-              {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
-                "Downgrading from premium username plan"}
-            </h3>
-            <div>
-              <p className="text-sm text-gray-500">
-                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
-                  "We need to take you to checkout yo upgrade to your new PREMIUM billing PLAN"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
-                  "We need to take you to checkout to change your current billing"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Confirm username change"}
-              </p>
+          <DialogClose asChild>
+            <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
+              <XIcon className="w-4" />
+            </div>
+          </DialogClose>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
+              <PencilAltIcon className="m-auto h-6 w-6"></PencilAltIcon>
+            </div>
+            <div className="mb-4 w-full px-4 pt-1">
+              <DialogHeader title={"Confirm username change"} />
+              {usernameChangeCondition && usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL && (
+                <p className="-mt-4 mb-4 text-sm text-gray-800">
+                  {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
+                    "As you are changing from a standard to a premium username, you will be taken to the checkout to upgrade."}
+                  {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
+                    "As you are changing from a premium to a standard username, you will be taken to the checkout to downgrade."}
+                </p>
+              )}
+
+              <div className="flex w-full flex-row rounded-sm bg-gray-100 py-3 text-sm">
+                <div className="px-2">
+                  <p className="text-gray-500">Current standard username</p>
+                  <p className="mt-1">{currentUsername}</p>
+                </div>
+                <div className="ml-6">
+                  <p className="text-gray-500">New {premiumUsername && "premium"} username</p>
+                  <p>{inputUsernameValue}</p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-gray-500">Learn more about premium usernames.</p>
             </div>
           </div>
           <Form
@@ -365,10 +385,6 @@ const CustomUsernameTextfield = (props) => {
             handleSubmit={(values) => {
               // createMutation.mutate(values);
             }}>
-            <p style={{ display: "flex", flexDirection: "row" }}>
-              <span className="font-bold line-through">{currentUsername}</span>
-              <ArrowNarrowRightIcon className="mx-4 w-4" /> {inputUsernameValue}
-            </p>
             {/* <div className="mt-3 space-y-4">
               <TextField
                 name={"username"}
@@ -376,7 +392,7 @@ const CustomUsernameTextfield = (props) => {
                 // {...register("name")}
               />
             </div> */}
-            <div className="mt-8 flex flex-row-reverse gap-x-2">
+            <div className="mt-4 flex flex-row-reverse gap-x-2">
               <Button
                 type="button"
                 // loading={createMutation.isLoading}
@@ -386,8 +402,8 @@ const CustomUsernameTextfield = (props) => {
                   }
                 }}>
                 {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && "Upgrade"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && "Downgrade"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && "Go to billing"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && "Downgrade and save"}
               </Button>
               <DialogClose asChild>
                 <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
@@ -536,22 +552,17 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
         <div className="flex flex-col lg:flex-row">
           <div className="flex-grow space-y-6">
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-              <div className="mb-6 w-full sm:w-1/2">
+              <div className="w-full">
                 {/* <TextField
                   className={user.premiumUsername ? "border-r-0 border-yellow-300 border-l-gray-300" : ""}
                   name={user.premiumUsername ? "Premium Username" : "Username"}
                   addOnLeading={
-<<<<<<< HEAD
                     <span
                       className={classNames(
                         "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
                         user.premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
                       )}>
-                      {process.env.NEXT_PUBLIC_APP_URL}/
-=======
-                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                       {process.env.NEXT_PUBLIC_WEBSITE_URL}/
->>>>>>> 6b0e8db4967848cfff7b15fe8d11f9a4aeb53f4a
                     </span>
                   }
                   addOnEnding={
@@ -576,7 +587,9 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   }}
                 />
               </div>
-              <div className="w-full sm:w-1/2">
+            </div>
+            <div className="block sm:flex">
+              <div className="w-full">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
                 </label>
