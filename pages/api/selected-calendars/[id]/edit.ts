@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import { SelectedCalendar } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaSelectedCalendar, withValidSelectedCalendar } from "@lib/validations/selectedCalendar";
+import { schemaSelectedCalendar, withValidSelectedCalendar } from "@lib/validations/selected-calendar";
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
