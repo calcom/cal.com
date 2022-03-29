@@ -2,13 +2,13 @@ import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
-import { getErrorFromUnknown } from "@lib/errors";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export type PaymentInfo = {
   link?: string | null;

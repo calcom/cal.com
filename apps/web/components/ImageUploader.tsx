@@ -1,13 +1,14 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
+import Button from "@calcom/ui/Button";
+import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@calcom/ui/Dialog";
+
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@components/Dialog";
 import Slider from "@components/Slider";
-import Button from "@components/ui/Button";
 
 type ImageUploaderProps = {
   id: string;
@@ -119,7 +120,7 @@ export default function ImageUploader({
       <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
               {t("upload_target", { target })}
             </h3>
           </div>

@@ -1,16 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Can reset forgotten password", async ({ browser }) => {
-  // Create a new incognito browser context
-  const context = await browser.newContext({
-    extraHTTPHeaders: {
-      // Only needed for bypassing emails while testing
-      "X-Playwright-Secret": process.env.PLAYWRIGHT_SECRET || "",
-    },
-  });
-  // Create a new page inside context.
-  const page = await context.newPage();
-
+test("Can reset forgotten password", async ({ page }) => {
   // Got to reset password flow
   await page.goto("/auth/forgot-password");
 
@@ -22,7 +12,7 @@ test("Can reset forgotten password", async ({ browser }) => {
     page.waitForNavigation({
       url: "/auth/forgot-password/*",
     }),
-    page.press('input[type="email"]', "Enter"),
+    page.press('input[name="email"]', "Enter"),
   ]);
 
   // Wait for page to fully load
@@ -49,6 +39,4 @@ test("Can reset forgotten password", async ({ browser }) => {
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await expect(page.locator("[data-testid=dashboard-shell]")).toBeVisible();
-
-  await context.close();
 });

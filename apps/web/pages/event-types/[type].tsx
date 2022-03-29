@@ -1,4 +1,4 @@
-import { PhoneIcon, XIcon } from "@heroicons/react/outline";
+import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
@@ -12,10 +12,11 @@ import {
   UserAddIcon,
   UsersIcon,
 } from "@heroicons/react/solid";
-import { MembershipRole } from "@prisma/client";
-import { Availability, EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -24,18 +25,24 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import Select from "react-select";
+import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
+import { z } from "zod";
 
+import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import Switch from "@calcom/ui/Switch";
+import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
-import getIntegrations, { hasIntegration } from "@lib/integrations/getIntegrations";
 import { LocationType } from "@lib/location";
-import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -43,17 +50,12 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
-import { Dialog, DialogContent, DialogTrigger } from "@components/Dialog";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { Form } from "@components/form/fields";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 import InfoBadge from "@components/ui/InfoBadge";
-import { Scheduler } from "@components/ui/Scheduler";
-import Switch from "@components/ui/Switch";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
@@ -76,7 +78,6 @@ interface NFT extends Token {
   // Some OpenSea NFTs have several contracts
   contracts: Array<Token>;
 }
-type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type OptionTypeBase = {
   label: string;
@@ -95,6 +96,41 @@ const addDefaultLocationOptions = (
       locationOptions.push(item);
     }
   });
+};
+
+const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+  const query = trpc.useQuery(["viewer.availability.list"]);
+
+  return (
+    <QueryCell
+      query={query}
+      success={({ data }) => {
+        const options = data.schedules.map((schedule) => ({
+          value: schedule.id,
+          label: schedule.name,
+        }));
+
+        const value = options.find((option) =>
+          props.value
+            ? option.value === props.value
+            : option.value === data.schedules.find((schedule) => schedule.isDefault)?.id
+        );
+        return (
+          <Select
+            {...props}
+            options={options}
+            isSearchable={false}
+            classNamePrefix="react-select"
+            className={classNames(
+              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
+              className
+            )}
+            value={value}
+          />
+        );
+      }}
+    />
+  );
 };
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
@@ -120,6 +156,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const defaultLocations = [
     { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Link, label: t("link_meeting") },
     { value: LocationType.Jitsi, label: "Jitsi Meet" },
     { value: LocationType.Phone, label: t("phone_call") },
   ];
@@ -167,7 +204,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [editIcon, setEditIcon] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [selectedTimeZone, setSelectedTimeZone] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
@@ -184,11 +220,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-
-  const [availabilityState, setAvailabilityState] = useState<{
-    openingHours: AvailabilityInput[];
-    dateOverrides: AvailabilityInput[];
-  }>({ openingHours: [], dateOverrides: [] });
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -225,10 +256,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     fetchTokens();
   }, []);
 
-  useEffect(() => {
-    setSelectedTimeZone(eventType.timeZone || "");
-  }, []);
-
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
 
@@ -247,6 +274,23 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type),
       { shouldValidate: true }
     );
+  };
+
+  const addLocation = (newLocationType: LocationType, details = {}) => {
+    const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
+    if (existingIdx !== -1) {
+      const copy = formMethods.getValues("locations");
+      copy[existingIdx] = {
+        ...formMethods.getValues("locations")[existingIdx],
+        ...details,
+      };
+      formMethods.setValue("locations", copy);
+    } else {
+      formMethods.setValue(
+        "locations",
+        formMethods.getValues("locations").concat({ type: newLocationType, ...details })
+      );
+    }
   };
 
   const LocationOptions = () => {
@@ -276,8 +320,35 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         );
+      case LocationType.Link:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_link_meeting")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationLink")}
+                id="address"
+                required
+                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                defaultValue={
+                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
+                    ?.link
+                }
+              />
+              {locationFormMethods.formState.errors.locationLink && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationLink.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       case LocationType.Phone:
         return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
+      /* TODO: Render this dynamically from App Store */
       case LocationType.GoogleMeet:
         return <p className="text-sm">{t("cal_provide_google_meet_location")}</p>;
       case LocationType.Zoom:
@@ -290,6 +361,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
       case LocationType.Tandem:
         return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
+      case LocationType.Teams:
+        return <p className="text-sm">{t("cal_provide_teams_meeting_url")}</p>;
       default:
         return null;
     }
@@ -323,7 +396,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
@@ -338,7 +411,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${process.env.NEXT_PUBLIC_APP_URL}/${username}/avatar.png`,
+    avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<{
@@ -354,14 +427,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
-    locations: { type: LocationType; address?: string }[];
+    locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
-    availability: {
-      openingHours: AvailabilityInput[];
-      dateOverrides: AvailabilityInput[];
-    };
-    timeZone: string;
+    schedule: number;
     periodType: PeriodType;
     periodDays: number;
     periodCountCalendarDays: "1" | "0";
@@ -381,6 +450,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -388,11 +458,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const locationFormSchema = z.object({
+    locationType: z.string(),
+    locationAddress: z.string().optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+  });
+
   const locationFormMethods = useForm<{
     locationType: LocationType;
-    locationAddress: string;
-  }>();
-
+    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
+    locationLink?: string; // Currently this only accepts links that are HTTPS://
+  }>({
+    resolver: zodResolver(locationFormSchema),
+  });
   const Locations = () => {
     return (
       <div className="w-full">
@@ -405,8 +483,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
-                  locationFormMethods.setValue("locationType", e.value);
-                  openLocationModal(e.value);
+                  const newLocationType: LocationType = e.value;
+                  locationFormMethods.setValue("locationType", newLocationType);
+                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                    openLocationModal(newLocationType);
+                  } else {
+                    addLocation(newLocationType);
+                  }
                 }
               }}
             />
@@ -426,6 +509,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.address}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.Link && (
+                    <div className="flex flex-grow items-center">
+                      <GlobeAltIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.link}
                       />
                     </div>
                   )}
@@ -617,14 +710,92 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <span className="ml-2 text-sm">Jitsi Meet</span>
                     </div>
                   )}
+                  {location.type === LocationType.Teams && (
+                    <div className="flex flex-grow items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        viewBox="0 0 2228.833 2073.333">
+                        <path
+                          fill="#5059C9"
+                          d="M1554.637,777.5h575.713c54.391,0,98.483,44.092,98.483,98.483c0,0,0,0,0,0v524.398	c0,199.901-162.051,361.952-361.952,361.952h0h-1.711c-199.901,0.028-361.975-162-362.004-361.901c0-0.017,0-0.034,0-0.052V828.971	C1503.167,800.544,1526.211,777.5,1554.637,777.5L1554.637,777.5z"
+                        />
+                        <circle fill="#5059C9" cx="1943.75" cy="440.583" r="233.25" />
+                        <circle fill="#7B83EB" cx="1218.083" cy="336.917" r="336.917" />
+                        <path
+                          fill="#7B83EB"
+                          d="M1667.323,777.5H717.01c-53.743,1.33-96.257,45.931-95.01,99.676v598.105	c-7.505,322.519,247.657,590.16,570.167,598.053c322.51-7.893,577.671-275.534,570.167-598.053V877.176	C1763.579,823.431,1721.066,778.83,1667.323,777.5z"
+                        />
+                        <path
+                          opacity=".1"
+                          d="M1244,777.5v838.145c-0.258,38.435-23.549,72.964-59.09,87.598	c-11.316,4.787-23.478,7.254-35.765,7.257H667.613c-6.738-17.105-12.958-34.21-18.142-51.833	c-18.144-59.477-27.402-121.307-27.472-183.49V877.02c-1.246-53.659,41.198-98.19,94.855-99.52H1244z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1192.167,777.5v889.978c-0.002,12.287-2.47,24.449-7.257,35.765	c-14.634,35.541-49.163,58.833-87.598,59.09H691.975c-8.812-17.105-17.105-34.21-24.362-51.833	c-7.257-17.623-12.958-34.21-18.142-51.833c-18.144-59.476-27.402-121.307-27.472-183.49V877.02	c-1.246-53.659,41.198-98.19,94.855-99.52H1192.167z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1192.167,777.5v786.312c-0.395,52.223-42.632,94.46-94.855,94.855h-447.84	c-18.144-59.476-27.402-121.307-27.472-183.49V877.02c-1.246-53.659,41.198-98.19,94.855-99.52H1192.167z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1140.333,777.5v786.312c-0.395,52.223-42.632,94.46-94.855,94.855H649.472	c-18.144-59.476-27.402-121.307-27.472-183.49V877.02c-1.246-53.659,41.198-98.19,94.855-99.52H1140.333z"
+                        />
+                        <path
+                          opacity=".1"
+                          d="M1244,509.522v163.275c-8.812,0.518-17.105,1.037-25.917,1.037	c-8.812,0-17.105-0.518-25.917-1.037c-17.496-1.161-34.848-3.937-51.833-8.293c-104.963-24.857-191.679-98.469-233.25-198.003	c-7.153-16.715-12.706-34.071-16.587-51.833h258.648C1201.449,414.866,1243.801,457.217,1244,509.522z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1192.167,561.355v111.442c-17.496-1.161-34.848-3.937-51.833-8.293	c-104.963-24.857-191.679-98.469-233.25-198.003h190.228C1149.616,466.699,1191.968,509.051,1192.167,561.355z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1192.167,561.355v111.442c-17.496-1.161-34.848-3.937-51.833-8.293	c-104.963-24.857-191.679-98.469-233.25-198.003h190.228C1149.616,466.699,1191.968,509.051,1192.167,561.355z"
+                        />
+                        <path
+                          opacity=".2"
+                          d="M1140.333,561.355v103.148c-104.963-24.857-191.679-98.469-233.25-198.003	h138.395C1097.783,466.699,1140.134,509.051,1140.333,561.355z"
+                        />
+                        <linearGradient
+                          id="a"
+                          gradientUnits="userSpaceOnUse"
+                          x1="198.099"
+                          y1="1683.0726"
+                          x2="942.2344"
+                          y2="394.2607"
+                          gradientTransform="matrix(1 0 0 -1 0 2075.3333)">
+                          <stop offset="0" stopColor="#5a62c3" />
+                          <stop offset=".5" stopColor="#4d55bd" />
+                          <stop offset="1" stopColor="#3940ab" />
+                        </linearGradient>
+                        <path
+                          fill="url(#a)"
+                          d="M95.01,466.5h950.312c52.473,0,95.01,42.538,95.01,95.01v950.312c0,52.473-42.538,95.01-95.01,95.01	H95.01c-52.473,0-95.01-42.538-95.01-95.01V561.51C0,509.038,42.538,466.5,95.01,466.5z"
+                        />
+                        <path
+                          fill="#FFF"
+                          d="M820.211,828.193H630.241v517.297H509.211V828.193H320.123V727.844h500.088V828.193z"
+                        />
+                      </svg>
+                      <span className="ml-2 text-sm">MS Teams</span>
+                    </div>
+                  )}
                   <div className="flex">
                     <button
                       type="button"
-                      onClick={() => openLocationModal(location.type)}
+                      onClick={() => {
+                        locationFormMethods.setValue("locationType", location.type);
+                        locationFormMethods.unregister("locationLink");
+                        locationFormMethods.unregister("locationAddress");
+                        openLocationModal(location.type);
+                      }}
+                      aria-label={t("edit")}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => removeLocation(location)}>
+                    <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
                       <XIcon className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                     </button>
                   </div>
@@ -636,7 +807,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <li>
                   <button
                     type="button"
-                    className="flex rounded-sm  py-2 hover:bg-gray-100"
+                    className="flex rounded-sm py-2 hover:bg-gray-100"
                     onClick={() => setShowLocationModal(true)}>
                     <PlusIcon className="mt-0.5 h-4 w-4 text-neutral-900" />
                     <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
@@ -701,11 +872,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       seatsPerAttendee,
                       bookingLimit,
                       bookingLimitType,
+                      locations,
                       ...input
                     } = values;
                     updateMutation.mutate({
                       ...input,
-                      availability: availabilityState,
+                      locations,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -727,7 +899,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="space-y-3">
                     <div className="block items-center sm:flex">
                       <div className="min-w-48 mb-4 sm:mb-0">
-                        <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                        <label
+                          id="slug-label"
+                          htmlFor="slug"
+                          className="flex text-sm font-medium text-neutral-700">
                           <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("url")}
                         </label>
@@ -735,11 +910,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <div className="flex rounded-sm shadow-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                            {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
                           <input
                             type="text"
+                            id="slug"
+                            aria-labelledby="slug-label"
                             required
                             className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
@@ -814,6 +991,35 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                   </div>
+
+                  <hr className="border-neutral-200" />
+                  <div className="space-y-3">
+                    <div className="block sm:flex">
+                      <div className="min-w-48 mb-4 mt-2.5 sm:mb-0">
+                        <label
+                          htmlFor="availability"
+                          className="mt-0 flex text-sm font-medium text-neutral-700">
+                          <ClockIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                          {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
+                        </label>
+                      </div>
+                      <div className="w-full">
+                        <Controller
+                          name="schedule"
+                          control={formMethods.control}
+                          render={({ field }) => (
+                            <AvailabilitySelect
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {team && <hr className="border-neutral-200" />}
                   {team && (
                     <div className="space-y-3">
@@ -1310,47 +1516,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           </div>
                         </div>
 
-                        <hr className="border-neutral-200" />
-                        <div className="block sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="availability"
-                              className="flex text-sm font-medium text-neutral-700">
-                              {t("availability")}
-                            </label>
-                          </div>
-                          <div className="w-full">
-                            <Controller
-                              name="availability"
-                              control={formMethods.control}
-                              render={() => (
-                                <Scheduler
-                                  setAvailability={(val) => {
-                                    const schedule = {
-                                      openingHours: val.openingHours,
-                                      dateOverrides: val.dateOverrides,
-                                    };
-                                    // Updating internal state that would be sent on mutation
-                                    setAvailabilityState(schedule);
-                                    // Updating form values displayed, but this one doesn't reach form submit scope
-                                    formMethods.setValue("availability", schedule);
-                                  }}
-                                  setTimeZone={(timeZone) => {
-                                    formMethods.setValue("timeZone", timeZone);
-                                    setSelectedTimeZone(timeZone);
-                                  }}
-                                  timeZone={selectedTimeZone}
-                                  availability={availability.map((schedule) => ({
-                                    ...schedule,
-                                    startTime: new Date(schedule.startTime),
-                                    endTime: new Date(schedule.endTime),
-                                  }))}
-                                />
-                              )}
-                            />
-                          </div>
-                        </div>
-
                         <>
                           <hr className="border-neutral-200" />
                           <div className="block flex-col sm:flex">
@@ -1575,7 +1740,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 </Form>
               </div>
             </div>
-            <div className="m-0 mb-4 mt-0 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
+            <div className="m-0 mt-0 mb-4 w-full lg:w-3/12 lg:px-2 lg:ltr:ml-2 lg:rtl:mr-2">
               <div className="px-2">
                 <Controller
                   name="hidden"
@@ -1655,24 +1820,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.InPerson) {
                       details = { address: values.locationAddress };
                     }
-
-                    const existingIdx = formMethods
-                      .getValues("locations")
-                      .findIndex((loc) => values.locationType === loc.type);
-                    if (existingIdx !== -1) {
-                      const copy = formMethods.getValues("locations");
-                      copy[existingIdx] = {
-                        ...formMethods.getValues("locations")[existingIdx],
-                        ...details,
-                      };
-                      formMethods.setValue("locations", copy);
-                    } else {
-                      formMethods.setValue(
-                        "locations",
-                        formMethods.getValues("locations").concat({ type: values.locationType, ...details })
-                      );
+                    if (newLocation === LocationType.Link) {
+                      details = { link: values.locationLink };
                     }
 
+                    addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
                   <Controller
@@ -1690,6 +1842,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister("locationLink");
+                            locationFormMethods.unregister("locationAddress");
                             setSelectedLocation(val);
                           }
                         }}
@@ -1875,6 +2029,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         select: userSelect,
       },
       schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+        },
+      },
       userId: true,
       price: true,
       currency: true,
@@ -1898,6 +2057,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: true,
       type: true,
       key: true,
+      userId: true,
     },
   });
 
@@ -1925,44 +2085,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventType.users.push(fallbackUser);
   }
 
-  const integrations = getIntegrations(credentials);
+  const integrations = getApps(credentials);
+  const locationOptions = getLocationOptions(integrations);
 
-  const locationOptions: OptionTypeBase[] = [];
-
-  if (hasIntegration(integrations, "zoom_video")) {
-    locationOptions.push({
-      value: LocationType.Zoom,
-      label: "Zoom Video",
-      disabled: true,
-    });
-  }
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   if (hasIntegration(integrations, "google_calendar")) {
     locationOptions.push({
       value: LocationType.GoogleMeet,
       label: "Google Meet",
     });
-  }
-  if (hasIntegration(integrations, "daily_video")) {
-    locationOptions.push({
-      value: LocationType.Daily,
-      label: "Daily.co Video",
-    });
-  }
-  if (hasIntegration(integrations, "jitsi_video")) {
-    locationOptions.push({
-      value: LocationType.Jitsi,
-      label: "Jitsi Meet",
-    });
-  }
-  if (hasIntegration(integrations, "huddle01_video")) {
-    locationOptions.push({
-      value: LocationType.Huddle01,
-      label: "Huddle01 Video",
-    });
-  }
-  if (hasIntegration(integrations, "tandem_video")) {
-    locationOptions.push({ value: LocationType.Tandem, label: "Tandem Video" });
   }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
@@ -1995,7 +2126,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
+        user.avatar = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];

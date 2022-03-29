@@ -37,6 +37,7 @@ async function getUserFromSession({
       weekStart: true,
       startTime: true,
       endTime: true,
+      defaultScheduleId: true,
       bufferTime: true,
       theme: true,
       createdDate: true,
@@ -53,6 +54,7 @@ async function getUserFromSession({
           id: true,
           type: true,
           key: true,
+          userId: true,
         },
         orderBy: {
           id: "asc",

@@ -10,6 +10,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import Button from "@calcom/ui/Button";
+import { EmailInput } from "@calcom/ui/form/fields";
+
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -20,9 +23,7 @@ import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
-import { EmailInput } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
-import Button from "@components/ui/Button";
 
 import { ssrInit } from "@server/lib/ssr";
 

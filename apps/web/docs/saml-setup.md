@@ -1,6 +1,6 @@
 # SAML Registration with Identity Providers
 
-This guide explains the settings you’d need to use to configure SAML with your Identity Provider. Once this is set up you should get an XML metadata file that should then be uploaded on your Cal.com self-hosted instance.
+This guide explains the settings you need to use to configure SAML with your Identity Provider. Once this is set up you should get an XML metadata file that should then be uploaded on your Cal.com self-hosted instance.
 
 > **Note:** Please do not add a trailing slash at the end of the URLs. Create them exactly as shown below.
 

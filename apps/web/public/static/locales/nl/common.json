@@ -450,7 +450,6 @@
   "billing": "Abonnement",
   "manage_your_billing_info": "Beheer uw betalingsgegevens en annuleer uw abonnement.",
   "availability": "Beschikbaarheid",
-  "availability_updated_successfully": "Beschikbaarheid bijgewerkt",
   "configure_availability": "Configureer tijden wanneer u beschikbaar bent voor afspraken.",
   "change_weekly_schedule": "Verander uw weekschema",
   "logo": "Logo",
@@ -520,5 +519,8 @@
   "calendar": "Agenda",
   "not_installed": "Niet geïnstalleerd",
   "error_password_mismatch": "Wachtwoorden komen niet overeen.",
-  "error_required_field": "Dit veld is verplicht."
+  "error_required_field": "Dit veld is verplicht.",
+  "default": "standaard keuze",
+  "set_to_default": "Zet als standaard keuze",
+  "availability_updated_successfully": "Beschikbaarheid bijgewerkt"
 }

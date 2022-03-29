@@ -3,11 +3,11 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -19,8 +19,8 @@ import {
   samlTenantProduct,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
-import { Schedule } from "@lib/types/schedule";
 
+import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -30,7 +30,7 @@ import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
-  process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
+  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -519,16 +519,16 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const integrations = ALL_INTEGRATIONS.map((integration) => ({
-        ...integration,
-        credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
-          .map((credential) => credential.id),
-      }));
+      const apps = getApps(credentials).map(
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
+          ...app,
+          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
+        })
+      );
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       return {
         conferencing: {
@@ -564,48 +564,6 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .query("availability", {
-    async resolve({ ctx }) {
-      const { prisma, user } = ctx;
-      const availabilityQuery = await prisma.availability.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
-      const schedule = availabilityQuery.reduce(
-        (schedule: Schedule, availability) => {
-          availability.days.forEach((day) => {
-            schedule[day].push({
-              start: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.startTime.getUTCHours(),
-                  availability.startTime.getUTCMinutes()
-                )
-              ),
-              end: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.endTime.getUTCHours(),
-                  availability.endTime.getUTCMinutes()
-                )
-              ),
-            });
-          });
-          return schedule;
-        },
-        Array.from([...Array(7)]).map(() => [])
-      );
-      return {
-        schedule,
-        timeZone: user.timeZone,
-      };
-    },
-  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -634,7 +592,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
-          if (!response.available) {
+          if (!response.available || ("premium" in response && response.premium)) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
         }
@@ -804,8 +762,8 @@ const loggedInViewerRouter = createProtectedRouter()
       try {
         return await apiController.config({
           encodedRawMetadata,
-          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
-          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,
           product: samlProductID,
         });
@@ -840,5 +798,6 @@ export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("eventTypes.", eventTypesRouter)
+  .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

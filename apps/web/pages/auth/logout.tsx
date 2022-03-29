@@ -1,20 +1,24 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+
+import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AuthContainer from "@components/ui/AuthContainer";
-import Button from "@components/ui/Button";
 
 import { ssrInit } from "@server/lib/ssr";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 export default function Logout(props: Props) {
+  const { data: session, status } = useSession();
+  if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
