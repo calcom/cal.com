@@ -8,6 +8,7 @@ export class ModalBox extends HTMLElement {
 
   constructor() {
     super();
+    //FIXME: this styling goes as is as it's a JS string. That's a lot of unnecessary whitespaces over the wire.
     const modalHtml = `
 		<style>
 		.backdrop {

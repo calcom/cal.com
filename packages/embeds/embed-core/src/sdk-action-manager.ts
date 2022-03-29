@@ -8,6 +8,7 @@ function _fireEvent(fullName: string, detail: CustomEventDetail) {
 
   window.dispatchEvent(event);
 }
+
 export class SdkActionManager {
   namespace: Namespace;
 
