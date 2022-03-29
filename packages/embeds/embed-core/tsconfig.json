@@ -1,8 +1,7 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "downlevelIteration": true
+    "baseUrl": "."
   },
   "include": ["."],
   "exclude": ["dist", "build", "node_modules"]

@@ -8,11 +8,11 @@ import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { useEmbedStyles } from "@lib/embed-iframe";
+import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
-import { sdkActionManager } from "@lib/sdk-event";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";

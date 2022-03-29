@@ -2,13 +2,16 @@
   "name": "@calcom/embed-core",
   "version": "0.1.0",
   "description": "The core script adds the booking embed",
-  "main": "embed.ts",
+  "main": "./index.ts",
   "scripts": {
     "build": "vite build",
-    "preview": "npx http-server . -p 3001",
-    "dev": "yarn build --watch"
+    "vite": "vite",
+    "dev": "run-p 'build --watch' 'vite --port 3001 --open'",
+    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js src"
   },
-  "dependencies": {
-    "vite": "^2.8.6"
+  "devDependencies": {
+    "vite": "^2.8.6",
+    "eslint": "^8.10.0"
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import EmbedSnippet from "../embed-snippet";
+import EmbedSnippet from "@calcom/embed-snippet";
 
 export default function useEmbed() {
   const embedUrl = "http://localhost:3001/dist/embed.es.js";

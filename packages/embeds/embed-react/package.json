@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "vite --port=3002",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src"
   },
-  "main": "Cal",
-  "dependencies": {
-    "vite": "^2.8.6"
+  "main": "src/Cal.tsx",
+  "devDependencies": {
+    "vite": "^2.8.6",
+    "eslint": "^8.10.0"
   }
 }

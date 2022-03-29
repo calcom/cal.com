@@ -15,11 +15,19 @@ See [index.html](index.html) to understand how it can be used.
     - `guests`
 
 
-## How to test
+## Development
 
+Run the following command and then you can test the embed in the automatically opened page `http://localhost:3001`
 
 ```bash
-yarn preview &; yarn dev
+yarn dev
 ```
 
-Visit <https://localhost:3001/>
+
+## Shipping to Production
+
+```bash
+yarn build
+```
+
+Make `dist/embed.umd.js` servable on URL http://cal.com/embed.js

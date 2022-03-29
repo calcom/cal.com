@@ -1,9 +1,11 @@
 import type { CalWindow } from "@calcom/embed-snippet";
-import { methods, UiConfig } from "@calcom/web/lib/embed-iframe";
 
 import { ModalBox } from "./ModalBox";
+import { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
+
+declare module "*.css";
 
 type Namespace = string;
 
@@ -59,7 +61,7 @@ export class Cal {
     const [method, argument] = instruction;
     if (!this[method]) {
       // Instead of throwing error, log and move forward in the queue
-      log(`Instruction ${method} not found`);
+      log(`Instruction ${method} not FOUND`);
     }
     try {
       (this[method] as Function)(argument);
@@ -98,6 +100,7 @@ export class Cal {
     const searchParams = new URLSearchParams(queryObject);
     const urlInstance = new URL(`${config.origin}/${calendarLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
+    //@ts-ignore
     for (let [key, value] of searchParams) {
       urlInstance.searchParams.set(key, value);
     }

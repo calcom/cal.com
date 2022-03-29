@@ -1,8 +1,8 @@
-import { useState, useLayoutEffect, useEffect, CSSProperties } from "react";
+import { useState, useEffect, CSSProperties } from "react";
 
-import { sdkActionManager } from "@lib/sdk-event";
+import { sdkActionManager } from "./sdk-event";
 
-let setEmbedStyles;
+let setEmbedStyles: (arg0: any) => any;
 
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
@@ -43,7 +43,7 @@ export const methods = {
       document.body.style.background = stylesConfig.body.background as string;
     }
 
-    setEmbedStyles((styles) => {
+    setEmbedStyles((styles: any) => {
       return {
         ...styles,
         ...stylesConfig,
@@ -56,7 +56,7 @@ export const methods = {
   },
 };
 
-const messageParent = (data) => {
+const messageParent = (data: any) => {
   parent.postMessage(
     {
       originator: "CAL",
@@ -100,9 +100,13 @@ if (typeof window !== "undefined" && !location.search.includes("prerender=true")
   });
 
   window.addEventListener("message", (e) => {
-    const data = e.data;
-    if (data.originator === "CAL") {
-      methods[data.method]?.(data.arg);
+    const data: Record<string, any> = e.data;
+    if (!data) {
+      return;
+    }
+    const method: keyof typeof methods = data.method;
+    if (data.originator === "CAL" && typeof method === "string") {
+      methods[method]?.(data.arg);
     }
   });
 

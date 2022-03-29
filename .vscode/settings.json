@@ -8,5 +8,16 @@
   "eslint.run": "onSave",
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
-  "spellright.documentTypes": ["markdown"]
+  "spellright.documentTypes": ["markdown"],
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/key.pem": true,
+    "**/cert.pem": true,
+    "**/node_modules": true
+  }
 }
