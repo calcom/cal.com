@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/caldavcalendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "CalDAV is an open calendar standard which connects to virtually every calendar.",
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/ui": "*",
+    "react-hook-form": "^7.20.4"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

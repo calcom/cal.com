@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@calcom/tandemvideo",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Virtual Office | Video Conferencing",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
