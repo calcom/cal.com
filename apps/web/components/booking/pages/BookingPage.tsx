@@ -96,6 +96,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,

@@ -16,8 +16,8 @@ const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
   periodCountCalendarDays: true,
-  periodStartDate: new Date(),
-  periodEndDate: new Date(),
+  periodStartDate: null,
+  periodEndDate: null,
   beforeEventBuffer: 0,
   afterEventBuffer: 0,
   periodType: PeriodType.UNLIMITED,
@@ -56,6 +56,9 @@ const commons = {
       credentials: [],
       bufferTime: 0,
       locale: "en",
+      theme: null,
+      brandColor: "#292929",
+      darkBrandColor: "#fafafa",
     },
   ],
 };
