@@ -2,10 +2,10 @@ import { EventTypeAttendeeReminder } from "@prisma/client/";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 
-import twilio from "@ee/lib/reminders/smsProviders/twilioProvider";
+import { CalendarEvent } from "@calcom/types/Calendar";
+import * as twilio from "@ee/lib/reminders/smsProviders/twilioProvider";
 import reminderTemplate from "@ee/lib/reminders/templates/reminderSMSTemplate";
 
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 dayjs.extend(isBetween);

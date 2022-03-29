@@ -2,7 +2,7 @@
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import twilio from "@ee/lib/reminders/smsProviders/twilioProvider";
+import * as twilio from "@ee/lib/reminders/smsProviders/twilioProvider";
 import reminderSMSTemplate from "@ee/lib/reminders/templates/reminderSMSTemplate";
 
 import prisma from "@lib/prisma";

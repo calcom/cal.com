@@ -5,7 +5,8 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { v4 as uuidv4 } from "uuid";
 
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
+import { CalendarEvent } from "@calcom/types/Calendar";
+
 import prisma from "@lib/prisma";
 
 import reminderTemplate from "./templates/reminderEmailTemplate";

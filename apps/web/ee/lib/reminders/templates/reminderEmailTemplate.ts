@@ -6,9 +6,11 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
 
+import { getAppName } from "@calcom/app-store/utils";
+import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { getCancelLink, getRichDescription } from "@lib/CalEventParser";
 import {
   emailHead,
   emailSchedulingBodyHeader,
@@ -17,8 +19,6 @@ import {
   emailSchedulingBodyDivider,
   linkIcon,
 } from "@lib/emails/templates/common";
-import { getIntegrationName } from "@lib/integrations";
-import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import { serverConfig } from "@lib/serverConfig";
 
 dayjs.extend(utc);
@@ -231,7 +231,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getIntegrationName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];

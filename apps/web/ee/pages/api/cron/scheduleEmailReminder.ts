@@ -5,9 +5,9 @@ import sgMail from "@sendgrid/mail";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { CalendarEvent, Person } from "@calcom/types/Calendar";
 import reminderTemplate from "@ee/lib/reminders/templates/reminderEmailTemplate";
 
-import { CalendarEvent, Person } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;

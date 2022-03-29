@@ -96,7 +96,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmed: true,
         attendees: true,
         eventTypeId: true,
-        eventType: true,
+        eventType: {
+          include: {
+            attendeeReminders: true,
+          },
+        },
         location: true,
         userId: true,
         id: true,
@@ -174,7 +178,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         await sendScheduledEmails({ ...evt, additionInformation: metadata });
 
-        for (const reminder of booking.eventType.attendeeReminders) {
+        for (const reminder of booking!.eventType!.attendeeReminders) {
           if (reminder.method === "SMS" && evt.reminderPhone) {
             await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
           }
