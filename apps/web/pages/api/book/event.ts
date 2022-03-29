@@ -11,10 +11,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { scheduleEmailReminder } from "@ee/lib/reminders/emailReminderManager";
-import {
-  scheduleSMSAttendeeReminder,
-  deleteScheduledSMSReminder,
-} from "@ee/lib/reminders/smsReminderManager";
+import { scheduleSMSAttendeeReminder } from "@ee/lib/reminders/smsReminderManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {

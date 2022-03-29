@@ -1,6 +1,8 @@
 import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { scheduleEmailReminder } from "@ee/lib/reminders/emailReminderManager";
+import { scheduleSMSAttendeeReminder } from "@ee/lib/reminders/smsReminderManager";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -93,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmed: true,
         attendees: true,
         eventTypeId: true,
+        eventType: true,
         location: true,
         userId: true,
         id: true,
@@ -169,6 +172,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
         }
         await sendScheduledEmails({ ...evt, additionInformation: metadata });
+
+        for (const reminder of booking.eventType.attendeeReminders) {
+          if (reminder.method === "SMS" && evt.reminderPhone) {
+            await scheduleSMSAttendeeReminder(evt, evt.reminderPhone, reminder);
+          }
+
+          if (reminder.method === "EMAIL") {
+            await scheduleEmailReminder(evt, evt.attendees[0].email, reminder);
+          }
+        }
       }
 
       await prisma.booking.update({

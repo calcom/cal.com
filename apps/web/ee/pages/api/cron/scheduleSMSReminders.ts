@@ -1,17 +1,11 @@
 /* Schedule any attendee reminder that falls within 7 days for SMS */
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import twilio from "twilio";
 
+import twilio from "@ee/lib/reminders/smsProviders/twilioProvider";
 import reminderSMSTemplate from "@ee/lib/reminders/templates/reminderSMSTemplate";
 
 import prisma from "@lib/prisma";
-
-const TWILIO_SID = process.env.TWILIO_SID;
-const TWILIO_TOKEN = process.env.TWILIO_TOKEN;
-const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID;
-
-const client = twilio(TWILIO_SID, TWILIO_TOKEN);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -40,32 +34,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const inSevenDays = dayjs().add(7, "day");
 
   for (const reminder of unscheduledReminders) {
-    if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
-      // const booking = prisma.booking.findUnique({
-      //   where: {
-      //     uid: reminder.bookingUid,
-      //   },
-      //   select: {
-      //     title: true,
-      //     startTime: true,
-      //     user: true,
-      //     attendees: true,
-      //   },
-      // });
+    const smsBody = reminderSMSTemplate(
+      reminder!.booking!.title,
+      reminder!.booking!.user!.name as string,
+      reminder!.booking!.startTime as unknown as string,
+      reminder!.booking!.attendees[0].timeZone
+    );
 
+    if (dayjs(reminder.scheduledDate).isBefore(inSevenDays)) {
       try {
-        const response = await client.messages.create({
-          body: reminderSMSTemplate(
-            reminder!.booking!.title,
-            reminder!.booking!.user!.name as string,
-            reminder!.booking!.startTime as unknown as string,
-            reminder!.booking!.attendees[0].timeZone
-          ),
-          messagingServiceSid: TWILIO_MESSAGING_SID,
-          to: reminder.sendTo,
-          scheduleType: "fixed",
-          sendAt: reminder.scheduledDate,
-        });
+        const response = await twilio.sendSMS(reminder.sendTo, smsBody, reminder.scheduledDate);
 
         await prisma.attendeeReminder.update({
           where: {
@@ -77,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         });
       } catch (error) {
+        // @todo: Report to sentry
         console.log(`Error scheduling SMS with error ${error}`);
       }
     }

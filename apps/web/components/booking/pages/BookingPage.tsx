@@ -1,5 +1,5 @@
 import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroicons/react/solid";
-import { EventTypeCustomInputType } from "@prisma/client";
+import { EventTypeCustomInputType, EventTypeAttendeeReminderMethod } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
@@ -468,7 +468,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         )}
                       </div>
                     ))}
-                  {eventType.attendeeReminders.some((reminder) => reminder.method === "SMS") && (
+                  {eventType.attendeeReminders.some(
+                    (reminder) => reminder.method === EventTypeAttendeeReminderMethod.SMS
+                  ) && (
                     <div className="mb-4">
                       <label
                         htmlFor="reminderPhone"
