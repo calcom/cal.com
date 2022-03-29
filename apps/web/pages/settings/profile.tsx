@@ -33,6 +33,7 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import showToast from "@calcom/lib/notification";
+import { Prisma } from "@calcom/prisma/client";
 import { proratePreview, retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -543,7 +544,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const currentUsername = user.username || undefined;
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   const [usernameLock, setUsernameLock] = useState(true);
-  const [premiumUsername, setPremiumUsername] = useState(user.premiumUsername);
+  const [premiumUsername, setPremiumUsername] = useState(user.isPremiumUsername);
 
   return (
     <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={updateProfileHandler}>
@@ -582,7 +583,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     setUsernameLock,
                     premiumUsername,
                     setPremiumUsername,
-                    userIsPremium: user.premiumUsername,
+                    userIsPremium: user.isPremiumUsername,
                     subscriptionId: user.subscriptionId,
                   }}
                 />
@@ -886,8 +887,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
-      // @NOTE: should replace premiumUsername with userPlanId or userPlanName when available on DB
-      premiumUsername: true,
     },
   });
 
@@ -895,19 +894,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User seems logged in but cannot be found in the db");
   }
   let subscriptionId = "";
-  const stripeCustomerId = user?.metadata?.stripeCustomerId as string;
+
+  const stripeCustomerId = (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
 
   if (stripeCustomerId) {
     const retrieveResult = await retrieveSubscriptionIdFromStripeCustomerId(stripeCustomerId);
     subscriptionId = retrieveResult?.subscriptionId || "";
   }
-
+  const isPremiumUsername = (user?.metadata as Prisma.JsonObject).premiumUsername as boolean;
   // if user is marked as no premiumUsername but its username could be due to length we check in remote
-  if (!user.premiumUsername && user.username && user?.username?.length > 0 && user?.username?.length <= 4) {
+  if (!isPremiumUsername && user && user.username) {
     try {
-      const isPremium = await checkPremiumUsername(user?.username);
-      if (isPremium) {
-        user.premiumUsername = isPremium.premium;
+      const checkUsernameResult = await checkPremiumUsername(user?.username);
+      if (checkUsernameResult) {
       }
     } catch (error) {
       console.error(error);
@@ -921,6 +920,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
         subscriptionId,
+        isPremiumUsername,
       },
     },
   };
