@@ -35,8 +35,13 @@ const commons = {
   schedulingType: SchedulingType.COLLECTIVE,
   id: 0,
   metadata: {},
+  hideCalendarNotes: false,
+  destinationCalendar: false,
+  team: null,
+  requiresConfirmation: false,
   description: "",
   hidden: false,
+  userId: 0,
   users: [
     {
       plan: UserPlan.PRO,
@@ -45,7 +50,6 @@ const commons = {
       avatar: "",
       hideBranding: true,
       timeZone: "",
-      // availability,
     },
   ],
 };
@@ -54,18 +58,21 @@ const min15Event = {
   length: 15,
   slug: "15min",
   title: "15min",
+  eventName: "Dynamic Collective 15min Event",
   ...commons,
 };
 const min30Event = {
   length: 30,
   slug: "30min",
   title: "30min",
+  eventName: "Dynamic Collective 30min Event",
   ...commons,
 };
 const min60Event = {
   length: 60,
   slug: "60min",
   title: "60min",
+  eventName: "Dynamic Collective 60min Event",
   ...commons,
 };
 

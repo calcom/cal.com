@@ -28,6 +28,7 @@ import {
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
+import { getDefaultEvent } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -185,6 +186,10 @@ type User = Prisma.UserGetPayload<typeof userSelect>;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
+
+  // handle dynamic user
+  const dynamicUserList = (reqBody.user as string).toLowerCase().split("+");
+  const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -204,41 +209,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json(error);
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      users: userSelect,
-      team: {
-        select: {
-          id: true,
-          name: true,
+  const eventType = !eventTypeId
+    ? getDefaultEvent(eventTypeSlug)
+    : await prisma.eventType.findUnique({
+        rejectOnNotFound: true,
+        where: {
+          id: eventTypeId,
         },
-      },
-      title: true,
-      length: true,
-      eventName: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodDays: true,
-      periodCountCalendarDays: true,
-      requiresConfirmation: true,
-      userId: true,
-      price: true,
-      currency: true,
-      metadata: true,
-      destinationCalendar: true,
-      hideCalendarNotes: true,
-    },
-  });
-
+        select: {
+          users: userSelect,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          title: true,
+          length: true,
+          eventName: true,
+          schedulingType: true,
+          periodType: true,
+          periodStartDate: true,
+          periodEndDate: true,
+          periodDays: true,
+          periodCountCalendarDays: true,
+          requiresConfirmation: true,
+          userId: true,
+          price: true,
+          currency: true,
+          metadata: true,
+          destinationCalendar: true,
+          hideCalendarNotes: true,
+        },
+      });
   if (!eventType) return res.status(404).json({ message: "eventType.notFound" });
 
-  let users = eventType.users;
+  let users = !eventTypeId
+    ? await prisma.user.findMany({
+        where: {
+          username: {
+            in: dynamicUserList,
+          },
+        },
+        ...userSelect,
+      })
+    : eventType.users;
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -341,7 +356,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events, we will need to handle each member destinationCalendar eventually */
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
   };
@@ -363,6 +378,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await verifyAccount(web3Details.userSignature, web3Details.userWallet);
     }
 
+    const eventTypeRel = !eventTypeId
+      ? {}
+      : {
+          connect: {
+            id: eventTypeId,
+          },
+        };
+
     return prisma.booking.create({
       include: {
         user: {
@@ -378,11 +401,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         description: evt.description,
         confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
-        eventType: {
-          connect: {
-            id: eventTypeId,
-          },
-        },
+        eventType: eventTypeRel,
         attendees: {
           createMany: {
             data: evt.attendees.map((attendee) => {
