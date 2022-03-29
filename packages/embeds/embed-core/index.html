@@ -6,31 +6,30 @@
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
     </script>
-    <!-- <script src="./embed.ts"></script> -->
     <script>
-      (function (c, a, l) {
-        let d = c.document;
-        c.Cal =
-          c.Cal ||
+      (function (C, A, L) {
+        let d = C.document;
+        C.Cal =
+          C.Cal ||
           function () {
-            let C = c.Cal;
+            let cal = C.Cal;
             let ar = arguments;
-            if (!C.loaded) {
-              C.ns = {};
-              C.q = C.q || [];
-              d.head.appendChild(d.createElement("script")).src = a;
-              C.loaded = true;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
             }
-            if (ar[0] === l) {
+            if (ar[0] === L) {
               const api = function () {
                 api.q.push(arguments);
               };
-              const namespace = ar[1];
+              const namespace = arguments[1];
               api.q = api.q || [];
-              namespace ? (C.ns[namespace] = api) : null;
+              namespace ? (cal.ns[namespace] = api) : null;
               return;
             }
-            C.q.push(ar);
+            cal.q.push(ar);
           };
       })(window, "//localhost:3001/dist/embed.umd.js", "init");
     </script>
