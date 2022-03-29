@@ -70,3 +70,6 @@ dist
 
 # Linting
 lint-results
+
+# Yarn
+yarn-error.log
