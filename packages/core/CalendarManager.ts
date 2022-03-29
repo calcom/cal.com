@@ -102,12 +102,17 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
   const calendar = getCalendar(credential);
   let success = true;
 
+  // Check if the disabledNotes flag is set to true
+  if (calEvent.hideCalendarNotes) {
+    calEvent.description = "Notes have been hidden by the organiser"; // TODO: i18n this string?
+  }
+
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch((e) => {
-        log.error("createEvent failed", e, calEvent);
-        success = false;
-        return undefined;
-      })
+      log.error("createEvent failed", e, calEvent);
+      success = false;
+      return undefined;
+    })
     : undefined;
 
   return {
@@ -131,10 +136,10 @@ export const updateEvent = async (
   const updatedResult =
     calendar && bookingRefUid
       ? await calendar.updateEvent(bookingRefUid, calEvent).catch((e) => {
-          log.error("updateEvent failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
+        log.error("updateEvent failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
       : undefined;
 
   return {

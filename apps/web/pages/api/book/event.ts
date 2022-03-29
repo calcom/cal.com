@@ -232,6 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: true,
       metadata: true,
       destinationCalendar: true,
+      hideCalendarNotes: true,
     },
   });
 
@@ -342,6 +343,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
