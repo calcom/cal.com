@@ -1,6 +1,7 @@
 import prisma from "@calcom/prisma";
 
 import { Team } from "@calcom/prisma/client";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type ResponseData = {
@@ -8,12 +9,11 @@ type ResponseData = {
   error?: unknown;
 };
 
-export default async function team(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  try {
-    const data = await prisma.team.findMany();
-    res.status(200).json({ data });
-  } catch (error) {
-    // FIXME: Add zod for validation/error handling
-    res.status(400).json({ error: error });
-  }
+async function allTeams(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+  const data = await prisma.team.findMany();
+
+  if (data) res.status(200).json({ data });
+  else res.status(400).json({ error: "No data found" });
 }
+
+export default withMiddleware("addRequestId","getOnly")(allTeams);

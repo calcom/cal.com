@@ -12,17 +12,19 @@ type ResponseData = {
   error?: unknown;
 };
 
-export async function user(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "GET" && safe.success) {
+export async function userById(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (safe.success) {
     const data = await prisma.user.findUnique({ where: { id: safe.data.id } });
 
     if (data) res.status(200).json({ data });
-    if (!data) res.status(404).json({ message: "Event type not found" });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only GET Method allowed" });
+    else res.status(404).json({ message: "User was not found" });
+  }
 }
 
 
-export default withMiddleware("addRequestId")(withValidQueryIdTransformParseInt(user));
+export default withMiddleware("addRequestId","getOnly")(
+  withValidQueryIdTransformParseInt(
+    userById
+  )
+);

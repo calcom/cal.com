@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import { BookingReference } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaBookingReference, withValidBookingReference } from "@lib/validations/bookingReference";
+import { schemaBookingReference, withValidBookingReference } from "@lib/validations/booking-reference";
 
 type ResponseData = {
   data?: BookingReference;

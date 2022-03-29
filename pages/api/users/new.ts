@@ -12,15 +12,17 @@ type ResponseData = {
 };
 
 async function createUser(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaUser.safeParse(body);
-  if (method === "POST" && safe.success) {
+  const safe = schemaUser.safeParse(req.body);
+  if (safe.success) {
     const data = await prisma.user
       .create({ data: safe.data })
     if (data) res.status(201).json({ data })
     else (error: unknown) => res.status(400).json({ error: { message: "Could not create user type", error: error } });
-      // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: { message: "Only POST Method allowed" } });
+  }
 }
 
-export default withMiddleware("addRequestId")(withValidUser(createUser));
+export default withMiddleware("addRequestId","postOnly")(
+  withValidUser(
+    createUser
+  )
+);

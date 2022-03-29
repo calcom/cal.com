@@ -18,7 +18,7 @@ export async function destinationCalendar(req: NextApiRequest, res: NextApiRespo
     const data = await prisma.destinationCalendar.findUnique({ where: { id: safe.data.id } });
 
     if (data) res.status(200).json({ data });
-    if (!data) res.status(404).json({ message: "Event type not found" });
+    else res.status(404).json({ message: "Event type not found" });
     // Reject any other HTTP method than POST
   } else res.status(405).json({ message: "Only GET Method allowed" });
 }

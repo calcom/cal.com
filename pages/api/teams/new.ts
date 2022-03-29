@@ -1,30 +1,28 @@
-import prisma from "@calcom/prisma";
-
-import { Team } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+import { Team } from "@calcom/prisma/client";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { schemaTeam, withValidTeam } from "@lib/validations/team";
+
 
 type ResponseData = {
   data?: Team;
-  message?: string;
-  error?: string;
+  error?: object;
 };
 
 async function createTeam(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  if (method === "POST") {
-    const safe = schemaTeam.safeParse(body);
-    if (safe.success && safe.data) {
-      await prisma.team
-        .create({ data: safe.data })
-        .then((team) => res.status(201).json({ data: team }))
-        .catch((error) => res.status(400).json({ message: "Could not create team", error: error }));
-    }
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ error: "Only POST Method allowed" });
+  const safe = schemaTeam.safeParse(req.body);
+  if (safe.success) {
+    const data = await prisma.team
+      .create({ data: safe.data })
+    if (data) res.status(201).json({ data })
+    else (error: unknown) => res.status(400).json({ error: { message: "Could not create team type", error: error } });
   }
 }
 
-export default withValidTeam(createTeam);
+export default withMiddleware("addRequestId","postOnly")(
+  withValidTeam(
+    createTeam
+  )
+);
