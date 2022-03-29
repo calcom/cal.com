@@ -1,4 +1,8 @@
+import fs from "fs";
 import { GetStaticPaths, GetStaticPathsResult, GetStaticPropsContext } from "next";
+import { MDXRemote } from "next-mdx-remote";
+import { serialize } from "next-mdx-remote/serialize";
+import path from "path";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
@@ -6,7 +10,12 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/App";
 
-function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
+const components = {
+  Slider: () => <h1>test</h1>,
+  Test: () => <h1>test</h1>,
+};
+
+function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
       name={data.name}
@@ -23,7 +32,7 @@ function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
       email={data.email}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={data.description}
+      body={<MDXRemote {...source} components={components} />}
     />
   );
 }
@@ -58,8 +67,24 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     };
   }
 
+  const appDirname = singleApp.type.replace("_", "");
+  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
+  const postFilePath = path.join(README_PATH);
+  let source = "";
+
+  try {
+    /* If the app doesn't have a README we fallback to the packagfe description */
+    source = fs.readFileSync(postFilePath).toString();
+  } catch (error) {
+    console.log("error", error);
+    source = singleApp.description;
+  }
+
+  const mdxSource = await serialize(source);
+
   return {
     props: {
+      source: mdxSource,
       data: singleApp,
     },
   };
