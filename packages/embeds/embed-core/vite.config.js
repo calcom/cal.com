@@ -4,7 +4,7 @@ const { defineConfig } = require("vite");
 module.exports = defineConfig({
 	build: {
 		lib: {
-			entry: path.resolve(__dirname, "embed.ts"),
+			entry: path.resolve(__dirname, "src/embed.ts"),
 			name: "embed",
 			fileName: (format) => `embed.${format}.js`,
 		},
