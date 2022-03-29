@@ -14,6 +14,69 @@ See [index.html](index.html) to understand how it can be used.
     - `notes`
     - `guests`
 
+## How to use embed on any webpage no matter what framework.
+
+- *Step-1.* Install the snippet
+  
+  ```javascript
+  (function (C, A, L) {
+      let d = C.document;
+      C.Cal =
+        C.Cal ||
+        function () {
+          let cal = C.Cal;
+          let ar = arguments;
+          if (!cal.loaded) {
+            cal.ns = {};
+            cal.q = cal.q || [];
+            d.head.appendChild(d.createElement("script")).src = A;
+            cal.loaded = true;
+          }
+          if (ar[0] === L) {
+            const api = function () {
+              api.q.push(arguments);
+            };
+            const namespace = arguments[1];
+            api.q = api.q || [];
+            namespace ? (cal.ns[namespace] = api) : null;
+            return;
+          }
+          cal.q.push(ar);
+        };
+    })(window, "https://cal.com/embed.js", "init");
+  ```
+
+- *Step-2*. Give `init` instruction to it. It creates a queue so that even without embed.js being fetched, you can give instructions to embed.
+
+  ```javascript
+  Cal("init) // Creates default instance. Give instruction to it as Cal("instruction")
+  ```
+
+  **Optionally** if you want to install another instance of embed you can do
+
+  ```javascript
+  Cal("init", "NAME_YOUR_OTHER_INSTANCE") // Creates a named instance. Give instructions to it as Cal.ns.NAME_YOUR_OTHER_INSTANCE("instruction")
+  ```
+
+- Step-1 and Step-2 must be followed in same order. After that you can give various instructions to embed as you like. 
+
+## Supported Instructions
+
+Consider an instruction as a function with that name and that would be called with the given argument.
+
+`inline` - Appends embed inline as the child of the element.
+
+- `elementOrSelector` -  Give it either a valid CSS selector or an HTMLElement instance directly
+
+- `calendarLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL <https://cal.com/john>. It makes it easy to configure the calendar host once and use as many links you want with just usernames
+
+`ui` - Configure UI for embed. Make it look part of your webpage.
+
+- `styles` - It supports styling for `body` and `eventTypeListItem`. Right now we support just background on these two.
+
+`preload` - If you want to open cal link on some action. Make it pop open instantly by preloading it.
+
+- `fullCalendarLink` - Full URL like <https://cal.com/john> that you want to preload.
 
 ## Development
 

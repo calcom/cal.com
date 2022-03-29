@@ -109,6 +109,7 @@
     </div>
 
     <script>
+      // In prerender-test, we would want to test just the prerender case and nothing else.
       if (!location.search.includes("prerender-test")) {
         Cal("inline", {
           elementOrSelector: "#cal-booking-place-",
