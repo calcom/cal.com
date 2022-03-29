@@ -7,7 +7,7 @@ import AppsShell from "@components/AppsShell";
 import Shell from "@components/Shell";
 import AllApps from "@components/apps/AllApps";
 import AppStoreCategories from "@components/apps/Categories";
-import Slider from "@components/apps/Slider";
+import TrendingAppsSlider from "@components/apps/TrendingAppsSlider";
 
 export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
@@ -16,7 +16,7 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
     <Shell heading={t("app_store")} subtitle={t("app_store_description")} large>
       <AppsShell>
         <AppStoreCategories categories={categories} />
-        <Slider items={appStore} />
+        <TrendingAppsSlider items={appStore} />
         <AllApps apps={appStore} />
       </AppsShell>
     </Shell>
