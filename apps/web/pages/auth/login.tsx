@@ -9,12 +9,12 @@ import { useForm } from "react-hook-form";
 
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
-import { EmailField, PasswordField, Form } from "@calcom/ui/form/fields";
+import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
 
 import { ErrorCode, getSession } from "@lib/auth";
-import { WEBSITE_URL } from "@lib/config/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
-import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
+import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -64,7 +64,7 @@ export default function Login({
   // If not absolute URL, make it absolute
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
   if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
+    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
 
   const LoginFooter = (
@@ -112,7 +112,8 @@ export default function Login({
                 else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
               })
               .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
-          }}>
+          }}
+          data-testid="login-form">
           <input defaultValue={csrfToken || undefined} type="hidden" hidden {...form.register("csrfToken")} />
 
           <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>

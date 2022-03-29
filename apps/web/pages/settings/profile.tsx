@@ -432,7 +432,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }).catch((e) => {
       console.error(`Error Removing user: ${user.id}, email: ${user.email} :`, e);
     });
-    if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
+    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
@@ -541,12 +541,17 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   className={user.premiumUsername ? "border-r-0 border-yellow-300 border-l-gray-300" : ""}
                   name={user.premiumUsername ? "Premium Username" : "Username"}
                   addOnLeading={
+<<<<<<< HEAD
                     <span
                       className={classNames(
                         "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
                         user.premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
                       )}>
                       {process.env.NEXT_PUBLIC_APP_URL}/
+=======
+                    <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+>>>>>>> 6b0e8db4967848cfff7b15fe8d11f9a4aeb53f4a
                     </span>
                   }
                   addOnEnding={

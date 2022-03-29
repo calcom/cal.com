@@ -23,7 +23,7 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
         </Head>
-        <body className="bg-gray-100 dark:bg-black">
+        <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />
           <NextScript />
         </body>
