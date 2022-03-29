@@ -4,6 +4,7 @@ import { User } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 
 type ResponseData = {
   data?: User;
@@ -24,4 +25,4 @@ export async function user(req: NextApiRequest, res: NextApiResponse<ResponseDat
 }
 
 
-export default withValidQueryIdTransformParseInt(user);
+export default withMiddleware("addRequestId")(withValidQueryIdTransformParseInt(user));

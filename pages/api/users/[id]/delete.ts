@@ -1,7 +1,8 @@
-import prisma from "@calcom/prisma";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import prisma from "@calcom/prisma";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 
@@ -24,4 +25,4 @@ export async function deleteUser(req: NextApiRequest, res: NextApiResponse<Respo
   } else res.status(405).json({ message: "Only DELETE Method allowed" });
 }
 
-export default withValidQueryIdTransformParseInt(deleteUser);
+export default withMiddleware("addRequestId")((withValidQueryIdTransformParseInt(deleteUser)));

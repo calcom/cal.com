@@ -4,6 +4,7 @@ import { User } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaUser, withValidUser } from "@lib/validations/user";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
@@ -29,4 +30,4 @@ export async function editUser(req: NextApiRequest, res: NextApiResponse<Respons
   } else res.status(405).json({ message: "Only PATCH Method allowed for updating users"  });
 }
 
-export default withValidQueryIdTransformParseInt(withValidUser(editUser));
+export default withMiddleware("addRequestId")(withValidQueryIdTransformParseInt(withValidUser(editUser)));

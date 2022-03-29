@@ -12,4 +12,4 @@ const withMiddleware = label(
   ["sentry","verifyApiKey"] // <-- Provide a list of middleware to call automatically
 );
 
-export default withMiddleware;
+export { withMiddleware };
