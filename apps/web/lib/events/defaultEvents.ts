@@ -44,12 +44,17 @@ const commons = {
   userId: 0,
   users: [
     {
+      id: 0,
       plan: UserPlan.PRO,
-      name: "test",
-      username: "test",
+      email: "jdoe@example.com",
+      name: "John Doe",
+      username: "jdoe",
       avatar: "",
       hideBranding: true,
       timeZone: "",
+      destinationCalendar: null,
+      credentials: [{}],
+      bufferTime: 0,
     },
   ],
 };
