@@ -4,6 +4,7 @@ import { Team } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { schemaTeam, withValidTeam } from "@lib/validations/team";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
@@ -17,21 +18,19 @@ export async function editTeam(req: NextApiRequest, res: NextApiResponse<Respons
   const safeQuery = await schemaQueryIdParseInt.safeParse(query);
   const safeBody = await schemaTeam.safeParse(body);
 
-  if (method === "PATCH") {
-    if (safeQuery.success && safeBody.success) {
-      await prisma.team.update({
+  if (safeQuery.success && safeBody.success) {
+      const data = await prisma.team.update({
         where: { id: safeQuery.data.id },
         data: safeBody.data,
-      }).then(team => {
-        res.status(200).json({ data: team });
-      }).catch(error => {
-        res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
-      });
-    }
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only PATCH Method allowed for updating teams"  });
+      })
+    if (data) res.status(200).json({ data });
+    else (error: unknown) => res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
   }
 }
 
-export default withValidQueryIdTransformParseInt(withValidTeam(editTeam));
+export default withMiddleware("patchOnly","addRequestId")(
+  withValidQueryIdTransformParseInt(
+    withValidTeam(
+      editTeam)
+  )
+);

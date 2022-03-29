@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import { DestinationCalendar } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaDestinationCalendar, withValidDestinationCalendar } from "@lib/validations/destinationCalendar";
+import { schemaDestinationCalendar, withValidDestinationCalendar } from "@lib/validations/destination-calendar";
 
 type ResponseData = {
   data?: DestinationCalendar;

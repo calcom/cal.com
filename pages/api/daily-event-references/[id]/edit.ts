@@ -3,7 +3,7 @@ import prisma from "@calcom/prisma";
 import { DailyEventReference } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaDailyEventReference, withValidDailyEventReference } from "@lib/validations/dailyEventReference";
+import { schemaDailyEventReference, withValidDailyEventReference } from "@lib/validations/daily-event-reference";
 import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
