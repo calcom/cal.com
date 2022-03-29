@@ -93,6 +93,7 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   reminderPhone?: string | null;
   attendeeReminders?: AttendeeReminder[];
+  hideCalendarNotes?: boolean;
 }
 
 export interface EntryPoint {

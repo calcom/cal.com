@@ -235,6 +235,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       metadata: true,
       destinationCalendar: true,
       attendeeReminders: true,
+      hideCalendarNotes: true,
     },
   });
 
@@ -346,6 +347,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     reminderPhone: reqBody.reminderPhone,
+    hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -660,7 +662,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   );
   await Promise.all(promises);
-
+  // Avoid passing referencesToCreate with id unique constrain values
   await prisma.booking.update({
     where: {
       uid: booking.uid,

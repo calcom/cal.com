@@ -11,8 +11,8 @@ export const metadata = {
   imageSrc: "/apps/huddle.svg",
   variant: "conferencing",
   logo: "/apps/huddle.svg",
-  publisher: "Cal.com",
-  url: "https://huddle01.com/",
+  publisher: "huddle01.com",
+  url: "https://huddle01.com",
   verified: true,
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
@@ -22,7 +22,7 @@ export const metadata = {
   title: "Huddle01",
   trending: true,
   isGlobal: true,
-  email: "help@cal.com",
+  email: "support@huddle01.com",
   locationType: "integrations:huddle01",
   key: { apikey: randomString(12) },
 } as App;
