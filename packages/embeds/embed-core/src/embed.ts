@@ -108,6 +108,7 @@ export class Cal {
     return iframe;
   }
 
+  //TODO: Make it `init` so that it can be configured using the instruction.
   configure({ origin }: { origin: string }) {
     this.__config.origin = origin;
   }
@@ -179,7 +180,7 @@ export class Cal {
   doInIframe({
     method,
     arg,
-  }: // Need some TypeScript magic here to remove hardcoded types
+  }: // TODO: Need some TypeScript magic here to remove hardcoded types
   | { method: "ui"; arg: Parameters<typeof methods["ui"]>[0] }
     | { method: "parentKnowsIframeReady"; arg: undefined }) {
     if (!this.iframeReady) {
