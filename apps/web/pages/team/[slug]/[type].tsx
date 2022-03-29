@@ -38,6 +38,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          slug: true,
           users: {
             select: {
               id: true,

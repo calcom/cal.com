@@ -20,6 +20,7 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
+  eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;
   users: {
@@ -32,6 +33,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
+  eventTypeSlug,
   slotInterval,
   minimumBookingNotice,
   timeFormat,
@@ -86,6 +88,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 ...router.query,
                 date: slot.time.format(),
                 type: eventTypeId,
+                slug: eventTypeSlug,
               },
             };
 

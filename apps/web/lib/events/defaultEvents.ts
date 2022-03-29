@@ -45,7 +45,7 @@ const commons = {
       avatar: "",
       hideBranding: true,
       timeZone: "",
-      availability,
+      // availability,
     },
   ],
 };

@@ -6,7 +6,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getDefaultEvent } from "@lib/events/DefaultEvents";
+import { getDefaultEvent, getGroupName } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -28,6 +28,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const usernameList = asStringOrThrow(context.query.user as string)
     .toLowerCase()
     .split("+");
+  const eventTypeSlug = context.query.slug as string;
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -51,7 +52,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventTypeRaw =
     usernameList.length > 1
-      ? getDefaultEvent("30min")
+      ? getDefaultEvent(eventTypeSlug)
       : await prisma.eventType.findUnique({
           where: {
             id: parseInt(asStringOrThrow(context.query.type)),
@@ -144,16 +145,28 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking();
   }
 
+  const profile =
+    users.length > 1
+      ? {
+          name: getGroupName(usernameList),
+          image: null,
+          slug: eventTypeSlug,
+          theme: null,
+          brandColor: "",
+          darkBrandColor: "",
+        }
+      : {
+          name: users[0].name || users[0].username,
+          image: users[0].avatar,
+          slug: users[0].username,
+          theme: users[0].theme,
+          brandColor: users[0].brandColor,
+          darkBrandColor: users[0].darkBrandColor,
+        };
+
   return {
     props: {
-      profile: {
-        slug: users[0].username,
-        name: users[0].name,
-        image: users[0].avatar,
-        theme: users[0].theme,
-        brandColor: users[0].brandColor,
-        darkBrandColor: users[0].darkBrandColor,
-      },
+      profile,
       eventType: eventTypeObject,
       booking,
       trpcState: ssr.dehydrate(),
