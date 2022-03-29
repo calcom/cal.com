@@ -46,7 +46,12 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
         }
         cal.q!.push(ar as unknown as Instruction);
       };
-  })(window, url, "init");
+  })(
+    window,
+    //! Replace it with "https://cal.com/embed.js" or the URL where you have embed.js installed
+    url,
+    "init"
+  );
   /*!  Copying ends here. */
 
   return (window as CalWindow).Cal;

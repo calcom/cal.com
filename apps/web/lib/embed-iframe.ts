@@ -1,6 +1,6 @@
 import { useState, useLayoutEffect, useEffect, CSSProperties } from "react";
 
-import { sdkEventManager } from "@lib/sdk-event";
+import { sdkActionManager } from "@lib/sdk-event";
 
 let setEmbedStyles;
 
@@ -52,7 +52,7 @@ export const methods = {
   },
   parentKnowsIframeReady: () => {
     document.body.style.display = "block";
-    sdkEventManager?.fire("linkReady", {});
+    sdkActionManager?.fire("linkReady", {});
   },
 };
 
@@ -77,7 +77,7 @@ function keepParentInformedAboutDimensionChanges() {
       knownHiddenHeight = hiddenHeight;
       numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkEventManager?.fire("dimension-changed", {
+      sdkActionManager?.fire("dimension-changed", {
         hiddenHeight,
       });
     }
@@ -93,7 +93,7 @@ function keepParentInformedAboutDimensionChanges() {
 }
 
 if (typeof window !== "undefined" && !location.search.includes("prerender=true")) {
-  sdkEventManager?.on("*", (e) => {
+  sdkActionManager?.on("*", (e) => {
     const detail = e.detail;
     //console.log(detail.fullType, detail.type, detail.data);
     messageParent(detail);
@@ -107,5 +107,5 @@ if (typeof window !== "undefined" && !location.search.includes("prerender=true")
   });
 
   keepParentInformedAboutDimensionChanges();
-  sdkEventManager?.fire("iframeReady", {});
+  sdkActionManager?.fire("iframeReady", {});
 }

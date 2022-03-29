@@ -12,7 +12,7 @@ import { useEmbedStyles } from "@lib/embed-iframe";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
-import { sdkEventManager } from "@lib/sdk-event";
+import { sdkActionManager } from "@lib/sdk-event";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -98,7 +98,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                             "error"
                           );
                         } else {
-                          sdkEventManager?.fire("eventTypeSelected", {
+                          sdkActionManager?.fire("eventTypeSelected", {
                             eventType: type,
                           });
                         }

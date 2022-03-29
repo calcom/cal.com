@@ -1,13 +1,13 @@
-/** @file
- *
- * Right now event and action both terms are referring to a custom event, because we are in Event space. It becomes confusing, so we would be using the term `action` instead. Everywhere we see `event` we would replace it with `action`
- *
- *
- * It can be moved to it's own package when other packages wants to fire an event or listen to one.
- * Automatically takes care of event namespace, so that no third party can accidentally interfere with our events.
- */
 type Namespace = string;
 type CustomEventDetail = Record<string, any>;
+
+function _fireEvent(fullName: string, detail: CustomEventDetail) {
+  const event = new window.CustomEvent(fullName, {
+    detail: detail,
+  });
+
+  window.dispatchEvent(event);
+}
 export class SdkActionManager {
   namespace: Namespace;
 
@@ -50,15 +50,8 @@ export class SdkActionManager {
     window.addEventListener(fullName, callback as EventListener);
   }
 
-  constructor(ns: string) {
+  constructor(ns: string | null) {
     ns = ns || "";
     this.namespace = ns;
   }
-}
-function _fireEvent(fullName: string, detail: CustomEventDetail) {
-  const event = new window.CustomEvent(fullName, {
-    detail: detail,
-  });
-
-  window.dispatchEvent(event);
 }

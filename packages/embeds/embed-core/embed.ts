@@ -1,8 +1,7 @@
-import { ModalBox } from "ModalBox";
-
 import type { CalWindow } from "@calcom/embed-snippet";
 import { methods, UiConfig } from "@calcom/web/lib/embed-iframe";
 
+import { ModalBox } from "./ModalBox";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 

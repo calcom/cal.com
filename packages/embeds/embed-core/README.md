@@ -17,11 +17,9 @@ See [index.html](index.html) to understand how it can be used.
 
 ## How to test
 
-Create embed.es.js in `dist`
-```bash
-yarn build
-```
 
 ```bash
-npx http-server .
+yarn preview &; yarn dev
 ```
+
+Visit <https://localhost:3001/>

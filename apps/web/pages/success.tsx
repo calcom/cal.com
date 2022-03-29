@@ -19,7 +19,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
-import { sdkEventManager } from "@lib/sdk-event";
+import { sdkActionManager } from "@lib/sdk-event";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -59,7 +59,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   useEffect(() => {
     const users = eventType.users;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkEventManager!.fire("bookingSuccessful", {
+    sdkActionManager!.fire("bookingSuccessful", {
       eventType,
       date: date.toString(),
       duration: eventType.length,
