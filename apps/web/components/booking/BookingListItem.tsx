@@ -37,7 +37,7 @@ const RescheduleDialog = (props: IRescheduleDialog) => {
     async () => {
       setIsLoading(true);
       try {
-        const result = await fetchWrapper.post<any, any>("/api/book/reschedule", {
+        const result = await fetchWrapper.post<any, any>("/api/book/request-reschedule", {
           bookingId,
           rescheduleReason,
         });

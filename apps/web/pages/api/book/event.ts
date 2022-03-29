@@ -187,6 +187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
+  // @NOTE: should Guest be the same language that attendees?
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
 

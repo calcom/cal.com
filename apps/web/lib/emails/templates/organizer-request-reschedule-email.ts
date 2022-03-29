@@ -23,20 +23,20 @@ dayjs.extend(toArray);
 export default class OrganizerRequestRescheduledEmail extends OrganizerScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    // if (this.calEvent.team) {
+    //   this.calEvent.team.members.forEach((member) => {
+    //     const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
+    //     if (memberAttendee) {
+    //       toAddresses.push(memberAttendee.email);
+    //     }
+    //   });
+    // }
 
     return {
-      icalEvent: {
-        filename: "event.ics",
-        content: this.getiCalEventAsString(),
-      },
+      // icalEvent: {
+      //   filename: "event.ics",
+      //   content: this.getiCalEventAsString(),
+      // },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {

@@ -3,6 +3,9 @@ import dayjs from "dayjs";
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { z, ZodError } from "zod";
 
+import { sendRescheduleEmail } from "@lib/emails/email-manager";
+import OrganizerRequestRescheduledEmail from "@lib/emails/templates/organizer-request-reschedule-email";
+import { getEventName } from "@lib/event";
 import prisma from "@lib/prisma";
 
 const rescheduleSchema = z.object({
@@ -12,8 +15,16 @@ const rescheduleSchema = z.object({
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { bookingId, rescheduleReason: cancellationReason } = req.body;
+  console.log({ bookingId });
   try {
     const bookingToReschedule = await prisma.booking.findFirst({
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        userId: true,
+        attendees: true,
+      },
       where: {
         uid: bookingId,
         NOT: {
@@ -33,8 +44,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           updatedAt: dayjs().toISOString(),
         },
       });
+      // Soft delete
+      await prisma.bookingReference.deleteMany({
+        where: {
+          bookingId: bookingToReschedule.id,
+        },
+      });
+
+      // Send email =================
+      const event = new CalendarEventBuilder({});
+      await sendRescheduleEmail(event);
     }
-    console.log({ bookingToReschedule });
 
     return res.status(200).json(bookingToReschedule);
   } catch (error) {

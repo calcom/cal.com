@@ -75,14 +75,14 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
+  organizer: Person;
+  attendees: Person[];
   description?: string | null;
   team?: {
     name: string;
     members: string[];
   };
   location?: string | null;
-  organizer: Person;
-  attendees: Person[];
   conferenceData?: ConferenceData;
   additionInformation?: AdditionInformation;
   uid?: string | null;
