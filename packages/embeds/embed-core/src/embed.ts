@@ -44,7 +44,6 @@ export class Cal {
     return {
       ...config,
       // guests is better for API but Booking Page accepts guest. So do the mapping
-      // FIXME: Currently multiple guests are expected using guest=1&guest=b approach which is not possible with an object approach
       guest: config.guests ?? "",
     };
   }
