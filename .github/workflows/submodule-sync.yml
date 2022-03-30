@@ -6,22 +6,16 @@ on:
 
 jobs:
   submodule-sync:
-    name: Submodule Sync
+    name: Submodule update
     runs-on: ubuntu-latest
     steps:
-      - name: Website Sync
-        uses: mheap/submodule-sync-action@v1
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: run action
+        uses: releasehub-com/github-action-create-pr-parent-submodule@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: apps/website
-          ref: main
-          pr_branch: automated-submodule-update
-          target_branch: main
-      - name: API Sync
-        uses: mheap/submodule-sync-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: apps/api
-          ref: main
-          pr_branch: automated-submodule-update
-          target_branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          parent_repository: "calcom/cal.com"
+          checkout_branch: "main"
+          pr_against_branch: "main"
+          owner: "calcom"
