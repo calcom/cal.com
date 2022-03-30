@@ -5,7 +5,6 @@ import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
 import Image from "next/image";
 import path from "path";
-import { useEffect, useState } from "react";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
@@ -17,30 +16,24 @@ import Slider from "@components/apps/Slider";
 
 const components = {
   Slider: ({ items }) => {
-    const isMobile = useMediaQuery("(max-width: 1440px)");
-    const [size, setSize] = useState(3);
-
-    useEffect(() => {
-      if (isMobile) {
-        setSize(1);
-      } else {
-        setSize(3);
-      }
-    }, [isMobile]);
-
+    const isTabletAndUp = useMediaQuery("(min-width: 960px)");
     return (
       <Slider<string>
         items={items}
-        size={size}
-        renderItem={(item) => (
-          <div>
+        title="Screenshots"
+        options={{
+          perView: 1,
+        }}
+        renderItem={(item) =>
+          isTabletAndUp ? (
+            <Image src={item} alt="" layout="fixed" width={573} height={382} />
+          ) : (
             <Image src={item} alt="" layout="responsive" width={573} height={382} />
-          </div>
-        )}
+          )
+        }
       />
     );
   },
-  Test: () => <h1>test</h1>,
 };
 
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {

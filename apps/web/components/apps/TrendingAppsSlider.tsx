@@ -18,23 +18,21 @@ const TrendingAppsSlider = <T extends App>({
   renderItem?: (item: T) => JSX.Element;
 }) => {
   const { t } = useLocale();
-  const isMobile = useMediaQuery("(max-width: 767px)");
-  const [size, setSize] = useState(3);
-
-  useEffect(() => {
-    if (isMobile) {
-      setSize(1);
-    } else {
-      setSize(3);
-    }
-  }, [isMobile]);
 
   return (
     <Slider<App>
       title={t("trending_apps")}
       items={items.filter((app) => !!app.trending)}
-      size={size}
       itemKey={(app) => app.name}
+      options={{
+        perView: 3,
+        breakpoints: {
+          /* Under 768px */
+          768: {
+            perView: 1,
+          },
+        },
+      }}
       renderItem={(app) => (
         <AppCard
           key={app.name}

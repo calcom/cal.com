@@ -1,4 +1,4 @@
-import Glide from "@glidejs/glide";
+import Glide, { Options } from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
@@ -7,15 +7,15 @@ import { useEffect, useRef } from "react";
 const Slider = <T extends unknown>({
   title = "",
   items,
-  size = 3,
   itemKey = (item) => `${item}`,
   renderItem,
+  options = {},
 }: {
   title?: string;
   items: T[];
-  size?: number;
   itemKey?: (item: T) => string;
   renderItem?: (item: T) => JSX.Element;
+  options?: Options;
 }) => {
   const glide = useRef(null);
 
@@ -23,7 +23,7 @@ const Slider = <T extends unknown>({
     if (glide.current) {
       const slider = new Glide(glide.current, {
         type: "carousel",
-        perView: size,
+        ...options,
       });
 
       slider.mount();
@@ -31,7 +31,7 @@ const Slider = <T extends unknown>({
 
     // @ts-ignore TODO: This method is missing in types
     return () => slider.destroy();
-  }, [size]);
+  }, [options]);
 
   return (
     <div className="mb-16">
@@ -46,7 +46,7 @@ const Slider = <T extends unknown>({
         <div className="flex cursor-default">
           {title && (
             <div>
-              <h2 className="mb-2 text-lg font-semibold text-gray-900">{title}</h2>
+              <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{title}</h2>
             </div>
           )}
           <div className="glide__arrows ml-auto" data-glide-el="controls">
