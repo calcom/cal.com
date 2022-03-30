@@ -91,6 +91,24 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
+  hideCalendarNotes?: boolean;
+}
+
+export interface EntryPoint {
+  entryPointType?: string;
+  uri?: string;
+  label?: string;
+  pin?: string;
+  accessCode?: string;
+  meetingCode?: string;
+  passcode?: string;
+  password?: string;
+}
+
+export interface AdditionInformation {
+  conferenceData?: ConferenceData;
+  entryPoints?: EntryPoint[];
+  hangoutLink?: string;
 }
 
 export interface EntryPoint {

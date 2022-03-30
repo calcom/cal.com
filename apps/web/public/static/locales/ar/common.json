@@ -534,7 +534,6 @@
   "billing": "الفوترة",
   "manage_your_billing_info": "قم بإدارة معلومات الفوترة لديك وإلغاء اشتراكك.",
   "availability": "الأوقات المتاحة",
-  "availability_updated_successfully": "تم تحديث الأوقات المتاحة بنجاح",
   "configure_availability": "اضبط الأوقات التي تكون متاحًا فيها للحجز.",
   "change_weekly_schedule": "تغيير جدولك الأسبوعي",
   "logo": "الشعار",
@@ -656,6 +655,7 @@
   "prisma_studio_tip_description": "تعرّف على كيفية إعداد مستخدمك الأول",
   "contact_sales": "تواصل مع قسم المبيعات",
   "error_404": "خطأ 404",
+  "availability_updated_successfully": "تم تحديث الأوقات المتاحة بنجاح",
   "requires_ownership_of_a_token": "يتطلب امتلاك token يخص العنوان التالي:",
   "example_name": "فلان الفلاني"
 }

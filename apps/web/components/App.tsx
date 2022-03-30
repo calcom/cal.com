@@ -28,6 +28,7 @@ export default function App({
   author,
   price = 0,
   commission,
+  isGlobal = false,
   feeType,
   docs,
   website,
@@ -37,6 +38,7 @@ export default function App({
 }: {
   name: string;
   type: AppType["type"];
+  isGlobal?: AppType["isGlobal"];
   logo: string;
   body: React.ReactNode;
   categories: string[];
@@ -44,7 +46,7 @@ export default function App({
   pro?: boolean;
   price?: number;
   commission?: number;
-  feeType?: "monthly" | "usage-based" | "one-time" | "free";
+  feeType?: AppType["feeType"];
   docs?: string;
   website?: string;
   email: string; // required
@@ -52,21 +54,6 @@ export default function App({
   privacy?: string;
 }) {
   const { t } = useLocale();
-
-  /*const tabs = [
-    {
-      name: t("description"),
-      href: "?description",
-    },
-    {
-      name: t("features"),
-      href: "?features",
-    },
-    {
-      name: t("permissions"),
-      href: "?permissions",
-    },
-  ];*/
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -77,16 +64,16 @@ export default function App({
   return (
     <>
       <Shell large>
-        <div className="-mx-8">
-          <div className="bg-gray-50 px-10">
+        <div className="-mx-4 md:-mx-8">
+          <div className="bg-gray-50 px-4">
             <Link href="/apps">
               <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                 <ChevronLeftIcon className="h-5 w-5" /> {t("browse_apps")}
               </a>
             </Link>
-            <div className="flex items-center justify-between py-8">
+            <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt="" />
+                <img className="h-16 w-16" src={logo} alt={name} />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
@@ -95,11 +82,17 @@ export default function App({
                 </header>
               </div>
 
-              <div className="text-right">
-                <InstallAppButton
-                  type={type}
-                  render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
-                />
+              <div className="mt-4 sm:mt-0 sm:text-right">
+                {isGlobal ? (
+                  <Button color="secondary" disabled title="This app is globally installed">
+                    {t("installed")}
+                  </Button>
+                ) : (
+                  <InstallAppButton
+                    type={type}
+                    render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                  />
+                )}
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"
@@ -114,7 +107,7 @@ export default function App({
             <NavTabs tabs={tabs} linkProps={{ shallow: true }} /> */}
           </div>
 
-          <div className="justify-between px-10 py-10 md:flex">
+          <div className="justify-between px-4 py-10 md:flex">
             <div className="prose-sm prose">{body}</div>
             <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>

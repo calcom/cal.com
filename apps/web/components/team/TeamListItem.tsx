@@ -72,7 +72,7 @@ export default function TeamListItem(props: Props) {
       <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
-          {process.env.NEXT_PUBLIC_APP_URL}/team/{team.slug}
+          {process.env.NEXT_PUBLIC_WEBSITE_URL}/team/{team.slug}
         </span>
       </div>
     </div>
@@ -112,7 +112,7 @@ export default function TeamListItem(props: Props) {
               <Tooltip content={t("copy_link_team")}>
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_APP_URL + "/team/" + team.slug);
+                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug);
                     showToast(t("link_copied"), "success");
                   }}
                   className="h-10 w-10 transition-none"
@@ -143,7 +143,7 @@ export default function TeamListItem(props: Props) {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem>
-                    <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/team/${team.slug}`} passHref={true}>
+                    <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`} passHref={true}>
                       <a target="_blank">
                         <Button
                           color="minimal"

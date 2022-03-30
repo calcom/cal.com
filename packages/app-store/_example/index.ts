@@ -7,9 +7,10 @@ export const metadata = {
   description: _package.description,
   installed: true,
   category: "video",
-  imageSrc: "cal-com-icon.svg",
+  // If using static next public folder, can then be referenced from the base URL (/).
+  imageSrc: "/cal-com-icon.svg",
+  logo: "/cal-com-icon.svg",
   label: "Example App",
-  logo: "cal-com-icon.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,

@@ -8,7 +8,7 @@ export const metadata = {
   installed: !!(process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET),
   type: "tandem_video",
   title: "Tandem Video",
-  imageSrc: "apps/tandem.svg",
+  imageSrc: "/apps/tandem.svg",
   variant: "conferencing",
   label: "",
   slug: "tandem",
@@ -25,4 +25,5 @@ export const metadata = {
   locationType: "integrations:tandem",
 } as App;
 
+export * as api from "./api";
 export * as lib from "./lib";

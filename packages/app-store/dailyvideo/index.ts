@@ -7,7 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: !!process.env.DAILY_API_KEY,
   type: "daily_video",
-  imageSrc: "apps/daily.svg",
+  imageSrc: "/apps/daily.svg",
   variant: "conferencing",
   url: "https://daily.co/",
   trending: true,

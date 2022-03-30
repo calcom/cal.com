@@ -8,19 +8,16 @@ import Button from "@calcom/ui/Button";
 
 import { InstallAppButtonProps } from "./types";
 
-export const AddIntegration = {
-  applecalendar: dynamic(() => import("./applecalendar/components/AddIntegration")),
-  caldavcalendar: dynamic(() => import("./caldavcalendar/components/AddIntegration")),
-  exchangecalednar: dynamic(() => import("./exchangecalendar/components/AddIntegration")),
-};
-
 export const InstallAppButtonMap = {
+  // examplevideo: dynamic(() => import("./_example/components/InstallAppButton")),
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   exchangecalendar: dynamic(() => import("./exchangecalendar/components/InstallAppButton")),
+  tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
+  zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
