@@ -109,63 +109,76 @@
     </div>
 
     <script>
+      const searchParams = new URL(document.URL).searchParams;
+      const only = searchParams.get("only");
       // In prerender-test, we would want to test just the prerender case and nothing else.
-      if (!location.search.includes("prerender-test")) {
-        Cal("inline", {
-          elementOrSelector: "#cal-booking-place-",
-          calendarLink: "pro?case=1",
-          config: {
-            name: "John Doe",
-            email: "johndoe@gmail.com",
-            notes: "Test Meeting",
-            guests: ["janedoe@gmail.com"],
-            theme: "dark",
-          },
-        });
-
-        // Bulk API is supported - Keep all configuration at one place.
-        Cal.ns.second(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-second",
-              calendarLink: "pro?case=2",
+      if (!searchParams.get("prerender-test")) {
+        if (!only || only === "ns:default") {
+          Cal("inline", {
+            elementOrSelector: "#cal-booking-place-",
+            calendarLink: "pro?case=1",
+            config: {
+              name: "John Doe",
+              email: "johndoe@gmail.com",
+              notes: "Test Meeting",
+              guests: ["janedoe@gmail.com"],
+              theme: "dark",
             },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "white",
-                },
-                eventTypeListItem: {
-                  backgroundColor: "#D3D3D3",
+          });
+        }
+        if (!only || only === "ns:second") {
+          // Bulk API is supported - Keep all configuration at one place.
+          Cal.ns.second(
+            [
+              "inline",
+              {
+                elementOrSelector: "#cal-booking-place-second",
+                calendarLink: "pro?case=2",
+              },
+            ],
+            [
+              "ui",
+              {
+                styles: {
+                  body: {
+                    background: "white",
+                  },
+                  eventTypeListItem: {
+                    backgroundColor: "#D3D3D3",
+                  },
+                  enabledDateButton: {
+                    backgroundColor: "#D3D3D3",
+                  },
+                  disabledDateButton: {
+                    backgroundColor: "lightslategray",
+                  },
                 },
               },
-            },
-          ]
-        );
+            ]
+          );
+        }
 
-        Cal.ns.third(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-third",
-              calendarLink: "pro?case=3",
-            },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "white",
+        if (!only || only === "ns:third") {
+          Cal.ns.third(
+            [
+              "inline",
+              {
+                elementOrSelector: "#cal-booking-place-third",
+                calendarLink: "pro?case=3",
+              },
+            ],
+            [
+              "ui",
+              {
+                styles: {
+                  body: {
+                    background: "white",
+                  },
                 },
               },
-            },
-          ]
-        );
+            ]
+          );
+        }
       } else {
         document.getElementById("namespaces-test").style.display = "none";
       }
