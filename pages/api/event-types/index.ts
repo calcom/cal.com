@@ -1,21 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
 
-type ResponseData = {
-  data?: EventType[];
-  message?: string;
-  error?: unknown;
-};
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { EventTypesResponse } from "@lib/types";
+import { schemaEventTypePublic } from "@lib/validations/eventType";
 
-export default async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { method } = req;
-  if (method === "GET") {
-    const data = await prisma.eventType.findMany();
-    res.status(200).json({ data });
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only GET Method allowed" });
-  }
+/**
+ * @swagger
+ * /api/eventTypes:
+ *   get:
+ *     description: Returns all eventTypes
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: No eventTypes were found
+ */
+async function allEventTypes(_: NextApiRequest, res: NextApiResponse<EventTypesResponse>) {
+  const eventTypes = await prisma.eventType.findMany();
+  const data = eventTypes.map((eventType) => schemaEventTypePublic.parse(eventType));
+
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "No EventTypes were found",
+        error,
+      });
 }
+
+export default withMiddleware("HTTP_GET")(allEventTypes);

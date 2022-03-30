@@ -1,30 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
 
-import { schemaEventType, withValidEventType } from "@lib/validations/eventType";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { EventTypeResponse } from "@lib/types";
+import {
+  schemaEventTypeBodyParams,
+  schemaEventTypePublic,
+  withValidEventType,
+} from "@lib/validations/eventType";
 
-type ResponseData = {
-  data?: EventType;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/eventTypes/new:
+ *   post:
+ *     description: Creates a new eventType
+ *     responses:
+ *       201:
+ *         description: OK, eventType created
+ *         model: EventType
+ *       400:
+ *        description: Bad request. EventType body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createEventType(req: NextApiRequest, res: NextApiResponse<EventTypeResponse>) {
+  const safe = schemaEventTypeBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createEventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  if (method === "POST") {
-    const safe = schemaEventType.safeParse(body);
-    if (safe.success && safe.data) {
-      await prisma.eventType
-        .create({ data: safe.data })
-        .then((event) => res.status(201).json({ data: event }))
-        .catch((error) => res.status(400).json({ message: "Could not create event type", error: error }));
-    }
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ error: "Only POST Method allowed" });
-  }
+  const eventType = await prisma.eventType.create({ data: safe.data });
+  const data = schemaEventTypePublic.parse(eventType);
+
+  if (data) res.status(201).json({ data, message: "EventType created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new eventType",
+        error,
+      });
 }
 
-export default withValidEventType(createEventType);
+export default withMiddleware("HTTP_POST")(withValidEventType(createEventType));

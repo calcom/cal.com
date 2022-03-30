@@ -1,11 +1,13 @@
 import { withValidation } from "next-validations";
-import { z } from "zod";
 
-const schemaMembership = z.object({}).strict();
-const withValidMembership = withValidation({
-  schema: schemaMembership,
+import { _MembershipModel as Membership } from "@calcom/prisma/zod";
+
+export const schemaMembershipBodyParams = Membership.omit({});
+
+export const schemaMembershipPublic = Membership.omit({});
+
+export const withValidMembership = withValidation({
+  schema: schemaMembershipBodyParams,
   type: "Zod",
   mode: "body",
 });
-
-export { schemaMembership, withValidMembership };
