@@ -68,7 +68,7 @@ Consider an instruction as a function with that name and that would be called wi
 
 - `elementOrSelector` -  Give it either a valid CSS selector or an HTMLElement instance directly
 
-- `calendarLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL <https://cal.com/john>. It makes it easy to configure the calendar host once and use as many links you want with just usernames
+- `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL <https://cal.com/john>. It makes it easy to configure the calendar host once and use as many links you want with just usernames
 
 `ui` - Configure UI for embed. Make it look part of your webpage.
 
@@ -76,7 +76,7 @@ Consider an instruction as a function with that name and that would be called wi
 
 `preload` - If you want to open cal link on some action. Make it pop open instantly by preloading it.
 
-- `fullCalendarLink` - Full URL like <https://cal.com/john> that you want to preload.
+- `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL <https://cal.com/john>
 
 ## Development
 

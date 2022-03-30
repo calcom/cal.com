@@ -86,10 +86,10 @@ export class Cal {
   }
 
   createIframe({
-    calendarLink,
+    calLink,
     queryObject = {},
   }: {
-    calendarLink: string;
+    calLink: string;
     queryObject?: Record<string, string | string[]>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
@@ -108,7 +108,7 @@ export class Cal {
       }
     }
 
-    const urlInstance = new URL(`${config.origin}/${calendarLink}`);
+    const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
 
     // Merge searchParams from config onto the URL which might have query params already
@@ -130,15 +130,15 @@ export class Cal {
   }
 
   inline({
-    calendarLink,
+    calLink,
     elementOrSelector,
     config,
   }: {
-    calendarLink: string;
+    calLink: string;
     elementOrSelector: string | HTMLElement;
     config: Record<string, string>;
   }) {
-    const iframe = this.createIframe({ calendarLink, queryObject: Cal.getQueryObject(config) });
+    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     let element =
@@ -151,8 +151,8 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calendarLink }: { calendarLink: string }) {
-    const iframe = this.createIframe({ calendarLink });
+  modal({ calLink }: { calLink: string }) {
+    const iframe = this.createIframe({ calLink });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
@@ -171,10 +171,11 @@ export class Cal {
     this.actionManager.on(action, callback);
   }
 
-  //FIXME: Support only path and not fullUrl
-  preload({ fullCalendarLink }: { fullCalendarLink: string }) {
+  preload({ calLink }: { calLink: string }) {
     const iframe = document.body.appendChild(document.createElement("iframe"));
-    const urlInstance = new URL(fullCalendarLink);
+    const config = this.getConfig();
+
+    const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("prerender", "true");
     iframe.src = urlInstance.toString();
     iframe.style.width = "0";
@@ -273,7 +274,7 @@ document.addEventListener("click", (e) => {
   }
   // TODO: Add an option to check which cal instance should be used for this.
   globalCal("modal", {
-    calendarLink: path,
+    calLink: path,
   });
 });
 
