@@ -8,6 +8,7 @@ import { SdkActionManager } from "./sdk-action-manager";
 declare module "*.css";
 
 type Namespace = string;
+type Config = Record<"origin", "string">;
 
 const globalCal = (window as CalWindow).Cal;
 
@@ -99,13 +100,13 @@ export class Cal {
       });
       return;
     }
-    const [method, argument] = instruction;
+    const [method, ...args] = instruction;
     if (!this[method]) {
       // Instead of throwing error, log and move forward in the queue
       log(`Instruction ${method} not FOUND`);
     }
     try {
-      (this[method] as Function)(argument);
+      (this[method] as Function)(...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
       log(`Instruction couldn't be executed`, e);
@@ -161,9 +162,13 @@ export class Cal {
     return iframe;
   }
 
-  //TODO: Make it `init` so that it can be configured using the instruction.
-  configure({ origin }: { origin: string }) {
-    this.__config.origin = origin;
+  init(namespaceOrConfig: string | Config, config: Config = {} as Config) {
+    if (namespaceOrConfig.hasOwnProperty("origin")) {
+      config = namespaceOrConfig as Config;
+    }
+    if (config?.origin) {
+      this.__config.origin = config.origin;
+    }
   }
 
   getConfig() {
@@ -302,7 +307,7 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      origin: "http://localhost:3000",
+      origin: "https://cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);

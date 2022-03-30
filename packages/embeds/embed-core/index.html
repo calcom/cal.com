@@ -27,20 +27,19 @@
               const namespace = arguments[1];
               api.q = api.q || [];
               namespace ? (cal.ns[namespace] = api) : null;
-              return;
             }
             cal.q.push(ar);
           };
       })(window, "//localhost:3001/dist/embed.umd.js", "init");
     </script>
     <script>
-      Cal("init");
+      Cal("init", { origin: "http://localhost:3000" });
 
       // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
-      Cal("init", "second");
+      Cal("init", "second", { origin: "http://localhost:3000" });
 
       // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
-      Cal("init", "third");
+      Cal("init", "third", { origin: "http://localhost:3000" });
     </script>
     <style>
       .debug {
