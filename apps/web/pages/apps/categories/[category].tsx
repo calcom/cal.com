@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
