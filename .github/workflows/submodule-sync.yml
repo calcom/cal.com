@@ -1,0 +1,23 @@
+name: Submodule Sync
+on:
+  schedule:
+    - cron: "15 */4 * * *"
+  workflow_dispatch: ~
+
+jobs:
+  submodule-sync:
+    name: Submodule Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Website Sync
+        uses: mheap/submodule-sync-action@v1
+        with: &default_sync_options
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: apps/website
+          ref: main
+          pr_branch: automated-submodule-update
+          target_branch: main
+      - name: API Sync
+        uses: mheap/submodule-sync-action@v1
+        with: *default_sync_options
+          path: apps/api
