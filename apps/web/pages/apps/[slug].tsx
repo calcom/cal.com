@@ -1,17 +1,45 @@
 import fs from "fs";
+import matter from "gray-matter";
 import { GetStaticPaths, GetStaticPathsResult, GetStaticPropsContext } from "next";
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
+import Image from "next/image";
 import path from "path";
+import { useEffect, useState } from "react";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
+import useMediaQuery from "@lib/hooks/useMediaQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/App";
+import Slider from "@components/apps/Slider";
 
 const components = {
-  Slider: () => <h1>test</h1>,
+  Slider: ({ items }) => {
+    const isMobile = useMediaQuery("(max-width: 1440px)");
+    const [size, setSize] = useState(3);
+
+    useEffect(() => {
+      if (isMobile) {
+        setSize(1);
+      } else {
+        setSize(3);
+      }
+    }, [isMobile]);
+
+    return (
+      <Slider<string>
+        items={items}
+        size={size}
+        renderItem={(item) => (
+          <div>
+            <Image src={item} alt="" layout="responsive" width={573} height={382} />
+          </div>
+        )}
+      />
+    );
+  },
   Test: () => <h1>test</h1>,
 };
 
@@ -80,7 +108,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     source = singleApp.description;
   }
 
-  const mdxSource = await serialize(source);
+  const { content, data } = matter(source);
+  const mdxSource = await serialize(content, { scope: data });
 
   return {
     props: {
