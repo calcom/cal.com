@@ -8,12 +8,12 @@ import { memoize } from "lodash";
 import { useEffect, useRef, useState } from "react";
 
 import { useEmbedStyles } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { doWorkAsync } from "@lib/doWorkAsync";
-import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
