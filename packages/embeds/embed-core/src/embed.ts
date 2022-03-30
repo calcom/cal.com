@@ -20,6 +20,48 @@ document.head.appendChild(document.createElement("style")).innerHTML = css;
 function log(...args: any[]) {
   console.log(...args);
 }
+/**
+ * A very simple data validator written with intention of keeping payload size low.
+ * Extend the functionality of it as required by the embed.
+ * @param data
+ * @param schema
+ */
+function validate(data: any, schema: Record<"props" | "required", any>) {
+  function checkType(value: any, expectedType: any) {
+    if (typeof expectedType === "string") {
+      return typeof value == expectedType;
+    } else {
+      return value instanceof expectedType;
+    }
+  }
+
+  function isUndefined(data: any) {
+    return typeof data === "undefined";
+  }
+
+  if (schema.required && isUndefined(data)) {
+    throw new Error("Argument is required");
+  }
+
+  for (let [prop, propSchema] of Object.entries<Record<"type" | "required", any>>(schema.props)) {
+    if (propSchema.required && isUndefined(data[prop])) {
+      throw new Error(`"${prop}" is required`);
+    }
+    let typeCheck = true;
+    if (propSchema.type && !isUndefined(data[prop])) {
+      if (propSchema.type instanceof Array) {
+        propSchema.type.forEach((type) => {
+          typeCheck = typeCheck || checkType(data[prop], type);
+        });
+      } else {
+        typeCheck = checkType(data[prop], propSchema.type);
+      }
+    }
+    if (!typeCheck) {
+      throw new Error(`"${prop}" is of wrong type.Expected type "${propSchema.type}"`);
+    }
+  }
+}
 
 export type Instruction = [method: string, argument: any] | [method: string, argument: any][];
 export type InstructionQueue = Instruction[];
@@ -128,6 +170,11 @@ export class Cal {
     return this.__config;
   }
 
+  // TODO: Maintain exposed methods in a separate namespace, so that unexpected methods don't become instructions
+
+  /**
+   * It is an instruction that adds embed iframe inline as last child of the element
+   */
   inline({
     calLink,
     elementOrSelector,
@@ -137,6 +184,23 @@ export class Cal {
     elementOrSelector: string | HTMLElement;
     config: Record<string, string>;
   }) {
+    validate(arguments[0], {
+      required: true,
+      props: {
+        calLink: {
+          required: true,
+          type: "string",
+        },
+        elementOrSelector: {
+          required: true,
+          type: ["string", HTMLElement],
+        },
+        config: {
+          required: false,
+          type: Object,
+        },
+      },
+    });
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
@@ -167,10 +231,32 @@ export class Cal {
     action: Parameters<SdkActionManager["on"]>[0];
     callback: Parameters<SdkActionManager["on"]>[1];
   }) {
+    validate(arguments[0], {
+      required: true,
+      props: {
+        action: {
+          required: true,
+          type: "string",
+        },
+        callback: {
+          required: true,
+          type: Function,
+        },
+      },
+    });
     this.actionManager.on(action, callback);
   }
 
   preload({ calLink }: { calLink: string }) {
+    validate(arguments[0], {
+      required: true,
+      props: {
+        calLink: {
+          type: "string",
+          required: true,
+        },
+      },
+    });
     const iframe = document.body.appendChild(document.createElement("iframe"));
     const config = this.getConfig();
 
@@ -183,9 +269,20 @@ export class Cal {
   }
 
   ui(uiConfig: UiConfig) {
-    if (!uiConfig) {
-      throw new Error("css is required");
-    }
+    validate(uiConfig, {
+      required: true,
+      props: {
+        theme: {
+          required: false,
+          type: "string",
+        },
+        styles: {
+          required: false,
+          type: Object,
+        },
+      },
+    });
+
     this.doInIframe({ method: "ui", arg: uiConfig });
   }
 
