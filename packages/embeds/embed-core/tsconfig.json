@@ -1,6 +1,8 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "baseUrl": "."
   },
   "include": ["."],

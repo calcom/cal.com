@@ -307,7 +307,7 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      origin: "https://cal.com",
+      origin: import.meta.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
