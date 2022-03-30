@@ -20,7 +20,7 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/team/${props.team?.slug}`;
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${props.team?.slug}`;
 
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {

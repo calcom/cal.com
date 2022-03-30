@@ -91,6 +91,7 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
+  hideCalendarNotes?: boolean;
 }
 
 export interface EntryPoint {
