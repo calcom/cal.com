@@ -23,7 +23,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
-  locations: [LocationType.Daily],
+  locations: [{ type: "integrations:daily" }],
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
