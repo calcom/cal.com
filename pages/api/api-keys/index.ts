@@ -1,8 +1,9 @@
-import prisma from "@calcom/prisma";
-
-import { ApiKey } from "@calcom/prisma/client";
-import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+import { ApiKey } from "@calcom/prisma/client";
+
+import { withMiddleware } from "@lib/helpers/withMiddleware";
 
 type ResponseData = {
   data?: ApiKey[];
@@ -16,4 +17,4 @@ async function allApiKeys(req: NextApiRequest, res: NextApiResponse<ResponseData
   else res.status(400).json({ error: "No data found" });
 }
 
-export default withMiddleware("addRequestId","getOnly")(allApiKeys);
+export default withMiddleware("addRequestId", "HTTP_GET")(allApiKeys);

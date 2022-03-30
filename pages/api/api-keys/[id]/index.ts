@@ -1,14 +1,13 @@
-import prisma from "@calcom/prisma";
-
-import { ApiKey } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
+import prisma from "@calcom/prisma";
+import { ApiKey } from "@calcom/prisma/client";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 type ResponseData = {
   data?: ApiKey;
-  message?: string;
   error?: unknown;
 };
 
@@ -18,13 +17,8 @@ export async function apiKeyById(req: NextApiRequest, res: NextApiResponse<Respo
     const data = await prisma.apiKey.findUnique({ where: { id: safe.data.id } });
 
     if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: "ApiKey was not found" });
+    else res.status(404).json({ error: { message: "ApiKey was not found" } });
   }
 }
 
-
-export default withMiddleware("addRequestId","getOnly")(
-  withValidQueryIdString(
-    apiKeyById
-  )
-);
+export default withMiddleware("addRequestId", "HTTP_GET")(withValidQueryIdString(apiKeyById));

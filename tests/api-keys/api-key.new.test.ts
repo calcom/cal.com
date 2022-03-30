@@ -28,12 +28,16 @@ describe("POST /api/api-keys/new with a slug param", () => {
     await handleNewApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    expect(JSON.parse(res._getData())).toStrictEqual(
- [{"code": "unrecognized_keys", "keys": ["slug"], "message": "Unrecognized key(s) in object: 'slug'", "path": []}]
-    );
+    expect(JSON.parse(res._getData())).toStrictEqual([
+      {
+        code: "unrecognized_keys",
+        keys: ["slug"],
+        message: "Unrecognized key(s) in object: 'slug'",
+        path: [],
+      },
+    ]);
   });
 });
-
 
 describe("GET /api/api-keys/new fails, only POST allowed", () => {
   it("returns a message with the specified apiKeys", async () => {
@@ -47,14 +51,13 @@ describe("GET /api/api-keys/new fails, only POST allowed", () => {
   });
 });
 
-
 // FIXME: test 405 when prisma fails look for how to test prisma errors
 describe("GET /api/api-keys/new fails, only POST allowed", () => {
   it("returns a message with the specified apiKeys", async () => {
     const { req, res } = createMocks({
       method: "POST", // This POST method is not allowed
       body: {
-        nonExistentParam: true
+        nonExistentParam: true,
         // note: '123',
         // slug: 12,
       },
@@ -62,10 +65,13 @@ describe("GET /api/api-keys/new fails, only POST allowed", () => {
     await handleNewApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    expect(JSON.parse(res._getData())).toStrictEqual([{
-      "code": "unrecognized_keys",
-      "keys": ["nonExistentParam"],
-      "message": "Unrecognized key(s) in object: 'nonExistentParam'", "path": []
-    }]);
+    expect(JSON.parse(res._getData())).toStrictEqual([
+      {
+        code: "unrecognized_keys",
+        keys: ["nonExistentParam"],
+        message: "Unrecognized key(s) in object: 'nonExistentParam'",
+        path: [],
+      },
+    ]);
   });
 });

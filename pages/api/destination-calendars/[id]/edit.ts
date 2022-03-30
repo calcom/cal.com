@@ -1,10 +1,16 @@
-import prisma from "@calcom/prisma";
-
-import { DestinationCalendar } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaDestinationCalendar, withValidDestinationCalendar } from "@lib/validations/destination-calendar";
-import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import prisma from "@calcom/prisma";
+import { DestinationCalendar } from "@calcom/prisma/client";
+
+import {
+  schemaDestinationCalendar,
+  withValidDestinationCalendar,
+} from "@lib/validations/destination-calendar";
+import {
+  schemaQueryIdParseInt,
+  withValidQueryIdTransformParseInt,
+} from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
   data?: DestinationCalendar;
@@ -18,15 +24,18 @@ export async function editDestinationCalendar(req: NextApiRequest, res: NextApiR
   const safeBody = await schemaDestinationCalendar.safeParse(body);
 
   if (method === "PATCH" && safeQuery.success && safeBody.success) {
-      const data = await prisma.destinationCalendar.update({
-        where: { id: safeQuery.data.id },
-        data: safeBody.data,
-      })
+    const data = await prisma.destinationCalendar.update({
+      where: { id: safeQuery.data.id },
+      data: safeBody.data,
+    });
     if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error })
+    else
+      res
+        .status(404)
+        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
 
     // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating destinationCalendars"  });
+  } else res.status(405).json({ message: "Only PATCH Method allowed for updating destinationCalendars" });
 }
 
 export default withValidQueryIdTransformParseInt(withValidDestinationCalendar(editDestinationCalendar));

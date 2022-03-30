@@ -1,9 +1,7 @@
 import { withValidation } from "next-validations";
 import { z } from "zod";
 
-const schemaPayment = z
-  .object({})
-  .strict(); 
+const schemaPayment = z.object({}).strict();
 const withValidPayment = withValidation({
   schema: schemaPayment,
   type: "Zod",

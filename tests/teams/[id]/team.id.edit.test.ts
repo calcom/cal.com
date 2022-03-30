@@ -40,14 +40,16 @@ describe("PATCH /api/teams/[id]/edit with invalid id returns 404", () => {
     await handleTeamEdit(req, res);
 
     expect(res._getStatusCode()).toBe(404);
-    expect(JSON.parse(res._getData())).toStrictEqual({       "error":  {
-        "clientVersion": "3.10.0",
-        "code": "P2025",
-        "meta":  {
-          "cause": "Record to update not found.",
-          },
+    expect(JSON.parse(res._getData())).toStrictEqual({
+      error: {
+        clientVersion: "3.10.0",
+        code: "P2025",
+        meta: {
+          cause: "Record to update not found.",
+        },
       },
-      "message": "Event type with ID 0 not found and wasn't updated", });
+      message: "Event type with ID 0 not found and wasn't updated",
+    });
   });
 });
 
@@ -64,7 +66,22 @@ describe("PATCH /api/teams/[id]/edit with valid id and no body returns 400 error
     expect(res._getStatusCode()).toBe(400);
 
     // Ugly parsing of zod validation errors, not for final production but works for testing
-    expect(JSON.parse(res._getData())).toStrictEqual([{"code": "invalid_type", "expected": "string", "message": "Required", "path": ["slug"], "received": "undefined"}, {"code": "invalid_type", "expected": "string", "message": "Required", "path": ["name"], "received": "undefined"}]);
+    expect(JSON.parse(res._getData())).toStrictEqual([
+      {
+        code: "invalid_type",
+        expected: "string",
+        message: "Required",
+        path: ["slug"],
+        received: "undefined",
+      },
+      {
+        code: "invalid_type",
+        expected: "string",
+        message: "Required",
+        path: ["name"],
+        received: "undefined",
+      },
+    ]);
   });
 });
 
@@ -83,8 +100,8 @@ describe("POST /api/teams/[id]/edit fails, only PATCH allowed", () => {
     await handleTeamEdit(req, res);
 
     expect(res._getStatusCode()).toBe(405);
-    expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only PATCH Method allowed for updating teams" });
+    expect(JSON.parse(res._getData())).toStrictEqual({
+      message: "Only PATCH Method allowed for updating teams",
+    });
   });
 });
-
-

@@ -9,7 +9,7 @@ const schemaTeam = z
     bio: z.string().min(3).optional(),
     logo: z.string().optional(),
   })
-  .strict(); 
+  .strict();
 const withValidTeam = withValidation({
   schema: schemaTeam,
   type: "Zod",

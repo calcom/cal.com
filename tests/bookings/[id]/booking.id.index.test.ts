@@ -2,6 +2,7 @@ import handleBooking from "@api/bookings/[id]";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
+
 import { stringifyISODate } from "@lib/utils/stringifyISODate";
 
 describe("GET /api/bookings/[id] with valid id as string returns an booking", () => {
@@ -21,8 +22,8 @@ describe("GET /api/bookings/[id] with valid id as string returns an booking", ()
         ...booking,
         createdAt: stringifyISODate(booking?.createdAt),
         startTime: stringifyISODate(booking?.startTime),
-        endTime: stringifyISODate(booking?.endTime)
-      }
+        endTime: stringifyISODate(booking?.endTime),
+      },
     });
   });
 });
@@ -81,5 +82,3 @@ describe("POST /api/bookings/[id] fails, only GET allowed", () => {
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only GET Method allowed" });
   });
 });
-
-

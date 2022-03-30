@@ -2,6 +2,7 @@ import handleUser from "@api/users/[id]";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
+
 import { stringifyISODate } from "@lib/utils/stringifyISODate";
 
 describe("GET /api/users/[id] with valid id as string returns an user-type", () => {
@@ -16,7 +17,13 @@ describe("GET /api/users/[id] with valid id as string returns an user-type", () 
     await handleUser(req, res);
 
     expect(res._getStatusCode()).toBe(200);
-    expect(JSON.parse(res._getData())).toEqual({ data: {...user, createdDate: stringifyISODate(user?.createdDate), emailVerified: stringifyISODate(user?.emailVerified)} });
+    expect(JSON.parse(res._getData())).toEqual({
+      data: {
+        ...user,
+        createdDate: stringifyISODate(user?.createdDate),
+        emailVerified: stringifyISODate(user?.emailVerified),
+      },
+    });
   });
 });
 
@@ -74,5 +81,3 @@ describe("POST /api/users/[id] fails, only GET allowed", () => {
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only GET Method allowed" });
   });
 });
-
-

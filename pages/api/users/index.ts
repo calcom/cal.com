@@ -1,19 +1,22 @@
-import prisma from "@calcom/prisma";
-
-import { User } from "@calcom/prisma/client";
-import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-type ResponseData = {
-  data?: User[];
-  error?: unknown;
-};
+import prisma from "@calcom/prisma";
 
-async function allUsers(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const data = await prisma.user.findMany();
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { UsersResponse } from "@lib/types";
+import { schemaUserPublic } from "@lib/validations/user";
+
+async function allUsers(_: NextApiRequest, res: NextApiResponse<UsersResponse>) {
+  const users = await prisma.user.findMany();
+  const data = users.map((user) => schemaUserPublic.parse(user));
 
   if (data) res.status(200).json({ data });
-  else res.status(400).json({ error: "No data found" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "No Users were found",
+        error,
+      });
 }
 
-export default withMiddleware("addRequestId","getOnly")(allUsers);
+export default withMiddleware("HTTP_GET")(allUsers);

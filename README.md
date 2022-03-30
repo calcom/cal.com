@@ -15,7 +15,6 @@ It doesn't have react or react-dom as a dependency, and will only be used by a r
 - `api.cal.com/v1`
 - `api.cal.com/api/v1`
 
-
 ## API Endpoint Validation
 
 ### Zod
@@ -32,7 +31,6 @@ We also use this useful helper library that let's us wrap our endpoints in a val
 
 We aim to provide a fully tested API for our peace of mind, this is accomplished by using jest + node-mocks-http
 
-
 ## Next.config.js
 
 ### Redirects
@@ -40,15 +38,14 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 Since this will only support an API, we redirect the requests to root to the /api folder.
 We also added a redirect for future-proofing API versioning when we might need it, without having to resort to dirty hacks like a v1/v2 folders with lots of duplicated code, instead we redirect /api/v*/:rest to /api/:rest?version=*
 
-
 The priority is the booking-related API routes so people can build their own booking flow, then event type management routes, then availability management routes etc
-
 
 How to add a new model or endpoint
 
 Basically there's three places of the codebase you need to think about for each feature.
 
 /pages/api/
+
 - This is the most important one, and where your endpoint will live. You will leverage nextjs dynamic routes and expose one file for each endpoint you want to support ideally.
 
 ## How the codebase is organized.
@@ -65,7 +62,6 @@ POST pages/api/endpoint/new.ts - Create new resource
 GET pages/api/endpoint/[id]/index.ts - Read All of your resource
 PATCH pages/api/endpoint/[id]/edit.ts - Create new resource
 DELETE pages/api/endpoint/[id]/delete.ts - Create new resource
-
 
 ## `/tests/`
 

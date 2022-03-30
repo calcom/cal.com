@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 describe("DELETE /api/api-keys/[id]/delete with valid id as string returns an apiKey", () => {
   it("returns a message with the specified apiKeys", async () => {
-    const apiKey = await prisma.apiKey.findFirst()
+    const apiKey = await prisma.apiKey.findFirst();
     const { req, res } = createMocks({
       method: "DELETE",
       query: {
@@ -15,7 +15,9 @@ describe("DELETE /api/api-keys/[id]/delete with valid id as string returns an ap
     // const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id} });
     await handleDeleteApiKey(req, res);
     expect(res._getStatusCode()).toBe(204);
-    expect(JSON.parse(res._getData())).toEqual({message: `api-key with id: ${apiKey?.id} deleted successfully`});
+    expect(JSON.parse(res._getData())).toEqual({
+      message: `api-key with id: ${apiKey?.id} deleted successfully`,
+    });
   });
 });
 
@@ -56,15 +58,15 @@ describe("DELETE /api/api-keys/[id]/delete an id not present in db like 0, throw
 
     expect(res._getStatusCode()).toBe(404);
     expect(JSON.parse(res._getData())).toStrictEqual({
-      "error": {
-     "clientVersion": "3.10.0",
-     "code": "P2025",
-     "meta": {
-       "cause": "Record to delete does not exist.",
-     },
-   },
-   "message": "Resource with id:0 was not found",
-     });
+      error: {
+        clientVersion: "3.10.0",
+        code: "P2025",
+        meta: {
+          cause: "Record to delete does not exist.",
+        },
+      },
+      message: "Resource with id:0 was not found",
+    });
   });
 });
 
@@ -82,5 +84,3 @@ describe("POST /api/api-keys/[id]/delete fails, only DELETE allowed", () => {
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only DELETE Method allowed" });
   });
 });
-
-

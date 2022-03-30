@@ -1,19 +1,22 @@
 import { label } from "next-api-middleware";
+
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
+import { HTTP_POST, HTTP_DELETE, HTTP_PATCH, HTTP_GET, httpMethod } from "./httpMethods";
 import { verifyApiKey } from "./verifyApiKey";
-import { postOnly, deleteOnly, patchOnly, getOnly } from "./httpMethods";
+
 const withMiddleware = label(
   {
-    getOnly,
-    patchOnly,
-    postOnly,
-    deleteOnly,
+    HTTP_GET,
+    HTTP_PATCH,
+    HTTP_POST,
+    HTTP_DELETE,
     addRequestId,
     verifyApiKey,
-    sentry: captureErrors, // <-- Optionally alias middleware
+    sentry: captureErrors,
+    httpMethod: httpMethod("GET" || "DELETE" || "PATCH" || "POST"),
   },
-  ["sentry","verifyApiKey"] // <-- Provide a list of middleware to call automatically
+  ["sentry", "verifyApiKey", "httpMethod", "addRequestId"] // <-- Provide a list of middleware to call automatically
 );
 
 export { withMiddleware };

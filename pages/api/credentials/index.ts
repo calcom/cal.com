@@ -1,7 +1,7 @@
-import prisma from "@calcom/prisma";
-
-import { Credential } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+import { Credential } from "@calcom/prisma/client";
 
 type ResponseData = {
   data?: Credential[];

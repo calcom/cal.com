@@ -8,7 +8,7 @@ const schemaEventType = z
     length: z.number().min(1).max(1440), // max is a full day.
     description: z.string().min(3).optional(),
   })
-  .strict(); 
+  .strict();
 const withValidEventType = withValidation({
   schema: schemaEventType,
   type: "Zod",

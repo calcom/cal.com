@@ -43,14 +43,16 @@ describe("PATCH /api/bookings/[id]/edit with invalid id returns 404", () => {
 
     expect(res._getStatusCode()).toBe(404);
     if (booking) booking.title = "Updated title";
-    expect(JSON.parse(res._getData())).toStrictEqual({       "error":  {
-        "clientVersion": "3.10.0",
-        "code": "P2025",
-        "meta":  {
-          "cause": "Record to update not found.",
-          },
+    expect(JSON.parse(res._getData())).toStrictEqual({
+      error: {
+        clientVersion: "3.10.0",
+        code: "P2025",
+        meta: {
+          cause: "Record to update not found.",
+        },
       },
-      "message": "Event type with ID 0 not found and wasn't updated", });
+      message: "Event type with ID 0 not found and wasn't updated",
+    });
   });
 });
 
@@ -65,7 +67,29 @@ describe("PATCH /api/bookings/[id]/edit with valid id and no body returns 400 er
     await handleBookingEdit(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    expect(JSON.parse(res._getData())).toStrictEqual([{"code": "invalid_type", "expected": "string", "message": "Required", "path": ["title"], "received": "undefined"}, {"code": "invalid_type", "expected": "string", "message": "Required", "path": ["slug"], "received": "undefined"}, {"code": "invalid_type", "expected": "number", "message": "Required", "path": ["length"], "received": "undefined"}]);
+    expect(JSON.parse(res._getData())).toStrictEqual([
+      {
+        code: "invalid_type",
+        expected: "string",
+        message: "Required",
+        path: ["title"],
+        received: "undefined",
+      },
+      {
+        code: "invalid_type",
+        expected: "string",
+        message: "Required",
+        path: ["slug"],
+        received: "undefined",
+      },
+      {
+        code: "invalid_type",
+        expected: "number",
+        message: "Required",
+        path: ["length"],
+        received: "undefined",
+      },
+    ]);
   });
 });
 
@@ -85,8 +109,8 @@ describe("POST /api/bookings/[id]/edit fails, only PATCH allowed", () => {
     await handleBookingEdit(req, res);
 
     expect(res._getStatusCode()).toBe(405);
-    expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only PATCH Method allowed for updating bookings" });
+    expect(JSON.parse(res._getData())).toStrictEqual({
+      message: "Only PATCH Method allowed for updating bookings",
+    });
   });
 });
-
-
