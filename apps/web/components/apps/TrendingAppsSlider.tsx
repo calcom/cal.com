@@ -1,11 +1,5 @@
-import "@glidejs/glide/dist/css/glide.core.min.css";
-import "@glidejs/glide/dist/css/glide.theme.min.css";
-import { useEffect, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
-
-import useMediaQuery from "@lib/hooks/useMediaQuery";
 
 import AppCard from "./AppCard";
 import Slider from "./Slider";
