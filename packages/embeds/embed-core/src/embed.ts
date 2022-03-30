@@ -87,22 +87,34 @@ export class Cal {
 
   createIframe({
     calendarLink,
-    queryObject,
+    queryObject = {},
   }: {
     calendarLink: string;
-    queryObject?: Record<string, string>;
+    queryObject?: Record<string, string | string[]>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
     iframe.scrolling = "no";
     iframe.className = "cal-embed";
     const config = this.getConfig();
-    const searchParams = new URLSearchParams(queryObject);
+
+    // Prepare searchParams from config
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(queryObject)) {
+      if (value instanceof Array) {
+        value.forEach((val) => searchParams.append(key, val));
+      } else {
+        searchParams.set(key, value);
+      }
+    }
+
     const urlInstance = new URL(`${config.origin}/${calendarLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
+
+    // Merge searchParams from config onto the URL which might have query params already
     //@ts-ignore
     for (let [key, value] of searchParams) {
-      urlInstance.searchParams.set(key, value);
+      urlInstance.searchParams.append(key, value);
     }
     iframe.src = urlInstance.toString();
     return iframe;
