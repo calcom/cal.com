@@ -21,6 +21,7 @@ const TrendingAppsSlider = <T extends App>({
 
   return (
     <Slider<App>
+      className="mb-16"
       title={t("trending_apps")}
       items={items.filter((app) => !!app.trending)}
       itemKey={(app) => app.name}

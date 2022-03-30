@@ -4,6 +4,7 @@ import { GetStaticPaths, GetStaticPathsResult, GetStaticPropsContext } from "nex
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
 import Image from "next/image";
+import Link from "next/link";
 import path from "path";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
@@ -15,6 +16,12 @@ import App from "@components/App";
 import Slider from "@components/apps/Slider";
 
 const components = {
+  a: ({ href, ...otherProps }) => (
+    <Link href={href}>
+      <a {...otherProps} />
+    </Link>
+  ),
+  img: ({ src, alt = "", ...rest }) => <Image src={src} alt={alt} {...rest} />,
   Slider: ({ items }) => {
     const isTabletAndUp = useMediaQuery("(min-width: 960px)");
     return (

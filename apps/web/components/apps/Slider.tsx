@@ -6,12 +6,14 @@ import { useEffect, useRef } from "react";
 
 const Slider = <T extends unknown>({
   title = "",
+  className = "",
   items,
   itemKey = (item) => `${item}`,
   renderItem,
   options = {},
 }: {
   title?: string;
+  className?: string;
   items: T[];
   itemKey?: (item: T) => string;
   renderItem?: (item: T) => JSX.Element;
@@ -34,7 +36,7 @@ const Slider = <T extends unknown>({
   }, [options]);
 
   return (
-    <div className="mb-16">
+    <div className={`mb-2 ${className}`}>
       <style jsx global>
         {`
           .glide__slide {
@@ -63,7 +65,7 @@ const Slider = <T extends unknown>({
             {items.map((item) => {
               if (typeof renderItem !== "function") return null;
               return (
-                <li key={itemKey(item)} className="glide__slide h-auto">
+                <li key={itemKey(item)} className="glide__slide h-auto pl-0">
                   {renderItem(item)}
                 </li>
               );
