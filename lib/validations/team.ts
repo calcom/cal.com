@@ -1,19 +1,13 @@
 import { withValidation } from "next-validations";
-import { z } from "zod";
 
-const schemaTeam = z
-  .object({
-    slug: z.string().min(3),
-    name: z.string().min(3),
-    hideBranding: z.boolean().default(false),
-    bio: z.string().min(3).optional(),
-    logo: z.string().optional(),
-  })
-  .strict();
-const withValidTeam = withValidation({
-  schema: schemaTeam,
+import { _TeamModel as Team } from "@calcom/prisma/zod";
+
+export const schemaTeamBodyParams = Team.omit({ id: true });
+
+export const schemaTeamPublic = Team.omit({});
+
+export const withValidTeam = withValidation({
+  schema: schemaTeamBodyParams,
   type: "Zod",
   mode: "body",
 });
-
-export { schemaTeam, withValidTeam };

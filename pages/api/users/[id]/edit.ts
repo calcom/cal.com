@@ -10,6 +10,20 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/validations/user";
 
+/**
+ * @swagger
+ * /api/users/:id/edit:
+ *   patch:
+ *     description: Edits an existing user
+ *     responses:
+ *       201:
+ *         description: OK, user edited successfuly
+ *         model: User
+ *       400:
+ *        description: Bad request. User body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
 export async function editUser(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
   const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
   const safeBody = await schemaUserBodyParams.safeParse(req.body);

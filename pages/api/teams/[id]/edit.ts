@@ -1,30 +1,39 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Team } from "@calcom/prisma/client";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { TeamResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaTeam, withValidTeam } from "@lib/validations/team";
+import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/validations/team";
 
-type ResponseData = {
-  data?: Team;
-  message?: string;
-  error?: object;
-};
-
-export async function editTeam(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+/**
+ * @swagger
+ * /api/teams/:id/edit:
+ *   patch:
+ *     description: Edits an existing team
+ *     responses:
+ *       201:
+ *         description: OK, team edited successfuly
+ *         model: Team
+ *       400:
+ *        description: Bad request. Team body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editTeam(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
   const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
-  const safeBody = await schemaTeam.safeParse(req.body);
+  const safeBody = await schemaTeamBodyParams.safeParse(req.body);
 
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
-  const data = await prisma.team.update({
+  const team = await prisma.team.update({
     where: { id: safeQuery.data.id },
     data: safeBody.data,
   });
+  const data = schemaTeamPublic.parse(team);
 
   if (data) res.status(200).json({ data });
   else
@@ -35,7 +44,4 @@ export async function editTeam(req: NextApiRequest, res: NextApiResponse<Respons
       });
 }
 
-export default withMiddleware(
-  "HTTP_PATCH",
-  "addRequestId"
-)(withValidQueryIdTransformParseInt(withValidTeam(editTeam)));
+export default withMiddleware("HTTP_PATCH")(withValidQueryIdTransformParseInt(withValidTeam(editTeam)));

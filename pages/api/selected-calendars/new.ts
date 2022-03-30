@@ -1,28 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { SelectedCalendar } from "@calcom/prisma/client";
 
-import { schemaSelectedCalendar, withValidSelectedCalendar } from "@lib/validations/selected-calendar";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { SelectedCalendarResponse } from "@lib/types";
+import {
+  schemaSelectedCalendarBodyParams,
+  schemaSelectedCalendarPublic,
+  withValidSelectedCalendar,
+} from "@lib/validations/selected-calendar";
 
-type ResponseData = {
-  data?: SelectedCalendar;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/selectedCalendars/new:
+ *   post:
+ *     description: Creates a new selected calendar
+ *     responses:
+ *       201:
+ *         description: OK, selected calendar created
+ *         model: SelectedCalendar
+ *       400:
+ *        description: Bad request. SelectedCalendar body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createSelectedCalendar(req: NextApiRequest, res: NextApiResponse<SelectedCalendarResponse>) {
+  const safe = schemaSelectedCalendarBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createSelectedCalendar(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaSelectedCalendar.safeParse(body);
-  if (method === "POST" && safe.success) {
-    await prisma.selectedCalendar
-      .create({ data: safe.data })
-      .then((data) => res.status(201).json({ data }))
-      .catch((error) =>
-        res.status(400).json({ message: "Could not create selectedCalendar type", error: error })
-      );
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: "Only POST Method allowed" });
+  const selectedCalendar = await prisma.selectedCalendar.create({ data: safe.data });
+  const data = schemaSelectedCalendarPublic.parse(selectedCalendar);
+
+  if (data) res.status(201).json({ data, message: "SelectedCalendar created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new selectedCalendar",
+        error,
+      });
 }
 
-export default withValidSelectedCalendar(createSelectedCalendar);
+export default withMiddleware("HTTP_POST")(withValidSelectedCalendar(createSelectedCalendar));

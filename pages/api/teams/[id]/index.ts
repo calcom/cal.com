@@ -1,27 +1,36 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Team } from "@calcom/prisma/client";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { TeamResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaTeamPublic } from "@lib/validations/team";
 
-type ResponseData = {
-  data?: Team;
-  message?: string;
-  error?: object;
-};
-
-export async function teamById(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+/**
+ * @swagger
+ * /api/teams/:id:
+ *   get:
+ *     description: find team by ID
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: Team was not found
+ */
+export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query");
 
-  const data = await prisma.team.findUnique({ where: { id: safe.data.id } });
+  const team = await prisma.team.findUnique({ where: { id: safe.data.id } });
+  const data = schemaTeamPublic.parse(team);
 
-  if (data) res.status(200).json({ data });
+  if (team) res.status(200).json({ data });
   else
     (error: Error) =>
       res.status(404).json({

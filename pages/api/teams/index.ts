@@ -1,23 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Team } from "@calcom/prisma/client";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { TeamsResponse } from "@lib/types";
+import { schemaTeamPublic } from "@lib/validations/team";
 
-type ResponseData = {
-  data?: Team[];
-  message?: string;
-  error?: object;
-};
-
-async function allTeams(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const data = await prisma.team.findMany();
+/**
+ * @swagger
+ * /api/teams:
+ *   get:
+ *     description: Returns all teams
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: No teams were found
+ */
+async function allTeams(_: NextApiRequest, res: NextApiResponse<TeamsResponse>) {
+  const teams = await prisma.team.findMany();
+  const data = teams.map((team) => schemaTeamPublic.parse(team));
 
   if (data) res.status(200).json({ data });
   else
     (error: Error) =>
-      res.status(400).json({
+      res.status(404).json({
         message: "No Teams were found",
         error,
       });

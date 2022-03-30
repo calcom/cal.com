@@ -6,6 +6,19 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UsersResponse } from "@lib/types";
 import { schemaUserPublic } from "@lib/validations/user";
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     description: Returns all users
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: No users were found
+ */
 async function allUsers(_: NextApiRequest, res: NextApiResponse<UsersResponse>) {
   const users = await prisma.user.findMany();
   const data = users.map((user) => schemaUserPublic.parse(user));
@@ -13,7 +26,7 @@ async function allUsers(_: NextApiRequest, res: NextApiResponse<UsersResponse>) 
   if (data) res.status(200).json({ data });
   else
     (error: Error) =>
-      res.status(400).json({
+      res.status(404).json({
         message: "No Users were found",
         error,
       });

@@ -2,28 +2,41 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BaseResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/selectedCalendars/:id/delete:
+ *   delete:
+ *     description: Remove an existing selectedCalendar
+ *     responses:
+ *       201:
+ *         description: OK, selectedCalendar removed successfuly
+ *         model: SelectedCalendar
+ *       400:
+ *        description: Bad request. SelectedCalendar id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function deleteSelectedCalendar(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query", safe.error);
 
-export async function deleteSelectedCalendar(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "DELETE" && safe.success && safe.data) {
-    const selectedCalendar = await prisma.selectedCalendar.delete({ where: { id: safe.data.id } });
-    // We only remove the selectedCalendar type from the database if there's an existing resource.
-    if (selectedCalendar)
-      res.status(200).json({ message: `selectedCalendar with id: ${safe.data.id} deleted successfully` });
-    // This catches the error thrown by prisma.selectedCalendar.delete() if the resource is not found.
-    else res.status(400).json({ message: `Resource with id:${safe.data.id} was not found` });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only DELETE Method allowed" });
+  const data = await prisma.selectedCalendar.delete({ where: { id: safe.data.id } });
+
+  if (data)
+    res.status(200).json({ message: `SelectedCalendar with id: ${safe.data.id} deleted successfully` });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: `SelectedCalendar with id: ${safe.data.id} was not able to be processed`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(deleteSelectedCalendar);
+export default withMiddleware("HTTP_DELETE")(withValidQueryIdTransformParseInt(deleteSelectedCalendar));

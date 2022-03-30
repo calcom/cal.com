@@ -6,6 +6,20 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { UserResponse } from "@lib/types";
 import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/validations/user";
 
+/**
+ * @swagger
+ * /api/users/new:
+ *   post:
+ *     description: Creates a new user
+ *     responses:
+ *       201:
+ *         description: OK, user created
+ *         model: User
+ *       400:
+ *        description: Bad request. User body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
 async function createUser(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
   const safe = schemaUserBodyParams.safeParse(req.body);
   if (!safe.success) throw new Error("Invalid request body", safe.error);

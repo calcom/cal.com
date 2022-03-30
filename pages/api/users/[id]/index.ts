@@ -10,6 +10,19 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 import { schemaUserPublic } from "@lib/validations/user";
 
+/**
+ * @swagger
+ * /api/users/:id:
+ *   get:
+ *     description: find user by ID
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: User was not found
+ */
 export async function userById(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query");
