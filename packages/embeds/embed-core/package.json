@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "vite": "vite",
-    "dev": "run-p 'build --watch' 'vite --port 3001 --open'",
+    "dev": "run-p 'build --watch' 'vite --port 3002 --open'",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src"
   },
