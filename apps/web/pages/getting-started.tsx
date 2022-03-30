@@ -75,7 +75,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     },
   });
 
-  const DEFAULT_event_linkS = [
+  const DEFAULT_EVENT_LINKS = [
     {
       title: t("15min_meeting"),
       slug: "15min",
@@ -230,7 +230,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
       const eventTypes = await getEventTypes();
       if (eventTypes.length === 0) {
         await Promise.all(
-          DEFAULT_event_linkS.map(async (event) => {
+          DEFAULT_EVENT_LINKS.map(async (event) => {
             return await createEventType(event);
           })
         );
