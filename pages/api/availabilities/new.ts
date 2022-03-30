@@ -1,7 +1,7 @@
-import prisma from "@calcom/prisma";
-
-import { Availability } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+import { Availability } from "@calcom/prisma/client";
 
 import { schemaAvailability, withValidAvailability } from "@lib/validations/availability";
 
@@ -19,7 +19,9 @@ async function createAvailability(req: NextApiRequest, res: NextApiResponse<Resp
       await prisma.availability
         .create({ data: safe.data })
         .then((availability) => res.status(201).json({ data: availability }))
-        .catch((error) => res.status(400).json({ message: "Could not create availability type", error: error }));
+        .catch((error) =>
+          res.status(400).json({ message: "Could not create availability type", error: error })
+        );
     }
   } else {
     // Reject any other HTTP method than POST

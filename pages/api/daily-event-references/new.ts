@@ -1,9 +1,12 @@
-import prisma from "@calcom/prisma";
-
-import { DailyEventReference } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaDailyEventReference, withValidDailyEventReference } from "@lib/validations/daily-event-reference";
+import prisma from "@calcom/prisma";
+import { DailyEventReference } from "@calcom/prisma/client";
+
+import {
+  schemaDailyEventReference,
+  withValidDailyEventReference,
+} from "@lib/validations/daily-event-reference";
 
 type ResponseData = {
   data?: DailyEventReference;
@@ -15,11 +18,13 @@ async function createDailyEventReference(req: NextApiRequest, res: NextApiRespon
   const { body, method } = req;
   const safe = schemaDailyEventReference.safeParse(body);
   if (method === "POST" && safe.success) {
-      await prisma.dailyEventReference
-        .create({ data: safe.data })
-        .then((data) => res.status(201).json({ data }))
-        .catch((error) => res.status(400).json({ message: "Could not create dailyEventReference type", error: error }));
-        // Reject any other HTTP method than POST
+    await prisma.dailyEventReference
+      .create({ data: safe.data })
+      .then((data) => res.status(201).json({ data }))
+      .catch((error) =>
+        res.status(400).json({ message: "Could not create dailyEventReference type", error: error })
+      );
+    // Reject any other HTTP method than POST
   } else res.status(405).json({ error: "Only POST Method allowed" });
 }
 

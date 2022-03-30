@@ -1,7 +1,7 @@
-import prisma from "@calcom/prisma";
-
-import { EventType } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+import { EventType } from "@calcom/prisma/client";
 
 type ResponseData = {
   data?: EventType[];
@@ -15,7 +15,7 @@ export default async function eventType(req: NextApiRequest, res: NextApiRespons
     const data = await prisma.eventType.findMany();
     res.status(200).json({ data });
   } else {
-      // Reject any other HTTP method than POST
-      res.status(405).json({ message: "Only GET Method allowed" });
-    }
+    // Reject any other HTTP method than POST
+    res.status(405).json({ message: "Only GET Method allowed" });
+  }
 }

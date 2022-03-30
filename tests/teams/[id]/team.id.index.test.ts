@@ -73,5 +73,3 @@ describe("POST /api/teams/[id] fails, only GET allowed", () => {
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only GET Method allowed" });
   });
 });
-
-

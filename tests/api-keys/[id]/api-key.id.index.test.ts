@@ -2,7 +2,8 @@ import handleApiKey from "@api/api-keys/[id]";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
-import {stringifyISODate} from "@lib/utils/stringifyISODate";
+
+import { stringifyISODate } from "@lib/utils/stringifyISODate";
 
 describe("GET /api/api-keys/[id] with valid id as string returns an apiKey", () => {
   it("returns a message with the specified apiKeys", async () => {
@@ -12,11 +13,17 @@ describe("GET /api/api-keys/[id] with valid id as string returns an apiKey", () 
         id: "cl16zg6860000wwylnsgva00b",
       },
     });
-    const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id} });
+    const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.id } });
     await handleApiKey(req, res);
 
     expect(res._getStatusCode()).toBe(200);
-    expect(JSON.parse(res._getData())).toEqual({ data: {...apiKey, createdAt: stringifyISODate(apiKey?.createdAt), expiresAt: stringifyISODate(apiKey?.expiresAt)} });
+    expect(JSON.parse(res._getData())).toEqual({
+      data: {
+        ...apiKey,
+        createdAt: stringifyISODate(apiKey?.createdAt),
+        expiresAt: stringifyISODate(apiKey?.expiresAt),
+      },
+    });
   });
 });
 
@@ -74,5 +81,3 @@ describe("POST /api/api-keys/[id] fails, only GET allowed", () => {
     expect(JSON.parse(res._getData())).toStrictEqual({ message: "Only GET Method allowed" });
   });
 });
-
-

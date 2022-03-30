@@ -1,30 +1,29 @@
-import prisma from "@calcom/prisma";
-
-import { User } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import prisma from "@calcom/prisma";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { UserResponse } from "@lib/types";
+import {
+  schemaQueryIdParseInt,
+  withValidQueryIdTransformParseInt,
+} from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaUserPublic } from "@lib/validations/user";
 
-type ResponseData = {
-  data?: User;
-  message?: string;
-  error?: unknown;
-};
-
-export async function userById(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export async function userById(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
-  if (safe.success) {
-    const data = await prisma.user.findUnique({ where: { id: safe.data.id } });
+  if (!safe.success) throw new Error("Invalid request query");
 
-    if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: "User was not found" });
-  }
+  const user = await prisma.user.findUnique({ where: { id: safe.data.id } });
+  const data = schemaUserPublic.parse(user);
+
+  if (user) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "User was not found",
+        error,
+      });
 }
 
-
-export default withMiddleware("addRequestId","getOnly")(
-  withValidQueryIdTransformParseInt(
-    userById
-  )
-);
+export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(userById));

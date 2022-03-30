@@ -1,9 +1,12 @@
-import prisma from "@calcom/prisma";
-
-import { SelectedCalendar } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import prisma from "@calcom/prisma";
+import { SelectedCalendar } from "@calcom/prisma/client";
+
+import {
+  schemaQueryIdParseInt,
+  withValidQueryIdTransformParseInt,
+} from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
   data?: SelectedCalendar;
@@ -22,6 +25,5 @@ export async function selectedCalendar(req: NextApiRequest, res: NextApiResponse
     // Reject any other HTTP method than POST
   } else res.status(405).json({ message: "Only GET Method allowed" });
 }
-
 
 export default withValidQueryIdTransformParseInt(selectedCalendar);

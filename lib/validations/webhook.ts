@@ -1,9 +1,7 @@
 import { withValidation } from "next-validations";
 import { z } from "zod";
 
-const schemaWebhook = z
-  .object({})
-  .strict();
+const schemaWebhook = z.object({}).strict();
 
 const withValidWebhook = withValidation({
   schema: schemaWebhook,

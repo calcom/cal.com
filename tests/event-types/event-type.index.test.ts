@@ -2,6 +2,7 @@ import handleApiKeys from "@api/event-types";
 import { createMocks } from "node-mocks-http";
 
 import prisma from "@calcom/prisma";
+
 // import {stringifyISODate} from "@lib/utils/stringifyISODate";
 
 describe("GET /api/event-types without any params", () => {
@@ -15,7 +16,7 @@ describe("GET /api/event-types without any params", () => {
 
     expect(res._getStatusCode()).toBe(200);
     // eventTypes = eventTypes.map(eventType => (eventType = {...eventType, createdAt: stringifyISODate(eventType?.createdAt), expiresAt: stringifyISODate(eventType?.expiresAt)}));
-    expect(JSON.parse(res._getData())).toStrictEqual(JSON.parse(JSON.stringify({ data: {...eventTypes} })));
+    expect(JSON.parse(res._getData())).toStrictEqual(JSON.parse(JSON.stringify({ data: { ...eventTypes } })));
   });
 });
 

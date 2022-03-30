@@ -7,10 +7,8 @@ const config = {
   clearMocks: true,
   coverageDirectory: "./coverage",
   collectCoverage: true,
-  "collectCoverageFrom": [
-    "pages/api/**/*.ts"
-  ],
-  
+  collectCoverageFrom: ["pages/api/**/*.ts"],
+
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
   //   "/node_modules/"
@@ -20,12 +18,7 @@ const config = {
   // coverageProvider: "babel",
 
   // A list of reporter names that Jest uses when writing coverage reports
-  coverageReporters: [
-    "json",
-    "text",
-    "lcov",
-    "clover"
-  ],
+  coverageReporters: ["json", "text", "lcov", "clover"],
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
@@ -42,34 +35,19 @@ const config = {
   // Make calling deprecated APIs throw helpful error messages
   errorOnDeprecated: true,
 
-  // Force coverage collection from ignored files using an array of glob patterns
-  // forceCoverageMatch: [],
-
-  // A path to a module which exports an async function that is triggered once before all test suites
-  // globalSetup: undefined,
-
-  // A path to a module which exports an async function that is triggered once after all test suites
-  // globalTeardown: undefined,
-
-  // A set of global variables that need to be available in all test environments
-  // globals: {},
-
   // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
   maxWorkers: "50%",
-
-
 
   moduleNameMapper: {
     "^@lib/(.*)$": "<rootDir>/lib/$1",
     "^@api/(.*)$": "<rootDir>/pages/api/$1",
   },
 
-
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   slowTestThreshold: 0.1,

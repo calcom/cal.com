@@ -1,18 +1,12 @@
 {
   "extends": "@calcom/tsconfig/base.json",
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
-    
+
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "noEmit": true,
     "incremental": true,
@@ -20,11 +14,10 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "paths": {
-    "@api/*": ["pages/api/*"],
-    "@lib/*": ["lib/*"],
-    "@/*": ["*"]
-
-},
+      "@api/*": ["pages/api/*"],
+      "@lib/*": ["lib/*"],
+      "@/*": ["*"]
+    }
   },
   "include": ["./**/*.ts"]
 }

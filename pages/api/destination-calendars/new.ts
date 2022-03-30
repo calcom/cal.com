@@ -1,9 +1,12 @@
-import prisma from "@calcom/prisma";
-
-import { DestinationCalendar } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaDestinationCalendar, withValidDestinationCalendar } from "@lib/validations/destination-calendar";
+import prisma from "@calcom/prisma";
+import { DestinationCalendar } from "@calcom/prisma/client";
+
+import {
+  schemaDestinationCalendar,
+  withValidDestinationCalendar,
+} from "@lib/validations/destination-calendar";
 
 type ResponseData = {
   data?: DestinationCalendar;
@@ -15,11 +18,13 @@ async function createDestinationCalendar(req: NextApiRequest, res: NextApiRespon
   const { body, method } = req;
   const safe = schemaDestinationCalendar.safeParse(body);
   if (method === "POST" && safe.success) {
-      await prisma.destinationCalendar
-        .create({ data: safe.data })
-        .then((data) => res.status(201).json({ data }))
-        .catch((error) => res.status(400).json({ message: "Could not create destinationCalendar type", error: error }));
-        // Reject any other HTTP method than POST
+    await prisma.destinationCalendar
+      .create({ data: safe.data })
+      .then((data) => res.status(201).json({ data }))
+      .catch((error) =>
+        res.status(400).json({ message: "Could not create destinationCalendar type", error: error })
+      );
+    // Reject any other HTTP method than POST
   } else res.status(405).json({ error: "Only POST Method allowed" });
 }
 

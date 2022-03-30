@@ -7,13 +7,13 @@ const schemaAvailability = z
     userId: z.number(),
     eventTypeId: z.number(),
     scheduleId: z.number(),
-    
+
     days: z.array(z.number()),
     date: z.date().or(z.string()),
     startTime: z.string(),
     endTime: z.string(),
   })
-  .strict(); 
+  .strict();
 const withValidAvailability = withValidation({
   schema: schemaAvailability,
   type: "Zod",

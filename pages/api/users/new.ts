@@ -1,28 +1,25 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { User } from "@calcom/prisma/client";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { schemaUser, withValidUser } from "@lib/validations/user";
+import type { UserResponse } from "@lib/types";
+import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/validations/user";
 
+async function createUser(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
+  const safe = schemaUserBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-type ResponseData = {
-  data?: User;
-  error?: object;
-};
+  const user = await prisma.user.create({ data: safe.data });
+  const data = schemaUserPublic.parse(user);
 
-async function createUser(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const safe = schemaUser.safeParse(req.body);
-  if (safe.success) {
-    const data = await prisma.user
-      .create({ data: safe.data })
-    if (data) res.status(201).json({ data })
-    else (error: unknown) => res.status(400).json({ error: { message: "Could not create user type", error: error } });
-  }
+  if (data) res.status(201).json({ data, message: "User created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new user",
+        error,
+      });
 }
 
-export default withMiddleware("addRequestId","postOnly")(
-  withValidUser(
-    createUser
-  )
-);
+export default withMiddleware("HTTP_POST")(withValidUser(createUser));

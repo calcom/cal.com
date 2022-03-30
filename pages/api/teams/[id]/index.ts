@@ -1,30 +1,33 @@
-import prisma from "@calcom/prisma";
-
-import { Team } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { schemaQueryIdParseInt, withValidQueryIdTransformParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import prisma from "@calcom/prisma";
+import { Team } from "@calcom/prisma/client";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import {
+  schemaQueryIdParseInt,
+  withValidQueryIdTransformParseInt,
+} from "@lib/validations/shared/queryIdTransformParseInt";
 
 type ResponseData = {
   data?: Team;
   message?: string;
-  error?: unknown;
+  error?: object;
 };
 
 export async function teamById(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
-  if (safe.success) {
-    const data = await prisma.team.findUnique({ where: { id: safe.data.id } });
+  if (!safe.success) throw new Error("Invalid request query");
 
-    if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: "Team was not found" });
-  }
+  const data = await prisma.team.findUnique({ where: { id: safe.data.id } });
+
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "Team was not found",
+        error,
+      });
 }
 
-
-export default withMiddleware("addRequestId","getOnly")(
-  withValidQueryIdTransformParseInt(
-    teamById
-  )
-);
+export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(teamById));

@@ -15,7 +15,7 @@ const schemaBooking = z
     rejected: z.boolean().default(false),
     paid: z.boolean().default(false),
   })
-  .strict(); 
+  .strict();
 const withValidBooking = withValidation({
   schema: schemaBooking,
   type: "Zod",
