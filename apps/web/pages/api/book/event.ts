@@ -386,7 +386,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         };
 
-    const dynamicSlugRef = !eventTypeId ? eventTypeSlug : null;
+    const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
+    const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
     return prisma.booking.create({
       include: {
@@ -419,7 +420,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }),
           },
         },
-        dynamicSlugRef,
+        dynamicEventSlugRef,
+        dynamicGroupSlugRef,
         user: {
           connect: {
             id: users[0].id,

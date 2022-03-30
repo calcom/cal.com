@@ -256,7 +256,8 @@ model Booking {
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
   rejectionReason     String?
-  dynamicSlugRef      String?
+  dynamicEventSlugRef String?
+  dynamicGroupSlugRef String?
 }
 
 model Schedule {

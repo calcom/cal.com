@@ -25,7 +25,7 @@ const commons = {
   slotInterval: null,
   locations: [LocationType.Daily],
   customInputs,
-  disableGuests: false,
+  disableGuests: true,
   minimumBookingNotice: 120,
   schedule: null,
   timeZone: null,
