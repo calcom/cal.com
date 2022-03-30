@@ -39,7 +39,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
+      subject: `${this.calEvent.organizer.language.translate("rescheduled_event_link_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
@@ -69,7 +69,7 @@ ${getCancelLink(this.calEvent)}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
+    const headerContent = this.calEvent.organizer.language.translate("rescheduled_event_link_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,
       date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(

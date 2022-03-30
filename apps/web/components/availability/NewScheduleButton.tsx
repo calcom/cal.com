@@ -51,7 +51,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
             {t("add_new_schedule")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
+            <p className="text-sm text-gray-500">{t("new_event_link_to_book_description")}</p>
           </div>
         </div>
         <Form

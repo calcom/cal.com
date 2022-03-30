@@ -30,7 +30,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.attendee.language.translate("rescheduled_event_type_subject", {
+      subject: `${this.attendee.language.translate("rescheduled_event_link_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
@@ -73,7 +73,7 @@ ${this.getAdditionalNotes()}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.attendee.language.translate("rescheduled_event_type_subject", {
+    const headerContent = this.attendee.language.translate("rescheduled_event_link_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(

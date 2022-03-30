@@ -9,7 +9,7 @@
   "help": "Yardım",
   "price": "Fiyat",
   "check_bookings_page_to_confirm_or_reject": "Rezervasyonu onaylamak veya reddetmek için rezervasyon sayfanızı kontrol edin.",
-  "event_type": "Etkinlik Tipi",
+  "event_link": "Etkinlik Tipi",
   "delete_webhook_confirmation_message": "Bu web kancasını silmek istediğinizden emin misiniz? Bir etkinlik planlandığında veya iptal edildiğinde, Cal.com toplantı verilerini gerçek zamanlı olarak belirli bir URL'de almazsınız.",
   "rejected": "Reddedildi",
   "guests": "Davetliler",
@@ -27,6 +27,6 @@
   "booking_cancelled": "Rezervasyon iptal edildi",
   "receive_cal_meeting_data": "Bir etkinlik planlandığında veya iptal edildiğinde, Cal toplantı verilerini gerçek zamanlı olarak hedef bir URL'de alın.",
   "cancel": "İptal",
-  "delete_event_type_description": "Bu aktivite türünü silmek istediğinizden emin misiniz? Bu bağlantıyı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacaktır.",
+  "delete_event_link_description": "Bu aktivite türünü silmek istediğinizden emin misiniz? Bu bağlantıyı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacaktır.",
   "delete_account_confirmation_message": "Cal.com hesabınızı silmek istediğinizden emin misiniz? Hesap bağlantısı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacaktır ve kaydettiğiniz tüm tercihler kaybolacaktır."
 }

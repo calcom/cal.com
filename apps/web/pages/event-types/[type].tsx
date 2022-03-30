@@ -168,7 +168,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types");
       showToast(
-        t("event_type_updated_successfully", {
+        t("event_link_updated_successfully", {
           eventTypeTitle: eventType.title,
         }),
         "success"
@@ -190,7 +190,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
     onSuccess: async () => {
       await router.push("/event-types");
-      showToast(t("event_type_deleted_successfully"), "success");
+      showToast(t("event_link_deleted_successfully"), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -820,7 +820,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <div>
       <Shell
-        title={t("event_type_title", { eventTypeTitle: eventType.title })}
+        title={t("event_link_title", { eventTypeTitle: eventType.title })}
         heading={
           <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
             {editIcon ? (
@@ -1640,7 +1640,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       onCheckedChange={(isChecked) => {
                         formMethods.setValue("hidden", isChecked);
                       }}
-                      label={t("hide_event_type")}
+                      label={t("hide_event_link")}
                     />
                   )}
                 />
@@ -1674,10 +1674,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   </DialogTrigger>
                   <ConfirmationDialogContent
                     variety="danger"
-                    title={t("delete_event_type")}
-                    confirmBtnText={t("confirm_delete_event_type")}
+                    title={t("delete_event_link")}
+                    confirmBtnText={t("confirm_delete_event_link")}
                     onConfirm={deleteEventTypeHandler}>
-                    {t("delete_event_type_description")}
+                    {t("delete_event_link_description")}
                   </ConfirmationDialogContent>
                 </Dialog>
               </div>

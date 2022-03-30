@@ -43,7 +43,7 @@ export default function CancelSuccess() {
                     </h3>
                     {!loading && !session?.user && (
                       <div className="mt-2">
-                        <p className="text-sm text-gray-500">{t("free_to_pick_another_event_type")}</p>
+                        <p className="text-sm text-gray-500">{t("free_to_pick_another_event_link")}</p>
                       </div>
                     )}
                   </div>

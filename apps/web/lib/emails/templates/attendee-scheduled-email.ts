@@ -90,7 +90,7 @@ export default class AttendeeScheduledEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.attendees[0].language.translate("confirmed_event_type_subject", {
+      subject: `${this.calEvent.attendees[0].language.translate("confirmed_event_link_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,
         date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
@@ -127,7 +127,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getHtmlBody(): string {
-    const headerContent = this.calEvent.attendees[0].language.translate("confirmed_event_type_subject", {
+    const headerContent = this.calEvent.attendees[0].language.translate("confirmed_event_link_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(

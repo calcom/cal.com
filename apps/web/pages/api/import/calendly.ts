@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       const eventTypesResult = await fetch(
-        "https://api.calendly.com/event_types?user=" + userData.resource.uri,
+        "https://api.calendly.com/event_links?user=" + userData.resource.uri,
         {
           method: "GET",
           headers: {

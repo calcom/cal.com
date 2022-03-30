@@ -144,7 +144,7 @@ export default function Shell(props: {
 
   const navigation = [
     {
-      name: t("event_types_page_title"),
+      name: t("event_links_page_title"),
       href: "/event-types",
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),

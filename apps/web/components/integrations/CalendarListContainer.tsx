@@ -220,7 +220,7 @@ export function CalendarListContainer(props: { heading?: false }) {
               numConnections={query.data?.connectedCalendars.length}
             />
           }
-          subtitle={t("configure_how_your_event_types_interact")}
+          subtitle={t("configure_how_your_event_links_interact")}
           actions={
             <div className="sm:min-w-80 block max-w-full">
               <DestinationCalendarSelector

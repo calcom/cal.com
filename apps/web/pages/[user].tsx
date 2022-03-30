@@ -117,7 +117,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
             <div className="overflow-hidden rounded-sm border dark:border-gray-900">
               <div className="p-8 text-center text-gray-400 dark:text-white">
                 <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{t("uh_oh")}</h2>
-                <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup")}</p>
+                <p className="mx-auto max-w-md">{t("no_event_links_have_been_setup")}</p>
               </div>
             </div>
           )}

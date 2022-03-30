@@ -87,7 +87,7 @@ export default function CreateEventTypeButton(props: Props) {
   const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
       await router.push("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
+      showToast(t("event_link_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -133,12 +133,12 @@ export default function CreateEventTypeButton(props: Props) {
           data-testid="new-event-type"
           StartIcon={PlusIcon}
           disabled={!props.canAddEvents}>
-          {t("new_event_type_btn")}
+          {t("new_event_link_btn")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={ChevronDownIcon}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={ChevronDownIcon}>{t("new_event_link_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
@@ -164,10 +164,10 @@ export default function CreateEventTypeButton(props: Props) {
       <DialogContent>
         <div className="mb-4">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
+            {teamId ? t("add_new_team_event_link") : t("add_new_event_link")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
+            <p className="text-sm text-gray-500">{t("new_event_link_to_book_description")}</p>
           </div>
         </div>
         <Form
