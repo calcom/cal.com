@@ -1,32 +1,42 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { EventTypeResponse } from "@lib/types";
+import { schemaEventTypePublic } from "@lib/validations/eventType";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: EventType;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/eventTypes/:id:
+ *   get:
+ *     description: find eventType by ID
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: EventType was not found
+ */
+export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeResponse>) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query");
 
-export async function eventType(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
+  const eventType = await prisma.eventType.findUnique({ where: { id: safe.data.id } });
+  const data = schemaEventTypePublic.parse(eventType);
 
-  if (method === "GET" && safe.success) {
-    const event = await prisma.eventType.findUnique({ where: { id: safe.data.id } });
-
-    if (event) res.status(200).json({ data: event });
-    if (!event) res.status(404).json({ message: "Event type not found" });
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ message: "Only GET Method allowed" });
-  }
+  if (eventType) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "EventType was not found",
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(eventType);
+export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(eventTypeById));

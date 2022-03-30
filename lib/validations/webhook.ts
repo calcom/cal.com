@@ -1,12 +1,13 @@
 import { withValidation } from "next-validations";
-import { z } from "zod";
 
-const schemaWebhook = z.object({}).strict();
+import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
 
-const withValidWebhook = withValidation({
-  schema: schemaWebhook,
+export const schemaWebhookBodyParams = Webhook.omit({ id: true });
+
+export const schemaWebhookPublic = Webhook.omit({});
+
+export const withValidWebhook = withValidation({
+  schema: schemaWebhookBodyParams,
   type: "Zod",
   mode: "body",
 });
-
-export { schemaWebhook, withValidWebhook };

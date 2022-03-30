@@ -1,11 +1,13 @@
 import { withValidation } from "next-validations";
-import { z } from "zod";
 
-const schemaDestinationCalendar = z.object({}).strict();
-const withValidDestinationCalendar = withValidation({
-  schema: schemaDestinationCalendar,
+import { _DestinationCalendarModel as DestinationCalendar } from "@calcom/prisma/zod";
+
+export const schemaDestinationCalendarBodyParams = DestinationCalendar.omit({ id: true });
+
+export const schemaDestinationCalendarPublic = DestinationCalendar.omit({});
+
+export const withValidDestinationCalendar = withValidation({
+  schema: schemaDestinationCalendarBodyParams,
   type: "Zod",
   mode: "body",
 });
-
-export { schemaDestinationCalendar, withValidDestinationCalendar };
