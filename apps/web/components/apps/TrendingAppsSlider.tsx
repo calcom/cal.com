@@ -28,8 +28,7 @@ const TrendingAppsSlider = <T extends App>({
       options={{
         perView: 3,
         breakpoints: {
-          /* Under 768px */
-          768: {
+          768 /* and below */: {
             perView: 1,
           },
         },
