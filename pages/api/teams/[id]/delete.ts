@@ -3,19 +3,29 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BaseResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  message: string;
-  error?: object;
-};
-
-export async function deleteTeam(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+/**
+ * @swagger
+ * /api/teams/:id/delete:
+ *   delete:
+ *     description: Remove an existing team
+ *     responses:
+ *       201:
+ *         description: OK, team removed successfuly
+ *         model: Team
+ *       400:
+ *        description: Bad request. Team id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function deleteTeam(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
-  if (!safe.success) throw new Error("Invalid request query");
+  if (!safe.success) throw new Error("Invalid request query", safe.error);
 
   const data = await prisma.team.delete({ where: { id: safe.data.id } });
 
@@ -28,4 +38,4 @@ export async function deleteTeam(req: NextApiRequest, res: NextApiResponse<Respo
       });
 }
 
-export default withMiddleware("HTTP_DELETE", "addRequestId")(withValidQueryIdTransformParseInt(deleteTeam));
+export default withMiddleware("HTTP_DELETE")(withValidQueryIdTransformParseInt(deleteTeam));

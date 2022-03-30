@@ -1,4 +1,4 @@
-import { User, ApiKey } from "@calcom/prisma/client";
+import { User, ApiKey, Team, SelectedCalendar } from "@calcom/prisma/client";
 
 // Base response, used for all responses
 export type BaseResponse = {
@@ -19,4 +19,20 @@ export type ApiKeyResponse = BaseResponse & {
 };
 export type ApiKeysResponse = BaseResponse & {
   data?: Partial<ApiKey>[];
+};
+
+// API Key
+export type TeamResponse = BaseResponse & {
+  data?: Partial<Team>;
+};
+export type TeamsResponse = BaseResponse & {
+  data?: Partial<Team>[];
+};
+
+// API Key
+export type SelectedCalendarResponse = BaseResponse & {
+  data?: Partial<SelectedCalendar>;
+};
+export type SelectedCalendarsResponse = BaseResponse & {
+  data?: Partial<SelectedCalendar>[];
 };

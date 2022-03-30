@@ -11,13 +11,14 @@ const dateInPast = function (firstDate: Date, secondDate: Date) {
 const today = new Date();
 
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
+  if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
   const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.apiKey as string } });
   if (!apiKey) {
-    res.status(400).json({ error: "Your api key is not valid" });
+    res.status(401).json({ error: "Your api key is not valid" });
     throw new Error("No api key found");
   }
   if (apiKey.expiresAt && apiKey.userId && dateInPast(apiKey.expiresAt, today)) {
     res.setHeader("Calcom-User-ID", apiKey.userId);
     await next();
-  } else res.status(400).json({ error: "Your api key is not valid" });
+  } else res.status(401).json({ error: "Your api key is not valid" });
 };

@@ -9,6 +9,20 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
+/**
+ * @swagger
+ * /api/users/:id/delete:
+ *   delete:
+ *     description: Remove an existing user
+ *     responses:
+ *       201:
+ *         description: OK, user removed successfuly
+ *         model: User
+ *       400:
+ *        description: Bad request. User id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
 export async function deleteUser(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
   const safe = await schemaQueryIdParseInt.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query", safe.error);

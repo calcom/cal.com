@@ -1,38 +1,56 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { SelectedCalendar } from "@calcom/prisma/client";
 
-import { schemaSelectedCalendar, withValidSelectedCalendar } from "@lib/validations/selected-calendar";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { SelectedCalendarResponse } from "@lib/types";
+import {
+  schemaSelectedCalendarBodyParams,
+  schemaSelectedCalendarPublic,
+  withValidSelectedCalendar,
+} from "@lib/validations/selected-calendar";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: SelectedCalendar;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/selectedCalendars/:id/edit:
+ *   patch:
+ *     description: Edits an existing selectedCalendar
+ *     responses:
+ *       201:
+ *         description: OK, selectedCalendar edited successfuly
+ *         model: SelectedCalendar
+ *       400:
+ *        description: Bad request. SelectedCalendar body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editSelectedCalendar(
+  req: NextApiRequest,
+  res: NextApiResponse<SelectedCalendarResponse>
+) {
+  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = await schemaSelectedCalendarBodyParams.safeParse(req.body);
 
-export async function editSelectedCalendar(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaSelectedCalendar.safeParse(body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const selectedCalendar = await prisma.selectedCalendar.update({
+    where: { id: safeQuery.data.id },
+    data: safeBody.data,
+  });
+  const data = schemaSelectedCalendarPublic.parse(selectedCalendar);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    const data = await prisma.selectedCalendar.update({
-      where: { id: safeQuery.data.id },
-      data: safeBody.data,
-    });
-    if (data) res.status(200).json({ data });
-    else
-      res
-        .status(404)
-        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
-
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating selectedCalendars" });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(withValidSelectedCalendar(editSelectedCalendar));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidSelectedCalendar(editSelectedCalendar))
+);

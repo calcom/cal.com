@@ -8,7 +8,8 @@ export const captureErrors: NextMiddleware = async (_req, res, next) => {
     await next();
   } catch (err) {
     Sentry.captureException(err);
-    res.status(500);
-    res.json({ error: err });
+    console.log(err);
+    res.status(400).json({ message: "Something went wrong", error: err });
+    // res.json({ error: err });
   }
 };
