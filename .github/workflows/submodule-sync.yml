@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Website Sync
         uses: mheap/submodule-sync-action@v1
-        with: &default_sync_options
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: apps/website
           ref: main
@@ -19,5 +19,9 @@ jobs:
           target_branch: main
       - name: API Sync
         uses: mheap/submodule-sync-action@v1
-        with: *default_sync_options
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: apps/api
+          ref: main
+          pr_branch: automated-submodule-update
+          target_branch: main
