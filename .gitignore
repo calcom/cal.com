@@ -11,11 +11,11 @@ node_modules
 # testing
 coverage
 /test-results/
-playwright/videos
-playwright/screenshots
-playwright/artifacts
-playwright/results
-playwright/reports/*
+**/playwright/videos
+**/playwright/screenshots
+**/playwright/artifacts
+**/playwright/results
+**/playwright/reports/*
 
 # next.js
 .next/

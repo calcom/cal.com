@@ -138,6 +138,7 @@ export class Cal {
     // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
     iframe.scrolling = "no";
     iframe.className = "cal-embed";
+    iframe.name = "cal-embed";
     const config = this.getConfig();
 
     // Prepare searchParams from config

@@ -14,49 +14,49 @@ See [index.html](index.html) to understand how it can be used.
     - `notes`
     - `guests`
 
-## How to use embed on any webpage no matter what framework.
+## How to use embed on any webpage no matter what framework
 
 - _Step-1._ Install the snippet
 
-  ```javascript
-  (function (C, A, L) {
-    let d = C.document;
-    C.Cal =
-      C.Cal ||
-      function () {
-        let cal = C.Cal;
-        let ar = arguments;
-        if (!cal.loaded) {
-          cal.ns = {};
-          cal.q = cal.q || [];
-          d.head.appendChild(d.createElement("script")).src = A;
-          cal.loaded = true;
-        }
-        if (ar[0] === L) {
-          const api = function () {
-            api.q.push(arguments);
-          };
-          const namespace = arguments[1];
-          api.q = api.q || [];
-          namespace ? (cal.ns[namespace] = api) : null;
-          return;
-        }
-        cal.q.push(ar);
-      };
-  })(window, "https://cal.com/embed.js", "init");
-  ```
+    ```javascript
+    (function (C, A, L) {
+      let d = C.document;
+      C.Cal =
+        C.Cal ||
+        function () {
+          let cal = C.Cal;
+          let ar = arguments;
+          if (!cal.loaded) {
+            cal.ns = {};
+            cal.q = cal.q || [];
+            d.head.appendChild(d.createElement("script")).src = A;
+            cal.loaded = true;
+          }
+          if (ar[0] === L) {
+            const api = function () {
+              api.q.push(arguments);
+            };
+            const namespace = arguments[1];
+            api.q = api.q || [];
+            namespace ? (cal.ns[namespace] = api) : null;
+            return;
+          }
+          cal.q.push(ar);
+        };
+    })(window, "https://cal.com/embed.js", "init");
+    ```
 
 - _Step-2_. Give `init` instruction to it. It creates a queue so that even without embed.js being fetched, you can give instructions to embed.
 
-  ```javascript
-  Cal("init) // Creates default instance. Give instruction to it as Cal("instruction")
-  ```
+    ```javascript
+    Cal("init) // Creates default instance. Give instruction to it as Cal("instruction")
+    ```
 
-  **Optionally** if you want to install another instance of embed you can do
+    **Optionally** if you want to install another instance of embed you can do
 
-  ```javascript
-  Cal("init", "NAME_YOUR_OTHER_INSTANCE"); // Creates a named instance. Give instructions to it as Cal.ns.NAME_YOUR_OTHER_INSTANCE("instruction")
-  ```
+    ```javascript
+    Cal("init", "NAME_YOUR_OTHER_INSTANCE"); // Creates a named instance. Give instructions to it as Cal.ns.NAME_YOUR_OTHER_INSTANCE("instruction")
+    ```
 
 - Step-1 and Step-2 must be followed in same order. After that you can give various instructions to embed as you like.
 
@@ -92,4 +92,25 @@ yarn dev
 yarn build
 ```
 
-Make `dist/embed.umd.js` servable on URL http://cal.com/embed.js
+Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
+
+## Upcoming Improvements
+
+- Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
+- Might be better to pass all configuration using a single base64encoded query param to booking page.
+- Error Tracking for embed.js
+  - Know where exactly it’s failing if it does.
+- Documentation
+  - How to make a new element configurable using UI instruction ?
+  - Why do we not want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
+- UI Config
+  - Theme switch dynamically
+  - Text Color
+    - Brand color
+    - At some places Text is colored by using the color specific tailwind class. e.g. `text-gray-400` is the color of disabled date. He has 2 options, If user wants to customize that
+      - He can go and override the color on the class which doesn’t make sense
+      - He can identify the element and change the color by directly adding style, which might cause consistency issues if certain elements are missed.
+    - Challenges
+      - How would the user add on hover styles just using style attribute ?
+- React Component
+  - `onClick` support with preloading
