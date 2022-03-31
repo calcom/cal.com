@@ -52,7 +52,7 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({ eventType, booking, profile, isDynamicGroupBooking }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
@@ -172,7 +172,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
     };
   };
 

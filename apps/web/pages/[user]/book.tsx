@@ -145,6 +145,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking();
   }
 
+  const isDynamicGroupBooking = users.length > 1 ? true : false;
+
   const profile =
     users.length > 1
       ? {
@@ -170,6 +172,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       booking,
       trpcState: ssr.dehydrate(),
+      isDynamicGroupBooking,
     },
   };
 }
