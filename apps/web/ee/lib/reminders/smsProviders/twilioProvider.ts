@@ -19,7 +19,7 @@ export const sendSMS = async (phoneNumber: string, body: string) => {
     to: phoneNumber,
   });
 
-  return response.sid;
+  return response;
 };
 
 export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date) => {

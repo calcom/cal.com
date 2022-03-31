@@ -15,6 +15,7 @@ type PhoneInputProps = {
 export const PhoneInput = ({ control, name, ...rest }: Props<PhoneInputProps>) => (
   <BasePhoneInput
     {...rest}
+    international
     name={name}
     control={control}
     className={classNames(

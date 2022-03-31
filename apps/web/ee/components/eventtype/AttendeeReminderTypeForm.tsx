@@ -7,9 +7,8 @@ import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import Select from "react-select";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 interface OptionTypeBase {
   label: string;
@@ -31,9 +30,9 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     { value: EventTypeAttendeeReminderMethod.EMAIL, label: t("email").toUpperCase() },
   ];
   const unitTimeOptions: OptionTypeBase[] = [
-    { value: EventTypeAttendeeReminderUnitTime.DAY, label: t("day").toUpperCase() },
-    { value: EventTypeAttendeeReminderUnitTime.HOUR, label: t("hours").toUpperCase() },
     { value: EventTypeAttendeeReminderUnitTime.MINUTE, label: t("minutes").toUpperCase() },
+    { value: EventTypeAttendeeReminderUnitTime.HOUR, label: t("hours").toUpperCase() },
+    { value: EventTypeAttendeeReminderUnitTime.DAY, label: t("day").toUpperCase() },
   ];
   const { selectedAttendeeReminder } = props;
   const defaultValues = selectedAttendeeReminder;
@@ -62,7 +61,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           render={({ field }) => (
             <Select
               id="method"
-              defaultValue={selectedMethodOption}
+              defaultValue={selectedAttendeeReminder ? selectedMethodOption : methodOptions[0].value}
               options={methodOptions}
               isSearchable={false}
               className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
@@ -81,9 +80,8 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <div className="inline-flex w-full space-x-2 ltr:ml-2 rtl:mr-2 rtl:space-x-reverse">
           <input
             type="number"
-            className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-            placeholder="30"
-            defaultValue={selectedAttendeeReminder?.time}
+            className="focus:border-primary-500 focus:ring-primary-500 block w-14 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+            defaultValue={selectedAttendeeReminder ? selectedAttendeeReminder.time : 30}
             {...register("time")}
           />
           <select
