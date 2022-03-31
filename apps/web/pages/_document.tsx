@@ -26,7 +26,7 @@ class MyDocument extends Document<Props> {
           <meta name="theme-color" content="#ffffff" />
         </Head>
 
-        {/* Keep the embed hidden till parent initializes and gives it the appropritate styles */}
+        {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
         <body className="bg-gray-100 dark:bg-neutral-900" style={props.isEmbed ? { display: "none" } : {}}>
           <Main />
           <NextScript />
