@@ -8,7 +8,9 @@ import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -30,6 +32,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { user, eventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
+  const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
 
@@ -48,9 +51,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       <div className="h-screen dark:bg-neutral-900">
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
-            <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+            <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
             <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
-              {nameOrUsername}
+              <span>{nameOrUsername}</span>
               {user.verified && (
                 <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
               )}
@@ -71,7 +74,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
               eventTypes.map((type) => (
                 <div
                   key={type.id}
-                  style={{ display: "flex" }}
+                  style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
                   className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-gray-800 dark:hover:border-neutral-600">
                   <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
@@ -91,6 +94,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                             "You must verify a wallet with a token belonging to the specified smart contract first",
                             "error"
                           );
+                        } else {
+                          sdkActionManager?.fire("eventTypeSelected", {
+                            eventType: type,
+                          });
                         }
                       }}
                       className="block w-full px-6 py-4"
