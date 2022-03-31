@@ -156,6 +156,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
+  const allowDynamicGroupBookingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeFormat, setSelectedTimeFormat] = useState({
     value: props.user.timeFormat || 12,
@@ -198,6 +199,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredAllowDynamicGroupBooking = allowDynamicGroupBookingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
     const enteredTimeFormat = selectedTimeFormat.value;
 
@@ -212,6 +214,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       timeZone: enteredTimeZone,
       weekStart: asStringOrUndefined(enteredWeekStartDay),
       hideBranding: enteredHideBranding,
+      allowDynamicBooking: enteredAllowDynamicGroupBooking,
       theme: asStringOrNull(selectedTheme?.value),
       brandColor: enteredBrandColor,
       darkBrandColor: enteredDarkBrandColor,
@@ -393,6 +396,23 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
             </div>
+            <div className="relative mt-8 flex items-start">
+              <div className="flex h-5 items-center">
+                <input
+                  id="dynamic-group-booking"
+                  name="dynamic-group-booking"
+                  type="checkbox"
+                  ref={allowDynamicGroupBookingRef}
+                  defaultChecked={props.user.allowDynamicBooking || false}
+                  className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800"
+                />
+              </div>
+              <div className="text-sm ltr:ml-3 rtl:mr-3">
+                <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
+                  {t("allow_dynamic_booking")}
+                </label>
+              </div>
+            </div>
             <div>
               <label htmlFor="theme" className="block text-sm font-medium text-gray-700">
                 {t("single_theme")}
@@ -537,6 +557,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
+      allowDynamicBooking: true,
     },
   });
 

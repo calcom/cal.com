@@ -99,6 +99,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       brandColor: true,
       darkBrandColor: true,
       defaultScheduleId: true,
+      allowDynamicBooking: true,
       schedules: {
         select: {
           availability: true,
@@ -163,9 +164,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   let [eventType] = users[0].eventTypes;
+
   if (users.length > 1) {
+    // get users with allowDynamicBooking enabled
+    const dynamicBookingUsers = users.filter((user) => {
+      return user.allowDynamicBooking === true;
+    });
     eventType = getDefaultEvent(typeParam);
-    eventType["users"] = users.map((user) => {
+    eventType["users"] = dynamicBookingUsers.map((user) => {
       return {
         avatar: user.avatar as string,
         name: user.name as string,
@@ -176,6 +182,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       };
     });
   }
+
+  if (!eventType["users"].length)
+    throw Error("Dynamic group booking is not allowed by any of the selected users");
 
   // check this is the first event
   if (users.length < 2 && users[0].plan === "FREE") {

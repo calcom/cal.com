@@ -48,8 +48,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       theme: true,
       brandColor: true,
       darkBrandColor: true,
+      allowDynamicBooking: true,
     },
   });
+
+  if (users.length > 1) {
+    if (
+      users.filter((user) => {
+        return user.allowDynamicBooking === true;
+      }).length === 0
+    )
+      throw Error("Dynamic group booking is not allowed by any of the selected users");
+  }
 
   if (!users.length) return { notFound: true };
 
