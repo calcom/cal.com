@@ -9,6 +9,7 @@ function App() {
         There is <code>Cal</code> component below me
       </h1>
       <Cal
+        embedJsUrl="//localhost:3002/dist/embed.umd.js"
         calLink="pro"
         config={{
           name: "John Doe",

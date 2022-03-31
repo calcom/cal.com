@@ -33,13 +33,13 @@
       })(window, "//localhost:3002/dist/embed.umd.js", "init");
     </script>
     <script>
-      Cal("init", { origin: "http://localhost:3000" });
+      Cal("init");
 
       // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
-      Cal("init", "second", { origin: "http://localhost:3000" });
+      Cal("init", "second");
 
       // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
-      Cal("init", "third", { origin: "http://localhost:3000" });
+      Cal("init", "third");
     </script>
     <style>
       .debug {

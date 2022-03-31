@@ -2,8 +2,16 @@ import { useEffect, useRef } from "react";
 
 import useEmbed from "./useEmbed";
 
-export default function Cal({ calLink, config }: { calLink: string; config?: any }) {
-  const Cal = useEmbed();
+export default function Cal({
+  calLink,
+  config,
+  embedJsUrl,
+}: {
+  calLink: string;
+  config?: any;
+  embedJsUrl?: string;
+}) {
+  const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!Cal) {
