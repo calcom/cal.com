@@ -7,57 +7,61 @@ export class CalendarEventBuilder {
     this.event = props;
   }
 
-  public buildDescription(description: CalendarEvent["description"]) {
+  public get() {
+    return this.event;
+  }
+
+  public setDescription(description: CalendarEvent["description"]) {
     this.event.description = description;
     return this.event;
   }
 
-  public buildTeam(team: CalendarEvent["team"]) {
+  public setTeam(team: CalendarEvent["team"]) {
     this.event.team = team;
     return this.event;
   }
 
-  public buildLocation(location: CalendarEvent["location"]) {
+  public setLocation(location: CalendarEvent["location"]) {
     this.event.location = location;
     return this.event;
   }
 
-  public buildConferenceData(conferenceData: CalendarEvent["conferenceData"]) {
+  public setConferenceData(conferenceData: CalendarEvent["conferenceData"]) {
     this.event.conferenceData = conferenceData;
     return this.event;
   }
 
-  public buildAdditionalInformation(additionalInformation: CalendarEvent["additionInformation"]) {
+  public setAdditionalInformation(additionalInformation: CalendarEvent["additionInformation"]) {
     this.event.additionInformation = additionalInformation;
     return this.event;
   }
 
-  public buildUID(UID: CalendarEvent["uid"]) {
+  public setUID(UID: CalendarEvent["uid"]) {
     this.event.uid = UID;
     return this.event;
   }
 
-  public buildVideoCallData(videoCallData: CalendarEvent["videoCallData"]) {
+  public setVideoCallData(videoCallData: CalendarEvent["videoCallData"]) {
     this.event.videoCallData = videoCallData;
     return this.event;
   }
 
-  public buildPaymentInfo(paymentInfo: CalendarEvent["paymentInfo"]) {
+  public setPaymentInfo(paymentInfo: CalendarEvent["paymentInfo"]) {
     this.event.paymentInfo = paymentInfo;
     return this.event;
   }
 
-  public buildDestinationCalendar(destinationCalendar: CalendarEvent["destinationCalendar"]) {
+  public setDestinationCalendar(destinationCalendar: CalendarEvent["destinationCalendar"]) {
     this.event.destinationCalendar = destinationCalendar;
     return this.event;
   }
 
-  public buildCancellationReason(cancellationReason: CalendarEvent["cancellationReason"]) {
+  public setCancellationReason(cancellationReason: CalendarEvent["cancellationReason"]) {
     this.event.cancellationReason = cancellationReason;
     return this.event;
   }
 
-  public buildRejectionReason(rejectionReason: CalendarEvent["rejectionReason"]) {
+  public setRejectionReason(rejectionReason: CalendarEvent["rejectionReason"]) {
     this.event.rejectionReason = rejectionReason;
     return this.event;
   }

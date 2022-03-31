@@ -211,7 +211,7 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
   });
 };
 
-export const sendRescheduleEmail = async (calEvent: CalendarEvent) => {
+export const sendRequestRescheduleEmail = async (calEvent: CalendarEvent) => {
   await new Promise((resolve, reject) => {
     try {
       const rescheduleEmail = new OrganizerRequestRescheduledEmail(calEvent);
