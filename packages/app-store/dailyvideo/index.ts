@@ -7,11 +7,11 @@ export const metadata = {
   description: _package.description,
   installed: !!process.env.DAILY_API_KEY,
   type: "daily_video",
-  imageSrc: "/apps/daily.svg",
+  imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
   url: "https://daily.co/",
   trending: true,
-  logo: "/apps/daily.svg",
+  logo: "/api/app-store/dailyvideo/icon.svg",
   publisher: "Cal.com",
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
