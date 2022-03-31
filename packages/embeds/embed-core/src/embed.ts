@@ -307,7 +307,6 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      // @ts-ignore TODO: It works but for some reason it errors
       origin: import.meta.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com",
     };
     this.namespace = namespace;
