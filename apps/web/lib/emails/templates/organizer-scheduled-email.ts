@@ -307,6 +307,14 @@ ${getRichDescription(this.calEvent)}
       providerName = location[0].toUpperCase() + location.slice(1);
     }
 
+    // If location its a url, probably we should be validating it with a custom library
+    if (
+      this.calEvent.location &&
+      (this.calEvent.location.includes("https://") || this.calEvent.location.includes("http://"))
+    ) {
+      providerName = this.calEvent.location;
+    }
+
     if (this.calEvent.videoCallData) {
       const meetingId = this.calEvent.videoCallData.id;
       const meetingPassword = this.calEvent.videoCallData.password;
