@@ -56,7 +56,7 @@ const AttendeeReminderTypeForm: FC<Props> = (props) => {
           name="method"
           control={control}
           render={({ field }) => (
-            <Select
+            <Select<typeof methodOptions[number]>
               id="method"
               defaultValue={selectedAttendeeReminder ? selectedMethodOption : methodOptions[0].value}
               options={methodOptions}

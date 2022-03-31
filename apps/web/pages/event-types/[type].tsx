@@ -2108,7 +2108,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-  const reminderMethodOptions = [
+  const reminderMethodOptions: { label: string; value: EventTypeAttendeeReminderMethod }[] = [
     { value: EventTypeAttendeeReminderMethod.EMAIL, label: t("email").toUpperCase() },
   ];
   const HAS_SMS_PROVIDER = !!(
