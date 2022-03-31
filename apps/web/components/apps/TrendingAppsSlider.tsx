@@ -4,17 +4,11 @@ import type { App } from "@calcom/types/App";
 import AppCard from "./AppCard";
 import Slider from "./Slider";
 
-const TrendingAppsSlider = <T extends App>({
-  items,
-  renderItem,
-}: {
-  items: T[];
-  renderItem?: (item: T) => JSX.Element;
-}) => {
+const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
   const { t } = useLocale();
 
   return (
-    <Slider<App>
+    <Slider<T>
       className="mb-16"
       title={t("trending_apps")}
       items={items.filter((app) => !!app.trending)}
