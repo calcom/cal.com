@@ -310,10 +310,14 @@ ${getRichDescription(this.calEvent)}
 
   protected getLocation(): string {
     let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
-
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
       providerName = location[0].toUpperCase() + location.slice(1);
+    }
+
+    // If location its a url, probably we should be validating it with a custom library
+    if (this.calEvent.location && /^https?:\/\//.test(this.calEvent.location)) {
+      providerName = this.calEvent.location;
     }
 
     if (this.calEvent.videoCallData) {
