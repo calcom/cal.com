@@ -95,7 +95,7 @@ function CalendarSwitch(props: {
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
-  // console.log(query);
+
   return (
     <QueryCell
       query={query}

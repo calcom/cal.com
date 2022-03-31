@@ -12,8 +12,6 @@ import { Calendar, CalendarEvent, IntegrationCalendar } from "../interfaces/Cale
 import CalendarService from "./BaseCalendarService";
 
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
-console.log(GOOGLE_API_CREDENTIALS);
-
 export default class GoogleCalendarService implements Calendar {
   private url = "";
   private integrationName = "";

@@ -70,6 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   type EventType = Prisma.PromiseReturnType<typeof getEventType>;
   let eventType: EventType | null = null;
+
   if (eventTypeId) eventType = await getEventType(eventTypeId);
 
   if (!rawUser) throw new Error("No user found");
@@ -93,10 +94,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
     : {
-        ...currentUser.schedules.filter(
-          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-        )[0],
-      };
+      ...currentUser.schedules.filter(
+        (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+      )[0],
+    };
 
   const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
 
@@ -105,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timeZone,
     },
     schedule.availability ||
-      (eventType?.availability.length ? eventType.availability : currentUser.availability)
+    (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
 
   res.status(200).json({

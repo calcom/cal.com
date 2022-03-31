@@ -1,5 +1,5 @@
 import { Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
-import async from "async";
+import async, { select } from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import isBetween from "dayjs/plugin/isBetween";
@@ -292,16 +292,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
+        return {
+          email: user.email || "",
+          name: user.name || "",
+          timeZone: user.timeZone,
+          language: {
+            translate: await getTranslation(user.locale ?? "en", "common"),
+            locale: user.locale ?? "en",
+          },
+        };
+      })
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
@@ -361,53 +361,123 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await verifyAccount(web3Details.userSignature, web3Details.userWallet);
     }
 
-    return prisma.booking.create({
-      include: {
-        user: {
-          select: { email: true, name: true, timeZone: true },
-        },
-        attendees: true,
+    /*Validate if there is any stripe_payment credential for this user*/
+    const eventTypePayment = await prisma.credential.findFirst({
+      where: {
+        type: "stripe_payment",
+        userId: users[0].id
       },
-      data: {
-        uid,
-        title: evt.title,
-        startTime: dayjs(evt.startTime).toDate(),
-        endTime: dayjs(evt.endTime).toDate(),
-        description: evt.description,
-        confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
-        location: evt.location,
-        eventType: {
-          connect: {
-            id: eventTypeId,
-          },
-        },
-        attendees: {
-          createMany: {
-            data: evt.attendees.map((attendee) => {
-              //if attendee is team member, it should fetch their locale not booker's locale
-              //perhaps make email fetch request to see if his locale is stored, else
-              const retObj = {
-                name: attendee.name,
-                email: attendee.email,
-                timeZone: attendee.timeZone,
-                locale: attendee.language.locale,
-              };
-              return retObj;
-            }),
-          },
-        },
-        user: {
-          connect: {
-            id: users[0].id,
-          },
-        },
-        destinationCalendar: evt.destinationCalendar
-          ? {
-              connect: { id: evt.destinationCalendar.id },
-            }
-          : undefined,
+      select: {
+        id: true,
       },
     });
+
+    /** If the stripe_payment credential exists then it creates the booking */
+    if (eventTypePayment != null && eventType.price > 0) {
+      return prisma.booking.create({
+        include: {
+          user: {
+            select: { email: true, name: true, timeZone: true },
+          },
+          attendees: true,
+        },
+        data: {
+          uid,
+          title: evt.title,
+          startTime: dayjs(evt.startTime).toDate(),
+          endTime: dayjs(evt.endTime).toDate(),
+          description: evt.description,
+          confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
+          location: evt.location,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          attendees: {
+            createMany: {
+              data: evt.attendees.map((attendee) => {
+                //if attendee is team member, it should fetch their locale not booker's locale
+                //perhaps make email fetch request to see if his locale is stored, else
+                const retObj = {
+                  name: attendee.name,
+                  email: attendee.email,
+                  timeZone: attendee.timeZone,
+                  locale: attendee.language.locale,
+                };
+                return retObj;
+              }),
+            },
+          },
+          user: {
+            connect: {
+              id: users[0].id,
+            },
+          },
+          destinationCalendar: evt.destinationCalendar
+            ? {
+              connect: { id: evt.destinationCalendar.id },
+            }
+            : undefined,
+        },
+      });
+    } else if (!eventType.price) {
+      /** If the stripe_payment credential does not exist but the eventTypes is
+          * without payment then create the booking
+         */
+      return prisma.booking.create({
+        include: {
+          user: {
+            select: { email: true, name: true, timeZone: true },
+          },
+          attendees: true,
+        },
+        data: {
+          uid,
+          title: evt.title,
+          startTime: dayjs(evt.startTime).toDate(),
+          endTime: dayjs(evt.endTime).toDate(),
+          description: evt.description,
+          confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
+          paid: true,
+          location: evt.location,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          attendees: {
+            createMany: {
+              data: evt.attendees.map((attendee) => {
+                //if attendee is team member, it should fetch their locale not booker's locale
+                //perhaps make email fetch request to see if his locale is stored, else
+                const retObj = {
+                  name: attendee.name,
+                  email: attendee.email,
+                  timeZone: attendee.timeZone,
+                  locale: attendee.language.locale,
+                };
+                return retObj;
+              }),
+            },
+          },
+          user: {
+            connect: {
+              id: users[0].id,
+            },
+          },
+          destinationCalendar: evt.destinationCalendar
+            ? {
+              connect: { id: evt.destinationCalendar.id },
+            }
+            : undefined,
+        },
+      });
+    }
+    /** If the stripe_payment credential does not exist and the eventTypes is
+          * with payment then return null
+         */
+    return null;
   }
 
   let results: EventResult[] = [];
@@ -429,11 +499,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const credentials = currentUser.credentials;
+    // Only confirmed and paid reservations are taken 
     const calendarBusyTimes: EventBusyDate[] = await prisma.booking
       .findMany({
         where: {
           userId: currentUser.id,
           eventTypeId: eventTypeId,
+          confirmed: true,
+          paid: true,
+          rejected: false,
+          status: 'ACCEPTED',
         },
       })
       .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
@@ -507,8 +582,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-    evt.uid = booking.uid;
+    evt.uid = booking ? booking.uid : null;
   } catch (_err) {
+    console.log(_err);
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {
@@ -590,7 +666,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await sendAttendeeRequestEmail(evt, attendeesList[0]);
   }
 
-  if (typeof eventType.price === "number" && eventType.price > 0) {
+  /* It creates the payment if there is a stripe_payment credential */
+  if (typeof eventType.price === "number" && eventType.price > 0 && booking) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
       if (!booking.user) booking.user = user;
@@ -636,22 +713,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   );
   await Promise.all(promises);
-
-  await prisma.booking.update({
-    where: {
-      uid: booking.uid,
-    },
-    data: {
-      references: {
-        createMany: {
-          data: referencesToCreate,
+  if (booking) {
+    await prisma.booking.update({
+      where: {
+        uid: booking.uid,
+      },
+      data: {
+        references: {
+          createMany: {
+            data: referencesToCreate,
+          },
         },
       },
-    },
-  });
-
-  // booking successful
-  return res.status(201).json(booking);
+    });
+    // booking successful
+    return res.status(201).json(booking);
+  }
+  res.status(500).json({ message: "There is not a stripe_Payment credential" });
+  return;
 }
 
 export function getLuckyUsers(
