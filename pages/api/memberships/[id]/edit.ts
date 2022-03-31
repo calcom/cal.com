@@ -1,38 +1,51 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Membership } from "@calcom/prisma/client";
 
-import { schemaMembership, withValidMembership } from "@lib/validations/membership";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { MembershipResponse } from "@lib/types";
 import {
-  schemaQueryIdParseInt,
-  withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+  schemaMembershipBodyParams,
+  schemaMembershipPublic,
+  withValidMembership,
+} from "@lib/validations/membership";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
-type ResponseData = {
-  data?: Membership;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/memberships/{id}/edit:
+ *   patch:
+ *     summary: Edits an existing membership
+ *     tags:
+ *     - memberships
+ *     responses:
+ *       201:
+ *         description: OK, membership edited successfuly
+ *         model: Membership
+ *       400:
+ *        description: Bad request. Membership body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editMembership(req: NextApiRequest, res: NextApiResponse<MembershipResponse>) {
+  const safeQuery = await schemaQueryIdAsString.safeParse(req.query);
+  const safeBody = await schemaMembershipBodyParams.safeParse(req.body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const [userId, teamId] = safeQuery.data.id.split("_");
 
-export async function editMembership(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaMembership.safeParse(body);
+  const membership = await prisma.membership.update({
+    where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } },
+    data: safeBody.data,
+  });
+  const data = schemaMembershipPublic.parse(membership);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    const data = await prisma.membership.update({
-      where: { id: safeQuery.data.id },
-      data: safeBody.data,
-    });
-    if (data) res.status(200).json({ data });
-    else
-      res
-        .status(404)
-        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
-
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating memberships" });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(withValidMembership(editMembership));
+export default withMiddleware("HTTP_PATCH")(withValidQueryIdString(withValidMembership(editMembership)));

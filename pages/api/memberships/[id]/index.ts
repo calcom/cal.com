@@ -1,29 +1,57 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Membership } from "@calcom/prisma/client";
 
-import {
-  schemaQueryIdParseInt,
-  withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { MembershipResponse } from "@lib/types";
+import { schemaMembershipPublic } from "@lib/validations/membership";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
-type ResponseData = {
-  data?: Membership;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/memberships/{userId}_{teamId}:
+ *   get:
+ *     summary: find membership by userID and teamID
+ *    parameters:
+ *      - in: path
+ *        name: userId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric userId of the membership to get
+ *      - in: path
+ *        name: teamId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric teamId of the membership to get
+ *     tags:
+ *     - memberships
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: Membership was not found
+ */
+export async function membershipById(req: NextApiRequest, res: NextApiResponse<MembershipResponse>) {
+  const safe = await schemaQueryIdAsString.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query");
+  const [userId, teamId] = safe.data.id.split("_");
 
-export async function membership(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "GET" && safe.success) {
-    const data = await prisma.membership.findUnique({ where: { id: safe.data.id } });
+  const membership = await prisma.membership.findUnique({
+    where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } },
+  });
+  const data = schemaMembershipPublic.parse(membership);
 
-    if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: "Event type not found" });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only GET Method allowed" });
+  if (membership) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "Membership was not found",
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(membership);
+export default withMiddleware("HTTP_GET")(withValidQueryIdString(membershipById));

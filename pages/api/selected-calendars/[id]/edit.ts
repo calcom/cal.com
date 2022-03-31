@@ -18,7 +18,7 @@ import {
  * @swagger
  * /api/selectedCalendars/:id/edit:
  *   patch:
- *     description: Edits an existing selectedCalendar
+ *     summary: Edits an existing selectedCalendar
  *     responses:
  *       201:
  *         description: OK, selectedCalendar edited successfuly

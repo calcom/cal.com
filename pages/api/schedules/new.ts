@@ -1,26 +1,41 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Schedule } from "@calcom/prisma/client";
 
-import { schemaSchedule, withValidSchedule } from "@lib/validations/schedule";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { ScheduleResponse } from "@lib/types";
+import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } from "@lib/validations/schedule";
 
-type ResponseData = {
-  data?: Schedule;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/schedules/new:
+ *   post:
+ *     summary: Creates a new schedule
+ *     tags:
+ *     - schedules
+ *     responses:
+ *       201:
+ *         description: OK, schedule created
+ *         model: Schedule
+ *       400:
+ *        description: Bad request. Schedule body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createSchedule(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
+  const safe = schemaScheduleBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createSchedule(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaSchedule.safeParse(body);
-  if (method === "POST" && safe.success) {
-    await prisma.schedule
-      .create({ data: safe.data })
-      .then((data) => res.status(201).json({ data }))
-      .catch((error) => res.status(400).json({ message: "Could not create schedule type", error: error }));
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: "Only POST Method allowed" });
+  const schedule = await prisma.schedule.create({ data: safe.data });
+  const data = schemaSchedulePublic.parse(schedule);
+
+  if (data) res.status(201).json({ data, message: "Schedule created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new schedule",
+        error,
+      });
 }
 
-export default withValidSchedule(createSchedule);
+export default withMiddleware("HTTP_POST")(withValidSchedule(createSchedule));

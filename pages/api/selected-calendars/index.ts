@@ -10,7 +10,7 @@ import { schemaSelectedCalendarPublic } from "@lib/validations/selected-calendar
  * @swagger
  * /api/selectedCalendars:
  *   get:
- *     description: Returns all selected calendars
+ *     summary: Returns all selected calendars
  *     responses:
  *       200:
  *         description: OK

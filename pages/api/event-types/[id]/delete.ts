@@ -13,7 +13,7 @@ import {
  * @swagger
  * /api/eventTypes/:id/delete:
  *   delete:
- *     description: Remove an existing eventType
+ *     summary: Remove an existing eventType
  *     responses:
  *       201:
  *         description: OK, eventType removed successfuly

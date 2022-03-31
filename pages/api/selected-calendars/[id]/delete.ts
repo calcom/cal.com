@@ -13,7 +13,7 @@ import {
  * @swagger
  * /api/selectedCalendars/:id/delete:
  *   delete:
- *     description: Remove an existing selectedCalendar
+ *     summary: Remove an existing selectedCalendar
  *     responses:
  *       201:
  *         description: OK, selectedCalendar removed successfuly

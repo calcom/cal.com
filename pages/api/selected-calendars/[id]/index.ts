@@ -12,9 +12,18 @@ import {
 
 /**
  * @swagger
- * /api/selectedCalendars/:id:
+ * /api/selectedCalendars/{id}:
  *   get:
- *     description: find selectedCalendar by ID
+ *     summary: find selectedCalendar by ID
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the user to delete
+ *     tags:
+ *      - selected-calendars
  *     responses:
  *       200:
  *         description: OK

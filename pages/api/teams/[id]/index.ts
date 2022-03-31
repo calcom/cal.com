@@ -14,7 +14,9 @@ import { schemaTeamPublic } from "@lib/validations/team";
  * @swagger
  * /api/teams/:id:
  *   get:
- *     description: find team by ID
+ *     summary: find team by ID
+ *     tags:
+ *     - teams
  *     responses:
  *       200:
  *         description: OK

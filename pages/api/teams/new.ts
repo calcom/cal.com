@@ -10,7 +10,9 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
  * @swagger
  * /api/teams/new:
  *   post:
- *     description: Creates a new team
+ *     summary: Creates a new team
+ *     tags:
+ *     - teams
  *     responses:
  *       201:
  *         description: OK, team created

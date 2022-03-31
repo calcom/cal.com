@@ -1,38 +1,51 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Schedule } from "@calcom/prisma/client";
 
-import { schemaSchedule, withValidSchedule } from "@lib/validations/schedule";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { ScheduleResponse } from "@lib/types";
+import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } from "@lib/validations/schedule";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: Schedule;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/schedules/:id/edit:
+ *   patch:
+ *     summary: Edits an existing schedule
+ *     tags:
+ *     - schedules
+ *     responses:
+ *       201:
+ *         description: OK, schedule edited successfuly
+ *         model: Schedule
+ *       400:
+ *        description: Bad request. Schedule body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editSchedule(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
+  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = await schemaScheduleBodyParams.safeParse(req.body);
 
-export async function editSchedule(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaSchedule.safeParse(body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const schedule = await prisma.schedule.update({
+    where: { id: safeQuery.data.id },
+    data: safeBody.data,
+  });
+  const data = schemaSchedulePublic.parse(schedule);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    const data = await prisma.schedule.update({
-      where: { id: safeQuery.data.id },
-      data: safeBody.data,
-    });
-    if (data) res.status(200).json({ data });
-    else
-      res
-        .status(404)
-        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
-
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating schedules" });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(withValidSchedule(editSchedule));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidSchedule(editSchedule))
+);

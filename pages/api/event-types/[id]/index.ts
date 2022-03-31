@@ -12,9 +12,16 @@ import {
 
 /**
  * @swagger
- * /api/eventTypes/:id:
+ * /api/eventTypes/{id}:
  *   get:
- *     description: find eventType by ID
+ *     summary: find eventType by ID
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the event type to get
  *     responses:
  *       200:
  *         description: OK

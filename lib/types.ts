@@ -21,10 +21,12 @@ export type BaseResponse = {
   message?: string;
   error?: Error;
 };
+
 // User
 export type UserResponse = BaseResponse & {
   data?: Partial<User>;
 };
+
 export type UsersResponse = BaseResponse & {
   data?: Partial<User>[];
 };

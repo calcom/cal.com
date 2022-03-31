@@ -9,7 +9,7 @@ export default async function requireApiKeyAsQueryParams({ nextUrl }: NextReques
   const apiKey = nextUrl.searchParams.get("apiKey");
 
   if (apiKey) return response;
-  // if no apiKey is passed, we throw early a 401 unauthorized
+  // if no apiKey is passed, we throw early a 401 unauthorized asking for a valid apiKey
   else
     new NextResponse(
       JSON.stringify({

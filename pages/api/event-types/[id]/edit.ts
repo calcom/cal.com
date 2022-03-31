@@ -18,7 +18,7 @@ import {
  * @swagger
  * /api/eventTypes/:id/edit:
  *   patch:
- *     description: Edits an existing eventType
+ *     summary: Edits an existing eventType
  *     responses:
  *       201:
  *         description: OK, eventType edited successfuly
