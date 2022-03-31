@@ -27,7 +27,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const usernameList = asStringOrThrow(context.query.user as string)
     .toLowerCase()
-    .split("+");
+    .split("+")
+    .filter((el) => {
+      return el.length != 0;
+    });
   const eventTypeSlug = context.query.slug as string;
   const users = await prisma.user.findMany({
     where: {

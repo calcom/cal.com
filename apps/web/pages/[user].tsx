@@ -177,7 +177,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const crypto = require("crypto");
 
-  const usernameList = (context.query.user as string).toLowerCase().split("+");
+  const usernameList = (context.query.user as string)
+    .toLowerCase()
+    .split("+")
+    .filter((el) => {
+      return el.length != 0;
+    });
   const dataFetchStart = Date.now();
   const users = await prisma.user.findMany({
     where: {

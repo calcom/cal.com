@@ -22,7 +22,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
-  const usernameList = (context.query.user as string).toLowerCase().split("+");
+  const usernameList = (context.query.user as string)
+    .toLowerCase()
+    .split("+")
+    .filter((el) => {
+      return el.length != 0;
+    });
 
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
