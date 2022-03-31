@@ -11,7 +11,6 @@ import {
   TrashIcon,
   UserAddIcon,
   UsersIcon,
-  EventTypeAttendeeReminderMethod,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -21,6 +20,7 @@ import {
   Prisma,
   SchedulingType,
   EventTypeAttendeeReminder,
+  EventTypeAttendeeReminderMethod,
 } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import * as RadioGroup from "@radix-ui/react-radio-group";
