@@ -1903,7 +1903,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                     <AttendeeReminderTypeForm
-                      methodOptions={reminderMethodOptions}
+                      methodOptions={props.reminderMethodOptions}
                       selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
                         const attendeeReminder: EventTypeAttendeeReminder = {
