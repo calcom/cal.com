@@ -51,16 +51,16 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       <div className="h-screen dark:bg-neutral-900">
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
-            <AvatarSSR user={user} className="user-avatar mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
+            <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
             <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
               <span>{nameOrUsername}</span>
               {user.verified && (
-                <BadgeCheckIcon className="user-verified-badge mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
               )}
             </h1>
-            <p className="user-bio text-neutral-500 dark:text-white">{user.bio}</p>
+            <p className="text-neutral-500 dark:text-white">{user.bio}</p>
           </div>
-          <div className="event-type-list space-y-6" data-testid="event-types">
+          <div className="space-y-6" data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
