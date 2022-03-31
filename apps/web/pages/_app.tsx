@@ -3,6 +3,8 @@ import Head from "next/head";
 // import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
+import "@calcom/embed-core/src/embed-iframe";
+
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
