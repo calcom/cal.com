@@ -16,7 +16,10 @@ interface OptionTypeBase {
 }
 
 interface Props {
-  methodOptions: OptionTypeBase[];
+  methodOptions: {
+    label: string;
+    value: EventTypeAttendeeReminderMethod;
+  }[];
   onSubmit: SubmitHandler<IFormInput>;
   onCancel: () => void;
   selectedAttendeeReminder?: EventTypeAttendeeReminder;
@@ -58,7 +61,7 @@ const AttendeeReminderTypeForm: FC<Props> = (props) => {
           render={({ field }) => (
             <Select<typeof methodOptions[number]>
               id="method"
-              defaultValue={selectedAttendeeReminder ? selectedMethodOption : methodOptions[0].value}
+              defaultValue={selectedMethodOption ? selectedMethodOption : methodOptions[0]}
               options={methodOptions}
               isSearchable={false}
               className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
