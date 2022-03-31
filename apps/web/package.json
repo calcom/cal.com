@@ -110,7 +110,7 @@
     "twilio": "^3.75.1",
     "uuid": "^8.3.2",
     "web3": "^1.6.1",
-    "zod": "^3.8.2"
+    "zod": "^3.14.3"
   },
   "devDependencies": {
     "@calcom/config": "*",
