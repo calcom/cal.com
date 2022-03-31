@@ -11,6 +11,7 @@ import {
   TrashIcon,
   UserAddIcon,
   UsersIcon,
+  EventTypeAttendeeReminderMethod,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -1902,6 +1903,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       </div>
                     </div>
                     <AttendeeReminderTypeForm
+                      methodOptions={reminderMethodOptions}
                       selectedAttendeeReminder={selectedAttendeeReminder}
                       onSubmit={(values) => {
                         const attendeeReminder: EventTypeAttendeeReminder = {
@@ -2106,6 +2108,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
+  const reminderMethodOptions = [
+    { value: EventTypeAttendeeReminderMethod.EMAIL, label: t("email").toUpperCase() },
+  ];
+  const HAS_SMS_PROVIDER = !!(
+    process.env.TWILIO_SID &&
+    process.env.TWILIO_TOKEN &&
+    process.env.TWILIO_MESSAGING_SID
+  );
+  if (HAS_SMS_PROVIDER) {
+    reminderMethodOptions.push({ value: EventTypeAttendeeReminderMethod.SMS, label: t("sms").toUpperCase() });
+  }
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
   const currency =
@@ -2148,6 +2161,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       hasPaymentIntegration,
+      reminderMethodOptions,
       currency,
     },
   };

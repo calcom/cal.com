@@ -16,6 +16,7 @@ interface OptionTypeBase {
 }
 
 interface Props {
+  methodOptions: OptionTypeBase[];
   onSubmit: SubmitHandler<IFormInput>;
   onCancel: () => void;
   selectedAttendeeReminder?: EventTypeAttendeeReminder;
@@ -23,18 +24,14 @@ interface Props {
 
 type IFormInput = EventTypeAttendeeReminder;
 
-const CustomInputTypeForm: FC<Props> = (props) => {
+const AttendeeReminderTypeForm: FC<Props> = (props) => {
   const { t } = useLocale();
-  const methodOptions: OptionTypeBase[] = [
-    { value: EventTypeAttendeeReminderMethod.SMS, label: t("sms").toUpperCase() },
-    { value: EventTypeAttendeeReminderMethod.EMAIL, label: t("email").toUpperCase() },
-  ];
   const unitTimeOptions: OptionTypeBase[] = [
     { value: EventTypeAttendeeReminderUnitTime.MINUTE, label: t("minutes").toUpperCase() },
     { value: EventTypeAttendeeReminderUnitTime.HOUR, label: t("hours").toUpperCase() },
     { value: EventTypeAttendeeReminderUnitTime.DAY, label: t("day").toUpperCase() },
   ];
-  const { selectedAttendeeReminder } = props;
+  const { selectedAttendeeReminder, methodOptions } = props;
   const defaultValues = selectedAttendeeReminder;
   const { register, control, handleSubmit } = useForm<IFormInput>({
     defaultValues,
@@ -109,4 +106,4 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   );
 };
 
-export default CustomInputTypeForm;
+export default AttendeeReminderTypeForm;
