@@ -168,7 +168,7 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (typeof window !== "undefined") {
   const url = new URL(document.URL);
-  if (url.searchParams.get("prerender") !== "true" && url.searchParams.get("embed")) {
+  if (url.searchParams.get("prerender") !== "true" && typeof url.searchParams.get("embed") !== "undefined") {
     log("Initializing embed-iframe");
 
     // If embed link is opened in top, and not in iframe. Let the page be visible.

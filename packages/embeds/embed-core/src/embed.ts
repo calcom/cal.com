@@ -336,7 +336,7 @@ export class Cal {
         return;
       }
       let proposedHeightByIframeWebsite = parseFloat(getComputedStyle(iframe).height) + data.hiddenHeight;
-      iframe.style.height = proposedHeightByIframeWebsite;
+      iframe.style.height = proposedHeightByIframeWebsite + "px";
     });
 
     this.actionManager.on("iframeReady", (e) => {
