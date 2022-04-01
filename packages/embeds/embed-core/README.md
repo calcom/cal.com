@@ -98,19 +98,30 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 ## Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
-- Minify CSS in embed.js
-- Loader on ModalBox/popup
-- Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
-  - user should be able to use "on" instruction to understand what's going on in the system
-- Seeding might be done for team event so that such an example is also available readily in index.html
-- Embed Only navigation Restriction
+
+- Accessibility and UI/UX Issues
+  - Loader on ModalBox/popup
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
-- Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
+
+- Bundling Related
+  - Minify CSS in embed.js
+
+- Debuggability
+  - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
+    - user should be able to use "on" instruction to understand what's going on in the system
+  - Error Tracking for embed.js
+    - Know where exactly it’s failing if it does.
+
+- Improved Demo
+  - Seeding might be done for team event so that such an example is also available readily in index.html
+
+- Dev Experience/Ease of Installation
+  - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
-- Error Tracking for embed.js
-  - Know where exactly it’s failing if it does.
-- UI Config
-  - Theme switch dynamically
+- Embed Code Generator
+
+- UI Config Features
+  - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed.
   - Text Color
     - Brand color
     - At some places Text is colored by using the color specific tailwind class. e.g. `text-gray-400` is the color of disabled date. He has 2 options, If user wants to customize that
@@ -120,7 +131,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
       - How would the user add on hover styles just using style attribute ?
 - React Component
   - `onClick` support with preloading
-- Embed Code Generator
 
 ## Pending Documentation
 
