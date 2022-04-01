@@ -52,6 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     prisma.eventType.findUnique({
       where: { id },
       select: {
+        seatsPerTimeSlot: true,
         timeZone: true,
         schedule: {
           select: {
@@ -68,6 +69,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
+
+  // Used if the event type has seats
+  const getBookings = () => {
+    console.log("🚀 ~ file: [user].ts ~ line 83 ~ getBookings ~ eventTypeId", eventTypeId);
+
+    prisma.booking.findMany({
+      where: {
+        eventTypeId: { equals: eventTypeId },
+        // startTime: {
+        //   gte: dateFrom.format(),
+        //   lte: dateTo.format(),
+        // },
+      },
+    });
+  };
 
   type EventType = Prisma.PromiseReturnType<typeof getEventType>;
   let eventType: EventType | null = null;
@@ -109,9 +125,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
 
+  /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
+  current bookings with a seats event type and display them on the calendar, even if they are full */
+  let currentBookings;
+  if (eventType?.seatsPerTimeSlot) {
+    currentBookings = await prisma.booking.findMany({
+      where: {
+        eventTypeId: eventTypeId,
+        startTime: {
+          gte: dateFrom.format(),
+          lte: dateTo.format(),
+        },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        _count: {
+          select: {
+            attendees: true,
+          },
+        },
+      },
+    });
+    console.log("🚀 ~ file: [user].ts ~ line 129 ~ handler ~ currentBookings", currentBookings);
+  }
+
   res.status(200).json({
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
+    currentBookings,
   });
 }
