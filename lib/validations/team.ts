@@ -2,7 +2,7 @@ import { withValidation } from "next-validations";
 
 import { _TeamModel as Team } from "@calcom/prisma/zod";
 
-export const schemaTeamBodyParams = Team.omit({ id: true });
+export const schemaTeamBodyParams = Team.omit({ id: true }).partial();
 
 export const schemaTeamPublic = Team.omit({});
 

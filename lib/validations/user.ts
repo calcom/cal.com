@@ -8,7 +8,7 @@ export const schemaUserBodyParams = User.omit({
   password: true,
   twoFactorEnabled: true,
   twoFactorSecret: true,
-});
+}).partial();
 
 export const schemaUserPublic = User.omit({
   identityProvider: true,

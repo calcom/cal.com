@@ -12,12 +12,12 @@ import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/vali
  *   post:
  *     summary: Creates a new user
  *   requestBody:
-        description: Optional description in *Markdown*
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/User'
  *     tags:
  *     - users
  *     responses:
