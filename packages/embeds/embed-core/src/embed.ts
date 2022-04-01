@@ -162,8 +162,8 @@ export class Cal {
     return iframe;
   }
 
-  init(namespaceOrConfig: string | Config, config: Config = {} as Config) {
-    if (namespaceOrConfig.hasOwnProperty("origin")) {
+  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
+    if (namespaceOrConfig?.hasOwnProperty("origin")) {
       config = namespaceOrConfig as Config;
     }
     if (config?.origin) {

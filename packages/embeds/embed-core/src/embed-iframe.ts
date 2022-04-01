@@ -2,6 +2,21 @@ import { useState, useEffect, CSSProperties } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 
+declare global {
+  interface Window {
+    CalEmbed: {
+      __logQueue?: any[];
+    };
+  }
+}
+
+function log(...args: any[]) {
+  //TODO: Send postMessage to parent to get all log messages in the same queue.
+  window.CalEmbed = window.CalEmbed || {};
+  const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
+  logQueue.push(args);
+}
+
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
 interface EmbedStyles {
@@ -70,7 +85,11 @@ export const useEmbedStyles = (elementName: ElementName) => {
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
-    console.log("Method: ui called", uiConfig);
+    log("Method: ui called", uiConfig);
+    if (window.calComPlan !== "PRO") {
+      log(`Upgrade to PRO for "ui" instruction to work`);
+      return;
+    }
     const stylesConfig = uiConfig.styles;
 
     // In case where parent gives instructions before setEmbedStyles is set.

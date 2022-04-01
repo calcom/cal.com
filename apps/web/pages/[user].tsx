@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
@@ -35,7 +35,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
-
+  useEffect(() => {
+    window.calComPlan = user.plan;
+  }, []);
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   return (
