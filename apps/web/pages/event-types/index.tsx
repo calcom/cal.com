@@ -177,7 +177,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </button>
 
                     <button
-                      className="invisible absolute left-1/2 mt-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
+                      className="invisible absolute left-1/2 mt-8 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
                       onClick={() => moveEventType(index, 1)}>
                       <ArrowDownIcon />
                     </button>
@@ -189,7 +189,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
                     <div>
                       <span
-                        className="truncate font-medium text-neutral-900"
+                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
                         data-testid={"event-type-title-" + type.id}>
                         {type.title}
                       </span>
@@ -218,17 +218,18 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
+                        className="relative top-1 right-3"
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
                           alt: organizer.name || "",
-                          image: `${process.env.NEXT_PUBLIC_APP_URL}/${organizer.username}/avatar.png`,
+                          image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${organizer.username}/avatar.png`,
                         }))}
                       />
                     )}
                     <Tooltip content={t("preview")}>
                       <a
-                        href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-icon appearance-none">
@@ -241,7 +242,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         onClick={() => {
                           showToast(t("link_copied"), "success");
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
                           );
                         }}
                         className="btn-icon">
@@ -250,7 +251,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -314,12 +315,13 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
               </div>
               <div className="mr-5 flex flex-shrink-0 sm:hidden">
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-[38px] w-[38px] cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
+                  <DropdownMenuTrigger className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900">
                     <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent portalled>
                     <DropdownMenuItem>
-                      <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`}>
+                      <Link
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}>
                         <a target="_blank">
                           <Button
                             color="minimal"
@@ -341,7 +343,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         StartIcon={ClipboardCopyIcon}
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`
+                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
                           );
                           showToast(t("link_copied"), "success");
                         }}>
@@ -362,7 +364,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                               .share({
                                 title: t("share"),
                                 text: t("share_event"),
-                                url: `${process.env.NEXT_PUBLIC_APP_URL}/${group.profile.slug}/${type.slug}`,
+                                url: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`,
                               })
                               .then(() => showToast(t("link_shared"), "success"))
                               .catch(() => showToast(t("failed"), "error"));
@@ -372,17 +374,16 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                       </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem>
-                      <Link href={"/event-types/" + type.id} passHref={true}>
-                        <Button
-                          type="button"
-                          size="sm"
-                          color="minimal"
-                          className="w-full rounded-none"
-                          StartIcon={PencilIcon}>
-                          {" "}
-                          {t("edit")}
-                        </Button>
-                      </Link>
+                      <Button
+                        type="button"
+                        size="sm"
+                        href={"/event-types/" + type.id}
+                        color="minimal"
+                        className="w-full rounded-none"
+                        StartIcon={PencilIcon}>
+                        {" "}
+                        {t("edit")}
+                      </Button>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Button
@@ -463,8 +464,8 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         </span>
       )}
       {profile?.slug && (
-        <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_APP_URL?.replace(
+        <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
+          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
             "https://",
             ""
           )}/${profile.slug}`}</a>
@@ -500,8 +501,7 @@ const EventTypesPage = () => {
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
         CTA={
-          query.data &&
-          query.data.eventTypeGroups.length !== 0 && (
+          query.data && (
             <CreateEventTypeButton
               canAddEvents={query.data.viewer.canAddEvents}
               options={query.data.profiles}

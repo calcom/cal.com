@@ -74,7 +74,7 @@ export default function TeamAvailabilityModal(props: Props) {
             ]}
             isSearchable={false}
             classNamePrefix="react-select"
-            className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+            className="react-select-container focus:ring-primary-500 focus:border-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
             value={{ value: frequency, label: `${frequency} minutes` }}
             onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />

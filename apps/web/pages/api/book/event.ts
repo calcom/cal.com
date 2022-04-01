@@ -9,27 +9,27 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import EventManager from "@calcom/core/EventManager";
+import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
+import notEmpty from "@calcom/lib/notEmpty";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import type { AdditionInformation, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
-  sendScheduledEmails,
-  sendRescheduledEmails,
-  sendOrganizerRequestEmail,
   sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendScheduledEmails,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
-import { EventBusyDate } from "@lib/integrations/calendar/constants/types";
-import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
-import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office365Calendar";
-import logger from "@lib/logger";
-import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
-import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -232,6 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: true,
       metadata: true,
       destinationCalendar: true,
+      hideCalendarNotes: true,
     },
   });
 
@@ -292,16 +293,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
-        return {
-          email: user.email || "",
-          name: user.name || "",
-          timeZone: user.timeZone,
-          language: {
-            translate: await getTranslation(user.locale ?? "en", "common"),
-            locale: user.locale ?? "en",
-          },
-        };
-      })
+          return {
+            email: user.email || "",
+            name: user.name || "",
+            timeZone: user.timeZone,
+            language: {
+              translate: await getTranslation(user.locale ?? "en", "common"),
+              locale: user.locale ?? "en",
+            },
+          };
+        })
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
@@ -342,6 +343,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -365,7 +367,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const eventTypePayment = await prisma.credential.findFirst({
       where: {
         type: "stripe_payment",
-        userId: users[0].id
+        userId: users[0].id,
       },
       select: {
         id: true,
@@ -416,15 +418,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           destinationCalendar: evt.destinationCalendar
             ? {
-              connect: { id: evt.destinationCalendar.id },
-            }
+                connect: { id: evt.destinationCalendar.id },
+              }
             : undefined,
         },
       });
     } else if (!eventType.price) {
       /** If the stripe_payment credential does not exist but the eventTypes is
-          * without payment then create the booking
-         */
+       * without payment then create the booking
+       */
       return prisma.booking.create({
         include: {
           user: {
@@ -468,15 +470,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           destinationCalendar: evt.destinationCalendar
             ? {
-              connect: { id: evt.destinationCalendar.id },
-            }
+                connect: { id: evt.destinationCalendar.id },
+              }
             : undefined,
         },
       });
     }
     /** If the stripe_payment credential does not exist and the eventTypes is
-          * with payment then return null
-         */
+     * with payment then return null
+     */
     return null;
   }
 
@@ -499,7 +501,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const credentials = currentUser.credentials;
-    // Only confirmed and paid reservations are taken 
+    // Only confirmed and paid reservations are taken
     const calendarBusyTimes: EventBusyDate[] = await prisma.booking
       .findMany({
         where: {
@@ -508,7 +510,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           confirmed: true,
           paid: true,
           rejected: false,
-          status: 'ACCEPTED',
+          status: "ACCEPTED",
         },
       })
       .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));

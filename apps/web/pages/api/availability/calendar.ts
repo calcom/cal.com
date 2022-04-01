@@ -1,10 +1,11 @@
+import { Console } from "console";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import notEmpty from "@calcom/lib/notEmpty";
+
 import { getSession } from "@lib/auth";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
-import { Console } from "console";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });

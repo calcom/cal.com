@@ -1,15 +1,16 @@
 import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import EventManager from "@calcom/core/EventManager";
+import logger from "@calcom/lib/logger";
+import type { AdditionInformation } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendDeclinedEmails } from "@lib/emails/email-manager";
 import { sendScheduledEmails } from "@lib/emails/email-manager";
-import EventManager from "@lib/events/EventManager";
-import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
-import logger from "@lib/logger";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
 
@@ -99,13 +100,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         uid: true,
         payment: true,
         destinationCalendar: true,
-        paid: true
+        paid: true,
       },
     });
 
     if (!booking) {
       return res.status(404).json({ message: "booking not found" });
-
     }
 
     if (!(await authorized(currentUser, booking))) {
@@ -116,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "booking already confirmed" });
     }
 
-    /** If we are confirming a booking that need pay and does not have payment, 
+    /** If we are confirming a booking that need pay and does not have payment,
      * it would not have to save in google calendar */
     if (booking.payment.length > 0 && !booking.paid) {
       await prisma.booking.update({

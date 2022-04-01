@@ -1,13 +1,14 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import prisma from "@lib/prisma";
 
 dayjs.extend(utc);
@@ -94,10 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
     : {
-      ...currentUser.schedules.filter(
-        (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-      )[0],
-    };
+        ...currentUser.schedules.filter(
+          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+        )[0],
+      };
 
   const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
 
@@ -106,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timeZone,
     },
     schedule.availability ||
-    (eventType?.availability.length ? eventType.availability : currentUser.availability)
+      (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
 
   res.status(200).json({
