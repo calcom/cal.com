@@ -125,10 +125,13 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 },
                                 method: "DELETE",
                               });
+
                               if (res.status >= 200 && res.status < 300) {
                                 await router.push(
-                                  `/cancel/success?name=${props.profile.name}&title=${props.booking.title
-                                  }&eventPage=${props.profile.slug}&team=${props.booking.eventType?.team ? 1 : 0
+                                  `/cancel/success?name=${props.profile.name}&title=${
+                                    props.booking.title
+                                  }&eventPage=${props.profile.slug}&team=${
+                                    props.booking.eventType?.team ? 1 : 0
                                   }`
                                 );
                               } else {
