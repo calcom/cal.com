@@ -1,0 +1,21 @@
+name: Submodule Sync
+on:
+  schedule:
+    - cron: "15 */4 * * *"
+  workflow_dispatch: ~
+
+jobs:
+  submodule-sync:
+    name: Submodule update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: run action
+        uses: releasehub-com/github-action-create-pr-parent-submodule@v1
+        with:
+          github_token: ${{ secrets.GH_ACCESS_TOKEN }}
+          parent_repository: "calcom/cal.com"
+          checkout_branch: "main"
+          pr_against_branch: "main"
+          owner: "calcom"

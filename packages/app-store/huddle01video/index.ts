@@ -16,7 +16,7 @@ export const metadata = {
   verified: true,
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
-  category: "video",
+  category: "web3",
   label: "Huddle01 Video",
   slug: "huddle01_video",
   title: "Huddle01",
