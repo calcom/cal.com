@@ -1,32 +1,52 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Availability } from "@calcom/prisma/client";
 
-import { schemaAvailability, withValidAvailability } from "@lib/validations/availability";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { AvailabilityResponse } from "@lib/types";
+import {
+  schemaAvailabilityBodyParams,
+  schemaAvailabilityPublic,
+  withValidAvailability,
+} from "@lib/validations/availability";
 
-type ResponseData = {
-  data?: Availability;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/availabilites/new:
+ *   post:
+ *     summary: Creates a new availability
+ *   requestBody:
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/Availability'
+ *     tags:
+ *     - availabilites
+ *     responses:
+ *       201:
+ *         description: OK, availability created
+ *         model: Availability
+ *       400:
+ *        description: Bad request. Availability body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createAvailability(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
+  const safe = schemaAvailabilityBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createAvailability(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  if (method === "POST") {
-    const safe = schemaAvailability.safeParse(body);
-    if (safe.success && safe.data) {
-      await prisma.availability
-        .create({ data: safe.data })
-        .then((availability) => res.status(201).json({ data: availability }))
-        .catch((error) =>
-          res.status(400).json({ message: "Could not create availability type", error: error })
-        );
-    }
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ error: "Only POST Method allowed" });
-  }
+  const availability = await prisma.availability.create({ data: safe.data });
+  const data = schemaAvailabilityPublic.parse(availability);
+
+  if (data) res.status(201).json({ data, message: "Availability created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new availability",
+        error,
+      });
 }
 
-export default withValidAvailability(createAvailability);
+export default withMiddleware("HTTP_POST")(withValidAvailability(createAvailability));

@@ -11,9 +11,18 @@ import {
 
 /**
  * @swagger
- * /api/eventTypes/:id/delete:
+ * /api/eventTypes/{id}/delete:
  *   delete:
  *     summary: Remove an existing eventType
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the eventType to delete
+ *     tags:
+ *     - eventTypes
  *     responses:
  *       201:
  *         description: OK, eventType removed successfuly

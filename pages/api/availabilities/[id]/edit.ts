@@ -1,41 +1,62 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Availability } from "@calcom/prisma/client";
 
-import { schemaAvailability, withValidAvailability } from "@lib/validations/availability";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { AvailabilityResponse } from "@lib/types";
+import {
+  schemaAvailabilityBodyParams,
+  schemaAvailabilityPublic,
+  withValidAvailability,
+} from "@lib/validations/availability";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: Availability;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/availabilites/{id}/edit:
+ *   patch:
+ *     summary: Edit an existing availability
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the availability to edit
+ *     tags:
+ *     - availabilites
+ *     responses:
+ *       201:
+ *         description: OK, availability edited successfuly
+ *         model: Availability
+ *       400:
+ *        description: Bad request. Availability body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editAvailability(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
+  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = await schemaAvailabilityBodyParams.safeParse(req.body);
 
-export async function editAvailability(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaAvailability.safeParse(body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const availability = await prisma.availability.update({
+    where: { id: safeQuery.data.id },
+    data: safeBody.data,
+  });
+  const data = schemaAvailabilityPublic.parse(availability);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    await prisma.availability
-      .update({
-        where: { id: safeQuery.data.id },
-        data: safeBody.data,
-      })
-      .then((availability) => {
-        res.status(200).json({ data: availability });
-      })
-      .catch((error) => {
-        res
-          .status(404)
-          .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
       });
-    // Reject any other HTTP method than PATCH
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating availabilities" });
 }
 
-export default withValidQueryIdTransformParseInt(withValidAvailability(editAvailability));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidAvailability(editAvailability))
+);

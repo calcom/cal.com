@@ -21,7 +21,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the event type to get
+ *        description: Numeric ID of the eventType to get
  *     responses:
  *       200:
  *         description: OK
