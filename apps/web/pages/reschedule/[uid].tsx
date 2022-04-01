@@ -1,7 +1,8 @@
 import { GetServerSidePropsContext } from "next";
 
+import { getDefaultEvent } from "@calcom/lib/DefaultEvents";
+
 import { asStringOrUndefined } from "@lib/asStringOrNull";
-import { getDefaultEvent } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 
 export default function Type() {

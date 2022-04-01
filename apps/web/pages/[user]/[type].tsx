@@ -2,9 +2,10 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getDefaultEvent, getGroupName } from "@lib/events/DefaultEvents";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

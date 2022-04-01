@@ -11,13 +11,13 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
-import { getDefaultEvent } from "@lib/events/DefaultEvents";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
@@ -335,12 +335,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           userId: true,
           users: {
             select: {
+              email: true,
               name: true,
               hideBranding: true,
               plan: true,
               theme: true,
               brandColor: true,
               darkBrandColor: true,
+              timeZone: true,
             },
           },
           team: {
@@ -387,6 +389,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
+    email: eventType.team ? null : eventType.users[0].email,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor,
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,

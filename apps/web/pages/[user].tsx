@@ -9,9 +9,9 @@ import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
 import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
+import defaultEvents, { getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import defaultEvents, { getUsernameSlugLink } from "@lib/events/DefaultEvents";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
