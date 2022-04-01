@@ -56,8 +56,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "/" +
     eventType?.slug;
 
-  console.log(eventPage);
-
   return {
     redirect: {
       destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
