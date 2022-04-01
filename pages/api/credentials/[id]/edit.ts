@@ -1,38 +1,62 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Credential } from "@calcom/prisma/client";
 
-import { schemaCredential, withValidCredential } from "@lib/validations/credential";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { CredentialResponse } from "@lib/types";
+import {
+  schemaCredentialBodyParams,
+  schemaCredentialPublic,
+  withValidCredential,
+} from "@lib/validations/credential";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: Credential;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/credentials/{id}/edit:
+ *   patch:
+ *     summary: Edit an existing credential
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the credential to edit
+ *     tags:
+ *     - credentials
+ *     responses:
+ *       201:
+ *         description: OK, credential edited successfuly
+ *         model: Credential
+ *       400:
+ *        description: Bad request. Credential body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editCredential(req: NextApiRequest, res: NextApiResponse<CredentialResponse>) {
+  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = await schemaCredentialBodyParams.safeParse(req.body);
 
-export async function editCredential(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaCredential.safeParse(body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const credential = await prisma.credential.update({
+    where: { id: safeQuery.data.id },
+    data: safeBody.data,
+  });
+  const data = schemaCredentialPublic.parse(credential);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    const data = await prisma.credential.update({
-      where: { id: safeQuery.data.id },
-      data: safeBody.data,
-    });
-    if (data) res.status(200).json({ data });
-    else
-      res
-        .status(404)
-        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
-
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating credentials" });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(withValidCredential(editCredential));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidCredential(editCredential))
+);

@@ -2,6 +2,7 @@ import {
   User,
   ApiKey,
   Team,
+  Credential,
   SelectedCalendar,
   EventType,
   Attendee,

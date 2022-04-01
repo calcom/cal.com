@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import { withCost } from "@lib/helpers/withCost";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingResponse } from "@lib/types";
 import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "@lib/validations/booking";
@@ -46,4 +45,4 @@ async function createBooking(req: NextApiRequest, res: NextApiResponse<BookingRe
       });
 }
 
-export default withMiddleware(withCost(5), "HTTP_POST")(withValidBooking(createBooking));
+export default withMiddleware("HTTP_POST")(withValidBooking(createBooking));
