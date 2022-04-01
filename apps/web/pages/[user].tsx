@@ -206,12 +206,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   if (users.length > 1) {
-    if (
-      users.filter((user) => {
-        return user.allowDynamicBooking === true;
-      }).length === 0
-    )
-      throw Error("Dynamic group booking is not allowed by any of the selected users");
+    users.some((user) => {
+      if (!user.allowDynamicBooking) throw Error(`Dynamic group booking is not allowed by ${user.username}`);
+    });
   }
 
   if (!users.length) {
