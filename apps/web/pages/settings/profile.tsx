@@ -408,7 +408,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
               <div className="text-sm ltr:ml-3 rtl:mr-3">
-                <label htmlFor="theme-adjust-os" className="font-medium text-gray-700">
+                <label htmlFor="dynamic-group-booking" className="font-medium text-gray-700">
                   {t("allow_dynamic_booking")}
                 </label>
               </div>
