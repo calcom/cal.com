@@ -17,3 +17,5 @@ test("Inline Iframe - Configured with Dark Theme", async ({ page }) => {
 todo(
   "Ensure that on all pages - [user], [user]/[type], team/[slug], team/[slug]/book, UI styling works if these pages are directly linked in embed"
 );
+
+todo("Check that UI Configuration doesn't work for Free Plan");

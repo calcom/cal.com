@@ -94,6 +94,9 @@ export const useEmbedStyles = (elementName: ElementName) => {
   return styles[elementName] || {};
 };
 
+function unhideBody() {
+  document.body.style.display = "block";
+}
 // If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -122,7 +125,7 @@ export const methods = {
   },
   parentKnowsIframeReady: () => {
     log("Method: `parentKnowsIframeReady` called");
-    document.body.style.display = "block";
+    unhideBody();
     sdkActionManager?.fire("linkReady", {});
   },
 };
@@ -163,25 +166,34 @@ function keepParentInformedAboutDimensionChanges() {
   });
 }
 
-if (typeof window !== "undefined" && !location.search.includes("prerender=true")) {
-  log("Initializing embed-iframe");
-  sdkActionManager?.on("*", (e) => {
-    const detail = e.detail;
-    //console.log(detail.fullType, detail.type, detail.data);
-    messageParent(detail);
-  });
+if (typeof window !== "undefined") {
+  const url = new URL(document.URL);
+  if (url.searchParams.get("prerender") !== "true" && url.searchParams.get("embed")) {
+    log("Initializing embed-iframe");
 
-  window.addEventListener("message", (e) => {
-    const data: Record<string, any> = e.data;
-    if (!data) {
-      return;
+    // If embed link is opened in top, and not in iframe. Let the page be visible.
+    if (top === window) {
+      unhideBody();
     }
-    const method: keyof typeof methods = data.method;
-    if (data.originator === "CAL" && typeof method === "string") {
-      methods[method]?.(data.arg);
-    }
-  });
 
-  keepParentInformedAboutDimensionChanges();
-  sdkActionManager?.fire("iframeReady", {});
+    sdkActionManager?.on("*", (e) => {
+      const detail = e.detail;
+      //console.log(detail.fullType, detail.type, detail.data);
+      messageParent(detail);
+    });
+
+    window.addEventListener("message", (e) => {
+      const data: Record<string, any> = e.data;
+      if (!data) {
+        return;
+      }
+      const method: keyof typeof methods = data.method;
+      if (data.originator === "CAL" && typeof method === "string") {
+        methods[method]?.(data.arg);
+      }
+    });
+
+    keepParentInformedAboutDimensionChanges();
+    sdkActionManager?.fire("iframeReady", {});
+  }
 }
