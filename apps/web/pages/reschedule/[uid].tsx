@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
-import { getDefaultEvent } from "@calcom/lib/DefaultEvents";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";

@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getDefaultEvent, getGroupName } from "@calcom/lib/DefaultEvents";
+import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
