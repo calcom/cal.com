@@ -7,6 +7,7 @@ import React from "react";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -27,7 +28,7 @@ function TeamPage({ team }: TeamPageProps) {
   const { isReady, Theme } = useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
-
+  useExposePlanGlobally("PRO");
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (

@@ -8,7 +8,10 @@ import { SdkActionManager } from "./sdk-action-manager";
 declare module "*.css";
 
 type Namespace = string;
-type Config = Record<"origin", "string">;
+type Config = {
+  origin: string;
+  debug: 1;
+};
 
 const globalCal = (window as CalWindow).Cal;
 
@@ -138,6 +141,7 @@ export class Cal {
     // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
     iframe.scrolling = "no";
     iframe.className = "cal-embed";
+    iframe.name = "cal-embed";
     const config = this.getConfig();
 
     // Prepare searchParams from config
@@ -152,6 +156,9 @@ export class Cal {
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
+    if (config.debug) {
+      urlInstance.searchParams.set("debug", config.debug);
+    }
 
     // Merge searchParams from config onto the URL which might have query params already
     //@ts-ignore
@@ -163,12 +170,13 @@ export class Cal {
   }
 
   init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
-    if (namespaceOrConfig?.hasOwnProperty("origin")) {
+    if (typeof namespaceOrConfig !== "string") {
       config = namespaceOrConfig as Config;
     }
     if (config?.origin) {
       this.__config.origin = config.origin;
     }
+    this.__config.debug = config.debug;
   }
 
   getConfig() {

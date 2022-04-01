@@ -7,14 +7,27 @@ declare global {
     CalEmbed: {
       __logQueue?: any[];
     };
+    CalComPlan: string;
   }
 }
 
 function log(...args: any[]) {
-  //TODO: Send postMessage to parent to get all log messages in the same queue.
-  window.CalEmbed = window.CalEmbed || {};
-  const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-  logQueue.push(args);
+  let namespace;
+  if (typeof window !== "undefined") {
+    const searchParams = new URL(document.URL).searchParams;
+    namespace = searchParams.get("embed") || "_unknown_";
+    //TODO: Send postMessage to parent to get all log messages in the same queue.
+    window.CalEmbed = window.CalEmbed || {};
+    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
+    args.push({
+      ns: namespace,
+    });
+    args.unshift("CAL:");
+    logQueue.push(args);
+    if (searchParams.get("debug")) {
+      console.log(...args);
+    }
+  }
 }
 
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
@@ -86,14 +99,15 @@ export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
-    if (window.calComPlan !== "PRO") {
-      log(`Upgrade to PRO for "ui" instruction to work`);
+    if (window.CalComPlan && window.CalComPlan !== "PRO") {
+      log(`Upgrade to PRO for "ui" instruction to work`, window.CalComPlan);
       return;
     }
     const stylesConfig = uiConfig.styles;
 
-    // In case where parent gives instructions before setEmbedStyles is set.
-    if (!setEmbedStyles) {
+    // In case where parent gives instructions before CalComPlan is set.
+    // This is easily possible as React takes time to initialize and render components where this variable is set.
+    if (!window.CalComPlan) {
       return requestAnimationFrame(() => {
         style(uiConfig);
       });
@@ -107,6 +121,7 @@ export const methods = {
     setEmbedStyles(stylesConfig);
   },
   parentKnowsIframeReady: () => {
+    log("Method: `parentKnowsIframeReady` called");
     document.body.style.display = "block";
     sdkActionManager?.fire("linkReady", {});
   },
@@ -149,6 +164,7 @@ function keepParentInformedAboutDimensionChanges() {
 }
 
 if (typeof window !== "undefined" && !location.search.includes("prerender=true")) {
+  log("Initializing embed-iframe");
   sdkActionManager?.on("*", (e) => {
     const detail = e.detail;
     //console.log(detail.fullType, detail.type, detail.data);
