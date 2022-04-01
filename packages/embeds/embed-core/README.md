@@ -19,32 +19,33 @@ See [index.html](index.html) to understand how it can be used.
 - _Step-1._ Install the snippet
 
     ```javascript
-    (function (C, A, L) {
-      let d = C.document;
-      C.Cal =
-        C.Cal ||
-        function () {
-          let cal = C.Cal;
-          let ar = arguments;
-          if (!cal.loaded) {
-            cal.ns = {};
-            cal.q = cal.q || [];
-            d.head.appendChild(d.createElement("script")).src = A;
-            cal.loaded = true;
-          }
-          if (ar[0] === L) {
-            const api = function () {
-              api.q.push(arguments);
-            };
-            const namespace = arguments[1];
-            api.q = api.q || [];
-            namespace ? (cal.ns[namespace] = api) : null;
-            return;
-          }
-          cal.q.push(ar);
+    (function(C, A, L) {
+    let p = function(a, ar) {
+      a.q.push(ar);
+    };
+    let d = C.document;
+    C.Cal = C.Cal || function() {
+      let cal = C.Cal;
+      let ar = arguments;
+      if (!cal.loaded) {
+        cal.ns = {};
+        cal.q = cal.q || [];
+        d.head.appendChild(d.createElement("script")).src = A;
+        cal.loaded = true;
+      }
+      if (ar[0] === L) {
+        const api = function() {
+          p(api, arguments);
         };
-    })(window, "https://cal.com/embed.js", "init");
-    ```
+        const namespace = ar[1];
+        api.q = api.q || [];
+        typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+        return;
+      }
+      p(cal, ar);
+    };
+  })(window, "https://cal.com/embed.js", "init");
+  ```
 
 - _Step-2_. Give `init` instruction to it. It creates a queue so that even without embed.js being fetched, you can give instructions to embed.
 
@@ -96,6 +97,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 ## Upcoming Improvements
 
+- Unsupported Browsers and versions. Documenting them and gracefully handling that.
+- Minify CSS in embed.js
 - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
   - user should be able to use "on" instruction to understand what's going on in the system
 - Seeding might be done for team event so that such an example is also available readily in index.html
@@ -105,9 +108,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 - Error Tracking for embed.js
   - Know where exactly it’s failing if it does.
-- Documentation
-  - How to make a new element configurable using UI instruction ?
-  - Why do we not want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
 - UI Config
   - Theme switch dynamically
   - Text Color
@@ -119,3 +119,16 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
       - How would the user add on hover styles just using style attribute ?
 - React Component
   - `onClick` support with preloading
+- Embed Code Generator
+
+## Pending Documentation
+
+- READMEs
+  - How to make a new element configurable using UI instruction ?
+  - Why do we NOT want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
+
+- docs.cal.com
+  - A complete document on how to use embed
+
+- app.cal.com
+  - Get Embed code for each event-type
