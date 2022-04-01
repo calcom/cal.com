@@ -171,7 +171,7 @@ export class Cal {
 
   init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
     if (typeof namespaceOrConfig !== "string") {
-      config = namespaceOrConfig as Config;
+      config = (namespaceOrConfig || {}) as Config;
     }
     if (config?.origin) {
       this.__config.origin = config.origin;
@@ -315,7 +315,8 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      origin: import.meta.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com",
+      // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
+      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);

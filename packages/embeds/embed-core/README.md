@@ -99,6 +99,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
 - Minify CSS in embed.js
+- Loader on ModalBox/popup
 - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
   - user should be able to use "on" instruction to understand what's going on in the system
 - Seeding might be done for team event so that such an example is also available readily in index.html
