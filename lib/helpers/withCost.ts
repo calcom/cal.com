@@ -3,8 +3,6 @@
 // Initially to test out 0,5 cent per booking via API call
 // withCost(5)(endpoint)
 // Should add a charge of 0.5 cent per booking to the subscription of the user making the request
-// Should be called in the middleware of the e
-//
 import { NextMiddleware } from "next-api-middleware";
 
 export const withCost = (priceInCents: number): NextMiddleware => {

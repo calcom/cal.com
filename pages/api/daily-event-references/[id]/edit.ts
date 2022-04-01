@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { DailyEventReference } from "@calcom/prisma/client";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { DailyEventReferenceResponse } from "@lib/types";
 import {
-  schemaDailyEventReference,
+  schemaDailyEventReferenceBodyParams,
+  schemaDailyEventReferencePublic,
   withValidDailyEventReference,
 } from "@lib/validations/daily-event-reference";
 import {
@@ -12,30 +14,52 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: DailyEventReference;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/daily-event-references/{id}/edit:
+ *   patch:
+ *     summary: Edit an existing dailyEventReference
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the dailyEventReference to edit
+ *     tags:
+ *     - dailyEventReferences
+ *     responses:
+ *       201:
+ *         description: OK, dailyEventReference edited successfuly
+ *         model: DailyEventReference
+ *       400:
+ *        description: Bad request. DailyEventReference body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function editDailyEventReference(
+  req: NextApiRequest,
+  res: NextApiResponse<DailyEventReferenceResponse>
+) {
+  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = await schemaDailyEventReferenceBodyParams.safeParse(req.body);
 
-export async function editDailyEventReference(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, body, method } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaDailyEventReference.safeParse(body);
+  if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const dailyEventReference = await prisma.dailyEventReference.update({
+    where: { id: safeQuery.data.id },
+    data: safeBody.data,
+  });
+  const data = schemaDailyEventReferencePublic.parse(dailyEventReference);
 
-  if (method === "PATCH" && safeQuery.success && safeBody.success) {
-    const data = await prisma.dailyEventReference.update({
-      where: { id: safeQuery.data.id },
-      data: safeBody.data,
-    });
-    if (data) res.status(200).json({ data });
-    else
-      res
-        .status(404)
-        .json({ message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`, error });
-
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only PATCH Method allowed for updating dailyEventReferences" });
+  if (data) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: `Event type with ID ${safeQuery.data.id} not found and wasn't updated`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(withValidDailyEventReference(editDailyEventReference));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidDailyEventReference(editDailyEventReference))
+);

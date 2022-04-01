@@ -2,28 +2,50 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BaseResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/destination-calendars/{id}/delete:
+ *   delete:
+ *     summary: Remove an existing destinationCalendar
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the destinationCalendar to delete
+ *     tags:
+ *     - destinationCalendars
+ *     responses:
+ *       201:
+ *         description: OK, destinationCalendar removed successfuly
+ *         model: DestinationCalendar
+ *       400:
+ *        description: Bad request. DestinationCalendar id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function deleteDestinationCalendar(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query", safe.error);
 
-export async function deleteDestinationCalendar(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "DELETE" && safe.success && safe.data) {
-    const destinationCalendar = await prisma.destinationCalendar.delete({ where: { id: safe.data.id } });
-    // We only remove the destinationCalendar type from the database if there's an existing resource.
-    if (destinationCalendar)
-      res.status(200).json({ message: `destinationCalendar with id: ${safe.data.id} deleted successfully` });
-    // This catches the error thrown by prisma.destinationCalendar.delete() if the resource is not found.
-    else res.status(400).json({ message: `Resource with id:${safe.data.id} was not found` });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only DELETE Method allowed" });
+  const data = await prisma.destinationCalendar.delete({ where: { id: safe.data.id } });
+
+  if (data)
+    res.status(200).json({ message: `DestinationCalendar with id: ${safe.data.id} deleted successfully` });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: `DestinationCalendar with id: ${safe.data.id} was not able to be processed`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(deleteDestinationCalendar);
+export default withMiddleware("HTTP_DELETE")(withValidQueryIdTransformParseInt(deleteDestinationCalendar));

@@ -1,31 +1,55 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { DailyEventReference } from "@calcom/prisma/client";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { DailyEventReferenceResponse } from "@lib/types";
 import {
-  schemaDailyEventReference,
+  schemaDailyEventReferenceBodyParams,
+  schemaDailyEventReferencePublic,
   withValidDailyEventReference,
 } from "@lib/validations/daily-event-reference";
 
-type ResponseData = {
-  data?: DailyEventReference;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/daily-event-references/new:
+ *   post:
+ *     summary: Creates a new dailyEventReference
+ *   requestBody:
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/DailyEventReference'
+ *     tags:
+ *     - dailyEventReferences
+ *     responses:
+ *       201:
+ *         description: OK, dailyEventReference created
+ *         model: DailyEventReference
+ *       400:
+ *        description: Bad request. DailyEventReference body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createDailyEventReference(
+  req: NextApiRequest,
+  res: NextApiResponse<DailyEventReferenceResponse>
+) {
+  const safe = schemaDailyEventReferenceBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createDailyEventReference(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaDailyEventReference.safeParse(body);
-  if (method === "POST" && safe.success) {
-    await prisma.dailyEventReference
-      .create({ data: safe.data })
-      .then((data) => res.status(201).json({ data }))
-      .catch((error) =>
-        res.status(400).json({ message: "Could not create dailyEventReference type", error: error })
-      );
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: "Only POST Method allowed" });
+  const dailyEventReference = await prisma.dailyEventReference.create({ data: safe.data });
+  const data = schemaDailyEventReferencePublic.parse(dailyEventReference);
+
+  if (data) res.status(201).json({ data, message: "DailyEventReference created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new dailyEventReference",
+        error,
+      });
 }
 
-export default withValidDailyEventReference(createDailyEventReference);
+export default withMiddleware("HTTP_POST")(withValidDailyEventReference(createDailyEventReference));

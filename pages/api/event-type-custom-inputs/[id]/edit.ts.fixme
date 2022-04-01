@@ -3,12 +3,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { DestinationCalendarResponse } from "@lib/types";
+import type { EventTypeCustomInputResponse } from "@lib/types";
 import {
-  schemaDestinationCalendarBodyParams,
-  schemaDestinationCalendarPublic,
-  withValidDestinationCalendar,
-} from "@lib/validations/destination-calendar";
+  schemaEventTypeCustomInputBodyParams,
+  schemaEventTypeCustomInputPublic,
+  withValidEventTypeCustomInput,
+} from "@lib/validations/event-type-custom-input";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -16,40 +16,40 @@ import {
 
 /**
  * @swagger
- * /api/destination-calendars/{id}/edit:
+ * /api/event-type-custom-inputs/{id}/edit:
  *   patch:
- *     summary: Edit an existing destinationCalendar
+ *     summary: Edit an existing eventTypeCustomInput
  *    parameters:
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the destinationCalendar to edit
+ *        description: Numeric ID of the eventTypeCustomInput to edit
  *     tags:
- *     - destinationCalendars
+ *     - eventTypeCustomInputs
  *     responses:
  *       201:
- *         description: OK, destinationCalendar edited successfuly
- *         model: DestinationCalendar
+ *         description: OK, eventTypeCustomInput edited successfuly
+ *         model: EventTypeCustomInput
  *       400:
- *        description: Bad request. DestinationCalendar body is invalid.
+ *        description: Bad request. EventTypeCustomInput body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function editDestinationCalendar(
+export async function editEventTypeCustomInput(
   req: NextApiRequest,
-  res: NextApiResponse<DestinationCalendarResponse>
+  res: NextApiResponse<EventTypeCustomInputResponse>
 ) {
   const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
-  const safeBody = await schemaDestinationCalendarBodyParams.safeParse(req.body);
+  const safeBody = await schemaEventTypeCustomInputBodyParams.safeParse(req.body);
 
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
-  const destinationCalendar = await prisma.destinationCalendar.update({
+  const eventTypeCustomInput = await prisma.eventTypeCustomInput.update({
     where: { id: safeQuery.data.id },
     data: safeBody.data,
   });
-  const data = schemaDestinationCalendarPublic.parse(destinationCalendar);
+  const data = schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput);
 
   if (data) res.status(200).json({ data });
   else
@@ -61,5 +61,5 @@ export async function editDestinationCalendar(
 }
 
 export default withMiddleware("HTTP_PATCH")(
-  withValidQueryIdTransformParseInt(withValidDestinationCalendar(editDestinationCalendar))
+  withValidQueryIdTransformParseInt(withValidEventTypeCustomInput(editEventTypeCustomInput))
 );

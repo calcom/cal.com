@@ -5,6 +5,7 @@ import {
   Credential,
   SelectedCalendar,
   EventType,
+  EventTypeCustomInput,
   Attendee,
   Availability,
   BookingReference,
@@ -118,6 +119,14 @@ export type MembershipResponse = BaseResponse & {
 };
 export type MembershipsResponse = BaseResponse & {
   data?: Partial<Membership>[];
+};
+
+// EventTypeCustomInput
+export type EventTypeCustomInputResponse = BaseResponse & {
+  data?: Partial<EventTypeCustomInput>;
+};
+export type EventTypeCustomInputsResponse = BaseResponse & {
+  data?: Partial<EventTypeCustomInput>[];
 };
 
 // EventType
