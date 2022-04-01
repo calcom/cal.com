@@ -44,7 +44,7 @@ type getFilteredTimesProps = {
 
 export const getFilteredTimes = (props: getFilteredTimesProps) => {
   const { times, busy, eventLength, beforeBufferTime, afterBufferTime } = props;
-  const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
+  const finalizationTime = times[times.length - 1]?.add(eventLength, "minutes");
   // Check for conflicts
   for (let i = times.length - 1; i >= 0; i -= 1) {
     // const totalSlotLength = eventLength + beforeBufferTime + afterBufferTime;
