@@ -71,7 +71,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   type EventType = Prisma.PromiseReturnType<typeof getEventType>;
   let eventType: EventType | null = null;
-
   if (eventTypeId) eventType = await getEventType(eventTypeId);
 
   if (!rawUser) throw new Error("No user found");

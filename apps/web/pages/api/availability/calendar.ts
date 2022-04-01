@@ -1,4 +1,3 @@
-import { Console } from "console";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
