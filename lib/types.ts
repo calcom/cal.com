@@ -16,6 +16,7 @@ import {
   Membership,
   Payment,
   Schedule,
+  ReminderMail,
 } from "@calcom/prisma/client";
 
 // Base response, used for all responses
@@ -159,4 +160,12 @@ export type WebhookResponse = BaseResponse & {
 };
 export type WebhooksResponse = BaseResponse & {
   data?: Partial<Webhook>[];
+};
+
+// ReminderMail
+export type ReminderMailResponse = BaseResponse & {
+  data?: Partial<ReminderMail>;
+};
+export type ReminderMailsResponse = BaseResponse & {
+  data?: Partial<ReminderMail>[];
 };
