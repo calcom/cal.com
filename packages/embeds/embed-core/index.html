@@ -148,6 +148,7 @@
       if (!only || only === "ns:default") {
         Cal("init", {
           debug: 1,
+          origin: "http://localhost:3000",
         });
 
         Cal("inline", {
@@ -168,7 +169,10 @@
       }
       if (!only || only === "ns:second") {
         // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
-        Cal("init", "second", { debug: 1 });
+        Cal("init", "second", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
 
         // Bulk API is supported - Keep all configuration at one place.
         Cal.ns.second(
@@ -209,6 +213,7 @@
         // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
         Cal("init", "third", {
           debug: 1,
+          origin: "http://localhost:3000",
         });
         Cal.ns.third(
           [
@@ -238,6 +243,7 @@
       if (!only || only === "ns:fourth") {
         Cal("init", "fourth", {
           debug: 1,
+          origin: "http://localhost:3000",
         });
         Cal.ns.fourth(
           [

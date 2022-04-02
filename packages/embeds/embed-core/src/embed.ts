@@ -138,8 +138,6 @@ export class Cal {
     queryObject?: Record<string, string | string[]>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
-    // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
-    iframe.scrolling = "no";
     iframe.className = "cal-embed";
     iframe.name = "cal-embed";
     const config = this.getConfig();
@@ -332,12 +330,16 @@ export class Cal {
     this.actionManager.on("dimension-changed", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
+
       if (!iframe) {
         // Iframe might be pre-rendering
         return;
       }
-      let proposedHeightByIframeWebsite = parseFloat(getComputedStyle(iframe).height) + data.hiddenHeight;
+      let proposedHeightByIframeWebsite = data.iframeHeight;
       iframe.style.height = proposedHeightByIframeWebsite + "px";
+      // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
+      // This case is reproducible when viewing in ModalBox on Mobile.
+      iframe.style.maxHeight = window.innerHeight + "px";
     });
 
     this.actionManager.on("iframeReady", (e) => {
