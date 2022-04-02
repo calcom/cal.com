@@ -13,7 +13,6 @@ export const schemaEventTypeCustomInputPublic = EventTypeCustomInput.omit({});
 const schemaEventTypeCustomInputRequiredParams = z.object({
   label: z.string(),
   required: z.boolean(),
-  // eventType: EventTypeModel.optional(),
   type: z.enum(["TEXT", "TEXTLONG", "NUMBER", "BOOL"]),
   eventType: z.object({
     connect: z.object({
