@@ -5,9 +5,7 @@ import { _TeamModel as Team } from "@calcom/prisma/zod";
 
 export const schemaTeamBaseBodyParams = Team.omit({ id: true }).partial();
 
-const schemaTeamRequiredParams = z.object({
-  // email: z.string().email(),
-});
+const schemaTeamRequiredParams = z.object({});
 
 export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams);
 
