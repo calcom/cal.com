@@ -3,4 +3,6 @@
 */
 .cal-embed {
   border: 0px;
+  border-radius: 8px;
+  min-height: 100%;
 }

@@ -335,8 +335,8 @@ export class Cal {
         // Iframe might be pre-rendering
         return;
       }
-      let proposedHeightByIframeWebsite = data.iframeHeight;
-      iframe.style.height = proposedHeightByIframeWebsite + "px";
+      iframe.style.height = data.iframeHeight + "px";
+      iframe.style.width = data.iframeWidth + "px";
       // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
       // This case is reproducible when viewing in ModalBox on Mobile.
       iframe.style.maxHeight = window.innerHeight + "px";

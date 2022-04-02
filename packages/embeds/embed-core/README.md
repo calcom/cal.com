@@ -101,10 +101,12 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Accessibility and UI/UX Issues
   - Loader on ModalBox/popup
+  - Make it customizable by user.
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
+  - ~~Close on backdrop click~~
 
 - Bundling Related
-  - Minify CSS in embed.js
+  - ~~Minify CSS in embed.js~~
 
 - Debuggability
   - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.

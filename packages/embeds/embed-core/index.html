@@ -71,9 +71,9 @@
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
-        <div style="max-height: 30vh; overflow: scroll" class="place">
+        <div style="max-height: 30vh; max-width: 50vw; overflow: scroll" class="place">
           <div>
-            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
+            if you render booking embed in me, I would not let it be more than 30vh and 50vw. So you would
             have to scroll to see the entire content
           </div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
@@ -122,8 +122,8 @@
         <i class="last-action">
           <i>You would see last Booking page action in my place</i>
         </i>
-        <div style="width: 30%" class="place">
-          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+        <div class="place">
+          <div>If you render booking embed in me,</div>
           <div class="loader" id="cal-booking-loader-third">Loading .....</div>
         </div>
       </div>
@@ -271,6 +271,10 @@
       }
 
       if (!only || only === "prerender-test") {
+        Cal("init", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
         Cal("preload", {
           calLink: "free",
         });

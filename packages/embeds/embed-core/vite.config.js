@@ -6,6 +6,7 @@ const { defineConfig } = require("vite");
 module.exports = defineConfig({
   envPrefix: "NEXT_PUBLIC_",
   build: {
+    minify: "terser",
     lib: {
       entry: path.resolve(__dirname, "src/embed.ts"),
       name: "embed",

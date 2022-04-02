@@ -1,8 +1,20 @@
 export class ModalBox extends HTMLElement {
+  static htmlOverflow: string;
+  close() {
+    this.shadowRoot!.host.remove();
+    document.body.style.overflow = ModalBox.htmlOverflow;
+  }
+
   connectedCallback() {
     const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
+
+    document.addEventListener("click", (e) => {
+      const el = e.target as HTMLElement;
+      this.close();
+    });
+
     closeEl.onclick = () => {
-      this.shadowRoot!.host.remove();
+      this.close();
     };
   }
 
@@ -73,6 +85,8 @@ export class ModalBox extends HTMLElement {
 		</div>
 	  `;
     this.attachShadow({ mode: "open" });
+    ModalBox.htmlOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     this.shadowRoot!.innerHTML = modalHtml;
   }
 }

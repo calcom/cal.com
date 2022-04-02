@@ -19,6 +19,7 @@ function keepRunningAsap(fn: (...arg: any) => void) {
   }
   return requestAnimationFrame(fn);
 }
+
 declare global {
   interface Window {
     CalEmbed: {
@@ -29,10 +30,10 @@ declare global {
 }
 
 function log(...args: any[]) {
-  let namespace;
   if (typeof window !== "undefined") {
+    const namespace = getNamespace();
+
     const searchParams = new URL(document.URL).searchParams;
-    namespace = typeof searchParams.get("embed") !== "undefined" ? "" : "_unknown_";
     //TODO: Send postMessage to parent to get all log messages in the same queue.
     window.CalEmbed = window.CalEmbed || {};
     const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
@@ -111,9 +112,25 @@ export const useEmbedStyles = (elementName: ElementName) => {
   return styles[elementName] || {};
 };
 
+const getNamespace = () => {
+  if (typeof window !== "undefined") {
+    const url = new URL(document.URL);
+    return url.searchParams.get("embed");
+  }
+};
+
+const isEmbed = () => {
+  return typeof getNamespace() !== "undefined";
+};
+
+export const useIsEmbed = () => {
+  return isEmbed();
+};
+
 function unhideBody() {
   document.body.style.display = "block";
 }
+
 // If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -180,11 +197,15 @@ function keepParentInformedAboutDimensionChanges() {
       return;
     }
     const documentScrollHeight = document.documentElement.scrollHeight;
+    const documentScrollWidth = document.documentElement.scrollWidth;
     const contentHeight = document.documentElement.offsetHeight;
+    const contentWidth = document.documentElement.offsetWidth;
+
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
     let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
+    let iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
     isFirstTime = false;
     // TODO: Handle width as well.
     if (knownIframeHeight !== iframeHeight) {
@@ -193,6 +214,7 @@ function keepParentInformedAboutDimensionChanges() {
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
       sdkActionManager?.fire("dimension-changed", {
         iframeHeight,
+        iframeWidth,
       });
     }
     // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
@@ -208,7 +230,7 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (typeof window !== "undefined") {
   const url = new URL(document.URL);
-  if (url.searchParams.get("prerender") !== "true" && typeof url.searchParams.get("embed") !== "undefined") {
+  if (url.searchParams.get("prerender") !== "true" && isEmbed()) {
     log("Initializing embed-iframe");
 
     // If embed link is opened in top, and not in iframe. Let the page be visible.
