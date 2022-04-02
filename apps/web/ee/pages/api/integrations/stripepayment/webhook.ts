@@ -10,6 +10,7 @@ import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
+import { sendScheduledEmails } from "@lib/emails/email-manager";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -125,6 +126,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       },
     });
   }
+
+  await sendScheduledEmails({ ...evt });
 
   throw new HttpCode({
     statusCode: 200,
