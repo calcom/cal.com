@@ -8,7 +8,7 @@ import {
   schemaEventTypeBodyParams,
   schemaEventTypePublic,
   withValidEventType,
-} from "@lib/validations/eventType";
+} from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
