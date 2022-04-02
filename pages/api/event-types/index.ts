@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypesResponse } from "@lib/types";
-import { schemaEventTypePublic } from "@lib/validations/eventType";
+import { schemaEventTypePublic } from "@lib/validations/event-type";
 
 /**
  * @swagger

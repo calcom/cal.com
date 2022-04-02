@@ -1,4 +1,3 @@
-
 name: Check types
 on:
   pull_request:

@@ -1,8 +1,13 @@
 import { withValidation } from "next-validations";
+import { z } from "zod";
 
 import { _TeamModel as Team } from "@calcom/prisma/zod";
 
-export const schemaTeamBodyParams = Team.omit({ id: true }).partial();
+export const schemaTeamBaseBodyParams = Team.omit({ id: true }).partial();
+
+const schemaTeamRequiredParams = z.object({});
+
+export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams);
 
 export const schemaTeamPublic = Team.omit({});
 

@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 import { ApiKey } from "@calcom/prisma/client";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { schemaApiKeyBodyParams, withValidApiKey } from "@lib/validations/apiKey";
+import { schemaApiKeyBodyParams, withValidApiKey } from "@lib/validations/api-key";
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 type ResponseData = {
