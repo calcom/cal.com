@@ -8,7 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //   const username = req.url?.substring(1, req.url.lastIndexOf("/"));
   const username = req.query.username as string;
   const user = await prisma.user.findUnique({
-    rejectOnNotFound: true,
     where: {
       username: username,
     },
@@ -20,9 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const emailMd5 = crypto
     .createHash("md5")
-    .update(user.email as string)
+    .update((user?.email as string) || "guest@example.com")
     .digest("hex");
-  const img = user.avatar;
+  const img = user?.avatar;
   if (!img) {
     res.writeHead(302, {
       Location: defaultAvatarSrc({ md5: emailMd5 }),

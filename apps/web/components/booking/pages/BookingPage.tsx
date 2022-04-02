@@ -114,7 +114,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string };
+  type Location = { type: LocationType; address?: string; link?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -200,6 +200,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       }
       case LocationType.InPerson: {
         return locationInfo(locationType)?.address || "";
+      }
+      case LocationType.Link: {
+        return locationInfo(locationType)?.link || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
