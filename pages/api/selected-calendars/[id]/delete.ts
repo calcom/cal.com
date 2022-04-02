@@ -4,16 +4,27 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BaseResponse } from "@lib/types";
-import {
-  schemaQueryIdParseInt,
-  withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 /**
  * @swagger
- * /api/selectedCalendars/:id/delete:
+ * /api/selected-calendars/{userId}_{teamId}/delete:
  *   delete:
- *     description: Remove an existing selectedCalendar
+ *     summary: Remove an existing selectedCalendar
+ *    parameters:
+ *    - in: path
+ *    - name: userId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the user to get the selectedCalendar of
+ *  *    - name: teamId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the team to get the selectedCalendar of
+ *     tags:
+ *     - selectedCalendars
  *     responses:
  *       201:
  *         description: OK, selectedCalendar removed successfuly
@@ -24,10 +35,18 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteSelectedCalendar(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
-  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  const safe = await schemaQueryIdAsString.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query", safe.error);
-
-  const data = await prisma.selectedCalendar.delete({ where: { id: safe.data.id } });
+  const [userId, integration, externalId] = safe.data.id.split("_");
+  const data = await prisma.selectedCalendar.delete({
+    where: {
+      userId_integration_externalId: {
+        userId: parseInt(userId),
+        integration: integration,
+        externalId: externalId,
+      },
+    },
+  });
 
   if (data)
     res.status(200).json({ message: `SelectedCalendar with id: ${safe.data.id} deleted successfully` });
@@ -39,4 +58,4 @@ export async function deleteSelectedCalendar(req: NextApiRequest, res: NextApiRe
       });
 }
 
-export default withMiddleware("HTTP_DELETE")(withValidQueryIdTransformParseInt(deleteSelectedCalendar));
+export default withMiddleware("HTTP_DELETE")(withValidQueryIdString(deleteSelectedCalendar));

@@ -9,16 +9,15 @@ import {
   schemaSelectedCalendarPublic,
   withValidSelectedCalendar,
 } from "@lib/validations/selected-calendar";
-import {
-  schemaQueryIdParseInt,
-  withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 /**
  * @swagger
- * /api/selectedCalendars/:id/edit:
+ * /api/selected-calendars/{id}/edit:
  *   patch:
- *     description: Edits an existing selectedCalendar
+ *     summary: Edits an existing selectedCalendar
+ *     tags:
+ *     - selectedCalendars
  *     responses:
  *       201:
  *         description: OK, selectedCalendar edited successfuly
@@ -32,12 +31,19 @@ export async function editSelectedCalendar(
   req: NextApiRequest,
   res: NextApiResponse<SelectedCalendarResponse>
 ) {
-  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
+  const safeQuery = await schemaQueryIdAsString.safeParse(req.query);
   const safeBody = await schemaSelectedCalendarBodyParams.safeParse(req.body);
-
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
+  const [userId, integration, externalId] = safeQuery.data.id.split("_");
+
   const selectedCalendar = await prisma.selectedCalendar.update({
-    where: { id: safeQuery.data.id },
+    where: {
+      userId_integration_externalId: {
+        userId: parseInt(userId),
+        integration: integration,
+        externalId: externalId,
+      },
+    },
     data: safeBody.data,
   });
   const data = schemaSelectedCalendarPublic.parse(selectedCalendar);
@@ -52,5 +58,5 @@ export async function editSelectedCalendar(
 }
 
 export default withMiddleware("HTTP_PATCH")(
-  withValidQueryIdTransformParseInt(withValidSelectedCalendar(editSelectedCalendar))
+  withValidQueryIdString(withValidSelectedCalendar(editSelectedCalendar))
 );

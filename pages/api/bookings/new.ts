@@ -1,30 +1,48 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Booking } from "@calcom/prisma/client";
 
-import { schemaBooking, withValidBooking } from "@lib/validations/booking";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BookingResponse } from "@lib/types";
+import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "@lib/validations/booking";
 
-type ResponseData = {
-  data?: Booking;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/bookings/new:
+ *   post:
+ *     summary: Creates a new booking
+ *   requestBody:
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/Booking'
+ *     tags:
+ *     - bookings
+ *     responses:
+ *       201:
+ *         description: OK, booking created
+ *         model: Booking
+ *       400:
+ *        description: Bad request. Booking body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createBooking(req: NextApiRequest, res: NextApiResponse<BookingResponse>) {
+  const safe = schemaBookingBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createBooking(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  if (method === "POST") {
-    const safe = schemaBooking.safeParse(body);
-    if (safe.success && safe.data) {
-      await prisma.booking
-        .create({ data: safe.data })
-        .then((booking) => res.status(201).json({ data: booking }))
-        .catch((error) => res.status(400).json({ message: "Could not create booking type", error: error }));
-    }
-  } else {
-    // Reject any other HTTP method than POST
-    res.status(405).json({ error: "Only POST Method allowed" });
-  }
+  const booking = await prisma.booking.create({ data: safe.data });
+  const data = schemaBookingPublic.parse(booking);
+
+  if (data) res.status(201).json({ data, message: "Booking created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new booking",
+        error,
+      });
 }
 
-export default withValidBooking(createBooking);
+export default withMiddleware("HTTP_POST")(withValidBooking(createBooking));

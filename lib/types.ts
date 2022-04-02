@@ -2,8 +2,10 @@ import {
   User,
   ApiKey,
   Team,
+  Credential,
   SelectedCalendar,
   EventType,
+  EventTypeCustomInput,
   Attendee,
   Availability,
   BookingReference,
@@ -21,10 +23,12 @@ export type BaseResponse = {
   message?: string;
   error?: Error;
 };
+
 // User
 export type UserResponse = BaseResponse & {
   data?: Partial<User>;
 };
+
 export type UsersResponse = BaseResponse & {
   data?: Partial<User>[];
 };
@@ -115,6 +119,14 @@ export type MembershipResponse = BaseResponse & {
 };
 export type MembershipsResponse = BaseResponse & {
   data?: Partial<Membership>[];
+};
+
+// EventTypeCustomInput
+export type EventTypeCustomInputResponse = BaseResponse & {
+  data?: Partial<EventTypeCustomInput>;
+};
+export type EventTypeCustomInputsResponse = BaseResponse & {
+  data?: Partial<EventTypeCustomInput>[];
 };
 
 // EventType

@@ -13,7 +13,9 @@ import {
  * @swagger
  * /api/teams/:id/delete:
  *   delete:
- *     description: Remove an existing team
+ *     summary: Remove an existing team
+ *     tags:
+ *     - teams
  *     responses:
  *       201:
  *         description: OK, team removed successfuly

@@ -1,15 +1,37 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { Membership } from "@calcom/prisma/client";
 
-type ResponseData = {
-  data?: Membership[];
-  error?: unknown;
-};
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { MembershipsResponse } from "@lib/types";
+import { schemaMembershipPublic } from "@lib/validations/membership";
 
-export default async function membership(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const data = await prisma.membership.findMany();
+/**
+ * @swagger
+ * /api/memberships:
+ *   get:
+ *     summary: Returns all memberships
+ *     tags:
+ *     - memberships
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: No memberships were found
+ */
+async function allMemberships(_: NextApiRequest, res: NextApiResponse<MembershipsResponse>) {
+  const memberships = await prisma.membership.findMany();
+  const data = memberships.map((membership) => schemaMembershipPublic.parse(membership));
+
   if (data) res.status(200).json({ data });
-  else res.status(400).json({ error: "No data found" });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "No Memberships were found",
+        error,
+      });
 }
+
+export default withMiddleware("HTTP_GET")(allMemberships);

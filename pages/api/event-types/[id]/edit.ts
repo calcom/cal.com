@@ -16,9 +16,18 @@ import {
 
 /**
  * @swagger
- * /api/eventTypes/:id/edit:
+ * /api/eventTypes/{id}/edit:
  *   patch:
- *     description: Edits an existing eventType
+ *     summary: Edits an existing eventType
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the eventType to delete
+ *     tags:
+ *     - eventTypes
  *     responses:
  *       201:
  *         description: OK, eventType edited successfuly

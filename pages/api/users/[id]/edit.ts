@@ -12,9 +12,18 @@ import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/vali
 
 /**
  * @swagger
- * /api/users/:id/edit:
+ * /api/users/{id}/edit:
  *   patch:
- *     description: Edits an existing user
+ *     summary: Edit an existing user
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the user to edit
+ *     tags:
+ *     - users
  *     responses:
  *       201:
  *         description: OK, user edited successfuly

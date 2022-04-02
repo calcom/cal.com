@@ -1,29 +1,54 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { DailyEventReference } from "@calcom/prisma/client";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { DailyEventReferenceResponse } from "@lib/types";
+import { schemaDailyEventReferencePublic } from "@lib/validations/daily-event-reference";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  data?: DailyEventReference;
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/daily-event-references/{id}:
+ *   get:
+ *   summary: Get a dailyEventReference by ID
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the dailyEventReference to get
+ *     tags:
+ *     - dailyEventReferences
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: DailyEventReference was not found
+ */
+export async function dailyEventReferenceById(
+  req: NextApiRequest,
+  res: NextApiResponse<DailyEventReferenceResponse>
+) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query");
 
-export async function dailyEventReference(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "GET" && safe.success) {
-    const data = await prisma.dailyEventReference.findUnique({ where: { id: safe.data.id } });
+  const dailyEventReference = await prisma.dailyEventReference.findUnique({ where: { id: safe.data.id } });
+  const data = schemaDailyEventReferencePublic.parse(dailyEventReference);
 
-    if (data) res.status(200).json({ data });
-    else res.status(404).json({ message: "Event type not found" });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only GET Method allowed" });
+  if (dailyEventReference) res.status(200).json({ data });
+  else
+    (error: Error) =>
+      res.status(404).json({
+        message: "DailyEventReference was not found",
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(dailyEventReference);
+export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(dailyEventReferenceById));

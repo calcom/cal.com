@@ -1,31 +1,55 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { EventTypeCustomInput } from "@calcom/prisma/client";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { EventTypeCustomInputResponse } from "@lib/types";
 import {
-  schemaEventTypeCustomInput,
+  schemaEventTypeCustomInputBodyParams,
+  schemaEventTypeCustomInputPublic,
   withValidEventTypeCustomInput,
-} from "@lib/validations/eventTypeCustomInput";
+} from "@lib/validations/event-type-custom-input";
 
-type ResponseData = {
-  data?: EventTypeCustomInput;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/event-type-custom-inputs/new:
+ *   post:
+ *     summary: Creates a new eventTypeCustomInput
+ *   requestBody:
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/EventTypeCustomInput'
+ *     tags:
+ *     - eventTypeCustomInputs
+ *     responses:
+ *       201:
+ *         description: OK, eventTypeCustomInput created
+ *         model: EventTypeCustomInput
+ *       400:
+ *        description: Bad request. EventTypeCustomInput body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createEventTypeCustomInput(
+  req: NextApiRequest,
+  res: NextApiResponse<EventTypeCustomInputResponse>
+) {
+  const safe = schemaEventTypeCustomInputBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createEventTypeCustomInput(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaEventTypeCustomInput.safeParse(body);
-  if (method === "POST" && safe.success) {
-    await prisma.eventTypeCustomInput
-      .create({ data: safe.data })
-      .then((data) => res.status(201).json({ data }))
-      .catch((error) =>
-        res.status(400).json({ message: "Could not create eventTypeCustomInput type", error: error })
-      );
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: "Only POST Method allowed" });
+  const eventTypeCustomInput = await prisma.eventTypeCustomInput.create({ data: safe.data });
+  const data = schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput);
+
+  if (data) res.status(201).json({ data, message: "EventTypeCustomInput created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new eventTypeCustomInput",
+        error,
+      });
 }
 
-export default withValidEventTypeCustomInput(createEventTypeCustomInput);
+export default withMiddleware("HTTP_POST")(withValidEventTypeCustomInput(createEventTypeCustomInput));

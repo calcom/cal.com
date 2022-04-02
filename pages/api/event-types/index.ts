@@ -10,7 +10,7 @@ import { schemaEventTypePublic } from "@lib/validations/eventType";
  * @swagger
  * /api/eventTypes:
  *   get:
- *     description: Returns all eventTypes
+ *     summary: Returns all eventTypes
  *     responses:
  *       200:
  *         description: OK

@@ -14,7 +14,7 @@ import {
  * @swagger
  * /api/eventTypes/new:
  *   post:
- *     description: Creates a new eventType
+ *     summary: Creates a new eventType
  *     responses:
  *       201:
  *         description: OK, eventType created

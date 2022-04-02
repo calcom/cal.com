@@ -1,28 +1,52 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
-import { BookingReference } from "@calcom/prisma/client";
 
-import { schemaBookingReference, withValidBookingReference } from "@lib/validations/booking-reference";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BookingReferenceResponse } from "@lib/types";
+import {
+  schemaBookingReferenceBodyParams,
+  schemaBookingReferencePublic,
+  withValidBookingReference,
+} from "@lib/validations/booking-reference";
 
-type ResponseData = {
-  data?: BookingReference;
-  message?: string;
-  error?: string;
-};
+/**
+ * @swagger
+ * /api/booking-references/new:
+ *   post:
+ *     summary: Creates a new bookingReference
+ *   requestBody:
+ *     description: Optional description in *Markdown*
+ *     required: true
+ *     content:
+ *       application/json:
+ *           schema:
+ *           $ref: '#/components/schemas/BookingReference'
+ *     tags:
+ *     - bookingReferences
+ *     responses:
+ *       201:
+ *         description: OK, bookingReference created
+ *         model: BookingReference
+ *       400:
+ *        description: Bad request. BookingReference body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+async function createBookingReference(req: NextApiRequest, res: NextApiResponse<BookingReferenceResponse>) {
+  const safe = schemaBookingReferenceBodyParams.safeParse(req.body);
+  if (!safe.success) throw new Error("Invalid request body", safe.error);
 
-async function createBookingReference(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { body, method } = req;
-  const safe = schemaBookingReference.safeParse(body);
-  if (method === "POST" && safe.success) {
-    await prisma.bookingReference
-      .create({ data: safe.data })
-      .then((data) => res.status(201).json({ data }))
-      .catch((error) =>
-        res.status(400).json({ message: "Could not create bookingReference type", error: error })
-      );
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ error: "Only POST Method allowed" });
+  const bookingReference = await prisma.bookingReference.create({ data: safe.data });
+  const data = schemaBookingReferencePublic.parse(bookingReference);
+
+  if (data) res.status(201).json({ data, message: "BookingReference created successfully" });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: "Could not create new bookingReference",
+        error,
+      });
 }
 
-export default withValidBookingReference(createBookingReference);
+export default withMiddleware("HTTP_POST")(withValidBookingReference(createBookingReference));

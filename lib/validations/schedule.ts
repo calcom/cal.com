@@ -1,8 +1,16 @@
 import { withValidation } from "next-validations";
+import { z } from "zod";
 
 import { _ScheduleModel as Schedule } from "@calcom/prisma/zod";
 
-export const schemaScheduleBodyParams = Schedule.omit({ id: true });
+const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
+
+const schemaScheduleRequiredParams = z.object({
+  userId: z.number(),
+  name: z.string(),
+});
+
+export const schemaScheduleBodyParams = schemaScheduleBaseBodyParams.merge(schemaScheduleRequiredParams);
 
 export const schemaSchedulePublic = Schedule.omit({});
 

@@ -2,27 +2,49 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { BaseResponse } from "@lib/types";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-type ResponseData = {
-  message?: string;
-  error?: unknown;
-};
+/**
+ * @swagger
+ * /api/attendees/{id}/delete:
+ *   delete:
+ *     summary: Remove an existing attendee
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the attendee to delete
+ *     tags:
+ *     - attendees
+ *     responses:
+ *       201:
+ *         description: OK, attendee removed successfuly
+ *         model: Attendee
+ *       400:
+ *        description: Bad request. Attendee id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function deleteAttendee(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
+  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  if (!safe.success) throw new Error("Invalid request query", safe.error);
 
-export async function attendee(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  const { query, method } = req;
-  const safe = await schemaQueryIdParseInt.safeParse(query);
-  if (method === "DELETE" && safe.success && safe.data) {
-    const attendee = await prisma.attendee.delete({ where: { id: safe.data.id } });
-    // We only remove the attendee type from the database if there's an existing resource.
-    if (attendee) res.status(200).json({ message: `attendee with id: ${safe.data.id} deleted successfully` });
-    // This catches the error thrown by prisma.attendee.delete() if the resource is not found.
-    else res.status(400).json({ message: `Resource with id:${safe.data.id} was not found` });
-    // Reject any other HTTP method than POST
-  } else res.status(405).json({ message: "Only DELETE Method allowed" });
+  const data = await prisma.attendee.delete({ where: { id: safe.data.id } });
+
+  if (data) res.status(200).json({ message: `Attendee with id: ${safe.data.id} deleted successfully` });
+  else
+    (error: Error) =>
+      res.status(400).json({
+        message: `Attendee with id: ${safe.data.id} was not able to be processed`,
+        error,
+      });
 }
 
-export default withValidQueryIdTransformParseInt(attendee);
+export default withMiddleware("HTTP_DELETE")(withValidQueryIdTransformParseInt(deleteAttendee));

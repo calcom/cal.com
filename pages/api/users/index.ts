@@ -10,7 +10,9 @@ import { schemaUserPublic } from "@lib/validations/user";
  * @swagger
  * /api/users:
  *   get:
- *     description: Returns all users
+ *     summary: Get all users
+ *     tags:
+ *     - users
  *     responses:
  *       200:
  *         description: OK

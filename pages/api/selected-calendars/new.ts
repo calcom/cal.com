@@ -14,7 +14,7 @@ import {
  * @swagger
  * /api/selectedCalendars/new:
  *   post:
- *     description: Creates a new selected calendar
+ *     summary: Creates a new selected calendar
  *     responses:
  *       201:
  *         description: OK, selected calendar created

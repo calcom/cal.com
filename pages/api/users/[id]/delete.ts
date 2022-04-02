@@ -11,9 +11,18 @@ import {
 
 /**
  * @swagger
- * /api/users/:id/delete:
+ * /api/users/{id}/delete:
  *   delete:
- *     description: Remove an existing user
+ *     summary: Remove an existing user
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the user to delete
+ *     tags:
+ *     - users
  *     responses:
  *       201:
  *         description: OK, user removed successfuly
