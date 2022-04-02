@@ -1,7 +1,7 @@
 import { withValidation } from "next-validations";
 import { z } from "zod";
 
-import { _UserModel, _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
+import { _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
 
 export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar.omit({ userId: true }).partial();
 
@@ -16,6 +16,7 @@ const schemaSelectedCalendarRequiredParams = z.object({
       username: z.string().optional(),
       email: z.string().optional(),
     }),
+    // FIXME: Provide valid UserModel schema here, but not sure how yet.
     create: z.any(),
   }),
 });

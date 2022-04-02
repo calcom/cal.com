@@ -3,8 +3,6 @@ import { z } from "zod";
 
 import { _ScheduleModel as Schedule } from "@calcom/prisma/zod";
 
-// import { jsonSchema } from "./shared/jsonSchema";
-
 const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
 
 const schemaScheduleRequiredParams = z.object({
