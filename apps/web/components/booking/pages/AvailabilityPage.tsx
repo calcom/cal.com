@@ -16,6 +16,8 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useIsEmbed } from "@calcom/embed-core";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { BASE_URL } from "@lib/config/constants";
@@ -44,6 +46,7 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
 const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage }: Props) => {
   const router = useRouter();
+  const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
   const { t } = useLocale();
@@ -129,11 +132,17 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       <div>
         <main
           className={
-            "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
-            (selectedDate ? "max-w-5xl" : "max-w-3xl")
+            isEmbed
+              ? ""
+              : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
+                (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
+            <div
+              className={
+                "rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border" +
+                (isEmbed ? " mx-auto  max-w-3xl" : "")
+              }>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="block items-center sm:flex sm:space-x-4">

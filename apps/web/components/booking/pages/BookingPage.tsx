@@ -12,6 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -54,6 +55,7 @@ type BookingFormValues = {
 
 const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  const isEmbed = useIsEmbed();
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
@@ -272,7 +274,12 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <main
+        className={
+          isEmbed
+            ? "mx-auto max-w-3xl"
+            : "mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
+        }>
         {isReady && (
           <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">

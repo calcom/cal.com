@@ -4,6 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -29,6 +30,7 @@ function TeamPage({ team }: TeamPageProps) {
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
+  const isEmbed = useIsEmbed();
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (

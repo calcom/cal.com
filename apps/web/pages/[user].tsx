@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
+import { sdkActionManager, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -39,6 +39,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
+  const isEmbed = useIsEmbed();
   return (
     <>
       <Theme />
@@ -49,7 +50,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         username={(user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
-      <div className="h-screen dark:bg-neutral-900">
+      <div className={"h-screen dark:bg-neutral-900" + isEmbed ? " bg:white m-auto max-w-3xl" : ""}>
         <main className="mx-auto max-w-3xl px-4 py-24">
           <div className="mb-8 text-center">
             <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
