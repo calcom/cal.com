@@ -114,7 +114,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     eventTypeId: foundUser?.eventTypes[0]?.id ?? 0,
     user: foundUser?.username ?? "",
     email: foundUser?.email ?? "",
-    name: selected_name,
+    name: foundUser?.username ?? "",
     guests: await Promise.all(invitedGuestsEmails),
     location: "inPerson", // TODO: Make this pickable in the future - defaulting to in person as any video provider that does not exist within the monorepo will crash the app.
     timeZone: foundUser?.timeZone ?? "",
@@ -124,23 +124,19 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     notes: "This event was created with slack.",
   };
 
-  // Possible make the fetch_wrapped into a shared package?
-  console.log(JSON.stringify(PostData, null, 2));
-
-  try {
-    await fetch(`${WEBAPP_URL}/api/book/event`, {
-      method: "POST",
-      body: JSON.stringify(PostData),
-      headers: {
-        "Content-Type": "application/json",
-      },
+  fetch(`${WEBAPP_URL}/api/book/event`, {
+    method: "POST",
+    body: JSON.stringify(PostData),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(() => {
+      return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
+    })
+    .catch(() => {
+      return res
+        .status(200)
+        .json({ text: "Event creation failed. Please try again", response_action: "update" });
     });
-
-    return res.status(200).json({ response_action: "update", view: BookingSuccess() }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
-    // res.status(200).json({ response_action: "clear" }); // we can can do this here as errors are caught within the slack ui modal. However, we need to set a response_action url so that the user is informed that the event creation has worked
-  } catch (error) {
-    return res
-      .status(200)
-      .json({ text: "Event creation failed. Please try again", response_action: "update" });
-  }
 }
