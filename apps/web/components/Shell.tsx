@@ -350,7 +350,7 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              {props.heading && props.subtitle && (
+              {props.heading && (
                 <div
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
