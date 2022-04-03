@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/attendees/{id}:
  *   get:
- *   summary: Get a attendee by ID
- *    parameters:
+ *     summary: Get a attendee by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

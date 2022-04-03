@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /api/schedules/:id/delete:
+ * /api/schedules/{id}/delete:
  *   delete:
  *     summary: Remove an existing schedule
  *     tags:

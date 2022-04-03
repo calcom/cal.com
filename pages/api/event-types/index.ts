@@ -11,6 +11,8 @@ import { schemaEventTypePublic } from "@lib/validations/event-type";
  * /api/eventTypes:
  *   get:
  *     summary: Returns all eventTypes
+ *     tags:
+ *     - event-types
  *     responses:
  *       200:
  *         description: OK

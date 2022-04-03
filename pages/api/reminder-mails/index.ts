@@ -10,9 +10,9 @@ import { schemaReminderMailPublic } from "@lib/validations/reminder-mail";
  * @swagger
  * /api/reminder-mails:
  *   get:
- *     summary: Get all reminderMails
+ *     summary: Get all reminder mails
  *     tags:
- *     - reminderMails
+ *     - reminder-mails
  *     responses:
  *       200:
  *         description: OK

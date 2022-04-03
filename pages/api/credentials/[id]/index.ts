@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/credentials/{id}:
  *   get:
- *   summary: Get a credential by ID
- *    parameters:
+ *     summary: Get a credential by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

@@ -10,27 +10,26 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * @swagger
  * /api/selected-calendars/{userId}_{teamId}/delete:
  *   delete:
- *     summary: Remove an existing selectedCalendar
- *    parameters:
- *    - in: path
- *    - name: userId
+ *     summary: Remove an existing record of a selected calendar
+ *     parameters:
+ *      - in: path
+ *      - name: userId
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the user to get the selectedCalendar of
- *  *    - name: teamId
+ *        description: Numeric ID of the user to get the selected calendar of
+ *      - name: teamId
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to get the selectedCalendar of
+ *        description: Numeric ID of the team to get the selected calendar of
  *     tags:
- *     - selectedCalendars
+ *     - selected-calendars
  *     responses:
  *       201:
- *         description: OK, selectedCalendar removed successfuly
- *         model: SelectedCalendar
+ *         description: OK, selected calendar removed successfuly
  *       400:
- *        description: Bad request. SelectedCalendar id is invalid.
+ *        description: Bad request. selected calendar id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */

@@ -14,7 +14,7 @@ import {
  * /api/bookings/{id}/delete:
  *   delete:
  *     summary: Remove an existing booking
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

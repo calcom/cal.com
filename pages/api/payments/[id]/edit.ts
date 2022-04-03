@@ -15,7 +15,7 @@ import {
  * /api/payments/{id}/edit:
  *   patch:
  *     summary: Edit an existing payment
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

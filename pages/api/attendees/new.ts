@@ -11,13 +11,6 @@ import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } fro
  * /api/attendees/new:
  *   post:
  *     summary: Creates a new attendee
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
- *           schema:
- *           $ref: '#/components/schemas/Attendee'
  *     tags:
  *     - attendees
  *     responses:

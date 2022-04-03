@@ -12,7 +12,7 @@ import { schemaEventTypeCustomInputPublic } from "@lib/validations/event-type-cu
  *   get:
  *     summary: Get all eventTypeCustomInputs
  *     tags:
- *     - eventTypeCustomInputs
+ *     - event-type-custom-inputs
  *     responses:
  *       200:
  *         description: OK

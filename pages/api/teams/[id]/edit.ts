@@ -12,9 +12,23 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
 
 /**
  * @swagger
- * /api/teams/:id/edit:
+ * /api/teams/{id}/edit:
  *   patch:
  *     summary: Edits an existing team
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *      - in: body
+ *        name: team
+ *        description: The team to edit
+ *        schema: Team
+ *        required: true
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the team to edit
  *     tags:
  *     - teams
  *     responses:

@@ -14,7 +14,7 @@ import {
  * /api/availabilites/{id}/delete:
  *   delete:
  *     summary: Remove an existing availability
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/booking-references/{id}:
  *   get:
- *   summary: Get a bookingReference by ID
- *    parameters:
+ *     summary: Get a bookingReference by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the bookingReference to get
  *     tags:
- *     - bookingReferences
+ *     - booking-references
  *     responses:
  *       200:
  *         description: OK

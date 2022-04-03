@@ -15,7 +15,7 @@ import {
  * /api/bookings/{id}/edit:
  *   patch:
  *     summary: Edit an existing booking
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

@@ -12,9 +12,11 @@ import {
 
 /**
  * @swagger
- * /api/eventTypes/new:
+ * /api/event-types/new:
  *   post:
  *     summary: Creates a new eventType
+ *     tags:
+ *     - event-types
  *     responses:
  *       201:
  *         description: OK, eventType created

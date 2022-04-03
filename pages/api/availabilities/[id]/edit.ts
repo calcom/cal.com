@@ -19,7 +19,7 @@ import {
  * /api/availabilites/{id}/edit:
  *   patch:
  *     summary: Edit an existing availability
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

@@ -11,9 +11,16 @@ import {
 
 /**
  * @swagger
- * /api/teams/:id/delete:
+ * /api/teams/{id}/delete:
  *   delete:
  *     summary: Remove an existing team
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric ID of the team to remove
  *     tags:
  *     - teams
  *     responses:

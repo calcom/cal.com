@@ -18,8 +18,8 @@ import {
  * @swagger
  * /api/reminder-mails/{id}/edit:
  *   patch:
- *     summary: Edit an existing reminderMail
- *    parameters:
+ *     summary: Edit an existing reminder mail
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -27,7 +27,7 @@ import {
  *        required: true
  *        description: Numeric ID of the reminderMail to edit
  *     tags:
- *     - reminderMails
+ *     - reminder-mails
  *     responses:
  *       201:
  *         description: OK, reminderMail edited successfuly

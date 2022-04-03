@@ -15,15 +15,15 @@ import {
  * /api/daily-event-references/new:
  *   post:
  *     summary: Creates a new dailyEventReference
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/DailyEventReference'
  *     tags:
- *     - dailyEventReferences
+ *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, dailyEventReference created

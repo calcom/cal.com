@@ -14,7 +14,7 @@ import {
  * /api/attendees/{id}/delete:
  *   delete:
  *     summary: Remove an existing attendee
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

@@ -15,11 +15,11 @@ import {
  * /api/availabilites/new:
  *   post:
  *     summary: Creates a new availability
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/Availability'
  *     tags:
@@ -27,7 +27,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, availability created
- *         model: Availability
  *       400:
  *        description: Bad request. Availability body is invalid.
  *       401:

@@ -14,7 +14,7 @@ import {
  * /api/credentials/{id}/delete:
  *   delete:
  *     summary: Remove an existing credential
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

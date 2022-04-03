@@ -12,9 +12,11 @@ import {
 
 /**
  * @swagger
- * /api/selectedCalendars/new:
+ * /api/selected-calendars/new:
  *   post:
  *     summary: Creates a new selected calendar
+ *     tags:
+ *     - selected-calendars
  *     responses:
  *       201:
  *         description: OK, selected calendar created

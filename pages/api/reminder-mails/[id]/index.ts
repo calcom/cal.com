@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/reminder-mails/{id}:
  *   get:
- *   summary: Get a reminderMail by ID
- *    parameters:
+ *     summary: Get a reminder mail by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the reminderMail to get
  *     tags:
- *     - reminderMails
+ *     - reminder-mails
  *     responses:
  *       200:
  *         description: OK

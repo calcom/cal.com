@@ -1,3 +1,4 @@
+import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
 import { withSwagger } from "next-swagger-doc";
 
@@ -8,8 +9,11 @@ const swaggerHandler = withSwagger({
       title: `${pjson.name}: ${pjson.description}`,
       version: pjson.version,
     },
-    tags: ["users", "teams"],
+    components: { schemas: { ...jsonSchema.definitions } },
+    definitions: jsonSchema.definitions,
   },
   apiFolder: "pages/api",
+  tags: ["users", "teams", "memeberships"],
+  sort: true,
 });
 export default swaggerHandler();

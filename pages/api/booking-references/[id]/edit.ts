@@ -19,7 +19,7 @@ import {
  * /api/booking-references/{id}/edit:
  *   patch:
  *     summary: Edit an existing bookingReference
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -27,7 +27,7 @@ import {
  *        required: true
  *        description: Numeric ID of the bookingReference to edit
  *     tags:
- *     - bookingReferences
+ *     - booking-references
  *     responses:
  *       201:
  *         description: OK, bookingReference edited successfuly

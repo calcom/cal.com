@@ -14,7 +14,7 @@ import {
  * /api/event-type-custom-inputs/{id}/delete:
  *   delete:
  *     summary: Remove an existing eventTypeCustomInput
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -22,7 +22,7 @@ import {
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
  *     tags:
- *     - eventTypeCustomInputs
+ *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput removed successfuly

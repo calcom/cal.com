@@ -15,7 +15,7 @@ import {
  * /api/schedules/{id}:
  *   get:
  *     summary: Get schedule by ID
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

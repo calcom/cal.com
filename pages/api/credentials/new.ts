@@ -15,11 +15,11 @@ import {
  * /api/credentials/new:
  *   post:
  *     summary: Creates a new credential
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/Credential'
  *     tags:
