@@ -54,7 +54,6 @@ for submodule in $submodules; do
     # SUBMODULE_GITHUB=$remotes[$SUBMODULE_PATH]
     if [ "$SUBMODULE_PATH" == "apps/website" ]; then
         SUBMODULE_GITHUB=github.com/calcom/website
-        COMMIT=$VERCEL_GIT_COMMIT_SHA
     fi
 
     if [ "$SUBMODULE_PATH" == "apps/api" ]; then
