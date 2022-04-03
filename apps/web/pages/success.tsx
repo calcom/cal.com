@@ -10,12 +10,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { sdkActionManager } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
@@ -40,11 +41,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
-
-  useEffect(() => {
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, []);
+  const { eventType } = props;
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -57,6 +54,26 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   };
 
   const eventName = getEventName(eventNameObject);
+  const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+
+  useEffect(() => {
+    const users = eventType.users;
+    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
+    sdkActionManager!.fire("bookingSuccessful", {
+      eventType,
+      date: date.toString(),
+      duration: eventType.length,
+      organizer: {
+        name: users[0].name || "Nameless",
+        email: users[0].email || "Email-less",
+        timeZone: users[0].timeZone,
+      },
+      confirmed: !needsConfirmation,
+      // TODO: Add payment details
+    });
+    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+  }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -86,8 +103,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
-
-  const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
 
   return (
     (isReady && (
@@ -322,6 +337,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          email: true,
+          timeZone: true,
         },
       },
       team: {
@@ -351,6 +368,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: true,
         brandColor: true,
         darkBrandColor: true,
+        email: true,
+        timeZone: true,
       },
     });
     if (user) {
