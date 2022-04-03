@@ -1,5 +1,5 @@
 # github submodule repo addresses without https:// prefix
-BRANCH_TO_CLONE=""
+BRANCH_TO_CLONE="-b feat/api-keys"
 
 # This didn't work ¯\_(ツ)_/¯
 # declare -A remotes=(
