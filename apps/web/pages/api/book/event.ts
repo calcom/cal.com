@@ -326,7 +326,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
     );
-
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -530,6 +529,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.update(evt, rescheduleUid);
+    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -563,6 +565,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
+
+    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
