@@ -59,6 +59,7 @@ for submodule in $submodules; do
 
     if [ "$SUBMODULE_PATH" == "apps/api" ]; then
         SUBMODULE_GITHUB=github.com/calcom/api
+        COMMIT=$VERCEL_GIT_COMMIT_SHA
     fi
 
     echo "Submodule init"
