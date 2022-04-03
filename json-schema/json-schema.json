@@ -16,24 +16,14 @@
           "description": "@zod.custom(imports.eventTypeSlug)"
         },
         "description": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "position": {
           "type": "integer",
           "default": 0
         },
         "locations": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ],
+          "type": ["number", "string", "boolean", "object", "array", "null"],
           "description": "@zod.custom(imports.eventTypeLocations)"
         },
         "length": {
@@ -50,10 +40,7 @@
           }
         },
         "userId": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "team": {
           "anyOf": [
@@ -94,10 +81,7 @@
           ]
         },
         "eventName": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "customInputs": {
           "type": "array",
@@ -106,45 +90,26 @@
           }
         },
         "timeZone": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "periodType": {
           "type": "string",
           "default": "UNLIMITED",
-          "enum": [
-            "UNLIMITED",
-            "ROLLING",
-            "RANGE"
-          ]
+          "enum": ["UNLIMITED", "ROLLING", "RANGE"]
         },
         "periodStartDate": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "periodEndDate": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "periodDays": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "periodCountCalendarDays": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "requiresConfirmation": {
           "type": "boolean",
@@ -167,14 +132,8 @@
           "default": 0
         },
         "schedulingType": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "enum": [
-            "ROUND_ROBIN",
-            "COLLECTIVE"
-          ]
+          "type": ["string", "null"],
+          "enum": ["ROUND_ROBIN", "COLLECTIVE"]
         },
         "schedule": {
           "anyOf": [
@@ -195,20 +154,10 @@
           "default": "usd"
         },
         "slotInterval": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "metadata": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ]
+          "type": ["number", "string", "boolean", "object", "array", "null"]
         }
       }
     },
@@ -222,14 +171,7 @@
           "type": "string"
         },
         "key": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ]
+          "type": ["number", "string", "boolean", "object", "array", "null"]
         },
         "user": {
           "anyOf": [
@@ -294,45 +236,27 @@
           "type": "integer"
         },
         "username": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "email": {
           "type": "string",
           "description": "@zod.email()"
         },
         "emailVerified": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "password": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "bio": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "avatar": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "timeZone": {
           "type": "string",
@@ -359,20 +283,14 @@
           "default": false
         },
         "theme": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "createdDate": {
           "type": "string",
           "format": "date-time"
         },
         "trialEndsAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "eventTypes": {
@@ -406,10 +324,7 @@
           }
         },
         "defaultScheduleId": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "selectedCalendars": {
           "type": "array",
@@ -422,23 +337,14 @@
           "default": false
         },
         "locale": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "timeFormat": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "default": 12
         },
         "twoFactorSecret": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "twoFactorEnabled": {
           "type": "boolean",
@@ -447,17 +353,10 @@
         "identityProvider": {
           "type": "string",
           "default": "CAL",
-          "enum": [
-            "CAL",
-            "GOOGLE",
-            "SAML"
-          ]
+          "enum": ["CAL", "GOOGLE", "SAML"]
         },
         "identityProviderId": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "availability": {
           "type": "array",
@@ -466,19 +365,12 @@
           }
         },
         "invitedTo": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "plan": {
           "type": "string",
           "default": "TRIAL",
-          "enum": [
-            "FREE",
-            "TRIAL",
-            "PRO"
-          ]
+          "enum": ["FREE", "TRIAL", "PRO"]
         },
         "webhooks": {
           "type": "array",
@@ -509,20 +401,10 @@
           "default": false
         },
         "metadata": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ]
+          "type": ["number", "string", "boolean", "object", "array", "null"]
         },
         "verified": {
-          "type": [
-            "boolean",
-            "null"
-          ],
+          "type": ["boolean", "null"],
           "default": false
         },
         "apiKeys": {
@@ -540,28 +422,16 @@
           "type": "integer"
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "slug": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "logo": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "bio": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "hideBranding": {
           "type": "boolean",
@@ -590,11 +460,7 @@
         },
         "role": {
           "type": "string",
-          "enum": [
-            "MEMBER",
-            "ADMIN",
-            "OWNER"
-          ]
+          "enum": ["MEMBER", "ADMIN", "OWNER"]
         },
         "team": {
           "$ref": "#/definitions/Team"
@@ -643,22 +509,13 @@
           "type": "string"
         },
         "meetingId": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "meetingPassword": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "meetingUrl": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "booking": {
           "anyOf": [
@@ -688,10 +545,7 @@
           "type": "string"
         },
         "locale": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": "en"
         },
         "booking": {
@@ -771,10 +625,7 @@
           "type": "string"
         },
         "description": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "startTime": {
           "type": "string",
@@ -791,10 +642,7 @@
           }
         },
         "location": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "dailyRef": {
           "anyOf": [
@@ -811,10 +659,7 @@
           "format": "date-time"
         },
         "updatedAt": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "confirmed": {
@@ -828,12 +673,7 @@
         "status": {
           "type": "string",
           "default": "ACCEPTED",
-          "enum": [
-            "CANCELLED",
-            "ACCEPTED",
-            "REJECTED",
-            "PENDING"
-          ]
+          "enum": ["CANCELLED", "ACCEPTED", "REJECTED", "PENDING"]
         },
         "paid": {
           "type": "boolean",
@@ -856,16 +696,10 @@
           ]
         },
         "cancellationReason": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "rejectionReason": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
@@ -892,10 +726,7 @@
           "type": "string"
         },
         "timeZone": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "availability": {
           "type": "array",
@@ -946,10 +777,7 @@
           "format": "date-time"
         },
         "date": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "Schedule": {
@@ -992,12 +820,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "TEXT",
-            "TEXTLONG",
-            "NUMBER",
-            "BOOL"
-          ]
+          "enum": ["TEXT", "TEXTLONG", "NUMBER", "BOOL"]
         },
         "required": {
           "type": "boolean"
@@ -1042,9 +865,7 @@
         },
         "reminderType": {
           "type": "string",
-          "enum": [
-            "PENDING_BOOKING_CONFIRMATION"
-          ]
+          "enum": ["PENDING_BOOKING_CONFIRMATION"]
         },
         "elapsedMinutes": {
           "type": "integer"
@@ -1066,9 +887,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "STRIPE"
-          ]
+          "enum": ["STRIPE"]
         },
         "booking": {
           "anyOf": [
@@ -1096,14 +915,7 @@
           "type": "boolean"
         },
         "data": {
-          "type": [
-            "number",
-            "string",
-            "boolean",
-            "object",
-            "array",
-            "null"
-          ]
+          "type": ["number", "string", "boolean", "object", "array", "null"]
         },
         "externalId": {
           "type": "string"
@@ -1120,10 +932,7 @@
           "type": "string"
         },
         "payloadTemplate": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "createdAt": {
           "type": "string",
@@ -1135,11 +944,7 @@
         },
         "eventTriggers": {
           "type": "array",
-          "enum": [
-            "BOOKING_CREATED",
-            "BOOKING_RESCHEDULED",
-            "BOOKING_CANCELLED"
-          ]
+          "enum": ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"]
         },
         "user": {
           "anyOf": [
@@ -1188,10 +993,7 @@
           "format": "date-time"
         },
         "note": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     }
