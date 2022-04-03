@@ -17,6 +17,7 @@ export const InstallAppButtonMap = {
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
+  office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
