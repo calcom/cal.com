@@ -15,19 +15,18 @@ import {
  * /api/booking-references/new:
  *   post:
  *     summary: Creates a new bookingReference
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/BookingReference'
  *     tags:
- *     - bookingReferences
+ *     - booking-references
  *     responses:
  *       201:
  *         description: OK, bookingReference created
- *         model: BookingReference
  *       400:
  *        description: Bad request. BookingReference body is invalid.
  *       401:

@@ -15,7 +15,16 @@ import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/vali
  * /api/users/{id}/edit:
  *   patch:
  *     summary: Edit an existing user
- *    parameters:
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *      - in: body
+ *        name: user
+ *        description: The user to edit
+ *        schema:
+ *         type: object
+ *         $ref: '#/components/schemas/User'
+ *        required: true
  *      - in: path
  *        name: id
  *        schema:

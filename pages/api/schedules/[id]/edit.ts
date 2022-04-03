@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/schedules/:id/edit:
+ * /api/schedules/{id}/edit:
  *   patch:
  *     summary: Edits an existing schedule
  *     tags:

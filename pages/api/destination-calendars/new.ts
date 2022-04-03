@@ -15,15 +15,15 @@ import {
  * /api/destination-calendars/new:
  *   post:
  *     summary: Creates a new destinationCalendar
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/DestinationCalendar'
  *     tags:
- *     - destinationCalendars
+ *     - destination-calendars
  *     responses:
  *       201:
  *         description: OK, destinationCalendar created

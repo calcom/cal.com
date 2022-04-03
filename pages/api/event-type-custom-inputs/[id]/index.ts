@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/event-type-custom-inputs/{id}:
  *   get:
- *   summary: Get a eventTypeCustomInput by ID
- *    parameters:
+ *     summary: Get a eventTypeCustomInput by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to get
  *     tags:
- *     - eventTypeCustomInputs
+ *     - event-type-custom-inputs
  *     responses:
  *       200:
  *         description: OK

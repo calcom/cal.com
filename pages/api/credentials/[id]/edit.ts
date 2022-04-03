@@ -19,7 +19,7 @@ import {
  * /api/credentials/{id}/edit:
  *   patch:
  *     summary: Edit an existing credential
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

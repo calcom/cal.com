@@ -11,14 +11,15 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * /api/memberships/{userId}_{teamId}/delete:
  *   delete:
  *     summary: Remove an existing membership
- *    parameters:
- *    - in: path
- *    - name: userId
+ *     parameters:
+ *      - in: path
+ *        name: userId
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to get the membership of
- *  *    - name: teamId
+ *      - in: path
+ *        name: teamId
  *        schema:
  *          type: integer
  *        required: true

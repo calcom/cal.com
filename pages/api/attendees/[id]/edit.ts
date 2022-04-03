@@ -15,7 +15,7 @@ import {
  * /api/attendees/{id}/edit:
  *   patch:
  *     summary: Edit an existing attendee
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

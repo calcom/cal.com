@@ -12,7 +12,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * /api/selected-calendars/{userId}_{teamId}:
  *   get:
  *     summary: find selectedCalendar by userID and teamID
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: userId
  *        schema:
@@ -26,7 +26,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *        required: true
  *        description: Numeric teamId of the selectedCalendar to get
  *     tags:
- *     - selectedCalendars
+ *     - selected-calendars
  *     responses:
  *       200:
  *         description: OK

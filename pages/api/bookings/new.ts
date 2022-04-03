@@ -11,13 +11,13 @@ import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "
  * /api/bookings/new:
  *   post:
  *     summary: Creates a new booking
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
- *           schema:
- *           $ref: '#/components/schemas/Booking'
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
+ *             schema:
+ *             $ref: '#/components/schemas/Booking'
  *     tags:
  *     - bookings
  *     responses:

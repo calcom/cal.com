@@ -14,7 +14,7 @@ import {
  * /api/daily-event-references/{id}/delete:
  *   delete:
  *     summary: Remove an existing dailyEventReference
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -22,7 +22,7 @@ import {
  *        required: true
  *        description: Numeric ID of the dailyEventReference to delete
  *     tags:
- *     - dailyEventReferences
+ *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, dailyEventReference removed successfuly

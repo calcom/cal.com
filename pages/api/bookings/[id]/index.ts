@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/bookings/{id}:
  *   get:
- *   summary: Get a booking by ID
- *    parameters:
+ *     summary: Get a booking by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

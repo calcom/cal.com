@@ -12,7 +12,7 @@ import { schemaDailyEventReferencePublic } from "@lib/validations/daily-event-re
  *   get:
  *     summary: Get all dailyEventReferences
  *     tags:
- *     - dailyEventReferences
+ *     - daily-event-references
  *     responses:
  *       200:
  *         description: OK

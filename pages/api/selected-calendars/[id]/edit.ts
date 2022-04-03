@@ -17,7 +17,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *   patch:
  *     summary: Edits an existing selectedCalendar
  *     tags:
- *     - selectedCalendars
+ *     - selected-calendars
  *     responses:
  *       201:
  *         description: OK, selectedCalendar edited successfuly

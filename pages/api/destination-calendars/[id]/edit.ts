@@ -19,7 +19,7 @@ import {
  * /api/destination-calendars/{id}/edit:
  *   patch:
  *     summary: Edit an existing destinationCalendar
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -27,7 +27,7 @@ import {
  *        required: true
  *        description: Numeric ID of the destinationCalendar to edit
  *     tags:
- *     - destinationCalendars
+ *     - destination-calendars
  *     responses:
  *       201:
  *         description: OK, destinationCalendar edited successfuly

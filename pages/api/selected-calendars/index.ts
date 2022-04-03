@@ -8,9 +8,11 @@ import { schemaSelectedCalendarPublic } from "@lib/validations/selected-calendar
 
 /**
  * @swagger
- * /api/selectedCalendars:
+ * /api/selected-calendars:
  *   get:
  *     summary: Returns all selected calendars
+ *     tags:
+ *     - selected-calendars
  *     responses:
  *       200:
  *         description: OK

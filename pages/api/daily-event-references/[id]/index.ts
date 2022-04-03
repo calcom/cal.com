@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/daily-event-references/{id}:
  *   get:
- *   summary: Get a dailyEventReference by ID
- *    parameters:
+ *     summary: Get a dailyEventReference by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the dailyEventReference to get
  *     tags:
- *     - dailyEventReferences
+ *     - daily-event-references
  *     responses:
  *       200:
  *         description: OK

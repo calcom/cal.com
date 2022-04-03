@@ -19,7 +19,7 @@ import {
  * /api/event-type-custom-inputs/{id}/edit:
  *   patch:
  *     summary: Edit an existing eventTypeCustomInput
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -27,7 +27,7 @@ import {
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
  *     tags:
- *     - eventTypeCustomInputs
+ *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput edited successfuly

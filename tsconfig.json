@@ -1,6 +1,6 @@
 {
   "extends": "@calcom/tsconfig/base.json",
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "templates"],
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
@@ -19,5 +19,5 @@
       "@/*": ["*"]
     }
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*.ts*"]
 }

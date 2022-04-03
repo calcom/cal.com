@@ -14,14 +14,14 @@ import { schemaUserPublic } from "@lib/validations/user";
  * @swagger
  * /api/users/{id}:
  *   get:
- *   summary: Get a user by ID
- *    parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the user to get
+ *     summary: Get a user by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user to get
  *     tags:
  *     - users
  *     responses:

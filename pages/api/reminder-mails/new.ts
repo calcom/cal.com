@@ -14,16 +14,16 @@ import {
  * @swagger
  * /api/reminder-mails/new:
  *   post:
- *     summary: Creates a new reminderMail
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     summary: Creates a new reminder mail
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/ReminderMail'
  *     tags:
- *     - reminderMails
+ *     - reminder-mails
  *     responses:
  *       201:
  *         description: OK, reminderMail created

@@ -15,15 +15,15 @@ import {
  * /api/event-type-custom-inputs/new:
  *   post:
  *     summary: Creates a new eventTypeCustomInput
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/EventTypeCustomInput'
  *     tags:
- *     - eventTypeCustomInputs
+ *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput created

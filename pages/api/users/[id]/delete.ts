@@ -14,7 +14,7 @@ import {
  * /api/users/{id}/delete:
  *   delete:
  *     summary: Remove an existing user
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

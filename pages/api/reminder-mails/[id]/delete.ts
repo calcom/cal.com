@@ -13,8 +13,8 @@ import {
  * @swagger
  * /api/reminder-mails/{id}/delete:
  *   delete:
- *     summary: Remove an existing reminderMail
- *    parameters:
+ *     summary: Remove an existing reminder mail
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -22,7 +22,7 @@ import {
  *        required: true
  *        description: Numeric ID of the reminderMail to delete
  *     tags:
- *     - reminderMails
+ *     - reminder-mails
  *     responses:
  *       201:
  *         description: OK, reminderMail removed successfuly

@@ -12,7 +12,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * /api/memberships/{userId}_{teamId}:
  *   get:
  *     summary: find membership by userID and teamID
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: userId
  *        schema:

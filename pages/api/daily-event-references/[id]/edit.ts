@@ -19,7 +19,7 @@ import {
  * /api/daily-event-references/{id}/edit:
  *   patch:
  *     summary: Edit an existing dailyEventReference
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -27,7 +27,7 @@ import {
  *        required: true
  *        description: Numeric ID of the dailyEventReference to edit
  *     tags:
- *     - dailyEventReferences
+ *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, dailyEventReference edited successfuly

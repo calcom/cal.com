@@ -12,7 +12,7 @@ import { schemaBookingReferencePublic } from "@lib/validations/booking-reference
  *   get:
  *     summary: Get all bookingReferences
  *     tags:
- *     - bookingReferences
+ *     - booking-references
  *     responses:
  *       200:
  *         description: OK

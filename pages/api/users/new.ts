@@ -10,14 +10,17 @@ import { schemaUserBodyParams, schemaUserPublic, withValidUser } from "@lib/vali
  * @swagger
  * /api/users/new:
  *   post:
- *     summary: Creates a new user
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
- *           schema:
- *           $ref: '#/components/schemas/User'
+ *     summary: Add a new user
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *      - in: body
+ *        name: user
+ *        description: The user to edit
+ *        schema:
+ *         type: object
+ *         $ref: '#/components/schemas/User'
+ *        required: true
  *     tags:
  *     - users
  *     responses:

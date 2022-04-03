@@ -14,7 +14,7 @@ import {
  * /api/booking-references/{id}/delete:
  *   delete:
  *     summary: Remove an existing bookingReference
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -22,7 +22,7 @@ import {
  *        required: true
  *        description: Numeric ID of the bookingReference to delete
  *     tags:
- *     - bookingReferences
+ *     - booking-references
  *     responses:
  *       201:
  *         description: OK, bookingReference removed successfuly

@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/availabilites/{id}:
  *   get:
- *   summary: Get a availability by ID
- *    parameters:
+ *     summary: Get a availability by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

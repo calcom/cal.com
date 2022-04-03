@@ -11,11 +11,11 @@ import { schemaPaymentBodyParams, schemaPaymentPublic, withValidPayment } from "
  * /api/payments/new:
  *   post:
  *     summary: Creates a new payment
- *   requestBody:
- *     description: Optional description in *Markdown*
- *     required: true
- *     content:
- *       application/json:
+ *     requestBody:
+ *       description: Optional description in *Markdown*
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
  *           $ref: '#/components/schemas/Payment'
  *     tags:

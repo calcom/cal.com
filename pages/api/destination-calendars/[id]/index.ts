@@ -14,8 +14,8 @@ import {
  * @swagger
  * /api/destination-calendars/{id}:
  *   get:
- *   summary: Get a destinationCalendar by ID
- *    parameters:
+ *     summary: Get a destinationCalendar by ID
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the destinationCalendar to get
  *     tags:
- *     - destinationCalendars
+ *     - destination-calendars
  *     responses:
  *       200:
  *         description: OK

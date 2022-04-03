@@ -12,7 +12,7 @@ import { schemaDestinationCalendarPublic } from "@lib/validations/destination-ca
  *   get:
  *     summary: Get all destinationCalendars
  *     tags:
- *     - destinationCalendars
+ *     - destination-calendars
  *     responses:
  *       200:
  *         description: OK

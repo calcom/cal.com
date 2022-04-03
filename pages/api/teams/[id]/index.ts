@@ -15,7 +15,7 @@ import { schemaTeamPublic } from "@lib/validations/team";
  * /api/teams/{id}:
  *   get:
  *     summary: find team by ID
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:

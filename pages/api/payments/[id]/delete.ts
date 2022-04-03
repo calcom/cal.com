@@ -14,7 +14,7 @@ import {
  * /api/payments/{id}/delete:
  *   delete:
  *     summary: Remove an existing payment
- *    parameters:
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
