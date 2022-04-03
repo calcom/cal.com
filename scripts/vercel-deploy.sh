@@ -1,5 +1,5 @@
 # github submodule repo addresses without https:// prefix
-BRANCH_TO_CLONE="feat/api-keys"
+BRANCH_TO_CLONE=""
 
 # This didn't work ¯\_(ツ)_/¯
 # declare -A remotes=(
@@ -84,7 +84,7 @@ for submodule in $submodules; do
     rm -rf tmp # remove the tmp folder
 done
 
-git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/api/*' ':!/apps/web/*'
+git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*'
 
 echo "✅ - Build can proceed"
 exit 1
