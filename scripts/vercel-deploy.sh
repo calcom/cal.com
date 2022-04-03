@@ -1,5 +1,5 @@
 # github submodule repo addresses without https:// prefix
-BRANCH_TO_CLONE="feat/api-keys"
+BRANCH_TO_CLONE="-b feat/api-keys"
 
 # This didn't work ¯\_(ツ)_/¯
 # declare -A remotes=(
@@ -54,7 +54,6 @@ for submodule in $submodules; do
     # SUBMODULE_GITHUB=$remotes[$SUBMODULE_PATH]
     if [ "$SUBMODULE_PATH" == "apps/website" ]; then
         SUBMODULE_GITHUB=github.com/calcom/website
-        COMMIT=$VERCEL_GIT_COMMIT_SHA
     fi
 
     if [ "$SUBMODULE_PATH" == "apps/api" ]; then
@@ -84,7 +83,7 @@ for submodule in $submodules; do
     rm -rf tmp # remove the tmp folder
 done
 
-git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/api/*' ':!/apps/web/*'
+git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*'
 
 echo "✅ - Build can proceed"
 exit 1
