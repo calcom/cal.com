@@ -8,10 +8,6 @@ This is the public REST api for cal.com
 
 It's a barebones **NextJS** + **TypeScript** project leveraging the nextJS API with a pages/api folder.
 
-## No react
-
-It doesn't have react or react-dom as a dependency, and will only be used by a redirect as a folder or subdomain on cal.com with maybe a v1 tag like:
-
 - `api.cal.com/v1`
 - `api.cal.com/api/v1`
 
