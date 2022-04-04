@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    const return_url = `${process.env.BASE_URL}/settings/billing`;
+    const return_url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/settings/billing`;
     const stripeSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url,

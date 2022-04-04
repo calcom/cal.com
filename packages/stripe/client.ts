@@ -29,7 +29,7 @@ export function createPaymentLink(opts: {
 }): string {
   const { paymentUid, name, date, absolute = true } = opts;
   let link = "";
-  if (absolute) link = process.env.NEXT_PUBLIC_APP_URL!;
+  if (absolute) link = process.env.NEXT_PUBLIC_WEBSITE_URL!;
   const query = stringify({ date, name });
   return link + `/payment/${paymentUid}?${query}`;
 }

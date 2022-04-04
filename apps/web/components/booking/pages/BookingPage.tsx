@@ -6,13 +6,13 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
@@ -114,7 +114,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string };
+  type Location = { type: LocationType; address?: string; link?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -136,6 +136,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const locationLabels = {
     [LocationType.InPerson]: t("in_person_meeting"),
     [LocationType.Phone]: t("phone_call"),
+    [LocationType.Link]: t("link_meeting"),
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Jitsi]: "Jitsi Meet",
@@ -200,6 +201,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       }
       case LocationType.InPerson: {
         return locationInfo(locationType)?.address || "";
+      }
+      case LocationType.Link: {
+        return locationInfo(locationType)?.link || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -285,11 +289,11 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
         {isReady && (
-          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
+          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
-              <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
+              <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
                 <AvatarGroup
-                  border="border-2 border-white dark:border-gray-900"
+                  border="border-2 border-white dark:border-gray-800"
                   size={14}
                   items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
                     eventType.users
@@ -344,7 +348,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder={t("example_name")}
                       />
                     </div>
@@ -359,8 +363,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
+                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       />
                     </div>
                   </div>
@@ -422,7 +427,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -433,7 +438,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -444,7 +449,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder=""
                           />
                         )}
@@ -526,12 +531,15 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
-                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
-                    <Button type="submit" loading={mutation.isLoading}>
+                    <Button
+                      type="submit"
+                      data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
+                      loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
@@ -549,7 +557,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       </div>
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+                          {(mutation.error as HttpError)?.message}
                         </p>
                       </div>
                     </div>

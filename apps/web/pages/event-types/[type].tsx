@@ -23,13 +23,14 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, Noop, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
 import Button from "@calcom/ui/Button";
@@ -41,7 +42,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
@@ -61,6 +61,8 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
+
+import { getTranslation } from "@server/lib/i18n";
 
 import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
@@ -84,20 +86,21 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const addDefaultLocationOptions = (
-  defaultLocations: OptionTypeBase[],
-  locationOptions: OptionTypeBase[]
-): void => {
-  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
-
-  defaultLocations.map((item) => {
-    if (!existingLocationOptions.includes(item.value)) {
-      locationOptions.push(item);
-    }
-  });
+type AvailabilityOption = {
+  label: string;
+  value: number;
 };
 
-const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+const AvailabilitySelect = ({
+  className = "",
+  ...props
+}: {
+  className?: string;
+  name: string;
+  value: number;
+  onBlur: Noop;
+  onChange: (value: AvailabilityOption | null) => void;
+}) => {
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
@@ -116,9 +119,9 @@ const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
         );
         return (
           <Select
-            {...props}
             options={options}
             isSearchable={false}
+            onChange={props.onChange}
             classNamePrefix="react-select"
             className={classNames(
               "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
@@ -148,19 +151,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
-    props;
-
-  /** Appending default locations */
-
-  const defaultLocations = [
-    { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Link, label: t("link_meeting") },
-    { value: LocationType.Jitsi, label: "Jitsi Meet" },
-    { value: LocationType.Phone, label: t("phone_call") },
-  ];
-
-  addDefaultLocationOptions(defaultLocations, locationOptions);
+  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
 
   const router = useRouter();
 
@@ -393,7 +384,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_APP_URL}/${
+  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
@@ -408,7 +399,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${process.env.NEXT_PUBLIC_APP_URL}/${username}/avatar.png`,
+    avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<{
@@ -424,6 +415,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
+    hideCalendarNotes: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
@@ -784,10 +776,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.unregister("locationAddress");
                         openLocationModal(location.type);
                       }}
+                      aria-label={t("edit")}
                       className="mr-1 p-1 text-gray-500 hover:text-gray-900">
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => removeLocation(location)}>
+                    <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
                       <XIcon className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                     </button>
                   </div>
@@ -883,7 +876,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <div className="space-y-3">
                     <div className="block items-center sm:flex">
                       <div className="min-w-48 mb-4 sm:mb-0">
-                        <label htmlFor="slug" className="flex text-sm font-medium text-neutral-700">
+                        <label
+                          id="slug-label"
+                          htmlFor="slug"
+                          className="flex text-sm font-medium text-neutral-700">
                           <LinkIcon className="mt-0.5 h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                           {t("url")}
                         </label>
@@ -891,11 +887,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <div className="flex rounded-sm shadow-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                            {process.env.NEXT_PUBLIC_APP_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
                           <input
                             type="text"
+                            id="slug"
+                            aria-labelledby="slug-label"
                             required
                             className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
@@ -988,10 +986,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           control={formMethods.control}
                           render={({ field }) => (
                             <AvailabilitySelect
-                              {...field}
-                              onChange={(selected: { label: string; value: number }) =>
-                                field.onChange(selected.value)
-                              }
+                              value={field.value}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              onChange={(selected) => field.onChange(selected?.value || null)}
                             />
                           )}
                         />
@@ -1221,6 +1219,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </ul>
                           </div>
                         </div>
+
+                        <Controller
+                          name="hideCalendarNotes"
+                          control={formMethods.control}
+                          defaultValue={eventType.hideCalendarNotes}
+                          render={() => (
+                            <CheckboxField
+                              id="hideCalendarNotes"
+                              name="hideCalendarNotes"
+                              label={t("disable_notes")}
+                              description={t("disable_notes_description")}
+                              defaultChecked={eventType.hideCalendarNotes}
+                              onChange={(e) => {
+                                formMethods.setValue("hideCalendarNotes", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
 
                         <Controller
                           name="requiresConfirmation"
@@ -1815,6 +1831,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    locale: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -1867,6 +1884,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
@@ -1946,25 +1964,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
+  const currentUser = eventType.users.find((u) => u.id === session.user.id);
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations);
+  const locationOptions = getLocationOptions(integrations, t);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
-  if (hasIntegration(integrations, "google_calendar")) {
-    locationOptions.push({
-      value: LocationType.GoogleMeet,
-      label: "Google Meet",
-    });
-  }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
-
-  if (hasIntegration(integrations, "office365_calendar")) {
-    // TODO: Add default meeting option of the office integration.
-    // Assuming it's Microsoft Teams.
-  }
 
   type Availability = typeof eventType["availability"];
   const getAvailability = (availability: Availability) =>
@@ -1988,7 +1996,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`;
+        user.avatar = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];

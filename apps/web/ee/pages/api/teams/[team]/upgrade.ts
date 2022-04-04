@@ -16,6 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await upgradeTeam(session.user.id, Number(req.query.team));
 
     // redirect to team screen
-    res.redirect(302, `${process.env.NEXT_PUBLIC_APP_URL}/settings/teams/${req.query.team}?upgraded=true`);
+    res.redirect(302, `${process.env.NEXT_PUBLIC_WEBAPP_URL}/settings/teams/${req.query.team}?upgraded=true`);
   }
 }
