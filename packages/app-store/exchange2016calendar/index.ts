@@ -6,7 +6,7 @@ export const metadata = {
   name: "Microsoft Exchange 2016 Calendar",
   description: _package.description,
   installed: true,
-  type: "exchange_calendar",
+  type: "exchange2016_calendar",
   title: "Microsoft Exchange 2016 Calendar",
   // Add exchange icon to calendar
   imageSrc: "/api/app-store/exchange2016calendar/icon.svg",
