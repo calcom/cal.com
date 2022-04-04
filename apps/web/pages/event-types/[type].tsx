@@ -89,12 +89,12 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = ({
+const SuccessRedirectEdit = <T extends UseFormReturn>({
   eventType,
   formMethods,
 }: {
   eventType: inferSSRProps<typeof getServerSideProps>["eventType"];
-  formMethods: UseFormReturn;
+  formMethods: T;
 }) => {
   const { t } = useLocale();
   const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
@@ -1552,7 +1552,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        <SuccessRedirectEdit
+                        <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (

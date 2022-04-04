@@ -1,10 +1,10 @@
 import { InformationCircleIcon } from "@heroicons/react/outline";
 import { Trans } from "next-i18next";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
-import { Dialog, DialogClose, DialogContent } from "@components/Dialog";
-import Button from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 export function UpgradeToProDialog({
   modalOpen,
