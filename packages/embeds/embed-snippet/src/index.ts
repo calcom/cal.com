@@ -22,6 +22,9 @@ export interface CalWindow extends Window {
 export default function EmbedSnippet(url = "https://cal.com/embed.js") {
   /*!  Copy the code below and paste it in script tag of your website */
   (function (C: CalWindow, A, L) {
+    let p = function (a: any, ar: any) {
+      a.q.push(ar);
+    };
     let d = C.document;
     C.Cal =
       C.Cal ||
@@ -37,14 +40,14 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
 
         if (ar[0] === L) {
           const api: { (): void; q: any[] } = function () {
-            api.q.push(arguments);
+            p(api, arguments);
           };
-          const namespace = arguments[1];
+          const namespace = ar[1];
           api.q = api.q || [];
-          namespace ? (cal.ns![namespace] = api) : null;
+          typeof namespace === "string" ? (cal.ns![namespace] = api) && p(api, ar) : p(cal, ar);
           return;
         }
-        cal.q!.push(ar as unknown as Instruction);
+        p(cal, ar);
       };
   })(
     window,
