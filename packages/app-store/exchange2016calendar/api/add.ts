@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = {
-      type: "exchange2013_calendar",
+      type: "exchange206_calendar",
       key: symmetricEncrypt(
         JSON.stringify({ username, password, url }),
         process.env.CALENDSO_ENCRYPTION_KEY!
