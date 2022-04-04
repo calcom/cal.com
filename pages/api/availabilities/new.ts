@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/availabilites/new:
+ * /api/availabilities/new:
  *   post:
  *     summary: Creates a new availability
  *     requestBody:
@@ -23,7 +23,7 @@ import {
  *           schema:
  *           $ref: '#/components/schemas/Availability'
  *     tags:
- *     - availabilites
+ *     - availabilities
  *     responses:
  *       201:
  *         description: OK, availability created
