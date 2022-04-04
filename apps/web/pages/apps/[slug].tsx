@@ -33,7 +33,7 @@ const components = {
         }}
         renderItem={(item) =>
           isTabletAndUp ? (
-            <Image src={item} alt="" layout="fixed" width={573} height={382} />
+            <Image src={item} alt="" loading="eager" layout="fixed" width={573} height={382} />
           ) : (
             <Image src={item} alt="" layout="responsive" width={573} height={382} />
           )
