@@ -1,9 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-<<<<<<< HEAD:packages/app-store/exchangecalendar/api/add.ts
-import { getSession } from "@calcom/lib/auth";
-=======
->>>>>>> origin:packages/app-store/caldavcalendar/api/add.ts
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -25,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = {
-      type: "exchange_calendar",
+      type: "exchange2013_calendar",
       key: symmetricEncrypt(
         JSON.stringify({ username, password, url }),
         process.env.CALENDSO_ENCRYPTION_KEY!

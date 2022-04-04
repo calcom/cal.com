@@ -15,7 +15,8 @@ export const InstallAppButtonMap = {
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
-  exchangecalendar: dynamic(() => import("./exchangecalendar/components/InstallAppButton")),
+  exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
+  exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };

@@ -2,7 +2,8 @@
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
-import * as exchangecalendar from "./exchangecalendar";
+import * as exchange2013calendar from "./exchange2013calendar";
+import * as exchange2016calendar from "./exchange2016calendar";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
 import * as huddle01video from "./huddle01video";
@@ -27,7 +28,8 @@ const appStore = {
   stripepayment,
   tandemvideo,
   zoomvideo,
-  exchangecalendar,
+  exchange2016calendar,
+  exchange2013calendar,
 };
 
 export default appStore;
