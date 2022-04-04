@@ -1,0 +1,177 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+import type { SelectedCalendarResponse } from "@lib/types";
+import {
+  schemaSelectedCalendarBodyParams,
+  schemaSelectedCalendarPublic,
+} from "@lib/validations/selected-calendar";
+import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
+
+/**
+ * @swagger
+ * /api/selected-calendars/{userId}_{teamId}:
+ *   get:
+ *     summary: Get a selected-calendar by userID and teamID
+ *     parameters:
+ *      - in: path
+ *        name: userId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric userId of the selected-calendar to get
+ *      - in: path
+ *        name: teamId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric teamId of the selected-calendar to get
+ *     tags:
+ *     - selected-calendars
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: SelectedCalendar was not found
+ *   patch:
+ *     summary: Edit an existing selected-calendar
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *      - in: body
+ *        name: selected-calendar
+ *        description: The selected-calendar to edit
+ *        schema:
+ *         type: object
+ *         $ref: '#/components/schemas/SelectedCalendar'
+ *        required: true
+ *      - in: path
+ *        name: userId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric userId of the selected-calendar to get
+ *      - in: path
+ *        name: teamId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric teamId of the selected-calendar to get
+ *     tags:
+ *     - selected-calendars
+ *     responses:
+ *       201:
+ *         description: OK, selected-calendar edited successfuly
+ *         model: SelectedCalendar
+ *       400:
+ *        description: Bad request. SelectedCalendar body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *   delete:
+ *     summary: Remove an existing selected-calendar
+ *     parameters:
+ *      - in: path
+ *        name: userId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric userId of the selected-calendar to get
+ *      - in: path
+ *        name: teamId
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: Numeric teamId of the selected-calendar to get
+ *     tags:
+ *     - selected-calendars
+ *     responses:
+ *       201:
+ *         description: OK, selected-calendar removed successfuly
+ *         model: SelectedCalendar
+ *       400:
+ *        description: Bad request. SelectedCalendar id is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+export async function selectedCalendarById(
+  req: NextApiRequest,
+  res: NextApiResponse<SelectedCalendarResponse>
+) {
+  const { method, query, body } = req;
+  const safeQuery = await schemaQueryIdAsString.safeParse(query);
+  const safeBody = await schemaSelectedCalendarBodyParams.safeParse(body);
+  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  // This is how we set the userId and teamId in the query for managing compoundId.
+  const [userId, integration, externalId] = safeQuery.data.id.split("_");
+
+  switch (method) {
+    case "GET":
+      await prisma.selectedCalendar
+        .findUnique({
+          where: {
+            userId_integration_externalId: {
+              userId: parseInt(userId),
+              integration: integration,
+              externalId: externalId,
+            },
+          },
+        })
+        .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
+        .then((data) => res.status(200).json({ data }))
+        .catch((error: Error) =>
+          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
+        );
+      break;
+
+    case "PATCH":
+      if (!safeBody.success) throw new Error("Invalid request body");
+      await prisma.selectedCalendar
+        .update({
+          where: {
+            userId_integration_externalId: {
+              userId: parseInt(userId),
+              integration: integration,
+              externalId: externalId,
+            },
+          },
+          data: safeBody.data,
+        })
+        .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
+        .then((data) => res.status(200).json({ data }))
+        .catch((error: Error) =>
+          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
+        );
+      break;
+
+    case "DELETE":
+      await prisma.selectedCalendar
+        .delete({
+          where: {
+            userId_integration_externalId: {
+              userId: parseInt(userId),
+              integration: integration,
+              externalId: externalId,
+            },
+          },
+        })
+        .then(() =>
+          res
+            .status(200)
+            .json({ message: `SelectedCalendar with id: ${safeQuery.data.id} deleted successfully` })
+        )
+        .catch((error: Error) =>
+          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
+        );
+      break;
+
+    default:
+      res.status(405).json({ message: "Method not allowed" });
+      break;
+  }
+}
+
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdString(selectedCalendarById));
