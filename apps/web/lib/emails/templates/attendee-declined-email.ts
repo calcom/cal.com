@@ -96,7 +96,7 @@ ${this.getRejectionReason()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
-                              ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                               ${this.getRejectionReason()}
                             </div>

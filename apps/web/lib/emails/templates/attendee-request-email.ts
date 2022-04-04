@@ -110,7 +110,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
-                              ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
