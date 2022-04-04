@@ -49,6 +49,18 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       text: this.getTextBody(),
     };
   }
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.description
+      }</p>
+    </div>
+    `;
+  }
 
   protected getTextBody(): string {
     return `
@@ -57,6 +69,7 @@ ${this.calEvent.organizer.language.translate("someone_requested_an_event")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"

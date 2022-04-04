@@ -45,7 +45,18 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       text: this.getTextBody(),
     };
   }
-
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.description
+      }</p>
+    </div>
+    `;
+  }
   protected getTextBody(): string {
     // Only the original attendee can make changes to the event
     // Guests cannot
@@ -56,6 +67,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
   ${this.getWhat()}
   ${this.getWhen()}
   ${this.getLocation()}
+  ${this.getDescription()}
   ${this.getAdditionalNotes()}
   ${this.attendee.language.translate("need_to_reschedule_or_cancel")}
   ${getCancelLink(this.calEvent)}
@@ -114,6 +126,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>

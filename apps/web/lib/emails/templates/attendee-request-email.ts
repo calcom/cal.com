@@ -48,6 +48,18 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
       text: this.getTextBody(),
     };
   }
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.description
+      }</p>
+    </div>
+    `;
+  }
 
   protected getTextBody(): string {
     return `
@@ -60,6 +72,7 @@ ${this.calEvent.attendees[0].language.translate("user_needs_to_confirm_or_reject
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
@@ -108,6 +121,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhat()}
                               ${this.getWhen()}
                               ${this.getWho()}
+                              ${this.getLocation()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
                             </div>
