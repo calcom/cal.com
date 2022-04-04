@@ -20,19 +20,17 @@ const Slider = <T extends unknown>({
   options?: Options;
 }) => {
   const glide = useRef(null);
+  const slider = useRef<Glide.Properties | null>(null);
 
   useEffect(() => {
     if (glide.current) {
-      const slider = new Glide(glide.current, {
+      slider.current = new Glide(glide.current, {
         type: "carousel",
         ...options,
-      });
-
-      slider.mount();
+      }).mount();
     }
 
-    // @ts-ignore TODO: This method is missing in types
-    return () => slider.destroy();
+    return () => slider.current?.destroy();
   }, [options]);
 
   return (
