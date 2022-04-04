@@ -9,11 +9,11 @@ export const metadata = {
   type: "exchange_calendar",
   title: "Microsoft Exchange 2016 Calendar",
   // Add exchange icon to calendar
-  imageSrc: "apps/microsoft-exchange.svg",
+  imageSrc: "/api/app-store/exchange2016calendar/icon.svg",
   variant: "calendar",
   category: "calendar",
   label: "Exchange Calendar",
-  logo: "/apps/microsoft-exchange.svg",
+  logo: "/api/app-store/exchange2016calendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,
