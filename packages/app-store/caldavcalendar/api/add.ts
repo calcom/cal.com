@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getSession } from "@calcom/lib/auth";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -21,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = {
-      type: "caldav_calendar",
+      type: "exchange_calendar",
       key: symmetricEncrypt(
         JSON.stringify({ username, password, url }),
         process.env.CALENDSO_ENCRYPTION_KEY!
@@ -39,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (reason) {
-      logger.error("Could not add this caldav account", reason);
-      return res.status(500).json({ message: "Could not add this caldav account" });
+      logger.error("Could not add this exchange account", reason);
+      return res.status(500).json({ message: "Could not add this exchange account" });
     }
 
     return res.status(200).json({});
