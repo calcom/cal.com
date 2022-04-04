@@ -50,19 +50,6 @@ export default class OrganizerRequestReminderEmail extends OrganizerScheduledEma
     };
   }
 
-  protected getDescription(): string {
-    if (!this.calEvent.description) return "";
-    return `
-    <p style="height: 6px"></p>
-    <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
-        this.calEvent.description
-      }</p>
-    </div>
-    `;
-  }
-
   protected getTextBody(): string {
     return `
 ${this.calEvent.organizer.language.translate("event_still_awaiting_approval")}
