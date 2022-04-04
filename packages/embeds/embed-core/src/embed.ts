@@ -330,6 +330,7 @@ export class Cal {
     this.actionManager.on("dimension-changed", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
+
       if (!iframe) {
         // Iframe might be pre-rendering
         return;
