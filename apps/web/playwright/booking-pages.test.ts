@@ -7,7 +7,7 @@ import {
   todo,
 } from "./lib/testUtils";
 
-async function bookFirstEvent(page) {
+async function bookFirstEvent(page: Page) {
   // Click first event type
   await page.click('[data-testid="event-type-link"]');
   await selectFirstAvailableTimeSlotNextMonth(page);
