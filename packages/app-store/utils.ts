@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { TFunction } from "next-i18next";
 
 import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
@@ -24,9 +25,17 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-export function getLocationOptions(integrations: AppMeta) {
+function translateLocations(locations: OptionTypeBase[], t: TFunction) {
+  return locations.map((l) => ({
+    ...l,
+    label: t(l.label),
+  }));
+}
+
+export function getLocationOptions(integrations: AppMeta, t: TFunction) {
   const defaultLocations: OptionTypeBase[] = [
     { value: LocationType.InPerson, label: "in_person_meeting" },
+    { value: LocationType.Link, label: "link_meeting" },
     { value: LocationType.Phone, label: "phone_call" },
   ];
 
@@ -36,7 +45,7 @@ export function getLocationOptions(integrations: AppMeta) {
     }
   });
 
-  return defaultLocations;
+  return translateLocations(defaultLocations, t);
 }
 
 /**

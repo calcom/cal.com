@@ -429,6 +429,50 @@ const loggedInViewerRouter = createProtectedRouter()
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
+      if (connectedCalendars.length === 0) {
+        /* As there are no connected calendars, delete the destination calendar if it exists */
+        if (user.destinationCalendar) {
+          await ctx.prisma.destinationCalendar.delete({
+            where: { userId: user.id },
+          });
+          user.destinationCalendar = null;
+        }
+      } else if (!user.destinationCalendar) {
+        /*
+        There are connected calendars, but no destination calendar
+        So create a default destination calendar with the first primary connected calendar
+        */
+        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
+          data: {
+            userId: user.id,
+            integration,
+            externalId,
+          },
+        });
+      } else {
+        /* There are connected calendars and a destination calendar */
+
+        // Check if destinationCalendar exists in connectedCalendars
+        const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+        const destinationCal = allCals.find(
+          (cal) =>
+            cal.externalId === user.destinationCalendar?.externalId &&
+            cal.integration === user.destinationCalendar?.integration
+        );
+        if (!destinationCal) {
+          // If destinationCalendar is out of date, update it with the first primary connected calendar
+          const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+          user.destinationCalendar = await ctx.prisma.destinationCalendar.update({
+            where: { userId: user.id },
+            data: {
+              integration,
+              externalId,
+            },
+          });
+        }
+      }
+
       return {
         connectedCalendars,
         destinationCalendar: user.destinationCalendar,

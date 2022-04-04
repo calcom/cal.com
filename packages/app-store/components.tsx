@@ -19,6 +19,7 @@ export const InstallAppButtonMap = {
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
+  office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
