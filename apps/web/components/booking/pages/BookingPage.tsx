@@ -136,6 +136,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const locationLabels = {
     [LocationType.InPerson]: t("in_person_meeting"),
     [LocationType.Phone]: t("phone_call"),
+    [LocationType.Link]: t("link_meeting"),
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Jitsi]: "Jitsi Meet",
