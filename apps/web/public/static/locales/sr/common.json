@@ -531,7 +531,6 @@
   "billing": "Naplate",
   "manage_your_billing_info": "Upravljajte svojim informacijama za plaćanje i otkažite pretplatu.",
   "availability": "Dostupnost",
-  "availability_updated_successfully": "Dostupnost uspešno ažurirana",
   "configure_availability": "Konfigurišite vreme kada ste dostupni za rezervacije.",
   "change_weekly_schedule": "Promenite svoj nedeljni raspored",
   "logo": "Logo",
@@ -653,6 +652,7 @@
   "prisma_studio_tip_description": "Naučite kako da podesite svog prvog korisnika",
   "contact_sales": "Kontaktirajte tim prodaje",
   "error_404": "Greška 404",
+  "availability_updated_successfully": "Dostupnost uspešno ažurirana",
   "requires_ownership_of_a_token": "Potrebno je vlasništvo tokena koji pripada sledećoj adresi:",
   "example_name": "Petar Petrović"
 }

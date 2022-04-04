@@ -6,7 +6,6 @@ on:
 jobs:
   types:
     name: Check types
-
     strategy:
       matrix:
         node: ["14.x"]

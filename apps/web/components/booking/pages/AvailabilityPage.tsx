@@ -59,12 +59,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
-      // todo some extra validation maybe.
-      const utcOffsetAsDate = dayjs(dateString.substr(11, 14), "Hmm");
-      const utcOffset = parseInt(
-        dateString.substr(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
-      );
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffset, true);
+      const offsetString = dateString.substr(11, 14); // hhmm
+      const offsetSign = dateString.substr(10, 1); // + or -
+
+      const offsetHour = offsetString.slice(0, -2);
+      const offsetMinute = offsetString.slice(-2);
+
+      const utcOffsetInMinutes =
+        (offsetSign === "-" ? -1 : 1) *
+        (60 * (offsetHour !== "" ? parseInt(offsetHour) : 0) +
+          (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
+
+      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
       return date.isValid() ? date : null;
     }
     return null;
@@ -129,7 +135,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
             <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
-                <div className="flex items-center">
+                <div className="block items-center sm:flex sm:space-x-4">
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
                     items={
@@ -139,7 +145,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -147,9 +153,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="ltr:ml-3 rtl:mr-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600">
+                  <div className="mt-4 sm:-mt-2">
+                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-600 dark:text-gray-100">
                       {eventType.title}
                       <div>
                         <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
@@ -189,7 +195,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }

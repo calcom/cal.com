@@ -5,6 +5,8 @@ import { uuid } from "short-uuid";
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
+require("dotenv").config({ path: "../../.env" });
+
 const prisma = new PrismaClient();
 
 async function createUserAndEventType(opts: {
@@ -51,7 +53,7 @@ async function createUserAndEventType(opts: {
   });
 
   console.log(
-    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.BASE_URL}/${opts.user.username}`
+    `👤 Upserted '${opts.user.username}' with email "${opts.user.email}" & password "${opts.user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${opts.user.username}`
   );
 
   for (const eventTypeInput of opts.eventTypes) {
@@ -75,7 +77,7 @@ async function createUserAndEventType(opts: {
 
     if (eventType) {
       console.log(
-        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
+        `\t📆 Event type ${eventTypeData.slug} already seems seeded - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
       );
       continue;
     }
@@ -84,7 +86,7 @@ async function createUserAndEventType(opts: {
     });
 
     console.log(
-      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.BASE_URL}/${user.username}/${eventTypeData.slug}`
+      `\t📆 Event type ${eventTypeData.slug}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
     for (const bookingInput of bookingInputs) {
       await prisma.booking.create({
@@ -146,7 +148,9 @@ async function createTeamAndAddUsers(
     return;
   }
 
-  console.log(`🏢 Created team '${teamInput.name}' - ${process.env.BASE_URL}/team/${team.slug}`);
+  console.log(
+    `🏢 Created team '${teamInput.name}' - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/team/${team.slug}`
+  );
 
   for (const user of users) {
     const { role = MembershipRole.OWNER, id, username } = user;

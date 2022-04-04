@@ -12,7 +12,7 @@ test("Can reset forgotten password", async ({ page }) => {
     page.waitForNavigation({
       url: "/auth/forgot-password/*",
     }),
-    page.press('input[type="email"]', "Enter"),
+    page.press('input[name="email"]', "Enter"),
   ]);
 
   // Wait for page to fully load

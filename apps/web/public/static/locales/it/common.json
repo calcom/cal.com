@@ -534,7 +534,6 @@
   "billing": "Fatturazione",
   "manage_your_billing_info": "Gestisci le tue informazioni di fatturazione e annulla il tuo abbonamento.",
   "availability": "Disponibilità",
-  "availability_updated_successfully": "Disponibilità aggiornata con successo",
   "configure_availability": "Cambia quando sei disponibile per le prenotazioni.",
   "change_weekly_schedule": "Cambia il tuo programma settimanale",
   "logo": "Logo",
@@ -656,6 +655,7 @@
   "prisma_studio_tip_description": "Scopri come configurare il tuo primo utente",
   "contact_sales": "Contatta reparto commerciale",
   "error_404": "Errore 404",
+  "availability_updated_successfully": "Disponibilità aggiornata con successo",
   "requires_ownership_of_a_token": "Richiede il possesso di un token appartenente al seguente indirizzo:",
   "example_name": "Paolo Rossi"
 }

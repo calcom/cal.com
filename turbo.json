@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
-  "globalDependencies": ["apps/web/.env", "packages/prisma/.env"],
+  "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
     "@calcom/prisma#build": {
       "dependsOn": ["$DATABASE_URL"],
@@ -20,7 +20,6 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
-        "$BASE_URL",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
         "$DAILY_API_KEY",
@@ -36,11 +35,20 @@
         "$JWT_SECRET",
         "$MS_GRAPH_CLIENT_ID",
         "$MS_GRAPH_CLIENT_SECRET",
-        "$NEXT_PUBLIC_APP_URL",
+        "$NEXT_PUBLIC_HELPSCOUT_KEY",
         "$NEXT_PUBLIC_INTERCOM_APP_ID",
+        "$NEXT_PUBLIC_IS_E2E",
         "$NEXT_PUBLIC_LICENSE_CONSENT",
+        "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRODUCT",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_TELEMETRY_KEY",
+        "$NEXT_PUBLIC_WEBAPP_URL",
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$NEXT_PUBLIC_ZENDESK_KEY",
+        "$NEXTAUTH_COOKIE_DOMAIN",
         "$NEXTAUTH_URL",
         "$PAYMENT_FEE_FIXED",
         "$PAYMENT_FEE_PERCENTAGE",
@@ -53,7 +61,6 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
-        "$WEBSITE_BASE_URL",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
@@ -101,7 +108,7 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["test", "@calcom/web#build", "@calcom/prisma#db-reset"]
+      "dependsOn": ["@calcom/web#test", "@calcom/web#build", "@calcom/prisma#db-reset"]
     },
     "type-check": {
       "outputs": []

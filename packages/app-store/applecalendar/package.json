@@ -4,7 +4,7 @@
   "name": "@calcom/applecalendar",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Apple Calendar is a personal calendar app made by Apple Inc. that runs on both the macOS desktop operating system and the iOS mobile operating system.",
+  "description": "Apple calendar runs both the macOS and iOS mobile operating systems. Offering online cloud backup of calendars using Apple’s iCloud service, it can sync with Google Calendar and Microsoft Exchange Server. Users can schedule events in their day that include time, location, duration, and extra notes.",
   "dependencies": {
     "@calcom/prisma": "*",
     "react-hook-form": "^7.20.4"
