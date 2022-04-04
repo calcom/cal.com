@@ -5,4 +5,4 @@ ALTER TABLE "Booking" ADD COLUMN     "dynamicEventSlugRef" TEXT;
 ALTER TABLE "Booking" ADD COLUMN     "dynamicGroupSlugRef" TEXT;
 
 -- AlterTable
-ALTER TABLE "users" ADD COLUMN     "allowDynamicBooking" BOOLEAN DEFAULT false;
+ALTER TABLE "users" ADD COLUMN     "allowDynamicBooking" BOOLEAN DEFAULT true;

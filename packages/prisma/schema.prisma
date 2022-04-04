@@ -149,7 +149,7 @@ model User {
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
   // participate in dynamic group booking or not
-  allowDynamicBooking Boolean?             @default(false)
+  allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
 

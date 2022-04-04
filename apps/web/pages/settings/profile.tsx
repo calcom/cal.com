@@ -31,6 +31,7 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
+import InfoBadge from "@components/ui/InfoBadge";
 import ColorPicker from "@components/ui/colorpicker";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -408,8 +409,10 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                 />
               </div>
               <div className="text-sm ltr:ml-3 rtl:mr-3">
-                <label htmlFor="dynamic-group-booking" className="font-medium text-gray-700">
-                  {t("allow_dynamic_booking")}
+                <label
+                  htmlFor="dynamic-group-booking"
+                  className="flex items-center font-medium text-gray-700">
+                  {t("allow_dynamic_booking")} <InfoBadge content={t("allow_dynamic_booking_tooltip")} />
                 </label>
               </div>
             </div>
