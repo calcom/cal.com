@@ -30,8 +30,24 @@ interface EvtsToVerify {
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
+  const { Theme } = useTheme(props.users[0].theme);
+  const { users } = props;
+  const { t } = useLocale();
+  const router = useRouter();
+
   const eventTypes = props.users.length > 1 ? defaultEvents : props.eventTypes;
-  const groupEventTypes = (
+  const groupEventTypes = props.users.some((user) => {
+    return !user.allowDynamicBooking;
+  }) ? (
+    <div className="space-y-6" data-testid="event-types">
+      <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+        <div className="p-8 text-center text-gray-400 dark:text-white">
+          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+          <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
+        </div>
+      </div>
+    </div>
+  ) : (
     <ul className="space-y-3">
       {eventTypes.map((type, index) => (
         <li
@@ -62,10 +78,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       ))}
     </ul>
   );
-  const { Theme } = useTheme(props.users[0].theme);
-  const { users } = props;
-  const { t } = useLocale();
-  const router = useRouter();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
@@ -204,12 +216,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       allowDynamicBooking: true,
     },
   });
-
-  if (users.length > 1) {
-    users.some((user) => {
-      if (!user.allowDynamicBooking) throw Error(`Dynamic group booking is not allowed by ${user.username}`);
-    });
-  }
 
   if (!users.length) {
     return {

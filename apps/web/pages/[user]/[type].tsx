@@ -3,6 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -16,7 +17,25 @@ import { ssrInit } from "@server/lib/ssr";
 export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
-  return <AvailabilityPage {...props} />;
+  const { t } = useLocale();
+  return props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
+    <div className="h-screen dark:bg-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
+              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                {" " + t("unavailable")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : (
+    <AvailabilityPage {...props} />
+  );
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -167,11 +186,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let [eventType] = users[0].eventTypes;
 
   if (users.length > 1) {
-    // get users with allowDynamicBooking enabled
-    users.some((user) => {
-      if (!user.allowDynamicBooking) throw Error(`Dynamic group booking is not allowed by ${user.username}`);
-    });
-
     eventType = getDefaultEvent(typeParam);
     eventType["users"] = users.map((user) => {
       return {
@@ -250,6 +264,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  const isDynamicGroupBooking = users.length > 1 ? true : false;
+
   const profile =
     users.length > 1
       ? {
@@ -260,6 +276,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           weekStart: "Sunday",
           brandColor: "",
           darkBrandColor: "",
+          allowDynamicBooking: users.some((user) => {
+            return !user.allowDynamicBooking;
+          })
+            ? false
+            : true,
         }
       : {
           name: users[0].name || users[0].username,
@@ -273,6 +294,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      isDynamicGroupBooking,
       profile,
       date: dateParam,
       eventType: eventTypeObject,
