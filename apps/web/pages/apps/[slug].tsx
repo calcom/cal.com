@@ -16,13 +16,15 @@ import App from "@components/App";
 import Slider from "@components/apps/Slider";
 
 const components = {
-  a: ({ href, ...otherProps }) => (
+  a: ({ href = "", ...otherProps }: JSX.IntrinsicElements["a"]) => (
     <Link href={href}>
       <a {...otherProps} />
     </Link>
   ),
-  img: ({ src, alt = "", ...rest }) => <Image src={src} alt={alt} {...rest} />,
-  Slider: ({ items }) => {
+  img: ({ src = "", alt = "", placeholder, ...rest }: JSX.IntrinsicElements["img"]) => (
+    <Image src={src} alt={alt} {...rest} />
+  ),
+  Slider: ({ items }: { items: string[] }) => {
     const isTabletAndUp = useMediaQuery("(min-width: 960px)");
     return (
       <Slider<string>
