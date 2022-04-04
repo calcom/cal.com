@@ -16,15 +16,15 @@ import path from "path";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const [appName, fileName] = Array.isArray(req.query.static) ? req.query.static : [req.query.static];
   const fileNameParts = fileName.split(".");
-  const { [fileNameParts.length - 1]: fileExtentsion } = fileNameParts;
+  const { [fileNameParts.length - 1]: fileExtension } = fileNameParts;
   const STATIC_PATH = path.join(process.cwd(), "..", "..", "packages/app-store", appName, "static", fileName);
 
   try {
     const imageBuffer = fs.readFileSync(STATIC_PATH);
-    const mimeType = mime.lookup(fileExtentsion);
+    const mimeType = mime.lookup(fileExtension);
     if (mimeType) res.setHeader("Content-Type", mimeType);
     res.send(imageBuffer);
   } catch (e) {
-    res.status(400).json({ error: true, message: "Image not found" });
+    res.status(400).json({ error: true, message: "Resource not found" });
   }
 }
