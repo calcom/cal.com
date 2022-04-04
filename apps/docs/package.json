@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
@@ -18,7 +19,8 @@
     "nextra": "^1.1.0",
     "nextra-theme-docs": "^1.2.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "swagger-ui-react": "^4.10.3"
   },
   "devDependencies": {
     "@calcom/config": "*",
