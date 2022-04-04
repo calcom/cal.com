@@ -22,8 +22,8 @@
     "npm-run-all": "^4.1.5",
     "prisma": "3.10.0",
     "ts-node": "^10.6.0",
-    "zod-prisma": "^0.5.4",
-    "zod": "^3.14.2"
+    "zod": "^3.14.4",
+    "zod-prisma": "^0.5.4"
   },
   "dependencies": {
     "@calcom/lib": "*",
