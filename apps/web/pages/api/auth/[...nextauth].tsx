@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
+import checkLicense from "@calcom/ee/server/checkLicense";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
@@ -224,6 +225,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
+      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
       const calendsoSession: Session = {
         ...session,
         user: {
@@ -231,6 +233,7 @@ export default NextAuth({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          hasValidLicense,
         },
       };
       return calendsoSession;

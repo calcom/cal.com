@@ -5,6 +5,7 @@ declare module "next-auth" {
   type CalendsoSessionUser = DefaultSessionUser & {
     id: number;
     username: string;
+    hasValidLicense: boolean;
   };
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `Provider` React Context
