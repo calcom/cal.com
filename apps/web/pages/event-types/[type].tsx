@@ -105,7 +105,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
       <div className="block sm:flex">
         <div className="min-w-48 sm:mb-0">
           <label
-            htmlFor="successRedirect"
+            htmlFor="successRedirectUrl"
             className="flex h-full items-center text-sm font-medium text-neutral-700">
             {t("redirect_success_booking")}
             <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
@@ -113,7 +113,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
         </div>
         <div className="w-full">
           <input
-            id="successRedirect"
+            id="successRedirectUrl"
             onClick={(e) => {
               if (proUpgradeRequired) {
                 e.preventDefault();
@@ -124,8 +124,8 @@ const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
             type="url"
             className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
             placeholder={t("external_redirect_url")}
-            defaultValue={eventType.successRedirect || ""}
-            {...formMethods.register("successRedirect")}
+            defaultValue={eventType.successRedirectUrl || ""}
+            {...formMethods.register("successRedirectUrl")}
           />
         </div>
         <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
@@ -476,7 +476,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       integration: string;
       externalId: string;
     };
-    successRedirect: string;
+    successRedirectUrl: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -1938,7 +1938,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      successRedirect: true,
+      successRedirectUrl: true,
       team: {
         select: {
           slug: true,

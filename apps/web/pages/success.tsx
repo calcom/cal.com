@@ -221,8 +221,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
-          {isSuccessRedirectAvailable(eventType) && eventType.successRedirect ? (
-            <RedirectionToast url={eventType.successRedirect}></RedirectionToast>
+          {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
+            <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
           ) : null}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -439,7 +439,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventName: true,
       requiresConfirmation: true,
       userId: true,
-      successRedirect: true,
+      successRedirectUrl: true,
       users: {
         select: {
           name: true,

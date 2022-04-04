@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "successRedirect" TEXT;
+ALTER TABLE "EventType" ADD COLUMN     "successRedirectUrl" TEXT;
