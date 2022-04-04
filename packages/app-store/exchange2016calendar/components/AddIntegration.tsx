@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import {
@@ -16,6 +17,8 @@ import { Form, TextField } from "@calcom/ui/form/fields";
 export const ADD_APPLE_INTEGRATION_FORM_TITLE = "addExchangeIntegration";
 
 export function AddExchangeIntegrationModal(props: DialogProps) {
+  const { t } = useLocale();
+
   const form = useForm({
     defaultValues: {
       username: "",
@@ -27,10 +30,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
   return (
     <Dialog {...props}>
       <DialogContent>
-        <DialogHeader
-          title="Connect to Exchange Server"
-          subtitle="Your credentials will be stored and encrypted."
-        />
+        <DialogHeader title="Connect to Exchange Server" subtitle={t("your_credentials_will")} />
 
         <Form
           form={form}
@@ -83,12 +83,12 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
               }}
               asChild>
               <Button type="button" color="secondary" tabIndex={-1}>
-                Cancel
+                {t("cancel")}
               </Button>
             </DialogClose>
 
             <Button type="submit" loading={form.formState.isSubmitting}>
-              Save
+              {t("save")}
             </Button>
           </DialogFooter>
         </Form>

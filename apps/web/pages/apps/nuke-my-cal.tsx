@@ -1,5 +1,3 @@
-import showToast from "@calcom/lib/notification";
-
 import App from "@components/App";
 
 export default function NukeMyCal() {
