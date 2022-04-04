@@ -711,5 +711,6 @@
   "12_hour": "12 hour",
   "24_hour": "24 hour",
   "duplicate": "Duplicate",
-  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
+  "your_credentials_will": "Your credentials will be stored and encrypted"
 }
