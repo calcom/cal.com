@@ -70,7 +70,7 @@ export type AttendeesResponse = BaseResponse & {
 export type AvailabilityResponse = BaseResponse & {
   data?: Partial<Availability>;
 };
-export type AvailabilitysResponse = BaseResponse & {
+export type AvailabilitiesResponse = BaseResponse & {
   data?: Partial<Availability>[];
 };
 
