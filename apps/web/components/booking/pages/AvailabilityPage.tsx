@@ -135,7 +135,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
             <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
-                <div className="flex items-center">
+                <div className="block items-center sm:flex sm:space-x-4">
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
                     items={
@@ -153,9 +153,9 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="ltr:ml-3 rtl:mr-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600">
+                  <div className="mt-4 sm:-mt-2">
+                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-600 dark:text-gray-100">
                       {eventType.title}
                       <div>
                         <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
