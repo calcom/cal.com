@@ -140,7 +140,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     [LocationType.GoogleMeet]: "Google Meet",
     [LocationType.Zoom]: "Zoom Video",
     [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Daily.co Video",
+    [LocationType.Daily]: "Cal Video",
     [LocationType.Huddle01]: "Huddle01 Video",
     [LocationType.Tandem]: "Tandem Video",
     [LocationType.Teams]: "MS Teams",
