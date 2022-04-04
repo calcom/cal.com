@@ -89,7 +89,7 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn>({
+const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
   eventType,
   formMethods,
 }: {
@@ -476,6 +476,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       integration: string;
       externalId: string;
     };
+    successRedirect: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
