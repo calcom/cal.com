@@ -1,6 +1,7 @@
-import React, { Fragment } from "react";
+import { Fragment } from "react";
 import { useMutation } from "react-query";
 
+import { InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -14,7 +15,6 @@ import DestinationCalendarSelector from "@components/DestinationCalendarSelector
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 
-import ConnectIntegration from "./ConnectIntegrations";
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";
 import SubHeadingTitleWithConnections from "./SubHeadingTitleWithConnections";
@@ -110,7 +110,8 @@ function ConnectedCalendarsList(props: Props) {
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
                   <IntegrationListItem
-                    {...item.integration}
+                    title={item.integration.title}
+                    imageSrc={item.integration.imageSrc}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
                       <DisconnectIntegration
@@ -127,8 +128,8 @@ function ConnectedCalendarsList(props: Props) {
                       {item.calendars.map((cal) => (
                         <CalendarSwitch
                           key={cal.externalId}
-                          externalId={cal.externalId as string}
-                          title={cal.name as string}
+                          externalId={cal.externalId}
+                          title={cal.name || "Nameless calendar"}
                           type={item.integration.type}
                           defaultSelected={cal.isSelected}
                         />
@@ -174,16 +175,18 @@ function CalendarList(props: Props) {
           {data.calendar.items.map((item) => (
             <IntegrationListItem
               key={item.title}
-              {...item}
+              title={item.title}
+              imageSrc={item.imageSrc}
+              description={item.description}
               actions={
-                <ConnectIntegration
+                <InstallAppButton
                   type={item.type}
-                  render={(btnProps) => (
-                    <Button color="secondary" {...btnProps} data-testid="integration-connection-button">
+                  render={(buttonProps) => (
+                    <Button color="secondary" {...buttonProps}>
                       {t("connect")}
                     </Button>
                   )}
-                  onOpenChange={() => props.onChanged()}
+                  onChanged={() => props.onChanged()}
                 />
               }
             />
@@ -193,6 +196,7 @@ function CalendarList(props: Props) {
     />
   );
 }
+
 export function CalendarListContainer(props: { heading?: false }) {
   const { t } = useLocale();
   const { heading = true } = props;

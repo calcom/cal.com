@@ -25,20 +25,18 @@ const DestinationCalendarSelector = ({
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
-    if (!selectedOption) {
-      const selected = query.data?.connectedCalendars
-        .map((connected) => connected.calendars ?? [])
-        .flat()
-        .find((cal) => cal.externalId === value);
+    const selected = query.data?.connectedCalendars
+      .map((connected) => connected.calendars ?? [])
+      .flat()
+      .find((cal) => cal.externalId === value);
 
-      if (selected) {
-        setSelectedOption({
-          value: `${selected.integration}:${selected.externalId}`,
-          label: selected.name || "",
-        });
-      }
+    if (selected) {
+      setSelectedOption({
+        value: `${selected.integration}:${selected.externalId}`,
+        label: selected.name || "",
+      });
     }
-  }, [query.data?.connectedCalendars, selectedOption, value]);
+  }, [query.data?.connectedCalendars, value]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
@@ -53,11 +51,14 @@ const DestinationCalendarSelector = ({
       })),
     })) ?? [];
   return (
-    <div className="relative">
+    <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
       {!hidePlaceholder && (
-        <div className="pointer-events-none absolute z-10">
-          <Button size="sm" color="secondary" className="m-[1px] rounded-sm border-transparent">
+        <div className="pointer-events-none absolute z-10 w-full">
+          <Button
+            size="sm"
+            color="secondary"
+            className="m-[1px] w-[calc(100%_-_40px)] overflow-hidden overflow-ellipsis whitespace-nowrap rounded-sm border-none leading-5">
             {t("select_destination_calendar")}: {selectedOption?.label || ""}
           </Button>
         </div>
@@ -67,7 +68,7 @@ const DestinationCalendarSelector = ({
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         isSearchable={false}
-        className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
+        className="focus:ring-primary-500 focus:border-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
         onChange={(option) => {
           setSelectedOption(option);
           if (!option) {

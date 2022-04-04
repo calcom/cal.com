@@ -534,7 +534,6 @@
   "billing": "Биллинг",
   "manage_your_billing_info": "Управление платежной информацией и отменой подписки.",
   "availability": "Доступность",
-  "availability_updated_successfully": "Доступность успешно обновлена",
   "configure_availability": "Измените временные интервалы, доступные для бронирования.",
   "change_weekly_schedule": "Измените свой еженедельный график",
   "logo": "Логотип",
@@ -656,6 +655,7 @@
   "prisma_studio_tip_description": "Узнайте, как настроить первого пользователя",
   "contact_sales": "Связаться с отделом продаж",
   "error_404": "Ошибка 404",
+  "availability_updated_successfully": "Доступность успешно обновлена",
   "requires_ownership_of_a_token": "Нужно быть владельцем токена, относящегося к следующему адресу:",
   "example_name": "Джон Доу"
 }

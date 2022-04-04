@@ -4,7 +4,7 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
-import { getCancelLink } from "@lib/CalEventParser";
+import { getCancelLink } from "@calcom/lib/CalEventParser";
 
 import {
   emailHead,

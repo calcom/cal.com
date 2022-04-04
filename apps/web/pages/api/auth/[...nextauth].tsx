@@ -5,8 +5,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+
 import { ErrorCode, verifyPassword } from "@lib/auth";
-import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { isSAMLLoginEnabled, samlLoginUrl, hostedCal } from "@lib/saml";

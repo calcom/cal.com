@@ -1,13 +1,14 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import prisma from "@lib/prisma";
 
 dayjs.extend(utc);

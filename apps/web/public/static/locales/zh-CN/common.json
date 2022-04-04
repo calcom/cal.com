@@ -530,7 +530,6 @@
   "billing": "计费",
   "manage_your_billing_info": "管理您的账单信息和取消您的订阅。",
   "availability": "可预约时间",
-  "availability_updated_successfully": "可预约时间更新成功",
   "configure_availability": "配置您可预约的时间。",
   "change_weekly_schedule": "更改您的周时间表",
   "logo": "标志",
@@ -651,5 +650,6 @@
   "prisma_studio_tip": "通过 Prisma Studio 创建账户",
   "prisma_studio_tip_description": "学习如何设置您的第一个用户",
   "contact_sales": "联系销售",
-  "error_404": "错误 404"
+  "error_404": "错误 404",
+  "availability_updated_successfully": "可预约时间更新成功"
 }

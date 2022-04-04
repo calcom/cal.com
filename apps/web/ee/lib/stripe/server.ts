@@ -6,9 +6,9 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
 import stripe, { PaymentData } from "@calcom/stripe/server";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 
 export type PaymentInfo = {
   link?: string | null;

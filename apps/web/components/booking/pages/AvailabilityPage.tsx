@@ -59,12 +59,18 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
-      // todo some extra validation maybe.
-      const utcOffsetAsDate = dayjs(dateString.substr(11, 14), "Hmm");
-      const utcOffset = parseInt(
-        dateString.substr(10, 1) + (utcOffsetAsDate.hour() * 60 + utcOffsetAsDate.minute())
-      );
-      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffset, true);
+      const offsetString = dateString.substr(11, 14); // hhmm
+      const offsetSign = dateString.substr(10, 1); // + or -
+
+      const offsetHour = offsetString.slice(0, -2);
+      const offsetMinute = offsetString.slice(-2);
+
+      const utcOffsetInMinutes =
+        (offsetSign === "-" ? -1 : 1) *
+        (60 * (offsetHour !== "" ? parseInt(offsetHour) : 0) +
+          (offsetMinute !== "" ? parseInt(offsetMinute) : 0));
+
+      const date = dayjs(dateString.substr(0, 10)).utcOffset(utcOffsetInMinutes, true);
       return date.isValid() ? date : null;
     }
     return null;
@@ -126,12 +132,12 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
             (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-900 sm:dark:border-gray-600 md:border">
+            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="flex items-center">
                   <AvatarGroup
-                    border="border-2 dark:border-gray-900 border-white"
+                    border="border-2 dark:border-gray-800 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
@@ -139,7 +145,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -176,11 +182,11 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
                 <div
                   className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-800 md:flex md:flex-col " +
+                    "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                     (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
-                    border="border-2 dark:border-gray-900 border-white"
+                    border="border-2 dark:border-gray-800 border-white"
                     items={
                       [
                         { image: profile.image, alt: profile.name, title: profile.name },
@@ -189,7 +195,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_APP_URL}/${user.username}/avatar.png`,
+                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }

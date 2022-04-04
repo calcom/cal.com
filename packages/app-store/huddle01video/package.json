@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "@calcom/huddle01video",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Huddle01 is a new video conferencing software native to Web3 and is comparable to a decentralized version of Zoom. It supports conversations for NFT communities, DAOs, Builders and also has features such as token gating, NFTs as avatars, Web3 Login + ENS and recording over IPFS.",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

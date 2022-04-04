@@ -59,7 +59,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.BASE_URL} + "/bookings/upcoming"
+${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -166,7 +166,7 @@ ${process.env.BASE_URL} + "/bookings/upcoming"
 
   protected getManageLink(): string {
     const manageText = this.calEvent.organizer.language.translate("confirm_or_reject_request");
-    const manageLink = process.env.BASE_URL + "/bookings/upcoming";
+    const manageLink = process.env.NEXT_PUBLIC_WEBAPP_URL + "/bookings/upcoming";
     return `<a style="color: #FFFFFF; text-decoration: none;" href="${manageLink}" target="_blank">${manageText} <img src="${linkIcon()}" width="12px"></img></a>`;
   }
 }

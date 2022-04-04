@@ -5,10 +5,12 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
-    return { ...initialProps };
+    const isEmbed = ctx.req?.url?.includes("embed");
+    return { ...initialProps, isEmbed };
   }
 
   render() {
+    const props = this.props;
     const { locale } = this.props.__NEXT_DATA__;
     const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
 
@@ -22,9 +24,10 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         </Head>
-        <body className="bg-gray-100 dark:bg-black">
+
+        {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
+        <body className="bg-gray-100 dark:bg-neutral-900" style={props.isEmbed ? { display: "none" } : {}}>
           <Main />
           <NextScript />
         </body>

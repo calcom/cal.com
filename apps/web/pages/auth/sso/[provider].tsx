@@ -158,8 +158,8 @@ const getStripePremiumUsernameUrl = async ({
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXT_PUBLIC_APP_BASE_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.cal.com",
+    success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
     allow_promotion_codes: true,
   });
 

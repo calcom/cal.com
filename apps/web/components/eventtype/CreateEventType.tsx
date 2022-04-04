@@ -191,7 +191,7 @@ export default function CreateEventTypeButton(props: Props) {
               required
               addOnLeading={
                 <InputLeading>
-                  {process.env.NEXT_PUBLIC_APP_URL}/{pageSlug}/
+                  {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
                 </InputLeading>
               }
               {...register("slug")}

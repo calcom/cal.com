@@ -9,27 +9,27 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import EventManager from "@calcom/core/EventManager";
+import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
+import notEmpty from "@calcom/lib/notEmpty";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import type { AdditionInformation, CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
 import {
-  sendScheduledEmails,
-  sendRescheduledEmails,
-  sendOrganizerRequestEmail,
   sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendScheduledEmails,
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
-import EventManager, { EventResult, PartialReference } from "@lib/events/EventManager";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
-import { EventBusyDate } from "@lib/integrations/calendar/constants/types";
-import { CalendarEvent, AdditionInformation } from "@lib/integrations/calendar/interfaces/Calendar";
-import { BufferedBusyTime } from "@lib/integrations/calendar/interfaces/Office365Calendar";
-import logger from "@lib/logger";
-import notEmpty from "@lib/notEmpty";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
-import { getBusyVideoTimes } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -232,6 +232,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: true,
       metadata: true,
       destinationCalendar: true,
+      hideCalendarNotes: true,
     },
   });
 
@@ -325,7 +326,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
     );
-
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -342,6 +342,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: reqBody.location, // Will be processed by the EventManager later.
     /** For team events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
+    hideCalendarNotes: eventType.hideCalendarNotes,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -528,6 +529,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (rescheduleUid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.update(evt, rescheduleUid);
+    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -561,6 +565,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (!eventType.requiresConfirmation && !eventType.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
+
+    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
@@ -636,7 +644,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   );
   await Promise.all(promises);
-
+  // Avoid passing referencesToCreate with id unique constrain values
   await prisma.booking.update({
     where: {
       uid: booking.uid,
