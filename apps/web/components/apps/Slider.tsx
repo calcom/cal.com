@@ -1,43 +1,42 @@
-import Glide from "@glidejs/glide";
+import Glide, { Options } from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
-
-import useMediaQuery from "@lib/hooks/useMediaQuery";
-
-import AppCard from "./AppCard";
-
-const Slider = <T extends App>({ items }: { items: T[] }) => {
-  const { t } = useLocale();
-  const isMobile = useMediaQuery("(max-width: 767px)");
-  const [size, setSize] = useState(3);
+const Slider = <T extends unknown>({
+  title = "",
+  className = "",
+  items,
+  itemKey = (item) => `${item}`,
+  renderItem,
+  options = {},
+}: {
+  title?: string;
+  className?: string;
+  items: T[];
+  itemKey?: (item: T) => string;
+  renderItem?: (item: T) => JSX.Element;
+  options?: Options;
+}) => {
+  const glide = useRef(null);
 
   useEffect(() => {
-    if (isMobile) {
-      setSize(1);
-    } else {
-      setSize(3);
+    if (glide.current) {
+      const slider = new Glide(glide.current, {
+        type: "carousel",
+        ...options,
+      });
+
+      slider.mount();
     }
-  }, [isMobile]);
-
-  useEffect(() => {
-    const slider = new Glide(".glide", {
-      type: "carousel",
-      perView: size,
-    });
-
-    slider.mount();
 
     // @ts-ignore TODO: This method is missing in types
     return () => slider.destroy();
-  }, [size]);
+  }, [options]);
 
   return (
-    <div className="mb-16">
+    <div className={`mb-2 ${className}`}>
       <style jsx global>
         {`
           .glide__slide {
@@ -45,11 +44,13 @@ const Slider = <T extends App>({ items }: { items: T[] }) => {
           }
         `}
       </style>
-      <div className="glide">
+      <div className="glide" ref={glide}>
         <div className="flex cursor-default">
-          <div>
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("trending_apps")}</h2>
-          </div>
+          {title && (
+            <div>
+              <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{title}</h2>
+            </div>
+          )}
           <div className="glide__arrows ml-auto" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">
               <ArrowLeftIcon className="h-5 w-5 text-gray-600 hover:text-black" />
@@ -61,21 +62,12 @@ const Slider = <T extends App>({ items }: { items: T[] }) => {
         </div>
         <div className="glide__track" data-glide-el="track">
           <ul className="glide__slides">
-            {items.map((app) => {
+            {items.map((item) => {
+              if (typeof renderItem !== "function") return null;
               return (
-                app.trending && (
-                  <li key={app.name} className="glide__slide h-auto">
-                    <AppCard
-                      key={app.name}
-                      name={app.name}
-                      slug={app.slug}
-                      description={app.description}
-                      logo={app.logo}
-                      rating={app.rating}
-                      reviews={app.reviews}
-                    />
-                  </li>
-                )
+                <li key={itemKey(item)} className="glide__slide h-auto pl-0">
+                  {renderItem(item)}
+                </li>
               );
             })}
           </ul>
