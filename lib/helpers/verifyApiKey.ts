@@ -17,7 +17,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
     res.status(401).json({ error: "Your api key is not valid" });
     throw new Error("No api key found");
   }
-  if (apiKey.expiresAt && apiKey.userId && dateInPast(apiKey.expiresAt, today)) {
+  if (apiKey.expiresAt && apiKey.userId && dateInPast(today, apiKey.expiresAt)) {
     res.setHeader("Calcom-User-ID", apiKey.userId);
     await next();
   } else res.status(401).json({ error: "Your api key is not valid" });
