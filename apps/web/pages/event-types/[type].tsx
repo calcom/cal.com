@@ -30,6 +30,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
 import Button from "@calcom/ui/Button";
@@ -41,7 +42,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
@@ -61,6 +61,8 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
+
+import { getTranslation } from "@server/lib/i18n";
 
 import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
@@ -82,19 +84,6 @@ type OptionTypeBase = {
   label: string;
   value: LocationType;
   disabled?: boolean;
-};
-
-const addDefaultLocationOptions = (
-  defaultLocations: OptionTypeBase[],
-  locationOptions: OptionTypeBase[]
-): void => {
-  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
-
-  defaultLocations.map((item) => {
-    if (!existingLocationOptions.includes(item.value)) {
-      locationOptions.push(item);
-    }
-  });
 };
 
 const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
@@ -148,19 +137,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
-    props;
-
-  /** Appending default locations */
-
-  const defaultLocations = [
-    { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Link, label: t("link_meeting") },
-    { value: LocationType.Jitsi, label: "Jitsi Meet" },
-    { value: LocationType.Phone, label: t("phone_call") },
-  ];
-
-  addDefaultLocationOptions(defaultLocations, locationOptions);
+  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
 
   const router = useRouter();
 
@@ -1840,6 +1817,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    locale: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -1972,25 +1950,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
+  const currentUser = eventType.users.find((u) => u.id === session.user.id);
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations);
+  const locationOptions = getLocationOptions(integrations, t);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
-  if (hasIntegration(integrations, "google_calendar")) {
-    locationOptions.push({
-      value: LocationType.GoogleMeet,
-      label: "Google Meet",
-    });
-  }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
-
-  if (hasIntegration(integrations, "office365_calendar")) {
-    // TODO: Add default meeting option of the office integration.
-    // Assuming it's Microsoft Teams.
-  }
 
   type Availability = typeof eventType["availability"];
   const getAvailability = (availability: Availability) =>
