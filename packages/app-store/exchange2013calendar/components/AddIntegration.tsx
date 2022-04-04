@@ -13,7 +13,7 @@ import {
 } from "@calcom/ui/Dialog";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
-export const ADD_APPLE_INTEGRATION_FORM_TITLE = "addExchangeIntegration";
+export const ADD_INTEGRATION_FORM_TITLE = "addExchangeIntegration";
 
 export function AddExchangeIntegrationModal(props: DialogProps) {
   const form = useForm({
@@ -25,7 +25,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
   });
   const [errorMessage, setErrorMessage] = useState("");
   return (
-    <Dialog {...props}>
+    <Dialog name={ADD_INTEGRATION_FORM_TITLE} {...props}>
       <DialogContent>
         <DialogHeader
           title="Connect to Exchange Server"
@@ -34,7 +34,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
 
         <Form
           form={form}
-          onSubmit={form.handleSubmit(async (values) => {
+          handleSubmit={async (values) => {
             setErrorMessage("");
             const res = await fetch("/api/integrations/exchange2013calendar/add", {
               method: "POST",
@@ -49,7 +49,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
             } else {
               props.onOpenChange?.(false);
             }
-          })}>
+          }}>
           <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
             <TextField
               required

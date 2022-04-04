@@ -34,7 +34,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
 
         <Form
           form={form}
-          onSubmit={form.handleSubmit(async (values) => {
+          handleSubmit={async (values) => {
             setErrorMessage("");
             const res = await fetch("/api/integrations/exchange2016calendar/add", {
               method: "POST",
@@ -49,7 +49,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
             } else {
               props.onOpenChange?.(false);
             }
-          })}>
+          }}>
           <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
             <TextField
               required
