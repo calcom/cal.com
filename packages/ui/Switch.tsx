@@ -1,37 +1,22 @@
 import { useId } from "@radix-ui/react-id";
 import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
-import React, { useState } from "react";
+import React from "react";
 
-import classNames from "@calcom/lib/classNames";
-
-type SwitchProps = React.ComponentProps<typeof PrimitiveSwitch.Root> & {
-  label: string;
-};
-export default function Switch(props: SwitchProps) {
-  const { label, onCheckedChange, ...primitiveProps } = props;
-  const [checked, setChecked] = useState(props.defaultChecked || false);
-
-  const onPrimitiveCheckedChange = (change: boolean) => {
-    if (onCheckedChange) {
-      onCheckedChange(change);
-    }
-    setChecked(change);
-  };
+const Switch = (
+  props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
+    label: string;
+  }
+) => {
+  const { label, ...primitiveProps } = props;
   const id = useId();
+
   return (
     <div className="flex h-[20px] items-center">
-      <PrimitiveSwitch.Root
-        className={classNames(checked ? "bg-gray-900" : "bg-gray-400", "h-[20px] w-[36px] rounded-sm p-0.5")}
-        checked={checked}
-        onCheckedChange={onPrimitiveCheckedChange}
-        {...primitiveProps}>
+      <PrimitiveSwitch.Root className="h-[20px] w-[36px] rounded-sm bg-gray-400 p-0.5" {...primitiveProps}>
         <PrimitiveSwitch.Thumb
           id={id}
-          className={classNames(
-            "block h-[16px] w-[16px] bg-white transition-transform",
-            checked ? "translate-x-[16px]" : "translate-x-0"
-          )}
+          className={"block h-[16px] w-[16px] translate-x-0 bg-white transition-transform"}
         />
       </PrimitiveSwitch.Root>
       {label && (
@@ -43,4 +28,6 @@ export default function Switch(props: SwitchProps) {
       )}
     </div>
   );
-}
+};
+
+export default Switch;

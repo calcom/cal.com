@@ -1,10 +1,10 @@
 import { XIcon } from "@heroicons/react/outline";
 import { ArrowRightIcon } from "@heroicons/react/solid";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
 
 import { HeadSeo } from "@components/seo/head-seo";
-import Button from "@components/ui/Button";
 
 export default function NoMeetingFound() {
   const { t } = useLocale();

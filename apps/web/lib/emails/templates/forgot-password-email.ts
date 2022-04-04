@@ -1,7 +1,8 @@
 import { TFunction } from "next-i18next";
 import nodemailer from "nodemailer";
 
-import { getErrorFromUnknown } from "@lib/errors";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
+
 import { serverConfig } from "@lib/serverConfig";
 
 import { emailHead, linkIcon, emailBodyLogo } from "./common";

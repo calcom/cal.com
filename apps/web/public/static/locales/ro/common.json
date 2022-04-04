@@ -457,7 +457,6 @@
   "billing": "Facturare",
   "manage_your_billing_info": "Gestionați informațiile de facturare și anulați abonamentul.",
   "availability": "Disponibilitate",
-  "availability_updated_successfully": "Disponibilitatea actualizată cu succes",
   "configure_availability": "Configurați orele când sunteți disponibil pentru rezervări.",
   "change_weekly_schedule": "Modificaţi schema săptămânală",
   "logo": "Logo",
@@ -525,5 +524,6 @@
   "calendar": "Calendar",
   "not_installed": "Nu este instalat",
   "error_password_mismatch": "Parolele nu se potrivesc.",
-  "error_required_field": "Acest câmp este obligatoriu."
+  "error_required_field": "Acest câmp este obligatoriu.",
+  "availability_updated_successfully": "Disponibilitatea actualizată cu succes"
 }

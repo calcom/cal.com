@@ -90,7 +90,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo
+1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -196,7 +196,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
 ### E2E-Testing
 
 ```sh
-# In first terminal
+# In first terminal. Must run on port 3000.
 yarn dx
 # In second terminal
 yarn workspace @calcom/web test-e2e

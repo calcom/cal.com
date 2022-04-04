@@ -65,27 +65,16 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
   };
 }
 
-const AvailabilityInput = _AvailabilityModel.pick({
-  days: true,
-  startTime: true,
-  endTime: true,
-});
-
 const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
-    availability: z
-      .object({
-        openingHours: z.array(AvailabilityInput).optional(),
-        dateOverrides: z.array(AvailabilityInput).optional(),
-      })
-      .optional(),
     customInputs: z.array(_EventTypeCustomInputModel),
     destinationCalendar: _DestinationCalendarModel.pick({
       integration: true,
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    schedule: z.number().optional(),
   })
   .partial()
   .merge(
@@ -191,7 +180,7 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { availability, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
+      const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
         input;
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
@@ -212,24 +201,18 @@ export const eventTypesRouter = createProtectedRouter()
         data.customInputs = handleCustomInputs(customInputs, id);
       }
 
+      if (schedule) {
+        data.schedule = {
+          connect: {
+            id: schedule,
+          },
+        };
+      }
+
       if (users) {
         data.users = {
           set: [],
           connect: users.map((userId) => ({ id: userId })),
-        };
-      }
-
-      if (availability?.openingHours) {
-        await ctx.prisma.availability.deleteMany({
-          where: {
-            eventTypeId: input.id,
-          },
-        });
-
-        data.availability = {
-          createMany: {
-            data: availability.openingHours,
-          },
         };
       }
 

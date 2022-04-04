@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
 import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -8,7 +9,6 @@ import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
 import Shell, { useMeQuery } from "@components/Shell";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 
 export function TeamAvailabilityPage() {

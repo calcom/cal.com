@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 
-import { Dialog } from "@components/Dialog";
+import showToast from "@calcom/lib/notification";
+import { ButtonBaseProps } from "@calcom/ui/Button";
+import { Dialog } from "@calcom/ui/Dialog";
+
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { ButtonBaseProps } from "@components/ui/Button";
 
 export default function DisconnectIntegration(props: {
   /** Integration credential id */
@@ -24,12 +26,14 @@ export default function DisconnectIntegration(props: {
       if (!res.ok) {
         throw new Error("Something went wrong");
       }
+      return res.json();
     },
     {
       async onSettled() {
         await props.onOpenChange(modalOpen);
       },
-      onSuccess() {
+      onSuccess(data) {
+        showToast(data.message, "success");
         setModalOpen(false);
       },
     }

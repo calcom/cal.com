@@ -11,7 +11,7 @@ export type AvatarProps = {
 };
 
 // defaultAvatarSrc from profile.tsx can't be used as it imports crypto
-function defaultAvatarSrc({ md5 }) {
+function defaultAvatarSrc(md5: string) {
   return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
 }
 
@@ -26,7 +26,7 @@ export function AvatarSSR(props: AvatarProps) {
   if (user.avatar) {
     imgSrc = user.avatar;
   } else if (user.emailMd5) {
-    imgSrc = defaultAvatarSrc({ md5: user.emailMd5 });
+    imgSrc = defaultAvatarSrc(user.emailMd5);
   }
   return imgSrc ? <img alt={alt} className={className} src={imgSrc}></img> : null;
 }

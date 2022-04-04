@@ -4,6 +4,9 @@ import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
@@ -13,8 +16,6 @@ import SettingsShell from "@components/SettingsShell";
 import Shell, { useMeQuery } from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 
 export default function Teams() {
   const { t } = useLocale();
@@ -57,7 +58,9 @@ export default function Teams() {
             className="my-4"
           />
         )}
-        {showCreateTeamModal && <TeamCreateModal onClose={() => setShowCreateTeamModal(false)} />}
+        {showCreateTeamModal && (
+          <TeamCreateModal isOpen={showCreateTeamModal} onClose={() => setShowCreateTeamModal(false)} />
+        )}
         <div className={classNames("my-4 flex justify-end", isFreePlan && "opacity-50")}>
           <Button
             disabled={isFreePlan}

@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import Button from "@components/ui/Button";
+import Button from "@calcom/ui/Button";
 
 export default function Error500() {
   return (

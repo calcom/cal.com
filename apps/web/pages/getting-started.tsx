@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Prisma, IdentityProvider } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import classnames from "classnames";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -17,12 +17,16 @@ import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Form } from "@calcom/ui/form/fields";
+
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import getIntegrations from "@lib/integrations/getIntegrations";
 import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
@@ -31,12 +35,9 @@ import { Schedule as ScheduleType } from "@lib/types/schedule";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import Loader from "@components/Loader";
-import { Form } from "@components/form/fields";
+import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
-import Schedule from "@components/ui/form/Schedule";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -133,21 +134,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     return responseData.data;
   };
 
-  const createSchedule = async ({ schedule }: ScheduleFormValues) => {
-    const res = await fetch(`/api/schedule`, {
-      method: "POST",
-      body: JSON.stringify({ schedule }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+  const createSchedule = trpc.useMutation("viewer.availability.schedule.create", {
+    onError: (err) => {
+      throw new Error(err.message);
+    },
+  });
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
@@ -161,15 +152,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   /** Onboarding Steps */
   const [currentStep, setCurrentStep] = useState(0);
   const detectStep = () => {
+    // Always set timezone if new user
     let step = 0;
-    const hasSetUserNameOrTimeZone =
-      props.user?.name &&
-      props.user?.timeZone &&
-      !props.usernameParam &&
-      props.user?.identityProvider === IdentityProvider.CAL;
-    if (hasSetUserNameOrTimeZone) {
-      step = 1;
-    }
 
     const hasConfigureCalendar = props.integrations.some((integration) => integration.credential !== null);
     if (hasConfigureCalendar) {
@@ -268,6 +252,44 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     token: string;
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
 
+  const fetchUsername = async (username: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/api/username`, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: username.trim() }),
+      method: "POST",
+      mode: "cors",
+    });
+    const data = (await response.json()) as ResponseUsernameApi;
+    return { response, data };
+  };
+
+  // Should update username on user when being redirected from sign up and doing google/saml
+  useEffect(() => {
+    async function validateAndSave(username: string) {
+      const { data } = await fetchUsername(username);
+
+      // Only persist username if its available and not premium
+      // premium usernames are saved via stripe webhook
+      if (data.available && !data.premium) {
+        await updateUser({
+          username,
+        });
+      }
+      // Remove it from localStorage
+      window.localStorage.removeItem("username");
+      return;
+    }
+
+    // Looking for username on localStorage
+    const username = window.localStorage.getItem("username");
+    if (username) {
+      validateAndSave(username);
+    }
+  }, []);
+
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [
     {
@@ -352,25 +374,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           </div>
           <form className="sm:mx-auto sm:w-full">
             <section className="space-y-8">
-              {(props.usernameParam || props.user?.identityProvider !== IdentityProvider.CAL) && (
-                <fieldset>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    {t("username")}
-                  </label>
-                  <input
-                    ref={usernameRef}
-                    type="text"
-                    name="username"
-                    id="username"
-                    data-testid="username"
-                    placeholder={t("username")}
-                    defaultValue={props.usernameParam ? props.usernameParam : props.user?.username ?? ""}
-                    required
-                    className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  />
-                </fieldset>
-              )}
-
               <fieldset>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   {t("full_name")}
@@ -426,11 +429,12 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           };
         });
 
-        mutation.mutate({
-          username: usernameRef.current?.value,
+        const userUpdateData = {
           name: nameRef.current?.value,
           timeZone: selectedTimeZone,
-        });
+        };
+
+        mutation.mutate(userUpdateData);
 
         if (mutationComplete) {
           await mutationAsync;
@@ -462,7 +466,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           handleSubmit={async (values) => {
             try {
               setSubmitting(true);
-              await createSchedule({ ...values });
+              await createSchedule.mutate({
+                name: t("default_schedule_name"),
+                ...values,
+              });
               debouncedHandleConfirmStep();
               setSubmitting(false);
             } catch (error) {
@@ -613,7 +620,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                   className="justify-center"
                   disabled={isSubmitting}
                   onClick={debouncedHandleConfirmStep}
-                  EndIcon={ArrowRightIcon}>
+                  EndIcon={ArrowRightIcon}
+                  data-testid={`continue-button-${currentStep}`}>
                   {steps[currentStep].confirmText}
                 </Button>
               </footer>
@@ -644,8 +652,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 }
 
 export async function getServerSideProps(context: NextPageContext) {
-  const usernameParam = asStringOrNull(context.query.username);
-
   const session = await getSession(context);
 
   if (!session?.user?.id) {
@@ -701,10 +707,11 @@ export async function getServerSideProps(context: NextPageContext) {
       id: true,
       type: true,
       key: true,
+      userId: true,
     },
   });
 
-  const integrations = getIntegrations(credentials)
+  const integrations = getApps(credentials)
     .filter((item) => item.type.endsWith("_calendar"))
     .map((item) => omit(item, "key"));
 
@@ -744,7 +751,6 @@ export async function getServerSideProps(context: NextPageContext) {
       connectedCalendars,
       eventTypes,
       schedules,
-      usernameParam,
     },
   };
 }

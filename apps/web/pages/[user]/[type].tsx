@@ -43,6 +43,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodDays: true,
     periodCountCalendarDays: true,
     schedulingType: true,
+    schedule: {
+      select: {
+        availability: true,
+        timeZone: true,
+      },
+    },
     minimumBookingNotice: true,
     beforeEventBuffer: true,
     afterEventBuffer: true,
@@ -80,6 +86,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: true,
       brandColor: true,
       darkBrandColor: true,
+      defaultScheduleId: true,
+      schedules: {
+        select: {
+          availability: true,
+          timeZone: true,
+          id: true,
+        },
+      },
       theme: true,
       plan: true,
       eventTypes: {
@@ -139,10 +153,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [eventType] = user.eventTypes;
 
   // check this is the first event
-
-  // TEMPORARILY disabled because of a bug during event create - during which users were able
-  // to create event types >n1.
-  /*if (user.plan === "FREE") {
+  if (user.plan === "FREE") {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [
@@ -158,6 +169,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
         ],
       },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
       select: {
         id: true,
       },
@@ -167,7 +186,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         notFound: true,
       } as const;
     }
-  }*/
+  }
 
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
@@ -175,13 +194,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
+  const schedule = eventType.schedule
+    ? { ...eventType.schedule }
+    : {
+        ...user.schedules.filter(
+          (schedule) => !user.defaultScheduleId || schedule.id === user.defaultScheduleId
+        )[0],
+      };
+
+  const timeZone = schedule.timeZone || eventType.timeZone || user.timeZone;
+
   const workingHours = getWorkingHours(
     {
-      timeZone: eventType.timeZone || user.timeZone,
+      timeZone,
     },
-    eventType.availability.length ? eventType.availability : user.availability
+    schedule.availability || (eventType.availability.length ? eventType.availability : user.availability)
   );
 
+  eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
   return {
@@ -195,6 +225,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
       },
+      plan: user.plan,
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,

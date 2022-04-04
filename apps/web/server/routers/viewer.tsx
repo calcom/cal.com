@@ -3,12 +3,12 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import getApps from "@calcom/app-store/utils";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { canEventBeEdited } from "@lib/event";
-import { getCalendarCredentials, getConnectedCalendars } from "@lib/integrations/calendar/CalendarManager";
-import { ALL_INTEGRATIONS } from "@lib/integrations/getIntegrations";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -20,8 +20,8 @@ import {
   samlTenantProduct,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
-import { Schedule } from "@lib/types/schedule";
 
+import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -31,7 +31,7 @@ import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 
 const checkUsername =
-  process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
+  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? checkPremiumUsername : checkRegularUsername;
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
@@ -239,6 +239,7 @@ const loggedInViewerRouter = createProtectedRouter()
         };
         metadata: {
           membershipCount: number;
+          readonly: boolean;
         };
         eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean; readOnly?: boolean })[];
       };
@@ -435,6 +436,50 @@ const loggedInViewerRouter = createProtectedRouter()
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
+      if (connectedCalendars.length === 0) {
+        /* As there are no connected calendars, delete the destination calendar if it exists */
+        if (user.destinationCalendar) {
+          await ctx.prisma.destinationCalendar.delete({
+            where: { userId: user.id },
+          });
+          user.destinationCalendar = null;
+        }
+      } else if (!user.destinationCalendar) {
+        /*
+        There are connected calendars, but no destination calendar
+        So create a default destination calendar with the first primary connected calendar
+        */
+        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
+          data: {
+            userId: user.id,
+            integration,
+            externalId,
+          },
+        });
+      } else {
+        /* There are connected calendars and a destination calendar */
+
+        // Check if destinationCalendar exists in connectedCalendars
+        const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+        const destinationCal = allCals.find(
+          (cal) =>
+            cal.externalId === user.destinationCalendar?.externalId &&
+            cal.integration === user.destinationCalendar?.integration
+        );
+        if (!destinationCal) {
+          // If destinationCalendar is out of date, update it with the first primary connected calendar
+          const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+          user.destinationCalendar = await ctx.prisma.destinationCalendar.update({
+            where: { userId: user.id },
+            data: {
+              integration,
+              externalId,
+            },
+          });
+        }
+      }
+
       return {
         connectedCalendars,
         destinationCalendar: user.destinationCalendar,
@@ -525,16 +570,16 @@ const loggedInViewerRouter = createProtectedRouter()
       function countActive(items: { credentialIds: unknown[] }[]) {
         return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
       }
-      const integrations = ALL_INTEGRATIONS.map((integration) => ({
-        ...integration,
-        credentialIds: credentials
-          .filter((credential) => credential.type === integration.type)
-          .map((credential) => credential.id),
-      }));
+      const apps = getApps(credentials).map(
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
+          ...app,
+          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
+        })
+      );
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = integrations.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = integrations.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const calendar = integrations.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
+      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
 
       return {
         conferencing: {
@@ -567,48 +612,6 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
-      };
-    },
-  })
-  .query("availability", {
-    async resolve({ ctx }) {
-      const { prisma, user } = ctx;
-      const availabilityQuery = await prisma.availability.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
-      const schedule = availabilityQuery.reduce(
-        (schedule: Schedule, availability) => {
-          availability.days.forEach((day) => {
-            schedule[day].push({
-              start: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.startTime.getUTCHours(),
-                  availability.startTime.getUTCMinutes()
-                )
-              ),
-              end: new Date(
-                Date.UTC(
-                  new Date().getUTCFullYear(),
-                  new Date().getUTCMonth(),
-                  new Date().getUTCDate(),
-                  availability.endTime.getUTCHours(),
-                  availability.endTime.getUTCMinutes()
-                )
-              ),
-            });
-          });
-          return schedule;
-        },
-        Array.from([...Array(7)]).map(() => [])
-      );
-      return {
-        schedule,
-        timeZone: user.timeZone,
       };
     },
   })
@@ -810,8 +813,8 @@ const loggedInViewerRouter = createProtectedRouter()
       try {
         return await apiController.config({
           encodedRawMetadata,
-          defaultRedirectUrl: `${process.env.BASE_URL}/api/auth/saml/idp`,
-          redirectUrl: JSON.stringify([`${process.env.BASE_URL}/*`]),
+          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,
           product: samlProductID,
         });
@@ -846,5 +849,6 @@ export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
   .merge("eventTypes.", eventTypesRouter)
+  .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
   .merge("webhook.", webhookRouter);

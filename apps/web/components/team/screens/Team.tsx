@@ -5,11 +5,12 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
+import Button from "@calcom/ui/Button";
+
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
-import Button from "@components/ui/Button";
 import Text from "@components/ui/Text";
 
 type TeamType = TeamPageProps["team"];
@@ -27,7 +28,7 @@ const Team = ({ team }: TeamPageProps) => {
       "space-y-4",
       "p-4",
       "min-w-full sm:min-w-64 sm:max-w-64",
-      "bg-white dark:bg-neutral-900 dark:border-0 dark:bg-opacity-8",
+      "bg-white dark:bg-neutral-800 dark:border-neutral-700 dark:bg-opacity-8",
       "border border-neutral-200",
       "hover:cursor-pointer",
       "hover:border-brand dark:border-neutral-700 dark:hover:border-neutral-600",

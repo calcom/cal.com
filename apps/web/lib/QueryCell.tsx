@@ -7,8 +7,9 @@ import {
   UseQueryResult,
 } from "react-query";
 
+import { Alert } from "@calcom/ui/Alert";
+
 import Loader from "@components/Loader";
-import { Alert } from "@components/ui/Alert";
 
 type ErrorLike = {
   message: string;

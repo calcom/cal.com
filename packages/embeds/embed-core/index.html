@@ -1,0 +1,281 @@
+<html>
+  <head>
+    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
+    <script>
+      if (!location.search.includes("nonResponsive")) {
+        document.write('<meta name="viewport" content="width=device-width"/>');
+      }
+    </script>
+    <script>
+      (function (C, A, L) {
+        let p = function (a, ar) {
+          a.q.push(ar);
+        };
+        let d = C.document;
+        C.Cal =
+          C.Cal ||
+          function () {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function () {
+                p(api, arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+              return;
+            }
+            p(cal, ar);
+          };
+      })(window, "//localhost:3002/dist/embed.umd.js", "init");
+    </script>
+
+    <style>
+      .debug {
+        /* border: 1px solid black; */
+        margin-bottom: 5px;
+      }
+
+      .loader {
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
+    <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
+    <div>
+      <button data-cal-link="free">Book with Free User</button>
+      <div>
+        <i
+          >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
+          as you are reading this text, it would open up super fast[If you are running a production build on
+          local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
+          slow</i
+        >
+      </div>
+    </div>
+    <div id="namespaces-test">
+      <div class="debug" id="cal-booking-place-default">
+        <h2>
+          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@gmail.com and test@gmail.com)]</i>
+        </h2>
+        <div>
+          <i><a href="?only=ns:default">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action"> You would see last Booking page action in my place </i>
+        <div style="max-height: 30vh; overflow: scroll" class="place">
+          <div>
+            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
+            have to scroll to see the entire content
+          </div>
+          <div class="loader" id="cal-booking-loader-">Loading .....</div>
+        </div>
+      </div>
+      <div class="debug" id="cal-booking-place-second">
+        <h2>Namespace "second"(Cal.ns.second)[Custom Styling][inline]</h2>
+        <div>
+          <i><a href="?only=ns:second">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div class="place">
+          <div>If you render booking embed in me, I won't restrict you. The entire page is yours.</div>
+          <button
+            onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
+            Change <code>eventTypeListItem</code> bg color
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
+            Change <code>body</code> bg color
+          </button>
+          <div class="loader" id="cal-booking-loader-second">Loading .....</div>
+        </div>
+      </div>
+
+      <div class="debug" id="cal-booking-place-third">
+        <h2>Namespace "third"(Cal.ns.third)[inline]</h2>
+        <div>
+          <i><a href="?only=ns:third">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div style="width: 30%" class="place">
+          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+
+      <div class="debug" id="cal-booking-place-fourth">
+        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline]</h2>
+        <div>
+          <i><a href="?only=ns:fourth">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div style="width: 30%" class="place">
+          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const callback = function (e) {
+        const detail = e.detail;
+        const namespace = detail.namespace || "default";
+
+        if (detail.type === "linkReady") {
+          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
+        }
+
+        document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(
+          e.detail
+        );
+      };
+
+      const searchParams = new URL(document.URL).searchParams;
+      const only = searchParams.get("only");
+      if (!only || only === "ns:default") {
+        Cal("init", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+
+        Cal("inline", {
+          elementOrSelector: "#cal-booking-place-default .place",
+          calLink: "pro?case=1",
+          config: {
+            name: "John Doe",
+            email: "johndoe@gmail.com",
+            notes: "Test Meeting",
+            guests: ["janedoe@gmail.com", "test@gmail.com"],
+            theme: "dark",
+          },
+        });
+        Cal("on", {
+          action: "*",
+          callback,
+        });
+      }
+      if (!only || only === "ns:second") {
+        // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+        Cal("init", "second", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+
+        // Bulk API is supported - Keep all configuration at one place.
+        Cal.ns.second(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-second .place",
+              calLink: "pro?case=2",
+            },
+          ],
+          [
+            "ui",
+            {
+              styles: {
+                body: {
+                  background: "white",
+                },
+                eventTypeListItem: {
+                  backgroundColor: "#D3D3D3",
+                },
+                enabledDateButton: {
+                  backgroundColor: "#D3D3D3",
+                },
+                disabledDateButton: {
+                  backgroundColor: "lightslategray",
+                },
+              },
+            },
+          ]
+        );
+        Cal.ns.second("on", {
+          action: "*",
+          callback,
+        });
+      }
+
+      if (!only || only === "ns:third") {
+        // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
+        Cal("init", "third", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.third(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-third .place",
+              calLink: "pro/30min",
+            },
+          ],
+          [
+            "ui",
+            {
+              styles: {
+                body: {
+                  background: "white",
+                },
+              },
+            },
+          ]
+        );
+        Cal.ns.third("on", {
+          action: "*",
+          callback,
+        });
+      }
+
+      if (!only || only === "ns:fourth") {
+        Cal("init", "fourth", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.fourth(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-fourth .place",
+              calLink: "team/test-team",
+            },
+          ],
+          [
+            "ui",
+            {
+              styles: {
+                body: {
+                  background: "white",
+                },
+              },
+            },
+          ]
+        );
+        Cal.ns.fourth("on", {
+          action: "*",
+          callback,
+        });
+      }
+
+      if (!only || only === "prerender-test") {
+        Cal("preload", {
+          calLink: "free",
+        });
+      }
+    </script>
+    <script></script>
+  </body>
+</html>

@@ -9,27 +9,28 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import showToast from "@calcom/lib/notification";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { TextField } from "@calcom/ui/form/fields";
+
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import showToast from "@lib/notification";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@components/Dialog";
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
-import Button from "@components/ui/Button";
 import ColorPicker from "@components/ui/colorpicker";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -67,7 +68,7 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           </div>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="font-cal text-lg font-bold leading-6 text-gray-900" id="modal-title">
+              <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
                 {t("only_available_on_pro_plan")}
               </h3>
             </div>
@@ -126,7 +127,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     }).catch((e) => {
       console.error(`Error Removing user: ${props.user.id}, email: ${props.user.email} :`, e);
     });
-    if (process.env.NEXT_PUBLIC_BASE_URL === "https://app.cal.com") {
+    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
       signOut({ callbackUrl: "/auth/logout?survey=true" });
     } else {
       signOut({ callbackUrl: "/auth/logout" });
@@ -136,9 +137,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
-      // FIXME
-      // @ts-ignore
-      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale),
+      label: new Intl.DisplayNames(props.localeProp, { type: "language" }).of(locale) || "",
     }));
   }, [props.localeProp, router.locales]);
 
@@ -233,7 +232,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="username"
                   addOnLeading={
                     <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                      {process.env.NEXT_PUBLIC_APP_URL}/
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                     </span>
                   }
                   ref={usernameRef}

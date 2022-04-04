@@ -5,10 +5,9 @@ import { stringify } from "querystring";
 import React, { SyntheticEvent, useEffect, useState } from "react";
 
 import { PaymentData } from "@calcom/stripe/server";
+import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
-
-import Button from "@components/ui/Button";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,

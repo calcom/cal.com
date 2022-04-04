@@ -5,8 +5,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+
 import { ErrorCode, verifyPassword } from "@lib/auth";
-import { symmetricDecrypt } from "@lib/crypto";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { isSAMLLoginEnabled, samlLoginUrl, hostedCal } from "@lib/saml";
@@ -181,6 +182,7 @@ export default NextAuth({
       if (account && account.type === "credentials") {
         return {
           id: user.id,
+          name: user.name,
           username: user.username,
           email: user.email,
         };
@@ -213,6 +215,7 @@ export default NextAuth({
 
         return {
           id: existingUser.id,
+          name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
         };
@@ -226,6 +229,7 @@ export default NextAuth({
         user: {
           ...session.user,
           id: token.id as number,
+          name: token.name,
           username: token.username as string,
         },
       };

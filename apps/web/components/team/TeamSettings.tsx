@@ -1,15 +1,17 @@
 import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
 import React, { useRef, useState } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import { objectKeys } from "@calcom/lib/objectKeys";
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { TextField } from "@calcom/ui/form/fields";
+
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
 import ImageUploader from "@components/ImageUploader";
-import { TextField } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 import SettingInputContainer from "@components/ui/SettingInputContainer";
 
 interface Props {
@@ -53,9 +55,9 @@ export default function TeamSettings(props: Props) {
       hideBranding: hideBrandingRef.current?.checked,
     };
     // remove unchanged variables
-    for (const key in variables) {
-      if (variables[key] === team?.[key]) delete variables[key];
-    }
+    objectKeys(variables).forEach((key) => {
+      if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
+    });
     mutation.mutate({ id: team.id, ...variables });
   }
 
@@ -90,7 +92,7 @@ export default function TeamSettings(props: Props) {
                       id="team-url"
                       addOnLeading={
                         <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                          {process.env.NEXT_PUBLIC_APP_URL}/{"team/"}
+                          {process.env.NEXT_PUBLIC_WEBSITE_URL}/{"team/"}
                         </span>
                       }
                       ref={teamUrlRef}

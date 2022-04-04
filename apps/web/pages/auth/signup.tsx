@@ -3,6 +3,10 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -10,10 +14,7 @@ import prisma from "@lib/prisma";
 import { isSAMLLoginEnabled } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { EmailField, PasswordField, TextField } from "@components/form/fields";
 import { HeadSeo } from "@components/seo/head-seo";
-import { Alert } from "@components/ui/Alert";
-import Button from "@components/ui/Button";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
@@ -90,7 +91,7 @@ export default function Signup({ email }: Props) {
                 <TextField
                   addOnLeading={
                     <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                      {process.env.NEXT_PUBLIC_APP_URL}/
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                     </span>
                   }
                   labelProps={{ className: "block text-sm font-medium text-gray-700" }}

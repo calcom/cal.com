@@ -7,20 +7,21 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { Alert } from "@calcom/ui/Alert";
+import Button from "@calcom/ui/Button";
+import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
+
 import { ErrorCode, getSession } from "@lib/auth";
-import { WEBSITE_URL } from "@lib/config/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
-import { isSAMLLoginEnabled, hostedCal, samlTenantID, samlProductID } from "@lib/saml";
+import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import SAMLLogin from "@components/auth/SAMLLogin";
 import TwoFactor from "@components/auth/TwoFactor";
-import { EmailField, PasswordField, Form } from "@components/form/fields";
-import { Alert } from "@components/ui/Alert";
 import AuthContainer from "@components/ui/AuthContainer";
-import Button from "@components/ui/Button";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
@@ -58,11 +59,12 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "/";
+  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
 
   // If not absolute URL, make it absolute
+  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
   if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBSITE_URL}/${callbackUrl}`;
+    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
 
   const LoginFooter = (
@@ -110,7 +112,8 @@ export default function Login({
                 else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
               })
               .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
-          }}>
+          }}
+          data-testid="login-form">
           <input defaultValue={csrfToken || undefined} type="hidden" hidden {...form.register("csrfToken")} />
 
           <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>

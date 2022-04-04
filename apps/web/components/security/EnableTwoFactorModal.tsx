@@ -1,10 +1,10 @@
 import React, { SyntheticEvent, useState } from "react";
 
+import Button from "@calcom/ui/Button";
+import { Dialog, DialogContent } from "@calcom/ui/Dialog";
+
 import { ErrorCode } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { Dialog, DialogContent } from "@components/Dialog";
-import Button from "@components/ui/Button";
 
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 import TwoFactorModalHeader from "./TwoFactorModalHeader";

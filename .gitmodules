@@ -1,6 +1,8 @@
 [submodule "apps/api"]
 	path = apps/api
-	url = git@github.com:calcom/api.git
+	url = https://github.com/calcom/api.git
+	branch = main
 [submodule "apps/website"]
 	path = apps/website
-	url = git@github.com:calcom/website.git
+	url = https://github.com/calcom/website.git
+	branch = main

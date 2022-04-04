@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
 
+import { nameOfDay } from "@calcom/lib/weekday";
+
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
@@ -41,7 +43,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
-
   const { slots, loading, error } = useSlots({
     date,
     slotInterval,
@@ -64,7 +65,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
       <div className="mb-4 text-left text-lg font-light text-gray-600">
         <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong>{date.toDate().toLocaleString(i18n.language, { weekday: "long" })}</strong>
+          <strong>{nameOfDay(i18n.language, Number(date.format("d")))}</strong>
           <span className="text-gray-500">
             {date.format(", D ")}
             {date.toDate().toLocaleString(i18n.language, { month: "long" })}

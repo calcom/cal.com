@@ -4,10 +4,10 @@ import React from "react";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import showToast from "@lib/notification";
+import showToast from "@calcom/lib/notification";
+import { Button } from "@calcom/ui/Button";
 
-import { Button } from "@components/ui/Button";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
@@ -94,7 +94,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const verifyButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
-        <img className="mr-1 h-5" src="/integrations/metamask.svg" />
+        <img className="mr-1 h-5" src="/apps/metamask.svg" />
         {t("verify_wallet")}
       </Button>
     );
@@ -103,7 +103,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const connectButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={connectMetamask} type="button">
-        <img className="mr-1 h-5" src="/integrations/metamask.svg" />
+        <img className="mr-1 h-5" src="/apps/metamask.svg" />
         {t("connect_metamask")}
       </Button>
     );
@@ -118,7 +118,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
           await connectMetamask();
           await verifyWallet();
         }}>
-        <img className="mr-1 h-5" src="/integrations/metamask.svg" />
+        <img className="mr-1 h-5" src="/apps/metamask.svg" />
         {t("verify_wallet")}
       </Button>
     );

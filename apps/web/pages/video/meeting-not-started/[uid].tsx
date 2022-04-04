@@ -6,12 +6,13 @@ import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import Button from "@calcom/ui/Button";
+
 import prisma from "@lib/prisma";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
-import Button from "@components/ui/Button";
 
 export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
