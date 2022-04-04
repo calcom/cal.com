@@ -81,7 +81,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
-  // TODO:: Create component to pull default group event type from and then get the group availability to fill slots
   const nameOrUsername = users[0].name || users[0].username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   return (
