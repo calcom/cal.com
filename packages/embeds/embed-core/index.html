@@ -52,7 +52,18 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-link="free">Book with Free User</button>
+      <button
+        data-cal-link="free"
+        data-cal-config='{
+        "name": "Popup",
+        "email": "popup@gmail.com",
+        "notes": "Pop Test Meeting",
+        "guests": ["popuptest1@gmail.com", "popuptest2@gmail.com"],
+        "theme": "dark"
+      }'
+        data-cal-namespace="second">
+        Book with Free User
+      </button>
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this

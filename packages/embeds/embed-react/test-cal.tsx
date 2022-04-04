@@ -10,7 +10,7 @@ function App() {
       </h1>
       <Cal
         embedJsUrl="//localhost:3002/dist/embed.umd.js"
-        calLink="pro"
+        calLink="peer"
         config={{
           name: "John Doe",
           email: "johndoe@gmail.com",
@@ -18,6 +18,7 @@ function App() {
           guests: ["janedoe@gmail.com"],
           theme: "dark",
         }}></Cal>
+      <button data-cal-link="hariombalhara">Popup</button>
     </>
   );
 }

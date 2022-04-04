@@ -225,8 +225,8 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calLink }: { calLink: string }) {
-    const iframe = this.createIframe({ calLink });
+  modal({ calLink, config }: { calLink: string; config?: Record<string, string> }) {
+    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
@@ -384,9 +384,21 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
-  // TODO: Add an option to check which cal instance should be used for this.
-  globalCal("modal", {
+  const namespace = htmlElement.dataset.calNamespace;
+  const configString = htmlElement.dataset.calConfig || "";
+  let config;
+  try {
+    config = JSON.parse(configString);
+  } catch (e) {
+    config = {};
+  }
+  let api = globalCal;
+  if (namespace) {
+    api = globalCal.ns![namespace];
+  }
+  api("modal", {
     calLink: path,
+    config,
   });
 });
 
