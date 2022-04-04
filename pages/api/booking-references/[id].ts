@@ -3,121 +3,127 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { TeamResponse } from "@lib/types";
+import type { BookingReferenceResponse } from "@lib/types";
+import {
+  schemaBookingReferenceBodyParams,
+  schemaBookingReferencePublic,
+} from "@lib/validations/booking-reference";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 /**
  * @swagger
- * /api/teams/{id}:
+ * /api/booking-references/{id}:
  *   get:
- *     summary: Get a team by ID
+ *     summary: Get a daily event reference by ID
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the team to get
+ *         description: Numeric ID of the daily event reference to get
  *     tags:
- *     - teams
+ *     - booking-references
  *     responses:
  *       200:
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: Team was not found
+ *         description: BookingReference was not found
  *   patch:
- *     summary: Edit an existing team
+ *     summary: Edit an existing daily event reference
  *     consumes:
  *       - application/json
  *     parameters:
  *      - in: body
- *        name: team
- *        description: The team to edit
+ *        name: bookingReference
+ *        description: The bookingReference to edit
  *        schema:
  *         type: object
- *         $ref: '#/components/schemas/Team'
+ *         $ref: '#/components/schemas/BookingReference'
  *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to edit
+ *        description: Numeric ID of the daily event reference to edit
  *     tags:
- *     - teams
+ *     - booking-references
  *     responses:
  *       201:
- *         description: OK, team edited successfuly
- *         model: Team
+ *         description: OK, bookingReference edited successfuly
+ *         model: BookingReference
  *       400:
- *        description: Bad request. Team body is invalid.
+ *        description: Bad request. BookingReference body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
- *     summary: Remove an existing team
+ *     summary: Remove an existing daily event reference
  *     parameters:
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to delete
+ *        description: Numeric ID of the daily event reference to delete
  *     tags:
- *     - teams
+ *     - booking-references
  *     responses:
  *       201:
- *         description: OK, team removed successfuly
- *         model: Team
+ *         description: OK, bookingReference removed successfuly
+ *         model: BookingReference
  *       400:
- *        description: Bad request. Team id is invalid.
+ *        description: Bad request. BookingReference id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
+export async function bookingReferenceById(
+  req: NextApiRequest,
+  res: NextApiResponse<BookingReferenceResponse>
+) {
   const { method, query, body } = req;
   const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaTeamBodyParams.safeParse(body);
+  const safeBody = await schemaBookingReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
     case "GET":
-      await prisma.team
+      await prisma.bookingReference
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaTeamPublic.parse(data))
+        .then((data) => schemaBookingReferencePublic.parse(data))
         .then((data) => res.status(200).json({ data }))
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
     case "PATCH":
       if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.team
+      await prisma.bookingReference
         .update({
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((team) => schemaTeamPublic.parse(team))
+        .then((bookingReference) => schemaBookingReferencePublic.parse(bookingReference))
         .then((data) => res.status(200).json({ data }))
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
     case "DELETE":
-      await prisma.team
+      await prisma.bookingReference
         .delete({ where: { id: safeQuery.data.id } })
         .then(() =>
-          res.status(200).json({ message: `Team with id: ${safeQuery.data.id} deleted successfully` })
+          res.status(200).json({ message: `BookingReference with id: ${safeQuery.data.id} deleted` })
         )
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
@@ -127,4 +133,6 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   }
 }
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(teamById));
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(
+  withValidQueryIdTransformParseInt(bookingReferenceById)
+);

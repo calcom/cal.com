@@ -10,7 +10,7 @@ import { schemaDestinationCalendarPublic } from "@lib/validations/destination-ca
  * @swagger
  * /api/destination-calendars:
  *   get:
- *     summary: Get all destinationCalendars
+ *     summary: Get all destination calendars
  *     tags:
  *     - destination-calendars
  *     responses:

@@ -14,7 +14,7 @@ import {
  * @swagger
  * /api/destination-calendars/new:
  *   post:
- *     summary: Creates a new destinationCalendar
+ *     summary: Creates a new destination calendar
  *     requestBody:
  *       description: Optional description in *Markdown*
  *       required: true

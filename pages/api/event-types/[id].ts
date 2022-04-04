@@ -3,121 +3,119 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { TeamResponse } from "@lib/types";
+import type { EventTypeResponse } from "@lib/types";
+import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 /**
  * @swagger
- * /api/teams/{id}:
+ * /api/event-types/{id}:
  *   get:
- *     summary: Get a team by ID
+ *     summary: Get a eventType by ID
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the team to get
+ *         description: Numeric ID of the eventType to get
  *     tags:
- *     - teams
+ *     - event-types
  *     responses:
  *       200:
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: Team was not found
+ *         description: EventType was not found
  *   patch:
- *     summary: Edit an existing team
+ *     summary: Edit an existing eventType
  *     consumes:
  *       - application/json
  *     parameters:
  *      - in: body
- *        name: team
- *        description: The team to edit
+ *        name: eventType
+ *        description: The eventType to edit
  *        schema:
  *         type: object
- *         $ref: '#/components/schemas/Team'
+ *         $ref: '#/components/schemas/EventType'
  *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to edit
+ *        description: Numeric ID of the eventType to edit
  *     tags:
- *     - teams
+ *     - event-types
  *     responses:
  *       201:
- *         description: OK, team edited successfuly
- *         model: Team
+ *         description: OK, eventType edited successfuly
+ *         model: EventType
  *       400:
- *        description: Bad request. Team body is invalid.
+ *        description: Bad request. EventType body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
- *     summary: Remove an existing team
+ *     summary: Remove an existing eventType
  *     parameters:
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to delete
+ *        description: Numeric ID of the eventType to delete
  *     tags:
- *     - teams
+ *     - event-types
  *     responses:
  *       201:
- *         description: OK, team removed successfuly
- *         model: Team
+ *         description: OK, eventType removed successfuly
+ *         model: EventType
  *       400:
- *        description: Bad request. Team id is invalid.
+ *        description: Bad request. EventType id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
+export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeResponse>) {
   const { method, query, body } = req;
   const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaTeamBodyParams.safeParse(body);
+  const safeBody = await schemaEventTypeBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
     case "GET":
-      await prisma.team
+      await prisma.eventType
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaTeamPublic.parse(data))
+        .then((data) => schemaEventTypePublic.parse(data))
         .then((data) => res.status(200).json({ data }))
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
     case "PATCH":
       if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.team
+      await prisma.eventType
         .update({
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((team) => schemaTeamPublic.parse(team))
+        .then((eventType) => schemaEventTypePublic.parse(eventType))
         .then((data) => res.status(200).json({ data }))
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
     case "DELETE":
-      await prisma.team
+      await prisma.eventType
         .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Team with id: ${safeQuery.data.id} deleted successfully` })
-        )
+        .then(() => res.status(200).json({ message: `EventType with id: ${safeQuery.data.id} deleted` }))
         .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
+          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
       break;
 
@@ -127,4 +125,4 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   }
 }
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(teamById));
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(eventTypeById));
