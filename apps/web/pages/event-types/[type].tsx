@@ -23,7 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, Noop, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
@@ -86,7 +86,21 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+type AvailabilityOption = {
+  label: string;
+  value: number;
+};
+
+const AvailabilitySelect = ({
+  className = "",
+  ...props
+}: {
+  className?: string;
+  name: string;
+  value: number;
+  onBlur: Noop;
+  onChange: (value: AvailabilityOption | null) => void;
+}) => {
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
@@ -105,9 +119,9 @@ const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
         );
         return (
           <Select
-            {...props}
             options={options}
             isSearchable={false}
+            onChange={props.onChange}
             classNamePrefix="react-select"
             className={classNames(
               "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
@@ -972,10 +986,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           control={formMethods.control}
                           render={({ field }) => (
                             <AvailabilitySelect
-                              {...field}
-                              onChange={(selected: { label: string; value: number }) =>
-                                field.onChange(selected.value)
-                              }
+                              value={field.value}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              onChange={(selected) => field.onChange(selected?.value || null)}
                             />
                           )}
                         />

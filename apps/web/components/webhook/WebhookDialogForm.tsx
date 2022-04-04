@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
@@ -22,13 +22,6 @@ export default function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const handleSubscriberUrlChange = (e) => {
-    form.setValue("subscriberUrl", e.target.value);
-    if (hasTemplateIntegration({ url: e.target.value })) {
-      setUseCustomPayloadTemplate(true);
-      form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
-    }
-  };
   const {
     defaultValues = {
       id: "",
@@ -88,7 +81,13 @@ export default function WebhookDialogForm(props: {
         {...form.register("subscriberUrl")}
         required
         type="url"
-        onChange={handleSubscriberUrlChange}
+        onChange={(e) => {
+          form.setValue("subscriberUrl", e.target.value);
+          if (hasTemplateIntegration({ url: e.target.value })) {
+            setUseCustomPayloadTemplate(true);
+            form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+          }
+        }}
       />
 
       <fieldset className="space-y-2">
