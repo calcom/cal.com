@@ -3,21 +3,21 @@ import type { App } from "@calcom/types/App";
 import _package from "./package.json";
 
 export const metadata = {
-  name: "Microsoft Exchange Calendar",
+  name: "Microsoft Exchange 2016 Calendar",
   description: _package.description,
   installed: true,
   type: "exchange_calendar",
-  title: "Microsoft Exchange Calendar",
+  title: "Microsoft Exchange 2016 Calendar",
   // Add exchange icon to calendar
-  imageSrc: "apps/caldav.svg",
+  imageSrc: "apps/microsoft-exchange.svg",
   variant: "calendar",
   category: "calendar",
   label: "Exchange Calendar",
-  logo: "/apps/caldav.svg",
+  logo: "/apps/microsoft-exchange.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,
-  slug: "exchange-calendar",
+  slug: "exchange2016-calendar",
   trending: false,
   url: "https://cal.com/",
   verified: true,

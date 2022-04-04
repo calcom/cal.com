@@ -42,7 +42,7 @@ export default class ExchangeCalendarService implements Calendar {
 
   constructor(credential: Credential) {
     // this.integrationName = CALENDAR_INTEGRATIONS_TYPES.exchange;
-    this.integrationName = "exchange_calendar";
+    this.integrationName = "exchange2016_calendar";
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
@@ -223,10 +223,6 @@ export default class ExchangeCalendarService implements Calendar {
 
   private getExchangeService(): ExchangeService {
     const exch1 = new ExchangeService(this.exchangeVersion);
-    console.log(
-      "🚀 ~ file: CalendarService.ts ~ line 226 ~ ExchangeCalendarService ~ getExchangeService ~ exch1",
-      exch1
-    );
     exch1.Credentials = new WebCredentials(this.credentials.username, this.credentials.password);
     exch1.Url = new Uri(this.url);
     return exch1;
