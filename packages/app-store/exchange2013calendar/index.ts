@@ -6,7 +6,7 @@ export const metadata = {
   name: "Microsoft Exchange 2013 Calendar",
   description: _package.description,
   installed: true,
-  type: "exchange_calendar",
+  type: "exchange2013_calendar",
   title: "Microsoft Exchange 2013 Calendar",
   imageSrc: "/api/app-store/exchange2013calendar/icon.svg",
   variant: "calendar",

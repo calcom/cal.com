@@ -36,7 +36,7 @@ export function AddExchangeIntegrationModal(props: DialogProps) {
           form={form}
           onSubmit={form.handleSubmit(async (values) => {
             setErrorMessage("");
-            const res = await fetch("/api/integrations/exchangecalendar/add", {
+            const res = await fetch("/api/integrations/exchange2013calendar/add", {
               method: "POST",
               body: JSON.stringify(values),
               headers: {
