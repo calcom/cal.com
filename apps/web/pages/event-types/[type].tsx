@@ -1552,7 +1552,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-
+                        <SuccessRedirectEdit
+                          formMethods={formMethods}
+                          eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
