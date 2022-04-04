@@ -1,12 +1,49 @@
+import fs from "fs";
+import matter from "gray-matter";
 import { GetStaticPaths, GetStaticPathsResult, GetStaticPropsContext } from "next";
+import { MDXRemote } from "next-mdx-remote";
+import { serialize } from "next-mdx-remote/serialize";
+import Image from "next/image";
+import Link from "next/link";
+import path from "path";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 
+import useMediaQuery from "@lib/hooks/useMediaQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/App";
+import Slider from "@components/apps/Slider";
 
-function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
+const components = {
+  a: ({ href, ...otherProps }) => (
+    <Link href={href}>
+      <a {...otherProps} />
+    </Link>
+  ),
+  img: ({ src, alt = "", ...rest }) => <Image src={src} alt={alt} {...rest} />,
+  Slider: ({ items }) => {
+    const isTabletAndUp = useMediaQuery("(min-width: 960px)");
+    return (
+      <Slider<string>
+        items={items}
+        title="Screenshots"
+        options={{
+          perView: 1,
+        }}
+        renderItem={(item) =>
+          isTabletAndUp ? (
+            <Image src={item} alt="" layout="fixed" width={573} height={382} />
+          ) : (
+            <Image src={item} alt="" layout="responsive" width={573} height={382} />
+          )
+        }
+      />
+    );
+  },
+};
+
+function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
       name={data.name}
@@ -23,7 +60,7 @@ function SingleAppPage({ data }: inferSSRProps<typeof getStaticProps>) {
       email={data.email}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={data.description}
+      body={<MDXRemote {...source} components={components} />}
     />
   );
 }
@@ -58,8 +95,25 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     };
   }
 
+  const appDirname = singleApp.type.replace("_", "");
+  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
+  const postFilePath = path.join(README_PATH);
+  let source = "";
+
+  try {
+    /* If the app doesn't have a README we fallback to the packagfe description */
+    source = fs.readFileSync(postFilePath).toString();
+  } catch (error) {
+    console.log("error", error);
+    source = singleApp.description;
+  }
+
+  const { content, data } = matter(source);
+  const mdxSource = await serialize(content, { scope: data });
+
   return {
     props: {
+      source: mdxSource,
       data: singleApp,
     },
   };
