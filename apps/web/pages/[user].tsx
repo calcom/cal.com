@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
@@ -12,6 +12,7 @@ import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
 import defaultEvents, { getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -81,6 +82,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
+  useExposePlanGlobally("PRO");
   const nameOrUsername = users[0].name || users[0].username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   return (

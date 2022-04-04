@@ -296,6 +296,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       isDynamicGroupBooking,
       profile,
+      plan: user.plan,
       date: dateParam,
       eventType: eventTypeObject,
       workingHours,
