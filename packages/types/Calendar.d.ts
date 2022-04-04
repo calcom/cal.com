@@ -70,6 +70,7 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+// If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
   title: string;

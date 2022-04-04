@@ -76,8 +76,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       });
 
       // Send email =================
-      const eventCalendar = new CalendarDirector({
-        booking: updatedBooking,
+
+      const eventCalendar = new CalendarDirector().buildRequiredParams({
+        booking: bookingToReschedule,
         attendee: bookingToReschedule.attendees,
         start: bookingToReschedule.startTime,
         end: bookingToReschedule.endTime,
@@ -88,14 +89,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         eventTypeId: bookingToReschedule.eventTypeId,
         timeZone: event?.timeZone,
         location: event?.locations,
-        notes: "",
+        // notes: "",
         customInputs: [],
       });
       const resultEvent = await eventCalendar.buildRequiredParams();
-      console.log(resultEvent);
-      console.log(resultEvent.attendees);
-      console.log(resultEvent.organizer);
-      await sendRequestRescheduleEmail(resultEvent);
+      if (resultEvent) {
+        console.log(resultEvent);
+        console.log(resultEvent.attendees);
+        console.log(resultEvent.organizer);
+        await sendRequestRescheduleEmail(resultEvent);
+      }
     }
 
     return res.status(200).json(bookingToReschedule);
