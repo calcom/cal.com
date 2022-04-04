@@ -90,7 +90,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo
+1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
