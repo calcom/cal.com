@@ -228,12 +228,12 @@ export default NextAuth({
       const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
       const calendsoSession: Session = {
         ...session,
+        hasValidLicense,
         user: {
           ...session.user,
           id: token.id as number,
           name: token.name,
           username: token.username as string,
-          hasValidLicense,
         },
       };
       return calendsoSession;
