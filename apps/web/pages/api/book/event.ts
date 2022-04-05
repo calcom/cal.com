@@ -533,7 +533,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updateManager = await eventManager.update(evt, rescheduleUid);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -570,7 +570,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
