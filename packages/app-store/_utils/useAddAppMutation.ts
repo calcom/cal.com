@@ -1,14 +1,14 @@
 import { useMutation } from "react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
-import { NEXT_PUBLIC_BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { App } from "@calcom/types/App";
 
 function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMutation>[2]) {
   const appName = type.replace("_", "");
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
-      returnTo: NEXT_PUBLIC_BASE_URL + location.pathname + location.search,
+      returnTo: WEBAPP_URL + "/apps/installed" + location.search,
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
