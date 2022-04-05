@@ -38,6 +38,14 @@
     </script>
 
     <style>
+      body {
+        background: linear-gradient(
+          90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%
+        );
+      }
       .debug {
         /* border: 1px solid black; */
         margin-bottom: 5px;
@@ -52,18 +60,7 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button
-        data-cal-link="free"
-        data-cal-config='{
-        "name": "Popup",
-        "email": "popup@gmail.com",
-        "notes": "Pop Test Meeting",
-        "guests": ["popuptest1@gmail.com", "popuptest2@gmail.com"],
-        "theme": "dark"
-      }'
-        data-cal-namespace="second">
-        Book with Free User
-      </button>
+      <button data-cal-link="free">Book with Free User</button>
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -82,9 +79,9 @@
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
-        <div style="max-height: 30vh; max-width: 50vw; overflow: scroll" class="place">
+        <div style="max-height: 30vh; overflow: scroll" class="place">
           <div>
-            if you render booking embed in me, I would not let it be more than 30vh and 50vw. So you would
+            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
             have to scroll to see the entire content
           </div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
@@ -112,7 +109,7 @@
       </div>
 
       <div class="debug" id="cal-booking-place-third">
-        <h2>Namespace "third"(Cal.ns.third)[inline]</h2>
+        <h2>Namespace "third"(Cal.ns.third)[inline][Custom Styling - Transparent Background]</h2>
         <div>
           <i><a href="?only=ns:third">Test in Zen Mode</a></i>
         </div>
@@ -133,8 +130,8 @@
         <i class="last-action">
           <i>You would see last Booking page action in my place</i>
         </i>
-        <div class="place">
-          <div>If you render booking embed in me,</div>
+        <div style="width: 30%" class="place">
+          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
           <div class="loader" id="cal-booking-loader-third">Loading .....</div>
         </div>
       </div>
@@ -147,13 +144,13 @@
 
         if (detail.type === "linkReady") {
           document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
+        } else if (detail.type === "linkFailed") {
+          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
         }
-
         document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(
           e.detail
         );
       };
-
       const searchParams = new URL(document.URL).searchParams;
       const only = searchParams.get("only");
       if (!only || only === "ns:default") {
@@ -239,7 +236,7 @@
             {
               styles: {
                 body: {
-                  background: "white",
+                  background: "transparent",
                 },
               },
             },

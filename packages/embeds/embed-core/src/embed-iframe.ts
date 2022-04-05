@@ -3,8 +3,9 @@ import { useState, useEffect, CSSProperties } from "react";
 import { sdkActionManager } from "./sdk-event";
 
 let isSafariBrowser = false;
+const isBrowser = typeof window !== "undefined";
 
-if (typeof window !== "undefined") {
+if (isBrowser) {
   const ua = navigator.userAgent.toLowerCase();
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
@@ -30,7 +31,7 @@ declare global {
 }
 
 function log(...args: any[]) {
-  if (typeof window !== "undefined") {
+  if (isBrowser) {
     const namespace = getNamespace();
 
     const searchParams = new URL(document.URL).searchParams;
@@ -113,7 +114,7 @@ export const useEmbedStyles = (elementName: ElementName) => {
 };
 
 const getNamespace = () => {
-  if (typeof window !== "undefined") {
+  if (isBrowser) {
     const url = new URL(document.URL);
     return url.searchParams.get("embed");
   }
@@ -228,10 +229,12 @@ function keepParentInformedAboutDimensionChanges() {
   });
 }
 
-if (typeof window !== "undefined") {
+if (isBrowser) {
   const url = new URL(document.URL);
   if (url.searchParams.get("prerender") !== "true" && isEmbed()) {
     log("Initializing embed-iframe");
+    // HACK
+    const pageStatus = window.CalComPageStatus;
 
     // If embed link is opened in top, and not in iframe. Let the page be visible.
     if (top === window) {
@@ -256,7 +259,16 @@ if (typeof window !== "undefined") {
       }
     });
 
-    keepParentInformedAboutDimensionChanges();
-    sdkActionManager?.fire("iframeReady", {});
+    if (!pageStatus || pageStatus == "200") {
+      keepParentInformedAboutDimensionChanges();
+      sdkActionManager?.fire("iframeReady", {});
+    } else
+      sdkActionManager?.fire("linkFailed", {
+        code: pageStatus,
+        msg: "Problem loading the link",
+        data: {
+          url: document.URL,
+        },
+      });
   }
 }
