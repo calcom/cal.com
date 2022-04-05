@@ -14,7 +14,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Button from "@calcom/ui/Button";
