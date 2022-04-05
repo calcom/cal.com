@@ -151,7 +151,7 @@ test.describe("pro user", () => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
         return url.pathname.startsWith("/cancel");
