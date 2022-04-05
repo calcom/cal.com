@@ -26,6 +26,7 @@ type AvailableTimesProps = {
     username: string | null;
   }[];
   schedulingType: SchedulingType | null;
+  seatsPerTimeSlot?: number | null;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -39,6 +40,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   schedulingType,
   beforeBufferTime,
   afterBufferTime,
+  seatsPerTimeSlot,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -60,6 +62,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
+
+  useEffect(() => {
+    console.log("🚀 ~ file: AvailableTimes.tsx ~ line 47 ~ slots", slots);
+  }, [slots]);
 
   return (
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
@@ -107,6 +113,17 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     )}
                     data-testid="time">
                     {slot.time.format(timeFormat)}
+                    {seatsPerTimeSlot && (
+                      <p
+                        className={`${
+                          slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
+                            ? "text-rose-600"
+                            : "text-emerald-400"
+                        } text-sm`}>
+                        {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
+                        {seatsPerTimeSlot} Seats available
+                      </p>
+                    )}
                   </a>
                 </Link>
               </div>

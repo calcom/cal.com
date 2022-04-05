@@ -21,6 +21,8 @@ type AvailabilityUserResponse = {
 type Slot = {
   time: Dayjs;
   users?: string[];
+  bookingId?: number;
+  attendees?: number;
 };
 
 type UseSlotsProps = {
@@ -207,10 +209,13 @@ export const useSlots = (props: UseSlotsProps) => {
     return filteredTimes.map((time) => ({
       time,
       users: [user],
-      // Conditionally add the booking info slots object if there is already a booking during that time
+      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
       ...(currentSeats?.some((booking) => booking.startTime === time.toISOString()) && {
-        bookingInfo:
-          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())],
+        attendees:
+          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())]._count
+            .attendees,
+        bookingId:
+          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].id,
       }),
     }));
   };
