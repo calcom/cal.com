@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { getLocationLabels } from "@calcom/app-store/utils";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -14,6 +15,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
+import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);
@@ -190,8 +192,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           darkBrandColor: user.darkBrandColor,
         };
 
+  const t = await getTranslation(context.locale ?? "en", "common");
+
   return {
     props: {
+      locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking,
