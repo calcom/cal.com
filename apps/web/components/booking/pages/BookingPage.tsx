@@ -57,6 +57,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -255,6 +256,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
+      bookingId: parseInt(router.query.bookingId as string),
       user: router.query.user,
       location: getLocationValue(
         booking.locationType ? booking : { ...booking, locationType: selectedLocation }
@@ -307,6 +309,19 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType.seatsPerTimeSlot && (
+                  <p
+                    className={`${
+                      booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                        ? "text-rose-600"
+                        : "text-emerald-400"
+                    } mb-2`}>
+                    {booking
+                      ? eventType.seatsPerTimeSlot - booking.attendees.length
+                      : eventType.seatsPerTimeSlot}{" "}
+                    / {eventType.seatsPerTimeSlot} Seats available
+                  </p>
+                )}
                 <p className="mb-2 text-gray-500">
                   <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}

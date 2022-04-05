@@ -63,10 +63,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
 
-  useEffect(() => {
-    console.log("🚀 ~ file: AvailableTimes.tsx ~ line 47 ~ slots", slots);
-  }, [slots]);
-
   return (
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
       <div className="mb-4 text-left text-lg font-light text-gray-600">
@@ -101,6 +97,11 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             if (schedulingType === SchedulingType.ROUND_ROBIN) {
               bookingUrl.query.user = slot.users;
+            }
+
+            // If event already has an attendee add booking id
+            if (slot.bookingId) {
+              bookingUrl.query.bookingId = slot.bookingId;
             }
 
             return (

@@ -64,6 +64,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       price: true,
       currency: true,
       disableGuests: true,
+      seatsPerTimeSlot: true,
       users: {
         select: {
           username: true,
@@ -110,9 +111,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   })[0];
 
   async function getBooking() {
+    console.log(context.query);
     return prisma.booking.findFirst({
       where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
+        // Find booking for reschedule or taking a seat
+        ...(context.query.rescheduleUid && { uid: asStringOrThrow(context.query.rescheduleUid) }),
+        ...(context.query.bookingId && { id: parseInt(context.query.bookingId as string) }),
       },
       select: {
         description: true,
@@ -129,7 +133,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   type Booking = Prisma.PromiseReturnType<typeof getBooking>;
   let booking: Booking | null = null;
 
-  if (context.query.rescheduleUid) {
+  if (context.query.rescheduleUid || context.query.bookingId) {
     booking = await getBooking();
   }
 

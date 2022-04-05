@@ -135,7 +135,6 @@ export const useSlots = (props: UseSlotsProps) => {
       users.map((user) => fetch(`/api/availability/${user.username}?${query}`).then(handleAvailableSlots))
     )
       .then((results) => {
-        console.log("🚀 ~ file: useSlots.ts ~ line 129 ~ .then ~ results", results);
         let loadedSlots: Slot[] = results[0] || [];
         if (results.length === 1) {
           loadedSlots = loadedSlots?.sort((a, b) => (a.time.isAfter(b.time) ? 1 : -1));

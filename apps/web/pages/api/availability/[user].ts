@@ -70,21 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-  // Used if the event type has seats
-  const getBookings = () => {
-    console.log("🚀 ~ file: [user].ts ~ line 83 ~ getBookings ~ eventTypeId", eventTypeId);
-
-    prisma.booking.findMany({
-      where: {
-        eventTypeId: { equals: eventTypeId },
-        // startTime: {
-        //   gte: dateFrom.format(),
-        //   lte: dateTo.format(),
-        // },
-      },
-    });
-  };
-
   type EventType = Prisma.PromiseReturnType<typeof getEventType>;
   let eventType: EventType | null = null;
   if (eventTypeId) eventType = await getEventType(eventTypeId);
@@ -147,7 +132,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    console.log("🚀 ~ file: [user].ts ~ line 129 ~ handler ~ currentBookings", currentSeats);
   }
 
   res.status(200).json({
