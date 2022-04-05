@@ -6,6 +6,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
@@ -42,7 +43,7 @@ function redirectToExternalUrl(url: string) {
  * Redirects to external URL with query params from current URL.
  * Query Params and Hash Fragment if present in external URL are kept intact.
  */
-function RedirectionToast({ url }: { url: string }) {
+function RedirectionText({ url }: { url: string }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [isToastVisible, setIsToastVisible] = useState(true);
   const parsedSuccessUrl = new URL(document.URL);
@@ -84,58 +85,18 @@ function RedirectionToast({ url }: { url: string }) {
   }
 
   return (
-    <>
-      {/* z-index just higher than Success Message Box */}
-      <div className="fixed inset-x-0 top-4 z-[60] pb-2 sm:pb-5">
-        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-          <div className="rounded-sm bg-red-600 bg-green-500 p-2 shadow-lg sm:p-3">
-            <div className="flex flex-wrap items-center justify-between">
-              <div className="flex w-0 flex-1 items-center">
-                <p className="ml-3 truncate font-medium text-white">
-                  <span className="md:hidden">Redirecting to {url} ...</span>
-                  <span className="hidden md:inline">
-                    You are being redirected to {url} in {timeRemaining}{" "}
-                    {timeRemaining === 1 ? "second" : "seconds"}.
-                  </span>
-                </p>
-              </div>
-              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
-                <button
-                  onClick={() => {
-                    redirectToExternalUrl(urlWithSuccessParams);
-                  }}
-                  className="flex items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm hover:bg-indigo-50">
-                  {t("Continue")}
-                </button>
-              </div>
-              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsToastVisible(false);
-                    window.clearInterval(timerRef.current as number);
-                  }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
-                  <svg
-                    className="h-6 w-6 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <p className="mt-4 text-sm text-neutral-600 dark:text-gray-300">
+      {/* extract t("you_are_being_redirected") with   */}
+      You are being redirected to{" "}
+      <span
+        className="text-blue-500 dark:text-blue-400"
+        onClick={() => {
+          redirectToExternalUrl(urlWithSuccessParams);
+        }}>
+        {url}
+      </span>{" "}
+      in {timeRemaining} {timeRemaining === 1 ? "second" : "seconds"}.
+    </p>
   );
 }
 
@@ -221,9 +182,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
-          {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
-          ) : null}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
@@ -254,6 +212,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               : t("needs_to_be_confirmed_or_rejected")
                             : t("emailed_you_and_attendees")}
                         </p>
+
+                        {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl && (
+                          <RedirectionText url={eventType.successRedirectUrl} />
+                        )}
                       </div>
                       <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
                         <div className="font-medium">{t("what")}</div>
