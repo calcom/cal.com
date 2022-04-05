@@ -13,7 +13,7 @@ export const metadata = {
   imageSrc: "/api/app-store/googlecalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
-  label: "Google Calendar",
+  label: "Google Meet",
   logo: "/api/app-store/googlecalendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,

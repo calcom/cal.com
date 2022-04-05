@@ -70,7 +70,7 @@ function getApps(userCredentials: CredentialData[]) {
     /** Check if app has location option AND add it if user has credentials for it */
     if (credentials.length > 0 && appMeta?.locationType) {
       locationOption = {
-        value: appMeta.locationType as LocationType,
+        value: appMeta.locationType,
         label: appMeta.label,
         disabled: false,
       };
