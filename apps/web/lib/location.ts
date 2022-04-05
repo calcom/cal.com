@@ -1,1 +1,1 @@
-export * from "@calcom/lib/location";
+export * from "@calcom/core/location";
