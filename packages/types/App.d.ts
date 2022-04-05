@@ -51,7 +51,7 @@ export interface App {
   /** A contact email, mainly to ask for support */
   email: string;
   /** Add this value as a posible location option in event types */
-  locationType?: string;
+  locationType?: LocationType;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */

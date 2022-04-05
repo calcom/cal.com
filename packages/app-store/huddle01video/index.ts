@@ -1,6 +1,7 @@
 import { randomString } from "@calcom/lib/random";
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -23,7 +24,7 @@ export const metadata = {
   trending: true,
   isGlobal: true,
   email: "support@huddle01.com",
-  locationType: "integrations:huddle01",
+  locationType: LocationType.Huddle01,
   key: { apikey: randomString(12) },
 } as App;
 
