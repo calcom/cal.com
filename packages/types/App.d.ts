@@ -24,7 +24,6 @@ export interface App {
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
   variant: "calendar" | "payment" | "conferencing";
-  label: string;
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
@@ -54,6 +53,8 @@ export interface App {
   email: string;
   /** Add this value as a posible location option in event types */
   locationType?: LocationType;
+  /** If the app adds a location, how should it be displayed? */
+  locationLabel?: string;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */

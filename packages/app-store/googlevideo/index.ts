@@ -14,7 +14,6 @@ export const metadata = {
   title: "Google Meet",
   imageSrc: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
   variant: "conferencing",
-  label: "Google Meet",
   logo: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
   publisher: "Cal.com",
   rating: 5,
@@ -24,6 +23,7 @@ export const metadata = {
   verified: true,
   email: "help@cal.com",
   locationType: LocationType.GoogleMeet,
+  locationLabel: "Google Meet",
 } as App;
 
 // export * as api from "./api";
