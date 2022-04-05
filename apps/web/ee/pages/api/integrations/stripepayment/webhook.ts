@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
@@ -22,54 +23,48 @@ export const config = {
 
 async function handlePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  const payment = await prisma.payment.update({
+  const payment = await prisma.payment.findFirst({
     where: {
       externalId: paymentIntent.id,
     },
-    data: {
-      success: true,
-      booking: {
-        update: {
-          paid: true,
-          confirmed: true,
-        },
-      },
+    select: {
+      id: true,
+      bookingId: true,
+    },
+  });
+
+  if (!payment?.bookingId) throw new Error("Payment not found");
+
+  const booking = await prisma.booking.findUnique({
+    where: {
+      id: payment.bookingId,
     },
     select: {
-      bookingId: true,
-      booking: {
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      confirmed: true,
+      attendees: true,
+      location: true,
+      userId: true,
+      id: true,
+      uid: true,
+      paid: true,
+      destinationCalendar: true,
+      user: {
         select: {
-          title: true,
-          description: true,
-          startTime: true,
-          endTime: true,
-          confirmed: true,
-          attendees: true,
-          location: true,
-          userId: true,
           id: true,
-          uid: true,
-          paid: true,
+          credentials: true,
+          timeZone: true,
+          email: true,
+          name: true,
+          locale: true,
           destinationCalendar: true,
-          user: {
-            select: {
-              id: true,
-              credentials: true,
-              timeZone: true,
-              email: true,
-              name: true,
-              locale: true,
-              destinationCalendar: true,
-            },
-          },
         },
       },
     },
   });
-
-  if (!payment) throw new Error("No payment found");
-
-  const { booking } = payment;
 
   if (!booking) throw new Error("No booking found");
 
@@ -111,21 +106,34 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (booking.location) evt.location = booking.location;
 
+  let bookingData: Prisma.BookingUpdateInput = {
+    paid: true,
+    confirmed: true,
+  };
+
   if (booking.confirmed) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
-
-    await prisma.booking.update({
-      where: {
-        id: booking.id,
-      },
-      data: {
-        references: {
-          create: scheduleResult.referencesToCreate,
-        },
-      },
-    });
+    bookingData.references = { create: scheduleResult.referencesToCreate };
   }
+
+  const paymentUpdate = prisma.payment.update({
+    where: {
+      id: payment.id,
+    },
+    data: {
+      success: true,
+    },
+  });
+
+  const bookingUpdate = prisma.booking.update({
+    where: {
+      id: booking.id,
+    },
+    data: bookingData,
+  });
+
+  await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
   await sendScheduledEmails({ ...evt });
 

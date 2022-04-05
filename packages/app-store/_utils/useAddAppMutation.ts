@@ -8,7 +8,7 @@ function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMut
   const appName = type.replace("_", "");
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
-      returnTo: WEBAPP_URL + location.pathname + location.search,
+      returnTo: WEBAPP_URL + "/apps/installed" + location.search,
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
