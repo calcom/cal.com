@@ -1,9 +1,7 @@
-import { InformationCircleIcon } from "@heroicons/react/outline";
 import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Select from "react-select";
@@ -12,7 +10,7 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -33,11 +31,13 @@ import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import ColorPicker from "@components/ui/colorpicker";
 
+import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
+
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
   const { t } = useLocale();
-  const [modelOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
@@ -61,39 +61,9 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           setModalOpen(true);
         }}
       />
-      <Dialog open={modelOpen}>
-        <DialogContent>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
-          </div>
-          <div className="mb-4 sm:flex sm:items-start">
-            <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
-                {t("only_available_on_pro_plan")}
-              </h3>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-3">
-            <p>{t("remove_cal_branding_description")}</p>
-            <p>
-              <Trans i18nKey="plan_upgrade_instructions">
-                You can
-                <a href="/api/upgrade" className="underline">
-                  upgrade here
-                </a>
-                .
-              </Trans>
-            </p>
-          </div>
-          <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <DialogClose asChild>
-              <Button className="btn-wide table-cell text-center" onClick={() => setModalOpen(false)}>
-                {t("dismiss")}
-              </Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
+        {t("remove_cal_branding_description")}
+      </UpgradeToProDialog>
     </>
   );
 }
