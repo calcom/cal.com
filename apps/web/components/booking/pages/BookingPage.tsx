@@ -52,7 +52,7 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
@@ -130,21 +130,6 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  // TODO: Move to translations
-  // Also TODO: Get these dynamically from App Store
-  const locationLabels = {
-    [LocationType.InPerson]: t("in_person_meeting"),
-    [LocationType.Phone]: t("phone_call"),
-    [LocationType.Link]: t("link_meeting"),
-    [LocationType.GoogleMeet]: "Google Meet",
-    [LocationType.Zoom]: "Zoom Video",
-    [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Cal Video",
-    [LocationType.Huddle01]: "Huddle01 Video",
-    [LocationType.Tandem]: "Tandem Video",
-    [LocationType.Teams]: "MS Teams",
-  };
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
