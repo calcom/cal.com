@@ -4,6 +4,7 @@ import Head from "next/head";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
+import LicenseRequired from "@ee/components/LicenseRequired";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
@@ -31,7 +32,13 @@ function MyApp(props: AppProps) {
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         </Head>
-        <Component {...pageProps} err={err} />
+        {Component.requiresLicense ? (
+          <LicenseRequired>
+            <Component {...pageProps} err={err} />
+          </LicenseRequired>
+        ) : (
+          <Component {...pageProps} err={err} />
+        )}
       </AppProviders>
     </ContractsProvider>
   );

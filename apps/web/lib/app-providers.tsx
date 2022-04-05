@@ -17,7 +17,8 @@ import { trpc } from "./trpc";
 const I18nextAdapter = appWithTranslation(({ children }: { children?: ReactNode }) => <>{children}</>);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = NextAppProps & {
+export type AppProps = Omit<NextAppProps, "Component"> & {
+  Component: NextAppProps["Component"] & { requiresLicense?: boolean };
   /** Will be defined only is there was an error */
   err?: Error;
 };

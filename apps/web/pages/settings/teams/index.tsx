@@ -17,7 +17,7 @@ import Shell, { useMeQuery } from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 
-export default function Teams() {
+function Teams() {
   const { t } = useLocale();
   const { status } = useSession();
   const loading = status === "loading";
@@ -90,3 +90,7 @@ export default function Teams() {
     </Shell>
   );
 }
+
+Teams.requiresLicense = false;
+
+export default Teams;
