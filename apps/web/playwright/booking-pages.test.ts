@@ -168,8 +168,6 @@ test.describe("pro user", () => {
 });
 
 test.describe("dynamic booking", () => {
-  test.use({ storageState: "playwright/artifacts/dynamicBookingStorageState.json" });
-
   test.beforeEach(async ({ page }) => {
     await page.goto("/pro+free");
   });
