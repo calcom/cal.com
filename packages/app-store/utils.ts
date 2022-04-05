@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
-import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import appStore from ".";
+import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;
