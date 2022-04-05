@@ -1,6 +1,7 @@
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -22,6 +23,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
+  locationType: LocationType.GoogleMeet,
 } as App;
 
 export * as api from "./api";

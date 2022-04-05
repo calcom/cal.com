@@ -1,5 +1,6 @@
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -21,7 +22,7 @@ export const metadata = {
   title: "MS Teams",
   trending: true,
   email: "help@cal.com",
-  locationType: "integrations:office365_video",
+  locationType: LocationType.Teams,
 } as App;
 
 export * as api from "./api";

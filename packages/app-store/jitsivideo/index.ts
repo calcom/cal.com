@@ -1,5 +1,6 @@
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -10,7 +11,7 @@ export const metadata = {
   imageSrc: "/api/app-store/jitsivideo/icon.svg",
   variant: "conferencing",
   logo: "/api/app-store/jitsivideo/icon.svg",
-  locationType: "integrations:jitsi",
+  locationType: LocationType.Jitsi,
   publisher: "Cal.com",
   url: "https://jitsi.org/",
   verified: true,
