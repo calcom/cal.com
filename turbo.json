@@ -83,7 +83,7 @@
     "db-deploy": {},
     "db-seed": {},
     "deploy": {
-      "dependsOn": []
+      "dependsOn": ["@calcom/web#build"]
     },
     "clean": {
       "cache": false
