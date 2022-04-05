@@ -312,47 +312,47 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
-
+  const getEventTypesFromDB = async (typeId: number) => {
+    return await prisma.eventType.findUnique({
+      where: {
+        id: typeId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        length: true,
+        eventName: true,
+        requiresConfirmation: true,
+        userId: true,
+        users: {
+          select: {
+            email: true,
+            name: true,
+            hideBranding: true,
+            plan: true,
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
+            timeZone: true,
+          },
+        },
+        team: {
+          select: {
+            name: true,
+            hideBranding: true,
+          },
+        },
+      },
+    });
+  };
   if (isNaN(typeId)) {
     return {
       notFound: true,
     };
   }
 
-  const eventType = !typeId
-    ? getDefaultEvent(typeSlug)
-    : await prisma.eventType.findUnique({
-        where: {
-          id: typeId,
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          length: true,
-          eventName: true,
-          requiresConfirmation: true,
-          userId: true,
-          users: {
-            select: {
-              email: true,
-              name: true,
-              hideBranding: true,
-              plan: true,
-              theme: true,
-              brandColor: true,
-              darkBrandColor: true,
-              timeZone: true,
-            },
-          },
-          team: {
-            select: {
-              name: true,
-              hideBranding: true,
-            },
-          },
-        },
-      });
+  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventType) {
     return {
