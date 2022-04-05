@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import {
+  bookFirstEvent,
+  bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
   todo,
