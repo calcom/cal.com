@@ -46,6 +46,7 @@ const commons = {
   minimumBookingNotice: 120,
   schedule: null,
   timeZone: null,
+  successRedirectUrl: "",
   availability: [],
   price: 0,
   currency: "usd",

@@ -435,15 +435,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventName: true,
         requiresConfirmation: true,
         userId: true,
+        successRedirectUrl: true,
         users: {
           select: {
-            email: true,
             name: true,
             hideBranding: true,
             plan: true,
             theme: true,
             brandColor: true,
             darkBrandColor: true,
+            email: true,
             timeZone: true,
           },
         },
