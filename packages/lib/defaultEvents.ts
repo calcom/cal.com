@@ -12,6 +12,23 @@ const availability = [
   },
 ];
 
+type UsernameSlugLinkProps = {
+  users: {
+    id?: number;
+    username: string | null;
+    email?: string;
+    name?: string | null;
+    bio?: string | null;
+    avatar?: string | null;
+    theme?: string | null;
+    plan?: UserPlan;
+    away?: boolean;
+    verified?: boolean | null;
+    allowDynamicBooking?: boolean | null;
+  }[];
+  slug: string;
+};
+
 const customInputs: EventTypeCustomInput[] = [];
 
 const commons = {
@@ -34,7 +51,10 @@ const commons = {
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
   id: 0,
-  metadata: {},
+  metadata: {
+    smartContractAddress: "",
+  },
+  isWeb3Active: false,
   hideCalendarNotes: false,
   destinationCalendar: null,
   team: null,
@@ -98,7 +118,7 @@ export const getGroupName = (usernameList: string[]): string => {
   return usernameList.toString();
 };
 
-export const getUsernameSlugLink = ({ users, slug }): string => {
+export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): string => {
   let slugLink = ``;
   if (users.length > 1) {
     let combinedUsername = ``;
@@ -111,6 +131,15 @@ export const getUsernameSlugLink = ({ users, slug }): string => {
     slugLink = `/${users[0].username}/${slug}`;
   }
   return slugLink;
+};
+
+export const getUsernameList = (users: string): string[] => {
+  return users
+    .toLowerCase()
+    .split("+")
+    .filter((el) => {
+      return el.length != 0;
+    });
 };
 
 export default defaultEvents;

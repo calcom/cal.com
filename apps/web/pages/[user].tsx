@@ -9,8 +9,9 @@ import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
 import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
-import defaultEvents, { getUsernameSlugLink } from "@calcom/lib/defaultEvents";
+import defaultEvents, { getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPlan } from "@calcom/prisma/client";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -31,8 +32,9 @@ interface EvtsToVerify {
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { Theme } = useTheme(props.users[0].theme);
   const { users } = props;
+  const [user] = users; //To be used when we only have a single user, not dynamic group
+  const { Theme } = useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
 
@@ -83,34 +85,34 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
-  const nameOrUsername = users[0].name || users[0].username || "";
+  const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   return (
     <>
       <Theme />
       <HeadSeo
         title={nameOrUsername}
-        description={(users[0].bio as string) || ""}
+        description={(user.bio as string) || ""}
         name={nameOrUsername}
-        username={(users[0].username as string) || ""}
+        username={(user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
       <div className="h-screen dark:bg-neutral-900">
         <main className="mx-auto max-w-3xl px-4 py-24">
-          {props.users.length < 2 && (
+          {props.users.length === 1 && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={users[0]} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
+              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
-                {users[0].verified && (
+                {user.verified && (
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="text-neutral-500 dark:text-white">{users[0].bio}</p>
+              <p className="text-neutral-500 dark:text-white">{user.bio}</p>
             </div>
           )}
           <div className="space-y-6" data-testid="event-types">
-            {users[0].away ? (
+            {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
                   <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
@@ -119,7 +121,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <p className="mx-auto max-w-md">{t("user_away_description")}</p>
                 </div>
               </div>
-            ) : props.users.length > 1 ? (
+            ) : props.users.length > 1 ? ( //When we deal with dynamic group (users > 1)
               groupEventTypes
             ) : (
               eventTypes.map((type) => (
@@ -132,7 +134,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <Link
                     prefetch={false}
                     href={{
-                      pathname: `/${users[0].username}/${type.slug}`,
+                      pathname: `/${user.username}/${type.slug}`,
                       query,
                     }}>
                     <a
@@ -160,7 +162,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   {type.isWeb3Active && type.metadata.smartContractAddress && (
                     <CryptoSection
                       id={type.id}
-                      pathname={`/${users[0].username}/${type.slug}`}
+                      pathname={`/${user.username}/${type.slug}`}
                       smartContractAddress={type.metadata.smartContractAddress as string}
                       verified={evtsToVerify[type.id]}
                       setEvtsToVerify={setEvtsToVerify}
@@ -189,13 +191,54 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = require("crypto");
-
-  const usernameList = (context.query.user as string)
-    .toLowerCase()
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
+  const getEventTypesWithHiddenFromDB = async (userId: Number) => {
+    return await prisma.eventType.findMany({
+      where: {
+        AND: [
+          {
+            teamId: null,
+          },
+          {
+            OR: [
+              {
+                userId,
+              },
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        length: true,
+        description: true,
+        hidden: true,
+        schedulingType: true,
+        price: true,
+        currency: true,
+        metadata: true,
+      },
+      take: users[0].plan === UserPlan.FREE ? 1 : undefined,
     });
+  };
+
+  const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
   const users = await prisma.user.findMany({
     where: {
@@ -223,11 +266,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
+  const [user] = users; //to be used when dealing with single user, not dynamic group
+  const usersIds = users.map((user) => user.id);
 
   const credentials = await prisma.credential.findMany({
     where: {
       userId: {
-        in: users.map((user) => user.id),
+        in: usersIds,
       },
     },
     select: {
@@ -239,53 +284,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
-  const eventTypesWithHidden =
-    usernameList.length > 1
-      ? []
-      : await prisma.eventType.findMany({
-          where: {
-            AND: [
-              {
-                teamId: null,
-              },
-              {
-                OR: [
-                  {
-                    userId: users[0].id,
-                  },
-                  {
-                    users: {
-                      some: {
-                        id: users[0].id,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-          orderBy: [
-            {
-              position: "desc",
-            },
-            {
-              id: "asc",
-            },
-          ],
-          select: {
-            id: true,
-            slug: true,
-            title: true,
-            length: true,
-            description: true,
-            hidden: true,
-            schedulingType: true,
-            price: true,
-            currency: true,
-            metadata: true,
-          },
-          take: users[0].plan === "FREE" ? 1 : undefined,
-        });
+  const eventTypesWithHidden = usernameList.length > 1 ? [] : await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
@@ -305,7 +304,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       users,
       user: {
-        emailMd5: crypto.createHash("md5").update(users[0].email).digest("hex"),
+        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },
       eventTypes,
       trpcState: ssr.dehydrate(),

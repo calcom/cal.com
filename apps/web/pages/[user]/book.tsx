@@ -5,7 +5,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -45,12 +45,7 @@ export default function Book(props: BookPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const usernameList = asStringOrThrow(context.query.user as string)
-    .toLowerCase()
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
-    });
+  const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));
   const eventTypeSlug = context.query.slug as string;
   const users = await prisma.user.findMany({
     where: {
@@ -73,7 +68,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   if (!users.length) return { notFound: true };
-
+  const [user] = users;
   const eventTypeRaw =
     usernameList.length > 1
       ? getDefaultEvent(eventTypeSlug)
@@ -187,12 +182,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             : true,
         }
       : {
-          name: users[0].name || users[0].username,
-          image: users[0].avatar,
-          slug: users[0].username,
-          theme: users[0].theme,
-          brandColor: users[0].brandColor,
-          darkBrandColor: users[0].darkBrandColor,
+          name: user.name || user.username,
+          image: user.avatar,
+          slug: user.username,
+          theme: user.theme,
+          brandColor: user.brandColor,
+          darkBrandColor: user.darkBrandColor,
         };
 
   return {

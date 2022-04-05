@@ -4,6 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPlan } from "@calcom/prisma/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -150,13 +151,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
+  const [user] = users; //to be used when dealing with single user, not dynamic group
 
-  if (users.length < 2 && users[0].eventTypes.length !== 1) {
+  if (users.length === 1 && user.eventTypes.length !== 1) {
     const eventTypeBackwardsCompat = await prisma.eventType.findFirst({
       where: {
         AND: [
           {
-            userId: users[0].id,
+            userId: user.id,
           },
           {
             slug: typeParam,
@@ -172,18 +174,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     eventTypeBackwardsCompat.users.push({
-      avatar: users[0].avatar,
-      name: users[0].name,
-      username: users[0].username,
-      hideBranding: users[0].hideBranding,
-      plan: users[0].plan,
-      timeZone: users[0].timeZone,
+      avatar: user.avatar,
+      name: user.name,
+      username: user.username,
+      hideBranding: user.hideBranding,
+      plan: user.plan,
+      timeZone: user.timeZone,
     });
 
-    users[0].eventTypes.push(eventTypeBackwardsCompat);
+    user.eventTypes.push(eventTypeBackwardsCompat);
   }
 
-  let [eventType] = users[0].eventTypes;
+  let [eventType] = user.eventTypes;
 
   if (users.length > 1) {
     eventType = getDefaultEvent(typeParam);
@@ -199,18 +201,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
   }
 
-  // check this is the first event
-  if (users.length < 2 && users[0].plan === "FREE") {
+  // check this is the first event for free user
+  if (users.length === 1 && user.plan === UserPlan.FREE) {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [
           {
-            userId: users[0].id,
+            userId: user.id,
           },
           {
             users: {
               some: {
-                id: users[0].id,
+                id: user.id,
               },
             },
           },
@@ -244,13 +246,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const schedule = eventType.schedule
     ? { ...eventType.schedule }
     : {
-        ...users[0].schedules.filter(
-          (schedule) => !users[0].defaultScheduleId || schedule.id === users[0].defaultScheduleId
+        ...user.schedules.filter(
+          (schedule) => !user.defaultScheduleId || schedule.id === user.defaultScheduleId
         )[0],
       };
 
-  const timeZone =
-    users.length > 1 ? undefined : schedule.timeZone || eventType.timeZone || users[0].timeZone;
+  const timeZone = users.length > 1 ? undefined : schedule.timeZone || eventType.timeZone || user.timeZone;
 
   const workingHours = getWorkingHours(
     {
@@ -258,8 +259,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     users.length > 1
       ? eventType.availability || undefined
-      : schedule.availability ||
-          (eventType.availability.length ? eventType.availability : users[0].availability)
+      : schedule.availability || (eventType.availability.length ? eventType.availability : user.availability)
   );
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
@@ -283,13 +283,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             : true,
         }
       : {
-          name: users[0].name || users[0].username,
-          image: users[0].avatar,
-          slug: users[0].username,
-          theme: users[0].theme,
-          weekStart: users[0].weekStart,
-          brandColor: users[0].brandColor,
-          darkBrandColor: users[0].darkBrandColor,
+          name: user.name || user.username,
+          image: user.avatar,
+          slug: user.username,
+          theme: user.theme,
+          weekStart: user.weekStart,
+          brandColor: user.brandColor,
+          darkBrandColor: user.darkBrandColor,
         };
 
   return {
