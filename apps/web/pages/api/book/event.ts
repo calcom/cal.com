@@ -12,7 +12,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -188,12 +188,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
 
   // handle dynamic user
-  const dynamicUserList = (reqBody.user as string)
-    .toLowerCase()
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
-    });
+  const dynamicUserList = getUsernameList(reqBody.user as string);
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
