@@ -73,7 +73,7 @@ function RedirectionToast({ url }: { url: string }) {
         redirectToExternalUrl(urlWithSuccessParams);
         window.clearInterval(timerRef.current as number);
       }
-    }, 10000);
+    }, 1000);
     return () => {
       window.clearInterval(timerRef.current as number);
     };
