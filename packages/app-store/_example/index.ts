@@ -10,7 +10,6 @@ export const metadata = {
   // If using static next public folder, can then be referenced from the base URL (/).
   imageSrc: "/api/app-store/_example/icon.svg",
   logo: "/api/app-store/_example/icon.svg",
-  label: "Example App",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,
