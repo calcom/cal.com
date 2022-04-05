@@ -127,9 +127,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
   current bookings with a seats event type and display them on the calendar, even if they are full */
-  let currentBookings;
+  let currentSeats;
   if (eventType?.seatsPerTimeSlot) {
-    currentBookings = await prisma.booking.findMany({
+    currentSeats = await prisma.booking.findMany({
       where: {
         eventTypeId: eventTypeId,
         startTime: {
@@ -147,13 +147,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    console.log("🚀 ~ file: [user].ts ~ line 129 ~ handler ~ currentBookings", currentBookings);
+    console.log("🚀 ~ file: [user].ts ~ line 129 ~ handler ~ currentBookings", currentSeats);
   }
 
   res.status(200).json({
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
-    currentBookings,
+    currentSeats,
   });
 }

@@ -6,7 +6,7 @@ import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
 import getSlots from "@lib/slots";
-import { TimeRange, WorkingHours } from "@lib/types/schedule";
+import { TimeRange, WorkingHours, CurrentSeats } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -15,6 +15,7 @@ type AvailabilityUserResponse = {
   busy: TimeRange[];
   timeZone: string;
   workingHours: WorkingHours[];
+  currentSeats?: CurrentSeats[];
 };
 
 type Slot = {
@@ -40,10 +41,11 @@ type getFilteredTimesProps = {
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
+  currentSeats?: CurrentSeats[];
 };
 
 export const getFilteredTimes = (props: getFilteredTimesProps) => {
-  const { times, busy, eventLength, beforeBufferTime, afterBufferTime } = props;
+  const { times, busy, eventLength, beforeBufferTime, afterBufferTime, currentSeats } = props;
   const finalizationTime = times[times.length - 1].add(eventLength, "minutes");
   // Check for conflicts
   for (let i = times.length - 1; i >= 0; i -= 1) {
@@ -56,6 +58,11 @@ export const getFilteredTimes = (props: getFilteredTimesProps) => {
       const slotStartTime = times[i];
       const slotEndTime = times[i].add(eventLength, "minutes");
       const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
+      // If the event has seats then see if there is already a booking (want to show full bookings as well)
+      if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toISOString())) {
+        console.log("This triggered");
+        break;
+      }
       busy.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);
@@ -191,13 +198,20 @@ export const useSlots = (props: UseSlotsProps) => {
       eventLength,
       beforeBufferTime,
       afterBufferTime,
+      currentSeats: responseBody.currentSeats,
     };
     const filteredTimes = getFilteredTimes(filterTimeProps);
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
+    const { currentSeats } = responseBody;
     return filteredTimes.map((time) => ({
       time,
       users: [user],
+      // Conditionally add the booking info slots object if there is already a booking during that time
+      ...(currentSeats?.some((booking) => booking.startTime === time.toISOString()) && {
+        bookingInfo:
+          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())],
+      }),
     }));
   };
 
