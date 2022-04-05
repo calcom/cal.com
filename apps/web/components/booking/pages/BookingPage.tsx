@@ -12,7 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
-import { useIsEmbed } from "@calcom/embed-core";
+import { useIsEmbed, useEmbedStyles } from "@calcom/embed-core";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -59,6 +59,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+  const bookingDetailsEmbedStyles = useEmbedStyles("bookingDetails");
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -281,7 +282,9 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
             : "mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
         }>
         {isReady && (
-          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
+          <div
+            style={bookingDetailsEmbedStyles}
+            className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
                 <AvatarGroup

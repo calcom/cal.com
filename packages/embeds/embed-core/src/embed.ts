@@ -231,7 +231,8 @@ export class Cal {
     iframe.style.width = "100%";
     const template = document.createElement("template");
     template.innerHTML = `<cal-modal-box></cal-modal-box>`;
-    template.content.children[0].appendChild(iframe);
+    this.modalBox = template.content.children[0];
+    this.modalBox.appendChild(iframe);
     document.body.appendChild(template.content);
   }
 
@@ -337,9 +338,11 @@ export class Cal {
       }
       iframe.style.height = data.iframeHeight + "px";
       iframe.style.width = data.iframeWidth + "px";
-      // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-      // This case is reproducible when viewing in ModalBox on Mobile.
-      iframe.style.maxHeight = window.innerHeight + "px";
+      if (this.modalBox) {
+        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
+        // This case is reproducible when viewing in ModalBox on Mobile.
+        iframe.style.maxHeight = window.innerHeight + "px";
+      }
     });
 
     this.actionManager.on("iframeReady", (e) => {
@@ -349,6 +352,7 @@ export class Cal {
         this.doInIframe({ method, arg });
       });
     });
+
     this.actionManager.on("linkFailed", (e) => {
       this.iframe?.remove();
     });

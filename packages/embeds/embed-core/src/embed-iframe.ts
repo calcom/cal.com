@@ -56,6 +56,7 @@ interface EmbedStyles {
   eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+  availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
 
 type ElementName = keyof EmbedStyles;
@@ -72,6 +73,7 @@ const embedStore = {
   styles: {},
   // Store all React State setters here.
   reactStylesStateSetters: {} as Record<ElementName, ReactEmbedStylesSetter>,
+  parentInformedAboutContentHeight: false,
 };
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
@@ -160,8 +162,15 @@ export const methods = {
   },
   parentKnowsIframeReady: () => {
     log("Method: `parentKnowsIframeReady` called");
-    unhideBody();
-    sdkActionManager?.fire("linkReady", {});
+    keepRunningAsap(function tryInformingLinkReady() {
+      // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
+      if (!embedStore.parentInformedAboutContentHeight) {
+        keepRunningAsap(tryInformingLinkReady);
+        return;
+      }
+      unhideBody();
+      sdkActionManager?.fire("linkReady", {});
+    });
   },
 };
 
@@ -176,8 +185,6 @@ const messageParent = (data: any) => {
 };
 
 function keepParentInformedAboutDimensionChanges() {
-  console.log("keepParentInformedAboutDimensionChanges executed");
-
   let knownIframeHeight: Number | null = null;
   let numDimensionChanges = 0;
   let isFirstTime = true;
@@ -208,6 +215,7 @@ function keepParentInformedAboutDimensionChanges() {
     let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     let iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
     isFirstTime = false;
+    embedStore.parentInformedAboutContentHeight = true;
     // TODO: Handle width as well.
     if (knownIframeHeight !== iframeHeight) {
       knownIframeHeight = iframeHeight;

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
+import { useIsEmbed, useEmbedStyles } from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventType, Team, User } from "@calcom/prisma/client";
@@ -150,6 +151,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType } = props;
 
+  const successPageEmbedStyles = useEmbedStyles("successPage");
+  const isEmbed = useIsEmbed();
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
@@ -213,7 +216,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   return (
     (isReady && (
-      <div className="h-screen bg-neutral-100 dark:bg-neutral-900" data-testid="success-page">
+      <div
+        className={"h-screen" + (isEmbed ? "" : "bg-neutral-100 dark:bg-neutral-900")}
+        data-testid="success-page">
         <Theme />
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
@@ -231,6 +236,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   &#8203;
                 </span>
                 <div
+                  style={successPageEmbedStyles}
                   className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                   role="dialog"
                   aria-modal="true"

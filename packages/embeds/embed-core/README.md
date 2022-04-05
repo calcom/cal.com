@@ -36,9 +36,13 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 ## Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
-
+- Features Documentation
+  - Inline mode doesn't cause any scroll in iframe by default. It more looks like it is part of the website.
 - Accessibility and UI/UX Issues
   - Loader on ModalBox/popup
+  - Popup not exactly in center. 
+    - Also, Height is more initially and then it gets decreased.
+  - Rounded borders are on iframe and it is scrollable which makes the rounded borders at the bottom not visible without scroll
   - Make it customizable by user.
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - ~~Close on backdrop click~~
