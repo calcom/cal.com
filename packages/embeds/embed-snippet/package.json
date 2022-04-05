@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "vite --port=3002",
     "build": "vite build",
-    "preview": "vite preview",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src"
   },

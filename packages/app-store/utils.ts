@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
-import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import appStore from ".";
+import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;
@@ -31,14 +31,13 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
     label: t(l.label),
   }));
 }
+const defaultLocations: OptionTypeBase[] = [
+  { value: LocationType.InPerson, label: "in_person_meeting" },
+  { value: LocationType.Link, label: "link_meeting" },
+  { value: LocationType.Phone, label: "phone_call" },
+];
 
 export function getLocationOptions(integrations: AppMeta, t: TFunction) {
-  const defaultLocations: OptionTypeBase[] = [
-    { value: LocationType.InPerson, label: "in_person_meeting" },
-    { value: LocationType.Link, label: "link_meeting" },
-    { value: LocationType.Phone, label: "phone_call" },
-  ];
-
   integrations.forEach((app) => {
     if (app.locationOption) {
       defaultLocations.push(app.locationOption);
@@ -70,8 +69,8 @@ function getApps(userCredentials: CredentialData[]) {
     /** Check if app has location option AND add it if user has credentials for it */
     if (credentials.length > 0 && appMeta?.locationType) {
       locationOption = {
-        value: appMeta.locationType as LocationType,
-        label: appMeta.label,
+        value: appMeta.locationType,
+        label: appMeta.locationLabel || "No label set",
         disabled: false,
       };
     }
@@ -110,6 +109,20 @@ export function getLocationTypes(): string[] {
     }
     return locations;
   }, [] as string[]);
+}
+
+export function getLocationLabels(t: TFunction) {
+  const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
+    locations[location.value] = t(location.label);
+    return locations;
+  }, {} as Record<LocationType, string>);
+
+  return ALL_APPS.reduce((locations, app) => {
+    if (typeof app.locationType === "string") {
+      locations[app.locationType] = t(app.locationLabel || "No label set");
+    }
+    return locations;
+  }, defaultLocationLabels);
 }
 
 export function getAppName(name: string) {

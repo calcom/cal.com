@@ -1,5 +1,6 @@
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -7,21 +8,21 @@ export const metadata = {
   description: _package.description,
   installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
   type: "zoom_video",
-  imageSrc: "/apps/zoom.svg",
+  imageSrc: "/api/app-store/zoomvideo/icon.svg",
   variant: "conferencing",
-  logo: "/apps/zoom.svg",
+  logo: "/api/app-store/zoomvideo/icon.svg",
   publisher: "Cal.com",
   url: "https://zoom.us/",
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
-  label: "Zoom Video",
   slug: "zoom",
   title: "Zoom Video",
   trending: true,
   email: "help@cal.com",
-  locationType: "integrations:zoom",
+  locationType: LocationType.Zoom,
+  locationLabel: "Zoom Video",
 } as App;
 
 export * as api from "./api";
