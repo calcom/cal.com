@@ -76,6 +76,7 @@ function useRedirectToLoginIfUnauthenticated() {
 
   return {
     loading: loading && !session,
+    session: session,
   };
 }
 
@@ -84,11 +85,7 @@ function useRedirectToOnboardingIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const [isRedirectingToOnboarding, setRedirecting] = useState(false);
-
-  useEffect(() => {
-    user && setRedirecting(shouldShowOnboarding(user));
-  }, [router, user]);
+  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
   useEffect(() => {
     if (isRedirectingToOnboarding) {
@@ -137,7 +134,7 @@ export default function Shell(props: {
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated();
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -201,7 +198,7 @@ export default function Shell(props: {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
+  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
@@ -209,210 +206,214 @@ export default function Shell(props: {
       </div>
     );
   }
-  return (
-    <>
-      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <HeadSeo
-        title={pageTitle ?? "Cal.com"}
-        description={props.subtitle ? props.subtitle?.toString() : ""}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
-      />
-      <div>
-        <Toaster position="bottom-right" />
-      </div>
 
-      <div
-        className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
-        data-testid="dashboard-shell">
-        {status === "authenticated" && (
-          <div className="hidden md:flex lg:flex-shrink-0">
-            <div className="flex w-14 flex-col lg:w-56">
-              <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-                <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-                  <Link href="/event-types">
-                    <a className="px-4 md:hidden lg:inline">
-                      <Logo small />
-                    </a>
-                  </Link>
-                  {/* logo icon for tablet */}
-                  <Link href="/event-types">
-                    <a className="md:inline lg:hidden">
-                      <Logo small icon />
-                    </a>
-                  </Link>
-                  <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => (
-                      <Fragment key={item.name}>
-                        <Link href={item.href}>
-                          <a
-                            className={classNames(
-                              item.current
-                                ? "bg-neutral-100 text-neutral-900"
-                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                              "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
-                            )}>
-                            <item.icon
-                              className={classNames(
-                                item.current
-                                  ? "text-neutral-500"
-                                  : "text-neutral-400 group-hover:text-neutral-500",
-                                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden lg:inline">{item.name}</span>
-                          </a>
-                        </Link>
-                        {item.child &&
-                          router.asPath.startsWith(item.href) &&
-                          item.child.map((item) => {
-                            return (
-                              <Link key={item.name} href={item.href}>
-                                <a
-                                  className={classNames(
-                                    item.current
-                                      ? "text-neutral-900"
-                                      : "text-neutral-500 hover:text-neutral-900",
-                                    "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
-                                  )}>
-                                  <span className="hidden lg:inline">{item.name}</span>
-                                </a>
-                              </Link>
-                            );
-                          })}
-                      </Fragment>
-                    ))}
-                  </nav>
-                </div>
-                <TrialBanner />
-                <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
-                  <span className="hidden lg:inline">
-                    <UserDropdown />
-                  </span>
-                  <span className="hidden md:inline lg:hidden">
-                    <UserDropdown small />
-                  </span>
-                </div>
-                <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-                  &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-                  {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-                  <span className="lowercase">-{user && user.plan}</span>
-                </small>
-              </div>
-            </div>
-          </div>
-        )}
+  if (session)
+    return (
+      <>
+        <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
+        <HeadSeo
+          title={pageTitle ?? "Cal.com"}
+          description={props.subtitle ? props.subtitle?.toString() : ""}
+          nextSeoProps={{
+            nofollow: true,
+            noindex: true,
+          }}
+        />
+        <div>
+          <Toaster position="bottom-right" />
+        </div>
 
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <main
-            className={classNames(
-              "relative z-0 flex-1 overflow-y-auto focus:outline-none",
-              status === "authenticated" && "max-w-[1700px]",
-              props.flexChildrenContainer && "flex flex-col"
-            )}>
-            {/* show top navigation for md and smaller (tablet and phones) */}
-            {status === "authenticated" && (
-              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
-                <Link href="/event-types">
-                  <a>
-                    <Logo />
-                  </a>
-                </Link>
-                <div className="flex items-center gap-3 self-center">
-                  <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                    <span className="sr-only">{t("view_notifications")}</span>
-                    <Link href="/settings/profile">
-                      <a>
-                        <CogIcon className="h-6 w-6" aria-hidden="true" />
+        <div
+          className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
+          data-testid="dashboard-shell">
+          {status === "authenticated" && (
+            <div className="hidden md:flex lg:flex-shrink-0">
+              <div className="flex w-14 flex-col lg:w-56">
+                <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+                  <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
+                    <Link href="/event-types">
+                      <a className="px-4 md:hidden lg:inline">
+                        <Logo small />
                       </a>
                     </Link>
-                  </button>
-                  <UserDropdown small />
-                </div>
-              </nav>
-            )}
-            <div
-              className={classNames(
-                props.centered && "mx-auto md:max-w-5xl",
-                props.flexChildrenContainer && "flex flex-1 flex-col",
-                !props.large && "py-8"
-              )}>
-              {!!props.backPath && (
-                <div className="mx-3 mb-8 sm:mx-8">
-                  <Button
-                    onClick={() => router.push(props.backPath as string)}
-                    StartIcon={ArrowLeftIcon}
-                    color="secondary">
-                    Back
-                  </Button>
-                </div>
-              )}
-              {props.heading && (
-                <div
-                  className={classNames(
-                    props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
-                    "block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8"
-                  )}>
-                  {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-                  <div className="mb-8 w-full">
-                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                      {props.heading}
-                    </h1>
-                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    {/* logo icon for tablet */}
+                    <Link href="/event-types">
+                      <a className="md:inline lg:hidden">
+                        <Logo small icon />
+                      </a>
+                    </Link>
+                    <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
+                      {navigation.map((item) => (
+                        <Fragment key={item.name}>
+                          <Link href={item.href}>
+                            <a
+                              className={classNames(
+                                item.current
+                                  ? "bg-neutral-100 text-neutral-900"
+                                  : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                                "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                              )}>
+                              <item.icon
+                                className={classNames(
+                                  item.current
+                                    ? "text-neutral-500"
+                                    : "text-neutral-400 group-hover:text-neutral-500",
+                                  "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                )}
+                                aria-hidden="true"
+                              />
+                              <span className="hidden lg:inline">{item.name}</span>
+                            </a>
+                          </Link>
+                          {item.child &&
+                            router.asPath.startsWith(item.href) &&
+                            item.child.map((item) => {
+                              return (
+                                <Link key={item.name} href={item.href}>
+                                  <a
+                                    className={classNames(
+                                      item.current
+                                        ? "text-neutral-900"
+                                        : "text-neutral-500 hover:text-neutral-900",
+                                      "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
+                                    )}>
+                                    <span className="hidden lg:inline">{item.name}</span>
+                                  </a>
+                                </Link>
+                              );
+                            })}
+                        </Fragment>
+                      ))}
+                    </nav>
                   </div>
-                  {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+                  <TrialBanner />
+                  <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+                    <span className="hidden lg:inline">
+                      <UserDropdown />
+                    </span>
+                    <span className="hidden md:inline lg:hidden">
+                      <UserDropdown small />
+                    </span>
+                  </div>
+                  <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
+                    &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+                    {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
+                    <span className="lowercase">-{user && user.plan}</span>
+                  </small>
                 </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <main
+              className={classNames(
+                "relative z-0 flex-1 overflow-y-auto focus:outline-none",
+                status === "authenticated" && "max-w-[1700px]",
+                props.flexChildrenContainer && "flex flex-col"
+              )}>
+              {/* show top navigation for md and smaller (tablet and phones) */}
+              {status === "authenticated" && (
+                <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+                  <Link href="/event-types">
+                    <a>
+                      <Logo />
+                    </a>
+                  </Link>
+                  <div className="flex items-center gap-3 self-center">
+                    <button className="rounded-full bg-white p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+                      <span className="sr-only">{t("view_notifications")}</span>
+                      <Link href="/settings/profile">
+                        <a>
+                          <CogIcon className="h-6 w-6" aria-hidden="true" />
+                        </a>
+                      </Link>
+                    </button>
+                    <UserDropdown small />
+                  </div>
+                </nav>
               )}
               <div
                 className={classNames(
-                  "px-4 sm:px-6 md:px-8",
-                  props.flexChildrenContainer && "flex flex-1 flex-col"
+                  props.centered && "mx-auto md:max-w-5xl",
+                  props.flexChildrenContainer && "flex flex-1 flex-col",
+                  !props.large && "py-8"
                 )}>
-                {props.children}
-              </div>
-              {/* show bottom navigation for md and smaller (tablet and phones) */}
-              {status === "authenticated" && (
-                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
-                  {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                  {navigation.flatMap((item, itemIdx) =>
-                    item.href === "/settings/profile" ? (
-                      []
-                    ) : (
-                      <Link key={item.name} href={item.href}>
-                        <a
-                          className={classNames(
-                            item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
-                            itemIdx === 0 ? "rounded-l-lg" : "",
-                            itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
-                            "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
-                          )}
-                          aria-current={item.current ? "page" : undefined}>
-                          <item.icon
+                {!!props.backPath && (
+                  <div className="mx-3 mb-8 sm:mx-8">
+                    <Button
+                      onClick={() => router.push(props.backPath as string)}
+                      StartIcon={ArrowLeftIcon}
+                      color="secondary">
+                      Back
+                    </Button>
+                  </div>
+                )}
+                {props.heading && (
+                  <div
+                    className={classNames(
+                      props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
+                      "block min-h-[80px] justify-between px-4 sm:flex sm:px-6 md:px-8"
+                    )}>
+                    {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
+                    <div className="mb-8 w-full">
+                      <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                        {props.heading}
+                      </h1>
+                      <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    </div>
+                    {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
+                  </div>
+                )}
+                <div
+                  className={classNames(
+                    "px-4 sm:px-6 md:px-8",
+                    props.flexChildrenContainer && "flex flex-1 flex-col"
+                  )}>
+                  {props.children}
+                </div>
+                {/* show bottom navigation for md and smaller (tablet and phones) */}
+                {status === "authenticated" && (
+                  <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                    {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
+                    {navigation.flatMap((item, itemIdx) =>
+                      item.href === "/settings/profile" ? (
+                        []
+                      ) : (
+                        <Link key={item.name} href={item.href}>
+                          <a
                             className={classNames(
-                              item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
-                              "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                              item.current ? "text-gray-900" : "text-neutral-400 hover:text-gray-700",
+                              itemIdx === 0 ? "rounded-l-lg" : "",
+                              itemIdx === navigation.length - 1 ? "rounded-r-lg" : "",
+                              "group relative min-w-0 flex-1 overflow-hidden bg-white py-2 px-2 text-center text-xs font-medium hover:bg-gray-50 focus:z-10 sm:text-sm"
                             )}
-                            aria-hidden="true"
-                          />
-                          <span className="truncate">{item.name}</span>
-                        </a>
-                      </Link>
-                    )
-                  )}
-                </nav>
-              )}
-              {/* add padding to content for mobile navigation*/}
-              <div className="block pt-12 md:hidden" />
-            </div>
-            <LicenseBanner />
-          </main>
+                            aria-current={item.current ? "page" : undefined}>
+                            <item.icon
+                              className={classNames(
+                                item.current ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                                "mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center"
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="truncate">{item.name}</span>
+                          </a>
+                        </Link>
+                      )
+                    )}
+                  </nav>
+                )}
+                {/* add padding to content for mobile navigation*/}
+                <div className="block pt-12 md:hidden" />
+              </div>
+              <LicenseBanner />
+            </main>
+          </div>
         </div>
-      </div>
-    </>
-  );
+      </>
+    );
+
+  return null;
 }
 
 function UserDropdown({ small }: { small?: boolean }) {
