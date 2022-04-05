@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
+import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";

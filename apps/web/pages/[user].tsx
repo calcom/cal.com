@@ -1,5 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -11,7 +12,6 @@ import { JSONObject } from "superjson/dist/types";
 import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
 import defaultEvents, { getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
