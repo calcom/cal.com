@@ -106,7 +106,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     /* If the app doesn't have a README we fallback to the packagfe description */
     source = fs.readFileSync(postFilePath).toString();
   } catch (error) {
-    console.log("error", error);
+    console.log(`No README.mdx provided for: ${appDirname}`);
     source = singleApp.description;
   }
 
