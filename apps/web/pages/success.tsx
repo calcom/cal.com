@@ -85,7 +85,6 @@ function RedirectionToast({ url }: { url: string }) {
 
   return (
     <>
-      {/* z-index just higher than Success Message Box */}
       <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
         <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
           <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
