@@ -1,7 +1,5 @@
 import { PeriodType, SchedulingType, UserPlan, EventTypeCustomInput } from "@prisma/client";
 
-import { LocationType } from "@calcom/lib/location";
-
 const availability = [
   {
     days: [1, 2, 3, 4, 5],
@@ -40,7 +38,7 @@ const commons = {
   periodType: PeriodType.UNLIMITED,
   periodDays: null,
   slotInterval: null,
-  locations: [{ type: LocationType.Daily }],
+  locations: [{ type: "integrations:daily" }],
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
