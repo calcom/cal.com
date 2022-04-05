@@ -70,7 +70,7 @@ function getApps(userCredentials: CredentialData[]) {
     if (credentials.length > 0 && appMeta?.locationType) {
       locationOption = {
         value: appMeta.locationType,
-        label: appMeta.label,
+        label: appMeta.locationLabel || "No label set",
         disabled: false,
       };
     }
@@ -119,7 +119,7 @@ export function getLocationLabels(t: TFunction) {
 
   return ALL_APPS.reduce((locations, app) => {
     if (typeof app.locationType === "string") {
-      locations[app.locationType] = t(app.label);
+      locations[app.locationType] = t(app.locationLabel || "No label set");
     }
     return locations;
   }, defaultLocationLabels);
