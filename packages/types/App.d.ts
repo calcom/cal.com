@@ -1,4 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+
+import type { LocationType } from "@calcom/app-store/locations";
 
 /**
  * This is the definition for an app store's app metadata.
