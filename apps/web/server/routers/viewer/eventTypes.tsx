@@ -24,7 +24,7 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
  * -  XSS attempts through javascript:alert('hi')
  * - mailto: links
  */
-function assertValidUrl(url) {
+function assertValidUrl(url: string) {
   if (!url) {
     return;
   }
