@@ -21,7 +21,7 @@ export interface App {
   /** The icon to display in /apps/installed */
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing";
+  variant: "calendar" | "payment" | "conferencing" | "other";
   label: string;
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;

@@ -341,6 +341,10 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/â
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
+### Obtaining HubSpot Client ID and Secret
+
+1. TODO
+
 <!-- LICENSE -->
 
 ## License
