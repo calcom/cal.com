@@ -143,7 +143,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               style={availabilityDatePickerEmbedStyles}
               className={
                 "rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border" +
-                (isEmbed ? " mx-auto  max-w-3xl" : "")
+                (selectedDate ? " max-w-5xl" : "max-w-3xl") +
+                (isEmbed ? " mx-auto" : "")
               }>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">

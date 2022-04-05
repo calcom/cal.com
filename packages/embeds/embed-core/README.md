@@ -65,6 +65,9 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Embed Code Generator
 
 - UI Config Features
+  - Transparent can't be made default as it requires configuration in styling depending on what was the background of the webpage.
+  - Background should be common automatically for all pages
+    - To achieve this remove explicit background on non body elements if someone uses transparent option for body background
   - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed.
   - Text Color
     - Brand color
