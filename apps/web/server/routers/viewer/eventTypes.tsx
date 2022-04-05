@@ -24,7 +24,7 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
  * -  XSS attempts through javascript:alert('hi')
  * - mailto: links
  */
-function assertValidUrl(url: string) {
+function assertValidUrl(url: string | null | undefined) {
   if (!url) {
     return;
   }
@@ -226,7 +226,7 @@ export const eventTypesRouter = createProtectedRouter()
       if (users) {
         data.users = {
           set: [],
-          connect: users.map((userId) => ({ id: userId })),
+          connect: users.map((userId: number) => ({ id: userId })),
         };
       }
 

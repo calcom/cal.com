@@ -34,7 +34,7 @@ dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
-function redirectToExternalUrl(url) {
+function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
 }
 
