@@ -12,7 +12,6 @@ export const metadata = {
   ),
   category: "messaging",
   imageSrc: "/apps/slack.svg",
-  label: "Slack App",
   logo: "/apps/slack.svg",
   publisher: "Cal.com",
   rating: 5,
