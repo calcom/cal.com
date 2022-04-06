@@ -13,6 +13,7 @@ export type BookingCreateBody = {
     userSignature: unknown;
   };
   eventTypeId: number;
+  eventTypeSlug: string;
   guests?: string[];
   location: string;
   name: string;

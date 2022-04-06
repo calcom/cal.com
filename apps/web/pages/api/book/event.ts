@@ -12,6 +12,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -181,30 +182,8 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   return userNamesWithBookingCounts;
 };
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const reqBody = req.body as BookingCreateBody;
-  const eventTypeId = reqBody.eventTypeId;
-  const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
-  const tGuests = await getTranslation("en", "common");
-  log.debug(`Booking eventType ${eventTypeId} started`);
-
-  const isTimeInPast = (time: string): boolean => {
-    return dayjs(time).isBefore(new Date(), "day");
-  };
-
-  if (isTimeInPast(reqBody.start)) {
-    const error = {
-      errorCode: "BookingDateInPast",
-      message: "Attempting to create a meeting in the past.",
-    };
-
-    log.error(`Booking ${eventTypeId} failed`, error);
-    return res.status(400).json(error);
-  }
-
-  const eventType = await prisma.eventType.findUnique({
+const getEventTypesFromDB = async (eventTypeId: number) => {
+  return await prisma.eventType.findUnique({
     rejectOnNotFound: true,
     where: {
       id: eventTypeId,
@@ -236,10 +215,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       seatsPerTimeSlot: true,
     },
   });
+};
 
+type User = Prisma.UserGetPayload<typeof userSelect>;
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const reqBody = req.body as BookingCreateBody;
+
+  // handle dynamic user
+  const dynamicUserList = getUsernameList(reqBody.user as string);
+  const eventTypeSlug = reqBody.eventTypeSlug;
+  const eventTypeId = reqBody.eventTypeId;
+  const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
+  const tGuests = await getTranslation("en", "common");
+  log.debug(`Booking eventType ${eventTypeId} started`);
+
+  const isTimeInPast = (time: string): boolean => {
+    return dayjs(time).isBefore(new Date(), "day");
+  };
+
+  if (isTimeInPast(reqBody.start)) {
+    const error = {
+      errorCode: "BookingDateInPast",
+      message: "Attempting to create a meeting in the past.",
+    };
+
+    log.error(`Booking ${eventTypeId} failed`, error);
+    return res.status(400).json(error);
+  }
+
+  const eventType = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) return res.status(404).json({ message: "eventType.notFound" });
 
-  let users = eventType.users;
+  let users = !eventTypeId
+    ? await prisma.user.findMany({
+        where: {
+          username: {
+            in: dynamicUserList,
+          },
+        },
+        ...userSelect,
+      })
+    : eventType.users;
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -382,7 +399,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events, we will need to handle each member destinationCalendar eventually */
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
   };
@@ -404,6 +421,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await verifyAccount(web3Details.userSignature, web3Details.userWallet);
     }
 
+    const eventTypeRel = !eventTypeId
+      ? {}
+      : {
+          connect: {
+            id: eventTypeId,
+          },
+        };
+
+    const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
+    const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
+
     return prisma.booking.create({
       include: {
         user: {
@@ -419,11 +447,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         description: evt.description,
         confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
-        eventType: {
-          connect: {
-            id: eventTypeId,
-          },
-        },
+        eventType: eventTypeRel,
         attendees: {
           createMany: {
             data: evt.attendees.map((attendee) => {
@@ -439,6 +463,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }),
           },
         },
+        dynamicEventSlugRef,
+        dynamicGroupSlugRef,
         user: {
           connect: {
             id: users[0].id,
