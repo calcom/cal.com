@@ -1,0 +1,24 @@
+---
+title: Pre-fill fields
+---
+
+# Pre-fill fields
+
+You can pre-fill a number of fields on the booking form by using their corresponding URL parameters. This can include the user’s name, email, or guests to be added to the booking.
+
+Usually when they go to the link, all that is needed will be the time of the booking, and the form will be pre-filled with the information given.
+
+Pre-filling booking fields can save a lot of time and speed up processes with filling out these forms, and assist with a smooth integration with your existing website or app.
+
+You can pre-fill a user’s name and email address like so:
+```text
+cal.com/rick/quick-chat/?email=attendee@example.com&name=John
+```
+The data is persisted through the 3 booking pages; and is used to prefill the booking form.
+
+Guests can also be added to the link, there is also no limit to the amount of guests you wish to add.
+
+These should be added to your link like this:
+```text
+guest=guest1@example.com&guest=guest2@example.com
+```

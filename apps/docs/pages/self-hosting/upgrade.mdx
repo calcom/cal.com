@@ -1,0 +1,47 @@
+---
+title: Upgrade
+---
+
+# Upgrading
+
+**Warning**: When performing database migrations, you may lose data if the migration is not done properly.
+
+1. Pull the current version:
+   ```sh
+   git pull
+   ```
+2. Apply database migrations by running <b>one of</b> the following commands:
+
+   In a development environment, run:
+
+   ```sh
+   yarn workspace @calcom/prisma db-migrate
+   ```
+
+   (this can clear your development database in some cases)
+
+   In a production environment, run:
+
+   ```sh
+   yarn workspace @calcom/prisma db-deploy
+   ```
+
+3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
+   in your current `.env`, add them there.
+
+   For the current version, especially check if the variable `BASE_URL` is present and properly set in your environment, for example:
+
+   ```text
+   BASE_URL='https://yourdomain.com'
+   ```
+
+4. Start the server. In a development environment, just do:
+   ```sh
+   yarn dev
+   ```
+   For a production build, run for example:
+   ```sh
+   yarn build
+   yarn start
+   ```
+5. Enjoy the new version.

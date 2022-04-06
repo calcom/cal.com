@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/calendso/calendso">
+  <a href="https://github.com/calcom/cal.com">
     <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
 
   </a>
@@ -17,19 +17,23 @@
     ·
     <a href="https://cal.com">Website</a>
     ·
-    <a href="https://github.com/calendso/calendso/issues">Issues</a>
+    <a href="https://github.com/calcom/cal.com/issues">Issues</a>
   </p>
 </p>
 
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://github.com/calendso/calendso/stargazers"><img src="https://img.shields.io/github/stars/calendso/calendso" alt="Github Stars"></a>
+  <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
-  <a href="https://github.com/calendso/calendso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
-  <img src="https://img.shields.io/github/package-json/v/calendso/calendso">
-  <a href="https://github.com/calendso/calendso/pulse"><img src="https://img.shields.io/github/commit-activity/m/calendso/calendso" alt="Commits-per-month"></a>
+  <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
+  <a href="https://github.com/calcom/cal.com/pulse"><img src="https://img.shields.io/github/commit-activity/m/calcom/cal.com" alt="Commits-per-month"></a>
   <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
+  <a href="https://jitsu.com?utm_source=github/calcom/cal.com"><img src="https://img.shields.io/badge/Metrics_tracked_by-JITSU-AA00FF?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACKSURBVHgBrZDRCYAwDEQv6gCOoKO4hOCXI9QVnEZwiY5iF5GaVClaBNtioCSUvCR3tMJaxIfZgW4AGUoEPVwgPZoS0Dmgg3NBVDFNbMIsmYCak3J1jDk9iCQvsKJvkzr71N81Gj6vDT/LU2P6RhY63jcafk3YJEbgeZpiFyc/5HJKv8Ef273NSfABGbQfUZhnOSAAAAAASUVORK5CYII=" alt="Jitsu Tracked"></a>
+    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
+    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=social"></a>
+    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
+
 </p>
 
 <!-- ABOUT THE PROJECT -->
@@ -64,7 +68,7 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 Cal officially launched as v.1.0 on 15th of September, however a lot of new features are coming. Watch **releases** of this repository to be notified for future updates:
 
-![cal-star-github](https://user-images.githubusercontent.com/8019099/116010176-5d9c9900-a615-11eb-92d0-aa0e892f7056.gif)
+![cal-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif)
 
 <!-- GETTING STARTED -->
 
@@ -86,22 +90,23 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo
+1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
-   git clone https://github.com/calendso/calendso.git
+   git clone https://github.com/calcom/cal.com.git
    ```
 
 1. Go to the project folder
 
    ```sh
-   cd calendso
+   cd cal.com
    ```
 
-1. Copy `.env.example` to `.env`
+1. Copy `apps/web/.env.example` to `apps/web/.env`
 
    ```sh
-   cp .env.example .env
+   cp apps/web/.env.example apps/web/.env
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
 1. Install packages with yarn
@@ -117,6 +122,14 @@ Here is what you need to be able to run Cal.
 
 ```sh
 yarn dx
+```
+
+#### Development tip
+
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `apps/web/.env` to get logging information for all the queries and mutations driven by **trpc**.
+
+```sh
+echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
 ```
 
 #### Manual setup
@@ -155,10 +168,10 @@ yarn dx
    </details>
 
 1. Set a 32 character random string in your .env file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
-1. Set up the database using the Prisma schema (found in `prisma/schema.prisma`)
+1. Set up the database using the Prisma schema (found in `apps/web/prisma/schema.prisma`)
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 1. Run (in development mode)
@@ -172,21 +185,24 @@ yarn dx
 1. Open [Prisma Studio](https://www.prisma.io/studio) to look at or modify the database content:
 
    ```sh
-   npx prisma studio
+   yarn db-studio
    ```
 
 1. Click on the `User` model to add a new user record.
 1. Fill out the fields `email`, `username`, `password`, and set `metadata` to empty `{}` (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
-   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `prisma/schema.prisma` file.
+   > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `apps/web/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
 ### E2E-Testing
 
 ```sh
-# In first terminal
+# In first terminal. Must run on port 3000.
 yarn dx
 # In second terminal
-yarn test-playwright
+yarn workspace @calcom/web test-e2e
+
+# To open last HTML report run:
+yarn workspace @calcom/web playwright-report
 ```
 
 ### Upgrading from earlier versions
@@ -202,7 +218,7 @@ yarn test-playwright
    In a development environment, run:
 
    ```sh
-   npx prisma migrate dev
+   yarn workspace @calcom/prisma db-migrate
    ```
 
    (this can clear your development database in some cases)
@@ -210,7 +226,7 @@ yarn test-playwright
    In a production environment, run:
 
    ```sh
-   npx prisma migrate deploy
+   yarn workspace @calcom/prisma db-deploy
    ```
 
 3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
@@ -244,14 +260,13 @@ yarn test-playwright
 
 The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
-If you want to contribute to the Docker repository, [reply here](https://github.com/calendso/docker/discussions/32).
+If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
-The Docker configuration can be found [in our docker repository](https://github.com/calendso/docker).
-  
-  
+The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
 ### Heroku
 
-<a href="https://heroku.com/deploy?template=https://github.com/calendso/calendso">
+<a href="https://heroku.com/deploy?template=https://github.com/calcom/cal.com">
   <img width="185px" height="auto" src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
 </a>
 
@@ -265,20 +280,17 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 ## Roadmap
 
-See the [open issues](https://github.com/calendso/calendso/issues) for a list of proposed features (and known issues).
+See the [roadmap project](https://github.com/orgs/calcom/projects/1) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
 <!-- CONTRIBUTING -->
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Please see our [contributing guide](/CONTRIBUTING.md).
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-5. Push to the branch (`git push origin feature/AmazingFeature`)
-6. Open a pull request
+### Good First Issues
+
+We have a list of [good first issues](https://github.com/calcom/cal.com/labels/✅%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
@@ -305,6 +317,56 @@ Contributions are what make the open source community such an amazing place to b
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
+### Obtaining Slack Client ID and Secret and Signing Secret
+
+To test this you will need to create a Slack app for yourself on [their apps website](https://api.slack.com/apps).
+
+Copy and paste the app manifest below into the setting on your slack app. Be sure to replace `YOUR_DOMAIN` with your own domain or your proxy host if you're testing locally.
+
+<details>
+  <summary>App Manifest</summary>
+  
+ ```yaml
+ display_information:
+  name: Cal.com Slack
+features:
+  bot_user:
+    display_name: Cal.com Slack
+    always_online: false
+  slash_commands:
+    - command: /create-event
+      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
+      description: Create an event within Cal!
+      should_escape: false
+    - command: /today
+      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
+      description: View all your bookings for today
+      should_escape: false
+oauth_config:
+  redirect_urls:
+    - https://YOUR_DOMAIN/api/integrations/slackmessaging/callback
+  scopes:
+    bot:
+      - chat:write
+      - commands
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
+    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+```
+
+</details>
+
+Add the integration as normal - slack app - add. Follow the oauth flow to add it to a server.
+
+Next make sure you have your app running `yarn dx`. Then in the slack chat type one of these commands: `/create-event` or `/today`
+
+> NOTE: Next you will need to setup a proxy server like [ngrok](https://ngrok.com/) to allow your local host machine to be hosted on a public https server.
+
 ### Obtaining Zoom Client ID and Secret
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
@@ -327,6 +389,7 @@ Contributions are what make the open source community such an amazing place to b
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
+5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
 <!-- LICENSE -->
 
@@ -347,3 +410,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
+
+[<img src="https://jitsu.com/img/powered-by-jitsu.png?gh=true">](https://jitsu.com/?utm_source=cal.com-gihub)
+
+Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.

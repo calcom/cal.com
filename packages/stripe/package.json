@@ -1,0 +1,29 @@
+{
+  "name": "@calcom/stripe",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPLv3",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules",
+    "downgrade": "ts-node ./downgrade.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^10.6.0"
+  },
+  "dependencies": {
+    "@calcom/ee": "*",
+    "@calcom/lib": "*",
+    "@stripe/react-stripe-js": "^1.4.1",
+    "@stripe/stripe-js": "^1.16.0",
+    "dayjs": "^1.10.4",
+    "stripe": "^8.191.0"
+  },
+  "main": "index.ts",
+  "types": "index.d.ts",
+  "files": [
+    "client.ts",
+    "constants.ts",
+    "server.ts",
+    "utils.ts"
+  ]
+}

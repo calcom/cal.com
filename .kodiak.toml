@@ -4,5 +4,5 @@ version = 1
 autoupdate_label = "♻️ autoupdate"
 
 [approve]
-auto_approve_usernames = ["dependabot", "PeerRich", "baileypumfleet"]
+auto_approve_usernames = ["dependabot"]
 

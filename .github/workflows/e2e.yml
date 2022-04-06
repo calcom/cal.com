@@ -1,17 +1,25 @@
 name: E2E test
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
+    paths-ignore:
+      - public/static/locales/**
 jobs:
   test:
     timeout-minutes: 10
-    name: ${{ matrix.node }} and ${{ matrix.os }}
+    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+      NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
       JWT_SECRET: secret
-      PLAYWRIGHT_SECRET: ${{ secrets.CI_PLAYWRIGHT_SECRET }}
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
@@ -24,11 +32,13 @@ jobs:
       PAYMENT_FEE_FIXED: 10
       SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       SAML_ADMINS: pro@example.com
-      # NEXTAUTH_URL: xxx
-      # EMAIL_FROM: xxx
-      # EMAIL_SERVER_HOST: xxx
-      # EMAIL_SERVER_PORT: xxx
-      # EMAIL_SERVER_USER: xxx
+      NEXTAUTH_URL: http://localhost:3000/api/auth
+      NEXT_PUBLIC_IS_E2E: 1
+      # EMAIL_FROM: e2e@cal.com
+      # EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+      # EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+      # EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+      # EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
       # MS_GRAPH_CLIENT_ID: xxx
       # MS_GRAPH_CLIENT_SECRET: xxx
       # ZOOM_CLIENT_ID: xxx
@@ -41,41 +51,29 @@ jobs:
           POSTGRES_DB: calendso
         ports:
           - 5432:5432
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node: ["14.x"]
-        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
+          # cache: "yarn"
+          # cache-dependency-path: yarn.lock
 
-      - name: Install deps
-        uses: bahmutov/npm-install@v1
-      - name: Next.js cache
+      - name: Turbo Cache
+        id: turbo-cache
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/.next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-
-      - run: yarn prisma migrate deploy
-      - run: yarn db-seed
-      - run: yarn test
-      - run: yarn build
-
+            turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-
+      - run: yarn
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -85,11 +83,11 @@ jobs:
             ~/.cache/ms-playwright
             **/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-
-      - run: yarn test-playwright
+      - run: yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
@@ -97,6 +95,8 @@ jobs:
         with:
           name: videos
           path: |
+            test-results
             playwright/screenshots
             playwright/videos
             playwright/results
+            playwright/reports

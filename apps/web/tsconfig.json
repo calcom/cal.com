@@ -1,0 +1,21 @@
+{
+  "extends": "@calcom/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@lib/*": ["lib/*"],
+      "@server/*": ["server/*"],
+      "@ee/*": ["ee/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}

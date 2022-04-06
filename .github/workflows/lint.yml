@@ -1,24 +1,50 @@
 name: Lint
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["14.x"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          version: 14.x
+          node-version: ${{ matrix.node }}
+          # cache: "yarn"
+          # cache-dependency-path: yarn.lock
 
       - name: Install deps
-        uses: bahmutov/npm-install@v1
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn
 
       - name: Lint
-        run: yarn lint
+        run: yarn lint:report
+        continue-on-error: true
+
+      - name: Merge lint reports
+        run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
+
+      - name: Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@1.2.0
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "lint-results/eslint_report.json"
+
+      - name: Upload ESLint report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-results
+          path: lint-results

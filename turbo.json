@@ -1,0 +1,126 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "baseBranch": "origin/main",
+  "globalDependencies": [".env", "packages/prisma/.env"],
+  "pipeline": {
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"],
+      "outputs": ["zod/**"]
+    },
+    "@calcom/prisma#db-deploy": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
+    "@calcom/prisma#db-reset": {
+      "cache": false
+    },
+    "@calcom/prisma#db-seed": {
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
+    "@calcom/web#build": {
+      "dependsOn": [
+        "^build",
+        "$CALENDSO_ENCRYPTION_KEY",
+        "$CRON_API_KEY",
+        "$DAILY_API_KEY",
+        "$DAILY_SCALE_PLAN",
+        "$DATABASE_URL",
+        "$EMAIL_FROM",
+        "$EMAIL_SERVER_HOST",
+        "$EMAIL_SERVER_PASSWORD",
+        "$EMAIL_SERVER_PORT",
+        "$EMAIL_SERVER_USER",
+        "$GOOGLE_API_CREDENTIALS",
+        "$GOOGLE_LOGIN_ENABLED",
+        "$JWT_SECRET",
+        "$MS_GRAPH_CLIENT_ID",
+        "$MS_GRAPH_CLIENT_SECRET",
+        "$NEXT_PUBLIC_HELPSCOUT_KEY",
+        "$NEXT_PUBLIC_INTERCOM_APP_ID",
+        "$NEXT_PUBLIC_IS_E2E",
+        "$NEXT_PUBLIC_LICENSE_CONSENT",
+        "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRODUCT",
+        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "$NEXT_PUBLIC_TELEMETRY_KEY",
+        "$NEXT_PUBLIC_WEBAPP_URL",
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$NEXT_PUBLIC_ZENDESK_KEY",
+        "$NEXTAUTH_COOKIE_DOMAIN",
+        "$NEXTAUTH_URL",
+        "$PAYMENT_FEE_FIXED",
+        "$PAYMENT_FEE_PERCENTAGE",
+        "$PGSSLMODE",
+        "$SAML_ADMINS",
+        "$SAML_DATABASE_URL",
+        "$STRIPE_CLIENT_ID",
+        "$STRIPE_PRIVATE_KEY",
+        "$STRIPE_WEBHOOK_SECRET",
+        "$TANDEM_BASE_URL",
+        "$TANDEM_CLIENT_ID",
+        "$TANDEM_CLIENT_SECRET",
+        "$ZOOM_CLIENT_ID",
+        "$ZOOM_CLIENT_SECRET"
+      ],
+      "outputs": [".next/**"]
+    },
+    "@calcom/web#dx": {
+      "dependsOn": ["@calcom/prisma#dx"]
+    },
+    "@calcom/web#start": {
+      "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
+    "@calcom/website#build": {
+      "dependsOn": [
+        "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRODUCT",
+        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "$NEXT_PUBLIC_WEBAPP_URL",
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$STRIPE_WEBHOOK_SECRET"
+      ],
+      "outputs": [".next/**"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "db-deploy": {},
+    "db-seed": {},
+    "deploy": {
+      "dependsOn": ["@calcom/web#build"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false
+    },
+    "dx": {
+      "cache": false
+    },
+    "lint": {
+      "cache": false,
+      "outputs": []
+    },
+    "lint:report": {
+      "cache": false,
+      "outputs": ["lint-results"]
+    },
+    "start": {},
+    "test": {
+      "dependsOn": ["^test"]
+    },
+    "test-e2e": {
+      "cache": false,
+      "dependsOn": ["@calcom/web#test", "@calcom/web#build", "@calcom/prisma#db-reset"]
+    },
+    "type-check": {
+      "outputs": []
+    }
+  }
+}

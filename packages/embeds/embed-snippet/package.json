@@ -1,0 +1,13 @@
+{
+  "name": "@calcom/embed-snippet",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "vite build",
+    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js src"
+  },
+  "devDependencies": {
+    "eslint": "^8.10.0"
+  }
+}

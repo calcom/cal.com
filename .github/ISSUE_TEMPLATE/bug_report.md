@@ -22,6 +22,6 @@ Any other relevant information. For example, why do you consider this a bug and 
 
 ### Technical details
 
-- Browser version: You can use https://www.whatsmybrowser.org/ to find this out.
+- Browser version, screen recording, console logs, network requests: You can make a recording with [Bird Eats Bug](https://birdeatsbug.com/).
 - Node.js version
 - Anything else that you think could be an issue.

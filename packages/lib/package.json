@@ -1,0 +1,23 @@
+{
+  "name": "@calcom/lib",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dayjs-business-time": "^1.0.4",
+    "dayjs": "^1.10.4",
+    "ical.js": "^1.4.0",
+    "ics": "^2.31.0",
+    "tsdav": "2.0.0",
+    "tslog": "^3.2.1",
+    "uuid": "^8.3.2",
+    "next-i18next": "^8.9.0",
+    "react-hot-toast": "^2.1.0"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*",
+    "typescript": "^4.5.3"
+  }
+}

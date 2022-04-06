@@ -1,0 +1,6 @@
+{
+  "install": "Installation",
+  "upgrade": "Upgrade",
+  "docker": "Docker",
+  "vercel": "Vercel"
+}

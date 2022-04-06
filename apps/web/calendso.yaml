@@ -1,0 +1,1074 @@
+openapi: 3.0.0
+info:
+  title: Calendso API
+  description: The open source Calendly alternative.
+  contact:
+    name: Support
+    email: support@cal.com
+  license:
+    name: MIT License
+    url: "https://opensource.org/licenses/MIT"
+  version: 1.0.0
+  termsOfService: "https://cal.com/terms"
+server:
+  url: "http://localhost:{port}"
+  description: Local Development Server
+  variables:
+    port:
+      default: "3000"
+tags:
+  - name: Authentication
+    description: "Auth routes, powered by Next-Auth.js"
+    externalDocs:
+      url: "http://next-auth.js.org/"
+  - name: Availability
+    description: Checking and setting user availability
+  - name: Booking
+    description: Create and manage bookings
+  - name: Integrations
+    description: Manage integrations
+  - name: User
+    description: Manage the user's profile and settings
+  - name: Teams
+    description: Manage teams
+paths:
+  /api/auth/signin:
+    get:
+      description: Displays the sign in page.
+      summary: Displays the sign in page
+      tags:
+        - Authentication
+  "/api/auth/signin/:provider":
+    post:
+      description: Starts an OAuth signin flow for the specified provider. The POST submission requires CSRF token from /api/auth/csrf.
+      summary: Starts an OAuth signin flow for the specified provider
+      tags:
+        - Authentication
+  "/api/auth/callback/:provider":
+    get:
+      description: "Handles returning requests from OAuth services during sign in. For OAuth 2.0 providers that support the state option, the value of the state parameter is checked against the one that was generated when the sign in flow was started - this uses a hash of the CSRF token which MUST match for both the POST and GET calls during sign in."
+      summary: Handles returning requests from OAuth services
+      tags:
+        - Authentication
+  /api/auth/signout:
+    get:
+      description: Displays the sign out page.
+      summary: Displays the sign out page
+      tags:
+        - Authentication
+    post:
+      description: Handles signing out - this is a POST submission to prevent malicious links from triggering signing a user out without their consent. Handles signing out - this is a POST submission to prevent malicious links from triggering signing a user out without their consent.
+      summary: Handles signing out
+      tags:
+        - Authentication
+  /api/auth/signup:
+    post:
+      description: Creates a new user from an invitation.
+      summary: Create a new user
+      tags:
+        - Authentication
+  /api/auth/session:
+    get:
+      description: Returns client-safe session object - or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback.
+      summary: Returns client-safe session object
+      tags:
+        - Authentication
+  /api/auth/csrf:
+    get:
+      description: 'Returns object containing CSRF token. In NextAuth.js, CSRF protection is present on all authentication routes. It uses the "double submit cookie method", which uses a signed HttpOnly, host-only cookie. The CSRF token returned by this endpoint must be passed as form variable named csrfToken in all POST submissions to any API endpoint.'
+      summary: Returns object containing CSRF token
+      tags:
+        - Authentication
+  /api/auth/providers:
+    get:
+      description: Returns a list of configured OAuth services and details (e.g. sign in and callback URLs) for each service. It can be used to dynamically generate custom sign up pages and to check what callback URLs are configured for each OAuth provider that is configured.
+      summary: Returns configured OAuth services
+      tags:
+        - Authentication
+  /api/auth/changepw:
+    post:
+      description: Changes the password for the currently logged in account.
+      summary: Changes the password for the currently logged in account
+      tags:
+        - Authentication
+  /api/auth/forgot-password:
+    post:
+      description: Send a password reset email.
+      summary: Send a password reset email
+      tags:
+        - Authentication
+  /api/auth/reset-password:
+    post:
+      description: Reset a user's password with their password reset token.
+      summary: Reset a user's password
+      tags:
+        - Authentication
+  "/api/availability/{user}?dateFrom={dateFrom}&dateTo={dateTo}":
+    get:
+      description: "Gets the busy times for a particular user, by username."
+      summary: Gets the busy times for a user
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ""
+                minItems: 1
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                    - start: "Fri, 03 Sep 2021 17:00:00 GMT"
+                      end: "Fri, 03 Sep 2021 17:40:00 GMT"
+                items:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      minLength: 1
+                    end:
+                      type: string
+                      minLength: 1
+                  required:
+                    - start
+                    - end
+        "500":
+          description: Internal Server Error
+    parameters:
+      - schema:
+          type: string
+        name: user
+        in: path
+        required: true
+        description: The username of who you want to check availability for
+      - schema:
+          type: string
+        name: dateFrom
+        in: path
+        required: true
+        description: The timestamp of which time you want to get busy times from
+      - schema:
+          type: string
+        name: dateTo
+        in: path
+        required: true
+        description: The timestamp of which time you want to get busy times until
+  /api/availability/calendar:
+    get:
+      description: Gets the user's selected calendars.
+      summary: Gets the user's selected calendars
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ""
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - selected
+                    - externalId
+                    - integration
+                    - name
+                    - primary
+                  properties:
+                    selected:
+                      type: boolean
+                    externalId:
+                      type: string
+                      minLength: 1
+                    integration:
+                      type: string
+                      minLength: 1
+                    name:
+                      type: string
+                      minLength: 1
+                    primary:
+                      type: boolean
+                x-examples:
+                  example-1:
+                    - selected: false
+                      externalId: en.uk#holiday@group.v.calendar.google.com
+                      integration: google_calendar
+                      name: Holidays in United Kingdom
+                    - selected: false
+                      externalId: addressbook#contacts@group.v.calendar.google.com
+                      integration: google_calendar
+                      name: Birthdays
+                    - selected: true
+                      externalId: bailey@cal.com
+                      integration: google_calendar
+                      name: Calendso
+                      primary: true
+                    - selected: true
+                      externalId: bpumfleet@gmail.com
+                      integration: google_calendar
+                      name: Personal
+                    - selected: false
+                      externalId: connor@cal.com
+                      integration: google_calendar
+                      name: connor@cal.com
+                    - selected: false
+                      externalId: c_feunmui1m8el5o1oo885fu48k8@group.calendar.google.com
+                      integration: google_calendar
+                      name: 1.0 Launch
+        "500":
+          description: Internal Server Error
+    post:
+      description: Adds a selected calendar for the user.
+      summary: Adds a selected calendar for the user
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                integration:
+                  type: string
+                externalId:
+                  type: string
+    delete:
+      description: Removes a selected calendar for the user.
+      summary: Removes a selected calendar for the user
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                externalId:
+                  type: string
+                integration:
+                  type: string
+  /api/availability/day:
+    patch:
+      description: Updates the start and end times for a user's availability.
+      summary: Updates the user's start and end times
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startMins:
+                  type: string
+                endMins:
+                  type: string
+                bufferMins:
+                  type: string
+        description: ""
+  /api/availability/eventtype:
+    post:
+      description: Adds a new event type for the user.
+      summary: Adds a new event type
+      tags:
+        - Availability
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                length:
+                  type: string
+                hidden:
+                  type: boolean
+                requiresConfirmation:
+                  type: boolean
+                locations:
+                  type: array
+                  items: {}
+                eventName:
+                  type: string
+                customInputs:
+                  type: array
+                  items: {}
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventType:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      slug:
+                        type: string
+                      description:
+                        type: string
+                      length:
+                        type: string
+                      hidden:
+                        type: boolean
+                      requiresConfirmation:
+                        type: boolean
+                      locations:
+                        type: array
+                        items: {}
+                      eventName:
+                        type: string
+                      customInputs:
+                        type: array
+                        items: {}
+        "500":
+          description: Internal Server Error
+    patch:
+      description: Updates an event type for the user.
+      summary: Updates an event type
+      tags:
+        - Availability
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+                length:
+                  type: string
+                hidden:
+                  type: boolean
+                requiresConfirmation:
+                  type: boolean
+                locations:
+                  type: array
+                  items: {}
+                eventName:
+                  type: string
+                customInputs:
+                  type: array
+                  items: {}
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventType:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      slug:
+                        type: string
+                      description:
+                        type: string
+                      length:
+                        type: string
+                      hidden:
+                        type: boolean
+                      requiresConfirmation:
+                        type: boolean
+                      locations:
+                        type: array
+                        items: {}
+                      eventName:
+                        type: string
+                      customInputs:
+                        type: array
+                        items: {}
+        "500":
+          description: Internal Server Error
+    delete:
+      description: Deletes an event type for the user.
+      summary: Deletes an event type
+      tags:
+        - Availability
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "500":
+          description: Internal Server Error
+  "/api/book/event":
+    post:
+      description: Creates a booking in the user's calendar.
+      summary: Creates a booking for a user
+      tags:
+        - Booking
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start:
+                  type: string
+                end:
+                  type: string
+                rescheduleUid:
+                  type: string
+                eventTypeId:
+                  type: string
+                email:
+                  type: string
+                name:
+                  type: string
+                timeZone:
+                  type: string
+                guests:
+                  type: array
+                  items: {}
+                users:
+                  type: array
+                  items: {}
+                user:
+                  type: string
+                notes:
+                  type: string
+                location:
+                  type: string
+                paymentUid:
+                  type: string
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples: {}
+    parameters:
+      - schema:
+          type: string
+        name: user
+        in: path
+        required: true
+        description: The user whom you wish to book
+  /api/book/confirm:
+    post:
+      description: Accepts an opt-in booking.
+      summary: Accepts an opt-in booking
+      tags:
+        - Booking
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                confirmed:
+                  type: string
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+  /api/integrations:
+    get:
+      description: Gets a list of the user's integrations.
+      summary: Gets the user's integrations
+      tags:
+        - Integrations
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ""
+                type: object
+                x-examples:
+                  example-1:
+                    pageProps:
+                      integrations:
+                        - installed: true
+                          credential:
+                            id: 83
+                            type: google_calendar
+                            key:
+                              scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events"
+                              token_type: Bearer
+                              expiry_date: 1630838974808
+                              access_token: ya29.a0ARrdaM89R686rUyBBluTuD69oQ6WIIjjMa2xjJ0qe_5u-9ShDL09KNN1mCYoks3NP54FUMzYKmqTzb8nzCJX9jlNKP7X7-gukO4--HUyfOUbFHlHbfQ2Ei05F8AQn_xS0E_awhDgyn2anvrvEw72U3_65Zi4v6Y
+                              refresh_token: 1//0dWZWomYrTVUjCgYIARAAGA0SNwF-L9Ir6e5rp9G_nAiwq6PAp37d228O2UfUn-b_LoWk_pTFFKQZ9Cgf_F3u0tJV5h5sDmL1tM4
+                          type: google_calendar
+                          title: Google Calendar
+                          imageSrc: integrations/google-calendar.svg
+                          description: For personal and business calendars
+                        - installed: true
+                          type: office365_calendar
+                          credential: null
+                          title: Office 365 / Outlook.com Calendar
+                          imageSrc: integrations/outlook.svg
+                          description: For personal and business calendars
+                        - installed: true
+                          type: zoom_video
+                          credential: null
+                          title: Zoom
+                          imageSrc: integrations/zoom.svg
+                          description: Video Conferencing
+                        - installed: true
+                          type: tandem_video
+                          credential: null
+                          title: Tandem
+                          imageSrc: integrations/tandem.svg
+                          description: Virtual Office | Video Conferencing
+                        - installed: true
+                          type: caldav_calendar
+                          credential: null
+                          title: CalDav Server
+                          imageSrc: integrations/caldav.svg
+                          description: For personal and business calendars
+                    __N_SSP: true
+                properties:
+                  pageProps:
+                    type: object
+                    required:
+                      - integrations
+                    properties:
+                      integrations:
+                        type: array
+                        uniqueItems: true
+                        minItems: 1
+                        items:
+                          type: object
+                          properties:
+                            installed:
+                              type: boolean
+                            credential:
+                              type: object
+                              properties:
+                                id:
+                                  type: number
+                                type:
+                                  type: string
+                                  minLength: 1
+                                key:
+                                  type: object
+                                  required:
+                                    - scope
+                                    - token_type
+                                    - expiry_date
+                                    - access_token
+                                    - refresh_token
+                                  properties:
+                                    scope:
+                                      type: string
+                                      minLength: 1
+                                    token_type:
+                                      type: string
+                                      minLength: 1
+                                    expiry_date:
+                                      type: number
+                                    access_token:
+                                      type: string
+                                      minLength: 1
+                                    refresh_token:
+                                      type: string
+                                      minLength: 1
+                              required:
+                                - id
+                                - type
+                                - key
+                            type:
+                              type: string
+                              minLength: 1
+                            title:
+                              type: string
+                              minLength: 1
+                            imageSrc:
+                              type: string
+                              minLength: 1
+                            description:
+                              type: string
+                              minLength: 1
+                          required:
+                            - installed
+                            - type
+                            - title
+                            - imageSrc
+                            - description
+                required:
+                  - pageProps
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    delete:
+      description: Deletes a user's integration
+      summary: Deletes a user's integration
+      tags:
+        - Integrations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /api/integrations/googlecalendar/add:
+    get:
+      description: Gets the OAuth URL for a Google Calendar integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/googlecalendar/callback:
+    post:
+      description: Gets and stores the OAuth token for a Google Calendar integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/office365calendar/add:
+    get:
+      description: Gets the OAuth URL for a Microsoft 365/Outlook integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/office365calendar/callback:
+    post:
+      description: Gets and stores the OAuth token for a Microsoft 365/Outlook integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/zoomvideo/add:
+    get:
+      description: Gets the OAuth URL for a Zoom integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/zoomvideo/callback:
+    post:
+      description: Gets and stores the OAuth token for a Zoom integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/integrations/tandemvideo/add:
+    get:
+      description: Gets the OAuth URL for a Tandem integration.
+      summary: Gets the OAuth URL
+      tags:
+        - Integrations
+  /api/integrations/tandemvideo/callback:
+    post:
+      description: Gets and stores the OAuth token for a Tandem integration.
+      summary: Gets and stores the OAuth token
+      tags:
+        - Integrations
+  /api/user/profile:
+    patch:
+      description: Updates a user's profile.
+      summary: Updates a user's profile
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                avatar:
+                  type: string
+                timeZone:
+                  type: string
+                weekStart:
+                  type: string
+                hideBranding:
+                  type: string
+                theme:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /api/me:
+    get:
+      description: Gets current user's profile.
+      summary: Gets current user's profile.
+      tags:
+        - User
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /api/user/membership:
+    get:
+      description: Get a list of the teams the user has joined.
+      summary: Get the teams a user is joined to
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    patch:
+      description: Accept team invitation
+      summary: Accept team invitation.
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamId:
+                  type: string
+    delete:
+      description: Leave team or decline membership invite of current user
+      summary: Leave team or decline team invite.
+      tags:
+        - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamId:
+                  type: string
+  "/api/{team}":
+    delete:
+      description: Deletes a team
+      summary: Deletes a team
+      tags:
+        - Teams
+      parameters: []
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+        description: The team which you wish to modify
+  "/api/{team}/invite":
+    post:
+      description: Invites someone to a team.
+      summary: Invites someone to a team
+      tags:
+        - Teams
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                usernameOrEmail:
+                  type: string
+                role:
+                  type: string
+                sendEmailInvitation:
+                  type: boolean
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+        description: The team which you wish to send the invite for
+  "/api/{team}/membership":
+    get:
+      description: Lists the members of a team.
+      summary: Lists members of a team
+      tags:
+        - Teams
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    delete:
+      description: Cancels a membership (invite) to a team
+      summary: Cancels a membership
+      tags:
+        - Teams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+        description: The team which you wish to list members of
+servers:
+  - url: "https://app.cal.com"
+    description: Production
+components:
+  securitySchemes: {}

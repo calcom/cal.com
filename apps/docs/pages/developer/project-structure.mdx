@@ -1,0 +1,50 @@
+---
+title: Project structure
+---
+
+# Project Structure
+
+This page gives an overview of how the codebase is structured so you can easily dive into the Cal.com code.
+
+Cal.com is written in Next.js, so you will find that we follow Next.js best practices for structure and layouts.
+
+## Basic folder structure
+
+The project comprises of the following folder structure:
+
+```text
+.github/ - GitHub configuration files
+    ISSUE_TEMPLATE/
+    workflows/
+.husky/ - Git hooks
+.vscode/ - VS Code editor configuration
+components/ - Application components
+    booking/
+    dialog/
+    team/
+    ui/
+lib/ - Reusable code
+    emails/
+    events/
+    forgot-password/messaging/
+    integrations/CalDav/
+    teams/
+pages/ - Most of the project lives here
+    [user]/ - Booking pages
+    api/ - The backend API
+    auth/ - Next-Auth.js and other authentication routes
+    availability/
+    bookings/
+    cancel/
+    event-types/
+    integrations/
+    reschedule/
+    settings/
+    team/
+prisma/ - The database schema and migrations
+    migrations/
+public/ - Images and static files
+    integrations/
+styles/
+test/lib/
+```
