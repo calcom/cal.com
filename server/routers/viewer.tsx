@@ -199,7 +199,9 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (!user) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+        });
       }
 
       // backwards compatibility, TMP:
@@ -235,7 +237,10 @@ const loggedInViewerRouter = createProtectedRouter()
       let eventTypeGroups: EventTypeGroup[] = [];
       const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
         const oldItem = hashMap[newItem.id] || {};
-        hashMap[newItem.id] = { ...oldItem, ...newItem };
+        hashMap[newItem.id] = {
+          ...oldItem,
+          ...newItem,
+        };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
@@ -425,6 +430,7 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+
   .mutation("setDestinationCalendar", {
     input: z.object({
       integration: z.string(),
@@ -440,7 +446,10 @@ const loggedInViewerRouter = createProtectedRouter()
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       if (!allCals.find((cal) => cal.externalId === externalId && cal.integration === integration)) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Could not find calendar ${input.externalId}`,
+        });
       }
 
       let where;
@@ -567,7 +576,10 @@ const loggedInViewerRouter = createProtectedRouter()
           data.username = username;
           const response = await checkUsername(username);
           if (!response.available) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: response.message,
+            });
           }
         }
       }
@@ -712,7 +724,10 @@ const loggedInViewerRouter = createProtectedRouter()
           provider = resp.provider;
         } catch (err) {
           console.error("Error getting SAML config", err);
-          throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "SAML configuration fetch failed",
+          });
         }
       }
 
@@ -743,7 +758,9 @@ const loggedInViewerRouter = createProtectedRouter()
         });
       } catch (err) {
         console.error("Error setting SAML config", err);
-        throw new TRPCError({ code: "BAD_REQUEST" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
       }
     },
   })

@@ -142,7 +142,9 @@ export default function Login({
                 </div>
                 <div className="w-1/2 text-right">
                   <Link href="/auth/forgot-password">
-                    <a tabIndex={-1} className="text-sm font-medium text-primary-600">
+                    <a
+                      tabIndex={-1}
+                      className="text-sm font-medium underline text-primary-600 text-decoration:">
                       {t("forgot")}
                     </a>
                   </Link>
@@ -233,7 +235,9 @@ export default function Login({
         </div>
         <div className="mt-4 text-sm text-center text-neutral-600">
           {t("dont_have_an_account")} {/* replace this with your account creation flow */}
-          <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
+          <a
+            href={`${WEBSITE_URL}/signup`}
+            className="font-medium underline text-neutral-900 text-decoration:">
             {t("create_an_account")}
           </a>
         </div>

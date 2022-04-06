@@ -12,6 +12,7 @@ import { appRouter } from "../routers/_app";
  * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
+
 export async function ssrInit(context: GetServerSidePropsContext) {
   const ctx = await createContext(context);
 
