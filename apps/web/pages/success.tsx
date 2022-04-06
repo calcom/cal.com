@@ -13,7 +13,6 @@ import { useEffect, useState, useRef } from "react";
 import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventType, Team, User } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -418,45 +417,47 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
+const getEventTypesFromDB = async (typeId: number) => {
+  return await prisma.eventType.findUnique({
+    where: {
+      id: typeId,
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      length: true,
+      eventName: true,
+      requiresConfirmation: true,
+      userId: true,
+      successRedirectUrl: true,
+      users: {
+        select: {
+          name: true,
+          hideBranding: true,
+          plan: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
+          email: true,
+          timeZone: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+          hideBranding: true,
+        },
+      },
+    },
+  });
+};
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
-  const getEventTypesFromDB = async (typeId: number) => {
-    return await prisma.eventType.findUnique({
-      where: {
-        id: typeId,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        length: true,
-        eventName: true,
-        requiresConfirmation: true,
-        userId: true,
-        successRedirectUrl: true,
-        users: {
-          select: {
-            name: true,
-            hideBranding: true,
-            plan: true,
-            theme: true,
-            brandColor: true,
-            darkBrandColor: true,
-            email: true,
-            timeZone: true,
-          },
-        },
-        team: {
-          select: {
-            name: true,
-            hideBranding: true,
-          },
-        },
-      },
-    });
-  };
+
   if (isNaN(typeId)) {
     return {
       notFound: true,

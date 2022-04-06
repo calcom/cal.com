@@ -3,7 +3,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { getDefaultEvent, getGroupName } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -19,7 +19,7 @@ export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  return props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
+  return props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -43,12 +43,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
-  const usernameList = (context.query.user as string)
-    .toLowerCase()
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
-    });
+  const usernameList = getUsernameList(context.query.user as string);
 
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
@@ -152,8 +147,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const [user] = users; //to be used when dealing with single user, not dynamic group
+  const isSingleUser = users.length === 1;
+  const isDynamicGroup = users.length > 1;
 
-  if (users.length === 1 && user.eventTypes.length !== 1) {
+  if (isSingleUser && user.eventTypes.length !== 1) {
     const eventTypeBackwardsCompat = await prisma.eventType.findFirst({
       where: {
         AND: [
@@ -187,7 +184,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let [eventType] = user.eventTypes;
 
-  if (users.length > 1) {
+  if (isDynamicGroup) {
     eventType = getDefaultEvent(typeParam);
     eventType["users"] = users.map((user) => {
       return {
@@ -202,7 +199,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   // check this is the first event for free user
-  if (users.length === 1 && user.plan === UserPlan.FREE) {
+  if (isSingleUser && user.plan === UserPlan.FREE) {
     const firstEventType = await prisma.eventType.findFirst({
       where: {
         OR: [
@@ -251,50 +248,47 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         )[0],
       };
 
-  const timeZone = users.length > 1 ? undefined : schedule.timeZone || eventType.timeZone || user.timeZone;
+  const timeZone = isDynamicGroup ? undefined : schedule.timeZone || eventType.timeZone || user.timeZone;
 
   const workingHours = getWorkingHours(
     {
       timeZone,
     },
-    users.length > 1
+    isDynamicGroup
       ? eventType.availability || undefined
       : schedule.availability || (eventType.availability.length ? eventType.availability : user.availability)
   );
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
-  const isDynamicGroupBooking = users.length > 1 ? true : false;
-
-  const profile =
-    users.length > 1
-      ? {
-          name: getGroupName(usernameList),
-          image: null,
-          slug: typeParam,
-          theme: null,
-          weekStart: "Sunday",
-          brandColor: "",
-          darkBrandColor: "",
-          allowDynamicBooking: users.some((user) => {
-            return !user.allowDynamicBooking;
-          })
-            ? false
-            : true,
-        }
-      : {
-          name: user.name || user.username,
-          image: user.avatar,
-          slug: user.username,
-          theme: user.theme,
-          weekStart: user.weekStart,
-          brandColor: user.brandColor,
-          darkBrandColor: user.darkBrandColor,
-        };
+  const profile = isDynamicGroup
+    ? {
+        name: getGroupName(usernameList),
+        image: null,
+        slug: typeParam,
+        theme: null,
+        weekStart: "Sunday",
+        brandColor: "",
+        darkBrandColor: "",
+        allowDynamicBooking: users.some((user) => {
+          return !user.allowDynamicBooking;
+        })
+          ? false
+          : true,
+      }
+    : {
+        name: user.name || user.username,
+        image: user.avatar,
+        slug: user.username,
+        theme: user.theme,
+        weekStart: user.weekStart,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+      };
 
   return {
     props: {
-      isDynamicGroupBooking,
+      isDynamicGroup,
       profile,
       plan: user.plan,
       date: dateParam,

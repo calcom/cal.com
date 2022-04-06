@@ -37,7 +37,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const { Theme } = useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
-
+  const isSingleUser = props.users.length === 1;
+  const isDynamicGroup = props.users.length > 1;
   const eventTypes = props.users.length > 1 ? defaultEvents : props.eventTypes;
   const groupEventTypes = props.users.some((user) => {
     return !user.allowDynamicBooking;
@@ -99,7 +100,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       />
       <div className="h-screen dark:bg-neutral-900">
         <main className="mx-auto max-w-3xl px-4 py-24">
-          {props.users.length === 1 && ( // When we deal with a single user, not dynamic group
+          {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
@@ -121,7 +122,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   <p className="mx-auto max-w-md">{t("user_away_description")}</p>
                 </div>
               </div>
-            ) : props.users.length > 1 ? ( //When we deal with dynamic group (users > 1)
+            ) : isDynamicGroup ? ( //When we deal with dynamic group (users > 1)
               groupEventTypes
             ) : (
               eventTypes.map((type) => (
@@ -188,55 +189,56 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
+const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
+  return await prisma.eventType.findMany({
+    where: {
+      AND: [
+        {
+          teamId: null,
+        },
+        {
+          OR: [
+            {
+              userId,
+            },
+            {
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    orderBy: [
+      {
+        position: "desc",
+      },
+      {
+        id: "asc",
+      },
+    ],
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      length: true,
+      description: true,
+      hidden: true,
+      schedulingType: true,
+      price: true,
+      currency: true,
+      metadata: true,
+    },
+    take: plan === UserPlan.FREE ? 1 : undefined,
+  });
+};
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const crypto = require("crypto");
-  const getEventTypesWithHiddenFromDB = async (userId: Number) => {
-    return await prisma.eventType.findMany({
-      where: {
-        AND: [
-          {
-            teamId: null,
-          },
-          {
-            OR: [
-              {
-                userId,
-              },
-              {
-                users: {
-                  some: {
-                    id: userId,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        length: true,
-        description: true,
-        hidden: true,
-        schedulingType: true,
-        price: true,
-        currency: true,
-        metadata: true,
-      },
-      take: users[0].plan === UserPlan.FREE ? 1 : undefined,
-    });
-  };
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
@@ -266,9 +268,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
+
+  const isDynamicGroup = users.length > 1;
+
   const [user] = users; //to be used when dealing with single user, not dynamic group
   const usersIds = users.map((user) => user.id);
-
   const credentials = await prisma.credential.findMany({
     where: {
       userId: {
@@ -284,7 +288,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
 
-  const eventTypesWithHidden = usernameList.length > 1 ? [] : await getEventTypesWithHiddenFromDB(user.id);
+  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);

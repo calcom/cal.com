@@ -166,31 +166,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking();
   }
 
-  const isDynamicGroupBooking = users.length > 1 ? true : false;
+  const isDynamicGroupBooking = users.length > 1;
 
-  const profile =
-    users.length > 1
-      ? {
-          name: getGroupName(usernameList),
-          image: null,
-          slug: eventTypeSlug,
-          theme: null,
-          brandColor: "",
-          darkBrandColor: "",
-          allowDynamicBooking: users.some((user) => {
-            return !user.allowDynamicBooking;
-          })
-            ? false
-            : true,
-        }
-      : {
-          name: user.name || user.username,
-          image: user.avatar,
-          slug: user.username,
-          theme: user.theme,
-          brandColor: user.brandColor,
-          darkBrandColor: user.darkBrandColor,
-        };
+  const profile = isDynamicGroupBooking
+    ? {
+        name: getGroupName(usernameList),
+        image: null,
+        slug: eventTypeSlug,
+        theme: null,
+        brandColor: "",
+        darkBrandColor: "",
+        allowDynamicBooking: users.some((user) => {
+          return !user.allowDynamicBooking;
+        })
+          ? false
+          : true,
+      }
+    : {
+        name: user.name || user.username,
+        image: user.avatar,
+        slug: user.username,
+        theme: user.theme,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+      };
 
   const t = await getTranslation(context.locale ?? "en", "common");
 

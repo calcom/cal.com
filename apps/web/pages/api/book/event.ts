@@ -182,43 +182,44 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   return userNamesWithBookingCounts;
 };
 
+const getEventTypesFromDB = async (eventTypeId: number) => {
+  return await prisma.eventType.findUnique({
+    rejectOnNotFound: true,
+    where: {
+      id: eventTypeId,
+    },
+    select: {
+      users: userSelect,
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      title: true,
+      length: true,
+      eventName: true,
+      schedulingType: true,
+      periodType: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodDays: true,
+      periodCountCalendarDays: true,
+      requiresConfirmation: true,
+      userId: true,
+      price: true,
+      currency: true,
+      metadata: true,
+      destinationCalendar: true,
+      hideCalendarNotes: true,
+    },
+  });
+};
+
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
-  const getEventTypesFromDB = async (eventTypeId: number) => {
-    return await prisma.eventType.findUnique({
-      rejectOnNotFound: true,
-      where: {
-        id: eventTypeId,
-      },
-      select: {
-        users: userSelect,
-        team: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        title: true,
-        length: true,
-        eventName: true,
-        schedulingType: true,
-        periodType: true,
-        periodStartDate: true,
-        periodEndDate: true,
-        periodDays: true,
-        periodCountCalendarDays: true,
-        requiresConfirmation: true,
-        userId: true,
-        price: true,
-        currency: true,
-        metadata: true,
-        destinationCalendar: true,
-        hideCalendarNotes: true,
-      },
-    });
-  };
 
   // handle dynamic user
   const dynamicUserList = getUsernameList(reqBody.user as string);
