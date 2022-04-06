@@ -8,6 +8,7 @@
       "outputs": ["zod/**"]
     },
     "@calcom/prisma#db-deploy": {
+      "cache": false,
       "dependsOn": ["$DATABASE_URL"]
     },
     "@calcom/prisma#db-reset": {
@@ -20,6 +21,7 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
+        "@calcom/prisma#build",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
         "$DAILY_API_KEY",
@@ -92,7 +94,9 @@
     "db-deploy": {},
     "db-seed": {},
     "deploy": {
-      "dependsOn": ["@calcom/web#build"]
+      "cache": false,
+      "dependsOn": ["@calcom/web#build"],
+      "outputs": []
     },
     "clean": {
       "cache": false
