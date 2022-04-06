@@ -2,51 +2,6 @@ import { useState, useEffect, CSSProperties } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 
-let isSafariBrowser = false;
-
-if (typeof window !== "undefined") {
-  const ua = navigator.userAgent.toLowerCase();
-  isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
-  if (isSafariBrowser) {
-    log("Safari Detected: Using setTimeout instead of rAF");
-  }
-}
-
-function keepRunningAsap(fn: (...arg: any) => void) {
-  if (isSafariBrowser) {
-    // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
-    return setTimeout(fn, 50);
-  }
-  return requestAnimationFrame(fn);
-}
-declare global {
-  interface Window {
-    CalEmbed: {
-      __logQueue?: any[];
-    };
-    CalComPlan: string;
-  }
-}
-
-function log(...args: any[]) {
-  let namespace;
-  if (typeof window !== "undefined") {
-    const searchParams = new URL(document.URL).searchParams;
-    namespace = typeof searchParams.get("embed") !== "undefined" ? "" : "_unknown_";
-    //TODO: Send postMessage to parent to get all log messages in the same queue.
-    window.CalEmbed = window.CalEmbed || {};
-    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-    args.push({
-      ns: namespace,
-    });
-    args.unshift("CAL:");
-    logQueue.push(args);
-    if (searchParams.get("debug")) {
-      console.log(...args);
-    }
-  }
-}
-
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
 interface EmbedStyles {
@@ -111,23 +66,15 @@ export const useEmbedStyles = (elementName: ElementName) => {
   return styles[elementName] || {};
 };
 
-function unhideBody() {
-  document.body.style.display = "block";
-}
 // If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
-    log("Method: ui called", uiConfig);
-    if (window.CalComPlan && window.CalComPlan !== "PRO") {
-      log(`Upgrade to PRO for "ui" instruction to work`, window.CalComPlan);
-      return;
-    }
+    console.log("Method: ui called", uiConfig);
     const stylesConfig = uiConfig.styles;
 
-    // In case where parent gives instructions before CalComPlan is set.
-    // This is easily possible as React takes time to initialize and render components where this variable is set.
-    if (!window.CalComPlan) {
+    // In case where parent gives instructions before setEmbedStyles is set.
+    if (!setEmbedStyles) {
       return requestAnimationFrame(() => {
         style(uiConfig);
       });
@@ -141,8 +88,7 @@ export const methods = {
     setEmbedStyles(stylesConfig);
   },
   parentKnowsIframeReady: () => {
-    log("Method: `parentKnowsIframeReady` called");
-    unhideBody();
+    document.body.style.display = "block";
     sdkActionManager?.fire("linkReady", {});
   },
 };
@@ -158,41 +104,18 @@ const messageParent = (data: any) => {
 };
 
 function keepParentInformedAboutDimensionChanges() {
-  console.log("keepParentInformedAboutDimensionChanges executed");
-
-  let knownIframeHeight: Number | null = null;
+  let knownHiddenHeight: Number | null = null;
   let numDimensionChanges = 0;
-  let isFirstTime = true;
-  let isWindowLoadComplete = false;
-  keepRunningAsap(function informAboutScroll() {
-    if (document.readyState !== "complete") {
-      // Wait for window to load to correctly calculate the initial scroll height.
-      keepRunningAsap(informAboutScroll);
-      return;
-    }
-    if (!isWindowLoadComplete) {
-      // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
-      // Postponing to just next cycle allow us to fix this.
-      setTimeout(() => {
-        isWindowLoadComplete = true;
-        informAboutScroll();
-      }, 10);
-      return;
-    }
-    const documentScrollHeight = document.documentElement.scrollHeight;
-    const contentHeight = document.documentElement.offsetHeight;
-    // During first render let iframe tell parent that how much is the expected height to avoid scroll.
-    // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
-    let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    isFirstTime = false;
+  requestAnimationFrame(function informAboutScroll() {
+    // Because of scroll="no", this much is hidden from the user.
+    const hiddenHeight = document.documentElement.scrollHeight - window.innerHeight;
     // TODO: Handle width as well.
-    if (knownIframeHeight !== iframeHeight) {
-      knownIframeHeight = iframeHeight;
+    if (knownHiddenHeight !== hiddenHeight) {
+      knownHiddenHeight = hiddenHeight;
       numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
       sdkActionManager?.fire("dimension-changed", {
-        iframeHeight,
+        hiddenHeight,
       });
     }
     // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
@@ -202,39 +125,28 @@ function keepParentInformedAboutDimensionChanges() {
       console.warn("Too many dimension changes detected.");
       return;
     }
-    keepRunningAsap(informAboutScroll);
+    requestAnimationFrame(informAboutScroll);
   });
 }
 
-if (typeof window !== "undefined") {
-  const url = new URL(document.URL);
-  if (url.searchParams.get("prerender") !== "true" && typeof url.searchParams.get("embed") !== "undefined") {
-    log("Initializing embed-iframe");
+if (typeof window !== "undefined" && !location.search.includes("prerender=true")) {
+  sdkActionManager?.on("*", (e) => {
+    const detail = e.detail;
+    //console.log(detail.fullType, detail.type, detail.data);
+    messageParent(detail);
+  });
 
-    // If embed link is opened in top, and not in iframe. Let the page be visible.
-    if (top === window) {
-      unhideBody();
+  window.addEventListener("message", (e) => {
+    const data: Record<string, any> = e.data;
+    if (!data) {
+      return;
     }
+    const method: keyof typeof methods = data.method;
+    if (data.originator === "CAL" && typeof method === "string") {
+      methods[method]?.(data.arg);
+    }
+  });
 
-    sdkActionManager?.on("*", (e) => {
-      const detail = e.detail;
-      //console.log(detail.fullType, detail.type, detail.data);
-      log(detail);
-      messageParent(detail);
-    });
-
-    window.addEventListener("message", (e) => {
-      const data: Record<string, any> = e.data;
-      if (!data) {
-        return;
-      }
-      const method: keyof typeof methods = data.method;
-      if (data.originator === "CAL" && typeof method === "string") {
-        methods[method]?.(data.arg);
-      }
-    });
-
-    keepParentInformedAboutDimensionChanges();
-    sdkActionManager?.fire("iframeReady", {});
-  }
+  keepParentInformedAboutDimensionChanges();
+  sdkActionManager?.fire("iframeReady", {});
 }

@@ -8,10 +8,7 @@ import { SdkActionManager } from "./sdk-action-manager";
 declare module "*.css";
 
 type Namespace = string;
-type Config = {
-  origin: string;
-  debug: 1;
-};
+type Config = Record<"origin", "string">;
 
 const globalCal = (window as CalWindow).Cal;
 
@@ -138,8 +135,9 @@ export class Cal {
     queryObject?: Record<string, string | string[]>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
+    // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
+    iframe.scrolling = "no";
     iframe.className = "cal-embed";
-    iframe.name = "cal-embed";
     const config = this.getConfig();
 
     // Prepare searchParams from config
@@ -154,9 +152,6 @@ export class Cal {
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
-    if (config.debug) {
-      urlInstance.searchParams.set("debug", config.debug);
-    }
 
     // Merge searchParams from config onto the URL which might have query params already
     //@ts-ignore
@@ -167,14 +162,13 @@ export class Cal {
     return iframe;
   }
 
-  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
-    if (typeof namespaceOrConfig !== "string") {
-      config = (namespaceOrConfig || {}) as Config;
+  init(namespaceOrConfig: string | Config, config: Config = {} as Config) {
+    if (namespaceOrConfig.hasOwnProperty("origin")) {
+      config = namespaceOrConfig as Config;
     }
     if (config?.origin) {
       this.__config.origin = config.origin;
     }
-    this.__config.debug = config.debug;
   }
 
   getConfig() {
@@ -313,8 +307,7 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
-      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://cal.com",
+      origin: import.meta.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
@@ -330,16 +323,12 @@ export class Cal {
     this.actionManager.on("dimension-changed", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
-
       if (!iframe) {
         // Iframe might be pre-rendering
         return;
       }
-      let proposedHeightByIframeWebsite = data.iframeHeight;
-      iframe.style.height = proposedHeightByIframeWebsite + "px";
-      // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-      // This case is reproducible when viewing in ModalBox on Mobile.
-      iframe.style.maxHeight = window.innerHeight + "px";
+      let proposedHeightByIframeWebsite = parseFloat(getComputedStyle(iframe).height) + data.hiddenHeight;
+      iframe.style.height = proposedHeightByIframeWebsite;
     });
 
     this.actionManager.on("iframeReady", (e) => {

@@ -1,8 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { UserPlan } from "@calcom/prisma/client";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
@@ -112,8 +110,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      // Team is always pro
-      plan: "PRO" as UserPlan,
       profile: {
         name: team.name || team.slug,
         slug: team.slug,
