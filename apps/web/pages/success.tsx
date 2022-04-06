@@ -6,6 +6,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
@@ -93,8 +94,9 @@ function RedirectionToast({ url }: { url: string }) {
                 <p className="truncate font-medium text-white sm:mx-3">
                   <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
-                    You are being redirected to {url} in {timeRemaining}{" "}
-                    {timeRemaining === 1 ? "second" : "seconds"}.
+                    <Trans count={timeRemaining} i18nKey="you_are_being_redirected">
+                      You are being redirected to {{ url }} in {{ timeRemaining }} second.
+                    </Trans>
                   </span>
                 </p>
               </div>
