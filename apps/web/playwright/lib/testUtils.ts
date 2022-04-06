@@ -112,3 +112,12 @@ export const bookTimeSlot = async (page: Page) => {
   await page.fill('[name="email"]', "test@example.com");
   await page.press('[name="email"]', "Enter");
 };
+// Provide an standalone localize utility not managed by next-i18n
+export async function localize(locale: string) {
+  const localeModule = `../../public/static/locales/${locale}/common.json`;
+  const localeMap = await import(localeModule);
+  return (message: string) => {
+    if (message in localeMap) return localeMap[message];
+    throw "No locale found for the given entry message";
+  };
+}

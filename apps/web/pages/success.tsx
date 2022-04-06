@@ -93,8 +93,7 @@ function RedirectionToast({ url }: { url: string }) {
                 <p className="truncate font-medium text-white sm:mx-3">
                   <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
-                    You are being redirected to {url} in {timeRemaining}{" "}
-                    {timeRemaining === 1 ? "second" : "seconds"}.
+                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
                   </span>
                 </p>
               </div>

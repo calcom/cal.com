@@ -2,6 +2,8 @@
   "trial_days_left": "Tienes $t(day, {\"count\": {{days}} }) restantes en tu prueba PRO",
   "day": "{{count}} día",
   "day_plural": "{{count}} días",
+  "second": "{{count}} segundo",
+  "second_plural": "{{count}} segundos",
   "upgrade_now": "Actualizar ahora",
   "accept_invitation": "Aceptar invitación",
   "calcom_explained": "Cal.com es la alternativa de código abierto de Calendly poniéndole en control de sus propios datos, flujo de trabajo y apariencia.",
@@ -657,5 +659,6 @@
   "error_404": "Error 404",
   "availability_updated_successfully": "Disponibilidad actualizada correctamente",
   "requires_ownership_of_a_token": "Requiere la propiedad de un token perteneciente a la siguiente dirección:",
+  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} }).",
   "example_name": "Juan Pérez"
 }

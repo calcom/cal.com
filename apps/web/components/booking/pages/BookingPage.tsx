@@ -31,12 +31,15 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
@@ -391,8 +394,7 @@ const BookingPage = ({
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          // @ts-expect-error
+                        <PhoneInput<BookingFormValues>
                           control={bookingForm.control}
                           name="phone"
                           placeholder={t("enter_phone_number")}
