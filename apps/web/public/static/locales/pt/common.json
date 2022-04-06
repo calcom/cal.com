@@ -710,6 +710,8 @@
   "time_format": "Formato da hora",
   "12_hour": "12 horas",
   "24_hour": "24 horas",
+  "redirect_success_booking": "Redireccionar ao reservar ",
+  "redirect_url_upgrade_description": "Para usar esta funcionalidade, tem de actualizar para uma conta Pro.",
   "duplicate": "Duplicar",
   "you_can_manage_your_schedules": "Pode gerir os seus horários na página de Disponibilidade."
 }
