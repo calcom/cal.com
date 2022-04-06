@@ -73,7 +73,8 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
   await page.waitForTimeout(400);
-  await page.click('[data-testid="day"][data-disabled="false"]');
+  // TODO: Find out why the first day is always booked on tests
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await page.click('[data-testid="time"]');
 }
 
@@ -83,10 +84,34 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
   await page.waitForTimeout(400);
-  await page.click('[data-testid="day"][data-disabled="false"]');
+  // TODO: Find out why the first day is always booked on tests
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await page.locator('[data-testid="time"]').nth(1).click();
 }
 
+export async function bookFirstEvent(page: Page) {
+  // Click first event type
+  await page.click('[data-testid="event-type-link"]');
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+
+  // Make sure we're navigated to the success page
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/success");
+    },
+  });
+}
+
+export const bookTimeSlot = async (page: Page) => {
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+};
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;

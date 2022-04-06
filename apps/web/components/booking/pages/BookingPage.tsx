@@ -12,6 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -20,7 +21,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
@@ -55,7 +55,13 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPageProps) => {
+const BookingPage = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  locationLabels,
+}: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
@@ -99,6 +105,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -160,7 +167,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
     };
   };
 
@@ -241,6 +248,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
