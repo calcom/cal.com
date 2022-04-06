@@ -150,6 +150,8 @@ model User {
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
+  // participate in dynamic group booking or not
+  allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
 
@@ -256,6 +258,8 @@ model Booking {
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
   rejectionReason     String?
+  dynamicEventSlugRef String?
+  dynamicGroupSlugRef String?
 }
 
 model Schedule {
