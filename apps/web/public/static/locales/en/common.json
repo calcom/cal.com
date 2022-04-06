@@ -711,7 +711,7 @@
   "12_hour": "12 hour",
   "24_hour": "24 hour",
   "redirect_success_booking": "Redirect on booking ",
-  "external_redirect_url": "External Redirect URL - Starts with https://",
+  "external_redirect_url": "https://example.com/redirect-to-my-success-page",
   "redirect_url_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "duplicate": "Duplicate",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."

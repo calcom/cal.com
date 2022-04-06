@@ -5,30 +5,15 @@ import type Prisma from "@prisma/client";
 import { hashPassword } from "@calcom/lib/auth";
 import { prisma } from "@calcom/prisma";
 
-export interface UsersFixture {
-  create: (opts?: CustomUserOpts) => Promise<UserFixture>;
-  get: () => UserFixture[];
-  logout: () => Promise<void>;
-}
+import { TimeZoneEnum } from "./types";
 
-interface UserFixture {
-  id: number;
-  self: () => Promise<Prisma.User>;
-  login: () => Promise<void>;
-  debug: (message: Record<string, any>) => Promise<void>;
-}
-
-// An alias for the hard to remember timezones strings
-export enum TimeZoneE {
-  USA = "America/Phoenix",
-  UK = "Europe/London",
-}
+type UserFixture = ReturnType<typeof createUserFixture>;
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page): UsersFixture => {
+export const createUsersFixture = (page: Page) => {
   let store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
-    create: async (opts) => {
+    create: async (opts?: CustomUserOpts) => {
       const user = await prisma.user.create({
         data: await createUser(opts),
       });
@@ -43,8 +28,10 @@ export const createUsersFixture = (page: Page): UsersFixture => {
   };
 };
 
+type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
 // creates the single user fixture
-const createUserFixture = (user: Prisma.User, page: Page): UserFixture => {
+const createUserFixture = (user: Prisma.User, page: Page) => {
   const store = { user, page };
 
   // self is a reflective method that return the Prisma object that references this fixture.
@@ -52,16 +39,16 @@ const createUserFixture = (user: Prisma.User, page: Page): UserFixture => {
   return {
     id: user.id,
     self,
-    login: async () => login(await self(), store.page),
+    login: async () => login({ ...(await self()), password: user.username }, store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
-    debug: async (message) => {
+    debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
     },
   };
 };
 
-type CustomUserOptsKeys = "username" | "plan" | "completedOnboarding" | "locale";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneE };
+type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale";
+type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
 const createUser = async (opts?: CustomUserOpts) => {
@@ -76,21 +63,28 @@ const createUser = async (opts?: CustomUserOpts) => {
     password: await hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
-    timeZone: opts?.timeZone ?? TimeZoneE.UK,
+    timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
   };
 };
 
 // login using a replay of an E2E routine.
-async function login(user: Prisma.User, page: Page) {
-  await page.goto("/auth/logout");
-  await page.goto("/");
-  await page.click('input[name="email"]');
-  await page.fill('input[name="email"]', user.email);
-  await page.press('input[name="email"]', "Tab");
-  await page.fill('input[name="password"]', user.username!);
-  await page.press('input[name="password"]', "Enter");
+export async function login(
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  page: Page
+) {
+  // get locators
+  const loginLocator = await page.locator("[data-testid=login-form]");
+  const emailLocator = await loginLocator.locator("#email");
+  const passwordLocator = await loginLocator.locator("#password");
+  const signInLocator = await loginLocator.locator('[type="submit"]');
 
-  // 2 seconds of delay before returning to help the session loading well
+  //login
+  await page.goto("/");
+  await emailLocator.fill(user.email ?? `${user.username}@example.com`);
+  await passwordLocator.fill(user.password ?? user.username!);
+  await signInLocator.click();
+
+  // 2 seconds of delay to give the session enough time for a clean load
   await page.waitForTimeout(2000);
 }
