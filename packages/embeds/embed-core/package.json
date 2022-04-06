@@ -1,0 +1,19 @@
+{
+  "name": "@calcom/embed-core",
+  "version": "0.1.0",
+  "description": "The core script adds the booking embed",
+  "main": "./index.ts",
+  "scripts": {
+    "build": "vite build",
+    "build:cal": "NEXT_PUBLIC_WEBSITE_URL='https://cal.com' yarn build",
+    "vite": "vite",
+    "dev": "run-p 'build --watch' 'vite --port 3002 --strict-port --open'",
+    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js src",
+    "test-playwright": "yarn playwright test --config=playwright/config/playwright.config.ts"
+  },
+  "devDependencies": {
+    "vite": "^2.8.6",
+    "eslint": "^8.10.0"
+  }
+}

@@ -5,13 +5,15 @@ import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { useEmbedStyles } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { doWorkAsync } from "@lib/doWorkAsync";
-import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -85,6 +87,8 @@ function DatePicker({
 }: DatePickerProps): JSX.Element {
   const { i18n } = useLocale();
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
+  const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
+  const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
 
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
@@ -123,6 +127,8 @@ function DatePicker({
       eventLength,
       minimumBookingNotice,
       workingHours,
+    }: Omit<DatePickerProps, "weekStart" | "onDatePicked" | "date"> & {
+      browsingDate: Dayjs;
     }
   ) => {
     const date = browsingDate.startOf("day").date(day);
@@ -185,7 +191,7 @@ function DatePicker({
       batch: 1,
       name: "DatePicker",
       length: daysInMonth,
-      callback: (i: number, isLast) => {
+      callback: (i: number) => {
         let day = i + 1;
         days[daysInitialOffset + i] = {
           disabled: isDisabledMemoized(day, {
@@ -274,6 +280,9 @@ function DatePicker({
               <button
                 onClick={() => onDatePicked(browsingDate.date(day.date))}
                 disabled={day.disabled}
+                style={
+                  day.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }
+                }
                 className={classNames(
                   "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
                   "hover:border-brand hover:border dark:hover:border-white",

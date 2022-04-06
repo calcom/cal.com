@@ -1,12 +1,13 @@
 import { HashtagIcon, InformationCircleIcon, LinkIcon, PhotographIcon } from "@heroicons/react/solid";
 import React, { useRef, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { objectKeys } from "@calcom/lib/objectKeys";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
@@ -54,9 +55,9 @@ export default function TeamSettings(props: Props) {
       hideBranding: hideBrandingRef.current?.checked,
     };
     // remove unchanged variables
-    for (const key in variables) {
-      if (variables[key] === team?.[key]) delete variables[key];
-    }
+    objectKeys(variables).forEach((key) => {
+      if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
+    });
     mutation.mutate({ id: team.id, ...variables });
   }
 

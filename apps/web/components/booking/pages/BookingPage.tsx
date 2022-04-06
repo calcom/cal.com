@@ -31,12 +31,15 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
@@ -52,7 +55,7 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
@@ -114,7 +117,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string };
+  type Location = { type: LocationType; address?: string; link?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -130,20 +133,6 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  // TODO: Move to translations
-  // Also TODO: Get these dynamically from App Store
-  const locationLabels = {
-    [LocationType.InPerson]: t("in_person_meeting"),
-    [LocationType.Phone]: t("phone_call"),
-    [LocationType.GoogleMeet]: "Google Meet",
-    [LocationType.Zoom]: "Zoom Video",
-    [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Daily.co Video",
-    [LocationType.Huddle01]: "Huddle01 Video",
-    [LocationType.Tandem]: "Tandem Video",
-    [LocationType.Teams]: "MS Teams",
-  };
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
@@ -200,6 +189,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       }
       case LocationType.InPerson: {
         return locationInfo(locationType)?.address || "";
+      }
+      case LocationType.Link: {
+        return locationInfo(locationType)?.link || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -394,8 +386,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          // @ts-expect-error
+                        <PhoneInput<BookingFormValues>
                           control={bookingForm.control}
                           name="phone"
                           placeholder={t("enter_phone_number")}

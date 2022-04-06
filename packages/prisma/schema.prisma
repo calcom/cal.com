@@ -7,7 +7,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["filterJson"]
 }
 
 generator zod {
@@ -78,6 +79,7 @@ model EventType {
   currency                String                 @default("usd")
   slotInterval            Int?
   metadata                Json?
+  successRedirectUrl      String?
 
   @@unique([userId, slug])
 }

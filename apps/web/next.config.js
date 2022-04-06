@@ -8,6 +8,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/prisma",
   "@calcom/stripe",
   "@calcom/ui",
+  "@calcom/embed-core",
 ]);
 const { i18n } = require("./next-i18next.config");
 
@@ -64,13 +65,6 @@ plugins.push(withTM);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
-  eslint: {
-    // This allows production builds to successfully complete even if the project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified

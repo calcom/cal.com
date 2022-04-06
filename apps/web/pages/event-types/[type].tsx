@@ -23,13 +23,14 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
 import Button from "@calcom/ui/Button";
@@ -41,7 +42,7 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
+import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
@@ -52,8 +53,10 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
+import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
+import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
@@ -61,6 +64,8 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
+
+import { getTranslation } from "@server/lib/i18n";
 
 import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
@@ -84,20 +89,68 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const addDefaultLocationOptions = (
-  defaultLocations: OptionTypeBase[],
-  locationOptions: OptionTypeBase[]
-): void => {
-  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
-
-  defaultLocations.map((item) => {
-    if (!existingLocationOptions.includes(item.value)) {
-      locationOptions.push(item);
-    }
-  });
+const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
+  eventType,
+  formMethods,
+}: {
+  eventType: inferSSRProps<typeof getServerSideProps>["eventType"];
+  formMethods: T;
+}) => {
+  const { t } = useLocale();
+  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
+  const [modalOpen, setModalOpen] = useState(false);
+  return (
+    <>
+      <hr className="border-neutral-200" />
+      <div className="block sm:flex">
+        <div className="min-w-48 sm:mb-0">
+          <label
+            htmlFor="successRedirectUrl"
+            className="flex h-full items-center text-sm font-medium text-neutral-700">
+            {t("redirect_success_booking")}
+            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
+          </label>
+        </div>
+        <div className="w-full">
+          <input
+            id="successRedirectUrl"
+            onClick={(e) => {
+              if (proUpgradeRequired) {
+                e.preventDefault();
+                setModalOpen(true);
+              }
+            }}
+            readOnly={proUpgradeRequired}
+            type="url"
+            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            placeholder={t("external_redirect_url")}
+            defaultValue={eventType.successRedirectUrl || ""}
+            {...formMethods.register("successRedirectUrl")}
+          />
+        </div>
+        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
+          {t("redirect_url_upgrade_description")}
+        </UpgradeToProDialog>
+      </div>
+    </>
+  );
 };
 
-const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
+type AvailabilityOption = {
+  label: string;
+  value: number;
+};
+
+const AvailabilitySelect = ({
+  className = "",
+  ...props
+}: {
+  className?: string;
+  name: string;
+  value: number;
+  onBlur: Noop;
+  onChange: (value: AvailabilityOption | null) => void;
+}) => {
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
@@ -116,9 +169,9 @@ const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
         );
         return (
           <Select
-            {...props}
             options={options}
             isSearchable={false}
+            onChange={props.onChange}
             classNamePrefix="react-select"
             className={classNames(
               "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
@@ -148,19 +201,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
-    props;
-
-  /** Appending default locations */
-
-  const defaultLocations = [
-    { value: LocationType.InPerson, label: t("in_person_meeting") },
-    { value: LocationType.Link, label: t("link_meeting") },
-    { value: LocationType.Jitsi, label: "Jitsi Meet" },
-    { value: LocationType.Phone, label: t("phone_call") },
-  ];
-
-  addDefaultLocationOptions(defaultLocations, locationOptions);
+  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
 
   const router = useRouter();
 
@@ -175,13 +216,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       );
     },
     onError: (err) => {
+      let message = "";
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to update this event`;
+        message = `${err.data.code}: You are not able to update this event`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR") {
+        message = `${err.data.code}: ${err.message}`;
+      }
+
+      if (message) {
         showToast(message, "error");
       }
     },
@@ -424,6 +473,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     schedulingType: SchedulingType | null;
     price: number;
     hidden: boolean;
+    hideCalendarNotes: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
@@ -440,6 +490,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       integration: string;
       externalId: string;
     };
+    successRedirectUrl: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -994,10 +1045,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           control={formMethods.control}
                           render={({ field }) => (
                             <AvailabilitySelect
-                              {...field}
-                              onChange={(selected: { label: string; value: number }) =>
-                                field.onChange(selected.value)
-                              }
+                              value={field.value}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              onChange={(selected) => field.onChange(selected?.value || null)}
                             />
                           )}
                         />
@@ -1227,6 +1278,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </ul>
                           </div>
                         </div>
+
+                        <Controller
+                          name="hideCalendarNotes"
+                          control={formMethods.control}
+                          defaultValue={eventType.hideCalendarNotes}
+                          render={() => (
+                            <CheckboxField
+                              id="hideCalendarNotes"
+                              name="hideCalendarNotes"
+                              label={t("disable_notes")}
+                              description={t("disable_notes_description")}
+                              defaultChecked={eventType.hideCalendarNotes}
+                              onChange={(e) => {
+                                formMethods.setValue("hideCalendarNotes", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
 
                         <Controller
                           name="requiresConfirmation"
@@ -1498,7 +1567,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-
+                        <SuccessRedirectEdit<typeof formMethods>
+                          formMethods={formMethods}
+                          eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -1821,6 +1892,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
+    plan: true,
+    locale: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -1873,11 +1946,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
+      successRedirectUrl: true,
       team: {
         select: {
           slug: true,
@@ -1952,25 +2027,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-
+  const currentUser = eventType.users.find((u) => u.id === session.user.id);
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations);
+  const locationOptions = getLocationOptions(integrations, t);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
-  if (hasIntegration(integrations, "google_calendar")) {
-    locationOptions.push({
-      value: LocationType.GoogleMeet,
-      label: "Google Meet",
-    });
-  }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
-
-  if (hasIntegration(integrations, "office365_calendar")) {
-    // TODO: Add default meeting option of the office integration.
-    // Assuming it's Microsoft Teams.
-  }
 
   type Availability = typeof eventType["availability"];
   const getAvailability = (availability: Availability) =>

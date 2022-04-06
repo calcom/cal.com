@@ -1,0 +1,17 @@
+{
+  "name": "@calcom/embed-react",
+  "version": "0.1.0",
+  "description": "Embed Cal Booking anywhere",
+  "scripts": {
+    "dev": "vite --port=3003 --open",
+    "build": "vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src"
+  },
+  "main": "src/Cal.tsx",
+  "devDependencies": {
+    "vite": "^2.8.6",
+    "eslint": "^8.10.0"
+  }
+}
