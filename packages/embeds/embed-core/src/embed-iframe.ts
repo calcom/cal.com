@@ -13,7 +13,7 @@ if (isBrowser) {
   }
 }
 
-function keepRunningAsap(fn: (...arg: any) => void) {
+function runAsap(fn: (...arg: any) => void) {
   if (isSafariBrowser) {
     // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
     return setTimeout(fn, 50);
@@ -40,6 +40,7 @@ function log(...args: any[]) {
     const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
     args.push({
       ns: namespace,
+      url: document.URL,
     });
     args.unshift("CAL:");
     logQueue.push(args);
@@ -187,10 +188,10 @@ export const methods = {
   },
   parentKnowsIframeReady: () => {
     log("Method: `parentKnowsIframeReady` called");
-    keepRunningAsap(function tryInformingLinkReady() {
+    runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
       if (!embedStore.parentInformedAboutContentHeight) {
-        keepRunningAsap(tryInformingLinkReady);
+        runAsap(tryInformingLinkReady);
         return;
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
@@ -215,10 +216,10 @@ function keepParentInformedAboutDimensionChanges() {
   let numDimensionChanges = 0;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
-  keepRunningAsap(function informAboutScroll() {
+  runAsap(function informAboutScroll() {
     if (document.readyState !== "complete") {
       // Wait for window to load to correctly calculate the initial scroll height.
-      keepRunningAsap(informAboutScroll);
+      runAsap(informAboutScroll);
       return;
     }
     if (!isWindowLoadComplete) {
@@ -230,6 +231,11 @@ function keepParentInformedAboutDimensionChanges() {
       }, 10);
       return;
     }
+    if (!embedStore.windowLoadEventFired) {
+      sdkActionManager?.fire("windowLoadComplete", {});
+    }
+    embedStore.windowLoadEventFired = true;
+
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
     const contentHeight = document.documentElement.offsetHeight;
@@ -240,7 +246,6 @@ function keepParentInformedAboutDimensionChanges() {
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
     let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     let iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
-    isFirstTime = false;
     embedStore.parentInformedAboutContentHeight = true;
     // TODO: Handle width as well.
     if (knownIframeHeight !== iframeHeight) {
@@ -250,8 +255,10 @@ function keepParentInformedAboutDimensionChanges() {
       sdkActionManager?.fire("dimension-changed", {
         iframeHeight,
         iframeWidth,
+        isFirstTime,
       });
     }
+    isFirstTime = false;
     // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
     // It should stop ideally by reaching a hiddenHeight value of 0.
     // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
@@ -259,7 +266,7 @@ function keepParentInformedAboutDimensionChanges() {
       console.warn("Too many dimension changes detected.");
       return;
     }
-    keepRunningAsap(informAboutScroll);
+    runAsap(informAboutScroll);
   });
 }
 

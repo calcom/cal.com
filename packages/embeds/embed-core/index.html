@@ -60,7 +60,7 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-link="free">Book with Free User</button>
+      <button data-cal-namespace="prerendertest" data-cal-link="free?popup">Book with Free User</button>
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -223,6 +223,7 @@
           debug: 1,
           origin: "http://localhost:3000",
         });
+
         Cal.ns.third(
           [
             "inline",
@@ -287,11 +288,11 @@
       }
 
       if (!only || only === "prerender-test") {
-        Cal("init", {
+        Cal('init', 'prerendertest', {
           debug: 1,
           origin: "http://localhost:3000",
-        });
-        Cal("preload", {
+        })
+        Cal.ns.prerendertest("preload", {
           calLink: "free",
         });
       }
