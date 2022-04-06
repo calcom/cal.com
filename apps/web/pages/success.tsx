@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ClockIcon } from "@heroicons/react/solid";
+import { ClockIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
@@ -11,8 +11,8 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventType, Team, User } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -85,17 +85,15 @@ function RedirectionToast({ url }: { url: string }) {
 
   return (
     <>
-      {/* z-index just higher than Success Message Box */}
-      <div className="fixed inset-x-0 top-4 z-[60] pb-2 sm:pb-5">
-        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-          <div className="rounded-sm bg-red-600 bg-green-500 p-2 shadow-lg sm:p-3">
+      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
+          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex w-0 flex-1 items-center">
-                <p className="ml-3 truncate font-medium text-white">
+                <p className="truncate font-medium text-white sm:mx-3">
                   <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
-                    You are being redirected to {url} in {timeRemaining}{" "}
-                    {timeRemaining === 1 ? "second" : "seconds"}.
+                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
                   </span>
                 </p>
               </div>
@@ -104,8 +102,8 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     redirectToExternalUrl(urlWithSuccessParams);
                   }}
-                  className="flex items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm hover:bg-indigo-50">
-                  {t("Continue")}
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  {t("continue")}
                 </button>
               </div>
               <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
@@ -115,20 +113,8 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                     window.clearInterval(timerRef.current as number);
                   }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
-                  <svg
-                    className="h-6 w-6 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
+                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  <XIcon className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -221,17 +207,17 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
-          {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
-          ) : null}
           <div className="fixed inset-0 z-50 overflow-y-auto">
+            {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
+              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+            ) : null}{" "}
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
+                <span className="inline-block h-screen align-middle" aria-hidden="true">
                   &#8203;
                 </span>
                 <div
-                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  className="my-8 inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-middle transition-all dark:border-neutral-700 dark:bg-gray-800 sm:w-full sm:max-w-lg sm:py-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -417,17 +403,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-
-  if (isNaN(typeId)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventType = await prisma.eventType.findUnique({
+const getEventTypesFromDB = async (typeId: number) => {
+  return await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
@@ -460,6 +437,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
+
+  if (isNaN(typeId)) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventType) {
     return {
@@ -496,6 +487,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
+    email: eventType.team ? null : eventType.users[0].email,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor,
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,

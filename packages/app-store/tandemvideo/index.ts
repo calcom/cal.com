@@ -11,7 +11,6 @@ export const metadata = {
   title: "Tandem Video",
   imageSrc: "/api/app-store/tandemvideo/icon.svg",
   variant: "conferencing",
-  label: "",
   slug: "tandem",
   category: "video",
   logo: "/api/app-store/tandemvideo/icon.svg",
@@ -24,6 +23,7 @@ export const metadata = {
   isGlobal: false,
   email: "help@cal.com",
   locationType: LocationType.Tandem,
+  locationLabel: "Tandem Video",
 } as App;
 
 export * as api from "./api";
