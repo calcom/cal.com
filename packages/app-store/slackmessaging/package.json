@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/slackmessaging",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "This is a package for the intergration of slack into the app-store",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@slack/web-api": "^6.7.0",
+    "slack-block-builder": "^2.5.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
