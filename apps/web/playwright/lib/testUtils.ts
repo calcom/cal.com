@@ -86,3 +86,13 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.click('[data-testid="day"][data-disabled="false"]');
   await page.locator('[data-testid="time"]').nth(1).click();
 }
+
+// Provide an standalone localize utility not managed by next-i18n
+export async function localize(locale: string) {
+  const localeModule = `../../public/static/locales/${locale}/common.json`;
+  const localeMap = await import(localeModule);
+  return (message: string) => {
+    if (message in localeMap) return localeMap[message];
+    throw "No locale found for the given entry message";
+  };
+}
