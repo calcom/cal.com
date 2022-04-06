@@ -367,7 +367,7 @@
   "new_password_matches_old_password": "Neues Passwort stimmt mit Ihrem alten Passwort überein. Bitte wählen Sie ein anderes Passwort.",
   "current_incorrect_password": "Aktuelles Passwort ist falsch",
   "incorrect_password": "Passwort ist falsch",
-  "1_on_1": "1-on-1",
+  "1_on_1": "1-zu-1",
   "24_h": "24 Std",
   "use_setting": "Benutze Einstellung",
   "am_pm": "am/pm",
@@ -405,7 +405,7 @@
   "share_additional_notes": "Bitten teilen Sie Notizen zur Vorbereitung des Termins, falls nötig.",
   "booking_confirmation": "Bestätigen Sie {{eventTypeTitle}} mit {{profileName}}",
   "booking_reschedule_confirmation": "Planen Sie Ihr {{eventTypeTitle}} mit {{profileName}} um",
-  "in_person_meeting": "Link oder Vor-Ort-Termin",
+  "in_person_meeting": "Vor-Ort-Termin",
   "link_meeting": "Meeting verknüpfen",
   "phone_call": "Telefonat",
   "phone_number": "Telefonnummer",
@@ -710,6 +710,9 @@
   "time_format": "Zeitformat",
   "12_hour": "12 Stunden",
   "24_hour": "24 Stunden",
+  "redirect_success_booking": "Weiterleitung bei Buchung ",
+  "external_redirect_url": "Externe Umleitungs-URL - Beginnt mit https://",
+  "redirect_url_upgrade_description": "Um diese Funktion nutzen zu können, müssen Sie ein Upgrade auf einen Pro-Account durchführen.",
   "duplicate": "Duplizieren",
   "you_can_manage_your_schedules": "Sie können Ihre Zeitpläne bei Ihren Verfügbarkeitszeiten ändern."
 }
