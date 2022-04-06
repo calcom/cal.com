@@ -1,5 +1,6 @@
 import type { App } from "@calcom/types/App";
 
+import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -17,12 +18,12 @@ export const metadata = {
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
-  label: "Cal Video",
   slug: "dailyvideo",
   title: "Cal Video",
   isGlobal: true,
   email: "help@cal.com",
-  locationType: "integrations:daily",
+  locationType: LocationType.Daily,
+  locationLabel: "Cal Video",
   key: { apikey: process.env.DAILY_API_KEY },
 } as App;
 
