@@ -6,7 +6,6 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
