@@ -5,12 +5,10 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
-    const isEmbed = ctx.req?.url?.includes("embed");
-    return { ...initialProps, isEmbed };
+    return { ...initialProps };
   }
 
   render() {
-    const props = this.props;
     const { locale } = this.props.__NEXT_DATA__;
     const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
 
@@ -25,9 +23,7 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
         </Head>
-
-        {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body className="bg-gray-100 dark:bg-neutral-900" style={props.isEmbed ? { display: "none" } : {}}>
+        <body className="bg-gray-100 dark:bg-neutral-900">
           <Main />
           <NextScript />
         </body>
