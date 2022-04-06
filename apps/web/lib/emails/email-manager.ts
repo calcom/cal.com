@@ -220,4 +220,32 @@ export const sendRequestRescheduleEmail = async (calEvent: CalendarEvent) => {
       reject(console.error("RescheduleEmail.sendEmail failed", e));
     }
   });
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  // emailsToSend.push(
+  //   ...calEvent.attendees.map((attendee) => {
+  //     return new Promise((resolve, reject) => {
+  //       try {
+  //         const requestRescheduleEmail = new AttendeeRequesRescheduledEmail(calEvent, attendee);
+  //         resolve(requestRescheduleEmail.sendEmail());
+  //       } catch (e) {
+  //         reject(console.error("AttendeeRequestRescheduledEmail.sendEmail failed", e));
+  //       }
+  //     });
+  //   })
+  // );
+
+  // emailsToSend.push(
+  //   new Promise((resolve, reject) => {
+  //     try {
+  //       const requestRescheduleEmail = new OrganizerRequestRescheduledEmail(calEvent);
+  //       resolve(requestRescheduleEmail.sendEmail());
+  //     } catch (e) {
+  //       reject(console.error("OrganizerRequestRescheduledEmail.sendEmail failed", e));
+  //     }
+  //   })
+  // );
+
+  await Promise.all(emailsToSend);
 };

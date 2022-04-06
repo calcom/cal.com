@@ -1,14 +1,16 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, User, SchedulingType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
+import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
-import CalendarDirector from "@calcom/core/builders/CalendarEvent/director";
+import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
+import { CalendarEventClass } from "@calcom/core/builders/CalendarEvent/class";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { Person } from "@calcom/types/Calendar";
 
 import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
-import OrganizerRequestRescheduledEmail from "@lib/emails/templates/organizer-request-reschedule-email";
-import { getEventName } from "@lib/event";
 import prisma from "@lib/prisma";
 
 const rescheduleSchema = z.object({
@@ -20,30 +22,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession({ req });
   const { bookingId, rescheduleReason: cancellationReason } = req.body;
   console.log({ bookingId });
-  let userOwner;
+  let userOwner: Pick<User, "id" | "email" | "name" | "locale" | "timeZone"> | null;
   try {
     if (session?.user?.id) {
       userOwner = await prisma.user.findUnique({
+        rejectOnNotFound: true,
         where: {
           id: session.user.id,
         },
         select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          timeZone: true,
           locale: true,
         },
       });
     } else {
-      // Throw error
+      // throw error;
+      return;
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        userId: true,
-        attendees: true,
-        eventTypeId: true,
-      },
+      rejectOnNotFound: true,
+      include: { attendees: true },
       where: {
         uid: bookingId,
         NOT: {
@@ -51,13 +54,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       },
     });
-    if (bookingToReschedule && bookingToReschedule.eventTypeId) {
+    if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
       const event = await prisma.eventType.findFirst({
         where: {
           id: bookingToReschedule.eventTypeId,
         },
       });
-      const updatedBooking = await prisma.booking.update({
+      await prisma.booking.update({
         where: {
           id: bookingToReschedule.id,
         },
@@ -68,6 +71,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           updatedAt: dayjs().toISOString(),
         },
       });
+
       // Soft delete
       await prisma.bookingReference.deleteMany({
         where: {
@@ -75,30 +79,47 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       });
 
-      // Send email =================
+      // @NOTE: Lets assume all guests are the same language
+      const [firstAttendee] = bookingToReschedule.attendees;
+      const tAttendees = await getTranslation(firstAttendee.locale ?? "en", "common");
+      const usersToPeopleType = (
+        users: Pick<User, "id" | "email" | "name" | "locale" | "timeZone">[],
+        selectedLanguage: TFunction
+      ): Person[] => {
+        return users?.map((user) => {
+          return {
+            id: user.id || "",
+            email: user.email || "",
+            name: user.name || "",
+            language: { translate: selectedLanguage, locale: user.locale || "en" },
+            timeZone: user?.timeZone,
+          };
+        });
+      };
 
-      const eventCalendar = new CalendarDirector().buildRequiredParams({
-        booking: bookingToReschedule,
-        attendee: bookingToReschedule.attendees,
-        start: bookingToReschedule.startTime,
-        end: bookingToReschedule.endTime,
-        eventName: event?.eventName,
-        translationAttendees: userOwner.locale,
-        translationGuests: "en_us",
-        translationOwner: "en_us",
-        eventTypeId: bookingToReschedule.eventTypeId,
-        timeZone: event?.timeZone,
-        location: event?.locations,
-        // notes: "",
-        customInputs: [],
+      const userOwnerTranslation = await getTranslation(userOwner.locale ?? "en", "common");
+      const [userOwnerAsPeopleType] = usersToPeopleType([userOwner], userOwnerTranslation);
+      const calendarEventBuilder = new CalendarEventBuilder();
+      calendarEventBuilder.init({
+        title: bookingToReschedule.title,
+        type: event?.title || "Nameless Event",
+        startTime: bookingToReschedule.startTime.toISOString(),
+        endTime: bookingToReschedule.endTime.toISOString(),
+        attendees: usersToPeopleType(bookingToReschedule.attendees, tAttendees),
+        organizer: userOwnerAsPeopleType,
       });
-      const resultEvent = await eventCalendar.buildRequiredParams();
-      if (resultEvent) {
-        console.log(resultEvent);
-        console.log(resultEvent.attendees);
-        console.log(resultEvent.organizer);
-        await sendRequestRescheduleEmail(resultEvent);
+      await calendarEventBuilder.buildEventObjectFromInnerClass(bookingToReschedule.eventTypeId);
+      await calendarEventBuilder.buildUsersFromInnerClass();
+      if (event?.schedulingType === SchedulingType.ROUND_ROBIN) {
+        await calendarEventBuilder.buildLuckyUsers();
       }
+      if (event?.schedulingType === SchedulingType.COLLECTIVE) {
+        await calendarEventBuilder.buildLuckyUsers();
+      }
+      await calendarEventBuilder.buildAttendeesList();
+      console.log({ calendarEventBuilder });
+      // Send email =================
+      await sendRequestRescheduleEmail(calendarEventBuilder.calendarEvent);
     }
 
     return res.status(200).json(bookingToReschedule);

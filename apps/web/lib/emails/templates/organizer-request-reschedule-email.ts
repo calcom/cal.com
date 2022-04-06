@@ -3,6 +3,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
+import { createEvent, DateArray, Person } from "ics";
 
 import { getCancelLink } from "@calcom/lib/CalEventParser";
 
@@ -23,20 +24,20 @@ dayjs.extend(toArray);
 export default class OrganizerRequestRescheduledEmail extends OrganizerScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     const toAddresses = [this.calEvent.organizer.email];
-    // if (this.calEvent.team) {
-    //   this.calEvent.team.members.forEach((member) => {
-    //     const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-    //     if (memberAttendee) {
-    //       toAddresses.push(memberAttendee.email);
-    //     }
-    //   });
-    // }
+    if (this.calEvent.team) {
+      this.calEvent.team.members.forEach((member) => {
+        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
+        if (memberAttendee) {
+          toAddresses.push(memberAttendee.email);
+        }
+      });
+    }
 
     return {
-      // icalEvent: {
-      //   filename: "event.ics",
-      //   content: this.getiCalEventAsString(),
-      // },
+      icalEvent: {
+        filename: "event.ics",
+        content: this.getiCalEventAsString(),
+      },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
@@ -55,10 +56,62 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
     };
   }
 
+  // @OVERRIDE
+  protected getiCalEventAsString(): string | undefined {
+    console.log("overriding");
+    const icsEvent = createEvent({
+      start: dayjs(this.calEvent.startTime)
+        .utc()
+        .toArray()
+        .slice(0, 6)
+        .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+      startInputType: "utc",
+      productId: "calendso/ics",
+      title: this.calEvent.organizer.language.translate("ics_event_title", {
+        eventType: this.calEvent.type,
+        name: this.calEvent.attendees[0].name,
+      }),
+      description: this.getTextBody(),
+      duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
+      organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+      attendees: this.calEvent.attendees.map((attendee: Person) => ({
+        name: attendee.name,
+        email: attendee.email,
+      })),
+      status: "CANCELLED",
+      method: "CANCEL",
+    });
+    if (icsEvent.error) {
+      throw icsEvent.error;
+    }
+    return icsEvent.value;
+  }
+  // @OVERRIDe
+  protected getWhen(): string {
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;text-decoration: line-through;">
+      ${this.calEvent.organizer.language.translate(
+        this.getOrganizerStart().format("dddd").toLowerCase()
+      )}, ${this.calEvent.organizer.language.translate(
+      this.getOrganizerStart().format("MMMM").toLowerCase()
+    )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format(
+      "YYYY"
+    )} | ${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
+      "h:mma"
+    )} <span style="color: #888888">(${this.getTimezone()})</span>
+      </p>
+    </div>`;
+  }
+
   protected getTextBody(): string {
     return `
-${this.calEvent.organizer.language.translate("event_has_been_rescheduled")}
-${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
+${this.calEvent.organizer.language.translate("request_reschedule_title_attendee")}
+${this.calEvent.organizer.language.translate("request_reschedule_subtitle", {
+  organizer: this.calEvent.attendees[0],
+})},
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -89,8 +142,10 @@ ${getCancelLink(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("event_has_been_rescheduled"),
-          this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")
+          this.calEvent.organizer.language.translate("request_reschedule_title_attendee"),
+          this.calEvent.organizer.language.translate("request_reschedule_subtitle", {
+            organizer: this.calEvent.attendees[0],
+          })
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
