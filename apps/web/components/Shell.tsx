@@ -76,7 +76,7 @@ function useRedirectToLoginIfUnauthenticated() {
 
   return {
     loading: loading && !session,
-    session: session,
+    session,
   };
 }
 
