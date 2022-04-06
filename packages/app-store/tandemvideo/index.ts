@@ -1,6 +1,5 @@
 import type { App } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -11,6 +10,7 @@ export const metadata = {
   title: "Tandem Video",
   imageSrc: "/api/app-store/tandemvideo/icon.svg",
   variant: "conferencing",
+  label: "",
   slug: "tandem",
   category: "video",
   logo: "/api/app-store/tandemvideo/icon.svg",
@@ -22,8 +22,7 @@ export const metadata = {
   reviews: 0,
   isGlobal: false,
   email: "help@cal.com",
-  locationType: LocationType.Tandem,
-  locationLabel: "Tandem Video",
+  locationType: "integrations:tandem",
 } as App;
 
 export * as api from "./api";

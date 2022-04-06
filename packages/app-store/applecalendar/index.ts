@@ -11,6 +11,7 @@ export const metadata = {
   imageSrc: "/api/app-store/applecalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
+  label: "Apple Calendar",
   logo: "/api/app-store/applecalendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,

@@ -1,11 +1,8 @@
-export enum DefaultLocationType {
+/** TODO: These should all come from each individual App Store package, and merge them here. */
+export enum LocationType {
   InPerson = "inPerson",
   Phone = "phone",
   Link = "link",
-}
-
-/** If your App has a location option, add it here */
-export enum AppStoreLocationType {
   GoogleMeet = "integrations:google:meet",
   Zoom = "integrations:zoom",
   Daily = "integrations:daily",
@@ -14,6 +11,3 @@ export enum AppStoreLocationType {
   Tandem = "integrations:tandem",
   Teams = "integrations:office365_video",
 }
-
-export const LocationType = { ...DefaultLocationType, ...AppStoreLocationType };
-export type LocationType = DefaultLocationType | AppStoreLocationType;

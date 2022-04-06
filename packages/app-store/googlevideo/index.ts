@@ -1,7 +1,6 @@
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { App } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -14,6 +13,7 @@ export const metadata = {
   title: "Google Meet",
   imageSrc: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
   variant: "conferencing",
+  label: "Google Meet",
   logo: "https://cdn.iconscout.com/icon/free/png-256/google-meet-2923654-2416657.png",
   publisher: "Cal.com",
   rating: 5,
@@ -22,8 +22,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-  locationType: LocationType.GoogleMeet,
-  locationLabel: "Google Meet",
+  locationType: "integrations:google:meet",
 } as App;
 
 // export * as api from "./api";
