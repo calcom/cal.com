@@ -370,7 +370,7 @@ model ApiKey {
   userId     Int
   note       String?
   createdAt  DateTime @default(now())
-  expiresAt  DateTime @default(dbgenerated("NOW() + interval '30 day'"))
+  expiresAt  DateTime @default(dbgenerated("NOW() + interval '30 days'"))
   lastUsedAt DateTime @default(now())
   hashedKey  String   @unique()
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
