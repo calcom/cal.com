@@ -1,3 +1,4 @@
+import { validJson } from "@calcom/lib/jsonUtils";
 import type { App } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -8,11 +9,11 @@ export const metadata = {
   installed: true,
   type: "apple_calendar",
   title: "Apple Calendar",
-  imageSrc: "/api/app-store/applecalendar/icon.svg",
+  imageSrc: "/apps/apple-calendar.svg",
   variant: "calendar",
   category: "calendar",
   label: "Apple Calendar",
-  logo: "/api/app-store/applecalendar/icon.svg",
+  logo: "/apps/apple-calendar.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,
