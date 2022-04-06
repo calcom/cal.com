@@ -288,7 +288,9 @@ export default function Shell(props: {
                   </nav>
                 </div>
                 <TrialBanner />
-                <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+                <div
+                  className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
+                  data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
                   </span>
@@ -299,7 +301,9 @@ export default function Shell(props: {
                 <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
                   &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
                   {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-                  <span className="lowercase">-{user && user.plan}</span>
+                  <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
+                    -{user && user.plan}
+                  </span>
                 </small>
               </div>
             </div>
