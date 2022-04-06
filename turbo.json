@@ -18,6 +18,9 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
+    "@calcom/prisma#deploy": {
+      "cache": false
+    },
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
