@@ -23,7 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, Noop, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
@@ -87,21 +87,7 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-type AvailabilityOption = {
-  label: string;
-  value: number;
-};
-
-const AvailabilitySelect = ({
-  className = "",
-  ...props
-}: {
-  className?: string;
-  name: string;
-  value: number;
-  onBlur: Noop;
-  onChange: (value: AvailabilityOption | null) => void;
-}) => {
+const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
