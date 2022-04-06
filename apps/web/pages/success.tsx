@@ -219,7 +219,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   return (
     (isReady && (
       <div
-        className={"h-screen" + (isEmbed ? "" : "bg-neutral-100 dark:bg-neutral-900")}
+        className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
         data-testid="success-page">
         <Theme />
         <HeadSeo
@@ -227,22 +227,25 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className="mx-auto max-w-3xl py-24">
+        <main className={classNames("mx-auto", isEmbed ? "" : "py-24")}>
           {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
             <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
           ) : null}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
+              <div
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
+                aria-hidden="true">
                 <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                   &#8203;
                 </span>
                 <div
                   style={successPageEmbedStyles}
                   className={classNames(
-                    "inline-block transform overflow-hidden rounded-sm border border-neutral-200",
+                    "inline-block transform overflow-hidden rounded-sm",
+                    isEmbed ? "" : "border sm:my-8 sm:max-w-lg ",
                     isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
-                    "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                    "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                   )}
                   role="dialog"
                   aria-modal="true"
@@ -267,7 +270,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             : t("emailed_you_and_attendees")}
                         </p>
                       </div>
-                      <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
+                      <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
@@ -275,7 +278,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
                           {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                          <span className="text-gray-500">
+                          <span className="text-bookinglight">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
                         </div>
@@ -297,7 +300,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   </div>
                   {!needsConfirmation && (
-                    <div className="mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                    <div className="border-bookinglightest mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -396,7 +399,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   )}
                   {!props.hideBranding && (
-                    <div className="pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
+                    <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                       <form
@@ -409,7 +412,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">

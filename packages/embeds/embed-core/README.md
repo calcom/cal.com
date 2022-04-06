@@ -55,7 +55,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
     - user should be able to use "on" instruction to understand what's going on in the system
   - Error Tracking for embed.js
     - Know where exactly it’s failing if it does.
-
+- Color Scheme
+  - Need to reduce the number of colors on booking page. 
 - Improved Demo
   - Seeding might be done for team event so that such an example is also available readily in index.html
 

@@ -145,9 +145,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
-                "rounded-sm border-gray-200 md:border",
-                selectedDate ? "max-w-5xl" : "max-w-3xl",
-                isEmbed ? "mx-auto" : ""
+                "border-bookinglightest rounded-sm md:border",
+                isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
               )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
@@ -171,7 +170,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   />
                   <div className="mt-4 sm:-mt-2">
                     <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600 dark:text-gray-100">
+                    <div className="text-bookingmedian flex gap-2 text-xs font-medium dark:text-gray-100">
                       {eventType.title}
                       <div>
                         <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
@@ -218,16 +217,16 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="dark:text-bookinglight mt-3 font-medium text-gray-500">{profile.name}</h2>
+                  <h1 className="font-cal text-bookingdark mb-4 text-3xl font-semibold dark:text-white">
                     {eventType.title}
                   </h1>
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                    <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                       <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
@@ -287,7 +286,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               </div>
             </div>
           )}
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
     </>
@@ -296,7 +295,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-500">
+        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left">
           <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
           {timeZone()}
           {isTimeOptionsOpen ? (
