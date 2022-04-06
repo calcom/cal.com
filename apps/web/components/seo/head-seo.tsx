@@ -74,7 +74,7 @@ const constructImage = (name: string, description: string, username: string): st
   );
 };
 
-export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
+export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
 
@@ -113,5 +113,3 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   return <NextSeo {...seoProps} />;
 };
-
-export default HeadSeo;

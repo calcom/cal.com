@@ -23,7 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, Noop, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
@@ -42,7 +42,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
@@ -53,7 +52,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
@@ -89,53 +87,6 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
-  eventType,
-  formMethods,
-}: {
-  eventType: inferSSRProps<typeof getServerSideProps>["eventType"];
-  formMethods: T;
-}) => {
-  const { t } = useLocale();
-  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
-  const [modalOpen, setModalOpen] = useState(false);
-  return (
-    <>
-      <hr className="border-neutral-200" />
-      <div className="block sm:flex">
-        <div className="min-w-48 sm:mb-0">
-          <label
-            htmlFor="successRedirectUrl"
-            className="flex h-full items-center text-sm font-medium text-neutral-700">
-            {t("redirect_success_booking")}
-            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
-          </label>
-        </div>
-        <div className="w-full">
-          <input
-            id="successRedirectUrl"
-            onClick={(e) => {
-              if (proUpgradeRequired) {
-                e.preventDefault();
-                setModalOpen(true);
-              }
-            }}
-            readOnly={proUpgradeRequired}
-            type="url"
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-            placeholder={t("external_redirect_url")}
-            defaultValue={eventType.successRedirectUrl || ""}
-            {...formMethods.register("successRedirectUrl")}
-          />
-        </div>
-        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-          {t("redirect_url_upgrade_description")}
-        </UpgradeToProDialog>
-      </div>
-    </>
-  );
-};
-
 type AvailabilityOption = {
   label: string;
   value: number;
@@ -169,9 +120,9 @@ const AvailabilitySelect = ({
         );
         return (
           <Select
+            {...props}
             options={options}
             isSearchable={false}
-            onChange={props.onChange}
             classNamePrefix="react-select"
             className={classNames(
               "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
@@ -216,21 +167,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       );
     },
     onError: (err) => {
-      let message = "";
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to update this event`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR") {
-        message = `${err.data.code}: ${err.message}`;
-      }
-
-      if (message) {
+        const message = `${err.data.code}: You are not able to update this event`;
         showToast(message, "error");
       }
     },
@@ -496,7 +439,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       integration: string;
       externalId: string;
     };
-    successRedirectUrl: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -1059,10 +1001,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           control={formMethods.control}
                           render={({ field }) => (
                             <AvailabilitySelect
-                              value={field.value}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              onChange={(selected) => field.onChange(selected?.value || null)}
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
                             />
                           )}
                         />
@@ -1698,9 +1640,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           <hr className="border-neutral-200" />
                         </>
 
-                        <SuccessRedirectEdit<typeof formMethods>
-                          formMethods={formMethods}
-                          eventType={eventType}></SuccessRedirectEdit>
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -2023,7 +1962,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
-    plan: true,
     locale: true,
   });
 
@@ -2083,7 +2021,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      successRedirectUrl: true,
       team: {
         select: {
           slug: true,

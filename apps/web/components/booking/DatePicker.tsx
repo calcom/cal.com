@@ -127,8 +127,6 @@ function DatePicker({
       eventLength,
       minimumBookingNotice,
       workingHours,
-    }: Omit<DatePickerProps, "weekStart" | "onDatePicked" | "date"> & {
-      browsingDate: Dayjs;
     }
   ) => {
     const date = browsingDate.startOf("day").date(day);
@@ -191,7 +189,7 @@ function DatePicker({
       batch: 1,
       name: "DatePicker",
       length: daysInMonth,
-      callback: (i: number) => {
+      callback: (i: number, isLast) => {
         let day = i + 1;
         days[daysInitialOffset + i] = {
           disabled: isDisabledMemoized(day, {

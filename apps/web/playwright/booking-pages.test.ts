@@ -7,7 +7,7 @@ import {
   todo,
 } from "./lib/testUtils";
 
-async function bookFirstEvent(page: Page) {
+async function bookFirstEvent(page) {
   // Click first event type
   await page.click('[data-testid="event-type-link"]');
   await selectFirstAvailableTimeSlotNextMonth(page);
@@ -151,7 +151,7 @@ test.describe("pro user", () => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').first().click();
+    await page.locator('[data-testid="cancel"]').click();
     await page.waitForNavigation({
       url: (url) => {
         return url.pathname.startsWith("/cancel");

@@ -78,7 +78,6 @@ model EventType {
   currency                String                 @default("usd")
   slotInterval            Int?
   metadata                Json?
-  successRedirectUrl      String?
 
   @@unique([userId, slug])
 }
