@@ -12,7 +12,6 @@ import { useEffect, useState, useRef } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventType, Team, User } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
