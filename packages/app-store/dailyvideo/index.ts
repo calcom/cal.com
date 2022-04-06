@@ -9,7 +9,7 @@ export const metadata = {
   type: "daily_video",
   imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
-  url: "https://daily.co",
+  url: "https://daily.co/",
   trending: true,
   logo: "/api/app-store/dailyvideo/icon.svg",
   publisher: "Cal.com",
@@ -17,9 +17,9 @@ export const metadata = {
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
-  label: "Cal Video",
+  label: "Daily.co Video",
   slug: "dailyvideo",
-  title: "Cal Video",
+  title: "Daily.co Video",
   isGlobal: true,
   email: "help@cal.com",
   locationType: "integrations:daily",
