@@ -33,6 +33,9 @@ yarn build
 
 Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
+## DX
+
+- Hot reload doesn't work with CSS files in the way we use vite.
 ## Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
@@ -49,6 +52,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Bundling Related
   - ~~Minify CSS in embed.js~~
+  - Comments in CSS aren't stripped off
 
 - Debuggability
   - Send log messages from iframe to parent so that all logs can exist in a single queue forming a timeline.
