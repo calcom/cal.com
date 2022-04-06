@@ -58,7 +58,6 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
-  description: "",
   hidden: false,
   userId: 0,
   users: [
@@ -87,6 +86,7 @@ const min15Event = {
   slug: "15min",
   title: "15min",
   eventName: "Dynamic Collective 15min Event",
+  description: "Dynamic Collective 15min Event",
   ...commons,
 };
 const min30Event = {
@@ -94,6 +94,7 @@ const min30Event = {
   slug: "30min",
   title: "30min",
   eventName: "Dynamic Collective 30min Event",
+  description: "Dynamic Collective 30min Event",
   ...commons,
 };
 const min60Event = {
@@ -101,10 +102,15 @@ const min60Event = {
   slug: "60min",
   title: "60min",
   eventName: "Dynamic Collective 60min Event",
+  description: "Dynamic Collective 60min Event",
   ...commons,
 };
 
 const defaultEvents = [min15Event, min30Event, min60Event];
+
+export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
+  return `Dynamic collective ${slug} event with ${dynamicUsernames.join(", ")}`;
+};
 
 export const getDefaultEvent = (slug: string) => {
   const event = defaultEvents.find((obj) => {
@@ -114,7 +120,7 @@ export const getDefaultEvent = (slug: string) => {
 };
 
 export const getGroupName = (usernameList: string[]): string => {
-  return usernameList.toString();
+  return usernameList.join(", ");
 };
 
 export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): string => {

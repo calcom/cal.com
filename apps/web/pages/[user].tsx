@@ -10,7 +10,11 @@ import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
 import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
-import defaultEvents, { getUsernameList, getUsernameSlugLink } from "@calcom/lib/defaultEvents";
+import defaultEvents, {
+  getDynamicEventDescription,
+  getUsernameList,
+  getUsernameSlugLink,
+} from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -39,7 +43,17 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
   const isSingleUser = props.users.length === 1;
   const isDynamicGroup = props.users.length > 1;
-  const eventTypes = props.users.length > 1 ? defaultEvents : props.eventTypes;
+  const dynamicUsernames = isDynamicGroup
+    ? props.users.map((user) => {
+        return user.username || "";
+      })
+    : [];
+  const eventTypes = isDynamicGroup
+    ? defaultEvents.map((event) => {
+        event.description = getDynamicEventDescription(dynamicUsernames, event.slug);
+        return event;
+      })
+    : props.eventTypes;
   const groupEventTypes = props.users.some((user) => {
     return !user.allowDynamicBooking;
   }) ? (
