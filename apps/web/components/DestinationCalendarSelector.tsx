@@ -25,18 +25,20 @@ const DestinationCalendarSelector = ({
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
-    const selected = query.data?.connectedCalendars
-      .map((connected) => connected.calendars ?? [])
-      .flat()
-      .find((cal) => cal.externalId === value);
+    if (!selectedOption) {
+      const selected = query.data?.connectedCalendars
+        .map((connected) => connected.calendars ?? [])
+        .flat()
+        .find((cal) => cal.externalId === value);
 
-    if (selected) {
-      setSelectedOption({
-        value: `${selected.integration}:${selected.externalId}`,
-        label: selected.name || "",
-      });
+      if (selected) {
+        setSelectedOption({
+          value: `${selected.integration}:${selected.externalId}`,
+          label: selected.name || "",
+        });
+      }
     }
-  }, [query.data?.connectedCalendars, value]);
+  }, [query.data?.connectedCalendars, selectedOption, value]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
