@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import { useBrandColors } from "@calcom/embed-core";
+
 const brandColor = "#292929";
 const brandTextColor = "#ffffff";
 const darkBrandColor = "#fafafa";
@@ -220,6 +222,8 @@ const BrandColor = ({
   lightVal: string | undefined | null;
   darkVal: string | undefined | null;
 }) => {
+  const embedBrandColor = useBrandColors();
+  lightVal = embedBrandColor || lightVal;
   // convert to 6 digit equivalent if 3 digit code is entered
   lightVal = normalizeHexCode(lightVal, false);
   darkVal = normalizeHexCode(darkVal, true);

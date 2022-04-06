@@ -16,7 +16,8 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -52,6 +53,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const { t } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -141,11 +143,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
           {isReady && (
             <div
               style={availabilityDatePickerEmbedStyles}
-              className={
-                "rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border" +
-                (selectedDate ? " max-w-5xl" : "max-w-3xl") +
-                (isEmbed ? " mx-auto" : "")
-              }>
+              className={classNames(
+                isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
+                "rounded-sm border-gray-200 md:border",
+                selectedDate ? "max-w-5xl" : "max-w-3xl",
+                isEmbed ? "mx-auto" : ""
+              )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="block items-center sm:flex sm:space-x-4">

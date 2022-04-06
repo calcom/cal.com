@@ -63,7 +63,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 - Embed Code Generator
-
+- Reschedule and Cancel - Is there a current use case of these in embed ?
 - UI Config Features
   - Transparent can't be made default as it requires configuration in styling depending on what was the background of the webpage.
   - Background should be common automatically for all pages

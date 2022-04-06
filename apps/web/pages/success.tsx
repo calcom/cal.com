@@ -1,5 +1,6 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { ClockIcon } from "@heroicons/react/solid";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
@@ -10,7 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
-import { useIsEmbed, useEmbedStyles } from "@calcom/embed-core";
+import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventType, Team, User } from "@calcom/prisma/client";
@@ -152,6 +153,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { eventType } = props;
 
   const successPageEmbedStyles = useEmbedStyles("successPage");
+  const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -237,7 +239,11 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                 </span>
                 <div
                   style={successPageEmbedStyles}
-                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  className={classNames(
+                    "inline-block transform overflow-hidden rounded-sm border border-neutral-200",
+                    isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
+                    "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  )}
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">

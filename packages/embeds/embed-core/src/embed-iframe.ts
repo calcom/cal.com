@@ -115,6 +115,22 @@ export const useEmbedStyles = (elementName: ElementName) => {
   return styles[elementName] || {};
 };
 
+export const useIsBackgroundTransparent = () => {
+  let isBackgroundTransparent = false;
+  const bodyEmbedStyles = useEmbedStyles("body");
+
+  if (bodyEmbedStyles.background === "transparent") {
+    isBackgroundTransparent = true;
+  }
+  return isBackgroundTransparent;
+};
+
+export const useBrandColors = () => {
+  const brandingColors = useEmbedStyles("branding");
+  const brandColor = brandingColors.background;
+  return brandColor;
+};
+
 const getNamespace = () => {
   if (isBrowser) {
     const url = new URL(document.URL);
