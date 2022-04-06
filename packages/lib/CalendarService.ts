@@ -248,16 +248,12 @@ export default abstract class BaseCalendarService implements Calendar {
         const vcalendar = new ICAL.Component(jcalData);
         const vevent = vcalendar.getFirstSubcomponent("vevent");
         const event = new ICAL.Event(vevent);
-        const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
-        if (vtimezone) {
-          const zone = new ICAL.Timezone(vtimezone);
-          event.startDate = event.startDate.convertToZone(zone);
-          event.endDate = event.endDate.convertToZone(zone);
-        }
+        const timezoneComp = vcalendar.getFirstSubcomponent("vtimezone");
+        const tzid: string = timezoneComp?.getFirstPropertyValue("tzid") ?? "UTC";
 
         return {
-          start: dayjs(event.startDate.toJSDate()).toISOString(),
-          end: dayjs(event.endDate.toJSDate()).toISOString(),
+          start: dayjs.tz(event.startDate.toJSDate(), tzid).toISOString(),
+          end: dayjs.tz(event.endDate.toJSDate(), tzid).toISOString(),
         };
       });
 
