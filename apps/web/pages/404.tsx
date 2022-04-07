@@ -3,7 +3,6 @@ import { ChevronRightIcon } from "@heroicons/react/solid";
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Script from "next/script";
 import React, { useEffect, useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
