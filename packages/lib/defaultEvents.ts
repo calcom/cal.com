@@ -141,6 +141,8 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
 export const getUsernameList = (users: string): string[] => {
   return users
     .toLowerCase()
+    .replace(" ", "+")
+    .replace("%20", "+")
     .split("+")
     .filter((el) => {
       return el.length != 0;
