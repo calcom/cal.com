@@ -71,7 +71,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <Button color="secondary" href="/availability" tabIndex={-1}>
             {t("cancel")}
           </Button>
-          <Button>{t("save")}</Button>
+          <Button data-testid="save-schedule-btn">{t("save")}</Button>
         </div>
       </div>
       <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
@@ -85,7 +85,12 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <Controller
             name="isDefault"
             render={({ field: { onChange, value } }) => (
-              <Switch label={t("set_to_default")} onCheckedChange={onChange} checked={value} />
+              <Switch
+                label={t("set_to_default")}
+                onCheckedChange={onChange}
+                checked={value}
+                data-testid="set-default-schedule-switch"
+              />
             )}
           />
         )}
@@ -93,7 +98,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
           <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
             {t("timezone")}
           </label>
-          <div className="mt-1">
+          <div className="mt-1" data-testid="add-timezone-schedule">
             <Controller
               name="timeZone"
               render={({ field: { onChange, value } }) => (

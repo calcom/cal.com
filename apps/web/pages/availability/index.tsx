@@ -44,7 +44,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
         <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
           <ul className="divide-y divide-neutral-200" data-testid="schedules">
             {schedules.map((schedule) => (
-              <li key={schedule.id}>
+              <li key={schedule.id} data-testid={`schedule-${schedule.id}`}>
                 <div className="flex items-center justify-between py-5 hover:bg-neutral-50 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
                   <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
                     <Link href={"/availability/" + schedule.id}>
@@ -83,7 +83,8 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                           type="button"
                           color="warn"
                           className="w-full font-normal"
-                          StartIcon={TrashIcon}>
+                          StartIcon={TrashIcon}
+                          data-testid="delete-schedule-btn">
                           {t("delete_schedule")}
                         </Button>
                       </DropdownMenuItem>

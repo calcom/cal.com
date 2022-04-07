@@ -58,7 +58,8 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
-          }}>
+          }}
+          data-testid="add-schedule-form">
           <div className="mt-3 space-y-4">
             <TextField placeholder={t("default_schedule_name")} label={t("name")} {...register("name")} />
           </div>

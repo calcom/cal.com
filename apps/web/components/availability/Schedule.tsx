@@ -118,7 +118,7 @@ const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
   const minEnd = watch(`${name}.start`);
   const maxStart = watch(`${name}.end`);
   return (
-    <div className={classNames("flex flex-grow items-center space-x-3", className)}>
+    <div className={classNames("flex flex-grow items-center space-x-3", className)} data-testid={name}>
       <Controller
         name={`${name}.start`}
         render={({ field: { onChange, value } }) => {
@@ -253,6 +253,7 @@ export const DayRanges = ({
                 size="icon"
                 StartIcon={PlusIcon}
                 onClick={handleAppend}
+                data-testid="add-slot-schedule-btn"
               />
               <Dropdown>
                 <DropdownMenuTrigger asChild>
@@ -292,7 +293,9 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   const watchAvailable = form.watch(`${name}.${day}`, []);
 
   return (
-    <fieldset className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0">
+    <fieldset
+      className="relative flex flex-col justify-between space-y-2 py-5 sm:flex-row sm:space-y-0"
+      data-testid={`availability-day-${day}`}>
       <label
         className={classNames(
           "flex space-x-2 rtl:space-x-reverse",
