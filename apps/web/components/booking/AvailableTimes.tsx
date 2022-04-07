@@ -109,30 +109,41 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             return (
               <div key={slot.time.format()}>
-                {/* If the event type has seats and the booking if full, disable the link */}
-                <Link href={slot.attendees >= seatsPerTimeSlot ? "" : bookingUrl}>
-                  <a
+                {/* Current there is no way to disable Next.js Links */}
+                {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
+                  <div
                     className={classNames(
-                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                      "text-primary-500 mb-2 block rounded-sm border bg-white py-4 font-medium opacity-25  dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 ",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
-                    )}
-                    data-testid="time">
+                    )}>
                     {slot.time.format(timeFormat)}
-                    {seatsPerTimeSlot && (
-                      <p
-                        className={`${
-                          slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.5
-                            ? "text-rose-600"
-                            : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
-                            ? "text-yellow-500"
-                            : "text-emerald-400"
-                        } text-sm`}>
-                        {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                        {seatsPerTimeSlot} Seats available
-                      </p>
-                    )}
-                  </a>
-                </Link>
+                    {seatsPerTimeSlot && <p className={`text-sm`}>No more seats available</p>}
+                  </div>
+                ) : (
+                  <Link href={bookingUrl}>
+                    <a
+                      className={classNames(
+                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                        brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                      )}
+                      data-testid="time">
+                      {slot.time.format(timeFormat)}
+                      {seatsPerTimeSlot && (
+                        <p
+                          className={`${
+                            slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
+                              ? "text-rose-600"
+                              : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                              ? "text-yellow-500"
+                              : "text-emerald-400"
+                          } text-sm`}>
+                          {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
+                          {seatsPerTimeSlot} Seats available
+                        </p>
+                      )}
+                    </a>
+                  </Link>
+                )}
               </div>
             );
           })}
