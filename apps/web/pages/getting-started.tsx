@@ -468,6 +468,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               setSubmitting(true);
               await createSchedule.mutate({
                 name: t("default_schedule_name"),
+                default: true,
                 ...values,
               });
               debouncedHandleConfirmStep();

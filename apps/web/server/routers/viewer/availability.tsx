@@ -28,7 +28,7 @@ export const availabilityRouter = createProtectedRouter()
       return {
         schedules: schedules.map((schedule) => ({
           ...schedule,
-          isDefault: user.defaultScheduleId === schedule.id || schedules.length === 1,
+          isDefault: user.defaultScheduleId === schedule.id,
         })),
       };
     },
@@ -88,7 +88,7 @@ export const availabilityRouter = createProtectedRouter()
         schedule,
         availability,
         timeZone: schedule.timeZone || user.timeZone,
-        isDefault: !user.defaultScheduleId || user.defaultScheduleId === schedule.id,
+        isDefault: user.defaultScheduleId && user.defaultScheduleId === schedule.id,
       };
     },
   })
@@ -106,6 +106,7 @@ export const availabilityRouter = createProtectedRouter()
           )
         )
         .optional(),
+      default: z.boolean().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
@@ -133,6 +134,19 @@ export const availabilityRouter = createProtectedRouter()
       const schedule = await prisma.schedule.create({
         data,
       });
+
+      if (input?.default) {
+        // set default
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultScheduleId: schedule.id,
+          },
+        });
+      }
+
       return { schedule };
     },
   })
