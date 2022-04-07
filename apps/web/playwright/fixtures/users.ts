@@ -40,6 +40,10 @@ const createUserFixture = (user: Prisma.User, page: Page) => {
     id: user.id,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    onboard: async () =>
+      (await self()).completedOnboarding
+        ? Promise.resolve(console.log("User is already onboarded"))
+        : await onboard(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
@@ -85,6 +89,32 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // 2 seconds of delay to give the session enough time for a clean load
-  await page.waitForTimeout(2000);
+  // 1 second of delay to give the session enough time for a clean load
+  await page.waitForTimeout(1000);
+}
+
+// onboards the user with all the provided defaults
+async function onboard(page: Page) {
+  await page.goto("/");
+  try {
+    const onboardingLocator = await page.locator("[data-testid=onboarding]");
+
+    // STEP 1: fullname & timezone
+    await onboardingLocator.locator("[data-testid=continue-button-0]").click();
+    await page.waitForTimeout(1000);
+
+    // STEP 2: connecting calendars
+    await onboardingLocator.locator("[data-testid=onboarding-skip-btn]").click();
+    await page.waitForTimeout(1000);
+
+    // STEP 3: Set a default availability schedule
+    await onboardingLocator.locator("[data-testid=onboarding-availability-submit-btn]").click();
+    await page.waitForTimeout(1000);
+
+    // STEP 4: Fill "About Me"
+    await onboardingLocator.locator("[data-testid=continue-button-3]").click();
+    await page.waitForTimeout(3000);
+  } catch (e) {
+    throw new Error("You need to log in before onboarding");
+  }
 }

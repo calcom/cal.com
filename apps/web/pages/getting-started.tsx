@@ -481,7 +481,11 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
           <section>
             <Schedule name="schedule" />
             <footer className="flex flex-col space-y-6 py-6 sm:mx-auto sm:w-full">
-              <Button className="justify-center" EndIcon={ArrowRightIcon} type="submit">
+              <Button
+                className="justify-center"
+                EndIcon={ArrowRightIcon}
+                type="submit"
+                data-testid="onboarding-availability-submit-btn">
                 {t("continue")}
               </Button>
             </footer>
@@ -632,7 +636,8 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
               <button
                 disabled={isSubmitting}
                 onClick={handleSkipStep}
-                className="text-sm leading-tight text-gray-500 dark:text-white">
+                className="text-sm leading-tight text-gray-500 dark:text-white"
+                data-testid="onboarding-skip-btn">
                 {t("next_step")}
               </button>
               {currentStep !== 0 && (

@@ -32,7 +32,7 @@ const config: PlaywrightTestConfig = {
   webServer: {
     command: "NEXT_PUBLIC_IS_E2E=1 yarn workspace @calcom/web start -p 3000",
     port: 3000,
-    timeout: 60_000,
+    timeout: 30000,
     reuseExistingServer: !process.env.CI,
   },
   use: {
