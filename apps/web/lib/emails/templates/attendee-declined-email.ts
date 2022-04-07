@@ -47,6 +47,7 @@ ${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 ${this.getRejectionReason()}
 `.replace(/(<([^>]+)>)/gi, "");
@@ -95,6 +96,7 @@ ${this.getRejectionReason()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                               ${this.getRejectionReason()}
                             </div>
