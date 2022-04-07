@@ -109,7 +109,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             return (
               <div key={slot.time.format()}>
-                <Link href={bookingUrl}>
+                {/* If the event type has seats and the booking if full, disable the link */}
+                <Link href={slot.attendees >= seatsPerTimeSlot ? "" : bookingUrl}>
                   <a
                     className={classNames(
                       "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
