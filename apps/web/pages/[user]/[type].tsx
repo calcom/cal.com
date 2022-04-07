@@ -261,9 +261,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  const dynamicNames = isDynamicGroup
+    ? users.map((user) => {
+        return user.name || "";
+      })
+    : [];
+
   const profile = isDynamicGroup
     ? {
-        name: getGroupName(usernameList),
+        name: getGroupName(dynamicNames),
         image: null,
         slug: typeParam,
         theme: null,
