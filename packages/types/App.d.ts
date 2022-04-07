@@ -13,7 +13,13 @@ export interface App {
    * */
   installed: boolean;
   /** The app type */
-  type: `${string}_calendar` | `${string}_payment` | `${string}_video` | `${string}_web3` | `${string}_other`;
+  type:
+    | `${string}_calendar`
+    | `${string}_messaging`
+    | `${string}_payment`
+    | `${string}_video`
+    | `${string}_web3`
+    | `${string}_other`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */
