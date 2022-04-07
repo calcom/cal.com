@@ -27,7 +27,7 @@ export const apiKeysRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
-      console.log(hashedApiKey);
+      console.table("NOT hashedApiKey:", [hashedApiKey, apiKey]);
       await ctx.prisma.apiKey
         .create({
           data: {
