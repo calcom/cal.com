@@ -487,10 +487,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
-    email: eventType.team ? null : eventType.users[0].email,
+    email: eventType.team ? null : eventType.users[0].email || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,
+    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
   return {
