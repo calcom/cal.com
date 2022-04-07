@@ -221,6 +221,31 @@ function IntegrationsContainer() {
               />
             ))}
           </List>
+
+          <ShellSubHeading
+            className="mt-10"
+            title={
+              <SubHeadingTitleWithConnections title={t("other")} numConnections={data.other.numActive} />
+            }
+          />
+          <List>
+            {data.other.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                title={item.title}
+                imageSrc={item.imageSrc}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
+              />
+            ))}
+          </List>
         </>
       )}></QueryCell>
   );

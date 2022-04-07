@@ -28,6 +28,10 @@ export const isDaily = (location: string): boolean => {
   return location === "integrations:daily";
 };
 
+export const isHubspot = (location: string): boolean => {
+  return location === "integrations:hubspot";
+};
+
 export const isHuddle01 = (location: string): boolean => {
   return location === "integrations:huddle01";
 };
@@ -48,6 +52,7 @@ export const isDedicatedIntegration = (location: string): boolean => {
   return (
     isZoom(location) ||
     isDaily(location) ||
+    isHubspot(location) ||
     isHuddle01(location) ||
     isTandem(location) ||
     isJitsi(location) ||
@@ -62,6 +67,7 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.Zoom.valueOf() ||
     location === LocationType.Daily.valueOf() ||
     location === LocationType.Jitsi.valueOf() ||
+    location === LocationType.HubSpot.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
     location === LocationType.Tandem.valueOf() ||
     location === LocationType.Teams.valueOf()
