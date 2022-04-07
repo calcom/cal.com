@@ -260,6 +260,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
