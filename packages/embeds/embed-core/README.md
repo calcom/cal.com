@@ -1,18 +1,6 @@
 # embed-core
 
-See [index.html](index.html) to understand how it can be used.
-
-## Features
-
-- The Embed SDK can be added asynchronously
-  - You can add it through any tag manager like GTM if you like[Need to Test]
-- Available configurations are
-  - `theme`
-  - Prefilling of
-    - `name`
-    - `email`
-    - `notes`
-    - `guests`
+See [index.html](index.html) to see various examples
 
 ## How to use embed on any webpage no matter what framework
 See <https://docs.cal.com/integrations/embed>
@@ -23,6 +11,14 @@ Run the following command and then you can test the embed in the automatically o
 
 ```bash
 yarn dev
+```
+
+## Running Tests
+
+Ensure that App is running on port 3000 already and then run following command:
+
+```bash
+yarn test-playwright
 ```
 
 ## Shipping to Production
@@ -45,9 +41,11 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Bug: Team Link with Dark theme has white background on all pages except the first page.
 
 - Accessibility and UI/UX Issues
-  - Loader on ModalBox/popup
-  - Make ModalBox UI customizable by user.
+  - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
+
+- Automation Tests
+  - Run automation tests in CI
 
 - Bundling Related
   - Comments in CSS aren't stripped off

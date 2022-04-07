@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState, useEffect, CSSProperties } from "react";
 
 import { sdkActionManager } from "./sdk-event";
@@ -5,6 +6,7 @@ import { sdkActionManager } from "./sdk-event";
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {},
+  theme: null,
   // Store all React State setters here.
   reactStylesStateSetters: {} as Record<ElementName, ReactEmbedStylesSetter>,
   parentInformedAboutContentHeight: false,
@@ -98,6 +100,15 @@ const registerNewSetter = (elementName: ElementName, setStyles: ReactEmbedStyles
 
 const removeFromEmbedStylesSetterMap = (elementName: ElementName) => {
   delete embedStore.reactStylesStateSetters[elementName];
+};
+
+export const useEmbedTheme = () => {
+  const router = useRouter();
+  if (embedStore.theme) {
+    return embedStore.theme;
+  }
+  const theme = (embedStore.theme = router.query.theme);
+  return theme;
 };
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
@@ -282,7 +293,7 @@ if (isBrowser) {
     log("Initializing embed-iframe");
     // HACK
     const pageStatus = window.CalComPageStatus;
-
+    embedStore.theme = url.searchParams.get("theme");
     // If embed link is opened in top, and not in iframe. Let the page be visible.
     if (top === window) {
       unhideBody();
