@@ -12,6 +12,8 @@ test.describe("dynamic booking", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
+    await deleteAllBookingsByEmail("pro@example.com");
+    await deleteAllBookingsByEmail("free@example.com");
     await page.goto("/pro+free");
   });
 

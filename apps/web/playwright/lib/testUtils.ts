@@ -72,7 +72,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await page.click('[data-testid="time"]');
@@ -83,7 +83,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await page.locator('[data-testid="time"]').nth(1).click();
