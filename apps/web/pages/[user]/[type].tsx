@@ -141,7 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!users) {
+  if (!users || !users.length) {
     return {
       notFound: true,
     };
