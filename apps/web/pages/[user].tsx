@@ -43,6 +43,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
   const isSingleUser = props.users.length === 1;
   const isDynamicGroup = props.users.length > 1;
+  const dynamicNames = isDynamicGroup
+    ? props.users.map((user) => {
+        return user.name || "";
+      })
+    : [];
   const dynamicUsernames = isDynamicGroup
     ? props.users.map((user) => {
         return user.username || "";
@@ -106,11 +111,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     <>
       <Theme />
       <HeadSeo
-        title={isDynamicGroup ? dynamicUsernames.join(", ") : nameOrUsername}
+        title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
         description={
           isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
         }
-        name={isDynamicGroup ? dynamicUsernames.join(", ") : nameOrUsername}
+        name={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
         username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
