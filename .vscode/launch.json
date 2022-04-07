@@ -7,15 +7,9 @@
       "request": "launch",
       "command": "npm run dev",
       "skipFiles": ["<node_internals>/**"],
-      "outFiles": [
-        "${workspaceFolder}/**/*.js",
-        "!**/node_modules/**"
-      ],
+      "outFiles": ["${workspaceFolder}/**/*.js", "!**/node_modules/**"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ]
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
     },
     {
       "name": "Next.js: Client",

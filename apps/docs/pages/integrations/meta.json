@@ -1,9 +1,8 @@
 {
-    "introduction": "Introduction",
-    "google": "Google",
-    "microsoft": "Microsoft",
-    "zoom": "Zoom",
-    "stripe": "Stripe",
-    "zapier": "Zapier"
-  }
-  
+  "introduction": "Introduction",
+  "google": "Google",
+  "microsoft": "Microsoft",
+  "zoom": "Zoom",
+  "stripe": "Stripe",
+  "zapier": "Zapier"
+}

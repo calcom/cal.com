@@ -14,6 +14,7 @@ import { createSSGHelpers } from "@trpc/react/ssg";
  * Automatically prefetches i18n based on the passed in `context`-object to prevent i18n-flickering.
  * Make sure to `return { props: { trpcState: ssr.dehydrate() } }` at the end.
  */
+
 export async function ssgInit<TParams extends { locale?: string }>(opts: GetStaticPropsContext<TParams>) {
   const requestedLocale = opts.params?.locale || opts.locale || i18n.defaultLocale;
   const isSupportedLocale = i18n.locales.includes(requestedLocale);
