@@ -1,5 +1,6 @@
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
+  //@ts-ignore
   static get observedAttributes() {
     return ["loading"];
   }
@@ -8,9 +9,9 @@ export class ModalBox extends HTMLElement {
     this.shadowRoot!.host.remove();
     document.body.style.overflow = ModalBox.htmlOverflow;
   }
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name === "loading" && newValue == "done") {
-      this.shadowRoot!.querySelector("#loader").style.display = "none";
+      (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
     }
   }
 

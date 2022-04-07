@@ -75,6 +75,8 @@ export class Cal {
 
   __config: any;
 
+  modalBox!: Element;
+
   namespace: string;
 
   actionManager: SdkActionManager;
@@ -225,7 +227,7 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calLink, config }: { calLink: string; config?: Record<string, string> }) {
+  modal({ calLink, config = {} }: { calLink: string; config?: Record<string, string> }) {
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
