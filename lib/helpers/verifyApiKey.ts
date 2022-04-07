@@ -1,5 +1,6 @@
 import { NextMiddleware } from "next-api-middleware";
 
+import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
 // import { nanoid } from "nanoid";
 import prisma from "@calcom/prisma";
 
@@ -12,7 +13,9 @@ const today = new Date();
 
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
-  const apiKey = await prisma.apiKey.findUnique({ where: { id: req.query.apiKey as string } });
+  const strippedApiKey = `${req.query.apiKey}`.replace("cal_", "");
+  const hashedKey = hashAPIKey(strippedApiKey);
+  const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
   if (!apiKey) {
     res.status(401).json({ error: "Your api key is not valid" });
     throw new Error("No api key found");
