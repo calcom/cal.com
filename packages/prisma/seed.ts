@@ -250,7 +250,7 @@ async function main() {
         title: "paid",
         slug: "paid",
         length: 60,
-        price: 50,
+        price: 100,
       },
       {
         title: "In person meeting",

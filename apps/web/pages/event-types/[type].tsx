@@ -472,6 +472,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
+    currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
@@ -915,6 +916,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       locations,
                       ...input
                     } = values;
+
+                    if (requirePayment) input.currency = currency;
+
                     updateMutation.mutate({
                       ...input,
                       locations,

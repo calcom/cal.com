@@ -11,8 +11,8 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventType, Team, User } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -93,8 +93,7 @@ function RedirectionToast({ url }: { url: string }) {
                 <p className="truncate font-medium text-white sm:mx-3">
                   <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
-                    You are being redirected to {url} in {timeRemaining}{" "}
-                    {timeRemaining === 1 ? "second" : "seconds"}.
+                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
                   </span>
                 </p>
               </div>
@@ -404,17 +403,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-
-  if (isNaN(typeId)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventType = await prisma.eventType.findUnique({
+const getEventTypesFromDB = async (typeId: number) => {
+  return await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
@@ -447,6 +437,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
+
+  if (isNaN(typeId)) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventType) {
     return {
@@ -483,9 +487,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
+    email: eventType.team ? null : eventType.users[0].email || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,
+    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
   return {
