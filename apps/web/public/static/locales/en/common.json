@@ -708,5 +708,10 @@
   "12_hour": "12 hour",
   "24_hour": "24 hour",
   "duplicate": "Duplicate",
-  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
+  "api_keys": "API Keys",
+  "api_keys_subtitle": "Generate API keys to use for accessing your own account.",
+  "generate_new_token": "Generate new token",
+  "personal_note": "Personal Note",
+  "delete_pat": "Delete personal access token"
 }

@@ -366,12 +366,13 @@ model Webhook {
 }
 
 model ApiKey {
-  id         String   @id @unique @default(cuid())
-  userId     Int
-  note       String?
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime @default(dbgenerated("NOW() + interval '30 days'"))
-  lastUsedAt DateTime @default(now())
-  hashedKey  String   @unique()
-  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @unique @default(cuid())
+  userId       Int
+  note         String?
+  createdAt    DateTime @default(now())
+  neverExpires Boolean  @default(false)
+  expiresAt    DateTime @default(dbgenerated("NOW() + interval '30 days'"))
+  lastUsedAt   DateTime @default(now())
+  hashedKey    String   @unique()
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
