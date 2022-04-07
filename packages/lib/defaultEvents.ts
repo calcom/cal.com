@@ -126,11 +126,10 @@ export const getGroupName = (usernameList: string[]): string => {
 export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): string => {
   let slugLink = ``;
   if (users.length > 1) {
-    let combinedUsername = ``;
-    for (let i = 0; i < users.length - 1; i++) {
-      combinedUsername = `${users[i].username}+`;
+    let combinedUsername = `${users[0].username}`;
+    for (let i = 1; i < users.length; i++) {
+      combinedUsername = `${combinedUsername}+${users[i].username}`;
     }
-    combinedUsername = `${combinedUsername}${users[users.length - 1].username}`;
     slugLink = `/${combinedUsername}/${slug}`;
   } else {
     slugLink = `/${users[0].username}/${slug}`;
