@@ -1,6 +1,6 @@
 name: E2E test
 on:
-  pull_request:
+  pull_request_target: # So we can test on forks
     branches:
       - main
     paths-ignore:
@@ -56,7 +56,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v2
