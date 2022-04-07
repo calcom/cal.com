@@ -5,13 +5,16 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { PaymentResponse } from "@lib/types";
 import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/payment";
-import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
+import {
+  schemaQueryIdParseInt,
+  withValidQueryIdTransformParseInt,
+} from "@lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger
  * /api/payments/{id}:
  *   get:
- *     summary: Get a payment by ID
+ *     summary: Get an payment by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -78,17 +81,14 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  */
 export async function paymentById(req: NextApiRequest, res: NextApiResponse<PaymentResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdAsString.safeParse(query);
+  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
   const safeBody = await schemaPaymentBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const [userId, teamId] = safeQuery.data.id.split("_");
 
   switch (method) {
     case "GET":
       await prisma.payment
-        .findUnique({
-          where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } },
-        })
+        .findUnique({ where: { id: safeQuery.data.id } })
         .then((payment) => schemaPaymentPublic.parse(payment))
         .then((data) => res.status(200).json({ data }))
         .catch((error: Error) =>
@@ -127,4 +127,4 @@ export async function paymentById(req: NextApiRequest, res: NextApiResponse<Paym
   }
 }
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdString(paymentById));
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(paymentById));
