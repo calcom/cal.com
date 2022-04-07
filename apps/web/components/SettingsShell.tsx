@@ -1,8 +1,6 @@
 import { CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import React, { ComponentProps } from "react";
 
-import LicenseRequired from "@ee/components/LicenseRequired";
-
 import ErrorBoundary from "@lib/ErrorBoundary";
 
 import NavTabs from "./NavTabs";
@@ -35,8 +33,6 @@ export default function SettingsShell({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const Wrapper = LicenseRequired;
-
   return (
     <Shell {...rest}>
       <div className="sm:mx-auto">
