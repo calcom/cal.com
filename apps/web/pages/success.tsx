@@ -138,7 +138,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType } = props;
 
-  const successPageEmbedStyles = useEmbedStyles("successPage");
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const attendeeName = typeof name === "string" ? name : "Nameless";

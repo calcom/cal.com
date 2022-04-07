@@ -69,7 +69,6 @@ const BookingPage = ({
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
-  const bookingDetailsEmbedStyles = useEmbedStyles("bookingDetails");
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   useEffect(() => {
@@ -295,7 +294,6 @@ const BookingPage = ({
         }>
         {isReady && (
           <div
-            style={bookingDetailsEmbedStyles}
             className={classNames(
               "overflow-hidden",
               isEmbed ? "" : "border border-gray-200",

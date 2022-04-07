@@ -32,13 +32,10 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 ## DX
 
 - Hot reload doesn't work with CSS files in the way we use vite.
+
 ## Known Bugs and Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
-
-- Bug: White Background with Dark Theme on Success page
-
-- Bug: Team Link with Dark theme has white background on all pages except the first page.
 
 - Accessibility and UI/UX Issues
   - let user choose the loader for ModalBox

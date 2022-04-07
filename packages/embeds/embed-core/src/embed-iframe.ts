@@ -3,13 +3,27 @@ import { useState, useEffect, CSSProperties } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 
+export interface UiConfig {
+  theme: string;
+  styles: EmbedStyles;
+}
+
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {},
+  namespace: "",
   theme: null,
   // Store all React State setters here.
-  reactStylesStateSetters: {} as Record<ElementName, ReactEmbedStylesSetter>,
+  reactStylesStateSetters: {},
   parentInformedAboutContentHeight: false,
+  windowLoadEventFired: false,
+} as {
+  styles: UiConfig["styles"];
+  namespace: string | null;
+  theme: string | null;
+  reactStylesStateSetters: any;
+  parentInformedAboutContentHeight: boolean;
+  windowLoadEventFired: boolean;
 };
 
 let isSafariBrowser = false;
@@ -36,6 +50,7 @@ declare global {
     CalEmbed: {
       __logQueue?: any[];
     };
+    CalComPageStatus: string;
     CalComPlan: string;
   }
 }
@@ -63,26 +78,31 @@ function log(...args: any[]) {
 // Only allow certain styles to be modified so that when we make any changes to HTML, we know what all embed styles might be impacted.
 // Keep this list to minimum, only adding those styles which are really needed.
 interface EmbedStyles {
-  body?: Pick<CSSProperties, "background" | "backgroundColor">;
+  body?: Pick<CSSProperties, "background">;
   eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
-
-type ElementName = keyof EmbedStyles;
-
-type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles>>;
-
-export interface UiConfig {
-  theme: string;
-  styles: EmbedStyles;
+interface EmbedStylesBranding {
+  branding?: {
+    brandColor?: string;
+    lightColor?: string;
+    lighterColor?: string;
+    lightestColor?: string;
+    highlightColor?: string;
+    darkColor?: string;
+    darkerColor?: string;
+    medianColor?: string;
+  };
 }
+
+type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedStylesBranding>>;
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
   for (let [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
-    setEmbedStyle((styles) => {
+    (setEmbedStyle as any)((styles: any) => {
       return {
         ...styles,
         ...stylesConfig,
@@ -91,14 +111,14 @@ const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   }
 };
 
-const registerNewSetter = (elementName: ElementName, setStyles: ReactEmbedStylesSetter) => {
+const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding, setStyles: any) => {
   embedStore.reactStylesStateSetters[elementName] = setStyles;
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
   setStyles(embedStore.styles);
 };
 
-const removeFromEmbedStylesSetterMap = (elementName: ElementName) => {
+const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding) => {
   delete embedStore.reactStylesStateSetters[elementName];
 };
 
@@ -107,13 +127,28 @@ export const useEmbedTheme = () => {
   if (embedStore.theme) {
     return embedStore.theme;
   }
-  const theme = (embedStore.theme = router.query.theme);
+  const theme = (embedStore.theme = router.query.theme as string);
   return theme;
 };
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
-export const useEmbedStyles = (elementName: ElementName) => {
+export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [styles, setStyles] = useState({} as EmbedStyles);
+
+  useEffect(() => {
+    registerNewSetter(elementName, setStyles);
+    // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
+    return () => {
+      // Once the component is unmounted, we can remove that state setter.
+      removeFromEmbedStylesSetterMap(elementName);
+    };
+  }, []);
+
+  return styles[elementName] || {};
+};
+
+export const useEmbedBranding = (elementName: keyof EmbedStylesBranding) => {
+  const [styles, setStyles] = useState({} as EmbedStylesBranding);
 
   useEffect(() => {
     registerNewSetter(elementName, setStyles);
@@ -132,7 +167,7 @@ export const useIsBackgroundTransparent = () => {
   // TODO: Background should be read as ui.background and not ui.body.background
   const bodyEmbedStyles = useEmbedStyles("body");
 
-  if (bodyEmbedStyles.background === "transparent") {
+  if (bodyEmbedStyles?.background === "transparent") {
     isBackgroundTransparent = true;
   }
   return isBackgroundTransparent;
@@ -140,7 +175,7 @@ export const useIsBackgroundTransparent = () => {
 
 export const useBrandColors = () => {
   // TODO: Branding shouldn't be part of ui.styles. It should exist as ui.branding.
-  const brandingColors = useEmbedStyles("branding");
+  const brandingColors = useEmbedBranding("branding");
   return brandingColors;
 };
 
@@ -293,7 +328,6 @@ if (isBrowser) {
     log("Initializing embed-iframe");
     // HACK
     const pageStatus = window.CalComPageStatus;
-    embedStore.theme = url.searchParams.get("theme");
     // If embed link is opened in top, and not in iframe. Let the page be visible.
     if (top === window) {
       unhideBody();

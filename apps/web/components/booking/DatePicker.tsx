@@ -89,7 +89,6 @@ function DatePicker({
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
-  const embedColors = useEmbedStyles("colors");
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
