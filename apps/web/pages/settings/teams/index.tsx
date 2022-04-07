@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import LicenseRequired from "@ee/components/LicenseRequired";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
@@ -39,8 +40,8 @@ function Teams() {
   const isFreePlan = me.data?.plan === "FREE";
 
   return (
-    <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
-      <SettingsShell>
+    <SettingsShell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
+      <LicenseRequired>
         {!!errorMessage && <Alert severity="error" title={errorMessage} />}
         {isFreePlan && (
           <Alert
@@ -86,8 +87,8 @@ function Teams() {
           />
         )}
         {teams.length > 0 && <TeamList teams={teams}></TeamList>}
-      </SettingsShell>
-    </Shell>
+      </LicenseRequired>
+    </SettingsShell>
   );
 }
 

@@ -1,55 +1,52 @@
 import { CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
-import { useRouter } from "next/router";
-import React from "react";
+import React, { ComponentProps } from "react";
 
 import LicenseRequired from "@ee/components/LicenseRequired";
 
 import ErrorBoundary from "@lib/ErrorBoundary";
-import { useLocale } from "@lib/hooks/useLocale";
 
 import NavTabs from "./NavTabs";
+import Shell from "./Shell";
 
-export default function SettingsShell({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
-  const { asPath } = useRouter();
+const tabs = [
+  {
+    name: "profile",
+    href: "/settings/profile",
+    icon: UserIcon,
+  },
+  {
+    name: "security",
+    href: "/settings/security",
+    icon: KeyIcon,
+  },
+  {
+    name: "teams",
+    href: "/settings/teams",
+    icon: UserGroupIcon,
+  },
+  {
+    name: "billing",
+    href: "/settings/billing",
+    icon: CreditCardIcon,
+  },
+];
 
-  console.log("asPath", asPath);
-
-  const tabs = [
-    {
-      name: t("profile"),
-      href: "/settings/profile",
-      icon: UserIcon,
-    },
-    {
-      name: t("security"),
-      href: "/settings/security",
-      icon: KeyIcon,
-    },
-    {
-      name: t("teams"),
-      href: "/settings/teams",
-      icon: UserGroupIcon,
-    },
-    {
-      name: t("billing"),
-      href: "/settings/billing",
-      icon: CreditCardIcon,
-    },
-  ];
-
+export default function SettingsShell({
+  children,
+  ...rest
+}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const Wrapper = LicenseRequired;
 
   return (
-    <>
+    <Shell {...rest}>
       <div className="sm:mx-auto">
         <NavTabs tabs={tabs} />
       </div>
-      <Wrapper>
-        <main className="max-w-4xl">
+      <main className="max-w-4xl">
+        <>
           <ErrorBoundary>{children}</ErrorBoundary>
-        </main>
-      </Wrapper>
-    </>
+        </>
+      </main>
+    </Shell>
   );
 }

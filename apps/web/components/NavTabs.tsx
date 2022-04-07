@@ -2,6 +2,8 @@ import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
 import React, { ElementType, FC } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import classNames from "@lib/classNames";
 
 interface Props {
@@ -15,11 +17,10 @@ interface Props {
 
 const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
   const router = useRouter();
+  const { t } = useLocale();
   return (
     <>
-      <nav
-        className="-mb-px flex space-x-2 space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
-        aria-label="Tabs">
+      <nav className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
         {tabs.map((tab) => {
           const isCurrent = router.asPath === tab.href;
           return (
@@ -41,7 +42,7 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
                     aria-hidden="true"
                   />
                 )}
-                <span>{tab.name}</span>
+                <span>{t(tab.name)}</span>
               </a>
             </Link>
           );

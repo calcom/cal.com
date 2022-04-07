@@ -7,6 +7,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import Select from "react-select";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -17,7 +18,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
-import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
@@ -25,7 +25,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
@@ -492,14 +491,14 @@ export default function Settings(props: Props) {
   const query = trpc.useQuery(["viewer.i18n"]);
 
   return (
-    <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
-      <SettingsShell>
+    <SettingsShell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
+      <>
         <QueryCell
           query={query}
           success={({ data }) => <SettingsView {...props} localeProp={data.locale} />}
         />
-      </SettingsShell>
-    </Shell>
+      </>
+    </SettingsShell>
   );
 }
 
