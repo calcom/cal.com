@@ -23,12 +23,11 @@ export const apiKeysRouter = createProtectedRouter()
   .mutation("create", {
     input: z.object({
       note: z.string().optional().nullish(),
-      hashedKey: z.string(),
-      neverExpires: z.boolean(),
-      expiresAt: z.date().optional(),
+      expiresAt: z.date().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+      console.log(hashedApiKey);
       await ctx.prisma.apiKey
         .create({
           data: {
@@ -41,13 +40,13 @@ export const apiKeysRouter = createProtectedRouter()
         .catch((e) => {
           console.log(e);
         });
+      console.log("api key:", apiKey);
       return apiKey;
     },
   })
   .mutation("edit", {
     input: z.object({
       id: z.string(),
-      neverExpires: z.boolean(),
       note: z.string().optional().nullish(),
       expiresAt: z.date().optional(),
     }),
