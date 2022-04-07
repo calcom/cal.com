@@ -30,7 +30,6 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
-  console.log(router.pathname, pageStatus);
   return (
     <ContractsProvider>
       <AppProviders {...props}>
