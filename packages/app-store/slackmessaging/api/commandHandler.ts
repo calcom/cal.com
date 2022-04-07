@@ -24,5 +24,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: `Command not found` });
     }
   }
-  res.status(400).json({ message: "Invalid request" });
+  return res.status(400).json({ message: "Invalid request" });
 }
