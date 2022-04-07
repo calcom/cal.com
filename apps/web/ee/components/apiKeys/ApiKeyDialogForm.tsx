@@ -48,15 +48,9 @@ export default function ApiKeyDialogForm(props: { defaultValues?: TApiKeys; hand
       data-testid="ApiKeyDialogForm"
       form={form}
       handleSubmit={async (event) => {
-        if (event.id) {
-          await utils.client.mutation("viewer.apiKeys.edit", event);
-          await utils.invalidateQueries(["viewer.apiKeys.list"]);
-          showToast(t("apiKeys_updated_successfully"), "success");
-        } else {
-          await utils.client.mutation("viewer.apiKeys.create", e);
-          await utils.invalidateQueries(["viewer.apiKeys.list"]);
-          showToast(t("apiKeys_created_successfully"), "success");
-        }
+        await utils.client.mutation("viewer.apiKeys.create", event);
+        await utils.invalidateQueries(["viewer.apiKeys.list"]);
+        showToast(t("apiKeys_created_successfully"), "success");
         props.handleClose();
       }}
       className="space-y-4">
@@ -73,7 +67,7 @@ export default function ApiKeyDialogForm(props: { defaultValues?: TApiKeys; hand
       <div className="flex flex-col">
         <div className="flex justify-between py-2">
           <span className="text-md text-gray-600">Expire date</span>
-          <Switch label={"Never expire"} onCheckedChange={onNeverExpired} checked={neverExpired} />
+          {/* <Switch label={"Never expire"} onCheckedChange={onNeverExpired} checked={neverExpired} />
           <Controller
             control={form.control}
             name="neverExpires"
@@ -86,11 +80,11 @@ export default function ApiKeyDialogForm(props: { defaultValues?: TApiKeys; hand
                 }}
               />
             )}
-          />
+          /> */}
         </div>
         <DatePicker
           // disabled={neverExpired}
-          minDate={new Date()}
+          // minDate={new Date()}
           // {...form.register("expiresAt")}
           date={selectedDate as Date}
           onDatesChange={handleDateChange}

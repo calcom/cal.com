@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { z } from "zod";
 
+import { generateUniqueAPIKey } from "@calcom/ee/lib/api/apiKeys";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
 // import { WEBHOOK_TRIGGER_EVENTS } from "@lib/apiKeys/constants";
@@ -27,13 +28,20 @@ export const apiKeysRouter = createProtectedRouter()
       expiresAt: z.date().optional(),
     }),
     async resolve({ ctx, input }) {
-      return await ctx.prisma.apiKey.create({
-        data: {
-          id: v4(),
-          userId: ctx.user.id,
-          ...input,
-        },
-      });
+      const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+      await ctx.prisma.apiKey
+        .create({
+          data: {
+            id: v4(),
+            userId: ctx.user.id,
+            ...input,
+            hashedKey: hashedApiKey,
+          },
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+      return apiKey;
     },
   })
   .mutation("edit", {
