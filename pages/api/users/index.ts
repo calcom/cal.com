@@ -4,13 +4,14 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UsersResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getUserFromHeader";
 import { schemaUserPublic } from "@lib/validations/user";
 
 /**
  * @swagger
  * /api/users:
  *   get:
- *     summary: Get all users
+ *     summary: Get all users (admin only), returns your user if regular user.
  *     tags:
  *     - users
  *     responses:
@@ -21,10 +22,14 @@ import { schemaUserPublic } from "@lib/validations/user";
  *       404:
  *         description: No users were found
  */
-async function allUsers(_: NextApiRequest, res: NextApiResponse<UsersResponse>) {
-  const users = await prisma.user.findMany();
+async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>) {
+  const userId = getCalcomUserId(res);
+  const users = await prisma.user.findMany({
+    where: {
+      id: userId,
+    },
+  });
   const data = users.map((user) => schemaUserPublic.parse(user));
-
   if (data) res.status(200).json({ data });
   else
     (error: Error) =>
@@ -33,5 +38,6 @@ async function allUsers(_: NextApiRequest, res: NextApiResponse<UsersResponse>) 
         error,
       });
 }
+// No POST endpoint for users for now as a regular user you're expected to signup.
 
 export default withMiddleware("HTTP_GET")(allUsers);
