@@ -1547,7 +1547,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   name="seats"
                                   label={t("offer_seats")}
                                   description={t("offer_seats_description")}
-                                  defaultChecked={eventType.seatsPerTimeSlot !== null}
+                                  defaultChecked={!!eventType.seatsPerTimeSlot}
                                   onChange={(e) => {
                                     if (e?.target.checked) {
                                       setEnableSeats(true);
