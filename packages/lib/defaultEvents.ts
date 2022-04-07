@@ -139,8 +139,9 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
 };
 
 export const getUsernameList = (users: string): string[] => {
+  // For Team booking, users might be undefined
   return users
-    .toLowerCase()
+    ?.toLowerCase()
     .replace(" ", "+")
     .replace("%20", "+")
     .split("+")
