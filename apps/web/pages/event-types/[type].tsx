@@ -213,6 +213,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
   const [enableSeats, setEnableSeats] = useState(eventType.seatsPerTimeSlot ? true : false);
   const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= 6 ? true : false);
+  const defaultSeats = 2;
+  const defaultSeatsInput = 6;
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -1556,7 +1558,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     if (e?.target.checked) {
                                       setEnableSeats(true);
                                       // Want to disable individuals from taking multiple seats
-                                      formMethods.setValue("seatsPerTimeSlot", 2);
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeats);
                                       formMethods.setValue("disableGuests", true);
                                     } else {
                                       formMethods.setValue("seatsPerTimeSlot", null);
@@ -1606,7 +1608,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
                                                   onChange={(val) => {
                                                     if (val!.value === -1) {
-                                                      formMethods.setValue("seatsPerTimeSlot", 6);
+                                                      formMethods.setValue(
+                                                        "seatsPerTimeSlot",
+                                                        defaultSeatsInput
+                                                      );
                                                       setInputSeatNumber(true);
                                                     } else {
                                                       setInputSeatNumber(false);
@@ -1614,8 +1619,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     }
                                                   }}
                                                   defaultValue={{
-                                                    value: eventType.seatsPerTimeSlot || 2,
-                                                    label: `${eventType.seatsPerTimeSlot || 2}`,
+                                                    value: eventType.seatsPerTimeSlot || defaultSeats,
+                                                    label: `${eventType.seatsPerTimeSlot || defaultSeats}`,
                                                   }}
                                                   options={selectSeatsPerTimeSlotOptions}
                                                 />
@@ -1631,12 +1636,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   <input
                                                     type="number"
                                                     className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                                    placeholder="6"
+                                                    placeholder={`${defaultSeatsInput}`}
                                                     {...formMethods.register("seatsPerTimeSlot", {
                                                       valueAsNumber: true,
-                                                      min: 6,
+                                                      min: defaultSeatsInput,
                                                     })}
-                                                    defaultValue={6}
+                                                    defaultValue={defaultSeatsInput}
                                                   />
                                                 </div>
                                               )}

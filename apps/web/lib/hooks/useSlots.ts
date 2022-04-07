@@ -186,25 +186,26 @@ export const useSlots = (props: UseSlotsProps) => {
 
   const handleAvailableSlots = async (res: Response) => {
     const responseBody: AvailabilityUserResponse = await res.json();
+    const { workingHours, currentSeats, busy } = responseBody;
+
     const times = getSlots({
       frequency: slotInterval || eventLength,
       inviteeDate: date,
-      workingHours: responseBody.workingHours,
+      workingHours: workingHours,
       minimumBookingNotice,
       eventLength,
     });
     const filterTimeProps = {
       times,
-      busy: responseBody.busy,
+      busy: busy,
       eventLength,
       beforeBufferTime,
       afterBufferTime,
-      currentSeats: responseBody.currentSeats,
+      currentSeats: currentSeats,
     };
     const filteredTimes = getFilteredTimes(filterTimeProps);
     // temporary
     const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
-    const { currentSeats } = responseBody;
     return filteredTimes.map((time) => ({
       time,
       users: [user],
