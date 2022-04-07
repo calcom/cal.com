@@ -41,7 +41,6 @@ export class ModalBox extends HTMLElement {
 			margin-bottom:20px;
 			position:absolute;
 			width:50%;
-			height: 80%;
 			top:50%;
 			left:50%;
 			transform: translateY(-50%) translateX(-50%);

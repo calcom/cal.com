@@ -36,22 +36,20 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 ## DX
 
 - Hot reload doesn't work with CSS files in the way we use vite.
-## Upcoming Improvements
+## Known Bugs and Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
-- Features Documentation
-  - Inline mode doesn't cause any scroll in iframe by default. It more looks like it is part of the website.
+
+- Bug: White Background with Dark Theme on Success page
+
+- Bug: Team Link with Dark theme has white background on all pages except the first page.
+
 - Accessibility and UI/UX Issues
   - Loader on ModalBox/popup
-  - Popup not exactly in center. 
-    - Also, Height is more initially and then it gets decreased.
-  - Rounded borders are on iframe and it is scrollable which makes the rounded borders at the bottom not visible without scroll
-  - Make it customizable by user.
+  - Make ModalBox UI customizable by user.
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
-  - ~~Close on backdrop click~~
 
 - Bundling Related
-  - ~~Minify CSS in embed.js~~
   - Comments in CSS aren't stripped off
 
 - Debuggability
@@ -59,37 +57,50 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
     - user should be able to use "on" instruction to understand what's going on in the system
   - Error Tracking for embed.js
     - Know where exactly it’s failing if it does.
+
 - Color Scheme
-  - Need to reduce the number of colors on booking page. 
-- Improved Demo
-  - Seeding might be done for team event so that such an example is also available readily in index.html
+  - Need to reduce the number of colors on booking page, so that UI configuration is simpler
 
 - Dev Experience/Ease of Installation
+  - Improved Demo
+    - Seeding might be done for team event so that such an example is also available readily in index.html
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
+
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
+
 - Embed Code Generator
-- Reschedule and Cancel - Is there a current use case of these in embed ?
+
 - UI Config Features
-  - Transparent can't be made default as it requires configuration in styling depending on what was the background of the webpage.
-  - Background should be common automatically for all pages
-    - To achieve this remove explicit background on non body elements if someone uses transparent option for body background
-  - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed.
-  - Text Color
-    - Brand color
-    - At some places Text is colored by using the color specific tailwind class. e.g. `text-gray-400` is the color of disabled date. He has 2 options, If user wants to customize that
-      - He can go and override the color on the class which doesn’t make sense
-      - He can identify the element and change the color by directly adding style, which might cause consistency issues if certain elements are missed.
-    - Challenges
-      - How would the user add on hover styles just using style attribute ?
+  - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed. Add a demo for the API. Also, test system theme handling.
+    - How would the user add on hover styles just using style attribute ?
+
+- If just iframe refreshes due to some reason, embed script can't replay the applied instructions.
+
 - React Component
   - `onClick` support with preloading
+
+Embed for authenticated pages
+
+- Currently embed is properly supported for non authenticated pages like cal.com/john. It is supported for team links as well.
+- For such pages, you can customize the colors of all the texts and give a common background to all pages under your cal link
+- If we can support other pages, which are behind login, it can open possibilities for users to show "upcoming bookings", "availability" and other functionalities on their website itself. 
+  - First of all we need more usecases for this.
+  - Think of it in this way. Cal.com is build with many different UI components that are put together to work seamlessly, what if the user can choose which component they need and which they don't
+  - The main problem with this is that, there are so many pages in the app. We would need to ensure that all the pages use the same text colors only that are available as embed UI configuration.
+  - We would need to hide certain UI components when opening a page. e.g. the navigation component wouldn't be there.
+  - User might want to change the text also for components, e.g. he might call "Event Type" as "Meeting Type" everywhere. common.json would be useful in this scenario.
+  - Login form shouldn't be visible in embed as auth would be taken care of separately. If due to cookies being expired, the component can't be shown then whatever auth flow is configured, can be triggered
+    - In most scenarios, user would have a website on which the visitors would be signing in already into their system(and thus they own the user table) and he would want to just link those users to cal.com - This would be allowed only with self hosted instance ?
+      - So, cal.com won't maintain the user details itself and would simply store a user id which it would provide to hosting website to retrieve user information whenever it needs it.
+
 
 ## Pending Documentation
 
 - READMEs
   - How to make a new element configurable using UI instruction ?
   - Why do we NOT want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
-
+  - Feature Documentation
+    - Inline mode doesn't cause any scroll in iframe by default. It more looks like it is part of the website.
 - docs.cal.com
   - A complete document on how to use embed
 

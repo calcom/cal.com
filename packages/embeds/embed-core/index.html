@@ -60,7 +60,11 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-namespace="prerendertest" data-cal-link="free?popup">Book with Free User</button>
+      <button data-cal-namespace="prerendertestLightTheme" data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -275,7 +279,15 @@
             {
               styles: {
                 body: {
-                  background: "white",
+                  background: "transparent",
+                },
+                branding: {
+                  brandColor: "#81e61c",
+                  lightColor: "#494545",
+                  lighterColor: "#4c4848",
+                  lightestColor: "#7c7777",
+                  highlightColor: "#9b0e0e",
+                  medianColor: "black",
                 },
               },
             },
@@ -288,14 +300,26 @@
       }
 
       if (!only || only === "prerender-test") {
-        Cal('init', 'prerendertest', {
+        Cal('init', 'prerendertestLightTheme', {
           debug: 1,
           origin: "http://localhost:3000",
         })
-        Cal.ns.prerendertest("preload", {
+        Cal.ns.prerendertestLightTheme("preload", {
           calLink: "free",
         });
       }
+      Cal('init', 'popupDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkLightTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
     </script>
     <script></script>
   </body>

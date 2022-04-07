@@ -134,9 +134,15 @@ export const useBrandColors = () => {
 };
 
 const getNamespace = () => {
+  if (typeof embedStore.namespace !== "undefined") {
+    // Persist this so that even if query params changed, we know that it is an embed.
+    return embedStore.namespace;
+  }
   if (isBrowser) {
     const url = new URL(document.URL);
-    return url.searchParams.get("embed");
+    const namespace = url.searchParams.get("embed");
+    embedStore.namespace = namespace;
+    return namespace;
   }
 };
 
