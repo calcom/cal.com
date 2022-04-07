@@ -5,8 +5,8 @@
   "main": "./index.ts",
   "description": "HubSpot is a cloud-based CRM designed to help align sales and marketing teams, foster sales enablement, boost ROI and optimize your inbound marketing strategy to generate more, qualified leads.",
   "dependencies": {
-    "@calcom/prisma": "*",
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"

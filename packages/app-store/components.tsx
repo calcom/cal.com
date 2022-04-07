@@ -13,6 +13,7 @@ export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
+  hubspotother: dynamic(() => import("./hubspotother/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
