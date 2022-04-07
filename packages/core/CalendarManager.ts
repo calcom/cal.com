@@ -104,7 +104,7 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
 
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
-    calEvent.description = "Notes have been hidden by the organiser"; // TODO: i18n this string?
+    calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
   }
 
   const creationResult = calendar

@@ -58,6 +58,7 @@ ${
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
@@ -136,6 +137,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
