@@ -6,7 +6,6 @@ import { useState } from "react";
 
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
-import LicenseRequired from "@ee/components/LicenseRequired";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
@@ -14,7 +13,7 @@ import { trpc } from "@lib/trpc";
 import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
-import Shell, { useMeQuery } from "@components/Shell";
+import { useMeQuery } from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 
@@ -41,7 +40,7 @@ function Teams() {
 
   return (
     <SettingsShell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
-      <LicenseRequired>
+      <>
         {!!errorMessage && <Alert severity="error" title={errorMessage} />}
         {isFreePlan && (
           <Alert
@@ -87,7 +86,7 @@ function Teams() {
           />
         )}
         {teams.length > 0 && <TeamList teams={teams}></TeamList>}
-      </LicenseRequired>
+      </>
     </SettingsShell>
   );
 }

@@ -1,7 +1,8 @@
+import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { FC } from "react";
 
-import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import EmptyScreen from "@components/EmptyScreen";
 
 /**
  * This component will only render it's children if the installation has a valid
@@ -14,27 +15,23 @@ const LicenseRequired: FC = ({ children }) => {
       {session.data?.hasValidLicense ? (
         children
       ) : (
-        <Dialog name="enterprise" clearQueryParamsOnClose={["enterprise"]}>
-          <DialogTrigger asChild>
-            <div
-              className="cursor-not-allowed opacity-50"
-              title="This is an enterprise feature, to enable please refer to cal.com/enterprise">
-              <div className="pointer-events-none">{children}</div>
-            </div>
-          </DialogTrigger>
-          {/* TODO: Make this content better */}
-          <DialogContent>
-            This is an Enterprise feature, to enable it please refer to{" "}
-            <a
-              href="https://cal.com/enterprise"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline">
-              cal.com/enterprise
-            </a>
-            .
-          </DialogContent>
-        </Dialog>
+        <EmptyScreen
+          Icon={ExclamationIcon}
+          headline="This is an enterprise feature"
+          description={
+            <>
+              To enable this feature, please refer to{" "}
+              <a
+                href="https://cal.com/enterprise"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline">
+                cal.com/enterprise
+              </a>
+              .
+            </>
+          }
+        />
       )}
     </>
   );

@@ -9,7 +9,7 @@ export default function EmptyScreen({
 }: {
   Icon: SVGComponent;
   headline: string;
-  description: string;
+  description: string | React.ReactElement;
 }) {
   return (
     <>
