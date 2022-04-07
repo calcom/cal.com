@@ -168,9 +168,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isDynamicGroupBooking = users.length > 1;
 
+  const dynamicNames = isDynamicGroupBooking
+    ? users.map((user) => {
+        return user.name || "";
+      })
+    : [];
+
   const profile = isDynamicGroupBooking
     ? {
-        name: getGroupName(usernameList),
+        name: getGroupName(dynamicNames),
         image: null,
         slug: eventTypeSlug,
         theme: null,
