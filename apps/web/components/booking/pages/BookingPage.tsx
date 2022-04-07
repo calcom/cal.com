@@ -312,6 +312,8 @@ const BookingPage = ({
                     className={`${
                       booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                         ? "text-rose-600"
+                        : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                        ? "text-yellow-500"
                         : "text-emerald-400"
                     } mb-2`}>
                     {booking
