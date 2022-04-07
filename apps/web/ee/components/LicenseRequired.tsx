@@ -1,17 +1,24 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
-import { FC } from "react";
+import { AriaRole, FC, Fragment } from "react";
 
 import EmptyScreen from "@components/EmptyScreen";
+
+type LicenseRequiredProps = {
+  as?: keyof JSX.IntrinsicElements | "";
+  className?: string;
+  role?: AriaRole | undefined;
+};
 
 /**
  * This component will only render it's children if the installation has a valid
  * license.
  */
-const LicenseRequired: FC = ({ children }) => {
+const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest }) => {
   const session = useSession();
+  const Component = as || Fragment;
   return (
-    <>
+    <Component {...rest}>
       {session.data?.hasValidLicense ? (
         children
       ) : (
@@ -33,7 +40,7 @@ const LicenseRequired: FC = ({ children }) => {
           }
         />
       )}
-    </>
+    </Component>
   );
 };
 

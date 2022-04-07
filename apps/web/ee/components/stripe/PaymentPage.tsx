@@ -9,6 +9,7 @@ import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import getStripe from "@calcom/stripe/client";
+import LicenseRequired from "@ee/components/LicenseRequired";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
@@ -49,7 +50,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
-              <div
+              <LicenseRequired
+                as="div"
                 className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
@@ -123,7 +125,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
                   </div>
                 )}
-              </div>
+              </LicenseRequired>
             </div>
           </div>
         </div>
