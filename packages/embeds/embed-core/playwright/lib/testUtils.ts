@@ -1,4 +1,4 @@
-import { Page } from "@playwright/test";
+import { Page, test } from "@playwright/test";
 
 export function todo(title: string) {
   test.skip(title, () => {});

@@ -2,6 +2,14 @@ import { useState, useEffect, CSSProperties } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 
+const embedStore = {
+  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
+  styles: {},
+  // Store all React State setters here.
+  reactStylesStateSetters: {} as Record<ElementName, ReactEmbedStylesSetter>,
+  parentInformedAboutContentHeight: false,
+};
+
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
 
@@ -69,14 +77,6 @@ export interface UiConfig {
   styles: EmbedStyles;
 }
 
-const embedStore = {
-  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {},
-  // Store all React State setters here.
-  reactStylesStateSetters: {} as Record<ElementName, ReactEmbedStylesSetter>,
-  parentInformedAboutContentHeight: false,
-};
-
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
   for (let [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
@@ -133,7 +133,7 @@ export const useBrandColors = () => {
   return brandingColors;
 };
 
-const getNamespace = () => {
+function getNamespace() {
   if (typeof embedStore.namespace !== "undefined") {
     // Persist this so that even if query params changed, we know that it is an embed.
     return embedStore.namespace;
@@ -144,7 +144,7 @@ const getNamespace = () => {
     embedStore.namespace = namespace;
     return namespace;
   }
-};
+}
 
 const isEmbed = () => {
   const namespace = getNamespace();

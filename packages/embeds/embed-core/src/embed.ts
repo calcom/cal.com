@@ -352,7 +352,9 @@ export class Cal {
         this.doInIframe({ method, arg });
       });
     });
-
+    this.actionManager.on("linkReady", (e) => {
+      this.modalBox?.setAttribute("loading", "done");
+    });
     this.actionManager.on("linkFailed", (e) => {
       this.iframe?.remove();
     });
