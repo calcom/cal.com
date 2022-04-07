@@ -77,11 +77,11 @@ test.describe("pro user", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
+    await deleteAllBookingsByEmail("pro@example.com");
     await page.goto("/pro");
   });
 
-  test.afterAll(async () => {
-    // delete test bookings
+  test.afterEach(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
   });
 
