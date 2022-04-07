@@ -15,6 +15,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
+import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 dayjs.extend(utc);

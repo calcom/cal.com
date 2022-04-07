@@ -58,6 +58,8 @@ export interface App {
   email: string;
   /** Add this value as a posible location option in event types */
   locationType?: string;
+  /** If the app adds a location, how should it be displayed? */
+  locationLabel?: string;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */

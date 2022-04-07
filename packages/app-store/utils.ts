@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { TFunction } from "next-i18next";
 
 import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
@@ -23,6 +24,18 @@ type OptionTypeBase = {
   value: LocationType;
   disabled?: boolean;
 };
+
+function translateLocations(locations: OptionTypeBase[], t: TFunction) {
+  return locations.map((l) => ({
+    ...l,
+    label: t(l.label),
+  }));
+}
+const defaultLocations: OptionTypeBase[] = [
+  { value: LocationType.InPerson, label: "in_person_meeting" },
+  { value: LocationType.Link, label: "link_meeting" },
+  { value: LocationType.Phone, label: "phone_call" },
+];
 
 export function getLocationOptions(integrations: AppMeta) {
   const defaultLocations: OptionTypeBase[] = [
@@ -101,6 +114,20 @@ export function getLocationTypes(): string[] {
     }
     return locations;
   }, [] as string[]);
+}
+
+export function getLocationLabels(t: TFunction) {
+  const defaultLocationLabels = defaultLocations.reduce((locations, location) => {
+    locations[location.value] = t(location.label);
+    return locations;
+  }, {} as Record<LocationType, string>);
+
+  return ALL_APPS.reduce((locations, app) => {
+    if (typeof app.locationType === "string") {
+      locations[app.locationType] = t(app.locationLabel || "No label set");
+    }
+    return locations;
+  }, defaultLocationLabels);
 }
 
 export function getAppName(name: string) {
