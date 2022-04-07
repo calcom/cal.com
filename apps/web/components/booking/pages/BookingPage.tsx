@@ -12,6 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -20,7 +21,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
@@ -31,12 +31,15 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
@@ -52,7 +55,13 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  locationLabels,
+}: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
@@ -96,6 +105,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -130,20 +140,6 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  // TODO: Move to translations
-  // Also TODO: Get these dynamically from App Store
-  const locationLabels = {
-    [LocationType.InPerson]: t("in_person_meeting"),
-    [LocationType.Phone]: t("phone_call"),
-    [LocationType.GoogleMeet]: "Google Meet",
-    [LocationType.Zoom]: "Zoom Video",
-    [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Daily.co Video",
-    [LocationType.Huddle01]: "Huddle01 Video",
-    [LocationType.Tandem]: "Tandem Video",
-    [LocationType.Teams]: "MS Teams",
-  };
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
@@ -171,7 +167,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
     };
   };
 
@@ -252,6 +248,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
@@ -397,8 +394,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          // @ts-expect-error
+                        <PhoneInput<BookingFormValues>
                           control={bookingForm.control}
                           name="phone"
                           placeholder={t("enter_phone_number")}

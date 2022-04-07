@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ClockIcon } from "@heroicons/react/solid";
+import { ClockIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
@@ -8,9 +8,10 @@ import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -19,6 +20,7 @@ import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -31,6 +33,97 @@ import { ssrInit } from "@server/lib/ssr";
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
+
+function redirectToExternalUrl(url: string) {
+  window.parent.location.href = url;
+}
+
+/**
+ * Redirects to external URL with query params from current URL.
+ * Query Params and Hash Fragment if present in external URL are kept intact.
+ */
+function RedirectionToast({ url }: { url: string }) {
+  const [timeRemaining, setTimeRemaining] = useState(10);
+  const [isToastVisible, setIsToastVisible] = useState(true);
+  const parsedSuccessUrl = new URL(document.URL);
+  const parsedExternalUrl = new URL(url);
+
+  /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
+  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+    parsedSuccessUrl.searchParams.set(name, value);
+  }
+
+  const urlWithSuccessParams =
+    parsedExternalUrl.origin +
+    parsedExternalUrl.pathname +
+    "?" +
+    parsedSuccessUrl.searchParams.toString() +
+    parsedExternalUrl.hash;
+
+  const { t } = useLocale();
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    timerRef.current = window.setInterval(() => {
+      if (timeRemaining > 0) {
+        setTimeRemaining((timeRemaining) => {
+          return timeRemaining - 1;
+        });
+      } else {
+        redirectToExternalUrl(urlWithSuccessParams);
+        window.clearInterval(timerRef.current as number);
+      }
+    }, 1000);
+    return () => {
+      window.clearInterval(timerRef.current as number);
+    };
+  }, [timeRemaining, urlWithSuccessParams]);
+
+  if (!isToastVisible) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
+          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
+            <div className="flex flex-wrap items-center justify-between">
+              <div className="flex w-0 flex-1 items-center">
+                <p className="truncate font-medium text-white sm:mx-3">
+                  <span className="md:hidden">Redirecting to {url} ...</span>
+                  <span className="hidden md:inline">
+                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
+                  </span>
+                </p>
+              </div>
+              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
+                <button
+                  onClick={() => {
+                    redirectToExternalUrl(urlWithSuccessParams);
+                  }}
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  {t("continue")}
+                </button>
+              </div>
+              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToastVisible(false);
+                    window.clearInterval(timerRef.current as number);
+                  }}
+                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  <XIcon className="h-6 w-6 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -115,13 +208,16 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className="mx-auto max-w-3xl py-24">
           <div className="fixed inset-0 z-50 overflow-y-auto">
+            {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
+              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+            ) : null}{" "}
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
+                <span className="inline-block h-screen align-middle" aria-hidden="true">
                   &#8203;
                 </span>
                 <div
-                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  className="my-8 inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-middle transition-all dark:border-neutral-700 dark:bg-gray-800 sm:w-full sm:max-w-lg sm:py-6"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -307,17 +403,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-
-  if (isNaN(typeId)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventType = await prisma.eventType.findUnique({
+const getEventTypesFromDB = async (typeId: number) => {
+  return await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
@@ -329,6 +416,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventName: true,
       requiresConfirmation: true,
       userId: true,
+      successRedirectUrl: true,
       users: {
         select: {
           name: true,
@@ -349,6 +437,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
+
+  if (isNaN(typeId)) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventType) {
     return {
@@ -385,9 +487,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
+    email: eventType.team ? null : eventType.users[0].email || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,
+    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
   return {
