@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { LocationType } from "@calcom/lib/location";
+import { LocationType } from "@calcom/core/location";
 import { slugify } from "@calcom/lib/slugify";
 
 export const eventTypeLocations = z.array(

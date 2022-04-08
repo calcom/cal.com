@@ -8,7 +8,10 @@ import { SdkActionManager } from "./sdk-action-manager";
 declare module "*.css";
 
 type Namespace = string;
-type Config = Record<"origin", "string">;
+type Config = {
+  origin: string;
+  debug: 1;
+};
 
 const globalCal = (window as CalWindow).Cal;
 
@@ -71,6 +74,8 @@ export class Cal {
   iframe?: HTMLIFrameElement;
 
   __config: any;
+
+  modalBox!: Element;
 
   namespace: string;
 
@@ -135,9 +140,8 @@ export class Cal {
     queryObject?: Record<string, string | string[]>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
-    // FIXME: scrolling seems deprecated, though it works on Chrome. What's the recommended way to do it?
-    iframe.scrolling = "no";
     iframe.className = "cal-embed";
+    iframe.name = "cal-embed";
     const config = this.getConfig();
 
     // Prepare searchParams from config
@@ -152,6 +156,9 @@ export class Cal {
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
+    if (config.debug) {
+      urlInstance.searchParams.set("debug", config.debug);
+    }
 
     // Merge searchParams from config onto the URL which might have query params already
     //@ts-ignore
@@ -162,13 +169,14 @@ export class Cal {
     return iframe;
   }
 
-  init(namespaceOrConfig: string | Config, config: Config = {} as Config) {
-    if (namespaceOrConfig.hasOwnProperty("origin")) {
-      config = namespaceOrConfig as Config;
+  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
+    if (typeof namespaceOrConfig !== "string") {
+      config = (namespaceOrConfig || {}) as Config;
     }
     if (config?.origin) {
       this.__config.origin = config.origin;
     }
+    this.__config.debug = config.debug;
   }
 
   getConfig() {
@@ -219,13 +227,14 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calLink }: { calLink: string }) {
-    const iframe = this.createIframe({ calLink });
+  modal({ calLink, config = {} }: { calLink: string; config?: Record<string, string> }) {
+    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
     template.innerHTML = `<cal-modal-box></cal-modal-box>`;
-    template.content.children[0].appendChild(iframe);
+    this.modalBox = template.content.children[0];
+    this.modalBox.appendChild(iframe);
     document.body.appendChild(template.content);
   }
 
@@ -307,7 +316,8 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      origin: import.meta.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com",
+      // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
+      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
@@ -323,12 +333,18 @@ export class Cal {
     this.actionManager.on("dimension-changed", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
+
       if (!iframe) {
         // Iframe might be pre-rendering
         return;
       }
-      let proposedHeightByIframeWebsite = parseFloat(getComputedStyle(iframe).height) + data.hiddenHeight;
-      iframe.style.height = proposedHeightByIframeWebsite;
+      iframe.style.height = data.iframeHeight + "px";
+      iframe.style.width = data.iframeWidth + "px";
+      if (this.modalBox) {
+        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
+        // This case is reproducible when viewing in ModalBox on Mobile.
+        iframe.style.maxHeight = window.innerHeight + "px";
+      }
     });
 
     this.actionManager.on("iframeReady", (e) => {
@@ -337,6 +353,12 @@ export class Cal {
       this.iframeDoQueue.forEach(({ method, arg }) => {
         this.doInIframe({ method, arg });
       });
+    });
+    this.actionManager.on("linkReady", (e) => {
+      this.modalBox?.setAttribute("loading", "done");
+    });
+    this.actionManager.on("linkFailed", (e) => {
+      this.iframe?.remove();
     });
   }
 }
@@ -373,9 +395,21 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
-  // TODO: Add an option to check which cal instance should be used for this.
-  globalCal("modal", {
+  const namespace = htmlElement.dataset.calNamespace;
+  const configString = htmlElement.dataset.calConfig || "";
+  let config;
+  try {
+    config = JSON.parse(configString);
+  } catch (e) {
+    config = {};
+  }
+  let api = globalCal;
+  if (namespace) {
+    api = globalCal.ns![namespace];
+  }
+  api("modal", {
     calLink: path,
+    config,
   });
 });
 

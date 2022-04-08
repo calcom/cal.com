@@ -8,6 +8,7 @@
       "outputs": ["zod/**"]
     },
     "@calcom/prisma#db-deploy": {
+      "cache": false,
       "dependsOn": ["$DATABASE_URL"]
     },
     "@calcom/prisma#db-reset": {
@@ -20,6 +21,7 @@
     "@calcom/web#build": {
       "dependsOn": [
         "^build",
+        "@calcom/prisma#build",
         "$CALENDSO_ENCRYPTION_KEY",
         "$CRON_API_KEY",
         "$DAILY_API_KEY",
@@ -73,7 +75,16 @@
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/website#build": {
-      "dependsOn": ["$WEBSITE_BASE_URL"],
+      "dependsOn": [
+        "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
+        "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRODUCT",
+        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "$NEXT_PUBLIC_WEBAPP_URL",
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$STRIPE_WEBHOOK_SECRET"
+      ],
       "outputs": [".next/**"]
     },
     "build": {
@@ -83,7 +94,9 @@
     "db-deploy": {},
     "db-seed": {},
     "deploy": {
-      "dependsOn": []
+      "cache": false,
+      "dependsOn": ["@calcom/web#build"],
+      "outputs": []
     },
     "clean": {
       "cache": false

@@ -75,6 +75,7 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
+  additionalNotes?: string | null;
   description?: string | null;
   team?: {
     name: string;

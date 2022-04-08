@@ -4,7 +4,6 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import getApps from "@calcom/app-store/utils";
-import { LocationType } from "@calcom/lib/location";
 import prisma from "@calcom/prisma";
 import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -16,6 +15,7 @@ import type {
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { createEvent, updateEvent } from "./CalendarManager";
+import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
