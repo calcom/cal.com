@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UsersResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getUserFromHeader";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaUserPublic } from "@lib/validations/user";
 
 /**
