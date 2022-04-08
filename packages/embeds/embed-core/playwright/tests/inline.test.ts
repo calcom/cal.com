@@ -3,7 +3,7 @@ import { expect, Frame } from "@playwright/test";
 import { test } from "../fixtures/fixtures";
 import { todo, getEmbedIframe } from "../lib/testUtils";
 
-test.only("Inline Iframe - Configured with Dark Theme", async ({
+test("Inline Iframe - Configured with Dark Theme", async ({
   page,
   getActionFiredDetails,
   addEmbedListeners,
