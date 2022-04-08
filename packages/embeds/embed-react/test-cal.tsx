@@ -18,6 +18,7 @@ function App() {
           guests: ["janedoe@gmail.com"],
           theme: "dark",
         }}></Cal>
+      <button data-cal-link="pro">Popup</button>
     </>
   );
 }

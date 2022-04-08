@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import { useBrandColors } from "@calcom/embed-core";
+
 const brandColor = "#292929";
 const brandTextColor = "#ffffff";
 const darkBrandColor = "#fafafa";
@@ -220,6 +222,8 @@ const BrandColor = ({
   lightVal: string | undefined | null;
   darkVal: string | undefined | null;
 }) => {
+  const embedBrandingColors = useBrandColors();
+  lightVal = embedBrandingColors.brandColor || lightVal;
   // convert to 6 digit equivalent if 3 digit code is entered
   lightVal = normalizeHexCode(lightVal, false);
   darkVal = normalizeHexCode(darkVal, true);
@@ -235,6 +239,34 @@ const BrandColor = ({
       : "#" + darkVal
     : fallBackHex(darkVal, true);
   useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--booking-highlight-color",
+      embedBrandingColors.highlightColor || "#10B981" // green--500
+    );
+    document.documentElement.style.setProperty(
+      "--booking-lightest-color",
+      embedBrandingColors.lightestColor || "#E1E1E1" // gray--200
+    );
+    document.documentElement.style.setProperty(
+      "--booking-lighter-color",
+      embedBrandingColors.lighterColor || "#ACACAC" // gray--400
+    );
+    document.documentElement.style.setProperty(
+      "--booking-light-color",
+      embedBrandingColors.lightColor || "#888888" // gray--500
+    );
+    document.documentElement.style.setProperty(
+      "--booking-median-color",
+      embedBrandingColors.medianColor || "#494949" // gray--600
+    );
+    document.documentElement.style.setProperty(
+      "--booking-dark-color",
+      embedBrandingColors.darkColor || "#313131" // gray--800
+    );
+    document.documentElement.style.setProperty(
+      "--booking-darker-color",
+      embedBrandingColors.darkerColor || "#292929" // gray--900
+    );
     document.documentElement.style.setProperty("--brand-color", lightVal);
     document.documentElement.style.setProperty("--brand-text-color", getContrastingTextColor(lightVal, true));
     document.documentElement.style.setProperty("--brand-color-dark-mode", darkVal);
