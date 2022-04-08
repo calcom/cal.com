@@ -126,11 +126,7 @@ export const getGroupName = (usernameList: string[]): string => {
 export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): string => {
   let slugLink = ``;
   if (users.length > 1) {
-    let combinedUsername = ``;
-    for (let i = 0; i < users.length - 1; i++) {
-      combinedUsername = `${users[i].username}+`;
-    }
-    combinedUsername = `${combinedUsername}${users[users.length - 1].username}`;
+    const combinedUsername = users.map((user) => user.username).join("+");
     slugLink = `/${combinedUsername}/${slug}`;
   } else {
     slugLink = `/${users[0].username}/${slug}`;
@@ -139,11 +135,10 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
 };
 
 export const getUsernameList = (users: string): string[] => {
-  // For Team booking, users might be undefined
   return users
     ?.toLowerCase()
-    .replace(" ", "+")
-    .replace("%20", "+")
+    .replace(/ /g, "+")
+    .replace(/%20/g, "+")
     .split("+")
     .filter((el) => {
       return el.length != 0;

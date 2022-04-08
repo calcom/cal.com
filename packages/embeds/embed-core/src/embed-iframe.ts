@@ -122,6 +122,10 @@ const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof E
   delete embedStore.reactStylesStateSetters[elementName];
 };
 
+function isValidNamespace(ns: string | null | undefined) {
+  return typeof ns !== "undefined" && ns !== null;
+}
+
 export const useEmbedTheme = () => {
   const router = useRouter();
   if (embedStore.theme) {
@@ -180,7 +184,7 @@ export const useBrandColors = () => {
 };
 
 function getNamespace() {
-  if (typeof embedStore.namespace !== "undefined") {
+  if (isValidNamespace(embedStore.namespace)) {
     // Persist this so that even if query params changed, we know that it is an embed.
     return embedStore.namespace;
   }
@@ -194,7 +198,7 @@ function getNamespace() {
 
 const isEmbed = () => {
   const namespace = getNamespace();
-  return typeof namespace !== "undefined" && namespace !== null;
+  return isValidNamespace(namespace);
 };
 
 export const useIsEmbed = () => {
