@@ -11,7 +11,7 @@ export interface UiConfig {
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {},
-  namespace: "",
+  namespace: null,
   theme: null,
   // Store all React State setters here.
   reactStylesStateSetters: {},
