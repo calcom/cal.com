@@ -128,7 +128,6 @@ function RedirectionToast({ url }: { url: string }) {
 }
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
-  console.log(props);
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
