@@ -8,7 +8,7 @@ test("should open embed iframe on click", async ({ page }) => {
   let embedIframe = await getEmbedIframe({ page, pathname: "/free" });
   expect(embedIframe).toBeFalsy();
 
-  await page.click('[data-cal-link="free"]');
+  await page.click('[data-cal-link="free?light&popup"]');
 
   embedIframe = await getEmbedIframe({ page, pathname: "/free" });
   expect(embedIframe).toBeEmbedCalLink({
