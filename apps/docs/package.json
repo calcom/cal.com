@@ -7,6 +7,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=4000 next",
     "lint": "next lint",
+    "type-check": "tsc --pretty --noEmit",
     "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
     "build": "next build"
