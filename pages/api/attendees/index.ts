@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getUserFromHeader";
 import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } from "@lib/validations/attendee";
 
 /**
@@ -38,10 +39,19 @@ async function createOrlistAllAttendees(
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
   const { method } = req;
+  const userId = getCalcomUserId(res);
+  // Here we make sure to only return attendee's of the user's own bookings.
+  const userBookings = await prisma.booking.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      attendees: true,
+    },
+  });
+  const userBookingsAttendees = userBookings.map((booking) => booking.attendees).flat();
   if (method === "GET") {
-    const attendees = await prisma.attendee.findMany();
-    const data = attendees.map((attendee) => schemaAttendeePublic.parse(attendee));
-    if (data) res.status(200).json({ data });
+    if (userBookingsAttendees) res.status(200).json({ data: userBookingsAttendees });
     else
       (error: Error) =>
         res.status(404).json({
@@ -50,9 +60,16 @@ async function createOrlistAllAttendees(
         });
   } else if (method === "POST") {
     const safe = schemaAttendeeBodyParams.safeParse(req.body);
-    if (!safe.success) throw new Error("Invalid request body", safe.error);
-
-    const attendee = await prisma.attendee.create({ data: safe.data });
+    if (!safe.success) {
+      console.log(safe.error);
+      throw new Error("Invalid request body", safe.error);
+    }
+    const bookingId = safe.data.bookingId;
+    delete safe.data.bookingId;
+    const noBookingId = safe.data;
+    const attendee = await prisma.attendee.create({
+      data: { ...noBookingId, booking: { connect: { id: parseInt(bookingId as string) } } },
+    });
     const data = schemaAttendeePublic.parse(attendee);
 
     if (data) res.status(201).json({ data, message: "Attendee created successfully" });
@@ -65,4 +82,4 @@ async function createOrlistAllAttendees(
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET_OR_POST")(withValidAttendee(createOrlistAllAttendees));
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllAttendees);

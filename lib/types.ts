@@ -62,6 +62,8 @@ export type SelectedCalendarsResponse = BaseResponse & {
 export type AttendeeResponse = BaseResponse & {
   data?: Partial<Attendee>;
 };
+// Grouping attendees in booking arrays for now,
+// later might remove endpoint and move to booking endpoint altogether.
 export type AttendeesResponse = BaseResponse & {
   data?: Partial<Attendee>[];
 };
