@@ -89,7 +89,6 @@ function DatePicker({
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
-
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
@@ -238,17 +237,17 @@ function DatePicker({
           ? "w-full sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
           : "w-full sm:pl-4")
       }>
-      <div className="mb-4 flex text-xl font-light text-gray-600">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">{month}</strong>{" "}
-          <span className="text-gray-500">{year}</span>
+      <div className="mb-4 flex text-xl font-light">
+        <span className="w-1/2 dark:text-white">
+          <strong className="text-bookingdarker dark:text-white">{month}</strong>{" "}
+          <span className="text-bookinglight">{year}</span>
         </span>
-        <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
+        <div className="w-1/2 text-right dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={classNames(
               "group p-1 ltr:mr-2 rtl:ml-2",
-              isFirstMonth && "text-gray-400 dark:text-gray-600"
+              isFirstMonth && "text-bookinglighter dark:text-gray-600"
             )}
             disabled={isFirstMonth}
             data-testid="decrementMonth">
@@ -259,9 +258,9 @@ function DatePicker({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
+      <div className="border-bookinglightest grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
         {weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short").map((weekDay) => (
-          <div key={weekDay} className="my-4 text-xs uppercase tracking-widest text-gray-500">
+          <div key={weekDay} className="text-bookinglight my-4 text-xs uppercase tracking-widest">
             {weekDay}
           </div>
         ))}
@@ -286,7 +285,9 @@ function DatePicker({
                 className={classNames(
                   "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
                   "hover:border-brand hover:border dark:hover:border-white",
-                  day.disabled ? "cursor-default font-light text-gray-400 hover:border-0" : "font-medium",
+                  day.disabled
+                    ? "text-bookinglighter cursor-default font-light hover:border-0"
+                    : "font-medium",
                   date && date.isSame(browsingDate.date(day.date), "day")
                     ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
                     : !day.disabled

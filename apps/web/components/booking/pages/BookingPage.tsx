@@ -12,6 +12,8 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
@@ -63,9 +65,12 @@ const BookingPage = ({
   locationLabels,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  const isEmbed = useIsEmbed();
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+  const isBackgroundTransparent = useIsBackgroundTransparent();
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -283,9 +288,18 @@ const BookingPage = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <main
+        className={
+          isEmbed ? "mx-auto" : "mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
+        }>
         {isReady && (
-          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
+          <div
+            className={classNames(
+              "overflow-hidden",
+              isEmbed ? "" : "border border-gray-200",
+              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
+              "sm:rounded-sm"
+            )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
                 <AvatarGroup
@@ -300,16 +314,18 @@ const BookingPage = ({
                       }))
                   )}
                 />
-                <h2 className="font-cal mt-2 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
+                  {profile.name}
+                </h2>
+                <h1 className="text-bookingdark mb-4 text-3xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
-                <p className="mb-2 text-gray-500">
+                <p className="text-bookinglight mb-2">
                   <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}
                 </p>
                 {eventType.price > 0 && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
@@ -320,12 +336,12 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                <p className="mb-4 text-green-500">
+                <p className="text-bookinghighlight mb-4">
                   <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {parseDate(date)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
