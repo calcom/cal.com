@@ -6,10 +6,9 @@ export const captureErrors: NextMiddleware = async (_req, res, next) => {
     // Catch any errors that are thrown in remaining
     // middleware and the API route handler
     await next();
-  } catch (err) {
-    Sentry.captureException(err);
-    console.log(err);
-    res.status(400).json({ message: "Something went wrong", error: err });
-    // res.json({ error: err });
+  } catch (error) {
+    Sentry.captureException(error);
+    console.log(error);
+    res.status(400).json({ message: "Something went wrong", error });
   }
 };
