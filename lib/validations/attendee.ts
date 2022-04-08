@@ -8,6 +8,7 @@ export const schemaAttendeeBaseBodyParams = Attendee.omit({ id: true }).partial(
 export const schemaAttendeePublic = Attendee.omit({});
 
 const schemaAttendeeRequiredParams = z.object({
+  bookingId: z.any(),
   email: z.string().email(),
   name: z.string(),
   timeZone: z.string(),
