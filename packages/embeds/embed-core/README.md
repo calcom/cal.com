@@ -40,6 +40,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Accessibility and UI/UX Issues
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
+  - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
 
 - Automation Tests
   - Run automation tests in CI

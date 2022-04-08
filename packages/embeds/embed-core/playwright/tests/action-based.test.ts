@@ -3,7 +3,9 @@ import { expect } from "@playwright/test";
 import { test } from "../fixtures/fixtures";
 import { todo, getEmbedIframe } from "../lib/testUtils";
 
-test("should open embed iframe on click", async ({ page }) => {
+test("should open embed iframe on click", async ({ page, addEmbedListeners, getActionFiredDetails }) => {
+  const calNamespace = "prerendertestLightTheme";
+  await addEmbedListeners(calNamespace);
   await page.goto("/?only=prerender-test");
   let embedIframe = await getEmbedIframe({ page, pathname: "/free" });
   expect(embedIframe).toBeFalsy();
@@ -11,7 +13,8 @@ test("should open embed iframe on click", async ({ page }) => {
   await page.click('[data-cal-link="free?light&popup"]');
 
   embedIframe = await getEmbedIframe({ page, pathname: "/free" });
-  expect(embedIframe).toBeEmbedCalLink({
+
+  expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
     pathname: "/free",
   });
 });
