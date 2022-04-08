@@ -12,12 +12,13 @@ All apps can be found under `packages/app-store`. In this folder is `_example` w
 
 ```sh
 ├──_example
-|   ├──index.ts
-|   ├──package.json
-|   ├──.env.example
 |
 |   ├──api
 |   |   ├──example.ts
+|   |   ├──index.ts
+|
+|   ├──components
+|   |   ├──InstallAppButton.tsx
 |   |   ├──index.ts
 |
 |   ├──lib
@@ -26,6 +27,11 @@ All apps can be found under `packages/app-store`. In this folder is `_example` w
 |
 |   ├──static
 |   |   ├──icon.svg
+|
+|   ├──index.ts
+|   ├──package.json
+|   ├──.env.example
+|	├──README.mdx
 ```
 
 ## Getting Started
@@ -38,8 +44,17 @@ In `index.js` fill out the meta data that will be rendered on the app page. Unde
 
 Under the `/api` folder, this is where any API calls that are associated with your app will be handled. Since cal.com uses Next.js we use dynamic API routes. In this example if we want to hit `/api/example.ts` the route would be `{BASE_URL}/api/integrations/_example/example`. Export your endpoints in an `index.ts` file under `/api` folder and import them in your main `index.ts` file.
 
+Under the `/components` folder, this is where the install button for your app should live. Follow the template under `_example` to add your on click action (ex. Redirecting to a log in page or opening a modal).
+
 The `/lib` folder is where the functions of your app live. For example, when creating a booking with a MS Teams link the function to make the call to grab the link lives in the `/lib` folder. Export your endpoints in an `index.ts` file under `/lib` folder and import them in your main `index.ts` file.
 
-The `/static` folder is where your assets live.
+On the app store page you can customize your apps description by adding a markdown file called `README.mdx`. If you do not add one then the description from you `package.json` will be used instead.
+
+The `/static` folder is where you can store your app icon and any images that your `README.mdx` may use.
+
+## Adding Your App to the App Store
+To render your app on the app store page, go to `packages/app-store/index.ts`. Import your app into the file and add it to the `appStore` object.
+
+Under `packages/app-store/components.tsx`,  in the `InstallAppButtonMap` object dynamically import your install button. Your install button should live under `{your_app}/components`.
 
 If you need any help feel free to join us on [Slack](https://cal.com/slack)
