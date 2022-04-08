@@ -1,24 +1,10 @@
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
 
-import prisma from "@calcom/prisma";
+// Hash the API key to check against when veriying it. so we don't have to store the key in plain text.
+export const hashAPIKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
 
-export function generateUniqueAPIKey() {
-  const apiKey = randomBytes(16).toString("hex");
-  const hashedAPIKey = hashAPIKey(apiKey);
-  // const exists = await prisma.apiKey.findMany({ where: { hashedKey: hashedAPIKey } });
-  // Ensure API key is unique done at db level
-  // if (!exists) {
-  //   generateUniqueAPIKey();
-  // } else {
-  return [hashedAPIKey, apiKey];
-  // }
-}
-
-// Hash the API key
-export function hashAPIKey(apiKey: string): string {
-  const { createHash } = require("crypto");
-
-  const hashedAPIKey = createHash("sha256").update(apiKey).digest("hex");
-
-  return hashedAPIKey;
-}
+// Generate a random API key. Prisma already makes sure it's unique. So no need to add salts like with passwords.
+export const generateUniqueAPIKey = (apiKey = randomBytes(16).toString("hex")) => [
+  hashAPIKey(apiKey),
+  apiKey,
+];
