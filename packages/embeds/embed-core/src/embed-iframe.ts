@@ -294,7 +294,7 @@ function keepParentInformedAboutDimensionChanges() {
       return;
     }
     if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("windowLoadComplete", {});
+      sdkActionManager?.fire("__windowLoadComplete", {});
     }
     embedStore.windowLoadEventFired = true;
 
