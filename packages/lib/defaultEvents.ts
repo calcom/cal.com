@@ -83,7 +83,7 @@ const commons = {
 
 const min15Event = {
   length: 15,
-  slug: "15min",
+  slug: "15",
   title: "15min",
   eventName: "Dynamic Collective 15min Event",
   description: "Dynamic Collective 15min Event",
@@ -91,7 +91,7 @@ const min15Event = {
 };
 const min30Event = {
   length: 30,
-  slug: "30min",
+  slug: "30",
   title: "30min",
   eventName: "Dynamic Collective 30min Event",
   description: "Dynamic Collective 30min Event",
@@ -99,7 +99,7 @@ const min30Event = {
 };
 const min60Event = {
   length: 60,
-  slug: "60min",
+  slug: "60",
   title: "60min",
   eventName: "Dynamic Collective 60min Event",
   description: "Dynamic Collective 60min Event",
@@ -109,7 +109,12 @@ const min60Event = {
 const defaultEvents = [min15Event, min30Event, min60Event];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
-  return `Book a ${slug} event with ${dynamicUsernames.join(", ")}`;
+  return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
+};
+
+export const getDynamicEventName = (dynamicNames: string[], slug: string): string => {
+  const lastUser = dynamicNames.pop();
+  return `Dynamic Collective ${slug} min event with ${dynamicNames.join(", ")} & ${lastUser}`;
 };
 
 export const getDefaultEvent = (slug: string) => {
