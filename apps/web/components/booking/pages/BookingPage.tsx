@@ -116,6 +116,7 @@ const BookingPage = ({
           name: attendees[0].name,
           email: attendees[0].email,
           location,
+          eventName: profile.eventName || "",
         },
       });
     },
