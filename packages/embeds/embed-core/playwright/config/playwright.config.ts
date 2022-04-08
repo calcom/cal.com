@@ -38,14 +38,16 @@ const config: PlaywrightTestConfig = {
       testDir,
       use: { ...devices["Desktop Chrome"] },
     },
-    /*  {
+    {
       name: "firefox",
+      testDir,
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit",
+      testDir,
       use: { ...devices["Desktop Safari"] },
-    }, */
+    },
   ],
 };
 export type ExpectedUrlDetails = {
