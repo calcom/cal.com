@@ -173,7 +173,7 @@ function BookingListItem(booking: BookingItem) {
         {
           id: "edit",
           label: t("edit_booking"),
-          href: "",
+          href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",

@@ -12,6 +12,7 @@ export type Person = {
   email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  username?: string;
 };
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;

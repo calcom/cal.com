@@ -6,6 +6,7 @@ import {
   ClockIcon,
   CreditCardIcon,
   GlobeIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -16,11 +17,12 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { BASE_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -42,7 +44,7 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage }: Props) => {
+const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
@@ -155,9 +157,13 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     truncateAfter={5}
                   />
                   <div className="mt-4 sm:-mt-2">
-                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600 dark:text-gray-100">
+                    <p className="text-sm font-medium text-gray-600 dark:text-white">{profile.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-900 dark:text-gray-100">
                       {eventType.title}
+                      <p className="mb-2 text-gray-600 dark:text-white">
+                        <InformationCircleIcon className="mr-[10px] -mt-1 inline-block h-4 w-4" />
+                        {eventType.description}
+                      </p>
                       <div>
                         <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
@@ -177,7 +183,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
@@ -204,16 +209,20 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     truncateAfter={3}
                   />
                   <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h1 className="font-cal mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  <p className="mb-2 text-gray-600 dark:text-white">
+                    <InformationCircleIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {eventType.description}
+                  </p>
+                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-600">
+                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600">
+                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -225,8 +234,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
 
                   <TimezoneDropdown />
-
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                   {previousPage === `${BASE_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
@@ -281,8 +288,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-500">
-          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600">
+          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />

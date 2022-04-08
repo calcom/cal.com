@@ -24,6 +24,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
+  const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
 
   if (!userParam || !typeParam) {
     throw new Error(`File is not named [type]/[user]`);
@@ -214,6 +215,43 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  type Booking = {
+    startTime: Date | string;
+    description: string | null;
+    attendees?: {
+      email: string;
+      name: string;
+    }[];
+  } | null;
+  // @NOTE: being used several times refactor to exported function
+  async function getBooking(rescheduleUid: string): Promise<Booking> {
+    return await prisma.booking.findFirst({
+      where: {
+        uid: rescheduleUid,
+      },
+      select: {
+        startTime: true,
+        description: true,
+        attendees: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  let booking: Booking | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(rescheduleUid);
+    if (booking) {
+      // @NOTE: had to do this because Server side cant return [Object objects]
+      // probably fixable with json.stringify -> json.parse
+      booking["startTime"] = (booking?.startTime as Date)?.toISOString();
+    }
+  }
+
   return {
     props: {
       profile: {
@@ -231,6 +269,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };

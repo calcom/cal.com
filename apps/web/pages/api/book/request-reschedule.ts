@@ -21,8 +21,8 @@ const rescheduleSchema = z.object({
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getSession({ req });
   const { bookingId, rescheduleReason: cancellationReason } = req.body;
-  console.log({ bookingId });
-  let userOwner: Pick<User, "id" | "email" | "name" | "locale" | "timeZone"> | null;
+  type PersonAttendee = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
+  let userOwner: PersonAttendee | null;
   try {
     if (session?.user?.id) {
       userOwner = await prisma.user.findUnique({
@@ -82,15 +82,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // @NOTE: Lets assume all guests are the same language
       const [firstAttendee] = bookingToReschedule.attendees;
       const tAttendees = await getTranslation(firstAttendee.locale ?? "en", "common");
-      const usersToPeopleType = (
-        users: Pick<User, "id" | "email" | "name" | "locale" | "timeZone">[],
-        selectedLanguage: TFunction
-      ): Person[] => {
+      const usersToPeopleType = (users: PersonAttendee[], selectedLanguage: TFunction): Person[] => {
         return users?.map((user) => {
           return {
             id: user.id || "",
             email: user.email || "",
             name: user.name || "",
+            username: user?.username || "",
             language: { translate: selectedLanguage, locale: user.locale || "en" },
             timeZone: user?.timeZone,
           };
@@ -105,7 +103,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         type: event?.title || "Nameless Event",
         startTime: bookingToReschedule.startTime.toISOString(),
         endTime: bookingToReschedule.endTime.toISOString(),
-        attendees: usersToPeopleType(bookingToReschedule.attendees, tAttendees),
+        attendees: usersToPeopleType(
+          // username field doesn't exists on attendee but could be in the future
+          bookingToReschedule.attendees as unknown as PersonAttendee[],
+          tAttendees
+        ),
         organizer: userOwnerAsPeopleType,
       });
       await calendarEventBuilder.buildEventObjectFromInnerClass(bookingToReschedule.eventTypeId);
@@ -117,9 +119,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         await calendarEventBuilder.buildLuckyUsers();
       }
       await calendarEventBuilder.buildAttendeesList();
+      calendarEventBuilder.setLocation(bookingToReschedule.location);
+      calendarEventBuilder.setUId(bookingToReschedule.uid);
+      calendarEventBuilder.setCancellationReason(cancellationReason);
       console.log({ calendarEventBuilder });
       // Send email =================
-      await sendRequestRescheduleEmail(calendarEventBuilder.calendarEvent);
+      const queryParams = new URLSearchParams();
+      queryParams.set("rescheduleUid", `${bookingToReschedule.uid}`);
+      const rescheduleLink = `${process.env.WEBSITE_BASE_URL}/${userOwner.username}/${
+        event?.slug
+      }?${queryParams.toString()}`;
+      await sendRequestRescheduleEmail(calendarEventBuilder.calendarEvent, {
+        rescheduleLink,
+      });
     }
 
     return res.status(200).json(bookingToReschedule);

@@ -56,6 +56,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       users: {
         select: {
+          id: true,
           avatar: true,
           name: true,
         },
@@ -74,12 +75,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
+  type Booking = {
+    startTime: Date | string;
+    description: string | null;
+    attendees: {
+      email: string;
+      name: string;
+    }[];
+  } | null;
+
+  // @NOTE: being used several times refactor to exported function
+  async function getBooking(): Promise<Booking> {
     return prisma.booking.findFirst({
       where: {
         uid: asStringOrThrow(context.query.rescheduleUid),
       },
       select: {
+        startTime: true,
         description: true,
         attendees: {
           select: {
@@ -91,11 +103,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
   let booking: Booking | null = null;
-
   if (context.query.rescheduleUid) {
     booking = await getBooking();
+    if (booking) {
+      // @NOTE: had to do this because Server side cant return [Object objects]
+      // probably fixable with json.stringify -> json.parse
+      booking["startTime"] = (booking?.startTime as Date)?.toISOString();
+    }
   }
 
   const t = await getTranslation(context.locale ?? "en", "common");

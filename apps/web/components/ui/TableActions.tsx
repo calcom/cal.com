@@ -12,7 +12,9 @@ export type ActionType = {
   label: string;
   disabled?: boolean;
   color?: "primary" | "secondary";
-} & ({ href?: never; onClick: () => any } | { href?: string; onClick?: never }) & { actions?: ActionType[] };
+} & ({ href?: never; onClick: () => any } | { href?: string; onClick?: never }) & {
+    actions?: ActionType[];
+  };
 
 interface Props {
   actions: ActionType[];

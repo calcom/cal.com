@@ -248,4 +248,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   public setDescription(description: CalendarEventClass["description"]) {
     this.calendarEvent.description = description;
   }
+
+  public setCancellationReason(cancellationReason: CalendarEventClass["cancellationReason"]) {
+    this.calendarEvent.cancellationReason = cancellationReason;
+  }
 }
