@@ -12,7 +12,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 /**
  * @swagger
- * /api/teams/{id}:
+ * /v1/teams/{id}:
  *   get:
  *     summary: Get a team by ID
  *     parameters:
@@ -81,8 +81,8 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  */
 export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaTeamBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

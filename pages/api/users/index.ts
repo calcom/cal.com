@@ -9,7 +9,7 @@ import { schemaUserPublic } from "@lib/validations/user";
 
 /**
  * @swagger
- * /api/users:
+ * /v1/users:
  *   get:
  *     summary: Get all users (admin only), returns your user if regular user.
  *     tags:
