@@ -1,11 +1,11 @@
 import { expect, Frame } from "@playwright/test";
 
 import { test } from "../fixtures/fixtures";
-import { todo } from "../lib/testUtils";
+import { todo, getEmbedIframe } from "../lib/testUtils";
 
 test("Inline Iframe - Configured with Dark Theme", async ({ page }) => {
   await page.goto("/?only=ns:default");
-  const embedIframe = page.frame({ url: /.*pro.*/ });
+  const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
   expect(embedIframe).toBeEmbedCalLink({
     pathname: "/pro",
     searchParams: {
