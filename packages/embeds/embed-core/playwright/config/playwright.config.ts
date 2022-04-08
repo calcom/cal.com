@@ -38,14 +38,16 @@ const config: PlaywrightTestConfig = {
       testDir,
       use: { ...devices["Desktop Chrome"] },
     },
-    /*  {
+    {
       name: "firefox",
+      testDir,
       use: { ...devices["Desktop Firefox"] },
     },
     {
       name: "webkit",
+      testDir,
       use: { ...devices["Desktop Safari"] },
-    }, */
+    },
   ],
 };
 export type ExpectedUrlDetails = {
@@ -58,13 +60,23 @@ declare global {
   namespace PlaywrightTest {
     //FIXME: how to restrict it to Frame only
     interface Matchers<R> {
-      toBeEmbedCalLink(expectedUrlDetails?: ExpectedUrlDetails): R;
+      toBeEmbedCalLink(
+        calNamespace: string,
+        getActionFiredDetails: Function,
+        expectedUrlDetails?: ExpectedUrlDetails
+      ): R;
     }
   }
 }
 
 expect.extend({
-  async toBeEmbedCalLink(iframe: Frame, expectedUrlDetails: ExpectedUrlDetails = {}) {
+  async toBeEmbedCalLink(
+    iframe: Frame,
+    calNamespace: string,
+    //TODO: Move it to testUtil, so that it doesn't need to be passed
+    getActionFiredDetails: Function,
+    expectedUrlDetails: ExpectedUrlDetails = {}
+  ) {
     if (!iframe || !iframe.url) {
       return {
         pass: false,
@@ -110,6 +122,19 @@ expect.extend({
         };
       }
     }
+
+    const iframeReadyEventDetail = await getActionFiredDetails({
+      calNamespace,
+      actionType: "__iframeReady",
+    });
+
+    if (!iframeReadyEventDetail) {
+      return {
+        pass: false,
+        message: () => `Iframe not ready to communicate with parent`,
+      };
+    }
+
     return {
       pass: true,
       message: () => `passed`,

@@ -14,7 +14,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Button from "@calcom/ui/Button";
@@ -76,6 +76,7 @@ function useRedirectToLoginIfUnauthenticated() {
 
   return {
     loading: loading && !session,
+    session,
   };
 }
 
@@ -84,11 +85,7 @@ function useRedirectToOnboardingIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const [isRedirectingToOnboarding, setRedirecting] = useState(false);
-
-  useEffect(() => {
-    user && setRedirecting(shouldShowOnboarding(user));
-  }, [router, user]);
+  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
   useEffect(() => {
     if (isRedirectingToOnboarding) {
@@ -137,7 +134,7 @@ export default function Shell(props: {
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated();
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -201,7 +198,7 @@ export default function Shell(props: {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
+  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
@@ -209,6 +206,9 @@ export default function Shell(props: {
       </div>
     );
   }
+
+  if (!session) return null;
+
   return (
     <>
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />

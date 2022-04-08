@@ -77,8 +77,9 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
-  organizer: Person;
-  attendees: Person[];
+  additionalNotes?: string | null;
+  organizer: Person; //@TODO: check if needed for builder
+  attendees: Person[]; //@TODO: check if needed for builder
   description?: string | null;
   team?: {
     name: string;

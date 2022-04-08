@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -46,10 +48,13 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
 const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
+  const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
+  const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -131,11 +136,19 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       <div>
         <main
           className={
-            "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
-            (selectedDate ? "max-w-5xl" : "max-w-3xl")
+            isEmbed
+              ? ""
+              : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
+                (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
+            <div
+              style={availabilityDatePickerEmbedStyles}
+              className={classNames(
+                isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
+                "border-bookinglightest rounded-sm md:border",
+                isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
+              )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
                 <div className="block items-center sm:flex sm:space-x-4">
@@ -157,8 +170,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     truncateAfter={5}
                   />
                   <div className="mt-4 sm:-mt-2">
-                    <p className="text-sm font-medium text-gray-600 dark:text-white">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <div className="text-bookingmedian flex gap-2 text-xs font-medium dark:text-gray-100">
                       {eventType.title}
                       <p className="mb-2 text-gray-600 dark:text-white">
                         <InformationCircleIcon className="mr-[10px] -mt-1 inline-block h-4 w-4" />
@@ -267,6 +280,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
@@ -279,7 +293,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               </div>
             </div>
           )}
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
     </>
@@ -288,8 +302,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600">
-          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left">
+          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
           {timeZone()}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />

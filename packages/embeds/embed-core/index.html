@@ -38,6 +38,14 @@
     </script>
 
     <style>
+      body {
+        background: linear-gradient(
+          90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%
+        );
+      }
       .debug {
         /* border: 1px solid black; */
         margin-bottom: 5px;
@@ -52,7 +60,11 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-link="free">Book with Free User</button>
+      <button data-cal-namespace="prerendertestLightTheme" data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -101,7 +113,7 @@
       </div>
 
       <div class="debug" id="cal-booking-place-third">
-        <h2>Namespace "third"(Cal.ns.third)[inline]</h2>
+        <h2>Namespace "third"(Cal.ns.third)[inline][Custom Styling - Transparent Background]</h2>
         <div>
           <i><a href="?only=ns:third">Test in Zen Mode</a></i>
         </div>
@@ -136,13 +148,13 @@
 
         if (detail.type === "linkReady") {
           document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
+        } else if (detail.type === "linkFailed") {
+          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
         }
-
         document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(
           e.detail
         );
       };
-
       const searchParams = new URL(document.URL).searchParams;
       const only = searchParams.get("only");
       if (!only || only === "ns:default") {
@@ -215,6 +227,7 @@
           debug: 1,
           origin: "http://localhost:3000",
         });
+
         Cal.ns.third(
           [
             "inline",
@@ -228,7 +241,15 @@
             {
               styles: {
                 body: {
-                  background: "white",
+                  background: "transparent",
+                },
+                branding: {
+                  brandColor: "#81e61c",
+                  lightColor: "#494545",
+                  lighterColor: "#4c4848",
+                  lightestColor: "#7c7777",
+                  highlightColor: "#9b0e0e",
+                  medianColor: "black",
                 },
               },
             },
@@ -258,7 +279,15 @@
             {
               styles: {
                 body: {
-                  background: "white",
+                  background: "transparent",
+                },
+                branding: {
+                  brandColor: "#81e61c",
+                  lightColor: "#494545",
+                  lighterColor: "#4c4848",
+                  lightestColor: "#7c7777",
+                  highlightColor: "#9b0e0e",
+                  medianColor: "black",
                 },
               },
             },
@@ -271,10 +300,26 @@
       }
 
       if (!only || only === "prerender-test") {
-        Cal("preload", {
+        Cal('init', 'prerendertestLightTheme', {
+          debug: 1,
+          origin: "http://localhost:3000",
+        })
+        Cal.ns.prerendertestLightTheme("preload", {
           calLink: "free",
         });
       }
+      Cal('init', 'popupDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkLightTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
     </script>
     <script></script>
   </body>
