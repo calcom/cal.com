@@ -128,6 +128,7 @@ function RedirectionToast({ url }: { url: string }) {
 }
 
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
+  console.log(props);
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
@@ -145,7 +146,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
-    eventName: props.eventType.eventName,
+    eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     t,
   };
@@ -456,6 +457,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
+  const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
 
   if (isNaN(typeId)) {
     return {
@@ -498,6 +500,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
+  // if (!typeId) eventType["eventName"] = getDynamicEventName(users, typeSlug);
+
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
@@ -512,6 +516,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       trpcState: ssr.dehydrate(),
+      dynamicEventName,
     },
   };
 }
