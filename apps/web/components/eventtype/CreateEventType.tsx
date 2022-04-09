@@ -67,12 +67,14 @@ export default function CreateEventTypeButton(props: Props) {
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
+    defaultValues: {
+      title,
+      length,
+      description,
+      slug,
+    },
   });
   const { setValue, watch, register } = form;
-  setValue("title", title);
-  setValue("length", length);
-  setValue("description", description);
-  setValue("slug", slug);
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
@@ -86,7 +88,7 @@ export default function CreateEventTypeButton(props: Props) {
 
   const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types/" + eventType.id);
+      await router.replace("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err) => {
