@@ -75,6 +75,8 @@ export class Cal {
 
   __config: any;
 
+  modalBox!: Element;
+
   namespace: string;
 
   actionManager: SdkActionManager;
@@ -225,13 +227,14 @@ export class Cal {
     element.appendChild(iframe);
   }
 
-  modal({ calLink }: { calLink: string }) {
-    const iframe = this.createIframe({ calLink });
+  modal({ calLink, config = {} }: { calLink: string; config?: Record<string, string> }) {
+    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
     template.innerHTML = `<cal-modal-box></cal-modal-box>`;
-    template.content.children[0].appendChild(iframe);
+    this.modalBox = template.content.children[0];
+    this.modalBox.appendChild(iframe);
     document.body.appendChild(template.content);
   }
 
@@ -327,7 +330,7 @@ export class Cal {
     // 1. Initial iframe width and height would be according to 100% value of the parent element
     // 2. Once webpage inside iframe renders, it would tell how much iframe height should be increased so that my entire content is visible without iframe scroll
     // 3. Parent window would check what iframe height can be set according to parent Element
-    this.actionManager.on("dimension-changed", (e) => {
+    this.actionManager.on("__dimensionChanged", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
 
@@ -335,19 +338,27 @@ export class Cal {
         // Iframe might be pre-rendering
         return;
       }
-      let proposedHeightByIframeWebsite = data.iframeHeight;
-      iframe.style.height = proposedHeightByIframeWebsite + "px";
-      // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
-      // This case is reproducible when viewing in ModalBox on Mobile.
-      iframe.style.maxHeight = window.innerHeight + "px";
+      iframe.style.height = data.iframeHeight + "px";
+      iframe.style.width = data.iframeWidth + "px";
+      if (this.modalBox) {
+        // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
+        // This case is reproducible when viewing in ModalBox on Mobile.
+        iframe.style.maxHeight = window.innerHeight + "px";
+      }
     });
 
-    this.actionManager.on("iframeReady", (e) => {
+    this.actionManager.on("__iframeReady", (e) => {
       this.iframeReady = true;
       this.doInIframe({ method: "parentKnowsIframeReady", arg: undefined });
       this.iframeDoQueue.forEach(({ method, arg }) => {
         this.doInIframe({ method, arg });
       });
+    });
+    this.actionManager.on("linkReady", (e) => {
+      this.modalBox?.setAttribute("loading", "done");
+    });
+    this.actionManager.on("linkFailed", (e) => {
+      this.iframe?.remove();
     });
   }
 }
@@ -384,9 +395,21 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
-  // TODO: Add an option to check which cal instance should be used for this.
-  globalCal("modal", {
+  const namespace = htmlElement.dataset.calNamespace;
+  const configString = htmlElement.dataset.calConfig || "";
+  let config;
+  try {
+    config = JSON.parse(configString);
+  } catch (e) {
+    config = {};
+  }
+  let api = globalCal;
+  if (namespace) {
+    api = globalCal.ns![namespace];
+  }
+  api("modal", {
     calLink: path,
+    config,
   });
 });
 
