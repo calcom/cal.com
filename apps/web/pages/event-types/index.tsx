@@ -117,7 +117,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
   });
 
-  async function moveEventType(index: number, increment: 1 | -1) {
+  function moveEventType(index: number, increment: 1 | -1) {
     const newList = [...types];
 
     const type = types[index];
@@ -126,10 +126,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       newList[index] = tmp;
       newList[index + increment] = type;
     }
-    await mutation.mutateAsync({
-      ids: newList.map((type) => type.id),
-    });
-    await utils.setQueryData(["viewer.eventTypes"], (data) =>
+
+    utils.cancelQuery(["viewer.eventTypes"]);
+    utils.setQueryData(["viewer.eventTypes"], (data) =>
       Object.assign(data, {
         eventTypesGroups: [
           data?.eventTypeGroups.slice(0, groupIndex),
@@ -140,6 +139,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         ],
       })
     );
+
+    mutation.mutate({
+      ids: newList.map((type) => type.id),
+    });
   }
 
   async function deleteEventTypeHandler(id: number) {
