@@ -6,7 +6,12 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
+import {
+  getDefaultEvent,
+  getDynamicEventName,
+  getGroupName,
+  getUsernameList,
+} from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -187,6 +192,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         })
           ? false
           : true,
+        eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
       }
     : {
         name: user.name || user.username,
@@ -195,6 +201,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: user.theme,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
+        eventName: null,
       };
 
   const t = await getTranslation(context.locale ?? "en", "common");
