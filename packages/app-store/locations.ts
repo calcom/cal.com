@@ -10,7 +10,6 @@ export enum AppStoreLocationType {
   Zoom = "integrations:zoom",
   Daily = "integrations:daily",
   Jitsi = "integrations:jitsi",
-  HubSpot = "integrations:hubspot",
   Huddle01 = "integrations:huddle01",
   Tandem = "integrations:tandem",
   Teams = "integrations:office365_video",

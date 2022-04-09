@@ -15,14 +15,13 @@ export const metadata = {
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
-  category: "crm",
+  category: "other",
   label: "HubSpot CRM",
   slug: "hubspot",
   title: "HubSpot CRM",
   trending: true,
   email: "help@cal.com",
-  locationType: "integrations:hubspot",
 } as App;
 
 export * as api from "./api";
-//export * as lib from "./lib";
+export * as lib from "./lib";

@@ -28,10 +28,6 @@ export const isDaily = (location: string): boolean => {
   return location === "integrations:daily";
 };
 
-export const isHubspot = (location: string): boolean => {
-  return location === "integrations:hubspot";
-};
-
 export const isHuddle01 = (location: string): boolean => {
   return location === "integrations:huddle01";
 };
@@ -52,7 +48,6 @@ export const isDedicatedIntegration = (location: string): boolean => {
   return (
     isZoom(location) ||
     isDaily(location) ||
-    isHubspot(location) ||
     isHuddle01(location) ||
     isTandem(location) ||
     isJitsi(location) ||
@@ -67,7 +62,6 @@ export const getLocationRequestFromIntegration = (location: string) => {
     location === LocationType.Zoom.valueOf() ||
     location === LocationType.Daily.valueOf() ||
     location === LocationType.Jitsi.valueOf() ||
-    location === LocationType.HubSpot.valueOf() ||
     location === LocationType.Huddle01.valueOf() ||
     location === LocationType.Tandem.valueOf() ||
     location === LocationType.Teams.valueOf()
@@ -108,6 +102,7 @@ type EventManagerUser = {
 export default class EventManager {
   calendarCredentials: Credential[];
   videoCredentials: Credential[];
+  otherCredentials: Credential[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -118,6 +113,7 @@ export default class EventManager {
     const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
+    this.otherCredentials = appCredentials.filter((cred) => cred.type.endsWith("_other"));
   }
 
   /**

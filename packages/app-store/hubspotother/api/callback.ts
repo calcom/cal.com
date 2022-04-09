@@ -1,19 +1,18 @@
+import * as hubspot from "@hubspot/api-client";
+import { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 
 const client_id = process.env.HUBSPOT_CLIENT_ID;
 const client_secret = process.env.HUBSPOT_CLIENT_SECRET;
+const hubspotClient = new hubspot.Client();
 
-export type HubSpotTokenReturnType = {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  created_date: number;
+export type HubspotToken = TokenResponseIF & {
+  expiryDate?: number;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,32 +33,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // Generates grant_type=authorization_code&client_id=XXXX-XXXX-XXXX-XX&...
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    client_id: client_id,
-    client_secret: client_secret,
-    redirect_uri: WEBAPP_URL + "/api/integrations/hubspotother/callback",
+  const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
+    "authorization_code",
     code,
-  }).toString();
+    WEBAPP_URL + "/api/integrations/hubspotother/callback",
+    client_id,
+    client_secret
+  );
 
-  console.log({ body });
-
-  const response = await fetch(`https://api.hubspot.com/oauth/v1/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-    },
-    body,
-  });
-  debugger;
-  const hubSpotTokenReturn: HubSpotTokenReturnType = await handleErrorsJson(response);
-  hubSpotTokenReturn.created_date = Date.now();
-
+  // set expiry date as offset from current time.
+  hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
   await prisma.credential.create({
     data: {
       type: "hubspot_other",
-      key: hubSpotTokenReturn,
+      key: hubspotToken as any,
       userId: req.session?.user.id,
     },
   });
