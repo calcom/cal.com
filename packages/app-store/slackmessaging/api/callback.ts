@@ -8,14 +8,12 @@ const client_secret = process.env.SLACK_CLIENT_SECRET;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
+    return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
   if (req.method === "GET") {
     // Get user
     const { code } = req.query;
-    console.log(req.query);
 
     if (!code) {
       res.redirect("/apps/installed"); // Redirect to where the user was if they cancel the signup or if the oauth fails
@@ -46,6 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    res.redirect("/apps/installed");
+    return res.redirect("/apps/installed");
   }
 }
