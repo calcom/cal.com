@@ -21,8 +21,8 @@ const ShowLinks = (eventLinks: IEventTypes[] | undefined, username: string) => {
       Blocks.Divider(),
       eventLinks.map((links) =>
         Blocks.Section({
-          text: `${links.title} | ${WEBAPP_URL}/${links.slug}`,
-        }).accessory(Elements.Button({ text: "Open", url: `${WEBAPP_URL}/${links.slug}` }))
+          text: `${links.title} | ${WEBAPP_URL}/${username}/${links.slug}`,
+        }).accessory(Elements.Button({ text: "Open", url: `${WEBAPP_URL}/${username}/${links.slug}` }))
       )
     )
     .buildToJSON();
