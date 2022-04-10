@@ -44,7 +44,7 @@ import {
  *        description: The eventTypeCustomInput to edit
  *        schema:
  *         type: object
- *         $ref: '#/comCustomInputponents/schemas/EventType'
+ *         $ref: '#/components/schemas/EventTypeCustomInput'
  *        required: true
  *      - in: path
  *        name: id
