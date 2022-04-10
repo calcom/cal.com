@@ -33,7 +33,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteResource(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
-  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  const safe = schemaQueryIdParseInt.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query", safe.error);
 
   const data = await prisma.resource.delete({ where: { id: safe.data.id } });

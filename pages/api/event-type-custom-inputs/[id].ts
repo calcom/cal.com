@@ -84,8 +84,8 @@ import {
  */
 async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeCustomInputResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaEventTypeCustomInputBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

@@ -81,8 +81,8 @@ import {
  */
 export async function bookingById(req: NextApiRequest, res: NextApiResponse<BookingResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaBookingBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaBookingBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

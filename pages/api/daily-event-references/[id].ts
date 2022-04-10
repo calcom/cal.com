@@ -87,8 +87,8 @@ export async function dailyEventReferenceById(
   res: NextApiResponse<DailyEventReferenceResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaDailyEventReferenceBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaDailyEventReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

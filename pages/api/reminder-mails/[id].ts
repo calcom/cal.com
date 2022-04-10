@@ -81,8 +81,8 @@ import {
  */
 export async function reminderMailById(req: NextApiRequest, res: NextApiResponse<ReminderMailResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaReminderMailBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaReminderMailBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

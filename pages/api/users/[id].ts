@@ -13,7 +13,7 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /v1/users/{id}:
  *   get:
  *     summary: Get a user by ID, returns your user if regular user.
  *     parameters:
@@ -82,8 +82,8 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  */
 export async function userById(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaUserBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaUserBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = getCalcomUserId(res);
   if (safeQuery.data.id === userId) {

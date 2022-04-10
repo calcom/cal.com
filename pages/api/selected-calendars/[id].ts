@@ -120,8 +120,8 @@ export async function selectedCalendarById(
   res: NextApiResponse<SelectedCalendarResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdAsString.safeParse(query);
-  const safeBody = await schemaSelectedCalendarBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdAsString.safeParse(query);
+  const safeBody = schemaSelectedCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and externalId in the query for managing compoundId.
   const [userId, integration, externalId] = safeQuery.data.id.split("_");

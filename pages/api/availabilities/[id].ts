@@ -81,8 +81,8 @@ import {
  */
 export async function availabilityById(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaAvailabilityBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

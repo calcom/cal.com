@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/schedules/{id}:
+ * /v1/schedules/{id}:
  *   get:
  *     summary: Get a schedule by ID
  *     parameters:
@@ -81,8 +81,8 @@ import {
  */
 export async function scheduleById(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaScheduleBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {

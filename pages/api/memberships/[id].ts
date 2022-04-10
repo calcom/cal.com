@@ -96,8 +96,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  */
 export async function membershipById(req: NextApiRequest, res: NextApiResponse<MembershipResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdAsString.safeParse(query);
-  const safeBody = await schemaMembershipBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdAsString.safeParse(query);
+  const safeBody = schemaMembershipBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and teamId in the query for managing compoundId.
   const [userId, teamId] = safeQuery.data.id.split("_");

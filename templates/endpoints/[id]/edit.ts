@@ -34,8 +34,8 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *        description: Authorization information is missing or invalid.
  */
 export async function editResource(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
-  const safeBody = await schemaResourceBodyParams.safeParse(req.body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = schemaResourceBodyParams.safeParse(req.body);
 
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
   const resource = await prisma.resource.update({

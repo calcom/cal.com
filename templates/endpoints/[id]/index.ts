@@ -33,7 +33,7 @@ import { schemaResourcePublic } from "@lib/validations/resource";
  *         description: Resource was not found
  */
 export async function resourceById(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safe = await schemaQueryIdParseInt.safeParse(req.query);
+  const safe = schemaQueryIdParseInt.safeParse(req.query);
   if (!safe.success) throw new Error("Invalid request query");
 
   const resource = await prisma.resource.findUnique({ where: { id: safe.data.id } });
