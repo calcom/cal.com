@@ -136,7 +136,7 @@ export default function Shell(props: {
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading, shouldDisplayUnauthed } = useRedirectToLoginIfUnauthenticated();
+  const { loading, shouldDisplayUnauthed, session } = useRedirectToLoginIfUnauthenticated();
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -209,7 +209,7 @@ export default function Shell(props: {
     );
   }
 
-  if (!shouldDisplayUnauthed) return null;
+  if (!session && !shouldDisplayUnauthed) return null;
 
   return (
     <>
