@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
 import {
   schemaQueryIdParseInt,
@@ -84,46 +85,54 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = await getCalcomUserId(res);
+  const data = await prisma.availability.findMany({ where: { userId } });
+  const availabiltiesIds = data.map((availability) => availability.id);
+  if (availabiltiesIds.includes(safeQuery.data.id)) {
+    switch (method) {
+      case "GET":
+        await prisma.availability
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaAvailabilityPublic.parse(data))
+          .then((availability) => res.status(200).json({ availability }))
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.availability
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaAvailabilityPublic.parse(data))
-        .then((availability) => res.status(200).json({ availability }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) throw new Error("Invalid request body");
+        await prisma.availability
+          .update({
+            where: { id: safeQuery.data.id },
+            data: safeBody.data,
+          })
+          .then((data) => schemaAvailabilityPublic.parse(data))
+          .then((availability) => res.status(200).json({ availability }))
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.availability
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaAvailabilityPublic.parse(data))
-        .then((availability) => res.status(200).json({ availability }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.availability
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: `Availability with id: ${safeQuery.data.id} deleted successfully` })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.availability
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Availability with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
   }
 }
 

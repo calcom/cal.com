@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AvailabilityResponse, AvailabilitiesResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
 
 /**
@@ -38,8 +39,10 @@ async function createOrlistAllAvailabilities(
   res: NextApiResponse<AvailabilitiesResponse | AvailabilityResponse>
 ) {
   const { method } = req;
+  const userId = await getCalcomUserId(res);
+
   if (method === "GET") {
-    const data = await prisma.availability.findMany();
+    const data = await prisma.availability.findMany({ where: { userId } });
     const availabilities = data.map((availability) => schemaAvailabilityPublic.parse(availability));
     if (availabilities) res.status(200).json({ availabilities });
     else
