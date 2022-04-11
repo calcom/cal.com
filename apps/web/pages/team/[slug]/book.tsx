@@ -110,6 +110,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
         brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
         darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
+        eventName: null,
       },
       eventType: eventTypeObject,
       booking,

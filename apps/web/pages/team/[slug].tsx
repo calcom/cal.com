@@ -1,9 +1,11 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
+import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React from "react";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -29,12 +31,16 @@ function TeamPage({ team }: TeamPageProps) {
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
+  const isEmbed = useIsEmbed();
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600">
+          className={classNames(
+            "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
+            isEmbed ? "" : "bg-white hover:bg-gray-50"
+          )}>
           <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">

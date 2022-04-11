@@ -58,9 +58,10 @@ function useRedirectToLoginIfUnauthenticated() {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
+  const shouldDisplayUnauthed = router.pathname.startsWith("/apps");
 
   useEffect(() => {
-    if (router.pathname.startsWith("/apps")) {
+    if (shouldDisplayUnauthed) {
       return;
     }
 
@@ -77,6 +78,7 @@ function useRedirectToLoginIfUnauthenticated() {
 
   return {
     loading: loading && !session,
+    shouldDisplayUnauthed,
     session,
   };
 }
@@ -135,7 +137,7 @@ export default function Shell(props: {
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading, session } = useRedirectToLoginIfUnauthenticated();
+  const { loading, shouldDisplayUnauthed, session } = useRedirectToLoginIfUnauthenticated();
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -208,7 +210,7 @@ export default function Shell(props: {
     );
   }
 
-  if (!session) return null;
+  if (!session && !shouldDisplayUnauthed) return null;
 
   return (
     <>
