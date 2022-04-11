@@ -201,6 +201,7 @@ export class Cal {
       required: true,
       props: {
         calLink: {
+          // TODO: Add a special type calLink for it and validate that it doesn't start with / or https?://
           required: true,
           type: "string",
         },

@@ -64,6 +64,10 @@
       <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
       <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+      <div>
+        <h2>Embed for Pages behind authentication</h2>
+        <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
+      </div>
 
       <div>
         <i
@@ -317,6 +321,11 @@
         origin: "http://localhost:3000",
       })
       Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal('init', 'upcomingBookings', {
         debug: 1,
         origin: "http://localhost:3000",
       })
