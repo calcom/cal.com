@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "@lib/validations/booking";
 
 /**
@@ -38,10 +39,10 @@ async function createOrlistAllBookings(
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   const { method } = req;
-  // FIXME: List only bookings owner by userId
+  const userId = await getCalcomUserId(res);
 
   if (method === "GET") {
-    const data = await prisma.booking.findMany();
+    const data = await prisma.booking.findMany({ where: { userId } });
     const bookings = data.map((booking) => schemaBookingPublic.parse(booking));
     if (bookings) res.status(200).json({ bookings });
     else
@@ -54,7 +55,7 @@ async function createOrlistAllBookings(
     const safe = schemaBookingBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const data = await prisma.booking.create({ data: safe.data });
+    const data = await prisma.booking.create({ data: { ...safe.data, userId } });
     const booking = schemaBookingPublic.parse(data);
 
     if (booking) res.status(201).json({ booking, message: "Booking created successfully" });

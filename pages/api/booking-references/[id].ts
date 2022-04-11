@@ -92,7 +92,6 @@ export async function bookingReferenceById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaBookingReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  // FIXME: Allow only userId owner of booking ref to edit it
   const userId = await getCalcomUserId(res);
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
@@ -100,7 +99,6 @@ export async function bookingReferenceById(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-  console.log(userBookingIds);
   const bookingReference = await prisma.bookingReference.findUnique({ where: { id: safeQuery.data.id } });
   if (!bookingReference) throw new Error("BookingReference not found");
   if (userBookingIds.includes(bookingReference.bookingId)) {

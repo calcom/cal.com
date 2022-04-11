@@ -65,20 +65,39 @@ async function createOrlistAllAttendees(
       throw new Error("Invalid request body", safe.error);
     }
     const bookingId = safe.data.bookingId;
-    delete safe.data.bookingId;
-    const noBookingId = safe.data;
-    const data = await prisma.attendee.create({
-      data: { ...noBookingId, booking: { connect: { id: parseInt(bookingId as string) } } },
+    const userId = await getCalcomUserId(res);
+    const userWithBookings = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { bookings: true },
     });
-    const attendee = schemaAttendeePublic.parse(data);
+    if (!userWithBookings) {
+      throw new Error("User not found");
+    }
+    const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+    if (userBookingIds.includes(bookingId)) {
+      delete safe.data.bookingId;
+      const noBookingId = safe.data;
+      const data = await prisma.attendee.create({
+        data: {
+          ...noBookingId,
+          booking: { connect: { id: bookingId } },
+        },
+      });
+      const attendee = schemaAttendeePublic.parse(data);
 
-    if (attendee) res.status(201).json({ attendee, message: "Attendee created successfully" });
-    else
-      (error: Error) =>
-        res.status(400).json({
-          message: "Could not create new attendee",
-          error,
+      if (attendee) {
+        res.status(201).json({
+          attendee,
+          message: "Attendee created successfully",
         });
+      } else {
+        (error: Error) =>
+          res.status(400).json({
+            message: "Could not create new attendee",
+            error,
+          });
+      }
+    } else res.status(401).json({ message: "Unauthorized" });
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
