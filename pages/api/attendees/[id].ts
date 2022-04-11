@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAttendeeBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
@@ -83,48 +84,69 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaAttendeeBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-
-  switch (method) {
-    case "GET":
-      await prisma.attendee
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaAttendeePublic.parse(data))
-        .then((attendee) => res.status(200).json({ attendee }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.attendee
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaAttendeePublic.parse(data))
-        .then((attendee) => res.status(200).json({ attendee }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    case "DELETE":
-      await prisma.attendee
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Attendee with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+  if (!safeQuery.success) {
+    throw new Error("Invalid request query", safeQuery.error);
   }
+  const userId = getCalcomUserId(res);
+  const userBookings = await prisma.booking.findMany({
+    where: { userId },
+    include: { attendees: true },
+  });
+  const attendees = userBookings.map((booking) => booking.attendees).flat();
+  const attendeeIds = attendees.map((attendee) => attendee.id);
+  // Here we make sure to only return attendee's of the user's own bookings.
+  if (attendeeIds.includes(safeQuery.data.id)) {
+    switch (method) {
+      case "GET":
+        await prisma.attendee
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaAttendeePublic.parse(data))
+          .then((attendee) => res.status(200).json({ attendee }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Attendee with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
+
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.attendee
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((data) => schemaAttendeePublic.parse(data))
+          .then((attendee) => res.status(200).json({ attendee }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Attendee with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
+
+      case "DELETE":
+        await prisma.attendee
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res.status(200).json({
+              message: `Attendee with id: ${safeQuery.data.id} deleted successfully`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Attendee with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
+
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
+  } else res.status(401).json({ message: "Unauthorized" });
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(attendeeById));
