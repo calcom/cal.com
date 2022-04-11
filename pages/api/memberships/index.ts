@@ -3,14 +3,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { MembershipsResponse } from "@lib/types";
-import { schemaMembershipPublic } from "@lib/validations/membership";
+import { MembershipResponse, MembershipsResponse } from "@lib/types";
+import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 
 /**
  * @swagger
- * /api/memberships:
+ * /v1/memberships:
  *   get:
- *     summary: Returns all memberships
+ *     summary: Get all memberships
  *     tags:
  *     - memberships
  *     responses:
@@ -20,18 +20,49 @@ import { schemaMembershipPublic } from "@lib/validations/membership";
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: No memberships were found
+ *   post:
+ *     summary: Creates a new membership
+ *     tags:
+ *     - memberships
+ *     responses:
+ *       201:
+ *         description: OK, membership created
+ *         model: Membership
+ *       400:
+ *        description: Bad request. Membership body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
  */
-async function allMemberships(_: NextApiRequest, res: NextApiResponse<MembershipsResponse>) {
-  const memberships = await prisma.membership.findMany();
-  const data = memberships.map((membership) => schemaMembershipPublic.parse(membership));
+async function createOrlistAllMemberships(
+  req: NextApiRequest,
+  res: NextApiResponse<MembershipsResponse | MembershipResponse>
+) {
+  const { method } = req;
+  if (method === "GET") {
+    const data = await prisma.membership.findMany();
+    const memberships = data.map((membership) => schemaMembershipPublic.parse(membership));
+    if (memberships) res.status(200).json({ memberships });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No Memberships were found",
+          error,
+        });
+  } else if (method === "POST") {
+    const safe = schemaMembershipBodyParams.safeParse(req.body);
+    if (!safe.success) throw new Error("Invalid request body");
 
-  if (data) res.status(200).json({ data });
-  else
-    (error: Error) =>
-      res.status(404).json({
-        message: "No Memberships were found",
-        error,
-      });
+    const data = await prisma.membership.create({ data: safe.data });
+    const membership = schemaMembershipPublic.parse(data);
+
+    if (membership) res.status(201).json({ membership, message: "Membership created successfully" });
+    else
+      (error: Error) =>
+        res.status(400).json({
+          message: "Could not create new membership",
+          error,
+        });
+  } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET")(allMemberships);
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllMemberships);

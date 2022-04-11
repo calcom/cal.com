@@ -4,11 +4,11 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { PaymentResponse, PaymentsResponse } from "@lib/types";
-import { schemaPaymentBodyParams, schemaPaymentPublic, withValidPayment } from "@lib/validations/payment";
+import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/payment";
 
 /**
  * @swagger
- * /api/payments:
+ * /v1/payments:
  *   get:
  *     summary: Get all payments
  *     tags:

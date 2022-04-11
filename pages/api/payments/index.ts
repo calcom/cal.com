@@ -9,7 +9,7 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
 
 /**
  * @swagger
- * /api/payments:
+ * /v1/payments:
  *   get:
  *     summary: Get all payments
  *     tags:
@@ -32,10 +32,10 @@ async function allPayments(_: NextApiRequest, res: NextApiResponse<PaymentsRespo
   if (!userWithBookings) throw new Error("No user found");
   const bookings = userWithBookings.bookings;
   const bookingIds = bookings.map((booking) => booking.id);
-  const payments = await prisma.payment.findMany({ where: { bookingId: { in: bookingIds } } });
-  const data = payments.map((payment) => schemaPaymentPublic.parse(payment));
+  const data = await prisma.payment.findMany({ where: { bookingId: { in: bookingIds } } });
+  const payments = data.map((payment) => schemaPaymentPublic.parse(payment));
 
-  if (data) res.status(200).json({ data });
+  if (payments) res.status(200).json({ payments });
   else
     (error: Error) =>
       res.status(404).json({
@@ -43,5 +43,5 @@ async function allPayments(_: NextApiRequest, res: NextApiResponse<PaymentsRespo
         error,
       });
 }
-
+// NO POST FOR PAYMENTS FOR NOW
 export default withMiddleware("HTTP_GET")(allPayments);

@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/booking-references/{id}:
+ * /v1/booking-references/{id}:
  *   get:
  *     summary: Get a daily event reference by ID
  *     parameters:
@@ -90,6 +90,7 @@ export async function bookingReferenceById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaBookingReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  // FIXME: Allow only userId owner of booking ref to edit it
 
   switch (method) {
     case "GET":

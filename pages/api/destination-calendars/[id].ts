@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/destination-calendars/{id}:
+ * /v1/destination-calendars/{id}:
  *   get:
  *     summary: Get a destination calendar by ID
  *     parameters:
@@ -96,7 +96,7 @@ export async function destionationCalendarById(
       await prisma.destinationCalendar
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaDestinationCalendarPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((destination_calendar) => res.status(200).json({ destination_calendar }))
         .catch((error: Error) =>
           res
             .status(404)
@@ -111,8 +111,8 @@ export async function destionationCalendarById(
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((destinationCalendar) => schemaDestinationCalendarPublic.parse(destinationCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaDestinationCalendarPublic.parse(data))
+        .then((destination_calendar) => res.status(200).json({ destination_calendar }))
         .catch((error: Error) =>
           res
             .status(404)

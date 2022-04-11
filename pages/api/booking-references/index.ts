@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /api/booking-references:
+ * /v1/booking-references:
  *   get:
  *     summary: Get all booking references
  *     tags:

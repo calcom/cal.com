@@ -43,9 +43,9 @@ async function createOrlistAllReminderMails(
 ) {
   const { method } = req;
   if (method === "GET") {
-    const reminderMails = await prisma.reminderMail.findMany();
-    const data = reminderMails.map((reminderMail) => schemaReminderMailPublic.parse(reminderMail));
-    if (data) res.status(200).json({ data });
+    const data = await prisma.reminderMail.findMany();
+    const reminder_mails = data.map((reminderMail) => schemaReminderMailPublic.parse(reminderMail));
+    if (reminder_mails) res.status(200).json({ reminder_mails });
     else
       (error: Error) =>
         res.status(404).json({
@@ -56,10 +56,10 @@ async function createOrlistAllReminderMails(
     const safe = schemaReminderMailBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const reminderMail = await prisma.reminderMail.create({ data: safe.data });
-    const data = schemaReminderMailPublic.parse(reminderMail);
+    const data = await prisma.reminderMail.create({ data: safe.data });
+    const reminder_mail = schemaReminderMailPublic.parse(data);
 
-    if (data) res.status(201).json({ data, message: "reminder mail created successfully" });
+    if (reminder_mail) res.status(201).json({ reminder_mail, message: "reminder mail created successfully" });
     else
       (error: Error) =>
         res.status(400).json({

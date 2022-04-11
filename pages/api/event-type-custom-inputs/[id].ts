@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/event-type-custom-inputs/{id}:
+ * /v1/event-type-custom-inputs/{id}:
  *   get:
  *     summary: Get a eventTypeCustomInput by ID
  *     parameters:
@@ -93,7 +93,7 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
       await prisma.eventTypeCustomInput
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaEventTypeCustomInputPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
@@ -106,8 +106,8 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((eventTypeCustomInput) => schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaEventTypeCustomInputPublic.parse(data))
+        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );

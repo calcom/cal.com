@@ -3,14 +3,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { EventTypesResponse } from "@lib/types";
-import { schemaEventTypePublic } from "@lib/validations/event-type";
+import { EventTypeResponse, EventTypesResponse } from "@lib/types";
+import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 
 /**
  * @swagger
- * /api/eventTypes:
+ * /v1/event-types:
  *   get:
- *     summary: Returns all eventTypes
+ *     summary: Get all event types
  *     tags:
  *     - event-types
  *     responses:
@@ -19,19 +19,50 @@ import { schemaEventTypePublic } from "@lib/validations/event-type";
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: No eventTypes were found
+ *         description: No event types were found
+ *   post:
+ *     summary: Creates a new event type
+ *     tags:
+ *     - event-types
+ *     responses:
+ *       201:
+ *         description: OK, event type created
+ *         model: EventType
+ *       400:
+ *        description: Bad request. EventType body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
  */
-async function allEventTypes(_: NextApiRequest, res: NextApiResponse<EventTypesResponse>) {
-  const eventTypes = await prisma.eventType.findMany();
-  const data = eventTypes.map((eventType) => schemaEventTypePublic.parse(eventType));
+async function createOrlistAllEventTypes(
+  req: NextApiRequest,
+  res: NextApiResponse<EventTypesResponse | EventTypeResponse>
+) {
+  const { method } = req;
+  if (method === "GET") {
+    const data = await prisma.eventType.findMany();
+    const event_types = data.map((eventType) => schemaEventTypePublic.parse(eventType));
+    if (event_types) res.status(200).json({ event_types });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No EventTypes were found",
+          error,
+        });
+  } else if (method === "POST") {
+    const safe = schemaEventTypeBodyParams.safeParse(req.body);
+    if (!safe.success) throw new Error("Invalid request body");
 
-  if (data) res.status(200).json({ data });
-  else
-    (error: Error) =>
-      res.status(404).json({
-        message: "No EventTypes were found",
-        error,
-      });
+    const data = await prisma.eventType.create({ data: safe.data });
+    const event_type = schemaEventTypePublic.parse(data);
+
+    if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
+    else
+      (error: Error) =>
+        res.status(400).json({
+          message: "Could not create new event type",
+          error,
+        });
+  } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET")(allEventTypes);
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllEventTypes);

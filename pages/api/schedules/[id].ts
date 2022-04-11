@@ -89,8 +89,8 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
     case "GET":
       await prisma.schedule
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((schedule) => schemaSchedulePublic.parse(schedule))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaSchedulePublic.parse(data))
+        .then((schedule) => res.status(200).json({ schedule }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((schedule) => schemaSchedulePublic.parse(schedule))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaSchedulePublic.parse(data))
+        .then((schedule) => res.status(200).json({ schedule }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
         );

@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/credentials/{id}:
+ * /v1/credentials/{id}:
  *   get:
  *     summary: Get a credential by ID
  *     parameters:
@@ -89,8 +89,8 @@ export async function credentialById(req: NextApiRequest, res: NextApiResponse<C
     case "GET":
       await prisma.credential
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((credential) => schemaCredentialPublic.parse(credential))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaCredentialPublic.parse(data))
+        .then((credential) => res.status(200).json({ credential }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function credentialById(req: NextApiRequest, res: NextApiResponse<C
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((credential) => schemaCredentialPublic.parse(credential))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaCredentialPublic.parse(data))
+        .then((credential) => res.status(200).json({ credential }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
         );

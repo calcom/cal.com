@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/attendees/{id}:
+ * /v1/attendees/{id}:
  *   get:
  *     summary: Get an attendee by ID
  *     parameters:

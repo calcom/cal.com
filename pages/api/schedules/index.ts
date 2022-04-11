@@ -39,9 +39,9 @@ async function createOrlistAllSchedules(
 ) {
   const { method } = req;
   if (method === "GET") {
-    const schedules = await prisma.schedule.findMany();
-    const data = schedules.map((schedule) => schemaSchedulePublic.parse(schedule));
-    if (data) res.status(200).json({ data });
+    const data = await prisma.schedule.findMany();
+    const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
+    if (schedules) res.status(200).json({ schedules });
     else
       (error: Error) =>
         res.status(404).json({
@@ -52,10 +52,10 @@ async function createOrlistAllSchedules(
     const safe = schemaScheduleBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const schedule = await prisma.schedule.create({ data: safe.data });
-    const data = schemaSchedulePublic.parse(schedule);
+    const data = await prisma.schedule.create({ data: safe.data });
+    const schedule = schemaSchedulePublic.parse(data);
 
-    if (data) res.status(201).json({ data, message: "Schedule created successfully" });
+    if (schedule) res.status(201).json({ schedule, message: "Schedule created successfully" });
     else
       (error: Error) =>
         res.status(400).json({

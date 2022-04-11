@@ -4,15 +4,15 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ResourceResponse } from "@lib/types";
+import { schemaResourcePublic } from "@lib/validations/resource";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaResourcePublic } from "@lib/validations/resource";
 
 /**
  * @swagger
- * /api/resources/{id}:
+ * /v1/resources/{id}:
  *   get:
  *   summary: Get a resource by ID
  *    parameters:

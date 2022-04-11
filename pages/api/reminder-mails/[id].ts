@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/reminder-mails/{id}:
+ * /v1/reminder-mails/{id}:
  *   get:
  *     summary: Get a reminderMail by ID
  *     parameters:
@@ -90,7 +90,7 @@ export async function reminderMailById(req: NextApiRequest, res: NextApiResponse
       await prisma.reminderMail
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaReminderMailPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((reminder_mail) => res.status(200).json({ reminder_mail }))
         .catch((error: Error) =>
           res.status(404).json({ message: `ReminderMail with id: ${safeQuery.data.id} not found`, error })
         );
@@ -104,7 +104,7 @@ export async function reminderMailById(req: NextApiRequest, res: NextApiResponse
           data: safeBody.data,
         })
         .then((reminderMail) => schemaReminderMailPublic.parse(reminderMail))
-        .then((data) => res.status(200).json({ data }))
+        .then((reminder_mail) => res.status(200).json({ reminder_mail }))
         .catch((error: Error) =>
           res.status(404).json({ message: `ReminderMail with id: ${safeQuery.data.id} not found`, error })
         );

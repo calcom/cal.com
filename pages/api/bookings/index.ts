@@ -8,7 +8,7 @@ import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "
 
 /**
  * @swagger
- * /api/bookings:
+ * /v1/bookings:
  *   get:
  *     summary: Get all bookings
  *     tags:
@@ -38,6 +38,8 @@ async function createOrlistAllBookings(
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   const { method } = req;
+  // FIXME: List only bookings owner by userId
+
   if (method === "GET") {
     const data = await prisma.booking.findMany();
     const bookings = data.map((booking) => schemaBookingPublic.parse(booking));

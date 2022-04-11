@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/bookings/{id}:
+ * /v1/bookings/{id}:
  *   get:
  *     summary: Get a booking by ID
  *     parameters:
@@ -84,7 +84,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaBookingBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-
+  // FIXME: Allow only userId owner of booking to edit it
   switch (method) {
     case "GET":
       await prisma.booking

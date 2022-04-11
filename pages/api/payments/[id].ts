@@ -13,7 +13,7 @@ import {
 
 /**
  * @swagger
- * /api/payments/{id}:
+ * /v1/payments/{id}:
  *   get:
  *     summary: Get one of your own payments by ID
  *     parameters:
@@ -45,10 +45,10 @@ export async function paymentById(req: NextApiRequest, res: NextApiResponse<Paym
     });
     await prisma.payment
       .findUnique({ where: { id: safeQuery.data.id } })
-      .then((payment) => schemaPaymentPublic.parse(payment))
-      .then((data) => {
-        if (userWithBookings?.bookings.map((b) => b.id).includes(data.bookingId)) {
-          res.status(200).json({ data });
+      .then((data) => schemaPaymentPublic.parse(data))
+      .then((payment) => {
+        if (userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
+          res.status(200).json({ payment });
         } else {
           res.status(401).json({ message: "Unauthorized" });
         }

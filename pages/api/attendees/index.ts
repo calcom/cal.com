@@ -9,7 +9,7 @@ import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } fro
 
 /**
  * @swagger
- * /api/attendees:
+ * /v1/attendees:
  *   get:
  *     summary: Get all attendees
  *     tags:

@@ -4,15 +4,15 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ResourceResponse } from "@lib/types";
+import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } from "@lib/validations/resource";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } from "@lib/validations/resource";
 
 /**
  * @swagger
- * /api/resources/{id}/edit:
+ * /v1/resources/{id}/edit:
  *   patch:
  *     summary: Edit an existing resource
  *    parameters:
@@ -53,4 +53,6 @@ export async function editResource(req: NextApiRequest, res: NextApiResponse<Res
       });
 }
 
-export default withMiddleware("HTTP_PATCH")(withValidQueryIdTransformParseInt(withValidResource(editResource)));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidResource(editResource))
+);

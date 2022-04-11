@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /api/resources/{id}/delete:
+ * /v1/resources/{id}/delete:
  *   delete:
  *     summary: Remove an existing resource
  *    parameters:
