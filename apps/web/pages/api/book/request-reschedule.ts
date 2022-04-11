@@ -1,4 +1,4 @@
-import { BookingStatus, User, SchedulingType } from "@prisma/client";
+import { BookingStatus, User, SchedulingType, Booking, Attendee } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
@@ -13,12 +13,16 @@ import { Person } from "@calcom/types/Calendar";
 import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
+export type RescheduleResponse = Booking & {
+  attendees: Attendee[];
+};
+
 const rescheduleSchema = z.object({
   bookingId: z.string(),
   rescheduleReason: z.string().optional(),
 });
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse): Promise<RescheduleResponse> => {
   const session = await getSession({ req });
   const { bookingId, rescheduleReason: cancellationReason } = req.body;
   type PersonAttendee = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;

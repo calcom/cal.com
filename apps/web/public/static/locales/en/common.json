@@ -734,5 +734,6 @@
   "reason_for_reschedule_request": "Reason for reschedule request",
   "send_reschedule_request": "Send reschedule request",
   "edit_booking": "Edit booking",
-  "reschedule_booking": "Reschedule booking"
+  "reschedule_booking": "Reschedule booking",
+  "former_time": "Former time"
 }

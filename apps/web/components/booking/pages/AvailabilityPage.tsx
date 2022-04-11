@@ -265,7 +265,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {booking?.startTime && rescheduleUid && (
                     <div>
                       {/* Add translation */}
-                      <p className="mt-8 mb-2 text-gray-600 dark:text-white">Former time</p>
+                      <p className="mt-8 mb-2 text-gray-600 dark:text-white">{t("former_time")}</p>
                       <p className="text-gray-500 line-through dark:text-white">
                         <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
