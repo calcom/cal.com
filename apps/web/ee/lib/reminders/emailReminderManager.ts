@@ -11,7 +11,7 @@ import prisma from "@lib/prisma";
 
 import reminderTemplate from "./templates/reminderEmailTemplate";
 
-let sendgridAPIKey, senderEmail;
+let sendgridAPIKey, senderEmail: string;
 
 if (process.env.SENDGRID_API_KEY) {
   sendgridAPIKey = process.env.SENDGRID_API_KEY as string;

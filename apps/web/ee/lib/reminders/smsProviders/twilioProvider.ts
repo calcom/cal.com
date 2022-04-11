@@ -1,6 +1,6 @@
 import twilio from "twilio";
 
-let TWILIO_SID, TWILIO_TOKEN, TWILIO_MESSAGING_SID, client;
+let TWILIO_SID, TWILIO_TOKEN, TWILIO_MESSAGING_SID: string, client: twilio.Twilio;
 // Only assign the API keys if they exist in .env
 if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
   TWILIO_SID = process.env.TWILIO_SID;

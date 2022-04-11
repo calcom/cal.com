@@ -1,5 +1,9 @@
 import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroicons/react/solid";
-import { EventTypeCustomInputType, EventTypeAttendeeReminderMethod } from "@prisma/client";
+import {
+  EventTypeCustomInputType,
+  EventTypeAttendeeReminderMethod,
+  EventTypeAttendeeReminder,
+} from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
@@ -65,6 +69,7 @@ const BookingPage = ({
   isDynamicGroupBooking,
   locationLabels,
 }: BookingPageProps) => {
+  console.log("🚀 ~ file: BookingPage.tsx ~ line 68 ~ eventType", eventType);
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
   const router = useRouter();
@@ -487,7 +492,8 @@ const BookingPage = ({
                       </div>
                     ))}
                   {eventType.attendeeReminders.some(
-                    (reminder) => reminder.method === EventTypeAttendeeReminderMethod.SMS
+                    (reminder: EventTypeAttendeeReminder) =>
+                      reminder.method === EventTypeAttendeeReminderMethod.SMS
                   ) && (
                     <div className="mb-4">
                       <label
@@ -497,7 +503,6 @@ const BookingPage = ({
                       </label>
                       <div className="mt-1">
                         <PhoneInput
-                          // @ts-expect-error
                           control={bookingForm.control}
                           name="reminderPhone"
                           placeholder={t("enter_phone_number")}
