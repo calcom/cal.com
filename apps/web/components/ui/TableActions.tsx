@@ -1,4 +1,4 @@
-import { DotsHorizontalIcon } from "@heroicons/react/solid";
+import { ChevronDownIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC } from "react";
 
 import Button from "@calcom/ui/Button";
@@ -62,6 +62,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick}
               StartIcon={action.icon}
+              {...(action?.actions ? { EndIcon: ChevronDownIcon } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
               {action.label}

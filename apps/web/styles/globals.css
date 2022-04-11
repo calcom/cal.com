@@ -192,7 +192,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email > [type="text"] {
-  @apply focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {

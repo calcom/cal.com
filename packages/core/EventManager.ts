@@ -221,7 +221,7 @@ export default class EventManager {
         bookingId: booking.id,
       },
     });
-
+    // @NOTE: If rescheduled should we delete the previous one?
     const bookingDeletes = prisma.booking.delete({
       where: {
         id: booking.id,

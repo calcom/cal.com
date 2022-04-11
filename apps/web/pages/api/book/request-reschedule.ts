@@ -124,13 +124,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       calendarEventBuilder.setCancellationReason(cancellationReason);
       console.log({ calendarEventBuilder });
       // Send email =================
-      const queryParams = new URLSearchParams();
-      queryParams.set("rescheduleUid", `${bookingToReschedule.uid}`);
-      const rescheduleLink = `${process.env.WEBSITE_BASE_URL}/${userOwner.username}/${
-        event?.slug
-      }?${queryParams.toString()}`;
+      calendarEventBuilder.buildRescheduleLink(bookingToReschedule.uid);
       await sendRequestRescheduleEmail(calendarEventBuilder.calendarEvent, {
-        rescheduleLink,
+        rescheduleLink: calendarEventBuilder.rescheduleLink,
       });
     }
 

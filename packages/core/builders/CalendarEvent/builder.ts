@@ -33,6 +33,7 @@ interface ICalendarEventBuilder {
   users: Awaited<ReturnType<CalendarEventBuilder["getUserById"]>>[];
   attendeesList: any;
   teamMembers: Awaited<ReturnType<CalendarEventBuilder["getTeamMembers"]>>;
+  rescheduleLink: string;
 }
 
 export class CalendarEventBuilder implements ICalendarEventBuilder {
@@ -41,6 +42,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   users!: ICalendarEventBuilder["users"];
   attendeesList: ICalendarEventBuilder["attendeesList"] = [];
   teamMembers: ICalendarEventBuilder["teamMembers"] = [];
+  rescheduleLink!: string;
 
   constructor() {
     this.reset();
@@ -113,8 +115,11 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
             select: {
               id: true,
               name: true,
+              slug: true,
             },
           },
+          slug: true,
+          teamId: true,
           title: true,
           length: true,
           eventName: true,
@@ -251,5 +256,19 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
   public setCancellationReason(cancellationReason: CalendarEventClass["cancellationReason"]) {
     this.calendarEvent.cancellationReason = cancellationReason;
+  }
+
+  public buildRescheduleLink(originalBookingUId: string) {
+    if (!this.eventType) {
+      throw new Error("Run buildEventObjectFromInnerClass before this function");
+    }
+    const isTeam = !!this.eventType.teamId;
+    console.log(process.env);
+    const queryParams = new URLSearchParams();
+    queryParams.set("rescheduleUid", `${originalBookingUId}`);
+    const rescheduleLink = `${process.env.BASE_URL}/${
+      isTeam ? `/team/${this.eventType.team?.slug}` : this.users[0].username
+    }/${this.eventType.slug}?${queryParams.toString()}`;
+    this.rescheduleLink = rescheduleLink;
   }
 }

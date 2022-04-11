@@ -32,6 +32,7 @@ import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
+import { parseDate } from "@lib/parseDate";
 import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -153,6 +154,10 @@ const BookingPage = ({
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
+  const guestListEmails = !isDynamicGroupBooking
+    ? booking?.attendees.slice(1).map((attendee) => attendee.email)
+    : [];
+
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
@@ -179,7 +184,7 @@ const BookingPage = ({
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
+      guests: guestListEmails,
       notes: booking.description || "",
     };
   };
@@ -217,14 +222,6 @@ const BookingPage = ({
       default:
         return selectedLocation || "";
     }
-  };
-
-  const parseDate = (date: string | null | Dayjs) => {
-    if (!date) return "No date";
-    const parsedZone = parseZone(date);
-    if (!parsedZone?.isValid()) return "Invalid date";
-    const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
-    return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
   };
 
   const bookEvent = (booking: BookingFormValues) => {
@@ -276,14 +273,15 @@ const BookingPage = ({
       })),
     });
   };
-  const userOwnerIds = eventType.users.map((user) => user.id);
-  const isUserOwnerRescheduling = !!(
-    session?.user.id &&
-    rescheduleUid &&
-    userOwnerIds.indexOf(session?.user.id) > -1
-  );
-  const disableInput = isUserOwnerRescheduling;
-
+  // @NOTE: No longer needed
+  // const userOwnerIds = eventType.users.map((user) => user.id);
+  // const isUserOwnerRescheduling = !!(
+  //   session?.user.id &&
+  //   rescheduleUid &&
+  //   userOwnerIds.indexOf(session?.user.id) > -1
+  // );
+  const disableInput = !!rescheduleUid;
+  console.log({ disableInput });
   return (
     <div>
       <Theme />
@@ -332,20 +330,22 @@ const BookingPage = ({
                 <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
                   {profile.name}
                 </h2>
-                <h1 className="text-bookingdark mb-4 text-3xl font-semibold dark:text-white">
+                <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType?.description && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {eventType.description}
+                  </p>
+                )}
                 <p className="text-bookinglight mb-2 dark:text-white">
-                  <InformationCircleIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                  {eventType.description}
-                </p>
-                <p className="text-bookinglight mb-2">
-                  <ClockIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                  <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   {eventType.length} {t("minutes")}
                 </p>
                 {eventType.price > 0 && (
-                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
-                    <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
+                    <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
                         value={eventType.price / 100.0}
@@ -356,8 +356,8 @@ const BookingPage = ({
                   </p>
                 )}
                 <p className="text-bookinghighlight mb-4">
-                  <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                  {parseDate(date)}
+                  <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                  {parseDate(date, i18n)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
@@ -369,8 +369,8 @@ const BookingPage = ({
                     {/* Add translation */}
                     <p className="mt-8 mb-2 text-gray-600 dark:text-white">Former time</p>
                     <p className="text-gray-500 line-through dark:text-white">
-                      <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                      {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime))}
+                      <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                     </p>
                   </div>
                 )}
@@ -493,7 +493,7 @@ const BookingPage = ({
                             id={"custom_" + input.id}
                             className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
-                            disabled={isUserOwnerRescheduling}
+                            disabled={disableInput}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -545,32 +545,49 @@ const BookingPage = ({
                             className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {t("guests")}
                           </label>
-                          <Controller
-                            control={bookingForm.control}
-                            name="guests"
-                            render={({ field: { onChange, value } }) => (
-                              <ReactMultiEmail
-                                className="relative"
-                                placeholder="guest@example.com"
-                                emails={value}
-                                onChange={onChange}
-                                getLabel={(
-                                  email: string,
-                                  index: number,
-                                  removeEmail: (index: number) => void
-                                ) => {
-                                  return (
-                                    <div data-tag key={index}>
-                                      {email}
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    </div>
-                                  );
-                                }}
-                              />
-                            )}
-                          />
+                          {!disableInput && (
+                            <Controller
+                              control={bookingForm.control}
+                              name="guests"
+                              render={({ field: { onChange, value } }) => (
+                                <ReactMultiEmail
+                                  className="relative"
+                                  placeholder="guest@example.com"
+                                  emails={value}
+                                  onChange={onChange}
+                                  getLabel={(
+                                    email: string,
+                                    index: number,
+                                    removeEmail: (index: number) => void
+                                  ) => {
+                                    return (
+                                      <div data-tag key={index} className="cursor-pointer">
+                                        {email}
+                                        {!disableInput && (
+                                          <span data-tag-handle onClick={() => removeEmail(index)}>
+                                            ×
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  }}
+                                />
+                              )}
+                            />
+                          )}
+                          {/* Custom code when guest emails should not be editable */}
+                          {disableInput && guestListEmails && guestListEmails.length > 0 && (
+                            <div data-tag className="react-multi-email">
+                              {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                              {guestListEmails.map((email, index) => {
+                                return (
+                                  <div key={index} className="cursor-pointer">
+                                    <span data-tag>{email}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
