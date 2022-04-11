@@ -330,7 +330,7 @@ export class Cal {
     // 1. Initial iframe width and height would be according to 100% value of the parent element
     // 2. Once webpage inside iframe renders, it would tell how much iframe height should be increased so that my entire content is visible without iframe scroll
     // 3. Parent window would check what iframe height can be set according to parent Element
-    this.actionManager.on("dimension-changed", (e) => {
+    this.actionManager.on("__dimensionChanged", (e) => {
       const { data } = e.detail;
       const iframe = this.iframe!;
 
@@ -347,7 +347,7 @@ export class Cal {
       }
     });
 
-    this.actionManager.on("iframeReady", (e) => {
+    this.actionManager.on("__iframeReady", (e) => {
       this.iframeReady = true;
       this.doInIframe({ method: "parentKnowsIframeReady", arg: undefined });
       this.iframeDoQueue.forEach(({ method, arg }) => {
