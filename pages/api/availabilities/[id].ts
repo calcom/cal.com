@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/availabilities/{id}:
+ * /v1/availabilities/{id}:
  *   get:
  *     summary: Get an availability by ID
  *     parameters:
@@ -81,16 +81,16 @@ import {
  */
 export async function availabilityById(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaAvailabilityBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
     case "GET":
       await prisma.availability
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((availability) => schemaAvailabilityPublic.parse(availability))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAvailabilityPublic.parse(data))
+        .then((availability) => res.status(200).json({ availability }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((availability) => schemaAvailabilityPublic.parse(availability))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAvailabilityPublic.parse(data))
+        .then((availability) => res.status(200).json({ availability }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
         );

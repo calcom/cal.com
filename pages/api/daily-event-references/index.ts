@@ -3,40 +3,72 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { DailyEventReferencesResponse } from "@lib/types";
-import { schemaDailyEventReferencePublic } from "@lib/validations/daily-event-reference";
+import { DailyEventReferenceResponse, DailyEventReferencesResponse } from "@lib/types";
+import {
+  schemaDailyEventReferenceBodyParams,
+  schemaDailyEventReferencePublic,
+} from "@lib/validations/daily-event-reference";
 
 /**
  * @swagger
- * /api/daily-event-references:
+ * /v1/daily-event-references:
  *   get:
- *     summary: Get all dailyEventReferences
+ *     summary: Get all daily event reference
  *     tags:
- *     - daily-event-references
+ *     - daily-event-reference
  *     responses:
  *       200:
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: No dailyEventReferences were found
+ *         description: No daily event references were found
+ *   post:
+ *     summary: Creates a new daily event reference
+ *     tags:
+ *     - daily-event-reference
+ *     responses:
+ *       201:
+ *         description: OK, daily event reference created
+ *         model: DailyEventReference
+ *       400:
+ *        description: Bad request. DailyEventReference body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
  */
-async function allDailyEventReferences(
-  _: NextApiRequest,
-  res: NextApiResponse<DailyEventReferencesResponse>
+async function createOrlistAllDailyEventReferences(
+  req: NextApiRequest,
+  res: NextApiResponse<DailyEventReferencesResponse | DailyEventReferenceResponse>
 ) {
-  const dailyEventReferences = await prisma.dailyEventReference.findMany();
-  const data = dailyEventReferences.map((dailyEventReference) =>
-    schemaDailyEventReferencePublic.parse(dailyEventReference)
-  );
+  const { method } = req;
+  if (method === "GET") {
+    const data = await prisma.dailyEventReference.findMany();
+    const daily_event_references = data.map((dailyEventReference) =>
+      schemaDailyEventReferencePublic.parse(dailyEventReference)
+    );
+    if (daily_event_references) res.status(200).json({ daily_event_references });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No DailyEventReferences were found",
+          error,
+        });
+  } else if (method === "POST") {
+    const safe = schemaDailyEventReferenceBodyParams.safeParse(req.body);
+    if (!safe.success) throw new Error("Invalid request body");
 
-  if (data) res.status(200).json({ data });
-  else
-    (error: Error) =>
-      res.status(404).json({
-        message: "No DailyEventReferences were found",
-        error,
-      });
+    const data = await prisma.dailyEventReference.create({ data: safe.data });
+    const daily_event_reference = schemaDailyEventReferencePublic.parse(data);
+
+    if (daily_event_reference)
+      res.status(201).json({ daily_event_reference, message: "DailyEventReference created successfully" });
+    else
+      (error: Error) =>
+        res.status(400).json({
+          message: "Could not create new daily event reference",
+          error,
+        });
+  } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET")(allDailyEventReferences);
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllDailyEventReferences);

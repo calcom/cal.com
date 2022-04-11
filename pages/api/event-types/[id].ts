@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/event-types/{id}:
+ * /v1/event-types/{id}:
  *   get:
  *     summary: Get a eventType by ID
  *     parameters:
@@ -81,8 +81,8 @@ import {
  */
 export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaEventTypeBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaEventTypeBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
@@ -90,7 +90,7 @@ export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<Ev
       await prisma.eventType
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaEventTypePublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((event_type) => res.status(200).json({ event_type }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<Ev
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((eventType) => schemaEventTypePublic.parse(eventType))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaEventTypePublic.parse(data))
+        .then((event_type) => res.status(200).json({ event_type }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );

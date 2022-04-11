@@ -8,7 +8,7 @@ import { schemaResourcePublic } from "@lib/validations/resource";
 
 /**
  * @swagger
- * /api/resources:
+ * /v1/resources:
  *   get:
  *     summary: Get all resources
  *     tags:

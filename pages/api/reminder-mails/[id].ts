@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/reminder-mails/{id}:
+ * /v1/reminder-mails/{id}:
  *   get:
  *     summary: Get a reminderMail by ID
  *     parameters:
@@ -81,8 +81,8 @@ import {
  */
 export async function reminderMailById(req: NextApiRequest, res: NextApiResponse<ReminderMailResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaReminderMailBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaReminderMailBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
@@ -90,7 +90,7 @@ export async function reminderMailById(req: NextApiRequest, res: NextApiResponse
       await prisma.reminderMail
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaReminderMailPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((reminder_mail) => res.status(200).json({ reminder_mail }))
         .catch((error: Error) =>
           res.status(404).json({ message: `ReminderMail with id: ${safeQuery.data.id} not found`, error })
         );
@@ -104,7 +104,7 @@ export async function reminderMailById(req: NextApiRequest, res: NextApiResponse
           data: safeBody.data,
         })
         .then((reminderMail) => schemaReminderMailPublic.parse(reminderMail))
-        .then((data) => res.status(200).json({ data }))
+        .then((reminder_mail) => res.status(200).json({ reminder_mail }))
         .catch((error: Error) =>
           res.status(404).json({ message: `ReminderMail with id: ${safeQuery.data.id} not found`, error })
         );

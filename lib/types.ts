@@ -27,147 +27,139 @@ export type BaseResponse = {
 
 // User
 export type UserResponse = BaseResponse & {
-  data?: Partial<User>;
+  user?: Partial<User>;
 };
 
 export type UsersResponse = BaseResponse & {
-  data?: Partial<User>[];
-};
-
-// API Key
-export type ApiKeyResponse = BaseResponse & {
-  data?: Partial<ApiKey>;
-};
-export type ApiKeysResponse = BaseResponse & {
-  data?: Partial<ApiKey>[];
+  users?: Partial<User>[];
 };
 
 // Team
 export type TeamResponse = BaseResponse & {
-  data?: Partial<Team>;
+  team?: Partial<Team>;
 };
 export type TeamsResponse = BaseResponse & {
-  data?: Partial<Team>[];
+  teams?: Partial<Team>[];
 };
 
 // SelectedCalendar
 export type SelectedCalendarResponse = BaseResponse & {
-  data?: Partial<SelectedCalendar>;
+  selected_calendar?: Partial<SelectedCalendar>;
 };
 export type SelectedCalendarsResponse = BaseResponse & {
-  data?: Partial<SelectedCalendar>[];
+  selected_calendars?: Partial<SelectedCalendar>[];
 };
 
 // Attendee
 export type AttendeeResponse = BaseResponse & {
-  data?: Partial<Attendee>;
+  attendee?: Partial<Attendee>;
 };
 // Grouping attendees in booking arrays for now,
 // later might remove endpoint and move to booking endpoint altogether.
 export type AttendeesResponse = BaseResponse & {
-  data?: Partial<Attendee>[];
+  attendees?: Partial<Attendee>[];
 };
 
 // Availability
 export type AvailabilityResponse = BaseResponse & {
-  data?: Partial<Availability>;
+  availability?: Partial<Availability>;
 };
 export type AvailabilitiesResponse = BaseResponse & {
-  data?: Partial<Availability>[];
+  availabilities?: Partial<Availability>[];
 };
 
 // BookingReference
 export type BookingReferenceResponse = BaseResponse & {
-  data?: Partial<BookingReference>;
+  booking_reference?: Partial<BookingReference>;
 };
 export type BookingReferencesResponse = BaseResponse & {
-  data?: Partial<BookingReference>[];
+  booking_references?: Partial<BookingReference>[];
 };
 
 // Booking
 export type BookingResponse = BaseResponse & {
-  data?: Partial<Booking>;
+  booking?: Partial<Booking>;
 };
 export type BookingsResponse = BaseResponse & {
-  data?: Partial<Booking>[];
+  bookings?: Partial<Booking>[];
 };
 
 // Credential
 export type CredentialResponse = BaseResponse & {
-  data?: Partial<Credential>;
+  credential?: Partial<Credential>;
 };
 export type CredentialsResponse = BaseResponse & {
-  data?: Partial<Credential>[];
+  credentials?: Partial<Credential>[];
 };
 
 // DailyEventReference
 export type DailyEventReferenceResponse = BaseResponse & {
-  data?: Partial<DailyEventReference>;
+  daily_event_reference?: Partial<DailyEventReference>;
 };
 export type DailyEventReferencesResponse = BaseResponse & {
-  data?: Partial<DailyEventReference>[];
+  daily_event_references?: Partial<DailyEventReference>[];
 };
 
 // DestinationCalendar
 export type DestinationCalendarResponse = BaseResponse & {
-  data?: Partial<DestinationCalendar>;
+  destination_calendar?: Partial<DestinationCalendar>;
 };
 export type DestinationCalendarsResponse = BaseResponse & {
-  data?: Partial<DestinationCalendar>[];
+  destination_calendars?: Partial<DestinationCalendar>[];
 };
 
 // Membership
 export type MembershipResponse = BaseResponse & {
-  data?: Partial<Membership>;
+  membership?: Partial<Membership>;
 };
 export type MembershipsResponse = BaseResponse & {
-  data?: Partial<Membership>[];
+  memberships?: Partial<Membership>[];
 };
 
 // EventTypeCustomInput
 export type EventTypeCustomInputResponse = BaseResponse & {
-  data?: Partial<EventTypeCustomInput>;
+  event_type_custom_input?: Partial<EventTypeCustomInput>;
 };
 export type EventTypeCustomInputsResponse = BaseResponse & {
-  data?: Partial<EventTypeCustomInput>[];
+  event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
 
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  data?: Partial<EventType>;
+  event_type?: Partial<EventType>;
 };
 export type EventTypesResponse = BaseResponse & {
-  data?: Partial<EventType>[];
+  event_types?: Partial<EventType>[];
 };
 
 // Payment
 export type PaymentResponse = BaseResponse & {
-  data?: Partial<Payment>;
+  payment?: Partial<Payment>;
 };
 export type PaymentsResponse = BaseResponse & {
-  data?: Partial<Payment>[];
+  payments?: Partial<Payment>[];
 };
 
 // Schedule
 export type ScheduleResponse = BaseResponse & {
-  data?: Partial<Schedule>;
+  schedule?: Partial<Schedule>;
 };
 export type SchedulesResponse = BaseResponse & {
-  data?: Partial<Schedule>[];
+  schedules?: Partial<Schedule>[];
 };
 
 // Webhook
 export type WebhookResponse = BaseResponse & {
-  data?: Partial<Webhook>;
+  webhook?: Partial<Webhook>;
 };
 export type WebhooksResponse = BaseResponse & {
-  data?: Partial<Webhook>[];
+  webhooks?: Partial<Webhook>[];
 };
 
 // ReminderMail
 export type ReminderMailResponse = BaseResponse & {
-  data?: Partial<ReminderMail>;
+  reminder_mail?: Partial<ReminderMail>;
 };
 export type ReminderMailsResponse = BaseResponse & {
-  data?: Partial<ReminderMail>[];
+  reminder_mails?: Partial<ReminderMail>[];
 };

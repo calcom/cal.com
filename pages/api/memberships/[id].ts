@@ -9,7 +9,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
 
 /**
  * @swagger
- * /api/memberships/{userId}_{teamId}:
+ * /v1/memberships/{userId}_{teamId}:
  *   get:
  *     summary: Get a membership by userID and teamID
  *     parameters:
@@ -96,8 +96,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  */
 export async function membershipById(req: NextApiRequest, res: NextApiResponse<MembershipResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdAsString.safeParse(query);
-  const safeBody = await schemaMembershipBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdAsString.safeParse(query);
+  const safeBody = schemaMembershipBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and teamId in the query for managing compoundId.
   const [userId, teamId] = safeQuery.data.id.split("_");
@@ -106,8 +106,8 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
     case "GET":
       await prisma.membership
         .findUnique({ where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } } })
-        .then((membership) => schemaMembershipPublic.parse(membership))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaMembershipPublic.parse(data))
+        .then((membership) => res.status(200).json({ membership }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Membership with id: ${safeQuery.data.id} not found`, error })
         );
@@ -120,8 +120,8 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
           where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } },
           data: safeBody.data,
         })
-        .then((membership) => schemaMembershipPublic.parse(membership))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaMembershipPublic.parse(data))
+        .then((membership) => res.status(200).json({ membership }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Membership with id: ${safeQuery.data.id} not found`, error })
         );

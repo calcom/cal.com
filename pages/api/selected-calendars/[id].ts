@@ -12,7 +12,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
 
 /**
  * @swagger
- * /api/selected-calendars/{userId}_{teamId}:
+ * /v1/selected-calendars/{userId}_{integration}_{externalId}:
  *   get:
  *     summary: Get a selected-calendar by userID and teamID
  *     parameters:
@@ -21,13 +21,19 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric userId of the selected-calendar to get
+ *        description: userId of the selected calendar to get
  *      - in: path
- *        name: teamId
+ *        name: externalId
  *        schema:
- *          type: integer
+ *          type: string
  *        required: true
- *        description: Numeric teamId of the selected-calendar to get
+ *        description: externalId of the selected calendar to get
+ *      - in: path
+ *        name: integration
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: integration of the selected calendar to get
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -38,7 +44,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *       404:
  *         description: SelectedCalendar was not found
  *   patch:
- *     summary: Edit an existing selected-calendar
+ *     summary: Edit an existing selected calendar
  *     consumes:
  *       - application/json
  *     parameters:
@@ -54,13 +60,19 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric userId of the selected-calendar to get
+ *        description: userId of the selected calendar to get
  *      - in: path
- *        name: teamId
+ *        name: externalId
  *        schema:
- *          type: integer
+ *          type: string
  *        required: true
- *        description: Numeric teamId of the selected-calendar to get
+ *        description: externalId of the selected calendar to get
+ *      - in: path
+ *        name: integration
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: integration of the selected calendar to get
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -79,13 +91,19 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric userId of the selected-calendar to get
+ *        description: userId of the selected calendar to get
  *      - in: path
- *        name: teamId
+ *        name: externalId
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric teamId of the selected-calendar to get
+ *        description: externalId of the selected-calendar to get
+ *      - in: path
+ *        name: integration
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: integration of the selected calendar to get
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -102,10 +120,10 @@ export async function selectedCalendarById(
   res: NextApiResponse<SelectedCalendarResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdAsString.safeParse(query);
-  const safeBody = await schemaSelectedCalendarBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdAsString.safeParse(query);
+  const safeBody = schemaSelectedCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  // This is how we set the userId and teamId in the query for managing compoundId.
+  // This is how we set the userId and externalId in the query for managing compoundId.
   const [userId, integration, externalId] = safeQuery.data.id.split("_");
 
   switch (method) {
@@ -121,7 +139,7 @@ export async function selectedCalendarById(
           },
         })
         .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
         .catch((error: Error) =>
           res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
         );
@@ -141,7 +159,7 @@ export async function selectedCalendarById(
           data: safeBody.data,
         })
         .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
         .catch((error: Error) =>
           res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
         );

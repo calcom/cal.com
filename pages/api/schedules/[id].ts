@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/schedules/{id}:
+ * /v1/schedules/{id}:
  *   get:
  *     summary: Get a schedule by ID
  *     parameters:
@@ -81,16 +81,16 @@ import {
  */
 export async function scheduleById(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaScheduleBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
     case "GET":
       await prisma.schedule
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((schedule) => schemaSchedulePublic.parse(schedule))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaSchedulePublic.parse(data))
+        .then((schedule) => res.status(200).json({ schedule }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((schedule) => schemaSchedulePublic.parse(schedule))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaSchedulePublic.parse(data))
+        .then((schedule) => res.status(200).json({ schedule }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
         );

@@ -8,7 +8,7 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
 
 /**
  * @swagger
- * /api/resources/new:
+ * /v1/resources/new:
  *   post:
  *     summary: Creates a new resource
  *   requestBody:

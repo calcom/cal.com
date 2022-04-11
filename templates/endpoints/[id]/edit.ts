@@ -4,15 +4,15 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ResourceResponse } from "@lib/types";
+import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } from "@lib/validations/resource";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } from "@lib/validations/resource";
 
 /**
  * @swagger
- * /api/resources/{id}/edit:
+ * /v1/resources/{id}/edit:
  *   patch:
  *     summary: Edit an existing resource
  *    parameters:
@@ -34,8 +34,8 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *        description: Authorization information is missing or invalid.
  */
 export async function editResource(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safeQuery = await schemaQueryIdParseInt.safeParse(req.query);
-  const safeBody = await schemaResourceBodyParams.safeParse(req.body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(req.query);
+  const safeBody = schemaResourceBodyParams.safeParse(req.body);
 
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
   const resource = await prisma.resource.update({
@@ -53,4 +53,6 @@ export async function editResource(req: NextApiRequest, res: NextApiResponse<Res
       });
 }
 
-export default withMiddleware("HTTP_PATCH")(withValidQueryIdTransformParseInt(withValidResource(editResource)));
+export default withMiddleware("HTTP_PATCH")(
+  withValidQueryIdTransformParseInt(withValidResource(editResource))
+);

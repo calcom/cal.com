@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/event-type-custom-inputs/{id}:
+ * /v1/event-type-custom-inputs/{id}:
  *   get:
  *     summary: Get a eventTypeCustomInput by ID
  *     parameters:
@@ -44,7 +44,7 @@ import {
  *        description: The eventTypeCustomInput to edit
  *        schema:
  *         type: object
- *         $ref: '#/comCustomInputponents/schemas/EventType'
+ *         $ref: '#/components/schemas/EventTypeCustomInput'
  *        required: true
  *      - in: path
  *        name: id
@@ -84,8 +84,8 @@ import {
  */
 async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeCustomInputResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaEventTypeCustomInputBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
@@ -93,7 +93,7 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
       await prisma.eventTypeCustomInput
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaEventTypeCustomInputPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );
@@ -106,8 +106,8 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((eventTypeCustomInput) => schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaEventTypeCustomInputPublic.parse(data))
+        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
         .catch((error: Error) =>
           res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
         );

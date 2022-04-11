@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/booking-references/{id}:
+ * /v1/booking-references/{id}:
  *   get:
  *     summary: Get a daily event reference by ID
  *     parameters:
@@ -87,16 +87,17 @@ export async function bookingReferenceById(
   res: NextApiResponse<BookingReferenceResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaBookingReferenceBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaBookingReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  // FIXME: Allow only userId owner of booking ref to edit it
 
   switch (method) {
     case "GET":
       await prisma.bookingReference
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaBookingReferencePublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((booking_reference) => res.status(200).json({ booking_reference }))
         .catch((error: Error) =>
           res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );
@@ -109,8 +110,8 @@ export async function bookingReferenceById(
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((bookingReference) => schemaBookingReferencePublic.parse(bookingReference))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaBookingReferencePublic.parse(data))
+        .then((booking_reference) => res.status(200).json({ booking_reference }))
         .catch((error: Error) =>
           res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );

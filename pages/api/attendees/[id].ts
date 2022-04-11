@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /api/attendees/{id}:
+ * /v1/attendees/{id}:
  *   get:
  *     summary: Get an attendee by ID
  *     parameters:
@@ -81,16 +81,16 @@ import {
  */
 export async function attendeeById(req: NextApiRequest, res: NextApiResponse<AttendeeResponse>) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaAttendeeBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaAttendeeBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
     case "GET":
       await prisma.attendee
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((attendee) => schemaAttendeePublic.parse(attendee))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAttendeePublic.parse(data))
+        .then((attendee) => res.status(200).json({ attendee }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((attendee) => schemaAttendeePublic.parse(attendee))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAttendeePublic.parse(data))
+        .then((attendee) => res.status(200).json({ attendee }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
         );

@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/destination-calendars/{id}:
+ * /v1/destination-calendars/{id}:
  *   get:
  *     summary: Get a destination calendar by ID
  *     parameters:
@@ -87,8 +87,8 @@ export async function destionationCalendarById(
   res: NextApiResponse<DestinationCalendarResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaDestinationCalendarBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaDestinationCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
@@ -96,7 +96,7 @@ export async function destionationCalendarById(
       await prisma.destinationCalendar
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaDestinationCalendarPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((destination_calendar) => res.status(200).json({ destination_calendar }))
         .catch((error: Error) =>
           res
             .status(404)
@@ -111,8 +111,8 @@ export async function destionationCalendarById(
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((destinationCalendar) => schemaDestinationCalendarPublic.parse(destinationCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaDestinationCalendarPublic.parse(data))
+        .then((destination_calendar) => res.status(200).json({ destination_calendar }))
         .catch((error: Error) =>
           res
             .status(404)

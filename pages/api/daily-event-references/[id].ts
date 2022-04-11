@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /api/daily-event-references/{id}:
+ * /v1/daily-event-references/{id}:
  *   get:
  *     summary: Get a daily event reference by ID
  *     parameters:
@@ -87,8 +87,8 @@ export async function dailyEventReferenceById(
   res: NextApiResponse<DailyEventReferenceResponse>
 ) {
   const { method, query, body } = req;
-  const safeQuery = await schemaQueryIdParseInt.safeParse(query);
-  const safeBody = await schemaDailyEventReferenceBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaDailyEventReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
 
   switch (method) {
@@ -96,7 +96,7 @@ export async function dailyEventReferenceById(
       await prisma.dailyEventReference
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaDailyEventReferencePublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
         .catch((error: Error) =>
           res
             .status(404)
@@ -111,8 +111,8 @@ export async function dailyEventReferenceById(
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((dailyEventReference) => schemaDailyEventReferencePublic.parse(dailyEventReference))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaDailyEventReferencePublic.parse(data))
+        .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
         .catch((error: Error) =>
           res
             .status(404)
