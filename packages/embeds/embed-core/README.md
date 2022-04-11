@@ -74,6 +74,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Performance Improvements
   - Repeat clicks to show popup should be instant. There is some delay right now because of iframe being removed and being reloaded even if requests are cached. Iframe shouldn't be removed.
+  - Custom written Tailwind CSS is sent multiple times for different custom elements.
   
 - Embed Code Generator
 
