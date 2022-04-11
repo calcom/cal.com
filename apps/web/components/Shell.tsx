@@ -57,6 +57,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
+  const shouldDisplayUnauthed = router.pathname.startsWith("/apps");
 
   useEffect(() => {
     if (isPublic) {
@@ -76,6 +77,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
 
   return {
     loading: loading && !session,
+    shouldDisplayUnauthed,
     session,
   };
 }

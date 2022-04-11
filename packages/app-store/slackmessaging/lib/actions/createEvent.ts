@@ -116,13 +116,22 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     email: foundUser?.email ?? "",
     name: foundUser?.username ?? "",
     guests: await Promise.all(invitedGuestsEmails),
-    location: "inPerson", // TODO: Make this pickable in the future - defaulting to in person as any video provider that does not exist within the monorepo will crash the app.
+    location: "integrations:daily", // Defaulting to daily video to make this a bit more usefull than in-person
     timeZone: foundUser?.timeZone ?? "",
     language: foundUser?.locale ?? "en",
     customInputs: [{ label: "", value: "" }],
     metadata: {},
     notes: "This event was created with slack.",
   };
+
+  if (startDate < dayjs()) {
+    client.chat.postMessage({
+      token: access_token,
+      channel: user.id,
+      text: `Error: Day must not be in the past`,
+    });
+    return res.status(200).send("");
+  }
 
   fetch(`${WEBAPP_URL}/api/book/event`, {
     method: "POST",
@@ -132,11 +141,19 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     },
   })
     .then(() => {
+      client.chat.postMessage({
+        token: access_token,
+        channel: user.id, // We just dm the user here as there is no point posting this message publicly - In future it might be worth pinging all the members of the invite also?
+        text: "Booking has been created.",
+      });
       return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
     })
-    .catch(() => {
-      return res
-        .status(200)
-        .json({ text: "Event creation failed. Please try again", response_action: "update" });
+    .catch((e) => {
+      client.chat.postMessage({
+        token: access_token,
+        channel: user.id,
+        text: `Error: ${e}`,
+      });
+      return res.status(200).send("");
     });
 }
