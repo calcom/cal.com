@@ -43,6 +43,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
   - Embed doesn't adapt to screen size without page refresh.
     - Try opening in portrait mode and then go to landscape mode.
+  - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
+  - Loader should also be there in inline mode.
 
 - Branding
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.

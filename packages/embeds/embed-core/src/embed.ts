@@ -1,5 +1,6 @@
 import type { CalWindow } from "@calcom/embed-snippet";
 
+import { FloatingButton } from "./FloatingButton";
 import { ModalBox } from "./ModalBox";
 import { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
@@ -228,6 +229,21 @@ export class Cal {
     element.appendChild(iframe);
   }
 
+  floatingButton({ calLink }: { calLink: string }) {
+    validate(arguments[0], {
+      required: true,
+      props: {
+        calLink: {
+          required: true,
+          type: "string",
+        },
+      },
+    });
+    const template = document.createElement("template");
+    template.innerHTML = `<cal-floating-button data-cal-namespace=${this.namespace} data-cal-link=${calLink}></cal-floating-button>`;
+    document.body.appendChild(template.content);
+  }
+
   modal({ calLink, config = {} }: { calLink: string; config?: Record<string, string> }) {
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
@@ -415,3 +431,4 @@ document.addEventListener("click", (e) => {
 });
 
 customElements.define("cal-modal-box", ModalBox);
+customElements.define("cal-floating-button", FloatingButton);

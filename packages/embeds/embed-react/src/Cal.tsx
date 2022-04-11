@@ -19,16 +19,20 @@ export default function Cal({
     if (!Cal) {
       return;
     }
+    const element = ref.current;
     let initConfig = {};
     if (calOrigin) {
       (initConfig as any).origin = calOrigin;
     }
     Cal("init", initConfig);
     Cal("inline", {
-      elementOrSelector: ref.current,
+      elementOrSelector: element,
       calLink,
       config,
     });
+    return () => {
+      element?.querySelector(".cal-embed")?.remove();
+    };
   }, [Cal, calLink, config, calOrigin]);
 
   if (!Cal) {

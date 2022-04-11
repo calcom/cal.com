@@ -329,6 +329,16 @@
         debug: 1,
         origin: "http://localhost:3000",
       })
+
+      Cal("init", "floatingButton", {
+        debug: 1,
+        origin: "http://localhost:3000",
+      });
+      if (!only  || only == "ns:floatingButton") {
+      Cal.ns.floatingButton("floatingButton", {
+        calLink: "pro"
+      })
+    }
     </script>
     <script></script>
   </body>

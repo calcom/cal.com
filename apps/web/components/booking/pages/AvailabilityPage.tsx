@@ -136,7 +136,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
         <main
           className={
             isEmbed
-              ? ""
+              ? classNames("m-auto", selectedDate ? "max-w-5xl" : "max-w-3xl")
               : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
                 (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>

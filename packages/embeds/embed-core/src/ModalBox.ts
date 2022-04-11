@@ -1,3 +1,5 @@
+import tailwindCss from "./tailwind.css";
+
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
   //@ts-ignore
@@ -32,37 +34,7 @@ export class ModalBox extends HTMLElement {
     super();
     //FIXME: this styling goes as is as it's a JS string. That's a lot of unnecessary whitespaces over the wire.
     const modalHtml = `
-		<style>
-		.bg-gray-50 {
-			--tw-bg-opacity: 1;
-			background-color: rgb(248 248 248 / var(--tw-bg-opacity));
-		}
-		
-		.items-center {
-			align-items: center;
-		}
-		.w-full {
-			width: 100%;
-		}
-		.h-screen {
-			height: 100%;
-		}
-		.flex {
-			display: flex;
-		}
-		.z-highest {
-			z-index: 500000000;
-		}
-		.absolute {
-			position: absolute;
-		}
-		.border-brand {
-			border-color: white;
-		}
-		.bg-brand {
-			background-color: white;
-		}
-		
+		<style> ${tailwindCss}
 		.backdrop {
 		  position:fixed;
 		  width:100%;
@@ -73,6 +45,7 @@ export class ModalBox extends HTMLElement {
 		  display:block;
 		  background-color:rgb(5,5,5, 0.8)
 		}
+		
 		@media only screen and (min-width:600px) {
 		  .modal-box {
 			margin:0 auto; 
