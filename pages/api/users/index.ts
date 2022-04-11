@@ -24,13 +24,13 @@ import { schemaUserPublic } from "@lib/validations/user";
  */
 async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>) {
   const userId = getCalcomUserId(res);
-  const users = await prisma.user.findMany({
+  const data = await prisma.user.findMany({
     where: {
       id: userId,
     },
   });
-  const data = users.map((user) => schemaUserPublic.parse(user));
-  if (data) res.status(200).json({ data });
+  const users = data.map((user) => schemaUserPublic.parse(user));
+  if (users) res.status(200).json({ users });
   else
     (error: Error) =>
       res.status(404).json({

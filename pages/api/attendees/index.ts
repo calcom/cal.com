@@ -49,9 +49,9 @@ async function createOrlistAllAttendees(
       attendees: true,
     },
   });
-  const userBookingsAttendees = userBookings.map((booking) => booking.attendees).flat();
+  const attendees = userBookings.map((booking) => booking.attendees).flat();
   if (method === "GET") {
-    if (userBookingsAttendees) res.status(200).json({ data: userBookingsAttendees });
+    if (attendees) res.status(200).json({ attendees });
     else
       (error: Error) =>
         res.status(404).json({
@@ -67,12 +67,12 @@ async function createOrlistAllAttendees(
     const bookingId = safe.data.bookingId;
     delete safe.data.bookingId;
     const noBookingId = safe.data;
-    const attendee = await prisma.attendee.create({
+    const data = await prisma.attendee.create({
       data: { ...noBookingId, booking: { connect: { id: parseInt(bookingId as string) } } },
     });
-    const data = schemaAttendeePublic.parse(attendee);
+    const attendee = schemaAttendeePublic.parse(data);
 
-    if (data) res.status(201).json({ data, message: "Attendee created successfully" });
+    if (attendee) res.status(201).json({ attendee, message: "Attendee created successfully" });
     else
       (error: Error) =>
         res.status(400).json({

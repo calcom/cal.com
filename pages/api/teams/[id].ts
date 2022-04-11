@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { TeamResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -84,13 +85,17 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-
+  const userId = getCalcomUserId(res);
+  const userWithMemberships = await prisma.membership.findMany({
+    where: { userId: userId },
+  });
+  console.log(userWithMemberships);
   switch (method) {
     case "GET":
       await prisma.team
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaTeamPublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((team) => res.status(200).json({ team }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
         );
@@ -104,7 +109,7 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
           data: safeBody.data,
         })
         .then((team) => schemaTeamPublic.parse(team))
-        .then((data) => res.status(200).json({ data }))
+        .then((team) => res.status(200).json({ team }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
         );

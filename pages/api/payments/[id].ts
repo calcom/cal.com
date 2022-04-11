@@ -15,7 +15,7 @@ import {
  * @swagger
  * /api/payments/{id}:
  *   get:
- *     summary: Get a payment by ID
+ *     summary: Get one of your own payments by ID
  *     parameters:
  *       - in: path
  *         name: id

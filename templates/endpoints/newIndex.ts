@@ -65,4 +65,4 @@ async function createOrlistAllPayments(
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET_OR_POST")(withValidPayment(createOrlistAllPayments));
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllPayments);

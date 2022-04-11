@@ -3,14 +3,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { BookingReferencesResponse } from "@lib/types";
-import { schemaBookingReferencePublic } from "@lib/validations/booking-reference";
+import { BookingReferenceResponse, BookingReferencesResponse } from "@lib/types";
+import {
+  schemaBookingReferenceBodyParams,
+  schemaBookingReferencePublic,
+} from "@lib/validations/booking-reference";
 
 /**
  * @swagger
  * /api/booking-references:
  *   get:
- *     summary: Get all bookingReferences
+ *     summary: Get all booking references
  *     tags:
  *     - booking-references
  *     responses:
@@ -19,21 +22,52 @@ import { schemaBookingReferencePublic } from "@lib/validations/booking-reference
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: No bookingReferences were found
+ *         description: No booking references were found
+ *   post:
+ *     summary: Creates a new  booking reference
+ *     tags:
+ *     - booking-references
+ *     responses:
+ *       201:
+ *         description: OK,  booking reference created
+ *         model: BookingReference
+ *       400:
+ *        description: Bad request. BookingReference body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
  */
-async function allBookingReferences(_: NextApiRequest, res: NextApiResponse<BookingReferencesResponse>) {
-  const bookingReferences = await prisma.bookingReference.findMany();
-  const data = bookingReferences.map((bookingReference) =>
-    schemaBookingReferencePublic.parse(bookingReference)
-  );
+async function createOrlistAllBookingReferences(
+  req: NextApiRequest,
+  res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
+) {
+  const { method } = req;
+  if (method === "GET") {
+    const data = await prisma.bookingReference.findMany();
+    const booking_references = data.map((bookingReference) =>
+      schemaBookingReferencePublic.parse(bookingReference)
+    );
+    if (booking_references) res.status(200).json({ booking_references });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No BookingReferences were found",
+          error,
+        });
+  } else if (method === "POST") {
+    const safe = schemaBookingReferenceBodyParams.safeParse(req.body);
+    if (!safe.success) throw new Error("Invalid request body");
 
-  if (data) res.status(200).json({ data });
-  else
-    (error: Error) =>
-      res.status(404).json({
-        message: "No BookingReferences were found",
-        error,
-      });
+    const data = await prisma.bookingReference.create({ data: safe.data });
+    const booking_reference = schemaBookingReferencePublic.parse(data);
+
+    if (data) res.status(201).json({ booking_reference, message: "BookingReference created successfully" });
+    else
+      (error: Error) =>
+        res.status(400).json({
+          message: "Could not create new booking reference",
+          error,
+        });
+  } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET")(allBookingReferences);
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllBookingReferences);

@@ -91,8 +91,8 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
       case "GET":
         await prisma.user
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((user) => schemaUserPublic.parse(user))
-          .then((data) => res.status(200).json({ data }))
+          .then((data) => schemaUserPublic.parse(data))
+          .then((user) => res.status(200).json({ user }))
           .catch((error: Error) =>
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })
           );
@@ -105,8 +105,8 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
-          .then((user) => schemaUserPublic.parse(user))
-          .then((data) => res.status(200).json({ data }))
+          .then((data) => schemaUserPublic.parse(data))
+          .then((user) => res.status(200).json({ user }))
           .catch((error: Error) =>
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })
           );

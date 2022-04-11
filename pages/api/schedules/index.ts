@@ -8,7 +8,7 @@ import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } fro
 
 /**
  * @swagger
- * /api/schedules:
+ * /v1/schedules:
  *   get:
  *     summary: Get all schedules
  *     tags:

@@ -139,7 +139,7 @@ export async function selectedCalendarById(
           },
         })
         .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
         .catch((error: Error) =>
           res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
         );
@@ -159,7 +159,7 @@ export async function selectedCalendarById(
           data: safeBody.data,
         })
         .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((data) => res.status(200).json({ data }))
+        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
         .catch((error: Error) =>
           res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
         );

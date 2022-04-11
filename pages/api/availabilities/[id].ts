@@ -89,8 +89,8 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
     case "GET":
       await prisma.availability
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((availability) => schemaAvailabilityPublic.parse(availability))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAvailabilityPublic.parse(data))
+        .then((availability) => res.status(200).json({ availability }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((availability) => schemaAvailabilityPublic.parse(availability))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAvailabilityPublic.parse(data))
+        .then((availability) => res.status(200).json({ availability }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
         );

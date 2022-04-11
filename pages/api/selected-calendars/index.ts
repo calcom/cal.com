@@ -43,11 +43,11 @@ async function createOrlistAllSelectedCalendars(
 ) {
   const { method } = req;
   if (method === "GET") {
-    const selectedCalendars = await prisma.selectedCalendar.findMany();
-    const data = selectedCalendars.map((selectedCalendar) =>
-      schemaSelectedCalendarPublic.parse(selectedCalendar)
+    const data = await prisma.selectedCalendar.findMany();
+    const selected_calendars = data.map((selected_calendar) =>
+      schemaSelectedCalendarPublic.parse(selected_calendar)
     );
-    if (data) res.status(200).json({ data });
+    if (selected_calendars) res.status(200).json({ selected_calendars });
     else
       (error: Error) =>
         res.status(404).json({
@@ -58,14 +58,15 @@ async function createOrlistAllSelectedCalendars(
     const safe = schemaSelectedCalendarBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const selectedCalendar = await prisma.selectedCalendar.create({ data: safe.data });
-    const data = schemaSelectedCalendarPublic.parse(selectedCalendar);
+    const data = await prisma.selectedCalendar.create({ data: safe.data });
+    const selected_calendar = schemaSelectedCalendarPublic.parse(data);
 
-    if (data) res.status(201).json({ data, message: "SelectedCalendar created successfully" });
+    if (selected_calendar)
+      res.status(201).json({ selected_calendar, message: "SelectedCalendar created successfully" });
     else
       (error: Error) =>
         res.status(400).json({
-          message: "Could not create new selectedCalendar",
+          message: "Could not create new selected calendar",
           error,
         });
   } else res.status(405).json({ message: `Method ${method} not allowed` });

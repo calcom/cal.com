@@ -96,7 +96,7 @@ export async function bookingReferenceById(
       await prisma.bookingReference
         .findUnique({ where: { id: safeQuery.data.id } })
         .then((data) => schemaBookingReferencePublic.parse(data))
-        .then((data) => res.status(200).json({ data }))
+        .then((booking_reference) => res.status(200).json({ booking_reference }))
         .catch((error: Error) =>
           res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );
@@ -109,8 +109,8 @@ export async function bookingReferenceById(
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((bookingReference) => schemaBookingReferencePublic.parse(bookingReference))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaBookingReferencePublic.parse(data))
+        .then((booking_reference) => res.status(200).json({ booking_reference }))
         .catch((error: Error) =>
           res.status(404).json({ message: `BookingReference with id: ${safeQuery.data.id} not found`, error })
         );

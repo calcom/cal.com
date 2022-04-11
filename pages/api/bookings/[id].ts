@@ -89,8 +89,8 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
     case "GET":
       await prisma.booking
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((booking) => schemaBookingPublic.parse(booking))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaBookingPublic.parse(data))
+        .then((booking) => res.status(200).json({ booking }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Booking with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((booking) => schemaBookingPublic.parse(booking))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaBookingPublic.parse(data))
+        .then((booking) => res.status(200).json({ booking }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Booking with id: ${safeQuery.data.id} not found`, error })
         );

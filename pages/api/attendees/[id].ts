@@ -89,8 +89,8 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
     case "GET":
       await prisma.attendee
         .findUnique({ where: { id: safeQuery.data.id } })
-        .then((attendee) => schemaAttendeePublic.parse(attendee))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAttendeePublic.parse(data))
+        .then((attendee) => res.status(200).json({ attendee }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
         );
@@ -103,8 +103,8 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
           where: { id: safeQuery.data.id },
           data: safeBody.data,
         })
-        .then((attendee) => schemaAttendeePublic.parse(attendee))
-        .then((data) => res.status(200).json({ data }))
+        .then((data) => schemaAttendeePublic.parse(data))
+        .then((attendee) => res.status(200).json({ attendee }))
         .catch((error: Error) =>
           res.status(404).json({ message: `Attendee with id: ${safeQuery.data.id} not found`, error })
         );
