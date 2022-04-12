@@ -22,7 +22,7 @@ test.describe("App Store - Authed", () => {
   });
 });
 
-test.describe.only("App Store - Unauthed", () => {
+test.describe("App Store - Unauthed", () => {
   test("Browse apple-calendar and try to install", async ({ page }) => {
     await page.goto("/apps");
     await page.click('[data-testid="app-store-category-calendar"]');
