@@ -95,12 +95,12 @@ export async function refund(
       externalId: string;
       data: Prisma.JsonValue;
       type: PaymentType;
-    }[];
+    } | null;
   },
   calEvent: CalendarEvent
 ) {
   try {
-    const payment = booking.payment.find((e) => e.success && !e.refunded);
+    const { payment } = booking;
     if (!payment) return;
 
     if (payment.type !== PaymentType.STRIPE) {
@@ -112,17 +112,26 @@ export async function refund(
       return;
     }
 
-    const refund = await stripe.refunds.create(
-      {
-        payment_intent: payment.externalId,
-      },
-      { stripeAccount: (payment.data as unknown as PaymentData)["stripeAccount"] }
-    );
+    let {
+      data: [stripeRefund],
+    } = await stripe.refunds.list({
+      payment_intent: payment.externalId,
+    });
 
-    if (!refund || refund.status === "failed") {
+    // If this payment doesn't have a refund yet, let's create it.
+    if (!stripeRefund) {
+      stripeRefund = await stripe.refunds.create(
+        {
+          payment_intent: payment.externalId,
+        },
+        { stripeAccount: (payment.data as unknown as PaymentData)["stripeAccount"] }
+      );
+    }
+
+    if (!stripeRefund || stripeRefund.status === "failed") {
       await handleRefundError({
         event: calEvent,
-        reason: refund?.failure_reason || "unknown",
+        reason: stripeRefund?.failure_reason || "unknown",
         paymentId: payment.externalId,
       });
       return;
