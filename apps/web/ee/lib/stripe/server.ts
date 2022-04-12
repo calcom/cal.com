@@ -101,7 +101,15 @@ export async function refund(
 ) {
   try {
     const { payment } = booking;
-    if (!payment) return;
+    if (!payment) {
+      console.warn(`There was no payment to refund in booking id: ${booking.id}`);
+      await handleRefundError({
+        event: calEvent,
+        reason: `There was no payment to refund in booking`,
+        paymentId: "unknown",
+      });
+      return;
+    }
 
     if (payment.type !== PaymentType.STRIPE) {
       await handleRefundError({
@@ -111,21 +119,20 @@ export async function refund(
       });
       return;
     }
+    const refundArguments = [
+      {
+        payment_intent: payment.externalId,
+      },
+      { stripeAccount: (payment.data as unknown as PaymentData)["stripeAccount"] },
+    ];
 
     let {
       data: [stripeRefund],
-    } = await stripe.refunds.list({
-      payment_intent: payment.externalId,
-    });
+    } = await stripe.refunds.list(...refundArguments);
 
     // If this payment doesn't have a refund yet, let's create it.
     if (!stripeRefund) {
-      stripeRefund = await stripe.refunds.create(
-        {
-          payment_intent: payment.externalId,
-        },
-        { stripeAccount: (payment.data as unknown as PaymentData)["stripeAccount"] }
-      );
+      stripeRefund = await stripe.refunds.create(...refundArguments);
     }
 
     if (!stripeRefund || stripeRefund.status === "failed") {
