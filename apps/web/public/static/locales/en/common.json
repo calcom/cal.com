@@ -35,6 +35,7 @@
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
+  "pending_payment": "Pending payment",
   "refunded": "Refunded",
   "pay_later_instructions": "You have also received an email with this link, if you want to pay later.",
   "payment": "Payment",
