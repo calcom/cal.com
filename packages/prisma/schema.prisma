@@ -254,7 +254,7 @@ model Booking {
   rejected            Boolean              @default(false)
   status              BookingStatus        @default(ACCEPTED)
   paid                Boolean              @default(false)
-  payment             Payment[]
+  payment             Payment?
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
   rejectionReason     String?
@@ -341,7 +341,7 @@ model Payment {
   id         Int         @id @default(autoincrement())
   uid        String      @unique
   type       PaymentType
-  bookingId  Int
+  bookingId  Int         @unique
   booking    Booking?    @relation(fields: [bookingId], references: [id])
   amount     Int
   fee        Int
