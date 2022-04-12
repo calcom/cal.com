@@ -147,6 +147,8 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
     users = [users];
   }
   const allUsers: string[] = [];
+  // Multiple users can come in case of a team round-robin booking and in that case dynamic link won't be a user.
+  // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users.forEach((user) => {
     allUsers.push(
       ...user
