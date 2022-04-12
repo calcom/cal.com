@@ -1,9 +1,7 @@
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
-import React, { ComponentProps, ReactNode } from "react";
-import { LiveChatLoaderProvider } from "react-live-chat-loader";
-import { HelpScout } from "react-live-chat-loader";
+import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
@@ -55,7 +53,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     <TelemetryProvider value={createTelemetryClient()}>
       {isPublicPage ? (
         RemainingProviders
-      ) : ( 
+      ) : (
         <DynamicHelpscoutProvider>
           <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
         </DynamicHelpscoutProvider>
