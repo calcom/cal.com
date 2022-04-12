@@ -70,7 +70,7 @@ export default function Login({
   const LoginFooter = (
     <span>
       {t("dont_have_an_account")}{" "}
-      <a href={`${WEBSITE_URL}/signup`} className="font-medium text-neutral-900">
+      <a href={`${WEBSITE_URL}/signup`} className="text-decoration: font-medium text-neutral-900 underline">
         {t("create_an_account")}
       </a>
     </span>
@@ -127,7 +127,9 @@ export default function Login({
             <div className="relative">
               <div className="absolute right-0 -top-[2px]">
                 <Link href="/auth/forgot-password">
-                  <a tabIndex={-1} className="text-primary-600 text-sm font-medium">
+                  <a
+                    tabIndex={-1}
+                    className="text-primary-600 text-decoration: text-sm font-medium underline">
                     {t("forgot")}
                   </a>
                 </Link>
