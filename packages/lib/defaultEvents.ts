@@ -46,6 +46,7 @@ const commons = {
   timeZone: null,
   successRedirectUrl: "",
   availability: [],
+  attendeeReminders: [],
   price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
