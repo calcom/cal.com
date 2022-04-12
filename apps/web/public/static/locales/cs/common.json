@@ -445,7 +445,6 @@
   "danger_zone": "Nebezpečná zóna",
   "back": "Zpět",
   "cancel": "Zrušit",
-  "apply": "Použít",
   "cancel_event": "Zrušit tuto událost",
   "continue": "Pokračovat",
   "confirm": "Potvrdit",
@@ -662,7 +661,6 @@
   "trending_apps": "Populární aplikace",
   "all_apps": "Všechny aplikace",
   "installed_apps": "Nainstalované aplikace",
-  "manage_your_connected_apps": "Spravovat nainstalované aplikace nebo změnit nastavení",
   "browse_apps": "Procházet aplikace",
   "features": "Funkce",
   "permissions": "Oprávnění",
@@ -699,6 +697,5 @@
   "example_name": "Jan Novák",
   "time_format": "Formát času",
   "12_hour": "12hodinový",
-  "24_hour": "24hodinový",
-  "duplicate": "Duplikovat"
+  "24_hour": "24hodinový"
 }

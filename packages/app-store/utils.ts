@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
+import { LocationType } from "@calcom/lib/location";
 import type { App } from "@calcom/types/App";
 
 import appStore from ".";
-import { LocationType } from "./locations";
 
 const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
   store[key] = appStore[key as keyof typeof appStore].metadata;
@@ -37,14 +37,19 @@ const defaultLocations: OptionTypeBase[] = [
   { value: LocationType.Phone, label: "phone_call" },
 ];
 
-export function getLocationOptions(integrations: AppMeta, t: TFunction) {
+export function getLocationOptions(integrations: AppMeta) {
+  const defaultLocations: OptionTypeBase[] = [
+    { value: LocationType.InPerson, label: "in_person_meeting" },
+    { value: LocationType.Phone, label: "phone_call" },
+  ];
+
   integrations.forEach((app) => {
     if (app.locationOption) {
       defaultLocations.push(app.locationOption);
     }
   });
 
-  return translateLocations(defaultLocations, t);
+  return defaultLocations;
 }
 
 /**
@@ -69,8 +74,8 @@ function getApps(userCredentials: CredentialData[]) {
     /** Check if app has location option AND add it if user has credentials for it */
     if (credentials.length > 0 && appMeta?.locationType) {
       locationOption = {
-        value: appMeta.locationType,
-        label: appMeta.locationLabel || "No label set",
+        value: appMeta.locationType as LocationType,
+        label: appMeta.label,
         disabled: false,
       };
     }

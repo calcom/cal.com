@@ -1,4 +1,4 @@
-import { expect, Locator, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { randomString } from "../lib/random";
 import { deleteEventTypeByTitle } from "./lib/teardown";
@@ -11,8 +11,8 @@ test.describe("Event Types tests", () => {
   });
 
   test.describe("pro user", () => {
-    let isCreated: Locator;
-    let eventTitle: string;
+    let isCreated;
+    let eventTitle;
 
     test.afterAll(async () => {
       if (isCreated) await deleteEventTypeByTitle(eventTitle);

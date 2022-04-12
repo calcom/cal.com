@@ -23,14 +23,13 @@ import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
 import Button from "@calcom/ui/Button";
@@ -42,7 +41,7 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
+import { useLocale } from "@lib/hooks/useLocale";
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
@@ -53,7 +52,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
@@ -64,8 +62,6 @@ import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
-
-import { getTranslation } from "@server/lib/i18n";
 
 import bloxyApi from "../../web3/dummyResps/bloxyApi";
 
@@ -89,68 +85,20 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
-  eventType,
-  formMethods,
-}: {
-  eventType: inferSSRProps<typeof getServerSideProps>["eventType"];
-  formMethods: T;
-}) => {
-  const { t } = useLocale();
-  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
-  const [modalOpen, setModalOpen] = useState(false);
-  return (
-    <>
-      <hr className="border-neutral-200" />
-      <div className="block sm:flex">
-        <div className="min-w-48 sm:mb-0">
-          <label
-            htmlFor="successRedirectUrl"
-            className="flex h-full items-center text-sm font-medium text-neutral-700">
-            {t("redirect_success_booking")}
-            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
-          </label>
-        </div>
-        <div className="w-full">
-          <input
-            id="successRedirectUrl"
-            onClick={(e) => {
-              if (proUpgradeRequired) {
-                e.preventDefault();
-                setModalOpen(true);
-              }
-            }}
-            readOnly={proUpgradeRequired}
-            type="url"
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-            placeholder={t("external_redirect_url")}
-            defaultValue={eventType.successRedirectUrl || ""}
-            {...formMethods.register("successRedirectUrl")}
-          />
-        </div>
-        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-          {t("redirect_url_upgrade_description")}
-        </UpgradeToProDialog>
-      </div>
-    </>
-  );
+const addDefaultLocationOptions = (
+  defaultLocations: OptionTypeBase[],
+  locationOptions: OptionTypeBase[]
+): void => {
+  const existingLocationOptions = locationOptions.flatMap((locationOptionItem) => [locationOptionItem.value]);
+
+  defaultLocations.map((item) => {
+    if (!existingLocationOptions.includes(item.value)) {
+      locationOptions.push(item);
+    }
+  });
 };
 
-type AvailabilityOption = {
-  label: string;
-  value: number;
-};
-
-const AvailabilitySelect = ({
-  className = "",
-  ...props
-}: {
-  className?: string;
-  name: string;
-  value: number;
-  onBlur: Noop;
-  onChange: (value: AvailabilityOption | null) => void;
-}) => {
+const AvailabilitySelect = ({ className, ...props }: SelectProps) => {
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
@@ -169,9 +117,9 @@ const AvailabilitySelect = ({
         );
         return (
           <Select
+            {...props}
             options={options}
             isSearchable={false}
-            onChange={props.onChange}
             classNamePrefix="react-select"
             className={classNames(
               "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
@@ -201,7 +149,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
+  const { eventType, locationOptions, availability, team, teamMembers, hasPaymentIntegration, currency } =
+    props;
+
+  /** Appending default locations */
+
+  const defaultLocations = [
+    { value: LocationType.InPerson, label: t("in_person_meeting") },
+    { value: LocationType.Link, label: t("link_meeting") },
+    { value: LocationType.Jitsi, label: "Jitsi Meet" },
+    { value: LocationType.Phone, label: t("phone_call") },
+  ];
+
+  addDefaultLocationOptions(defaultLocations, locationOptions);
 
   const router = useRouter();
 
@@ -216,21 +176,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       );
     },
     onError: (err) => {
-      let message = "";
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to update this event`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR") {
-        message = `${err.data.code}: ${err.message}`;
-      }
-
-      if (message) {
+        const message = `${err.data.code}: You are not able to update this event`;
         showToast(message, "error");
       }
     },
@@ -259,6 +211,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
+  const [enableSeats, setEnableSeats] = useState(eventType.seatsPerTimeSlot ? true : false);
+  const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= 6 ? true : false);
+  const defaultSeats = 2;
+  const defaultSeatsInput = 6;
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -472,6 +428,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
+    currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
@@ -485,12 +442,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     minimumBookingNotice: number;
     beforeBufferTime: number;
     afterBufferTime: number;
+    seatsPerTimeSlot: number | null;
+    seatsPerAttendee: number;
+    bookingLimit: number;
+    bookingLimitType: BookingLimitType;
     slotInterval: number | null;
     destinationCalendar: {
       integration: string;
       externalId: string;
     };
-    successRedirectUrl: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -912,9 +872,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       smartContractAddress,
                       beforeBufferTime,
                       afterBufferTime,
+                      seatsPerTimeSlot,
+                      seatsPerAttendee,
+                      bookingLimit,
+                      bookingLimitType,
                       locations,
                       ...input
                     } = values;
+
+                    if (requirePayment) input.currency = currency;
+
                     updateMutation.mutate({
                       ...input,
                       locations,
@@ -924,6 +891,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
+                      seatsPerTimeSlot,
+                      seatsPerAttendee,
+                      bookingLimit,
+                      bookingLimitType,
                       metadata: smartContractAddress
                         ? {
                             smartContractAddress,
@@ -1045,10 +1016,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           control={formMethods.control}
                           render={({ field }) => (
                             <AvailabilitySelect
-                              value={field.value}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              onChange={(selected) => field.onChange(selected?.value || null)}
+                              {...field}
+                              onChange={(selected: { label: string; value: number }) =>
+                                field.onChange(selected.value)
+                              }
                             />
                           )}
                         />
@@ -1326,6 +1297,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
+                              // If we have seats per booking then we need to disable guests
+                              disabled={enableSeats}
                               onChange={(e) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
@@ -1567,9 +1540,124 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        <SuccessRedirectEdit<typeof formMethods>
-                          formMethods={formMethods}
-                          eventType={eventType}></SuccessRedirectEdit>
+
+                        <>
+                          <hr className="border-neutral-200" />
+                          <div className="block flex-col sm:flex">
+                            <Controller
+                              name="seatsPerTimeSlot"
+                              control={formMethods.control}
+                              render={() => (
+                                <CheckboxField
+                                  id="seats"
+                                  name="seats"
+                                  label={t("offer_seats")}
+                                  description={t("offer_seats_description")}
+                                  defaultChecked={!!eventType.seatsPerTimeSlot}
+                                  onChange={(e) => {
+                                    if (e?.target.checked) {
+                                      setEnableSeats(true);
+                                      // Want to disable individuals from taking multiple seats
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeats);
+                                      formMethods.setValue("disableGuests", true);
+                                    } else {
+                                      formMethods.setValue("seatsPerTimeSlot", null);
+                                      setEnableSeats(false);
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+
+                            {enableSeats && (
+                              <div className="block sm:flex">
+                                <div className="ml-48 mt-2 inline-flex w-full space-x-2">
+                                  <div className="w-full">
+                                    <Controller
+                                      name="seatsPerTimeSlot"
+                                      control={formMethods.control}
+                                      render={() => {
+                                        const selectSeatsPerTimeSlotOptions = [
+                                          { value: 2, label: "2" },
+                                          { value: 3, label: "3" },
+                                          { value: 4, label: "4" },
+                                          { value: 5, label: "5" },
+                                          {
+                                            value: -1,
+                                            isDisabled: false,
+                                            label: (
+                                              <div className="flex flex-row justify-between">
+                                                <span>6 +</span>
+                                                <Badge variant="default">PRO</Badge>
+                                              </div>
+                                            ),
+                                          },
+                                        ];
+                                        return (
+                                          <>
+                                            <div className="block sm:flex">
+                                              <div className="flex-auto">
+                                                <label
+                                                  htmlFor="beforeBufferTime"
+                                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                  Number of seats per booking
+                                                </label>
+                                                <Select
+                                                  isSearchable={false}
+                                                  classNamePrefix="react-select"
+                                                  className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                  onChange={(val) => {
+                                                    if (val!.value === -1) {
+                                                      formMethods.setValue(
+                                                        "seatsPerTimeSlot",
+                                                        defaultSeatsInput
+                                                      );
+                                                      setInputSeatNumber(true);
+                                                    } else {
+                                                      setInputSeatNumber(false);
+                                                      formMethods.setValue("seatsPerTimeSlot", val!.value);
+                                                    }
+                                                  }}
+                                                  defaultValue={{
+                                                    value: eventType.seatsPerTimeSlot || defaultSeats,
+                                                    label: `${eventType.seatsPerTimeSlot || defaultSeats}`,
+                                                  }}
+                                                  options={selectSeatsPerTimeSlotOptions}
+                                                />
+                                              </div>
+
+                                              {inputSeatNumber && (
+                                                <div className="ml-5 flex-auto">
+                                                  <label
+                                                    htmlFor="beforeBufferTime"
+                                                    className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                    Enter number of seats
+                                                  </label>
+                                                  <input
+                                                    type="number"
+                                                    className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                    placeholder={`${defaultSeatsInput}`}
+                                                    {...formMethods.register("seatsPerTimeSlot", {
+                                                      valueAsNumber: true,
+                                                      min: defaultSeatsInput,
+                                                    })}
+                                                    defaultValue={defaultSeatsInput}
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
+                                          </>
+                                        );
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <hr className="border-neutral-200" />
+                        </>
+
                         {hasPaymentIntegration && (
                           <>
                             <hr className="border-neutral-200" />
@@ -1892,8 +1980,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
-    plan: true,
-    locale: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -1952,7 +2038,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      successRedirectUrl: true,
       team: {
         select: {
           slug: true,
@@ -1982,6 +2067,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       currency: true,
       destinationCalendar: true,
+      seatsPerTimeSlot: true,
     },
   });
 
@@ -2027,15 +2113,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
     eventType.users.push(fallbackUser);
   }
-  const currentUser = eventType.users.find((u) => u.id === session.user.id);
-  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
+  const locationOptions = getLocationOptions(integrations);
 
   const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  if (hasIntegration(integrations, "google_calendar")) {
+    locationOptions.push({
+      value: LocationType.GoogleMeet,
+      label: "Google Meet",
+    });
+  }
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
+
+  if (hasIntegration(integrations, "office365_calendar")) {
+    // TODO: Add default meeting option of the office integration.
+    // Assuming it's Microsoft Teams.
+  }
 
   type Availability = typeof eventType["availability"];
   const getAvailability = (availability: Availability) =>

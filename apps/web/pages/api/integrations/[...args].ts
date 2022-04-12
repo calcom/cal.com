@@ -1,4 +1,4 @@
-import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 
 import appStore from "@calcom/app-store";
 
@@ -21,12 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     // TODO: Find a way to dynamically import these modules
     // const app = (await import(`@calcom/${appName}`)).default;
-    const app = appStore[appName as keyof typeof appStore];
-    if (!(app && "api" in app && apiEndpoint in app.api))
-      throw new HttpError({ statusCode: 404, message: `API handler not found` });
-
-    const handler = app.api[apiEndpoint as keyof typeof app.api] as NextApiHandler;
-
+    const handler = appStore[appName].api[apiEndpoint];
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 

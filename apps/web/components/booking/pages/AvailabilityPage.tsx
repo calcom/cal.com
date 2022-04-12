@@ -19,7 +19,6 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { BASE_URL } from "@lib/config/constants";
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -42,13 +41,13 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage }: Props) => {
+const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Props) => {
   const router = useRouter();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
   const { t } = useLocale();
   const { contracts } = useContracts();
-  useExposePlanGlobally(plan);
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -136,7 +135,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
             <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
-                <div className="block items-center sm:flex sm:space-x-4">
+                <div className="flex items-center">
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
                     items={
@@ -154,9 +153,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="mt-4 sm:-mt-2">
-                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600 dark:text-gray-100">
+                  <div className="ltr:ml-3 rtl:mr-3">
+                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
+                    <div className="flex gap-2 text-xs font-medium text-gray-600">
                       {eventType.title}
                       <div>
                         <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
@@ -260,6 +259,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
@@ -267,6 +267,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     schedulingType={eventType.schedulingType ?? null}
                     beforeBufferTime={eventType.beforeEventBuffer}
                     afterBufferTime={eventType.afterEventBuffer}
+                    seatsPerTimeSlot={eventType.seatsPerTimeSlot}
                   />
                 )}
               </div>

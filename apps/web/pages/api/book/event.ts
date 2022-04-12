@@ -12,6 +12,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
+import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -181,10 +182,50 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
   return userNamesWithBookingCounts;
 };
 
+const getEventTypesFromDB = async (eventTypeId: number) => {
+  return await prisma.eventType.findUnique({
+    rejectOnNotFound: true,
+    where: {
+      id: eventTypeId,
+    },
+    select: {
+      users: userSelect,
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      title: true,
+      length: true,
+      eventName: true,
+      schedulingType: true,
+      description: true,
+      periodType: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodDays: true,
+      periodCountCalendarDays: true,
+      requiresConfirmation: true,
+      userId: true,
+      price: true,
+      currency: true,
+      metadata: true,
+      destinationCalendar: true,
+      hideCalendarNotes: true,
+      seatsPerTimeSlot: true,
+    },
+  });
+};
+
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const reqBody = req.body as BookingCreateBody;
+
+  // handle dynamic user
+  const dynamicUserList = getUsernameList(reqBody.user as string);
+  const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -204,41 +245,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json(error);
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      users: userSelect,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      title: true,
-      length: true,
-      eventName: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodDays: true,
-      periodCountCalendarDays: true,
-      requiresConfirmation: true,
-      userId: true,
-      price: true,
-      currency: true,
-      metadata: true,
-      destinationCalendar: true,
-      hideCalendarNotes: true,
-    },
-  });
-
+  const eventType = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
   if (!eventType) return res.status(404).json({ message: "eventType.notFound" });
 
-  let users = eventType.users;
+  let users = !eventTypeId
+    ? await prisma.user.findMany({
+        where: {
+          username: {
+            in: dynamicUserList,
+          },
+        },
+        ...userSelect,
+      })
+    : eventType.users;
 
   /* If this event was pre-relationship migration */
   if (!users.length && eventType.userId) {
@@ -290,6 +309,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return g;
   });
 
+  // For seats, if the booking already exists then we want to add the new attendee to the existing booking
+  if (reqBody.bookingId) {
+    if (!eventType.seatsPerTimeSlot)
+      return res.status(404).json({ message: "Event type does not have seats" });
+
+    const booking = await prisma.booking.findUnique({
+      where: {
+        id: reqBody.bookingId,
+      },
+      include: {
+        attendees: true,
+      },
+    });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
+      return res.status(409).json({ message: "Booking seats are full" });
+
+    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
+      return res.status(409).json({ message: "Already signed up for time slot" });
+
+    await prisma.booking.update({
+      where: {
+        id: reqBody.bookingId,
+      },
+      data: {
+        attendees: {
+          create: {
+            email: invitee[0].email,
+            name: invitee[0].name,
+            timeZone: invitee[0].timeZone,
+            locale: invitee[0].language.locale,
+          },
+        },
+      },
+    });
+
+    return res.status(201).json(booking);
+  }
+
   const teamMemberPromises =
     eventType.schedulingType === SchedulingType.COLLECTIVE
       ? users.slice(1).map(async function (user) {
@@ -320,16 +379,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t: tOrganizer,
   };
 
-  const description =
+  const additionalNotes =
     reqBody.notes +
     reqBody.customInputs.reduce(
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
     );
+
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description,
+    description: eventType.description,
+    additionalNotes,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
@@ -340,7 +401,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     attendees: attendeesList,
     location: reqBody.location, // Will be processed by the EventManager later.
-    /** For team events, we will need to handle each member destinationCalendar eventually */
+    /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
   };
@@ -362,6 +423,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await verifyAccount(web3Details.userSignature, web3Details.userWallet);
     }
 
+    const eventTypeRel = !eventTypeId
+      ? {}
+      : {
+          connect: {
+            id: eventTypeId,
+          },
+        };
+
+    const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
+    const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
+
     return prisma.booking.create({
       include: {
         user: {
@@ -374,14 +446,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         title: evt.title,
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
-        description: evt.description,
+        description: evt.additionalNotes,
         confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
-        eventType: {
-          connect: {
-            id: eventTypeId,
-          },
-        },
+        eventType: eventTypeRel,
         attendees: {
           createMany: {
             data: evt.attendees.map((attendee) => {
@@ -397,6 +465,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }),
           },
         },
+        dynamicEventSlugRef,
+        dynamicGroupSlugRef,
         user: {
           connect: {
             id: users[0].id,
@@ -531,7 +601,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updateManager = await eventManager.update(evt, rescheduleUid);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -568,7 +638,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;

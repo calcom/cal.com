@@ -1,4 +1,4 @@
-const data: Record<string, number> = {};
+const data = {};
 /**
  * Starts an iteration from `0` to `length - 1` with batch size `batch`
  *

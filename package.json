@@ -5,7 +5,6 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "packages/embeds/*",
     "packages/app-store/*"
   ],
   "scripts": {

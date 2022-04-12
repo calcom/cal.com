@@ -12,6 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -20,7 +21,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
@@ -55,11 +55,18 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPageProps) => {
+const BookingPage = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  locationLabels,
+}: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -99,6 +106,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -133,6 +141,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
+
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
@@ -160,7 +169,7 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
     };
   };
 
@@ -241,9 +250,11 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
+      bookingId: parseInt(router.query.bookingId as string),
       user: router.query.user,
       location: getLocationValue(
         booking.locationType ? booking : { ...booking, locationType: selectedLocation }
@@ -296,6 +307,21 @@ const BookingPage = ({ eventType, booking, profile, locationLabels }: BookingPag
                 <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType.seatsPerTimeSlot && (
+                  <p
+                    className={`${
+                      booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                        ? "text-rose-600"
+                        : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                        ? "text-yellow-500"
+                        : "text-emerald-400"
+                    } mb-2`}>
+                    {booking
+                      ? eventType.seatsPerTimeSlot - booking.attendees.length
+                      : eventType.seatsPerTimeSlot}{" "}
+                    / {eventType.seatsPerTimeSlot} Seats available
+                  </p>
+                )}
                 <p className="mb-2 text-gray-500">
                   <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}

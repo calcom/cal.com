@@ -1,8 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { UserPlan } from "@calcom/prisma/client";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import prisma from "@lib/prisma";
@@ -40,6 +38,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          slug: true,
           users: {
             select: {
               id: true,
@@ -71,6 +70,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           timeZone: true,
           slotInterval: true,
           metadata: true,
+          seatsPerTimeSlot: true,
           schedule: {
             select: {
               timeZone: true,
@@ -111,8 +111,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      // Team is always pro
-      plan: "PRO" as UserPlan,
       profile: {
         name: team.name || team.slug,
         slug: team.slug,

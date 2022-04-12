@@ -1,9 +1,0 @@
-{
-  "extends": "@calcom/tsconfig/base.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "module": "esnext"
-  },
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
-}
