@@ -27,21 +27,16 @@ export const apiKeysRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
-      console.table("NOT hashedApiKey:", [hashedApiKey, apiKey]);
-      await ctx.prisma.apiKey
-        .create({
-          data: {
-            id: v4(),
-            userId: ctx.user.id,
-            ...input,
-            hashedKey: hashedApiKey,
-          },
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-      console.log("api key:", apiKey);
-      return apiKey;
+      await ctx.prisma.apiKey.create({
+        data: {
+          id: v4(),
+          userId: ctx.user.id,
+          ...input,
+          hashedKey: hashedApiKey,
+        },
+      });
+      const prefixedApiKey = `${process.env.API_KEY_PREFIX ?? "pt_secret_"}${apiKey}`;
+      return prefixedApiKey;
     },
   })
   .mutation("edit", {
@@ -94,52 +89,3 @@ export const apiKeysRouter = createProtectedRouter()
       };
     },
   });
-// .mutation("testTrigger", {
-//   input: z.object({
-//     url: z.string().url(),
-//     type: z.string(),
-//     payloadTemplate: z.string().optional().nullable(),
-//   }),
-//   async resolve({ input }) {
-//     const { url, type, payloadTemplate } = input;
-//     const translation = await getTranslation("en", "common");
-//     const language = {
-//       locale: "en",
-//       translate: translation,
-//     };
-
-//     const data = {
-//       triggerEvent: "PING",
-//       type: "Test",
-//       title: "Test trigger event",
-//       description: "",
-//       startTime: new Date().toISOString(),
-//       endTime: new Date().toISOString(),
-//       attendees: [
-//         {
-//           email: "jdoe@example.com",
-//           name: "John Doe",
-//           timeZone: "Europe/London",
-//           language,
-//         },
-//       ],
-//       organizer: {
-//         name: "Cal",
-//         email: "no-reply@cal.com",
-//         timeZone: "Europe/London",
-//         language,
-//       },
-//     };
-
-//     try {
-//       return await sendPayload(type, new Date().toISOString(), url, data, payloadTemplate);
-//     } catch (_err) {
-//       const error = getErrorFromUnknown(_err);
-//       return {
-//         ok: false,
-//         status: 500,
-//         message: error.message,
-//       };
-//     }
-//   },
-// });

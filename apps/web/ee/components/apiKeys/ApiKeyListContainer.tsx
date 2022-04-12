@@ -30,11 +30,7 @@ export default function ApiKeyListContainer() {
               <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_keys_subtitle")}</p>
             </div>
             <div className="self-center">
-              <Button
-                StartIcon={PlusIcon}
-                color="secondary"
-                onClick={() => setNewApiKeyModal(true)}
-                data-testid="new_token">
+              <Button StartIcon={PlusIcon} color="secondary" onClick={() => setNewApiKeyModal(true)}>
                 {t("generate_new_token")}
               </Button>
             </div>
@@ -55,17 +51,18 @@ export default function ApiKeyListContainer() {
             </List>
           ) : null}
 
-          {/* New webhook dialog */}
+          {/* New api key dialog */}
           <Dialog open={newApiKeyModal} onOpenChange={(isOpen) => !isOpen && setNewApiKeyModal(false)}>
             <DialogContent>
-              <ApiKeyDialogForm handleClose={() => setNewApiKeyModal(false)} />
+              <ApiKeyDialogForm title={t("create_api_key")} handleClose={() => setNewApiKeyModal(false)} />
             </DialogContent>
           </Dialog>
-          {/* Edit webhook dialog */}
+          {/* Edit api key dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
             <DialogContent>
               {editing && (
                 <ApiKeyDialogForm
+                  title={t("edit_api_key")}
                   key={editing.id}
                   handleClose={() => setEditModalOpen(false)}
                   defaultValues={editing}

@@ -19,9 +19,16 @@ import { DatePicker } from "@components/ui/form/DatePicker";
 
 import { TApiKeys } from "./ApiKeyListItem";
 
-export default function ApiKeyDialogForm(props: { defaultValues?: TApiKeys; handleClose: () => void }) {
+const options: DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
+
+export default function ApiKeyDialogForm(props: {
+  title: string;
+  defaultValues?: TApiKeys;
+  handleClose: () => void;
+}) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [neverExpires, setNeverExpires] = useState(false);
   const handleNoteChange = (e) => {
     form.setValue("note", e.target.value);
   };
@@ -52,109 +59,107 @@ export default function ApiKeyDialogForm(props: { defaultValues?: TApiKeys; hand
   });
   return (
     <>
-      <Dialog
-        open={successfulNewApiKeyModal}
-        onOpenChange={(isOpen) => !isOpen && setSuccessfulNewApiKeyModal(false)}>
-        <DialogContent>
-          <div className="flex space-x-5 align-middle">
-            <CheckCircleIcon className="h-10 w-10 place-content-center text-green-500" aria-hidden="true" />
-            <h2 className="text-bold mt-1 mb-10 text-xl text-gray-700">
-              You have created your new API Key successfully
+      {successfulNewApiKeyModal ? (
+        <>
+          <div className="mb-10">
+            <h2 className="font-semi-bold font-cal mb-2 text-xl tracking-wide text-gray-900">
+              {" "}
+              {t("success_api_key_created")}
             </h2>
+            <div className="text-sm text-gray-900">
+              <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
+              {t("you_will_not_view_once_close_modal")}
+            </div>
           </div>
-
           <div>
             <div className="flex">
-              <code className="m-2 rounded-sm bg-gray-300 py-1 px-2 align-middle">cal_{newApiKey}</code>
+              <code className="my-2 mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 align-middle font-mono text-gray-800">
+                {newApiKey}
+              </code>
               <Tooltip content={t("copy_to_clipboard")}>
-                <button
+                <Button
                   onClick={() => {
                     navigator.clipboard.writeText(newApiKey);
-                    showToast("API key copied!", "success");
+                    showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className="text-md mt-2 flex h-8 items-center rounded-sm bg-transparent px-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-                  <ClipboardCopyIcon className="h-4 w-4 text-neutral-500" />
-                </button>
+                  className=" my-2 px-4 text-base">
+                  <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
+                  {t("copy")}
+                </Button>
               </Tooltip>
             </div>
-
-            <hr className="my-4" />
-            <div className="text-md text-gray-400">
-              Please make sure to save this token somewhere safe, as we will not show it to you again once you
-              close this modal.
-            </div>
-
-            <span>It will expire on {newApiKeyDetails?.expiresAt?.toLocaleDateString()}</span>
+            {/* // FIXME: Don't hardcode en-GB locale for date formatting */}
+            <span className="text-sm text-gray-400">
+              {" "}
+              Expires {newApiKeyDetails?.expiresAt?.toLocaleDateString("en-GB", options)}
+            </span>
           </div>
-          {/* <ApiKeyDialogForm handleClose={() => setNewApiKeyModal(false)} /> */}
           <DialogFooter>
             <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
-              {t("close")}
+              {t("done")}
             </Button>
-            {/* <Button type="submit" loading={form.formState.isSubmitting}>
-              {t("save")}
-            </Button> */}
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Form
-        data-testid="ApiKeyDialogForm"
-        form={form}
-        handleSubmit={async (event) => {
-          const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
-          console.log("newApiKey", newApiKey);
-          setNewApiKey(newApiKey);
-          setNewApiKeyDetails({ ...event });
-          await utils.invalidateQueries(["viewer.apiKeys.list"]);
-          setSuccessfulNewApiKeyModal(true);
-        }}
-        className="space-y-4">
-        <TextField
-          label={t("personal_note")}
-          {...form.register("note")}
-          type="text"
-          onChange={handleNoteChange}
-        />
+        </>
+      ) : (
+        <Form
+          form={form}
+          handleSubmit={async (event) => {
+            const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+            setNewApiKey(newApiKey);
+            setNewApiKeyDetails({ ...event });
+            await utils.invalidateQueries(["viewer.apiKeys.list"]);
+            setSuccessfulNewApiKeyModal(true);
+          }}
+          className="space-y-4">
+          <div className=" mb-10 mt-1">
+            <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">{props.title}</h2>
+            <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_key_modal_subtitle")}</p>
+          </div>
+          <TextField
+            label={t("personal_note")}
+            placeholder={t("personal_note_placeholder")}
+            {...form.register("note")}
+            type="text"
+            onChange={handleNoteChange}
+          />
 
-        <div className="flex flex-col">
-          <div className="flex justify-between py-2">
-            <span className="text-md text-gray-600">Expire date</span>
-            <Controller
-              control={form.control}
-              name="expiresAt"
-              render={({ field }) => (
-                <Switch
-                  label={field.value ? t("never_expire_key_enabled") : t("never_expire_key_disabled")}
-                  defaultChecked={field.value === null}
-                  onCheckedChange={(isChecked) => {
-                    const nullOrDate = () => {
-                      if (isChecked === true) return null;
-                      else return form.getValues().expiresAt;
-                    };
-                    form.setValue("expiresAt", nullOrDate());
-                  }}
-                />
-              )}
+          <div className="flex flex-col">
+            <div className="flex justify-between py-2">
+              <span className="block text-sm font-medium text-gray-700">{t("expire_date")}</span>
+              <Switch
+                label={t("never_expire_key")}
+                defaultChecked={neverExpires}
+                onCheckedChange={(isChecked) => {
+                  if (isChecked) {
+                    form.setValue("expiresAt", null);
+                    setNeverExpires(true);
+                  } else {
+                    setNeverExpires(false);
+                    form.setValue("expiresAt", form.getValues().expiresAt || new Date());
+                  }
+                }}
+              />
+            </div>
+            <DatePicker
+              disabled={form.getValues().expiresAt === null}
+              minDate={new Date()}
+              date={selectedDate as Date}
+              onDatesChange={handleDateChange}
             />
           </div>
-          <DatePicker
-            disabled={form.getValues().expiresAt === null}
-            minDate={new Date()}
-            date={selectedDate as Date}
-            onDatesChange={handleDateChange}
-          />
-        </div>
-        <div></div>
-        <DialogFooter>
-          <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
-            {t("cancel")}
-          </Button>
-          <Button type="submit" loading={form.formState.isSubmitting}>
-            {t("save")}
-          </Button>
-        </DialogFooter>
-      </Form>
+          <div></div>
+          <DialogFooter>
+            <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" loading={form.formState.isSubmitting}>
+              {t("create")}
+            </Button>
+          </DialogFooter>
+        </Form>
+      )}
     </>
+    // </>
   );
 }

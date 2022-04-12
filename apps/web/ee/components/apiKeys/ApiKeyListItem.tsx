@@ -22,7 +22,7 @@ export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
 export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const isExpired = props?.apiKey?.expiresAt < new Date();
+  const isExpired = props?.apiKey?.expiresAt ? props?.apiKey?.expiresAt < new Date() : null;
   const neverExpires = props?.apiKey?.expiresAt === null;
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete", {
     async onSuccess() {
@@ -34,25 +34,29 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
       <div className="flex w-full justify-between">
         <div className="flex max-w-full flex-col truncate">
           <div className="flex space-x-2">
-            <span className={classNames("truncate text-sm", isExpired ? "text-gray-500" : "text-gray-900")}>
-              {props?.apiKey?.note}
+            <span className="text-gray-900">
+              {props?.apiKey?.note ? props?.apiKey?.note : t("api_key_no_note")}
             </span>
-            {!neverExpires && isExpired ? <Badge variant="default">Expired</Badge> : null}
+            {!neverExpires && isExpired ? (
+              <Badge className="-p-2" variant="default">
+                {t("expired")}
+              </Badge>
+            ) : null}
           </div>
           <div className="mt-2 flex">
             <span
               className={classNames(
                 "flex flex-col space-x-2 space-y-1 text-xs sm:flex-row sm:space-y-0 sm:rtl:space-x-reverse",
-                isExpired ? "text-red-600" : "",
+                isExpired ? "text-red-600" : "text-gray-500",
                 neverExpires ? "text-yellow-600" : ""
               )}>
               {neverExpires ? (
                 <div className="flex flex-row space-x-3 text-yellow-600">
                   <ExclamationIcon className="w-4" />
-                  This API key has no expiration date
+                  {t("api_key_never_expires")}
                 </div>
               ) : (
-                `${isExpired ? "Expired" : "Expires"} ${dayjs(
+                `${isExpired ? t("expired") : t("expires")} ${dayjs(
                   props?.apiKey?.expiresAt?.toString()
                 ).fromNow()}`
               )}
@@ -83,15 +87,15 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
             </Tooltip>
             <ConfirmationDialogContent
               variety="danger"
-              title={t("delete_api-key")}
-              confirmBtnText={t("confirm_delete_api_key")}
+              title={t("confirm_delete_api_key")}
+              confirmBtnText={t("revoke_token")}
               cancelBtnText={t("cancel")}
               onConfirm={() =>
                 deleteApiKey.mutate({
                   id: props.apiKey.id,
                 })
               }>
-              {t("delete_api_key_confirmation_message")}
+              {t("delete_api_key_confirm_title")}
             </ConfirmationDialogContent>
           </Dialog>
         </div>
