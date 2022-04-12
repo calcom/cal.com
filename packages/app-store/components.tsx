@@ -36,6 +36,7 @@ export const InstallAppButton = (
       <InstallAppButtonComponent
         render={() => (
           <Button
+            data-testid="install-app-button"
             color="primary"
             href={`${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`}>
             {t("install_app")}
