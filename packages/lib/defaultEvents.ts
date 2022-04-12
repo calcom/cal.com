@@ -139,15 +139,27 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
   return slugLink;
 };
 
-export const getUsernameList = (users: string): string[] => {
-  return users
-    ?.toLowerCase()
-    .replace(/ /g, "+")
-    .replace(/%20/g, "+")
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
-    });
+export const getUsernameList = (users: string | string[] | undefined): string[] | undefined => {
+  if (!users) {
+    return;
+  }
+  if (!(users instanceof Array)) {
+    users = [users];
+  }
+  const allUsers: string[] = [];
+  users.forEach((user) => {
+    allUsers.push(
+      ...user
+        ?.toLowerCase()
+        .replace(/ /g, "+")
+        .replace(/%20/g, "+")
+        .split("+")
+        .filter((el) => {
+          return el.length != 0;
+        })
+    );
+  });
+  return allUsers;
 };
 
 export default defaultEvents;
