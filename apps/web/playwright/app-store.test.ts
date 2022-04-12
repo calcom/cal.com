@@ -1,5 +1,3 @@
-import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 test.describe("App Store - Authed", () => {
@@ -9,13 +7,13 @@ test.describe("App Store - Authed", () => {
     await page.click('[data-testid="app-store-category-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.endsWith("apps/categories/calendar");
+        return url.pathname.includes("apps/categories/calendar");
       },
     });
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.endsWith("apps/apple-calendar");
+        return url.pathname.includes("apps/apple-calendar");
       },
     });
     await page.click('[data-testid="install-app-button"]');
@@ -28,13 +26,13 @@ test.describe("App Store - Unauthed", () => {
     await page.click('[data-testid="app-store-category-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.endsWith("apps/categories/calendar");
+        return url.pathname.includes("apps/categories/calendar");
       },
     });
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.endsWith("apps/apple-calendar");
+        return url.pathname.includes("apps/apple-calendar");
       },
     });
     await page.click('[data-testid="install-app-button"]');
