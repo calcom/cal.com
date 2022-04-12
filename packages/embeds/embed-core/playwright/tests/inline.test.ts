@@ -3,10 +3,15 @@ import { expect, Frame } from "@playwright/test";
 import { test } from "../fixtures/fixtures";
 import { todo, getEmbedIframe } from "../lib/testUtils";
 
-test("Inline Iframe - Configured with Dark Theme", async ({ page }) => {
+test("Inline Iframe - Configured with Dark Theme", async ({
+  page,
+  getActionFiredDetails,
+  addEmbedListeners,
+}) => {
+  await addEmbedListeners("");
   await page.goto("/?only=ns:default");
   const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
-  expect(embedIframe).toBeEmbedCalLink({
+  expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
     pathname: "/pro",
     searchParams: {
       theme: "dark",

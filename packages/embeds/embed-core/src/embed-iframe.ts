@@ -198,6 +198,12 @@ function getNamespace() {
 
 const isEmbed = () => {
   const namespace = getNamespace();
+  const _isValidNamespace = isValidNamespace(namespace);
+  if (parent !== window && !_isValidNamespace) {
+    log(
+      "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
+    );
+  }
   return isValidNamespace(namespace);
 };
 
@@ -288,7 +294,7 @@ function keepParentInformedAboutDimensionChanges() {
       return;
     }
     if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("windowLoadComplete", {});
+      sdkActionManager?.fire("__windowLoadComplete", {});
     }
     embedStore.windowLoadEventFired = true;
 
@@ -308,7 +314,7 @@ function keepParentInformedAboutDimensionChanges() {
       knownIframeHeight = iframeHeight;
       numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkActionManager?.fire("dimension-changed", {
+      sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,
         iframeWidth,
         isFirstTime,
@@ -357,7 +363,7 @@ if (isBrowser) {
 
     if (!pageStatus || pageStatus == "200") {
       keepParentInformedAboutDimensionChanges();
-      sdkActionManager?.fire("iframeReady", {});
+      sdkActionManager?.fire("__iframeReady", {});
     } else
       sdkActionManager?.fire("linkFailed", {
         code: pageStatus,
