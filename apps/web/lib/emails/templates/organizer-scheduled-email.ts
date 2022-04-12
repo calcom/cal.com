@@ -95,8 +95,8 @@ export default class OrganizerScheduledEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
+      from:`${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
       subject: `${this.calEvent.organizer.language.translate("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,

@@ -352,18 +352,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       const bookingsQuery = await prisma.booking.findMany({
         where: {
-          OR: [
-            {
-              userId: user.id,
-            },
-            {
-              attendees: {
-                some: {
-                  email: user.email,
-                },
-              },
-            },
-          ],
+          userId: user.id,
           AND: passedBookingsFilter,
         },
         select: {

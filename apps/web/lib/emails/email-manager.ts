@@ -146,7 +146,6 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
   }
 
   await Promise.all(emailsToSend);
-
 };
 
 export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent) => {

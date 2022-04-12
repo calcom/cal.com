@@ -93,6 +93,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  isOrganizer: boolean;
 }
 
 export interface EntryPoint {
@@ -110,31 +111,6 @@ export interface AdditionInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
-}
-
-export interface CalendarEvent {
-  type: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  description?: string | null;
-  team?: {
-    name: string;
-    members: string[];
-  };
-  location?: string | null;
-  organizer: Person;
-  attendees: Person[];
-  conferenceData?: ConferenceData;
-  additionInformation?: AdditionInformation;
-  uid?: string | null;
-  videoCallData?: VideoCallData;
-  paymentInfo?: PaymentInfo | null;
-  destinationCalendar?: DestinationCalendar | null;
-  cancellationReason?: string | null;
-  rejectionReason?: string | null;
-  hideCalendarNotes?: boolean;
-  isOrganizer?: boolean | null;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
