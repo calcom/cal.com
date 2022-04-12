@@ -12,7 +12,7 @@ test.describe("integrations", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/integrations");
+    await page.goto("/apps/installed");
   });
 
   todo("Can add Zoom integration");

@@ -1,13 +1,14 @@
-// import { getBusyVideoTimes } from "@lib/videoClient";
+// import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import { getBusyCalendarTimes } from "@lib/integrations/calendar/CalendarManager";
 import prisma from "@lib/prisma";
 
 dayjs.extend(utc);
@@ -86,8 +87,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
+    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute"),
+    end: dayjs(a.end).add(currentUser.bufferTime, "minute"),
   }));
 
   const schedule = eventType?.schedule

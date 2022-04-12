@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { SyntheticEvent } from "react";
 
 import Button from "@calcom/ui/Button";
@@ -18,6 +19,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const [error, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const router = useRouter();
 
   const handleChange = (e: SyntheticEvent) => {
     const target = e.target as typeof e.target & { value: string };
@@ -38,7 +40,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       if (!res.ok) {
         setError(json);
       } else if ("resetLink" in json) {
-        window.location = json.resetLink;
+        router.push(json.resetLink);
       } else {
         setSuccess(true);
       }

@@ -1,18 +1,18 @@
-import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
+import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getCalendar } from "@calcom/core/CalendarManager";
+import { deleteMeeting } from "@calcom/core/videoClient";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
-import { FAKE_DAILY_CREDENTIAL } from "@lib/integrations/Daily/DailyVideoApiAdapter";
-import { getCalendar } from "@lib/integrations/calendar/CalendarManager";
-import { CalendarEvent } from "@lib/integrations/calendar/interfaces/Calendar";
 import prisma from "@lib/prisma";
-import { deleteMeeting } from "@lib/videoClient";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
 
@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
-    type: bookingToDelete?.eventType?.title as string,
+    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
@@ -128,7 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
   };
-
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
@@ -159,11 +158,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
+  /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === "integrations:daily") {
     bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
-  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential) => {
+  const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {

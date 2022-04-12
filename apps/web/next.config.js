@@ -1,23 +1,27 @@
+require("dotenv").config({ path: "../../.env" });
+
 const withTM = require("next-transpile-modules")([
+  "@calcom/app-store",
+  "@calcom/core",
   "@calcom/ee",
   "@calcom/lib",
   "@calcom/prisma",
   "@calcom/stripe",
   "@calcom/ui",
+  "@calcom/embed-core",
 ]);
 const { i18n } = require("./next-i18next.config");
 
 // So we can test deploy previews preview
-if (process.env.VERCEL_URL && !process.env.BASE_URL) {
-  process.env.BASE_URL = "https://" + process.env.VERCEL_URL;
+if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
-if (process.env.BASE_URL) {
-  process.env.NEXTAUTH_URL = process.env.BASE_URL + "/api/auth";
+if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
 }
-if (!process.env.NEXT_PUBLIC_APP_URL) {
-  process.env.NEXT_PUBLIC_APP_URL = process.env.BASE_URL;
+if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
+  process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-process.env.NEXT_PUBLIC_BASE_URL = process.env.BASE_URL;
 
 if (!process.env.EMAIL_FROM) {
   console.warn(
@@ -58,16 +62,9 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 
-// prettier-ignore
-module.exports = () => plugins.reduce((acc, next) => next(acc), {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
   i18n,
-  eslint: {
-    // This allows production builds to successfully complete even if the project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -83,7 +80,7 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
       },
-    ]
+    ];
   },
   async redirects() {
     return [
@@ -98,10 +95,12 @@ module.exports = () => plugins.reduce((acc, next) => next(acc), {
         permanent: true,
       },
       {
-        source: '/call/:path*',
-        destination: '/video/:path*',
-        permanent: false
-      }
+        source: "/call/:path*",
+        destination: "/video/:path*",
+        permanent: false,
+      },
     ];
   },
-});
+};
+
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

@@ -1,6 +1,10 @@
 import { DefaultSeo } from "next-seo";
+import Head from "next/head";
+import { useEffect } from "react";
 // import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
+
+import "@calcom/embed-core/src/embed-iframe";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
@@ -19,12 +23,22 @@ import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
-  const { Component, pageProps, err } = props;
+  const { Component, pageProps, err, router } = props;
+  let pageStatus = "200";
+  if (router.pathname === "/404") {
+    pageStatus = "404";
+  } else if (router.pathname === "/500") {
+    pageStatus = "500";
+  }
   return (
     <ContractsProvider>
       <AppProviders {...props}>
         <DefaultSeo {...seoConfig.defaultNextSeo} />
         <I18nLanguageHandler />
+        <Head>
+          <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        </Head>
         <Component {...pageProps} err={err} />
       </AppProviders>
     </ContractsProvider>

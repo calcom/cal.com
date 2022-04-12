@@ -6,13 +6,16 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 
+import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
@@ -20,7 +23,6 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
@@ -31,12 +33,15 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
@@ -52,11 +57,20 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  locationLabels,
+}: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  const isEmbed = useIsEmbed();
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+  const isBackgroundTransparent = useIsBackgroundTransparent();
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -96,11 +110,13 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
           location,
+          eventName: profile.eventName || "",
         },
       });
     },
@@ -114,7 +130,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string };
+  type Location = { type: LocationType; address?: string; link?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -130,18 +146,6 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  // TODO: Move to translations
-  const locationLabels = {
-    [LocationType.InPerson]: t("in_person_meeting"),
-    [LocationType.Phone]: t("phone_call"),
-    [LocationType.GoogleMeet]: "Google Meet",
-    [LocationType.Zoom]: "Zoom Video",
-    [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Daily.co Video",
-    [LocationType.Huddle01]: "Huddle01 Video",
-    [LocationType.Tandem]: "Tandem Video",
-  };
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
   const defaultValues = () => {
     if (!rescheduleUid) {
@@ -169,7 +173,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: !isDynamicGroupBooking ? booking.attendees.slice(1).map((attendee) => attendee.email) : [],
     };
   };
 
@@ -198,6 +202,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       }
       case LocationType.InPerson: {
         return locationInfo(locationType)?.address || "";
+      }
+      case LocationType.Link: {
+        return locationInfo(locationType)?.link || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -247,6 +254,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
@@ -281,13 +289,22 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <main
+        className={
+          isEmbed ? "mx-auto" : "mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
+        }>
         {isReady && (
-          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-neutral-900 sm:rounded-sm">
+          <div
+            className={classNames(
+              "overflow-hidden",
+              isEmbed ? "" : "border border-gray-200",
+              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
+              "sm:rounded-sm"
+            )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
-              <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-800">
+              <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
                 <AvatarGroup
-                  border="border-2 border-white dark:border-gray-900"
+                  border="border-2 border-white dark:border-gray-800"
                   size={14}
                   items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
                     eventType.users
@@ -298,16 +315,18 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       }))
                   )}
                 />
-                <h2 className="font-cal mt-2 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
+                  {profile.name}
+                </h2>
+                <h1 className="text-bookingdark mb-4 text-3xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
-                <p className="mb-2 text-gray-500">
+                <p className="text-bookinglight mb-2">
                   <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {eventType.length} {t("minutes")}
                 </p>
                 {eventType.price > 0 && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
@@ -318,12 +337,12 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                     </IntlProvider>
                   </p>
                 )}
-                <p className="mb-4 text-green-500">
+                <p className="text-bookinghighlight mb-4">
                   <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
                   {parseDate(date)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
@@ -342,7 +361,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder={t("example_name")}
                       />
                     </div>
@@ -357,8 +376,9 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                         placeholder="you@example.com"
+                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       />
                     </div>
                   </div>
@@ -391,8 +411,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          // @ts-expect-error
+                        <PhoneInput<BookingFormValues>
                           control={bookingForm.control}
                           name="phone"
                           placeholder={t("enter_phone_number")}
@@ -420,7 +439,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -431,7 +450,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
                           />
                         )}
@@ -442,7 +461,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder=""
                           />
                         )}
@@ -524,12 +543,15 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       {...bookingForm.register("notes")}
                       id="notes"
                       rows={3}
-                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                       placeholder={t("share_additional_notes")}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
-                    <Button type="submit" loading={mutation.isLoading}>
+                    <Button
+                      type="submit"
+                      data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
+                      loading={mutation.isLoading}>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
@@ -547,7 +569,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       </div>
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
-                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+                          {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+                          {(mutation.error as HttpError)?.message}
                         </p>
                       </div>
                     </div>

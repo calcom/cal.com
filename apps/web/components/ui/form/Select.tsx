@@ -16,10 +16,20 @@ function Select<
         colors: {
           ...theme.colors,
           primary: "rgba(17, 17, 17, var(--tw-bg-opacity))",
-          primary50: "rgba(17, 17, 17, var(--tw-bg-opacity))",
+
+          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
       })}
+      styles={{
+        option: (base, state) => ({
+          ...base,
+          ":active": {
+            backgroundColor: state.isSelected ? "" : "rgba(17, 17, 17, var(--tw-bg-opacity))",
+            color: "#ffffff",
+          },
+        }),
+      }}
       components={{
         ...components,
         IndicatorSeparator: () => null,

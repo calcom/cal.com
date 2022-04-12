@@ -6,7 +6,7 @@
  */
 export const isBrowserLocale24h = () => {
   let locale = "en-US";
-  if (process.browser && navigator) locale = navigator?.language;
+  if (typeof window !== "undefined" && navigator) locale = navigator?.language;
   return !new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/AM/);
 };
 export const detectBrowserTimeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";

@@ -60,6 +60,7 @@ ${this.calEvent.attendees[0].language.translate("user_needs_to_confirm_or_reject
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
@@ -88,7 +89,7 @@ ${this.getAdditionalNotes()}
         ${emailScheduledBodyHeaderContent(
           this.calEvent.organizer.language.translate("booking_submitted"),
           this.calEvent.organizer.language.translate("user_needs_to_confirm_or_reject_booking", {
-            user: this.calEvent.attendees[0].name,
+            user: this.calEvent.organizer.name,
           })
         )}
         ${emailSchedulingBodyDivider()}
@@ -109,6 +110,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>

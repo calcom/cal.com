@@ -5,13 +5,15 @@ import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { useEmbedStyles } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { doWorkAsync } from "@lib/doWorkAsync";
-import { useLocale } from "@lib/hooks/useLocale";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -85,7 +87,8 @@ function DatePicker({
 }: DatePickerProps): JSX.Element {
   const { i18n } = useLocale();
   const [browsingDate, setBrowsingDate] = useState<Dayjs | null>(date);
-
+  const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
+  const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
@@ -123,6 +126,8 @@ function DatePicker({
       eventLength,
       minimumBookingNotice,
       workingHours,
+    }: Omit<DatePickerProps, "weekStart" | "onDatePicked" | "date"> & {
+      browsingDate: Dayjs;
     }
   ) => {
     const date = browsingDate.startOf("day").date(day);
@@ -185,7 +190,7 @@ function DatePicker({
       batch: 1,
       name: "DatePicker",
       length: daysInMonth,
-      callback: (i: number, isLast) => {
+      callback: (i: number) => {
         let day = i + 1;
         days[daysInitialOffset + i] = {
           disabled: isDisabledMemoized(day, {
@@ -229,20 +234,20 @@ function DatePicker({
       className={
         "mt-8 sm:mt-0 sm:min-w-[455px] " +
         (date
-          ? "w-full sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-800 md:w-1/3 "
+          ? "w-full sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
           : "w-full sm:pl-4")
       }>
-      <div className="mb-4 flex text-xl font-light text-gray-600">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong className="text-gray-900 dark:text-white">{month}</strong>{" "}
-          <span className="text-gray-500">{year}</span>
+      <div className="mb-4 flex text-xl font-light">
+        <span className="w-1/2 dark:text-white">
+          <strong className="text-bookingdarker dark:text-white">{month}</strong>{" "}
+          <span className="text-bookinglight">{year}</span>
         </span>
-        <div className="w-1/2 text-right text-gray-600 dark:text-gray-400">
+        <div className="w-1/2 text-right dark:text-gray-400">
           <button
             onClick={decrementMonth}
             className={classNames(
               "group p-1 ltr:mr-2 rtl:ml-2",
-              isFirstMonth && "text-gray-400 dark:text-gray-600"
+              isFirstMonth && "text-bookinglighter dark:text-gray-600"
             )}
             disabled={isFirstMonth}
             data-testid="decrementMonth">
@@ -253,9 +258,9 @@ function DatePicker({
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
+      <div className="border-bookinglightest grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
         {weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short").map((weekDay) => (
-          <div key={weekDay} className="my-4 text-xs uppercase tracking-widest text-gray-500">
+          <div key={weekDay} className="text-bookinglight my-4 text-xs uppercase tracking-widest">
             {weekDay}
           </div>
         ))}
@@ -274,10 +279,15 @@ function DatePicker({
               <button
                 onClick={() => onDatePicked(browsingDate.date(day.date))}
                 disabled={day.disabled}
+                style={
+                  day.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }
+                }
                 className={classNames(
                   "absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm text-center",
                   "hover:border-brand hover:border dark:hover:border-white",
-                  day.disabled ? "cursor-default font-light text-gray-400 hover:border-0" : "font-medium",
+                  day.disabled
+                    ? "text-bookinglighter cursor-default font-light hover:border-0"
+                    : "font-medium",
                   date && date.isSame(browsingDate.date(day.date), "day")
                     ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
                     : !day.disabled

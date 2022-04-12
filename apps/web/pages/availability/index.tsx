@@ -19,10 +19,11 @@ import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
+  const utils = trpc.useContext();
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
+      await utils.invalidateQueries(["viewer.availability.list"]);
       showToast(t("schedule_deleted_successfully"), "success");
-      window.location.reload();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -68,7 +69,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                     </Link>
                   </div>
                   <Dropdown>
-                    <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-400 hover:border-gray-200">
+                    <DropdownMenuTrigger className="group mr-5 h-10 w-10 border border-transparent p-0 text-neutral-500 hover:border-gray-200">
                       <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -80,7 +81,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                             })
                           }
                           type="button"
-                          color="minimal"
+                          color="warn"
                           className="w-full font-normal"
                           StartIcon={TrashIcon}>
                           {t("delete_schedule")}
