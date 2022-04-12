@@ -7,6 +7,7 @@ test.describe("App Store - Authed", () => {
     await page.click('[data-testid="app-store-category-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
+        console.log(url, url.pathname);
         return url.pathname.includes("apps/categories/calendar");
       },
     });
@@ -23,9 +24,11 @@ test.describe("App Store - Authed", () => {
 test.describe("App Store - Unauthed", () => {
   test("Browse apple-calendar and try to install", async ({ page }) => {
     await page.goto("/apps");
+
     await page.click('[data-testid="app-store-category-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
+        console.log(url, url.pathname);
         return url.pathname.includes("apps/categories/calendar");
       },
     });
