@@ -5,12 +5,14 @@ test.describe("App Store - Authed", () => {
   test("Browse apple-calendar and try to install", async ({ page }) => {
     await page.goto("/apps");
     await page.click('[data-testid="app-store-category-calendar"]');
-    await page.waitForNavigation({
-      url: (url) => {
-        console.log(url, url.pathname);
-        return url.pathname.includes("apps/categories/calendar");
-      },
-    });
+    if (!page.url().includes("apps/categories/calendar")) {
+      await page.waitForNavigation({
+        url: (url) => {
+          console.log(url, url.pathname);
+          return url.pathname.includes("apps/categories/calenddar");
+        },
+      });
+    }
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
@@ -26,12 +28,14 @@ test.describe("App Store - Unauthed", () => {
     await page.goto("/apps");
 
     await page.click('[data-testid="app-store-category-calendar"]');
-    await page.waitForNavigation({
-      url: (url) => {
-        console.log(url, url.pathname);
-        return url.pathname.includes("apps/categories/calendar");
-      },
-    });
+    if (!page.url().includes("apps/categories/calendar")) {
+      await page.waitForNavigation({
+        url: (url) => {
+          console.log(url, url.pathname);
+          return url.pathname.includes("apps/categories/calendar");
+        },
+      });
+    }
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
