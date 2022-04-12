@@ -77,7 +77,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!users.length) return { notFound: true };
   const [user] = users;
   const eventTypeRaw =
-    usernameList && usernameList.length > 1
+    usernameList.length > 1
       ? getDefaultEvent(eventTypeSlug)
       : await prisma.eventType.findUnique({
           where: {
