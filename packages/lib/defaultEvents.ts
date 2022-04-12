@@ -139,9 +139,9 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
   return slugLink;
 };
 
-export const getUsernameList = (users: string | string[] | undefined): string[] | undefined => {
+export const getUsernameList = (users: string | string[] | undefined): string[] => {
   if (!users) {
-    return;
+    return [];
   }
   if (!(users instanceof Array)) {
     users = [users];
