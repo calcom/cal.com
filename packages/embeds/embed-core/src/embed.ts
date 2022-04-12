@@ -4,6 +4,7 @@ import { FloatingButton } from "./FloatingButton";
 import { ModalBox } from "./ModalBox";
 import { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
+import { Inline } from "./inline";
 import { SdkActionManager } from "./sdk-action-manager";
 
 declare module "*.css";
@@ -77,6 +78,8 @@ export class Cal {
   __config: any;
 
   modalBox!: Element;
+
+  inlineEl!: Element;
 
   namespace: string;
 
@@ -226,7 +229,11 @@ export class Cal {
     if (!element) {
       throw new Error("Element not found");
     }
-    element.appendChild(iframe);
+    const template = document.createElement("template");
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:block;position:relative"></cal-inline>`;
+    this.inlineEl = template.content.children[0];
+    this.inlineEl.appendChild(iframe);
+    element.appendChild(template.content);
   }
 
   floatingButton({ calLink }: { calLink: string }) {
@@ -373,6 +380,7 @@ export class Cal {
     });
     this.actionManager.on("linkReady", (e) => {
       this.modalBox?.setAttribute("loading", "done");
+      this.inlineEl?.setAttribute("loading", "done");
     });
     this.actionManager.on("linkFailed", (e) => {
       this.iframe?.remove();
@@ -432,3 +440,4 @@ document.addEventListener("click", (e) => {
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
+customElements.define("cal-inline", Inline);
