@@ -110,6 +110,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const attendeesList = await Promise.all(attendeesListPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
+  /** This validates if the person who cancelled the booking is the organizer or attendees*/
+  const isOrganizer = bookingToDelete.userId === session.user?.id;
+
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
@@ -127,6 +130,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
+    isOrganizer: isOrganizer,
+
   };
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
@@ -193,6 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+      isOrganizer: isOrganizer,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({

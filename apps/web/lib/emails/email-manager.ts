@@ -119,31 +119,34 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
 export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...calEvent.attendees.map((attendee) => {
-      return new Promise((resolve, reject) => {
+  if (calEvent.isOrganizer) {
+    emailsToSend.push(
+      ...calEvent.attendees.map((attendee) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee);
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("AttendeeCancelledEmail.sendEmail failed", e));
+          }
+        });
+      })
+    );
+  } else {
+    emailsToSend.push(
+      new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee);
+          const scheduledEmail = new OrganizerCancelledEmail(calEvent);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
-          reject(console.error("AttendeeCancelledEmail.sendEmail failed", e));
+          reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
         }
-      });
-    })
-  );
-
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerCancelledEmail(calEvent);
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
-      }
-    })
-  );
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
+
 };
 
 export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent) => {
