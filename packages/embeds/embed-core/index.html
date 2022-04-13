@@ -54,6 +54,10 @@
       .loader {
         color: green;
       }
+      * {
+        --cal-brand-border-color: blue;
+        --cal-brand-background-color: blue;
+      }
     </style>
   </head>
   <body>
@@ -87,11 +91,12 @@
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
-        <div style="max-height: 30vh; overflow: scroll" class="place">
+        <div >
           <div>
             if you render booking embed in me, I would not let it be more than 30vh in height. So you would
             have to scroll to see the entire content
           </div>
+          <div class="place" style="width:50%; max-height: 30vh; overflow: scroll"></div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
         </div>
       </div>
