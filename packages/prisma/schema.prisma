@@ -45,6 +45,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
+  disposableLink          DisposableLink[]      @relation("disposable_eventtype")
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -128,6 +129,7 @@ model User {
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
   eventTypes          EventType[]          @relation("user_eventtype")
+  disposableLink      DisposableLink[]     @relation("disposable_user")
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
@@ -241,6 +243,8 @@ model Booking {
   references          BookingReference[]
   eventType           EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId         Int?
+  disposableLink      DisposableLink?      @relation(fields: [disposableLinkId], references: [id])
+  disposableLinkId    Int?
   title               String
   description         String?
   startTime           DateTime
@@ -274,17 +278,19 @@ model Schedule {
 }
 
 model Availability {
-  id          Int        @id @default(autoincrement())
-  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
-  eventTypeId Int?
-  days        Int[]
-  startTime   DateTime   @db.Time
-  endTime     DateTime   @db.Time
-  date        DateTime?  @db.Date
-  Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
-  scheduleId  Int?
+  id                Int               @id @default(autoincrement())
+  user              User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?
+  eventType         EventType?        @relation(fields: [eventTypeId], references: [id])
+  eventTypeId       Int?
+  disposableLink    DisposableLink?   @relation(fields: [disposableLinkId], references: [id])
+  disposableLinkId  Int?
+  days              Int[]
+  startTime         DateTime          @db.Time
+  endTime           DateTime          @db.Time
+  date              DateTime?         @db.Date
+  Schedule          Schedule?         @relation(fields: [scheduleId], references: [id])
+  scheduleId        Int?
 }
 
 model SelectedCalendar {
@@ -369,4 +375,22 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+}
+
+model DisposableLink {
+  id                      Int                    @id @default(autoincrement())
+  title                   String
+  link                    String
+  slug                    String
+  locations               Json?
+  length                  Int
+  users                   User[]                 @relation("disposable_user")
+  userId                  Int?
+  eventTypes              EventType[]            @relation("disposable_eventtype")
+  availability            Availability[]
+  booking                 Booking?
+  timeZone                String?
+  expired                 Boolean                @default(false)
+
+  @@unique([link, slug])
 }
