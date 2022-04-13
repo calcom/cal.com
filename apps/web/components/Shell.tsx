@@ -53,14 +53,14 @@ export function useMeQuery() {
   return meQuery;
 }
 
-function useRedirectToLoginIfUnauthenticated() {
+function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
   const shouldDisplayUnauthed = router.pathname.startsWith("/apps");
 
   useEffect(() => {
-    if (shouldDisplayUnauthed) {
+    if (isPublic) {
       return;
     }
 
@@ -73,7 +73,7 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session]);
+  }, [loading, session, isPublic]);
 
   return {
     loading: loading && !session,
@@ -133,10 +133,11 @@ export default function Shell(props: {
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
+  isPublic?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading, shouldDisplayUnauthed, session } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -209,7 +210,7 @@ export default function Shell(props: {
     );
   }
 
-  if (!session && !shouldDisplayUnauthed) return null;
+  if (!session && !props.isPublic) return null;
 
   return (
     <>
