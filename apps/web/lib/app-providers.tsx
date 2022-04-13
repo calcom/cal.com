@@ -51,9 +51,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
     </SessionProvider>
   );
-
+  const telemetryClient = useMemo(createTelemetryClient, []);
   return (
-    <TelemetryProvider value={createTelemetryClient()}>
+    <TelemetryProvider value={telemetryClient}>
       <IdProvider>
         {isPublicPage ? (
           RemainingProviders

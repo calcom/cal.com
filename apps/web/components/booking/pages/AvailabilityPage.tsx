@@ -91,7 +91,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        telemetryEventTypes.pageView,
+        collectPageParameters("availability", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
   }, [telemetry]);
 
   const changeDate = (newDate: Dayjs) => {
