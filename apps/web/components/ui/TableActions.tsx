@@ -40,7 +40,8 @@ const DropdownActions = ({ actions, actionTrigger }: { actions: ActionType[]; ac
               className="w-full rounded-none font-normal"
               href={action.href}
               StartIcon={action.icon}
-              onClick={action.onClick}>
+              onClick={action.onClick}
+              data-testid={action.id}>
               {action.label}
             </Button>
           </DropdownMenuItem>

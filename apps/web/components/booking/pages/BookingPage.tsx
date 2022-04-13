@@ -367,7 +367,9 @@ const BookingPage = ({
                 {booking?.startTime && rescheduleUid && (
                   <div>
                     {/* Add translation */}
-                    <p className="mt-8 mb-2 text-gray-600 dark:text-white">{t("former_time")}</p>
+                    <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                      {t("former_time")}
+                    </p>
                     <p className="text-gray-500 line-through dark:text-white">
                       <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
@@ -601,6 +603,7 @@ const BookingPage = ({
                     <textarea
                       {...bookingForm.register("notes")}
                       id="notes"
+                      name="notes"
                       rows={3}
                       className={classNames(
                         "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",

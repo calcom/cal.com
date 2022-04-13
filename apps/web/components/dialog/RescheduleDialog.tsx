@@ -75,6 +75,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
               <span className="font-normal text-gray-500"> (Optional)</span>
             </p>
             <TextArea
+              data-testid="reschedule_reason"
               name={t("reschedule_reason")}
               value={rescheduleReason}
               onChange={(e) => setRescheduleReason(e.target.value)}
@@ -86,6 +87,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
                 <Button color="secondary">{t("cancel")}</Button>
               </DialogClose>
               <Button
+                data-testid="send_request"
                 disabled={isLoading}
                 onClick={() => {
                   rescheduleApi.mutate();

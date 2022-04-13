@@ -2,7 +2,6 @@ import {
   BookingStatus,
   Credential,
   Payment,
-  PaymentType,
   Prisma,
   SchedulingType,
   WebhookTriggerEvents,
@@ -506,15 +505,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       data: newBookingData,
     };
-    console.log({ originalRescheduledBooking });
+
     if (originalRescheduledBooking?.paid && originalRescheduledBooking?.payment) {
+      const bookingPayment = originalRescheduledBooking?.payment?.find((payment) => payment.success);
       createBookingObj.include = {
         ...createBookingObj.include,
         payment: true,
       };
-      createBookingObj.data.payment = {
-        connect: { id: originalRescheduledBooking?.payment?.find((payment) => payment.success)?.id },
-      };
+      if (bookingPayment) {
+        createBookingObj.data.payment = {
+          connect: { id: bookingPayment.id },
+        };
+      }
     }
     console.log({ createBookingObj });
     return prisma.booking.create(createBookingObj);
@@ -634,10 +636,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(user.credentials);
   const eventManager = new EventManager({ ...user, credentials });
-
+  console.log({ originalRescheduledBooking });
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid);
+    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking.id);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -710,7 +712,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
       console.log({ user });
-      console.log(firstStripeCredential);
+      console.log({ firstStripeCredential });
       if (!booking.user) booking.user = user;
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 

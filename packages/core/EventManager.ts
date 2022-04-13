@@ -161,7 +161,11 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+  public async update(
+    event: CalendarEvent,
+    rescheduleUid: string,
+    newBookingId?: number
+  ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -187,6 +191,7 @@ export default class EventManager {
           },
         },
         destinationCalendar: true,
+        payment: true,
       },
     });
 
@@ -209,6 +214,23 @@ export default class EventManager {
 
     // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    console.log(booking.payment, "bookingPayment");
+    const bookingPayment = booking?.payment;
+    console.log({ bookingPayment });
+    // Updating all payment to new
+    if (bookingPayment && newBookingId) {
+      const paymentIds = bookingPayment.map((payment) => payment.id);
+      await prisma.payment.updateMany({
+        where: {
+          id: {
+            in: paymentIds,
+          },
+        },
+        data: {
+          bookingId: newBookingId,
+        },
+      });
+    }
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -222,6 +244,7 @@ export default class EventManager {
       },
     });
     // @NOTE: If rescheduled should we delete the previous one?
+    console.log("HERE");
     const bookingDeletes = prisma.booking.delete({
       where: {
         id: booking.id,

@@ -69,12 +69,14 @@ test.describe.serial("Stripe integration", () => {
     // Click button:has-text("Pay now")
     await page.click('button:has-text("Pay now")');
 
-    // Make sure we're navigated to the success page
+    // Make sure we're navigated to the paid page
     await page.waitForNavigation({
       url(url) {
-        return url.pathname.endsWith("/success");
+        return url.pathname.endsWith("/paid");
       },
     });
+
+    await expect(page).toHaveURL(/.*payment/);
   });
 
   todo("Pending payment booking should not be confirmed by default");
