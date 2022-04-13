@@ -6,21 +6,30 @@ import { TestUtilCreateBookingOnUserId, TestUtilCreatePayment } from "./lib/dbSe
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
+const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
+const findUserByEmail = async (email: string) => {
+  return await prisma?.user.findFirst({
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      credentials: true,
+    },
+    where: {
+      email,
+    },
+  });
+};
 test.describe("Reschedule Tests", async () => {
-  let currentUser: Partial<User> | null | undefined;
-  // Using logged in state from globalSteup
+  let currentUser: Awaited<ReturnType<typeof findUserByEmail>>;
+  // Using logged in state from globalSetup
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
   test.beforeAll(async () => {
-    currentUser = await prisma?.user.findFirst({
-      select: {
-        id: true,
-        email: true,
-        username: true,
-      },
-      where: {
-        email: "pro@example.com",
-      },
-    });
+    currentUser = await findUserByEmail("pro@example.com");
   });
   test.afterEach(async () => {
     try {
@@ -46,13 +55,6 @@ test.describe("Reschedule Tests", async () => {
         status: BookingStatus.ACCEPTED,
       });
     }
-    await page.goto("/event-types");
-
-    await page.fill('input[name="email"]', "pro@example.com");
-
-    await page.fill('input[name="password"]', "pro");
-
-    await page.click('button[type="submit"]');
 
     await page.goto("/bookings/upcoming");
 
@@ -63,6 +65,8 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
+
+    await page.goto("/bookings/cancelled");
 
     // Find booking that was recently cancelled
     const booking = await prisma?.booking.findFirst({
@@ -96,6 +100,7 @@ test.describe("Reschedule Tests", async () => {
         rescheduled: true,
       });
     }
+
     await page.goto(
       `/${originalBooking?.user?.username}/${eventType?.slug}?rescheduleUid=${originalBooking?.uid}`
     );
@@ -104,9 +109,23 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Should display request reschedule send on bookings/cancelled", async ({ page }) => {
+    const user = currentUser;
+    const eventType = await prisma?.eventType.findFirst({
+      where: {
+        userId: user?.id,
+        slug: "30min",
+      },
+    });
+
+    if (user && user.id && user.username && eventType) {
+      await TestUtilCreateBookingOnUserId(user?.id, user?.username, eventType?.id, {
+        status: BookingStatus.CANCELLED,
+        rescheduled: true,
+      });
+    }
     await page.goto("/bookings/cancelled");
 
-    const requestRescheduleSentElement = await page.locator('[data-testid="request_reschedule_sent"]');
+    const requestRescheduleSentElement = await page.locator('[data-testid="request_reschedule_sent"]').nth(1);
     await expect(requestRescheduleSentElement).toBeVisible();
   });
 
@@ -154,46 +173,48 @@ test.describe("Reschedule Tests", async () => {
   test("Unpaid rescheduling should go to payment page", async ({ page }) => {
     let user = currentUser;
 
-    try {
-      const eventType = await prisma?.eventType.findFirst({
-        where: {
-          userId: user?.id,
-          slug: "paid",
-        },
+    test.skip(
+      IS_STRIPE_ENABLED && !(user && user.credentials.length > 0),
+      "Skipped as stripe is not installed and user is missing credentials"
+    );
+
+    const eventType = await prisma?.eventType.findFirst({
+      where: {
+        userId: user?.id,
+        slug: "paid",
+      },
+    });
+    if (user?.id && user?.username && eventType?.id) {
+      const booking = await TestUtilCreateBookingOnUserId(user?.id, user?.username, eventType?.id, {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+        paid: false,
       });
-      if (user?.id && user?.username && eventType?.id) {
-        const booking = await TestUtilCreateBookingOnUserId(user?.id, user?.username, eventType?.id, {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-          paid: false,
+      if (booking?.id) {
+        await TestUtilCreatePayment(booking.id, {});
+        await page.goto(`/${user?.username}/${eventType?.slug}?rescheduleUid=${booking?.uid}`);
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await expect(page.locator('[name="name"]')).toBeDisabled();
+        await expect(page.locator('[name="email"]')).toBeDisabled();
+        await expect(page.locator('[name="notes"]')).toBeDisabled();
+
+        await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+        await page.waitForNavigation({
+          url(url) {
+            return url.pathname.indexOf("/payment") > -1;
+          },
         });
-        if (booking?.id) {
-          await TestUtilCreatePayment(booking.id, {});
-          await page.goto(`/${user?.username}/${eventType?.slug}?rescheduleUid=${booking?.uid}`);
 
-          await selectFirstAvailableTimeSlotNextMonth(page);
-
-          await expect(page.locator('[name="name"]')).toBeDisabled();
-          await expect(page.locator('[name="email"]')).toBeDisabled();
-          await expect(page.locator('[name="notes"]')).toBeDisabled();
-
-          await page.locator('[data-testid="confirm-reschedule-button"]').click();
-
-          await expect(page).toHaveURL(/.*payment/);
-        }
+        await expect(page).toHaveURL(/.*payment/);
       }
-    } catch (error) {
-      await prisma?.payment.delete({
-        where: {
-          externalId: "DEMO_PAYMENT_FROM_DB",
-        },
-      });
     }
   });
 
   test("Paid rescheduling should go to success page", async ({ page }) => {
     let user = currentUser;
-
     try {
       const eventType = await prisma?.eventType.findFirst({
         where: {
