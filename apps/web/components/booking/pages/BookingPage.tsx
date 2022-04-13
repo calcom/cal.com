@@ -294,8 +294,8 @@ const BookingPage = ({
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
-          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24 sm:border sm:dark:border-gray-600",
-          "max-w-3xl"
+          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24",
+          "max-w-3xl  sm:border sm:dark:border-gray-600"
         )}>
         {isReady && (
           <div

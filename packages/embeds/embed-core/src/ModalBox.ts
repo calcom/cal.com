@@ -61,7 +61,6 @@ export class ModalBox extends HTMLElement {
 		@media only screen and (min-width:600px) {
 		  .modal-box {
 			margin:0 auto; 
-			border-radius: 8px;
 			margin-top:20px; 
 			margin-bottom:20px;
 			position:absolute;
