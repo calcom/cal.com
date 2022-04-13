@@ -1,8 +1,7 @@
-import { IdProvider } from "@radix-ui/react-id";
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
-import React, { ComponentProps, ReactNode, useMemo } from "react";
+import { ComponentProps, ReactNode, useMemo } from "react";
 
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
@@ -52,15 +51,13 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const telemetryClient = useMemo(createTelemetryClient, []);
   return (
     <TelemetryProvider value={telemetryClient}>
-      <IdProvider>
-        {isPublicPage ? (
-          RemainingProviders
-        ) : (
-          <DynamicHelpscoutProvider>
-            <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
-          </DynamicHelpscoutProvider>
-        )}
-      </IdProvider>
+      {isPublicPage ? (
+        RemainingProviders
+      ) : (
+        <DynamicHelpscoutProvider>
+          <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+        </DynamicHelpscoutProvider>
+      )}
     </TelemetryProvider>
   );
 };
