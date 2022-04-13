@@ -31,7 +31,7 @@ export default function ApiKeyListContainer() {
             </div>
             <div className="self-center">
               <Button StartIcon={PlusIcon} color="secondary" onClick={() => setNewApiKeyModal(true)}>
-                {t("generate_new_token")}
+                {t("generate_new_api_key")}
               </Button>
             </div>
           </div>
