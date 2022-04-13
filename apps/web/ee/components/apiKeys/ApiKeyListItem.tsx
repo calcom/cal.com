@@ -37,11 +37,11 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
             <span className="text-gray-900">
               {props?.apiKey?.note ? props?.apiKey?.note : t("api_key_no_note")}
             </span>
-            {!neverExpires && isExpired ? (
+            {!neverExpires && isExpired && (
               <Badge className="-p-2" variant="default">
                 {t("expired")}
               </Badge>
-            ) : null}
+            )}
           </div>
           <div className="mt-2 flex">
             <span
