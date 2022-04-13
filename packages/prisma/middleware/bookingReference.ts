@@ -7,24 +7,24 @@ async function middleware(prisma: PrismaClient) {
   prisma.$use(async (params, next) => {
     // Check incoming query type
 
-    if (params.model == "BookingReference") {
-      if (params.action == "delete") {
+    if (params.model === "BookingReference") {
+      if (params.action === "delete") {
         // Delete queries
         // Change action to an update
         params.action = "update";
         params.args["data"] = { deleted: true };
       }
-      if (params.action == "deleteMany") {
+      if (params.action === "deleteMany") {
         console.log("deletingMany");
         // Delete many queries
         params.action = "updateMany";
-        if (params.args.data != undefined) {
+        if (params.args.data !== undefined) {
           params.args.data["deleted"] = true;
         } else {
           params.args["data"] = { deleted: true };
         }
       }
-      if (params.action == "findUnique") {
+      if (params.action === "findUnique") {
         // Change to findFirst - you cannot filter
         // by anything except ID / unique with findUnique
         params.action = "findFirst";
@@ -32,10 +32,10 @@ async function middleware(prisma: PrismaClient) {
         // ID filter maintained
         params.args.where["deleted"] = null;
       }
-      if (params.action == "findMany" || params.action == "findFirst") {
+      if (params.action === "findMany" || params.action === "findFirst") {
         // Find many queries
-        if (params.args.where != undefined) {
-          if (params.args.where.deleted == undefined) {
+        if (params.args.where !== undefined) {
+          if (params.args.where.deleted === undefined) {
             // Exclude deleted records if they have not been explicitly requested
             params.args.where["deleted"] = null;
           }
