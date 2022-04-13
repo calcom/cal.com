@@ -1,5 +1,6 @@
 name: E2E test
 on:
+  workflow_dispatch: # allow contributors trigger E2E in their forks
   pull_request_target: # So we can test on forks
     branches:
       - main
