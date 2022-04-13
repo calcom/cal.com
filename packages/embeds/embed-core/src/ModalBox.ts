@@ -5,24 +5,35 @@ export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
   //@ts-ignore
   static get observedAttributes() {
-    return ["loading"];
+    return ["state"];
+  }
+
+  show(show) {
+    // We can't make it display none as that takes iframe width and height calculations to 0
+    this.shadowRoot!.host.style.visibility = show ? "visible" : "hidden";
   }
 
   close() {
-    this.shadowRoot!.host.remove();
+    this.show(false);
     document.body.style.overflow = ModalBox.htmlOverflow;
   }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === "loading" && newValue == "done") {
+    if (name !== "state") {
+      return;
+    }
+
+    if (newValue == "loaded") {
       (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
+    } else if (newValue === "started") {
+      this.show(true);
     }
   }
 
   connectedCallback() {
     const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
 
-    document.addEventListener("click", (e) => {
-      const el = e.target as HTMLElement;
+    this.shadowRoot!.host.addEventListener("click", (e) => {
       this.close();
     });
 

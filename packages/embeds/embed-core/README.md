@@ -73,7 +73,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 
 - Performance Improvements
-  - Repeat clicks to show popup should be instant. There is some delay right now because of iframe being removed and being reloaded even if requests are cached. Iframe shouldn't be removed.
   - Custom written Tailwind CSS is sent multiple times for different custom elements.
   
 - Embed Code Generator
@@ -92,9 +91,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - If just iframe refreshes due to some reason, embed script can't replay the applied instructions.
 
 - React Component
-  - `onClick` support with preloading
-
-
+  - `onClick` support with automatic preloading
 
 ## Pending Documentation
 

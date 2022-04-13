@@ -251,12 +251,17 @@ export class Cal {
     document.body.appendChild(template.content);
   }
 
-  modal({ calLink, config = {} }: { calLink: string; config?: Record<string, string> }) {
+  modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {
+    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+    if (existingModalEl) {
+      existingModalEl.setAttribute("state", "started");
+      return;
+    }
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box></cal-modal-box>`;
+    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
     this.modalBox = template.content.children[0];
     this.modalBox.appendChild(iframe);
     document.body.appendChild(template.content);
@@ -379,7 +384,7 @@ export class Cal {
       });
     });
     this.actionManager.on("linkReady", (e) => {
-      this.modalBox?.setAttribute("loading", "done");
+      this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
     this.actionManager.on("linkFailed", (e) => {
@@ -420,6 +425,7 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
+  const modalUniqueId = (htmlElement.uniqueId = htmlElement.uniqueId || Date.now());
   const namespace = htmlElement.dataset.calNamespace;
   const configString = htmlElement.dataset.calConfig || "";
   let config;
@@ -435,6 +441,7 @@ document.addEventListener("click", (e) => {
   api("modal", {
     calLink: path,
     config,
+    uid: modalUniqueId,
   });
 });
 
