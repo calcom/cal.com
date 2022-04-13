@@ -406,7 +406,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let originalRescheduledBooking: BookingType = null;
   if (rescheduleUid) {
     originalRescheduledBooking = await prisma.booking.findFirst({
-      where: { uid: rescheduleUid, status: BookingStatus.CANCELLED },
+      where: {
+        uid: rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
+        },
+      },
       include: {
         attendees: {
           select: {
@@ -634,7 +639,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(user.credentials);
   const eventManager = new EventManager({ ...user, credentials });
-  console.log({ originalRescheduledBooking });
+
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking.id);

@@ -21,7 +21,7 @@ export class CalendarEventDirector {
 
   public async buildForRescheduleEmail(): Promise<void> {
     if (this.existingBooking && this.existingBooking.eventTypeId && this.existingBooking.uid) {
-      this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);
+      await this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);
       await this.builder.buildUsersFromInnerClass();
       await this.builder.buildAttendeesList();
       this.builder.setLocation(this.existingBooking.location);
