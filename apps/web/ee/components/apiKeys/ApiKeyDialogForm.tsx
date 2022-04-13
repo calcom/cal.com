@@ -147,7 +147,6 @@ export default function ApiKeyDialogForm(props: {
               onDatesChange={handleDateChange}
             />
           </div>
-          <div></div>
           <DialogFooter>
             <Button type="button" color="secondary" onClick={props.handleClose} tabIndex={-1}>
               {t("cancel")}
