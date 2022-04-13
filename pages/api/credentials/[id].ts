@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { CredentialResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaCredentialBodyParams, schemaCredentialPublic } from "@lib/validations/credential";
 import {
   schemaQueryIdParseInt,
@@ -84,47 +85,52 @@ export async function credentialById(req: NextApiRequest, res: NextApiResponse<C
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaCredentialBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = getCalcomUserId(res);
+  const data = await prisma.credential.findMany({ where: { userId } });
+  const credentialIds = data.map((credential) => credential.id);
+  // res.status(200).json({ data });
+  if (credentialIds.includes(safeQuery.data.id)) {
+    switch (method) {
+      case "GET":
+        await prisma.credential
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaCredentialPublic.parse(data))
+          .then((credential) => res.status(200).json({ credential }))
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.credential
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaCredentialPublic.parse(data))
-        .then((credential) => res.status(200).json({ credential }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) throw new Error("Invalid request body");
+        await prisma.credential
+          .update({
+            where: { id: safeQuery.data.id },
+            data: safeBody.data,
+          })
+          .then((data) => schemaCredentialPublic.parse(data))
+          .then((credential) => res.status(200).json({ credential }))
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.credential
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaCredentialPublic.parse(data))
-        .then((credential) => res.status(200).json({ credential }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.credential
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res.status(200).json({ message: `Credential with id: ${safeQuery.data.id} deleted successfully` })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.credential
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Credential with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Credential with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
-  }
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
+  } else res.status(401).json({ message: "Unauthorized" });
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(credentialById));
