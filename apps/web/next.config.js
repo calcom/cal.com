@@ -65,6 +65,7 @@ plugins.push(withTM);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  typescript: { ignoreBuildErrors: !!process.env.CI },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
