@@ -3,4 +3,5 @@
 */
 .cal-embed {
   border: 0px;
+  min-height: 100%;
 }

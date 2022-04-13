@@ -659,6 +659,6 @@
   "error_404": "Error 404",
   "availability_updated_successfully": "Disponibilidad actualizada correctamente",
   "requires_ownership_of_a_token": "Requiere la propiedad de un token perteneciente a la siguiente dirección:",
-  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} }).",
-  "example_name": "Juan Pérez"
+  "example_name": "Juan Pérez",
+  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} })."
 }

@@ -2,6 +2,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { useEmbedTheme } from "@calcom/embed-core";
+
 import { Maybe } from "@trpc/server";
 
 // This method is stringified and executed only on client. So,
@@ -28,10 +30,9 @@ function applyThemeAndAddListener(theme: string) {
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
   const [isReady, setIsReady] = useState(false);
-  const router = useRouter();
-
+  const embedTheme = useEmbedTheme();
   // Embed UI configuration takes more precedence over App Configuration
-  theme = (router.query.theme as string | null) || theme;
+  theme = embedTheme || theme;
 
   useEffect(() => {
     // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.

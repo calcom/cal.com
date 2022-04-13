@@ -200,6 +200,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       length: true,
       eventName: true,
       schedulingType: true,
+      description: true,
       periodType: true,
       periodStartDate: true,
       periodEndDate: true,
@@ -222,7 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
 
   // handle dynamic user
-  const dynamicUserList = getUsernameList(reqBody.user as string);
+  const dynamicUserList = getUsernameList(reqBody?.user);
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -337,7 +338,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t: tOrganizer,
   };
 
-  const description =
+  const additionalNotes =
     reqBody.notes +
     reqBody.customInputs.reduce(
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
@@ -346,7 +347,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
-    description,
+    description: eventType.description,
+    additionalNotes,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
@@ -402,7 +404,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         title: evt.title,
         startTime: dayjs(evt.startTime).toDate(),
         endTime: dayjs(evt.endTime).toDate(),
-        description: evt.description,
+        description: evt.additionalNotes,
         confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
         eventType: eventTypeRel,
@@ -456,11 +458,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const credentials = currentUser.credentials;
+
     const calendarBusyTimes: EventBusyDate[] = await prisma.booking
       .findMany({
         where: {
-          userId: currentUser.id,
-          eventTypeId: eventTypeId,
+          AND: [
+            {
+              userId: currentUser.id,
+              eventTypeId: eventTypeId,
+            },
+            {
+              OR: [
+                {
+                  status: "ACCEPTED",
+                },
+                {
+                  status: "PENDING",
+                },
+              ],
+            },
+          ],
         },
       })
       .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
@@ -557,7 +574,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updateManager = await eventManager.update(evt, rescheduleUid);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -594,7 +611,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = description;
+    evt.description = eventType.description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;

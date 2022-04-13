@@ -344,7 +344,7 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
-        past: { startTime: "desc" },
+        past: { startTime: "asc" },
         cancelled: { startTime: "asc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];

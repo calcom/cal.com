@@ -472,6 +472,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     requiresConfirmation: boolean;
     schedulingType: SchedulingType | null;
     price: number;
+    currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
@@ -673,7 +674,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             fillRule="evenodd"></path>
                         </g>
                       </svg>
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">Daily.co Video</span>
+                      <span className="text-sm ltr:ml-2 rtl:mr-2">Cal.com Video</span>
                     </div>
                   )}
                   {location.type === LocationType.Zoom && (
@@ -915,6 +916,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       locations,
                       ...input
                     } = values;
+
+                    if (requirePayment) input.currency = currency;
+
                     updateMutation.mutate({
                       ...input,
                       locations,
