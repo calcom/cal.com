@@ -2,9 +2,7 @@ import { IdProvider } from "@radix-ui/react-id";
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
-import React, { ComponentProps, ReactNode } from "react";
-import { LiveChatLoaderProvider } from "react-live-chat-loader";
-import { HelpScout } from "react-live-chat-loader";
+import React, { ComponentProps, ReactNode, useMemo } from "react";
 
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
