@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { LocationType } from "@calcom/lib/location";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Person } from "@calcom/types/Calendar";
