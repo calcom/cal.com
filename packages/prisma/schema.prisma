@@ -7,7 +7,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["filterJson"]
 }
 
 generator zod {
@@ -58,6 +59,7 @@ model EventType {
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
   disableGuests           Boolean                @default(false)
+  hideCalendarNotes       Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
   beforeEventBuffer       Int                    @default(0)
   afterEventBuffer        Int                    @default(0)
@@ -67,6 +69,7 @@ model EventType {
   currency                String                 @default("usd")
   slotInterval            Int?
   metadata                Json?
+  successRedirectUrl      String?
 
   @@unique([userId, slug])
 }
@@ -147,6 +150,8 @@ model User {
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
+  // participate in dynamic group booking or not
+  allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
   apiKeys             ApiKey[]
@@ -254,6 +259,8 @@ model Booking {
   destinationCalendar DestinationCalendar?
   cancellationReason  String?
   rejectionReason     String?
+  dynamicEventSlugRef String?
+  dynamicGroupSlugRef String?
 }
 
 model Schedule {

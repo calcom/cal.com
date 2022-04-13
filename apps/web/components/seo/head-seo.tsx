@@ -67,14 +67,14 @@ const constructImage = (name: string, description: string, username: string): st
   return (
     encodeURIComponent("Meet **" + name + "** <br>" + description).replace(/'/g, "%27") +
     ".png?md=1&images=https%3A%2F%2Fcal.com%2Flogo-white.svg&images=" +
-    (process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL) +
+    (process.env.NEXT_PUBLIC_WEBSITE_URL || process.env.NEXT_PUBLIC_WEBAPP_URL) +
     "/" +
     username +
     "/avatar.png"
   );
 };
 
-export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) => {
+export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
 
@@ -113,3 +113,5 @@ export const HeadSeo: React.FC<HeadSeoProps & { children?: never }> = (props) =>
 
   return <NextSeo {...seoProps} />;
 };
+
+export default HeadSeo;

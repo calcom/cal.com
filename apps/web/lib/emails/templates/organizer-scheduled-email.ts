@@ -175,6 +175,7 @@ ${getRichDescription(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
@@ -287,11 +288,24 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getAdditionalNotes(): string {
-    if (!this.calEvent.description) return "";
+    if (!this.calEvent.additionalNotes) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.organizer.language.translate("additional_notes")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.additionalNotes
+      }</p>
+    </div>
+    `;
+  }
+
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
         this.calEvent.description
       }</p>
@@ -305,6 +319,11 @@ ${getRichDescription(this.calEvent)}
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
       providerName = location[0].toUpperCase() + location.slice(1);
+    }
+
+    // If location its a url, probably we should be validating it with a custom library
+    if (this.calEvent.location && /^https?:\/\//.test(this.calEvent.location)) {
+      providerName = this.calEvent.location;
     }
 
     if (this.calEvent.videoCallData) {

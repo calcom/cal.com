@@ -14,7 +14,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import Button from "@calcom/ui/Button";
@@ -53,13 +53,14 @@ export function useMeQuery() {
   return meQuery;
 }
 
-function useRedirectToLoginIfUnauthenticated() {
+function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
+  const shouldDisplayUnauthed = router.pathname.startsWith("/apps");
 
   useEffect(() => {
-    if (router.pathname.startsWith("/apps")) {
+    if (isPublic) {
       return;
     }
 
@@ -72,10 +73,12 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session]);
+  }, [loading, session, isPublic]);
 
   return {
     loading: loading && !session,
+    shouldDisplayUnauthed,
+    session,
   };
 }
 
@@ -84,11 +87,7 @@ function useRedirectToOnboardingIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const [isRedirectingToOnboarding, setRedirecting] = useState(false);
-
-  useEffect(() => {
-    user && setRedirecting(shouldShowOnboarding(user));
-  }, [router, user]);
+  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
   useEffect(() => {
     if (isRedirectingToOnboarding) {
@@ -134,10 +133,11 @@ export default function Shell(props: {
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
+  isPublic?: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const { loading } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -201,7 +201,7 @@ export default function Shell(props: {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
+  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
@@ -209,6 +209,9 @@ export default function Shell(props: {
       </div>
     );
   }
+
+  if (!session && !props.isPublic) return null;
+
   return (
     <>
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
@@ -288,7 +291,9 @@ export default function Shell(props: {
                   </nav>
                 </div>
                 <TrialBanner />
-                <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+                <div
+                  className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
+                  data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
                   </span>
@@ -298,8 +303,10 @@ export default function Shell(props: {
                 </div>
                 <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
                   &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-                  {process.env.NEXT_PUBLIC_APP_URL === "https://cal.com" ? "h" : "sh"}
-                  <span className="lowercase">-{user && user.plan}</span>
+                  {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
+                  <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
+                    -{user && user.plan}
+                  </span>
                 </small>
               </div>
             </div>
@@ -350,7 +357,7 @@ export default function Shell(props: {
                   </Button>
                 </div>
               )}
-              {props.heading && props.subtitle && (
+              {props.heading && (
                 <div
                   className={classNames(
                     props.large && "bg-gray-100 py-8 lg:mb-8 lg:pt-16 lg:pb-7",
@@ -361,7 +368,7 @@ export default function Shell(props: {
                     <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
                       {props.heading}
                     </h1>
-                    <p className="text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
@@ -437,12 +444,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             )}>
             <img
               className="rounded-full"
-              src={
-                (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL) +
-                "/" +
-                user?.username +
-                "/avatar.png"
-              }
+              src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
               alt={user?.username || "Nameless User"}
             />
             {!user?.away && (
@@ -496,7 +498,7 @@ function UserDropdown({ small }: { small?: boolean }) {
             <a
               target="_blank"
               rel="noopener noreferrer"
-              href={`${process.env.NEXT_PUBLIC_APP_URL}/${user.username}`}
+              href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
               className="flex items-center px-4 py-2 text-sm text-gray-700">
               <ExternalLinkIcon className="h-5 w-5 text-gray-500 ltr:mr-3 rtl:ml-3" /> {t("view_public_page")}
             </a>

@@ -2,11 +2,15 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { getLocationLabels } from "@calcom/app-store/utils";
+
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
+
+import { getTranslation } from "@server/lib/i18n";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -94,8 +98,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking = await getBooking();
   }
 
+  const t = await getTranslation(context.locale ?? "en", "common");
+
   return {
     props: {
+      locationLabels: getLocationLabels(t),
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
@@ -103,9 +110,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
         brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
         darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
+        eventName: null,
       },
       eventType: eventTypeObject,
       booking,
+      isDynamicGroupBooking: false,
     },
   };
 }

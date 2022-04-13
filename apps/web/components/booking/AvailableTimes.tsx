@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
 
+import { nameOfDay } from "@calcom/lib/weekday";
+
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
@@ -18,6 +20,7 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
+  eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;
   users: {
@@ -30,6 +33,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
+  eventTypeSlug,
   slotInterval,
   minimumBookingNotice,
   timeFormat,
@@ -41,7 +45,6 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
-
   const { slots, loading, error } = useSlots({
     date,
     slotInterval,
@@ -63,9 +66,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   return (
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
       <div className="mb-4 text-left text-lg font-light text-gray-600">
-        <span className="w-1/2 text-gray-600 dark:text-white">
-          <strong>{date.toDate().toLocaleString(i18n.language, { weekday: "long" })}</strong>
-          <span className="text-gray-500">
+        <span className="text-bookingdarker w-1/2 dark:text-white">
+          <strong>{nameOfDay(i18n.language, Number(date.format("d")))}</strong>
+          <span className="text-bookinglight">
             {date.format(", D ")}
             {date.toDate().toLocaleString(i18n.language, { month: "long" })}
           </span>
@@ -85,6 +88,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 ...router.query,
                 date: slot.time.format(),
                 type: eventTypeId,
+                slug: eventTypeSlug,
               },
             };
 
@@ -101,7 +105,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 <Link href={bookingUrl}>
                   <a
                     className={classNames(
-                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                      "text-bookingdarker hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">

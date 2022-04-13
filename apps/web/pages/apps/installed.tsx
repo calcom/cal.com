@@ -15,6 +15,7 @@ import { HttpError } from "@lib/core/http/error";
 import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
+import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Loader from "@components/Loader";
@@ -30,7 +31,7 @@ function IframeEmbedContainer() {
   // doesn't need suspense as it should already be loaded
   const user = trpc.useQuery(["viewer.me"]).data;
 
-  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_BASE_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
+  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
   const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
     "schedule_a_meeting"
   )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
@@ -47,7 +48,7 @@ function IframeEmbedContainer() {
                 <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
                 <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
               </div>
-              <div>
+              <div className="text-right">
                 <input
                   id="iframe"
                   className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
@@ -306,14 +307,16 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      <ClientSuspense fallback={<Loader />}>
-        <IntegrationsContainer />
-        <CalendarListContainer />
-        <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
-        <IframeEmbedContainer />
-        <Web3Container />
-      </ClientSuspense>
+    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
+      <AppsShell>
+        <ClientSuspense fallback={<Loader />}>
+          <IntegrationsContainer />
+          <CalendarListContainer />
+          <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
+          <IframeEmbedContainer />
+          <Web3Container />
+        </ClientSuspense>
+      </AppsShell>
     </Shell>
   );
 }

@@ -253,7 +253,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   }>({ resolver: zodResolver(schema), mode: "onSubmit" });
 
   const fetchUsername = async (username: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/username`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_WEBSITE_URL}/api/username`, {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
@@ -268,7 +268,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
-    async function validateAndSave(username) {
+    async function validateAndSave(username: string) {
       const { data } = await fetchUsername(username);
 
       // Only persist username if its available and not premium

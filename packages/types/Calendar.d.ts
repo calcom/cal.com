@@ -75,6 +75,7 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
+  additionalNotes?: string | null;
   description?: string | null;
   team?: {
     name: string;
@@ -91,6 +92,7 @@ export interface CalendarEvent {
   destinationCalendar?: DestinationCalendar | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
+  hideCalendarNotes?: boolean;
 }
 
 export interface EntryPoint {

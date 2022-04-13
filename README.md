@@ -90,7 +90,7 @@ Here is what you need to be able to run Cal.
 
 ### Setup
 
-1. Clone the repo
+1. Clone the repo into a public GitHub repository (to comply with AGPLv3. To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -316,6 +316,56 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/â
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
+
+### Obtaining Slack Client ID and Secret and Signing Secret
+
+To test this you will need to create a Slack app for yourself on [their apps website](https://api.slack.com/apps).
+
+Copy and paste the app manifest below into the setting on your slack app. Be sure to replace `YOUR_DOMAIN` with your own domain or your proxy host if you're testing locally.
+
+<details>
+  <summary>App Manifest</summary>
+  
+ ```yaml
+ display_information:
+  name: Cal.com Slack
+features:
+  bot_user:
+    display_name: Cal.com Slack
+    always_online: false
+  slash_commands:
+    - command: /create-event
+      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
+      description: Create an event within Cal!
+      should_escape: false
+    - command: /today
+      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
+      description: View all your bookings for today
+      should_escape: false
+oauth_config:
+  redirect_urls:
+    - https://YOUR_DOMAIN/api/integrations/slackmessaging/callback
+  scopes:
+    bot:
+      - chat:write
+      - commands
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
+    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+```
+
+</details>
+
+Add the integration as normal - slack app - add. Follow the oauth flow to add it to a server.
+
+Next make sure you have your app running `yarn dx`. Then in the slack chat type one of these commands: `/create-event` or `/today`
+
+> NOTE: Next you will need to setup a proxy server like [ngrok](https://ngrok.com/) to allow your local host machine to be hosted on a public https server.
 
 ### Obtaining Zoom Client ID and Secret
 
