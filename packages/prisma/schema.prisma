@@ -29,6 +29,12 @@ enum PeriodType {
   RANGE      @map("range")
 }
 
+enum BookingLimitType {
+  MONTH  @map("month")
+  DAY    @map("day")
+  WEEK   @map("week")
+}
+
 model EventType {
   id                      Int                    @id @default(autoincrement())
   /// @zod.nonempty()
@@ -63,6 +69,7 @@ model EventType {
   minimumBookingNotice    Int                    @default(120)
   beforeEventBuffer       Int                    @default(0)
   afterEventBuffer        Int                    @default(0)
+  seatsPerTimeSlot        Int?
   schedulingType          SchedulingType?
   schedule                Schedule?
   price                   Int                    @default(0)
