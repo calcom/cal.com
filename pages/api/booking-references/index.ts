@@ -67,10 +67,7 @@ async function createOrlistAllBookingReferences(
       throw new Error("Invalid request body");
     }
 
-    const data = await prisma.bookingReference.create({
-      data: { ...safe.data },
-    });
-    const booking_reference = schemaBookingReferencePublic.parse(data);
+    // const booking_reference = schemaBookingReferencePublic.parse(data);
     const userId = await getCalcomUserId(res);
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
@@ -81,7 +78,10 @@ async function createOrlistAllBookingReferences(
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
     if (userBookingIds.includes(safe.data.bookingId)) {
-      if (data) {
+      const booking_reference = await prisma.bookingReference.create({
+        data: { ...safe.data },
+      });
+      if (booking_reference) {
         res.status(201).json({
           booking_reference,
           message: "BookingReference created successfully",
