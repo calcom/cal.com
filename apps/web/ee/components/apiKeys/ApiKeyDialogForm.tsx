@@ -1,16 +1,14 @@
-import { CheckCircleIcon, ClipboardCopyIcon } from "@heroicons/react/solid";
+import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
-import { SetStateAction, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { unknown } from "zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { generateUniqueAPIKey } from "@calcom/ee/lib/api/apiKeys";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
+import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
-import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
+import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { trpc } from "@lib/trpc";
 
@@ -18,8 +16,6 @@ import { Tooltip } from "@components/Tooltip";
 import { DatePicker } from "@components/ui/form/DatePicker";
 
 import { TApiKeys } from "./ApiKeyListItem";
-
-const options = { month: "long", day: "numeric" };
 
 export default function ApiKeyDialogForm(props: {
   title: string;
