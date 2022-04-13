@@ -1,6 +1,6 @@
 import { CheckCircleIcon, ClipboardCopyIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { unknown } from "zod";
 
@@ -19,7 +19,7 @@ import { DatePicker } from "@components/ui/form/DatePicker";
 
 import { TApiKeys } from "./ApiKeyListItem";
 
-const options: DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
+const options = { month: "long", day: "numeric" };
 
 export default function ApiKeyDialogForm(props: {
   title: string;
@@ -29,7 +29,7 @@ export default function ApiKeyDialogForm(props: {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [neverExpires, setNeverExpires] = useState(false);
-  const handleNoteChange = (e) => {
+  const handleNoteChange = (e: { target: { value: string | null } }) => {
     form.setValue("note", e.target.value);
   };
   const {
@@ -49,7 +49,7 @@ export default function ApiKeyDialogForm(props: {
     note: "" as string | null,
   });
 
-  const handleDateChange = (e) => {
+  const handleDateChange = (e: SetStateAction<Date> | null) => {
     setSelectedDate(e);
     form.setValue("expiresAt", e);
   };
