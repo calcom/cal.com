@@ -49,7 +49,6 @@ async function createOrlistAllBookingReferences(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-  console.log(userBookingIds);
   if (method === "GET") {
     const data = await prisma.bookingReference.findMany({ where: { id: { in: userBookingIds } } });
     const booking_references = data.map((bookingReference) =>
@@ -64,18 +63,37 @@ async function createOrlistAllBookingReferences(
         });
   } else if (method === "POST") {
     const safe = schemaBookingReferenceBodyParams.safeParse(req.body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      throw new Error("Invalid request body");
+    }
 
-    const data = await prisma.bookingReference.create({ data: safe.data });
+    const data = await prisma.bookingReference.create({
+      data: { ...safe.data },
+    });
     const booking_reference = schemaBookingReferencePublic.parse(data);
-
-    if (data) res.status(201).json({ booking_reference, message: "BookingReference created successfully" });
-    else
-      (error: Error) =>
-        res.status(400).json({
-          message: "Could not create new booking reference",
-          error,
+    const userId = await getCalcomUserId(res);
+    const userWithBookings = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { bookings: true },
+    });
+    if (!userWithBookings) {
+      throw new Error("User not found");
+    }
+    const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+    if (userBookingIds.includes(safe.data.bookingId)) {
+      if (data) {
+        res.status(201).json({
+          booking_reference,
+          message: "BookingReference created successfully",
         });
+      } else {
+        (error: Error) =>
+          res.status(400).json({
+            message: "Could not create new booking reference",
+            error,
+          });
+      }
+    } else res.status(401).json({ message: "Unauthorized" });
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

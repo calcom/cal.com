@@ -61,7 +61,6 @@ async function createOrlistAllAttendees(
   } else if (method === "POST") {
     const safe = schemaAttendeeBodyParams.safeParse(req.body);
     if (!safe.success) {
-      console.log(safe.error);
       throw new Error("Invalid request body", safe.error);
     }
     const bookingId = safe.data.bookingId;

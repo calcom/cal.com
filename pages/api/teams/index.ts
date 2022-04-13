@@ -56,7 +56,7 @@ async function createOrlistAllTeams(req: NextApiRequest, res: NextApiResponse<Te
     if (!safe.success) throw new Error("Invalid request body");
     const team = await prisma.team.create({ data: safe.data });
     const membership = await prisma.membership.create({
-      data: { userId: userId, teamId: team.id, role: "ADMIN" },
+      data: { userId, teamId: team.id, role: "ADMIN" },
     });
     console.log(membership);
     const data = schemaTeamPublic.parse(team);

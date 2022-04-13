@@ -15,7 +15,7 @@ const today = new Date();
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
 
-  const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
+  const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "pt_secret_", "");
   const hashedKey = hashAPIKey(strippedApiKey);
 
   await prisma.apiKey
@@ -25,7 +25,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
         res.status(401).json({ error: "You did not provide an api key" });
         throw new Error("No api key found");
       }
-      if (apiKey.userId) res.setHeader("X-Calcom-User-ID", apiKey?.userId);
+      if (apiKey.userId) res.setHeader("X-Calcom-User-ID", apiKey.userId);
       if (apiKey.expiresAt && apiKey.userId && dateInPast(today, apiKey.expiresAt)) await next();
     })
     .catch((error) => {

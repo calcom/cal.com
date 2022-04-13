@@ -89,6 +89,7 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });
+  //FIXME: This is a hack to get the teamId from the user's membership
   console.log(userWithMemberships);
   switch (method) {
     case "GET":

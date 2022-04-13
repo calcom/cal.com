@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { CredentialResponse, CredentialsResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaCredentialBodyParams, schemaCredentialPublic } from "@lib/validations/credential";
 
 /**
@@ -38,8 +39,10 @@ async function createOrlistAllCredentials(
   res: NextApiResponse<CredentialsResponse | CredentialResponse>
 ) {
   const { method } = req;
+  const userId = getCalcomUserId(res);
+
   if (method === "GET") {
-    const data = await prisma.credential.findMany();
+    const data = await prisma.credential.findMany({ where: { userId } });
     const credentials = data.map((credential) => schemaCredentialPublic.parse(credential));
     if (credentials) res.status(200).json({ credentials });
     else
@@ -55,7 +58,10 @@ async function createOrlistAllCredentials(
     const data = await prisma.credential.create({ data: safe.data });
     const credential = schemaCredentialPublic.parse(data);
 
-    if (credential) res.status(201).json({ credential, message: "Credential created successfully" });
+    if (credential)
+      res
+        .status(201)
+        .json({ credential: { ...credential, userId }, message: "Credential created successfully" });
     else
       (error: Error) =>
         res.status(400).json({
