@@ -70,7 +70,8 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
               color="minimal"
               size="icon"
               StartIcon={PencilAltIcon}
-              className="ml-4 w-full self-center p-2"></Button>
+              className="ml-4 w-full self-center p-2"
+            />
           </Tooltip>
           <Dialog>
             <Tooltip content={t("delete_api_key")}>

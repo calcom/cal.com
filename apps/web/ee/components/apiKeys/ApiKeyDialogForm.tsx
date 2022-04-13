@@ -104,11 +104,16 @@ export default function ApiKeyDialogForm(props: {
         <Form
           form={form}
           handleSubmit={async (event) => {
-            const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
-            setNewApiKey(newApiKey);
-            setNewApiKeyDetails({ ...event });
-            await utils.invalidateQueries(["viewer.apiKeys.list"]);
-            setSuccessfulNewApiKeyModal(true);
+            try {
+              const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+              setNewApiKey(newApiKey);
+              setNewApiKeyDetails({ ...event });
+              await utils.invalidateQueries(["viewer.apiKeys.list"]);
+              setSuccessfulNewApiKeyModal(true);
+            } catch (error: any) {
+              console.log(error);
+              showToast(error.message, "error");
+            }
           }}
           className="space-y-4">
           <div className=" mb-10 mt-1">
