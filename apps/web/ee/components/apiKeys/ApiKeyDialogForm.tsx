@@ -68,7 +68,7 @@ export default function ApiKeyDialogForm(props: {
             </h2>
             <div className="text-sm text-gray-900">
               <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
-              {t("you_will_not_view_once_close_modal")}
+              {t("you_will_only_view_it_once")}
             </div>
           </div>
           <div>

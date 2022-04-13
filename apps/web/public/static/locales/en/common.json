@@ -737,7 +737,7 @@
   "success_api_key_created": "API key created successfully",
   "create": "Create",
   "success_api_key_created_bold_tagline": "Save this token somewhere safe.",
-  "you_will_not_view_once_close_modal": "You will not be able to view it again once you close this modal.",
+  "you_will_only_view_it_once": "You will not be able to view it again once you close this modal.",
   "copy_to_clipboard": "Copy to clipboard",
   "confirm_delete_api_key": "Revoke this token",
   "revoke_token": "Revoke token",
