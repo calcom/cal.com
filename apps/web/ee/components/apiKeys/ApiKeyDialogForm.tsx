@@ -29,7 +29,7 @@ export default function ApiKeyDialogForm(props: {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [neverExpires, setNeverExpires] = useState(false);
-  const handleNoteChange = (e: { target: { value: string | null } }) => {
+  const handleNoteChange = (e: { target: { value: string } }) => {
     form.setValue("note", e.target.value);
   };
   const {
@@ -49,7 +49,7 @@ export default function ApiKeyDialogForm(props: {
     note: "" as string | null,
   });
 
-  const handleDateChange = (e: SetStateAction<Date> | null) => {
+  const handleDateChange = (e: Date) => {
     setSelectedDate(e);
     form.setValue("expiresAt", e);
   };
@@ -89,10 +89,9 @@ export default function ApiKeyDialogForm(props: {
                 </Button>
               </Tooltip>
             </div>
-            {/* // FIXME: Don't hardcode en-GB locale for date formatting */}
             <span className="text-sm text-gray-400">
               {" "}
-              Expires {newApiKeyDetails?.expiresAt?.toLocaleDateString("en-GB", options)}
+              {t("expires")} {newApiKeyDetails?.expiresAt?.toLocaleDateString()}
             </span>
           </div>
           <DialogFooter>
