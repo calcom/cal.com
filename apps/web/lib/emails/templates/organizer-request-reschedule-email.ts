@@ -166,7 +166,6 @@ ${getCancelLink(this.calEvent)}
                               ${this.getWhat()}
                               ${this.getWhen()}
                               ${this.getWho()}
-                              ${this.getLocation()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>

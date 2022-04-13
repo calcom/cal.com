@@ -39,16 +39,9 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
+      subject: `${this.calEvent.organizer.language.translate("requested_to_reschedule_subject_attendee", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
-        date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
-          "h:mma"
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart().format("MMMM").toLowerCase()
-        )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
       })}`,
       html: this.getHtmlBody(),
       text: this.getTextBody(),
@@ -113,7 +106,6 @@ ${this.calEvent.organizer.language.translate("request_reschedule_subtitle", {
 })},
 ${this.getWhat()}
 ${this.getWhen()}
-${this.getLocation()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
 ${getCancelLink(this.calEvent)}
@@ -163,7 +155,6 @@ ${getCancelLink(this.calEvent)}
                               ${this.getWhat()}
                               ${this.getWhen()}
                               ${this.getWho()}
-                              ${this.getLocation()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
