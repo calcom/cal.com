@@ -10,8 +10,8 @@ type Props = {
   date: Date;
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
-  disabled: boolean;
-  minDate: Date;
+  disabled?: boolean;
+  minDate?: Date;
 };
 
 export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
