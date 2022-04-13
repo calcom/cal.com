@@ -44,11 +44,14 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Embed doesn't adapt to screen size without page refresh.
     - Try opening in portrait mode and then go to landscape mode.
   - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
-  - Loader should also be there in inline mode.
+  - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
 
 - Branding
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.
   - Branding at the bottom has been removed for UI improvements, need to see where to add it.
+
+- API
+  - Allow loader color customization using UI command itself too.
 
 - Automation Tests
   - Run automation tests in CI
@@ -92,6 +95,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - React Component
   - `onClick` support with automatic preloading
+- Shadow DOM is currently in open state, which probably means that any styling change on website can possibly impact loader.
 
 ## Pending Documentation
 

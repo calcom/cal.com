@@ -97,6 +97,10 @@ export class ModalBox extends HTMLElement {
 		  color:white;
 		  cursor: pointer;
 		}
+		.loader {
+			--cal-brand-border-color: white;
+			--cal-brand-background-color: white;
+		 }
 		${loaderCss}
 		</style>
 		<div class="backdrop">

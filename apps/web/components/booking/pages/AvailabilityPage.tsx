@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -83,6 +83,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     return null;
   }, [router.query.date]);
 
+  if (selectedDate) {
+    // Let iframe take the width available due to increase in max-width
+    sdkActionManager?.fire("__refreshWidth", {});
+  }
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
 

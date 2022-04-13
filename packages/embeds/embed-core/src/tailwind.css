@@ -96,11 +96,13 @@
 .absolute {
   position: absolute;
 }
+
 .border-brand {
-  border-color: white;
+  border-color:var(--cal-brand-border-color);
 }
+
 .bg-brand {
-  background-color: white;
+  background-color: var(--cal-brand-background-color);
 }
 
 @media (min-width: 768px) {
