@@ -18,7 +18,7 @@ export default function ApiKeyListContainer() {
 
   const [newApiKeyModal, setNewApiKeyModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editing, setEditing] = useState<TApiKeys | null>(null);
+  const [apiKeyToEdit, setApiKeyToEdit] = useState<TApiKeys | null>(null);
   return (
     <QueryCell
       query={query}
@@ -43,7 +43,7 @@ export default function ApiKeyListContainer() {
                   key={item.id}
                   apiKey={item}
                   onEditApiKey={() => {
-                    setEditing(item);
+                    setApiKeyToEdit(item);
                     setEditModalOpen(true);
                   }}
                 />
@@ -60,12 +60,12 @@ export default function ApiKeyListContainer() {
           {/* Edit api key dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
             <DialogContent>
-              {editing && (
+              {apiKeyToEdit && (
                 <ApiKeyDialogForm
                   title={t("edit_api_key")}
-                  key={editing.id}
+                  key={apiKeyToEdit.id}
                   handleClose={() => setEditModalOpen(false)}
-                  defaultValues={editing}
+                  defaultValues={apiKeyToEdit}
                 />
               )}
             </DialogContent>
