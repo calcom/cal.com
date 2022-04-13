@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 import { getLocationLabels } from "@calcom/app-store/utils";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -75,42 +76,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  type Booking = {
-    startTime: Date | string;
-    description: string | null;
-    attendees: {
-      email: string;
-      name: string;
-    }[];
-  } | null;
-
-  // @NOTE: being used several times refactor to exported function
-  async function getBooking(): Promise<Booking> {
-    return prisma.booking.findFirst({
-      where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
-      },
-      select: {
-        startTime: true,
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  let booking: Booking | null = null;
+  let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking();
-    if (booking) {
-      // @NOTE: had to do this because Server side cant return [Object objects]
-      // probably fixable with json.stringify -> json.parse
-      booking["startTime"] = (booking?.startTime as Date)?.toISOString();
-    }
+    booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
 
   const t = await getTranslation(context.locale ?? "en", "common");
