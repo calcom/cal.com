@@ -22,7 +22,10 @@ const rescheduleSchema = z.object({
   rescheduleReason: z.string().optional(),
 });
 
-const handler = async (req: NextApiRequest, res: NextApiResponse): Promise<RescheduleResponse> => {
+const handler = async (
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<RescheduleResponse | NextApiResponse | void> => {
   const session = await getSession({ req });
   const { bookingId, rescheduleReason: cancellationReason } = req.body;
   type PersonAttendee = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
@@ -44,8 +47,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse): Promise<Resch
         },
       });
     } else {
-      // throw error;
-      return;
+      return res.status(501);
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
@@ -143,8 +145,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse): Promise<Resch
   return res.status(204);
 };
 
-function validate(handler: NextApiHandler) {
-  return async (req, res) => {
+function validate(
+  handler: (req: NextApiRequest, res: NextApiResponse) => Promise<RescheduleResponse | NextApiResponse | void>
+) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "POST") {
       try {
         rescheduleSchema.parse(req.body);
