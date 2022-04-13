@@ -26,9 +26,6 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Text from "@components/ui/Text";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function useHookTest() {
-  const [state, setState] = useState(false);
-}
 function TeamPage({ team }: TeamPageProps) {
   const { isReady, Theme } = useTheme();
   const showMembers = useToggleQuery("members");

@@ -441,7 +441,8 @@ document.addEventListener("click", (e) => {
   if (!path) {
     return;
   }
-  const modalUniqueId = (htmlElement.uniqueId = htmlElement.uniqueId || Date.now());
+  const modalUniqueId = ((htmlElement as unknown as any).uniqueId =
+    (htmlElement as unknown as any).uniqueId || Date.now());
   const namespace = htmlElement.dataset.calNamespace;
   const configString = htmlElement.dataset.calConfig || "";
   let config;

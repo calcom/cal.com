@@ -8,9 +8,9 @@ export class ModalBox extends HTMLElement {
     return ["state"];
   }
 
-  show(show) {
+  show(show: boolean) {
     // We can't make it display none as that takes iframe width and height calculations to 0
-    this.shadowRoot!.host.style.visibility = show ? "visible" : "hidden";
+    (this.shadowRoot!.host as unknown as any).style.visibility = show ? "visible" : "hidden";
   }
 
   close() {
