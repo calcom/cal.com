@@ -56,9 +56,6 @@ const ChangePasswordSection = () => {
 
   return (
     <>
-      {/* <div className="mt-6">
-        <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
-      </div> */}
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
         <div className="py-6 lg:pb-5">
           <div className="flex">
@@ -103,7 +100,6 @@ const ChangePasswordSection = () => {
               {t("save")}
             </Button>
           </div>
-          {/* <hr className="mt-4" /> */}
         </div>
       </form>
     </>
