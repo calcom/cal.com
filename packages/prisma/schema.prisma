@@ -4,6 +4,7 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE")
 }
 
 generator client {
@@ -45,7 +46,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
-  disposableLink          DisposableLink[]      @relation("disposable_eventtype")
+  disposableLink          DisposableLink[]
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -379,14 +380,12 @@ model Webhook {
 
 model DisposableLink {
   id                      Int                    @id @default(autoincrement())
-  title                   String
   link                    String
   slug                    String
-  locations               Json?
-  length                  Int
   users                   User[]                 @relation("disposable_user")
   userId                  Int?
-  eventTypes              EventType[]            @relation("disposable_eventtype")
+  eventType               EventType              @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId             Int
   availability            Availability[]
   booking                 Booking?
   timeZone                String?
