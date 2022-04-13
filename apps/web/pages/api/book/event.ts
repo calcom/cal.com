@@ -383,31 +383,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
-  type BookingType = {
-    uid: string;
-    paid: boolean;
-    title: string;
-    description: string | null;
-    location: string | null;
-    attendees: {
-      email: string;
-      name: string;
-      timeZone: string;
-      locale: string | null;
-    }[];
-    user: {
-      id: number;
-      email: string;
-      name: string | null;
-      locale: string | null;
-    } | null;
-    payment: Payment[] | null;
-  } | null;
-  let originalRescheduledBooking: BookingType = null;
-  if (rescheduleUid) {
-    originalRescheduledBooking = await prisma.booking.findFirst({
+  async function getOriginalRescheduledBooking(uid: string) {
+    return prisma.booking.findFirst({
       where: {
-        uid: rescheduleUid,
+        uid,
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED],
         },
@@ -433,6 +412,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         payment: true,
       },
     });
+  }
+  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+  let originalRescheduledBooking: BookingType = null;
+  if (rescheduleUid) {
+    originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
   }
 
   async function createBooking() {
