@@ -102,7 +102,6 @@ type EventManagerUser = {
 export default class EventManager {
   calendarCredentials: Credential[];
   videoCredentials: Credential[];
-  otherCredentials: Credential[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -112,8 +111,8 @@ export default class EventManager {
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
+    console.log({ calendarCredentials: this.calendarCredentials });
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
-    this.otherCredentials = appCredentials.filter((cred) => cred.type.endsWith("_other"));
   }
 
   /**

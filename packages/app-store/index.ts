@@ -4,7 +4,7 @@ import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
-import * as hubspotother from "./hubspotother";
+import * as hubspotothercalendar from "./hubspotothercalendar";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
 import * as office365calendar from "./office365calendar";
@@ -21,7 +21,7 @@ const appStore = {
   dailyvideo,
   googlecalendar,
   googlevideo,
-  hubspotother,
+  hubspotothercalendar,
   huddle01video,
   jitsivideo,
   office365calendar,

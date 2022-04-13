@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
-    WEBAPP_URL + "/api/integrations/hubspotother/callback",
+    WEBAPP_URL + "/api/integrations/hubspotothercalendar/callback",
     client_id,
     client_secret
   );
@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   hubspotToken.expiryDate = Math.round(Date.now() + hubspotToken.expiresIn * 1000);
   await prisma.credential.create({
     data: {
-      type: "hubspot_other",
+      type: "hubspot_other_calendar",
       key: hubspotToken as any,
       userId: req.session?.user.id,
     },

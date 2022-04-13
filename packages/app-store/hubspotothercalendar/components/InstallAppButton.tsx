@@ -3,7 +3,7 @@ import type { InstallAppButtonProps } from "@calcom/app-store/types";
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const mutation = useAddAppMutation("hubspot_other");
+  const mutation = useAddAppMutation("hubspot_other_calendar");
 
   return (
     <>
