@@ -720,5 +720,7 @@
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
   "redirect_url_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "duplicate": "Duplicate",
-  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page."
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
+  "offer_seats": "Offer seats",
+  "offer_seats_description": "Offer seats to bookings (This disables guests)"
 }
