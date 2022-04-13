@@ -6,7 +6,7 @@ import { stringify } from "querystring";
 import { useEffect, useState } from "react";
 
 import getSlots from "@lib/slots";
-import { TimeRange, WorkingHours } from "@lib/types/schedule";
+import { TimeRange, WorkingHours, CurrentSeats } from "@lib/types/schedule";
 
 dayjs.extend(isBetween);
 dayjs.extend(utc);
@@ -15,11 +15,14 @@ type AvailabilityUserResponse = {
   busy: TimeRange[];
   timeZone: string;
   workingHours: WorkingHours[];
+  currentSeats?: CurrentSeats[];
 };
 
 type Slot = {
   time: Dayjs;
   users?: string[];
+  bookingId?: number;
+  attendees?: number;
 };
 
 type UseSlotsProps = {
@@ -40,10 +43,11 @@ type getFilteredTimesProps = {
   eventLength: number;
   beforeBufferTime: number;
   afterBufferTime: number;
+  currentSeats?: CurrentSeats[];
 };
 
 export const getFilteredTimes = (props: getFilteredTimesProps) => {
-  const { times, busy, eventLength, beforeBufferTime, afterBufferTime } = props;
+  const { times, busy, eventLength, beforeBufferTime, afterBufferTime, currentSeats } = props;
   const finalizationTime = times[times.length - 1]?.add(eventLength, "minutes");
   // Check for conflicts
   for (let i = times.length - 1; i >= 0; i -= 1) {
@@ -56,6 +60,11 @@ export const getFilteredTimes = (props: getFilteredTimesProps) => {
       const slotStartTime = times[i];
       const slotEndTime = times[i].add(eventLength, "minutes");
       const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
+      // If the event has seats then see if there is already a booking (want to show full bookings as well)
+      if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toISOString())) {
+        console.log("This triggered");
+        break;
+      }
       busy.every((busyTime): boolean => {
         const startTime = dayjs(busyTime.start);
         const endTime = dayjs(busyTime.end);
@@ -177,19 +186,21 @@ export const useSlots = (props: UseSlotsProps) => {
 
   const handleAvailableSlots = async (res: Response) => {
     const responseBody: AvailabilityUserResponse = await res.json();
+    const { workingHours, currentSeats, busy } = responseBody;
     const times = getSlots({
       frequency: slotInterval || eventLength,
       inviteeDate: date,
-      workingHours: responseBody.workingHours,
+      workingHours: workingHours,
       minimumBookingNotice,
       eventLength,
     });
     const filterTimeProps = {
       times,
-      busy: responseBody.busy,
+      busy: busy,
       eventLength,
       beforeBufferTime,
       afterBufferTime,
+      currentSeats: currentSeats,
     };
     const filteredTimes = getFilteredTimes(filterTimeProps);
     // temporary
@@ -197,6 +208,14 @@ export const useSlots = (props: UseSlotsProps) => {
     return filteredTimes.map((time) => ({
       time,
       users: [user],
+      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+      ...(currentSeats?.some((booking) => booking.startTime === time.toISOString()) && {
+        attendees:
+          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())]._count
+            .attendees,
+        bookingId:
+          currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].id,
+      }),
     }));
   };
 

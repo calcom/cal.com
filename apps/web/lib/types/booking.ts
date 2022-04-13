@@ -24,6 +24,7 @@ export type BookingCreateBody = {
   user?: string | string[];
   language: string;
   customInputs: { label: string; value: string }[];
+  bookingId?: number;
   metadata: {
     [key: string]: string;
   };

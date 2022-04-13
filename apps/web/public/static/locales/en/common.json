@@ -722,5 +722,7 @@
   "duplicate": "Duplicate",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
   "offer_seats": "Offer seats",
-  "offer_seats_description": "Offer seats to bookings (This disables guests)"
+  "offer_seats_description": "Offer seats to bookings (This disables guests)",
+  "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
+  "booking_full": "No more seats available"
 }

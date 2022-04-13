@@ -4,7 +4,7 @@ import isToday from "dayjs/plugin/isToday";
 import utc from "dayjs/plugin/utc";
 
 import { getWorkingHours } from "./availability";
-import { WorkingHours } from "./types/schedule";
+import { WorkingHours, CurrentSeats } from "./types/schedule";
 
 dayjs.extend(isToday);
 dayjs.extend(utc);
@@ -16,6 +16,7 @@ export type GetSlots = {
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
   eventLength: number;
+  currentSeats?: CurrentSeats[];
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
 
@@ -42,7 +43,14 @@ const splitAvailableTime = (
   return result;
 };
 
-const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
+const getSlots = ({
+  inviteeDate,
+  frequency,
+  minimumBookingNotice,
+  workingHours,
+  eventLength,
+  currentSeats,
+}: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
   const startOfDay = dayjs.utc().startOf("day");
