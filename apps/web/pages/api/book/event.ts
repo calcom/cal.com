@@ -223,7 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const reqBody = req.body as BookingCreateBody;
 
   // handle dynamic user
-  const dynamicUserList = getUsernameList(reqBody.user as string);
+  const dynamicUserList = getUsernameList(reqBody?.user);
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
