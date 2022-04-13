@@ -220,7 +220,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       };
 
   const t = await getTranslation(context.locale ?? "en", "common");
-  console.log({ booking });
+
   return {
     props: {
       locationLabels: getLocationLabels(t),

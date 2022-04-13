@@ -264,7 +264,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
                   {booking?.startTime && rescheduleUid && (
                     <div>
-                      {/* Add translation */}
                       <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
                         {t("former_time")}
                       </p>

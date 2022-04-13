@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -18,7 +18,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -33,10 +33,8 @@ import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import { parseDate } from "@lib/parseDate";
-import { parseZone } from "@lib/parseZone";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -273,15 +271,9 @@ const BookingPage = ({
       })),
     });
   };
-  // @NOTE: No longer needed
-  // const userOwnerIds = eventType.users.map((user) => user.id);
-  // const isUserOwnerRescheduling = !!(
-  //   session?.user.id &&
-  //   rescheduleUid &&
-  //   userOwnerIds.indexOf(session?.user.id) > -1
-  // );
+
   const disableInput = !!rescheduleUid;
-  console.log({ disableInput });
+
   return (
     <div>
       <Theme />
@@ -366,7 +358,6 @@ const BookingPage = ({
                 )}
                 {booking?.startTime && rescheduleUid && (
                   <div>
-                    {/* Add translation */}
                     <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
                       {t("former_time")}
                     </p>

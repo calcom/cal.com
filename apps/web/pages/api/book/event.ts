@@ -298,7 +298,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     users = getLuckyUsers(users, bookingCounts);
   }
-  console.log(req.body);
+
   const invitee = [
     {
       email: reqBody.email,
@@ -333,7 +333,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  console.log({ invitee, guests, teamMembers });
+
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
   const seed = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
@@ -353,7 +353,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
     );
-  console.log({ attendeesList });
+
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -458,8 +458,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
-    // @TODO: edit any
-    const newBookingData: any = {
+
+    const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
       startTime: dayjs(evt.startTime).toDate(),
@@ -499,7 +499,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
-      newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
+      if (newBookingData.attendees?.createMany?.data) {
+        newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
+      }
     }
     const createBookingObj = {
       include: {
@@ -521,7 +523,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
       }
     }
-    console.log({ createBookingObj });
+
     return prisma.booking.create(createBookingObj);
   }
 
@@ -714,8 +716,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
-      console.log({ user });
-      console.log({ firstStripeCredential });
+
       if (!booking.user) booking.user = user;
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
