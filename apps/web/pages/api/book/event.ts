@@ -496,22 +496,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
     }
-    const createBookingObj: any = {
+    const createBookingObj = {
       include: {
         user: {
           select: { email: true, name: true, timeZone: true },
         },
         attendees: true,
+        payment: true,
       },
       data: newBookingData,
     };
 
     if (originalRescheduledBooking?.paid && originalRescheduledBooking?.payment) {
       const bookingPayment = originalRescheduledBooking?.payment?.find((payment) => payment.success);
-      createBookingObj.include = {
-        ...createBookingObj.include,
-        payment: true,
-      };
+
       if (bookingPayment) {
         createBookingObj.data.payment = {
           connect: { id: bookingPayment.id },
