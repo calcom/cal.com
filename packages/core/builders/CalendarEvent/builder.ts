@@ -25,12 +25,12 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
 });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
-
+type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 interface ICalendarEventBuilder {
   calendarEvent: CalendarEventClass;
   eventType: Awaited<ReturnType<CalendarEventBuilder["getEventFromEventId"]>>;
   users: Awaited<ReturnType<CalendarEventBuilder["getUserById"]>>[];
-  attendeesList: any;
+  attendeesList: PersonAttendeeCommonFields[];
   teamMembers: Awaited<ReturnType<CalendarEventBuilder["getTeamMembers"]>>;
   rescheduleLink: string;
 }
@@ -53,6 +53,10 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
   public init(initProps: CalendarEventClass) {
     this.calendarEvent = new CalendarEventClass(initProps);
+  }
+
+  public setEventType(eventType: ICalendarEventBuilder["eventType"]) {
+    this.eventType = eventType;
   }
 
   public async buildEventObjectFromInnerClass(eventId: number) {
@@ -80,7 +84,11 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   }
 
   public buildAttendeesList() {
-    this.attendeesList = [...this.calendarEvent.attendees, ...this.teamMembers];
+    // Language Function was set on builder init
+    this.attendeesList = [
+      ...(this.calendarEvent.attendees as unknown as PersonAttendeeCommonFields[]),
+      ...this.teamMembers,
+    ];
   }
 
   private async getUserById(userId: number) {
@@ -209,6 +217,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     // Users[0] its organizer so we are omitting with slice(1)
     const teamMemberPromises = this.users.slice(1).map(async function (user) {
       return {
+        id: user.id,
+        username: user.username,
         email: user.email || "", // @NOTE: Should we change this "" to teamMemberId?
         name: user.name || "",
         timeZone: user.timeZone,
@@ -216,7 +226,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           translate: await getTranslation(user.locale ?? "en", "common"),
           locale: user.locale ?? "en",
         },
-      } as Person;
+        locale: user.locale,
+      } as PersonAttendeeCommonFields;
     });
     return await Promise.all(teamMemberPromises);
   }
@@ -262,7 +273,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       throw new Error("Run buildEventObjectFromInnerClass before this function");
     }
     const isTeam = !!this.eventType.teamId;
-    console.log(process.env);
+
     const queryParams = new URLSearchParams();
     queryParams.set("rescheduleUid", `${originalBookingUId}`);
     const rescheduleLink = `${process.env.BASE_URL}/${

@@ -1,12 +1,12 @@
-import { BookingStatus, User, SchedulingType, Booking, Attendee } from "@prisma/client";
+import { BookingStatus, User, Booking, Attendee } from "@prisma/client";
 import dayjs from "dayjs";
-import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
-import { CalendarEventClass } from "@calcom/core/builders/CalendarEvent/class";
+import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { Person } from "@calcom/types/Calendar";
 
@@ -16,6 +16,10 @@ import prisma from "@lib/prisma";
 export type RescheduleResponse = Booking & {
   attendees: Attendee[];
 };
+export type PersonAttendeeCommonFields = Pick<
+  User,
+  "id" | "email" | "name" | "locale" | "timeZone" | "username"
+>;
 
 const rescheduleSchema = z.object({
   bookingId: z.string(),
@@ -27,9 +31,11 @@ const handler = async (
   res: NextApiResponse
 ): Promise<RescheduleResponse | NextApiResponse | void> => {
   const session = await getSession({ req });
-  const { bookingId, rescheduleReason: cancellationReason } = req.body;
-  type PersonAttendee = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
-  let userOwner: PersonAttendee | null;
+  const {
+    bookingId,
+    rescheduleReason: cancellationReason,
+  }: { bookingId: string; rescheduleReason: string; cancellationReason: string } = req.body;
+  let userOwner: PersonAttendeeCommonFields | null;
   try {
     if (session?.user?.id) {
       userOwner = await prisma.user.findUnique({
@@ -51,17 +57,35 @@ const handler = async (
     }
 
     const bookingToReschedule = await prisma.booking.findFirst({
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        location: true,
+        attendees: true,
+      },
       rejectOnNotFound: true,
-      include: { attendees: true },
       where: {
         uid: bookingId,
         NOT: {
-          status: BookingStatus.CANCELLED,
+          status: {
+            in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
+          },
         },
       },
     });
+
     if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
       const event = await prisma.eventType.findFirst({
+        select: {
+          title: true,
+          users: true,
+          schedulingType: true,
+        },
+        rejectOnNotFound: true,
         where: {
           id: bookingToReschedule.eventTypeId,
         },
@@ -78,20 +102,15 @@ const handler = async (
         },
       });
 
-      // Soft delete
-      await prisma.bookingReference.deleteMany({
-        where: {
-          bookingId: bookingToReschedule.id,
-        },
-      });
-
-      // @NOTE: Lets assume all guests are the same language
-      const [firstAttendee] = bookingToReschedule.attendees;
-      const tAttendees = await getTranslation(firstAttendee.locale ?? "en", "common");
-      const usersToPeopleType = (users: PersonAttendee[], selectedLanguage: TFunction): Person[] => {
+      const [mainAttendee] = bookingToReschedule.attendees;
+      // @NOTE: Should we assume attendees language?
+      const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
+      const usersToPeopleType = (
+        users: PersonAttendeeCommonFields[],
+        selectedLanguage: TFunction
+      ): Person[] => {
         return users?.map((user) => {
           return {
-            id: user.id || "",
             email: user.email || "",
             name: user.name || "",
             username: user?.username || "",
@@ -103,46 +122,37 @@ const handler = async (
 
       const userOwnerTranslation = await getTranslation(userOwner.locale ?? "en", "common");
       const [userOwnerAsPeopleType] = usersToPeopleType([userOwner], userOwnerTranslation);
-      const calendarEventBuilder = new CalendarEventBuilder();
-      calendarEventBuilder.init({
+      // Using builder as assembling calEvent can take some time
+      const builder = new CalendarEventBuilder();
+      builder.init({
         title: bookingToReschedule.title,
-        type: event?.title || "Nameless Event",
+        type: event.title,
         startTime: bookingToReschedule.startTime.toISOString(),
         endTime: bookingToReschedule.endTime.toISOString(),
         attendees: usersToPeopleType(
           // username field doesn't exists on attendee but could be in the future
-          bookingToReschedule.attendees as unknown as PersonAttendee[],
+          bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
           tAttendees
         ),
         organizer: userOwnerAsPeopleType,
       });
-      await calendarEventBuilder.buildEventObjectFromInnerClass(bookingToReschedule.eventTypeId);
-      await calendarEventBuilder.buildUsersFromInnerClass();
-      if (event?.schedulingType === SchedulingType.ROUND_ROBIN) {
-        await calendarEventBuilder.buildLuckyUsers();
-      }
-      if (event?.schedulingType === SchedulingType.COLLECTIVE) {
-        await calendarEventBuilder.buildLuckyUsers();
-      }
-      await calendarEventBuilder.buildAttendeesList();
-      calendarEventBuilder.setLocation(bookingToReschedule.location);
-      calendarEventBuilder.setUId(bookingToReschedule.uid);
-      calendarEventBuilder.setCancellationReason(cancellationReason);
-      console.log({ calendarEventBuilder });
+
+      const director = new CalendarEventDirector();
+      director.setBuilder(builder);
+      director.setExistingBooking(bookingToReschedule as unknown as Booking);
+      director.setCancellationReason(cancellationReason);
+      director.buildForRescheduleEmail();
+
       // Send email =================
-      calendarEventBuilder.buildRescheduleLink(bookingToReschedule.uid);
-      await sendRequestRescheduleEmail(calendarEventBuilder.calendarEvent, {
-        rescheduleLink: calendarEventBuilder.rescheduleLink,
+      await sendRequestRescheduleEmail(builder.calendarEvent, {
+        rescheduleLink: builder.rescheduleLink,
       });
     }
 
     return res.status(200).json(bookingToReschedule);
   } catch (error) {
-    console.log(error);
-    // throw new Error(error?.message);
+    throw new Error("Error.request.reschedule");
   }
-
-  return res.status(204);
 };
 
 function validate(

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { User, BookingStatus } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 
 import { TestUtilCreateBookingOnUserId, TestUtilCreatePayment } from "./lib/dbSetup";
