@@ -13,6 +13,7 @@ test.describe.serial("Stripe integration", () => {
   test.afterAll(() => {
     teardown.deleteAllPaymentsByEmail("pro@example.com");
     teardown.deleteAllBookingsByEmail("pro@example.com");
+    teardown.deleteAllPaymentCredentialsByEmail("pro@example.com");
   });
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
@@ -69,14 +70,12 @@ test.describe.serial("Stripe integration", () => {
     // Click button:has-text("Pay now")
     await page.click('button:has-text("Pay now")');
 
-    // Make sure we're navigated to the paid page
+    // Make sure we're navigated to the success page
     await page.waitForNavigation({
       url(url) {
-        return url.pathname.endsWith("/paid");
+        return url.pathname.endsWith("/success");
       },
     });
-
-    await expect(page).toHaveURL(/.*payment/);
   });
 
   todo("Pending payment booking should not be confirmed by default");
