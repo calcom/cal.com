@@ -28,12 +28,11 @@ export default function ApiKeyDialogForm(props: {
   const {
     defaultValues = {
       note: "",
-      nexerExpires: false,
+      neverExpires: false,
       expiresAt: dayjs().add(1, "month").toDate(),
     },
   } = props;
 
-  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, "month").toDate());
   const [newApiKey, setNewApiKey] = useState("");
   const [successfulNewApiKeyModal, setSuccessfulNewApiKeyModal] = useState(false);
   const [newApiKeyDetails, setNewApiKeyDetails] = useState({
@@ -41,12 +40,8 @@ export default function ApiKeyDialogForm(props: {
     hashedKey: "",
     expiresAt: null as Date | null,
     note: "" as string | null,
+    neverExpires: false,
   });
-
-  const handleDateChange = (e: Date) => {
-    setSelectedDate(e);
-    form.setValue("expiresAt", e);
-  };
 
   const form = useForm({
     defaultValues,
@@ -59,7 +54,6 @@ export default function ApiKeyDialogForm(props: {
         <>
           <div className="mb-10">
             <h2 className="font-semi-bold font-cal mb-2 text-xl tracking-wide text-gray-900">
-              {" "}
               {t("success_api_key_created")}
             </h2>
             <div className="text-sm text-gray-900">
@@ -86,8 +80,9 @@ export default function ApiKeyDialogForm(props: {
               </Tooltip>
             </div>
             <span className="text-sm text-gray-400">
-              {" "}
-              {t("expires")} {newApiKeyDetails?.expiresAt?.toLocaleDateString()}
+              {newApiKeyDetails.neverExpires
+                ? t("never_expire_key")
+                : `${t("expires")} ${newApiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
           <DialogFooter>
@@ -128,12 +123,16 @@ export default function ApiKeyDialogForm(props: {
                 )}
               />
             </div>
-
-            <DatePicker
-              disabled={watchNeverExpires}
-              minDate={new Date()}
-              date={selectedDate}
-              onDatesChange={handleDateChange}
+            <Controller
+              name="expiresAt"
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
+                  disabled={watchNeverExpires}
+                  minDate={new Date()}
+                  date={value}
+                  onDatesChange={onChange}
+                />
+              )}
             />
           </div>
           <DialogFooter>

@@ -2,12 +2,8 @@ import { v4 } from "uuid";
 import { z } from "zod";
 
 import { generateUniqueAPIKey } from "@calcom/ee/lib/api/apiKeys";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 
-// import { WEBHOOK_TRIGGER_EVENTS } from "@lib/apiKeys/constants";
-// import sendPayload from "@lib/apiKeys/sendPayload";
 import { createProtectedRouter } from "@server/createRouter";
-import { getTranslation } from "@server/lib/i18n";
 
 export const apiKeysRouter = createProtectedRouter()
   .query("list", {
@@ -24,14 +20,20 @@ export const apiKeysRouter = createProtectedRouter()
     input: z.object({
       note: z.string().optional().nullish(),
       expiresAt: z.date().optional().nullable(),
+      neverExpires: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+      // Here we snap never expires before deleting it so it's not passed to prisma create call.
+      const neverExpires = input.neverExpires;
+      delete input.neverExpires;
       await ctx.prisma.apiKey.create({
         data: {
           id: v4(),
           userId: ctx.user.id,
           ...input,
+          // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+          expiresAt: neverExpires ? null : input.expiresAt,
           hashedKey: hashedApiKey,
         },
       });

@@ -745,5 +745,6 @@
   "copy": "Copy",
   "expire_date": "Expiration date",
   "expired": "Expired",
+  "never_expires": "Never expires",
   "expires": "Expires"
 }

@@ -51,7 +51,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
                 neverExpires ? "text-yellow-600" : ""
               )}>
               {neverExpires ? (
-                <div className="flex flex-row space-x-3 text-yellow-600">
+                <div className="flex flex-row space-x-3 text-gray-500">
                   <ExclamationIcon className="w-4" />
                   {t("api_key_never_expires")}
                 </div>
