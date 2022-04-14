@@ -1,7 +1,7 @@
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
 import type { AppProps as NextAppProps } from "next/app";
-import { ComponentProps, ReactNode } from "react";
+import { ComponentProps, ReactNode, useMemo } from "react";
 
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
@@ -48,9 +48,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
     </SessionProvider>
   );
-
+  const telemetryClient = useMemo(createTelemetryClient, []);
   return (
-    <TelemetryProvider value={createTelemetryClient()}>
+    <TelemetryProvider value={telemetryClient}>
       {isPublicPage ? (
         RemainingProviders
       ) : (
