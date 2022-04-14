@@ -125,7 +125,7 @@ test.describe("pro user", () => {
     });
   });
 
-  test("Can cancel the recently created booking", async ({ page }) => {
+  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page }) => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
@@ -142,5 +142,7 @@ test.describe("pro user", () => {
         return url.pathname === "/cancel/success";
       },
     });
+    await page.goto("/pro");
+    await bookFirstEvent(page);
   });
 });
