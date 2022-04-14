@@ -4,8 +4,6 @@ import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
-import Select from "react-select";
-import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
@@ -31,6 +29,8 @@ import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
 import ColorPicker from "@components/ui/colorpicker";
+import Select from "@components/ui/form/Select";
+import TimezoneSelect, { ITimezone } from "@components/ui/form/TimezoneSelect";
 
 import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
@@ -225,7 +225,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   autoComplete="given-name"
                   placeholder={t("your_name")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                   defaultValue={props.user.name || undefined}
                 />
               </div>
@@ -241,7 +241,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -262,7 +262,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("little_something_about")}
                   rows={3}
                   defaultValue={props.user.bio || undefined}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"></textarea>
               </div>
             </div>
             <div>
@@ -314,8 +314,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="languageSelect"
                   value={selectedLanguage || props.localeProp}
                   onChange={(v) => v && setSelectedLanguage(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm capitalize shadow-sm  sm:text-sm"
                   options={localeOptions}
                 />
               </div>
@@ -329,8 +328,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={(v) => v && setSelectedTimeZone(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
                 />
               </div>
             </div>
@@ -343,8 +341,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="timeFormatSelect"
                   value={selectedTimeFormat || props.user.timeFormat}
                   onChange={(v) => v && setSelectedTimeFormat(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm  capitalize shadow-sm  sm:text-sm"
                   options={timeFormatOptions}
                 />
               </div>
@@ -358,8 +355,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="weekStart"
                   value={selectedWeekStartDay}
                   onChange={(v) => v && setSelectedWeekStartDay(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm capitalize shadow-sm sm:text-sm"
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
@@ -375,7 +371,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   type="checkbox"
                   ref={allowDynamicGroupBookingRef}
                   defaultChecked={props.user.allowDynamicBooking || false}
-                  className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800"
+                  className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
                 />
               </div>
               <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -397,7 +393,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
                   onChange={(v) => v && setSelectedTheme(v)}
-                  className="| { value: string } mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
                   options={themeOptions}
                 />
               </div>
@@ -409,7 +405,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     type="checkbox"
                     onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
-                    className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800"
+                    className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
                   />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -420,19 +416,18 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-              <div className="mb-6 w-full sm:w-1/2">
+              <div className="mb-2 sm:w-1/2">
                 <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                   {t("light_brand_color")}
                 </label>
                 <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
               </div>
-              <div className="mb-6 w-full sm:w-1/2">
+              <div className="mb-2 sm:w-1/2">
                 <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
                   {t("dark_brand_color")}
                 </label>
                 <ColorPicker defaultValue={props.user.darkBrandColor} onChange={setDarkBrandColor} />
               </div>
-              <hr className="mt-6" />
             </div>
             <div>
               <div className="relative flex items-start">
