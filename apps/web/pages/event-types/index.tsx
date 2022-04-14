@@ -30,7 +30,7 @@ import Dropdown, {
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
 
-import { QueryCell } from "@lib/QueryCell";
+import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -63,38 +63,83 @@ type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][n
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
   group: EventTypeGroup;
+  groupIndex: number;
   readOnly: boolean;
   types: EventType[];
 }
 
-export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): JSX.Element => {
+const Item = ({ type, group, readOnly }: any) => {
+  const { t } = useLocale();
+
+  return (
+    <Link href={"/event-types/" + type.id}>
+      <a
+        className="flex-grow truncate text-sm"
+        title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
+        <div>
+          <span
+            className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
+            data-testid={"event-type-title-" + type.id}>
+            {type.title}
+          </span>
+          <small
+            className="hidden text-neutral-500 sm:inline"
+            data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+          {type.hidden && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
+              {t("hidden")}
+            </span>
+          )}
+          {readOnly && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
+              {t("readonly")}
+            </span>
+          )}
+        </div>
+        <EventTypeDescription eventType={type} />
+      </a>
+    </Link>
+  );
+};
+
+const MemoizedItem = React.memo(Item);
+
+export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
 
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
-    onError: (err) => {
+    onError: async (err) => {
       console.error(err.message);
-    },
-    async onSettled() {
       await utils.cancelQuery(["viewer.eventTypes"]);
       await utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
-  const [sortableTypes, setSortableTypes] = useState(types);
-  useEffect(() => {
-    setSortableTypes(types);
-  }, [types]);
-  function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...sortableTypes];
 
-    const type = sortableTypes[index];
-    const tmp = sortableTypes[index + increment];
+  function moveEventType(index: number, increment: 1 | -1) {
+    const newList = [...types];
+
+    const type = types[index];
+    const tmp = types[index + increment];
     if (tmp) {
       newList[index] = tmp;
       newList[index + increment] = type;
     }
-    setSortableTypes(newList);
+
+    utils.cancelQuery(["viewer.eventTypes"]);
+    utils.setQueryData(["viewer.eventTypes"], (data) =>
+      Object.assign(data, {
+        eventTypesGroups: [
+          data?.eventTypeGroups.slice(0, groupIndex),
+          Object.assign(group, {
+            eventTypes: newList,
+          }),
+          data?.eventTypeGroups.slice(groupIndex + 1),
+        ],
+      })
+    );
+
     mutation.mutate({
       ids: newList.map((type) => type.id),
     });
@@ -155,7 +200,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
-        {sortableTypes.map((type, index) => (
+        {types.map((type, index) => (
           <li
             key={type.id}
             className={classNames(
@@ -168,7 +213,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                 type.$disabled && "pointer-events-none"
               )}>
               <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
-                {sortableTypes.length > 1 && (
+                {types.length > 1 && (
                   <>
                     <button
                       className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
@@ -183,36 +228,7 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </button>
                   </>
                 )}
-                <Link href={"/event-types/" + type.id}>
-                  <a
-                    className="flex-grow truncate text-sm"
-                    title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
-                    <div>
-                      <span
-                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
-                        data-testid={"event-type-title-" + type.id}>
-                        {type.title}
-                      </span>
-                      <small
-                        className="hidden text-neutral-500 sm:inline"
-                        data-testid={
-                          "event-type-slug-" + type.id
-                        }>{`/${group.profile.slug}/${type.slug}`}</small>
-                      {type.hidden && (
-                        <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
-                          {t("hidden")}
-                        </span>
-                      )}
-                      {readOnly && (
-                        <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
-                          {t("readonly")}
-                        </span>
-                      )}
-                    </div>
-                    <EventTypeDescription eventType={type} />
-                  </a>
-                </Link>
-
+                <MemoizedItem type={type} group={group} readOnly={readOnly} />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                   <div className="flex justify-between rtl:space-x-reverse">
                     {type.users?.length > 1 && (
@@ -487,9 +503,19 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
   );
 };
 
+const CTA = () => {
+  const query = trpc.useQuery(["viewer.eventTypes"]);
+
+  if (!query.data) return null;
+
+  return (
+    <CreateEventTypeButton canAddEvents={query.data.viewer.canAddEvents} options={query.data.profiles} />
+  );
+};
+
+const WithQuery = withQuery(["viewer.eventTypes"]);
 const EventTypesPage = () => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.eventTypes"]);
 
   return (
     <div>
@@ -497,19 +523,8 @@ const EventTypesPage = () => {
         <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell
-        heading={t("event_types_page_title")}
-        subtitle={t("event_types_page_subtitle")}
-        CTA={
-          query.data && (
-            <CreateEventTypeButton
-              canAddEvents={query.data.viewer.canAddEvents}
-              options={query.data.profiles}
-            />
-          )
-        }>
-        <QueryCell
-          query={query}
+      <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
+        <WithQuery
           success={({ data }) => (
             <>
               {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
@@ -528,7 +543,7 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-              {data.eventTypeGroups.map((group) => (
+              {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
                   {(data.eventTypeGroups.length !== 1 || group.teamId) && (
@@ -537,7 +552,12 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList types={group.eventTypes} group={group} readOnly={group.metadata.readOnly} />
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
                 </Fragment>
               ))}
 
