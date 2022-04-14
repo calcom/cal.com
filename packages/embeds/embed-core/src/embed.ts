@@ -230,7 +230,7 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:block;position:relative"></cal-inline>`;
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative"></cal-inline>`;
     this.inlineEl = template.content.children[0];
     this.inlineEl.appendChild(iframe);
     element.appendChild(template.content);
