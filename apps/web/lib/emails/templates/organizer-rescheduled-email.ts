@@ -62,6 +62,7 @@ ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendee
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
 ${getCancelLink(this.calEvent)}
@@ -110,6 +111,7 @@ ${getCancelLink(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
