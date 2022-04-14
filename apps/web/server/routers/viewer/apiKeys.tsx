@@ -49,22 +49,31 @@ export const apiKeysRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
-      const apiKey = await ctx.prisma.apiKey.findFirst({
+      const {
+        apiKeys: [updatedApiKey],
+      } = await ctx.prisma.user.update({
         where: {
-          userId: ctx.user.id,
-          id,
+          id: ctx.user.id,
+        },
+        data: {
+          apiKeys: {
+            update: {
+              where: {
+                id,
+              },
+              data,
+            },
+          },
+        },
+        select: {
+          apiKeys: {
+            where: {
+              id,
+            },
+          },
         },
       });
-      if (!apiKey) {
-        // user does not own this apiKey
-        return null;
-      }
-      return await ctx.prisma.apiKey.update({
-        where: {
-          id,
-        },
-        data,
-      });
+      return updatedApiKey;
     },
   })
   .mutation("delete", {
