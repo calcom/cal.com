@@ -61,9 +61,11 @@ export default class HubspotOtherCalendarService implements Partial<Calendar> {
   };
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
-    return `<b>${event.organizer.language.translate("organizer_timezone")}:</b> ${
-      event.organizer.timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.description}`;
+    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
+      event.attendees[0].timeZone
+    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+      event.additionalNotes || "-"
+    }`;
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
@@ -90,12 +92,31 @@ export default class HubspotOtherCalendarService implements Partial<Calendar> {
         type: "meeting_event_to_contact",
       })),
     };
-    this.log.info({ batchInputPublicAssociation });
     return hubspotClient.crm.associations.batchApi.create(
       "meetings",
       "contacts",
       batchInputPublicAssociation
     );
+  };
+
+  private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_timestamp: Date.now().toString(),
+        hs_meeting_title: event.title,
+        hs_meeting_body: this.getHubspotMeetingBody(event),
+        hs_meeting_location: getLocation(event),
+        hs_meeting_start_time: new Date(event.startTime).toISOString(),
+        hs_meeting_end_time: new Date(event.endTime).toISOString(),
+        hs_meeting_outcome: "RESCHEDULED",
+      },
+    };
+
+    return hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+  };
+
+  private hubspotDeleteMeeting = async (uid: string) => {
+    return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
   private hubspotAuth = (credential: Credential) => {
@@ -144,13 +165,10 @@ export default class HubspotOtherCalendarService implements Partial<Calendar> {
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     await this.auth.getToken();
     const contacts = await this.hubspotContactSearch(event);
-    this.log.info({ contacts });
     if (contacts) {
       const meetingEvent = await this.hubspotCreateMeeting(event);
-      this.log.info({ meetingEvent });
       if (meetingEvent) {
         const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
-        this.log.info({ associatedMeeting });
         if (associatedMeeting) {
           return Promise.resolve({
             uid: meetingEvent.id,
@@ -161,10 +179,20 @@ export default class HubspotOtherCalendarService implements Partial<Calendar> {
             additionalInfo: { contacts, associatedMeeting },
           });
         }
-        return Promise.reject("Something went wrong associating the meeting and contact in HubSpot");
+        return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
       }
-      return Promise.reject("Something went wrong with creating a meeting in HubSpot");
+      return Promise.reject("Something went wrong when creating a meeting in HubSpot");
     }
-    return Promise.reject("Something went wrong searching the atendee in HubSpot");
+    return Promise.reject("Something went wrong when searching the atendee in HubSpot");
+  }
+
+  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+    await this.auth.getToken();
+    return await this.hubspotUpdateMeeting(uid, event);
+  }
+
+  async deleteEvent(uid: string): Promise<void> {
+    await this.auth.getToken();
+    return await this.hubspotDeleteMeeting(uid);
   }
 }

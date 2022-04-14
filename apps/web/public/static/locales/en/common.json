@@ -76,7 +76,6 @@
   "new_event_scheduled": "A new event has been scheduled.",
   "invitee_email": "Invitee Email",
   "invitee_timezone": "Invitee Time Zone",
-  "organizer_timezone": "Organizer Time Zone",
   "event_type": "Event Type",
   "enter_meeting": "Enter Meeting",
   "video_call_provider": "Video call provider",
