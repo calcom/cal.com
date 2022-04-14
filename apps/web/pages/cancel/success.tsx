@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ArrowRightIcon } from "@heroicons/react/solid";
+import { ArrowLeftIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
@@ -52,7 +52,7 @@ export default function CancelSuccess() {
                   <div className="mt-5">
                     {!loading && !session?.user && <Button href={eventPage as string}>Pick another</Button>}
                     {!loading && session?.user && (
-                      <Button data-testid="back-to-bookings" href="/bookings" EndIcon={ArrowRightIcon}>
+                      <Button data-testid="back-to-bookings" href="/bookings" StartIcon={ArrowLeftIcon}>
                         {t("back_to_bookings")}
                       </Button>
                     )}

@@ -394,6 +394,7 @@ const loggedInViewerRouter = createProtectedRouter()
               id: true,
             },
           },
+          rescheduled: true,
         },
         orderBy,
         take: take + 1,
