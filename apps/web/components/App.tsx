@@ -90,7 +90,11 @@ export default function App({
                 ) : (
                   <InstallAppButton
                     type={type}
-                    render={(buttonProps) => <Button {...buttonProps}>{t("install_app")}</Button>}
+                    render={(buttonProps) => (
+                      <Button data-testid="install-app-button" {...buttonProps}>
+                        {t("install_app")}
+                      </Button>
+                    )}
                   />
                 )}
                 {price !== 0 && (
