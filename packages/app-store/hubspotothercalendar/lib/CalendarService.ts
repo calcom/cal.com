@@ -14,6 +14,8 @@ import type {
   Calendar,
   CalendarEvent,
   ConferenceData,
+  EventBusyDate,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
@@ -24,7 +26,7 @@ const hubspotClient = new hubspot.Client();
 const client_id = process.env.HUBSPOT_CLIENT_ID;
 const client_secret = process.env.HUBSPOT_CLIENT_SECRET;
 
-export default class HubspotOtherCalendarService implements Partial<Calendar> {
+export default class HubspotOtherCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private auth: { getToken: () => Promise<any> };
@@ -194,5 +196,17 @@ export default class HubspotOtherCalendarService implements Partial<Calendar> {
   async deleteEvent(uid: string): Promise<void> {
     await this.auth.getToken();
     return await this.hubspotDeleteMeeting(uid);
+  }
+
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
+    return Promise.resolve([]);
+  }
+
+  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+    return Promise.resolve([]);
   }
 }
