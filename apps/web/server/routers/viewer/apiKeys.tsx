@@ -37,7 +37,7 @@ export const apiKeysRouter = createProtectedRouter()
           hashedKey: hashedApiKey,
         },
       });
-      const prefixedApiKey = `${process.env.API_KEY_PREFIX ?? "pt_secret_"}${apiKey}`;
+      const prefixedApiKey = `${process.env.API_KEY_PREFIX ?? "cal_"}${apiKey}`;
       return prefixedApiKey;
     },
   })
