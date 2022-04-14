@@ -51,7 +51,7 @@ function IframeEmbedContainer() {
               <div className="text-right">
                 <input
                   id="iframe"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={iframeTemplate}
                   readOnly
@@ -76,7 +76,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="fullscreen"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={htmlTemplate}
                   readOnly
