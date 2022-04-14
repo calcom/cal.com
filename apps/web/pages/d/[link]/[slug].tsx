@@ -90,7 +90,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         select: eventTypeSelect,
       },
       availability: true,
-      booking: true,
       timeZone: true,
       expired: true,
     },
