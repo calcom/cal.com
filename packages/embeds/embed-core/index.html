@@ -64,7 +64,7 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-namespace="prerendertestLightTheme" data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+      <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -74,9 +74,10 @@
         >
       </div>
       <h2>Other Popup Examples</h2>
-      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
-      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team">Book with Test Team[Dark Theme]</button>
       <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -109,7 +110,7 @@
           <i>You would see last Booking page action in my place</i>
         </i>
         <div class="place">
-          <div>If you render booking embed in me, I won't restrict you. The entire page is yours.</div>
+          <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
             Change <code>eventTypeListItem</code> bg color
@@ -117,6 +118,21 @@
           <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
             Change <code>body</code> bg color
           </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
+            Align left
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
+            Align Center
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
+            backgroundColor: '#D3D3D3',
+          },
+          disabledDateButton: {
+            backgroundColor: 'lightslategray',
+          },}})})()">
+            Change Date Button Color
+          </button>
+          
           <div class="loader" id="cal-booking-loader-second">Loading .....</div>
         </div>
       </div>
@@ -202,26 +218,6 @@
             {
               elementOrSelector: "#cal-booking-place-second .place",
               calLink: "pro?case=2",
-            },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "white",
-                },
-                eventTypeListItem: {
-                  backgroundColor: "#D3D3D3",
-                },
-                enabledDateButton: {
-                  backgroundColor: "#D3D3D3",
-                },
-                disabledDateButton: {
-                  backgroundColor: "lightslategray",
-                },
-                align: "left"
-              },
             },
           ]
         );
@@ -319,6 +315,10 @@
         });
       }
       Cal('init', 'popupDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupAutoTheme', {
         debug: 1,
         origin: "http://localhost:3000",
       })

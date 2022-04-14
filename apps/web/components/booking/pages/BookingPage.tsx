@@ -12,7 +12,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent, useEmbedType } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -66,6 +66,7 @@ const BookingPage = ({
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  const embedType = useEmbedType();
   const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
@@ -297,7 +298,8 @@ const BookingPage = ({
       <main
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
-          "my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
+          isEmbed ? "" : "sm:my-24",
+          "my-0 max-w-3xl sm:dark:border-gray-600"
         )}>
         {isReady && (
           <div
@@ -305,7 +307,7 @@ const BookingPage = ({
               "overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
               isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
-              "sm:rounded-sm"
+              "rounded-md sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">

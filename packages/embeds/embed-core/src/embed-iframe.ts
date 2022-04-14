@@ -196,6 +196,17 @@ function getNamespace() {
   }
 }
 
+function getEmbedType() {
+  if (embedStore.embedType) {
+    return embedStore.embedType;
+  }
+  if (isBrowser) {
+    const url = new URL(document.URL);
+    const embedType = (embedStore.embedType = url.searchParams.get("embedType"));
+    return embedType;
+  }
+}
+
 const isEmbed = () => {
   const namespace = getNamespace();
   const _isValidNamespace = isValidNamespace(namespace);
@@ -216,6 +227,14 @@ export const useIsEmbed = () => {
     setIsEmbed(isEmbed());
   }, []);
   return _isEmbed;
+};
+
+export const useEmbedType = () => {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    setState(getEmbedType());
+  }, []);
+  return state;
 };
 
 function unhideBody() {
@@ -300,7 +319,10 @@ function keepParentInformedAboutDimensionChanges() {
     embedStore.windowLoadEventFired = true;
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
-    const mainElement = document.getElementsByTagName("main")[0] || document.documentElement;
+    const mainElement =
+      document.getElementsByClassName("main")[0] ||
+      document.getElementsByTagName("main")[0] ||
+      document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
     const contentHeight = mainElement.offsetHeight;

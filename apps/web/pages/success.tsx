@@ -216,7 +216,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl py-24")}>
-          <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
+          <div className={classNames("main overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
               <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
             ) : null}{" "}
@@ -233,7 +233,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                 </span>
                 <div
                   className={classNames(
-                    "inline-block transform overflow-hidden rounded-sm border sm:my-8 sm:max-w-lg",
+                    "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
                     isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
                     "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                   )}

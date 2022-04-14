@@ -11,8 +11,8 @@ The Embed allows your website visitors to book a meeting with you directly from 
 TODO: Mention possibility of installation through tag managers as well
 
 - _Step-1._ Install the Vanilla JS Snippet
-
-  ```javascript
+  ```html
+<script>
   (function (C, A, L) {
     let p = function (a, ar) {
       a.q.push(ar);
@@ -40,13 +40,9 @@ TODO: Mention possibility of installation through tag managers as well
         }
         p(cal, ar);
       };
-  })(window, "https://cal.com/embed.js", "init");
-  ```
-
-- _Step-2_. Initialize it
-
-  ```javascript
-  Cal("init)
+    })(window, "https://cal.com/embed.js", "init");
+    Cal("init")
+  </script>
   ```
 
 ## Install with a Framework
@@ -74,18 +70,20 @@ Show the embed inline inside a container element. It would take the width and he
 <details>
   <summary>_Vanilla JS_</summary>
 
-```javascript
-Cal("inline", {
-  elementOrSelector: "Your Embed Container Selector Path", // You can also provide an element directly
-  calLink: "jane", // The link that you want to embed. It would open https://cal.com/jane in embed
-  config: {
-    name: "John Doe", // Prefill Name
-    email: "johndoe@gmail.com", // Prefill Email
-    notes: "Test Meeting", // Prefill Notes
-    guests: ["janedoe@gmail.com", "test@gmail.com"], // Prefill Guests
-    theme: "dark", // "dark" or "light" theme
-  },
-});
+```html
+<script>
+  Cal("inline", {
+    elementOrSelector: "Your Embed Container Selector Path", // You can also provide an element directly
+    calLink: "jane", // The link that you want to embed. It would open https://cal.com/jane in embed
+    config: {
+      name: "John Doe", // Prefill Name
+      email: "johndoe@gmail.com", // Prefill Email
+      notes: "Test Meeting", // Prefill Notes
+      guests: ["janedoe@gmail.com", "test@gmail.com"], // Prefill Guests
+      theme: "dark", // "dark" or "light" theme
+    },
+  });
+</script>
 ```
 
 </details>

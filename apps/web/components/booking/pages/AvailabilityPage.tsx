@@ -16,7 +16,13 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
+import {
+  useEmbedStyles,
+  useIsEmbed,
+  useIsBackgroundTransparent,
+  sdkActionManager,
+  useEmbedType,
+} from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -54,6 +60,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const embedType = useEmbedType();
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
@@ -157,7 +164,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
-                "border-bookinglightest rounded-sm md:border",
+                "border-bookinglightest rounded-md md:border",
                 isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
               )}>
               {/* mobile: details */}

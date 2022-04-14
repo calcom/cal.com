@@ -38,12 +38,13 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - So that it can be placed anywhere on the page.To achieve that embed JS
   - keeps a tight control on width of iframe but still allowing content to take the entire width available outside the iframe.
   - increases the iframe width and height to an extent that scroll doesn't occur.
+- In the popup as the width is still 100% and actual content might be smaller in width than that(there is max-width), border-radius can't be implemented on iframe, it is supposed to be directly over the content and thus it would be part of content itself.
 
 - Problems & Workarounds embed.js took
   - To allow iframe content to consider the width outside iframe, on certain actions embed JS is informed of a request in increase in width. In that case, iframe's width is temporarily set to 100% and now suddenly iframe content has the exact same space available as the parent. It re-adjusts content and then inform parent to lock the width at that. 
     - But because of the two steps, there is a temporary increase in width(to 100%) which might be noticeable, if there is a background set on body of iframe. This problem seems unsolvable at the moment.
-    - So, let iframe behave like a block element, taking the entire width available to it by setting it's width to 100%. It automatically handles responsiveness well.
-    - By default Iframe would be positioned in center horizontally and thus if there is some content above it positioned left, iframe wouldn't look aligned to content
+    - So, let iframe behave like a block element, taking the entire width available to it by setting it's width to 100%. It automatically handles responsiveness well, both in portrait and landscape mode.
+    - By default Iframe would be positioned in center horizontally and thus if there is some content above it positioned left, iframe wouldn't look aligned to content.
 
 ## Known Bugs and Upcoming Improvements
 
@@ -54,10 +55,11 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
-  - Embed doesn't adapt to screen size without page refresh.
-    - Try opening in portrait mode and then go to landscape mode.
   - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
   - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
+  - Changes in Non Embed
+    - Right now border has been changed to border-md instead of border-sm to make the popup look cleaner. It seems okay to me to have the same in non embed as well. But if requirement comes it can be done.[Needs Review by Team]
+  - Transparent support is not properly done for team links
 
 - Branding
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.

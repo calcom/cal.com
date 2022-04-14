@@ -219,6 +219,8 @@ export class Cal {
         },
       },
     });
+    config = config || {};
+    config.embedType = "inline";
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
@@ -257,6 +259,7 @@ export class Cal {
       existingModalEl.setAttribute("state", "started");
       return;
     }
+    config.embedType = "modal";
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.borderRadius = "8px";
 
