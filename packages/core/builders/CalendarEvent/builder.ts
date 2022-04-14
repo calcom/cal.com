@@ -5,7 +5,6 @@ import { v5 as uuidv5 } from "uuid";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { Person } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
