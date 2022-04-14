@@ -33,9 +33,9 @@ export default function ApiKeyDialogForm(props: {
     },
   } = props;
 
-  const [newApiKey, setNewApiKey] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [successfulNewApiKeyModal, setSuccessfulNewApiKeyModal] = useState(false);
-  const [newApiKeyDetails, setNewApiKeyDetails] = useState({
+  const [apiKeyDetails, setApiKeyDetails] = useState({
     id: "",
     hashedKey: "",
     expiresAt: null as Date | null,
@@ -54,7 +54,7 @@ export default function ApiKeyDialogForm(props: {
         <>
           <div className="mb-10">
             <h2 className="font-semi-bold font-cal mb-2 text-xl tracking-wide text-gray-900">
-              {t("success_api_key_created")}
+              {apiKeyDetails ? t("success_api_key_edited") : t("success_api_key_created")}
             </h2>
             <div className="text-sm text-gray-900">
               <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
@@ -64,12 +64,12 @@ export default function ApiKeyDialogForm(props: {
           <div>
             <div className="flex">
               <code className="my-2 mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 align-middle font-mono text-gray-800">
-                {newApiKey}
+                {apiKey}
               </code>
               <Tooltip content={t("copy_to_clipboard")}>
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(newApiKey);
+                    navigator.clipboard.writeText(apiKey);
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
@@ -80,9 +80,9 @@ export default function ApiKeyDialogForm(props: {
               </Tooltip>
             </div>
             <span className="text-sm text-gray-400">
-              {newApiKeyDetails.neverExpires
+              {apiKeyDetails.neverExpires
                 ? t("never_expire_key")
-                : `${t("expires")} ${newApiKeyDetails?.expiresAt?.toLocaleDateString()}`}
+                : `${t("expires")} ${apiKeyDetails?.expiresAt?.toLocaleDateString()}`}
             </span>
           </div>
           <DialogFooter>
@@ -95,9 +95,9 @@ export default function ApiKeyDialogForm(props: {
         <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean }>
           form={form}
           handleSubmit={async (event) => {
-            const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
-            setNewApiKey(newApiKey);
-            setNewApiKeyDetails({ ...event });
+            const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+            setApiKey(apiKey);
+            setApiKeyDetails({ ...event });
             await utils.invalidateQueries(["viewer.apiKeys.list"]);
             setSuccessfulNewApiKeyModal(true);
           }}
@@ -140,7 +140,7 @@ export default function ApiKeyDialogForm(props: {
               {t("cancel")}
             </Button>
             <Button type="submit" loading={form.formState.isSubmitting}>
-              {t("create")}
+              {apiKeyDetails ? t("save") : t("create")}
             </Button>
           </DialogFooter>
         </Form>
