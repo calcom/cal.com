@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
+import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -102,13 +103,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       ))}
     </ul>
   );
+  const isEmbed = useIsEmbed();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
+  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
-  const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -128,8 +131,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
-      <div className={"h-screen dark:bg-neutral-900" + isEmbed ? " bg:white m-auto max-w-3xl" : ""}>
-        <main className="mx-auto max-w-3xl px-4 py-24">
+      <div
+        className={classNames(
+          shouldAlignCentrally ? "mx-auto" : "",
+          "h-screen dark:bg-neutral-900",
+          isEmbed ? "bg:white max-w-3xl" : ""
+        )}>
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", "max-w-3xl px-4 py-24")}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>

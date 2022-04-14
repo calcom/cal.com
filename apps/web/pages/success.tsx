@@ -140,6 +140,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
@@ -212,12 +215,16 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className={classNames("mx-auto", isEmbed ? "" : "max-w-3xl py-24")}>
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl py-24")}>
           <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
               <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
             ) : null}{" "}
-            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className={classNames(
+                shouldAlignCentrally ? "text-center" : "",
+                "flex min-h-screen items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
+              )}>
               <div
                 className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
                 aria-hidden="true">
@@ -226,8 +233,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                 </span>
                 <div
                   className={classNames(
-                    "inline-block transform overflow-hidden rounded-sm",
-                    isEmbed ? "" : "border sm:my-8 sm:max-w-lg ",
+                    "inline-block transform overflow-hidden rounded-sm border sm:my-8 sm:max-w-lg",
                     isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
                     "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                   )}

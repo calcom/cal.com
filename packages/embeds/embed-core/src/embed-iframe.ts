@@ -361,17 +361,16 @@ if (isBrowser) {
     // Because on cal-iframe we set explicty width to make it look inline and part of page, there is never space available for content to automatically expand
     // This is a HACK to quickly tell iframe to go full width and let iframe content adapt to that and set new width.
     sdkActionManager?.on("__refreshWidth", () => {
-      sdkActionManager?.fire("__dimensionChanged", {
-        iframeWidth: 100,
-        __unit: "%",
-      });
-      // Do a refresh once more just in case, the effect got revert by __dimensionChanged action in other flow.
-      runAsap(() => {
-        sdkActionManager?.fire("__dimensionChanged", {
-          iframeWidth: 100,
-          __unit: "%",
-        });
-      });
+      // sdkActionManager?.fire("__dimensionChanged", {
+      //   iframeWidth: 100,
+      //   __unit: "%",
+      // });
+      // runAsap(() => {
+      //   sdkActionManager?.fire("__dimensionChanged", {
+      //     iframeWidth: 100,
+      //     __unit: "%",
+      //   });
+      // });
     });
 
     window.addEventListener("message", (e) => {

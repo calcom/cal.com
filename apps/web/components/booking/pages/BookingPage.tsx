@@ -66,6 +66,8 @@ const BookingPage = ({
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
@@ -294,8 +296,8 @@ const BookingPage = ({
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
-          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24",
-          "max-w-3xl  sm:border sm:dark:border-gray-600"
+          shouldAlignCentrally ? "mx-auto" : "",
+          "my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600"
         )}>
         {isReady && (
           <div
