@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "vital",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Connect your health data",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@tryvital/vital-node": "^1.3.3"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

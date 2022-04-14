@@ -391,6 +391,16 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
+### Obtaining Vital Client ID and Secret
+
+1. Open [Vital](https://tryvital.io/) and click Get API Keys.
+2. Create a team with the team name you desire
+3. Head to the configuration section on the sidebar of the dashboard
+4. Click on API keys and you'll find your sandbox Client ID and Client Secret. 
+6. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALENDSO URL>/api/integrations/vital/webhook` as webhook for connected applications.
+7. Select all events for the webhook you interested, e.g. `sleep_created`
+8. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env file.
+
 <!-- LICENSE -->
 
 ## License
