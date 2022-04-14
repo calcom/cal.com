@@ -1,11 +1,12 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
 import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
-import Select from "react-select";
 
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
+
+import Select from "@components/ui/form/Select";
 
 interface OptionTypeBase {
   label: string;
@@ -55,7 +56,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               defaultValue={selectedInputOption}
               options={inputOptions}
               isSearchable={false}
-              className="focus:border-primary-500 focus:ring-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
+              className="mt-1 mb-2 block w-full min-w-0 flex-1  sm:text-sm"
               onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
@@ -73,7 +74,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             type="text"
             id="label"
             required
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+            className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
             defaultValue={selectedCustomInput?.label}
             {...register("label", { required: true })}
           />
@@ -89,7 +90,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
             <input
               type="text"
               id="placeholder"
-              className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+              className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
               defaultValue={selectedCustomInput?.placeholder}
               {...register("placeholder")}
             />
