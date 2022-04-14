@@ -365,6 +365,13 @@ if (isBrowser) {
         iframeWidth: 100,
         __unit: "%",
       });
+      // Do a refresh once more just in case, the effect got revert by __dimensionChanged action in other flow.
+      runAsap(() => {
+        sdkActionManager?.fire("__dimensionChanged", {
+          iframeWidth: 100,
+          __unit: "%",
+        });
+      });
     });
 
     window.addEventListener("message", (e) => {
