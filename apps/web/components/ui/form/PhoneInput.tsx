@@ -20,7 +20,8 @@ function PhoneInput<FormValues>({ control, name, ...rest }: PhoneInputProps<Form
       name={name}
       control={control}
       className={classNames(
-        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px px-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white"
+        "border-1 focus-within:border-brand block w-full rounded-sm border border-gray-300 py-px px-3 shadow-sm ring-black focus-within:ring-1 dark:border-black dark:bg-black dark:text-white",
+        rest.disabled ? "bg-gray-200 dark:text-gray-500" : ""
       )}
     />
   );

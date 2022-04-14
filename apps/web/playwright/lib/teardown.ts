@@ -1,11 +1,17 @@
+import { Prisma } from "@prisma/client";
+
 import prisma from "@lib/prisma";
 
-export const deleteAllBookingsByEmail = async (email: string) =>
+export const deleteAllBookingsByEmail = async (
+  email: string,
+  whereConditional: Prisma.BookingWhereInput = {}
+) =>
   prisma.booking.deleteMany({
     where: {
       user: {
         email,
       },
+      ...whereConditional,
     },
   });
 
@@ -33,6 +39,23 @@ export const deleteAllPaymentsByEmail = async (email: string) => {
       booking: {
         user: {
           email,
+        },
+      },
+    },
+  });
+};
+
+export const deleteAllPaymentCredentialsByEmail = async (email: string) => {
+  await prisma.user.update({
+    where: {
+      email,
+    },
+    data: {
+      credentials: {
+        deleteMany: {
+          type: {
+            endsWith: "_payment",
+          },
         },
       },
     },
