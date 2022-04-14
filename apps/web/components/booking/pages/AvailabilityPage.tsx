@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -83,6 +83,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     return null;
   }, [router.query.date]);
 
+  if (selectedDate) {
+    // Let iframe take the width available due to increase in max-width
+    sdkActionManager?.fire("__refreshWidth", {});
+  }
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
 
@@ -91,7 +95,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        telemetryEventTypes.pageView,
+        collectPageParameters("availability", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
   }, [telemetry]);
 
   const changeDate = (newDate: Dayjs) => {
@@ -136,7 +145,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
         <main
           className={
             isEmbed
-              ? ""
+              ? classNames("m-auto", selectedDate ? "max-w-5xl" : "max-w-3xl")
               : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
                 (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
