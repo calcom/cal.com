@@ -109,12 +109,6 @@ ${getRichDescription(this.calEvent)}
 `.trim();
   }
 
-  protected printNodeMailerError(error: Error): void {
-    /** Don't clog the logs with unsent emails in E2E */
-    if (process.env.NEXT_PUBLIC_IS_E2E) return;
-    console.error("SEND_BOOKING_CONFIRMATION_ERROR", this.attendee.email, error);
-  }
-
   protected getHtmlBody(): string {
     const headerContent = this.calEvent.attendees[0].language.translate("confirmed_event_type_subject", {
       eventType: this.calEvent.type,
