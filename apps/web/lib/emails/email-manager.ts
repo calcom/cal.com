@@ -4,6 +4,7 @@ import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaitin
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
 import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
+import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
 import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
@@ -11,6 +12,7 @@ import OrganizerCancelledEmail from "@lib/emails/templates/organizer-cancelled-e
 import OrganizerPaymentRefundFailedEmail from "@lib/emails/templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "@lib/emails/templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-request-reminder-email";
+import OrganizerRequestRescheduleEmail from "@lib/emails/templates/organizer-request-reschedule-email";
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
@@ -207,4 +209,35 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
       reject(console.error("TeamInviteEmail.sendEmail failed", e));
     }
   });
+};
+
+export const sendRequestRescheduleEmail = async (
+  calEvent: CalendarEvent,
+  metadata: { rescheduleLink: string }
+) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const requestRescheduleEmail = new AttendeeRequestRescheduledEmail(calEvent, metadata);
+        resolve(requestRescheduleEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("AttendeeRequestRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const requestRescheduleEmail = new OrganizerRequestRescheduleEmail(calEvent, metadata);
+        resolve(requestRescheduleEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerRequestRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  await Promise.all(emailsToSend);
 };
