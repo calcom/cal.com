@@ -1,7 +1,7 @@
 import { UserIcon } from "@heroicons/react/outline";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import React, { useState, useEffect, SyntheticEvent } from "react";
+import React, { useState, useEffect, SyntheticEvent, useMemo } from "react";
 
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
@@ -24,19 +24,19 @@ type MembershipRoleOption = {
   label?: string;
 };
 
-const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }];
+const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }];
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
 
-  useEffect(() => {
-    options.forEach((option, i) => {
-      options[i].label = t(option.value.toLowerCase());
+  const options = useMemo(() => {
+    _options.forEach((option, i) => {
+      _options[i].label = t(option.value.toLowerCase());
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return _options;
+  }, [t]);
 
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
@@ -99,6 +99,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 {t("role")}
               </label>
               <Select
+                defaultValue={options[0]}
                 options={options}
                 id="role"
                 name="role"
