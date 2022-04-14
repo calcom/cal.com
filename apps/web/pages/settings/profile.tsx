@@ -505,7 +505,6 @@ export default function Settings(props: Props) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
-
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }

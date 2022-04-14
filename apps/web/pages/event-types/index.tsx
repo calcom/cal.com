@@ -12,6 +12,7 @@ import {
   PencilIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -490,7 +491,8 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
 const EventTypesPage = () => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.eventTypes"]);
-
+  const session = useSession();
+  console.log(session.data?.user);
   return (
     <div>
       <Head>

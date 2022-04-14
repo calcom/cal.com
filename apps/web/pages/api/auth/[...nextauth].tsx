@@ -1,11 +1,13 @@
 import { IdentityProvider } from "@prisma/client";
-import NextAuth, { Session } from "next-auth";
+import NextAuth, { getServerSession, Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { getSession } from "next-auth/react";
 import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { UserPermissionRole } from "@calcom/prisma/client";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -90,7 +92,47 @@ const providers: Provider[] = [
         username: user.username,
         email: user.email,
         name: user.name,
+        role: user.role,
       };
+    },
+  }),
+  CredentialsProvider({
+    id: "impersonation-auth",
+    name: "Impersonation",
+    type: "credentials",
+    credentials: {
+      username: { label: "Username", type: "text " },
+    },
+    async authorize(creds, req) {
+      // @ts-ignore need to figure out how to correctly type this
+      const session = await getSession({ req });
+      if (session?.user.role != "ADMIN" || !session) {
+        throw new Error("You do not have permission to do this.");
+      }
+
+      if (session?.user.username == creds?.username) {
+        throw new Error("You cannot impersonate yourself.");
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          username: creds?.username,
+        },
+      });
+
+      if (!user) {
+        throw new Error("This user does not exist");
+      }
+
+      const obj = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        impersonatedByUID: session?.user.id,
+      };
+      return obj;
     },
   }),
 ];
@@ -169,6 +211,8 @@ export default NextAuth({
             username: existingUser.username,
             name: existingUser.name,
             email: existingUser.email,
+            role: existingUser.role,
+            impersonatedByUID: token?.impersonatedByUID,
           };
         }
 
@@ -185,6 +229,8 @@ export default NextAuth({
           name: user.name,
           username: user.username,
           email: user.email,
+          role: user.role,
+          impersonatedByUID: token?.impersonatedByUID,
         };
       }
 
@@ -218,6 +264,8 @@ export default NextAuth({
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
+          role: existingUser.role,
+          impersonatedByUID: token.impersonatedByUID,
         };
       }
 
@@ -231,8 +279,11 @@ export default NextAuth({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          role: token.role as UserPermissionRole,
+          impersonatedByUID: token.impersonatedByUID as string,
         },
       };
+      console.log({ token });
       return calendsoSession;
     },
     async signIn({ user, account, profile }) {
