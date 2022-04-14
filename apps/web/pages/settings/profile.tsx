@@ -11,7 +11,7 @@ import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { QueryCell } from "@lib/QueryCell";
+import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
@@ -482,17 +482,15 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   );
 }
 
+const WithQuery = withQuery(["viewer.i18n"]);
+
 export default function Settings(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.i18n"]);
 
   return (
     <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
       <SettingsShell>
-        <QueryCell
-          query={query}
-          success={({ data }) => <SettingsView {...props} localeProp={data.locale} />}
-        />
+        <WithQuery success={({ data }) => <SettingsView {...props} localeProp={data.locale} />} />
       </SettingsShell>
     </Shell>
   );
