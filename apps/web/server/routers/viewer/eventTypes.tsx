@@ -18,6 +18,22 @@ function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
 }
 
+/**
+ * Ensures that it is a valid HTTP URL
+ * It automatically avoids
+ * -  XSS attempts through javascript:alert('hi')
+ * - mailto: links
+ */
+function assertValidUrl(url: string | null | undefined) {
+  if (!url) {
+    return;
+  }
+
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    throw new TRPCError({ code: "PARSE_ERROR", message: "Invalid URL" });
+  }
+}
+
 function handlePeriodType(periodType: string | undefined): PeriodType | undefined {
   if (typeof periodType !== "string") return undefined;
   const passedPeriodType = periodType.toUpperCase();
@@ -97,7 +113,6 @@ export const eventTypesRouter = createProtectedRouter()
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
       const { schedulingType, teamId, ...rest } = input;
-
       const userId = ctx.user.id;
 
       const data: Prisma.EventTypeCreateInput = {
@@ -181,9 +196,9 @@ export const eventTypesRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
         input;
+      assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
-
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
       }
@@ -211,7 +226,7 @@ export const eventTypesRouter = createProtectedRouter()
       if (users) {
         data.users = {
           set: [],
-          connect: users.map((userId) => ({ id: userId })),
+          connect: users.map((userId: number) => ({ id: userId })),
         };
       }
 

@@ -1,8 +1,44 @@
+import loaderCss from "./loader.css";
+import tailwindCss from "./tailwind.css";
+
 export class ModalBox extends HTMLElement {
+  static htmlOverflow: string;
+  //@ts-ignore
+  static get observedAttributes() {
+    return ["state"];
+  }
+
+  show(show: boolean) {
+    // We can't make it display none as that takes iframe width and height calculations to 0
+    (this.shadowRoot!.host as unknown as any).style.visibility = show ? "visible" : "hidden";
+  }
+
+  close() {
+    this.show(false);
+    document.body.style.overflow = ModalBox.htmlOverflow;
+  }
+
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    if (name !== "state") {
+      return;
+    }
+
+    if (newValue == "loaded") {
+      (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
+    } else if (newValue === "started") {
+      this.show(true);
+    }
+  }
+
   connectedCallback() {
     const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
+
+    this.shadowRoot!.host.addEventListener("click", (e) => {
+      this.close();
+    });
+
     closeEl.onclick = () => {
-      this.shadowRoot!.host.remove();
+      this.close();
     };
   }
 
@@ -10,7 +46,7 @@ export class ModalBox extends HTMLElement {
     super();
     //FIXME: this styling goes as is as it's a JS string. That's a lot of unnecessary whitespaces over the wire.
     const modalHtml = `
-		<style>
+		<style> ${tailwindCss}
 		.backdrop {
 		  position:fixed;
 		  width:100%;
@@ -21,6 +57,7 @@ export class ModalBox extends HTMLElement {
 		  display:block;
 		  background-color:rgb(5,5,5, 0.8)
 		}
+		
 		@media only screen and (min-width:600px) {
 		  .modal-box {
 			margin:0 auto; 
@@ -28,7 +65,6 @@ export class ModalBox extends HTMLElement {
 			margin-bottom:20px;
 			position:absolute;
 			width:50%;
-			height: 80%;
 			top:50%;
 			left:50%;
 			transform: translateY(-50%) translateX(-50%);
@@ -60,6 +96,11 @@ export class ModalBox extends HTMLElement {
 		  color:white;
 		  cursor: pointer;
 		}
+		.loader {
+			--cal-brand-border-color: white;
+			--cal-brand-background-color: white;
+		 }
+		${loaderCss}
 		</style>
 		<div class="backdrop">
 		<div class="header">
@@ -67,12 +108,19 @@ export class ModalBox extends HTMLElement {
 		  </div>
 		  <div class="modal-box">
 			<div class="body">
+				<div id="loader" class="absolute z-highest flex h-screen w-full items-center">
+					<div class="loader border-brand dark:border-darkmodebrand">
+						<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
+					</div>
+				</div>
 				<slot></slot>
 			</div>
 		  </div>
 		</div>
 	  `;
     this.attachShadow({ mode: "open" });
+    ModalBox.htmlOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     this.shadowRoot!.innerHTML = modalHtml;
   }
 }

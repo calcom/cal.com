@@ -1,35 +1,13 @@
-import { expect, Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import {
+  bookFirstEvent,
+  bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
   todo,
 } from "./lib/testUtils";
-
-async function bookFirstEvent(page) {
-  // Click first event type
-  await page.click('[data-testid="event-type-link"]');
-  await selectFirstAvailableTimeSlotNextMonth(page);
-  // --- fill form
-  await page.fill('[name="name"]', "Test Testson");
-  await page.fill('[name="email"]', "test@example.com");
-  await page.press('[name="email"]', "Enter");
-
-  // Make sure we're navigated to the success page
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.endsWith("/success");
-    },
-  });
-}
-
-const bookTimeSlot = async (page: Page) => {
-  // --- fill form
-  await page.fill('[name="name"]', "Test Testson");
-  await page.fill('[name="email"]', "test@example.com");
-  await page.press('[name="email"]', "Enter");
-};
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
@@ -99,11 +77,11 @@ test.describe("pro user", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
   test.beforeEach(async ({ page }) => {
+    await deleteAllBookingsByEmail("pro@example.com");
     await page.goto("/pro");
   });
 
-  test.afterAll(async () => {
-    // delete test bookings
+  test.afterEach(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
   });
 
@@ -151,7 +129,7 @@ test.describe("pro user", () => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
         return url.pathname.startsWith("/cancel");

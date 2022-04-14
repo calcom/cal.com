@@ -14,9 +14,10 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -53,13 +54,14 @@ export function useMeQuery() {
   return meQuery;
 }
 
-function useRedirectToLoginIfUnauthenticated() {
+function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
+  const shouldDisplayUnauthed = router.pathname.startsWith("/apps");
 
   useEffect(() => {
-    if (router.pathname.startsWith("/apps")) {
+    if (isPublic) {
       return;
     }
 
@@ -72,10 +74,12 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session]);
+  }, [loading, session, isPublic]);
 
   return {
     loading: loading && !session,
+    shouldDisplayUnauthed,
+    session,
   };
 }
 
@@ -84,11 +88,7 @@ function useRedirectToOnboardingIfNeeded() {
   const query = useMeQuery();
   const user = query.data;
 
-  const [isRedirectingToOnboarding, setRedirecting] = useState(false);
-
-  useEffect(() => {
-    user && setRedirecting(shouldShowOnboarding(user));
-  }, [router, user]);
+  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
 
   useEffect(() => {
     if (isRedirectingToOnboarding) {
@@ -134,10 +134,12 @@ export default function Shell(props: {
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
+  isPublic?: boolean;
 }) {
+  const isEmbed = useIsEmbed();
   const { t } = useLocale();
   const router = useRouter();
-  const { loading } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
 
   const telemetry = useTelemetry();
@@ -201,7 +203,7 @@ export default function Shell(props: {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  if (i18n.status === "loading" || isRedirectingToOnboarding || loading) {
+  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
     // show spinner whilst i18n is loading to avoid language flicker
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
@@ -209,6 +211,9 @@ export default function Shell(props: {
       </div>
     );
   }
+
+  if (!session && !props.isPublic) return null;
+
   return (
     <>
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
@@ -228,7 +233,7 @@ export default function Shell(props: {
         className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
         data-testid="dashboard-shell">
         {status === "authenticated" && (
-          <div className="hidden md:flex lg:flex-shrink-0">
+          <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -288,7 +293,9 @@ export default function Shell(props: {
                   </nav>
                 </div>
                 <TrialBanner />
-                <div className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2">
+                <div
+                  className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
+                  data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
                   </span>
@@ -299,7 +306,9 @@ export default function Shell(props: {
                 <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
                   &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
                   {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-                  <span className="lowercase">-{user && user.plan}</span>
+                  <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
+                    -{user && user.plan}
+                  </span>
                 </small>
               </div>
             </div>
@@ -315,7 +324,9 @@ export default function Shell(props: {
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             {status === "authenticated" && (
-              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+              <nav
+                style={isEmbed ? { display: "none" } : {}}
+                className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
                 <Link href="/event-types">
                   <a>
                     <Logo />
@@ -375,7 +386,9 @@ export default function Shell(props: {
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
-                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                <nav
+                  style={isEmbed ? { display: "none" } : {}}
+                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                   {navigation.flatMap((item, itemIdx) =>
                     item.href === "/settings/profile" ? (

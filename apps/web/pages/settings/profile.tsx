@@ -1,18 +1,14 @@
-import { InformationCircleIcon } from "@heroicons/react/outline";
 import { TrashIcon } from "@heroicons/react/solid";
 import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
-import Select from "react-select";
-import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -31,13 +27,18 @@ import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
+import InfoBadge from "@components/ui/InfoBadge";
 import ColorPicker from "@components/ui/colorpicker";
+import Select from "@components/ui/form/Select";
+import TimezoneSelect, { ITimezone } from "@components/ui/form/TimezoneSelect";
+
+import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>; user: Props["user"] }) {
   const { t } = useLocale();
-  const [modelOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
@@ -61,39 +62,9 @@ function HideBrandingInput(props: { hideBrandingRef: RefObject<HTMLInputElement>
           setModalOpen(true);
         }}
       />
-      <Dialog open={modelOpen}>
-        <DialogContent>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-            <InformationCircleIcon className="h-6 w-6 text-yellow-400" aria-hidden="true" />
-          </div>
-          <div className="mb-4 sm:flex sm:items-start">
-            <div className="mt-3 sm:mt-0 sm:text-left">
-              <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
-                {t("only_available_on_pro_plan")}
-              </h3>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-3">
-            <p>{t("remove_cal_branding_description")}</p>
-            <p>
-              <Trans i18nKey="plan_upgrade_instructions">
-                You can
-                <a href="/api/upgrade" className="underline">
-                  upgrade here
-                </a>
-                .
-              </Trans>
-            </p>
-          </div>
-          <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <DialogClose asChild>
-              <Button className="btn-wide table-cell text-center" onClick={() => setModalOpen(false)}>
-                {t("dismiss")}
-              </Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
+        {t("remove_cal_branding_description")}
+      </UpgradeToProDialog>
     </>
   );
 }
@@ -156,6 +127,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
   const descriptionRef = useRef<HTMLTextAreaElement>(null!);
   const avatarRef = useRef<HTMLInputElement>(null!);
   const hideBrandingRef = useRef<HTMLInputElement>(null!);
+  const allowDynamicGroupBookingRef = useRef<HTMLInputElement>(null!);
   const [selectedTheme, setSelectedTheme] = useState<typeof themeOptions[number] | undefined>();
   const [selectedTimeFormat, setSelectedTimeFormat] = useState({
     value: props.user.timeFormat || 12,
@@ -198,6 +170,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     const enteredTimeZone = typeof selectedTimeZone === "string" ? selectedTimeZone : selectedTimeZone.value;
     const enteredWeekStartDay = selectedWeekStartDay.value;
     const enteredHideBranding = hideBrandingRef.current.checked;
+    const enteredAllowDynamicGroupBooking = allowDynamicGroupBookingRef.current.checked;
     const enteredLanguage = selectedLanguage.value;
     const enteredTimeFormat = selectedTimeFormat.value;
 
@@ -212,6 +185,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       timeZone: enteredTimeZone,
       weekStart: asStringOrUndefined(enteredWeekStartDay),
       hideBranding: enteredHideBranding,
+      allowDynamicBooking: enteredAllowDynamicGroupBooking,
       theme: asStringOrNull(selectedTheme?.value),
       brandColor: enteredBrandColor,
       darkBrandColor: enteredDarkBrandColor,
@@ -251,7 +225,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   autoComplete="given-name"
                   placeholder={t("your_name")}
                   required
-                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
                   defaultValue={props.user.name || undefined}
                 />
               </div>
@@ -267,7 +241,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   name="email"
                   id="email"
                   placeholder={t("your_email")}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                   defaultValue={props.user.email}
                 />
                 <p className="mt-2 text-sm text-gray-500" id="email-description">
@@ -288,7 +262,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   placeholder={t("little_something_about")}
                   rows={3}
                   defaultValue={props.user.bio || undefined}
-                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"></textarea>
+                  className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"></textarea>
               </div>
             </div>
             <div>
@@ -340,8 +314,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="languageSelect"
                   value={selectedLanguage || props.localeProp}
                   onChange={(v) => v && setSelectedLanguage(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm capitalize shadow-sm  sm:text-sm"
                   options={localeOptions}
                 />
               </div>
@@ -355,8 +328,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="timeZone"
                   value={selectedTimeZone}
                   onChange={(v) => v && setSelectedTimeZone(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
                 />
               </div>
             </div>
@@ -369,8 +341,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="timeFormatSelect"
                   value={selectedTimeFormat || props.user.timeFormat}
                   onChange={(v) => v && setSelectedTimeFormat(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm  capitalize shadow-sm  sm:text-sm"
                   options={timeFormatOptions}
                 />
               </div>
@@ -384,13 +355,31 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   id="weekStart"
                   value={selectedWeekStartDay}
                   onChange={(v) => v && setSelectedWeekStartDay(v)}
-                  classNamePrefix="react-select"
-                  className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 capitalize shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm capitalize shadow-sm sm:text-sm"
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
                   ]}
                 />
+              </div>
+            </div>
+            <div className="relative mt-8 flex items-start">
+              <div className="flex h-5 items-center">
+                <input
+                  id="dynamic-group-booking"
+                  name="dynamic-group-booking"
+                  type="checkbox"
+                  ref={allowDynamicGroupBookingRef}
+                  defaultChecked={props.user.allowDynamicBooking || false}
+                  className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
+                />
+              </div>
+              <div className="text-sm ltr:ml-3 rtl:mr-3">
+                <label
+                  htmlFor="dynamic-group-booking"
+                  className="flex items-center font-medium text-gray-700">
+                  {t("allow_dynamic_booking")} <InfoBadge content={t("allow_dynamic_booking_tooltip")} />
+                </label>
               </div>
             </div>
             <div>
@@ -404,7 +393,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   defaultValue={selectedTheme || themeOptions[0]}
                   value={selectedTheme || themeOptions[0]}
                   onChange={(v) => v && setSelectedTheme(v)}
-                  className="| { value: string } mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-800 focus:ring-neutral-800 sm:text-sm"
+                  className="mt-1 block w-full rounded-sm shadow-sm sm:text-sm"
                   options={themeOptions}
                 />
               </div>
@@ -416,7 +405,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     type="checkbox"
                     onChange={(e) => setSelectedTheme(e.target.checked ? undefined : themeOptions[0])}
                     checked={!selectedTheme}
-                    className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 focus:ring-neutral-800"
+                    className="h-4 w-4 rounded-sm border-gray-300 text-neutral-900 "
                   />
                 </div>
                 <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -427,19 +416,18 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               </div>
             </div>
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
-              <div className="mb-6 w-full sm:w-1/2">
+              <div className="mb-2 sm:w-1/2">
                 <label htmlFor="brandColor" className="block text-sm font-medium text-gray-700">
                   {t("light_brand_color")}
                 </label>
                 <ColorPicker defaultValue={props.user.brandColor} onChange={setBrandColor} />
               </div>
-              <div className="mb-6 w-full sm:w-1/2">
+              <div className="mb-2 sm:w-1/2">
                 <label htmlFor="darkBrandColor" className="block text-sm font-medium text-gray-700">
                   {t("dark_brand_color")}
                 </label>
                 <ColorPicker defaultValue={props.user.darkBrandColor} onChange={setDarkBrandColor} />
               </div>
-              <hr className="mt-6" />
             </div>
             <div>
               <div className="relative flex items-start">
@@ -537,6 +525,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       metadata: true,
       timeFormat: true,
+      allowDynamicBooking: true,
     },
   });
 
