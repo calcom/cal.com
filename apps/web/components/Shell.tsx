@@ -17,6 +17,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -135,6 +136,7 @@ export default function Shell(props: {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
 }) {
+  const isEmbed = useIsEmbed();
   const { t } = useLocale();
   const router = useRouter();
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
@@ -231,7 +233,7 @@ export default function Shell(props: {
         className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
         data-testid="dashboard-shell">
         {status === "authenticated" && (
-          <div className="hidden md:flex lg:flex-shrink-0">
+          <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -322,7 +324,9 @@ export default function Shell(props: {
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             {status === "authenticated" && (
-              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+              <nav
+                style={isEmbed ? { display: "none" } : {}}
+                className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
                 <Link href="/event-types">
                   <a>
                     <Logo />
@@ -382,7 +386,9 @@ export default function Shell(props: {
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
-                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                <nav
+                  style={isEmbed ? { display: "none" } : {}}
+                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                   {navigation.flatMap((item, itemIdx) =>
                     item.href === "/settings/profile" ? (
