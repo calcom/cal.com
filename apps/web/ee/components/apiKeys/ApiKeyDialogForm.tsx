@@ -19,20 +19,18 @@ import { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm(props: {
   title: string;
-  defaultValues?: TApiKeys;
+  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt">;
   handleClose: () => void;
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [neverExpires, setNeverExpires] = useState(false);
-  const handleNoteChange = (e: { target: { value: string } }) => {
-    form.setValue("note", e.target.value);
-  };
+
   const {
     defaultValues = {
-      note: "" as string | undefined,
+      note: "",
       expiresAt: dayjs().add(1, "month").toDate(),
-    } as Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt">,
+    },
   } = props;
 
   const [selectedDate, setSelectedDate] = useState(dayjs().add(1, "month").toDate());
@@ -97,19 +95,14 @@ export default function ApiKeyDialogForm(props: {
           </DialogFooter>
         </>
       ) : (
-        <Form
+        <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt">>
           form={form}
           handleSubmit={async (event) => {
-            try {
-              const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
-              setNewApiKey(newApiKey);
-              setNewApiKeyDetails({ ...event });
-              await utils.invalidateQueries(["viewer.apiKeys.list"]);
-              setSuccessfulNewApiKeyModal(true);
-            } catch (error: any) {
-              console.log(error);
-              showToast(error.message, "error");
-            }
+            const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+            setNewApiKey(newApiKey);
+            setNewApiKeyDetails({ ...event });
+            await utils.invalidateQueries(["viewer.apiKeys.list"]);
+            setSuccessfulNewApiKeyModal(true);
           }}
           className="space-y-4">
           <div className=" mb-10 mt-1">
@@ -121,7 +114,7 @@ export default function ApiKeyDialogForm(props: {
             placeholder={t("personal_note_placeholder")}
             {...form.register("note")}
             type="text"
-            onChange={handleNoteChange}
+            // onChange={handleNoteChange}
           />
 
           <div className="flex flex-col">

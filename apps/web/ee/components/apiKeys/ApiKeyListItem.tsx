@@ -90,7 +90,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
             <ConfirmationDialogContent
               variety="danger"
               title={t("confirm_delete_api_key")}
-              confirmBtnText={t("revoke_token")}
+              confirmBtnText={t("revoke_api_key")}
               cancelBtnText={t("cancel")}
               onConfirm={() =>
                 deleteApiKey.mutate({

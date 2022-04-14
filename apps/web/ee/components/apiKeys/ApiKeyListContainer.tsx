@@ -11,7 +11,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { trpc } from "@lib/trpc";
 
 import { List } from "@components/List";
-import Badge from "@components/ui/Badge";
 
 export default function ApiKeyListContainer() {
   const { t } = useLocale();
@@ -27,10 +26,7 @@ export default function ApiKeyListContainer() {
         <>
           <div className="flex flex-row justify-between truncate pl-2 pr-1 ">
             <div className="mt-9">
-              <div className="flex flex-row space-x-2">
-                <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("api_keys")}</h2>
-                <Badge variant="default">βeta</Badge>
-              </div>
+              <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("api_keys")}</h2>
               <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_keys_subtitle")}</p>
             </div>
             <div className="self-center">
