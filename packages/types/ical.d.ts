@@ -80,6 +80,16 @@ declare module "ical.js" {
 
     public isRecurring(): boolean;
     public iterator(startTime?: Time): RecurExpansion;
+    public getOccurrenceDetails(occurrence: Time): OccurrenceDetails;
+    public getRecurrenceTypes(): FrequencyValues;
+  }
+
+  // https://mozilla-comm.github.io/ical.js/api/ICAL.Event.html#.occurrenceDetails
+  interface OccurrenceDetails {
+    recurrenceId: Time;
+    item: Event;
+    startDate: Time;
+    endDate: Time;
   }
 
   export class Property {
@@ -108,9 +118,9 @@ declare module "ical.js" {
   }
 
   export class Time {
-    public fromString(str: string): Time;
-    public fromJSDate(aDate: Date | null, useUTC: boolean): Time;
-    public fromData(aData: TimeJsonData): Time;
+    public static fromString(str: string): Time;
+    public static fromJSDate(aDate: Date | null, useUTC: boolean): Time;
+    public static fromData(aData: TimeJsonData): Time;
 
     public now(): Time;
 
