@@ -275,7 +275,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
     const queryParams = new URLSearchParams();
     queryParams.set("rescheduleUid", `${originalBookingUId}`);
-    const rescheduleLink = `${process.env.BASE_URL}/${
+    const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${
       isTeam ? `/team/${this.eventType.team?.slug}` : this.users[0].username
     }/${this.eventType.slug}?${queryParams.toString()}`;
     this.rescheduleLink = rescheduleLink;
