@@ -41,6 +41,17 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
+  - Embed doesn't adapt to screen size without page refresh.
+    - Try opening in portrait mode and then go to landscape mode.
+  - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
+  - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
+
+- Branding
+  - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.
+  - Branding at the bottom has been removed for UI improvements, need to see where to add it.
+
+- API
+  - Allow loader color customization using UI command itself too.
 
 - Automation Tests
   - Run automation tests in CI
@@ -64,7 +75,17 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 
+- Performance Improvements
+  - Custom written Tailwind CSS is sent multiple times for different custom elements.
+  
 - Embed Code Generator
+
+- Release Issues
+  - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
+    - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js
+    - Worst case scenario - App goes live first, website PR isn't merged yet and thus a website using the embed would load updated version of embed-iframe but outdated version of embed.js possibly breaking the embed.
+    - Ideal Solution: It would be to keep the libraries versioned and embed.js should instruct app within iframe to load a particular version. But if we push a security fix, it is possible that someone is still enforcing embed to load version with security issue. Need to handle this.
+    - Quick Solution: Serve embed.js also from app, so that they go live together and there is only a slight chance of compatibility issues on going live. Note, that they can still occur as 2 different requests are sent at different times to fetch the libraries and deployments can go live in between,
 
 - UI Config Features
   - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed. Add a demo for the API. Also, test system theme handling.
@@ -73,22 +94,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - If just iframe refreshes due to some reason, embed script can't replay the applied instructions.
 
 - React Component
-  - `onClick` support with preloading
-
-Embed for authenticated pages
-
-- Currently embed is properly supported for non authenticated pages like cal.com/john. It is supported for team links as well.
-- For such pages, you can customize the colors of all the texts and give a common background to all pages under your cal link
-- If we can support other pages, which are behind login, it can open possibilities for users to show "upcoming bookings", "availability" and other functionalities on their website itself. 
-  - First of all we need more usecases for this.
-  - Think of it in this way. Cal.com is build with many different UI components that are put together to work seamlessly, what if the user can choose which component they need and which they don't
-  - The main problem with this is that, there are so many pages in the app. We would need to ensure that all the pages use the same text colors only that are available as embed UI configuration.
-  - We would need to hide certain UI components when opening a page. e.g. the navigation component wouldn't be there.
-  - User might want to change the text also for components, e.g. he might call "Event Type" as "Meeting Type" everywhere. common.json would be useful in this scenario.
-  - Login form shouldn't be visible in embed as auth would be taken care of separately. If due to cookies being expired, the component can't be shown then whatever auth flow is configured, can be triggered
-    - In most scenarios, user would have a website on which the visitors would be signing in already into their system(and thus they own the user table) and he would want to just link those users to cal.com - This would be allowed only with self hosted instance ?
-      - So, cal.com won't maintain the user details itself and would simply store a user id which it would provide to hosting website to retrieve user information whenever it needs it.
-
+  - `onClick` support with automatic preloading
+- Shadow DOM is currently in open state, which probably means that any styling change on website can possibly impact loader.
 
 ## Pending Documentation
 

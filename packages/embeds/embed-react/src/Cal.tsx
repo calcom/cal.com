@@ -4,9 +4,11 @@ import useEmbed from "./useEmbed";
 
 export default function Cal({
   calLink,
+  calOrigin,
   config,
   embedJsUrl,
 }: {
+  calOrigin?: string;
   calLink: string;
   config?: any;
   embedJsUrl?: string;
@@ -17,13 +19,21 @@ export default function Cal({
     if (!Cal) {
       return;
     }
-    Cal("init");
+    const element = ref.current;
+    let initConfig = {};
+    if (calOrigin) {
+      (initConfig as any).origin = calOrigin;
+    }
+    Cal("init", initConfig);
     Cal("inline", {
-      elementOrSelector: ref.current,
+      elementOrSelector: element,
       calLink,
       config,
     });
-  }, [Cal, calLink, config]);
+    return () => {
+      element?.querySelector(".cal-embed")?.remove();
+    };
+  }, [Cal, calLink, config, calOrigin]);
 
   if (!Cal) {
     return <div>Loading {calLink}</div>;
