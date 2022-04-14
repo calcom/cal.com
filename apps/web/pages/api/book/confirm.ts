@@ -169,9 +169,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata.conferenceData = results[0].createdEvent?.conferenceData;
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
         }
-        await sendScheduledEmails({ ...evt, additionInformation: metadata });
+        try {
+          await sendScheduledEmails({ ...evt, additionInformation: metadata });
+        } catch (error) {
+          log.error(error);
+        }
       }
 
+      // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
+      // Should perform update on booking (confirm) -> then trigger the rest handlers
       await prisma.booking.update({
         where: {
           id: bookingId,

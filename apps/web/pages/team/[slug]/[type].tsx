@@ -5,6 +5,7 @@ import { UserPlan } from "@calcom/prisma/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -20,6 +21,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const slugParam = asStringOrNull(context.query.slug);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
+  const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
 
   if (!slugParam || !typeParam) {
     throw new Error(`File is not named [idOrSlug]/[user]`);
@@ -110,6 +112,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   eventTypeObject.availability = [];
 
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, rescheduleUid);
+  }
+
   return {
     props: {
       // Team is always pro
@@ -127,6 +134,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventType: eventTypeObject,
       workingHours,
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };

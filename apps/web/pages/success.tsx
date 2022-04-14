@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ClockIcon, XIcon } from "@heroicons/react/solid";
+import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -7,6 +7,7 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
@@ -133,6 +134,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
+  const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
@@ -200,7 +202,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
-
+  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   return (
     (isReady && (
       <div
@@ -268,8 +270,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </div>
                         {location && (
                           <>
-                            <div className="font-medium">{t("where")}</div>
-                            <div className="col-span-2">
+                            <div className="mt-6 font-medium">{t("where")}</div>
+                            <div className="col-span-2 mt-6">
                               {location.startsWith("http") ? (
                                 <a title="Meeting Link" href={location}>
                                   {location}
@@ -382,7 +384,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {!props.hideBranding && (
+                  {!(userIsOwner || props.hideBranding) && (
                     <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
@@ -403,6 +405,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           {t("try_for_free")}
                         </Button>
                       </form>
+                    </div>
+                  )}
+                  {userIsOwner && (
+                    <div className="mt-4">
+                      <Link href="/bookings">
+                        <a className="flex items-center text-black dark:text-white">
+                          <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                        </a>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -432,6 +443,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       successRedirectUrl: true,
       users: {
         select: {
+          id: true,
           name: true,
           hideBranding: true,
           plan: true,
@@ -478,6 +490,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         id: eventType.userId,
       },
       select: {
+        id: true,
         name: true,
         hideBranding: true,
         plan: true,
