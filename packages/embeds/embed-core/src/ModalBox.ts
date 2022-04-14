@@ -1,25 +1,39 @@
+import loaderCss from "./loader.css";
+import tailwindCss from "./tailwind.css";
+
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
   //@ts-ignore
   static get observedAttributes() {
-    return ["loading"];
+    return ["state"];
+  }
+
+  show(show: boolean) {
+    // We can't make it display none as that takes iframe width and height calculations to 0
+    (this.shadowRoot!.host as unknown as any).style.visibility = show ? "visible" : "hidden";
   }
 
   close() {
-    this.shadowRoot!.host.remove();
+    this.show(false);
     document.body.style.overflow = ModalBox.htmlOverflow;
   }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === "loading" && newValue == "done") {
+    if (name !== "state") {
+      return;
+    }
+
+    if (newValue == "loaded") {
       (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
+    } else if (newValue === "started") {
+      this.show(true);
     }
   }
 
   connectedCallback() {
     const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
 
-    document.addEventListener("click", (e) => {
-      const el = e.target as HTMLElement;
+    this.shadowRoot!.host.addEventListener("click", (e) => {
       this.close();
     });
 
@@ -32,37 +46,7 @@ export class ModalBox extends HTMLElement {
     super();
     //FIXME: this styling goes as is as it's a JS string. That's a lot of unnecessary whitespaces over the wire.
     const modalHtml = `
-		<style>
-		.bg-gray-50 {
-			--tw-bg-opacity: 1;
-			background-color: rgb(248 248 248 / var(--tw-bg-opacity));
-		}
-		
-		.items-center {
-			align-items: center;
-		}
-		.w-full {
-			width: 100%;
-		}
-		.h-screen {
-			height: 100%;
-		}
-		.flex {
-			display: flex;
-		}
-		.z-highest {
-			z-index: 500000000;
-		}
-		.absolute {
-			position: absolute;
-		}
-		.border-brand {
-			border-color: white;
-		}
-		.bg-brand {
-			background-color: white;
-		}
-		
+		<style> ${tailwindCss}
 		.backdrop {
 		  position:fixed;
 		  width:100%;
@@ -73,10 +57,10 @@ export class ModalBox extends HTMLElement {
 		  display:block;
 		  background-color:rgb(5,5,5, 0.8)
 		}
+		
 		@media only screen and (min-width:600px) {
 		  .modal-box {
 			margin:0 auto; 
-			border-radius: 8px;
 			margin-top:20px; 
 			margin-bottom:20px;
 			position:absolute;
@@ -112,69 +96,11 @@ export class ModalBox extends HTMLElement {
 		  color:white;
 		  cursor: pointer;
 		}
-
-		@keyframes loader {
-			0% {
-			transform: rotate(0deg);
-			}
-		
-			25% {
-			transform: rotate(180deg);
-			}
-		
-			50% {
-			transform: rotate(180deg);
-			}
-		
-			75% {
-			transform: rotate(360deg);
-			}
-		
-			100% {
-			transform: rotate(360deg);
-			}
-		}
-	
-	@keyframes loader-inner {
-		0% {
-		height: 0%;
-		}
-	
-		25% {
-		height: 0%;
-		}
-	
-		50% {
-		height: 100%;
-		}
-	
-		75% {
-		height: 100%;
-		}
-	
-		100% {
-		height: 0%;
-		}
-	}
-		
-		.loader-inner {
-			vertical-align: top;
-			display: inline-block;
-			width: 100%;
-			animation: loader-inner 2s infinite ease-in;
-		}
-
 		.loader {
-			display: block;
-			width: 30px;
-			height: 30px;
-			margin: 60px auto;
-			position: relative;
-			border-width: 4px;
-			border-style: solid;
-			-webkit-animation: loader 2s infinite ease;
-			animation: loader 2s infinite ease;
-		}
+			--cal-brand-border-color: white;
+			--cal-brand-background-color: white;
+		 }
+		${loaderCss}
 		</style>
 		<div class="backdrop">
 		<div class="header">

@@ -1,22 +1,23 @@
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
+  ArrowLeftIcon,
   CalendarIcon,
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
   LinkIcon,
   LogoutIcon,
-  ViewGridIcon,
-  MoonIcon,
   MapIcon,
-  ArrowLeftIcon,
+  MoonIcon,
+  ViewGridIcon,
 } from "@heroicons/react/solid";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, ReactNode, useEffect, useMemo } from "react";
+import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { useIsEmbed } from "@calcom/embed-core";
 import { UserPlan } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -54,13 +55,13 @@ export function useMeQuery() {
   return meQuery;
 }
 
-function useRedirectToLoginIfUnauthenticated() {
+function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {
-    if (router.pathname.startsWith("/apps")) {
+    if (isPublic) {
       return;
     }
 
@@ -73,7 +74,7 @@ function useRedirectToLoginIfUnauthenticated() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session]);
+  }, [loading, session, isPublic]);
 
   return {
     loading: loading && !session,
@@ -125,6 +126,7 @@ const Layout = ({
   plan,
   ...props
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan }) => {
+  const isEmbed = useIsEmbed();
   const router = useRouter();
   const { t } = useLocale();
   const navigation = [
@@ -191,7 +193,7 @@ const Layout = ({
         className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
         data-testid="dashboard-shell">
         {status === "authenticated" && (
-          <div className="hidden md:flex lg:flex-shrink-0">
+          <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -282,7 +284,9 @@ const Layout = ({
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             {status === "authenticated" && (
-              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+              <nav
+                style={isEmbed ? { display: "none" } : {}}
+                className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
                 <Link href="/event-types">
                   <a>
                     <Logo />
@@ -342,7 +346,9 @@ const Layout = ({
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
-                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                <nav
+                  style={isEmbed ? { display: "none" } : {}}
+                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                   {navigation.flatMap((item, itemIdx) =>
                     item.href === "/settings/profile" ? (
@@ -396,13 +402,13 @@ type LayoutProps = {
   backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
+  isPublic?: boolean;
 };
 
 export default function Shell(props: LayoutProps) {
   const router = useRouter();
-  const { loading, session } = useRedirectToLoginIfUnauthenticated();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -426,7 +432,7 @@ export default function Shell(props: LayoutProps) {
     );
   }
 
-  if (!session) return null;
+  if (!session && !props.isPublic) return null;
 
   return (
     <>
