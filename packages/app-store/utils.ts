@@ -3,11 +3,13 @@ import { TFunction } from "next-i18next";
 
 import type { App } from "@calcom/types/App";
 
-import appStore from ".";
+// If you import this file on any app it should produce circular dependency
+// import appStore from "./index";
+import { appStoreKeys } from "./_utils/appStoreKeys";
 import { LocationType } from "./locations";
 
-const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
-  store[key] = appStore[key as keyof typeof appStore].metadata;
+const ALL_APPS_MAP = Object.keys(appStoreKeys).reduce((store, key) => {
+  store[key] = appStoreKeys[key as keyof typeof appStoreKeys].metadata;
   return store;
 }, {} as Record<string, App>);
 
@@ -48,7 +50,7 @@ export function getLocationOptions(integrations: AppMeta, t: TFunction) {
 }
 
 /**
- * This should get all avaialable apps to the user based on his saved
+ * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
 function getApps(userCredentials: CredentialData[]) {
