@@ -41,6 +41,7 @@ const config: PlaywrightTestConfig = {
     trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   },
+  testMatch: ["loging", "reschedule.test.ts"],
   projects: [
     {
       name: "chromium",
