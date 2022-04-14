@@ -9,6 +9,31 @@
   --brand-text-color-dark-mode: #292929;
 }
 
+/* 
+ * Override the default tailwindcss-forms styling (default is: 'colors.blue.600')
+ * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006 
+ */
+[type='text']:focus,
+[type='email']:focus,
+[type='url']:focus,
+[type='password']:focus,
+[type='number']:focus,
+[type='date']:focus,
+[type='datetime-local']:focus,
+[type='month']:focus,
+[type='search']:focus,
+[type='tel']:focus,
+[type='checkbox']:focus,
+[type='radio']:focus,
+[type='time']:focus,
+[type='week']:focus,
+[multiple]:focus,
+textarea:focus,
+select:focus {
+  --tw-ring-color: var(--brand-color);
+  border-color: var(--brand-color);
+}
+
 button[role="switch"][data-state="checked"] {
   @apply bg-gray-900;
 }
@@ -36,7 +61,7 @@ button[role="switch"][data-state="checked"] span {
 
 .react-daterange-picker > .react-daterange-picker__wrapper input {
   /* Makes sure the on-focus behaviour is like Cal.com's */
-  @apply focus:border-primary-500 focus:ring-primary-500 my-0.5 h-auto rounded-sm py-0.5;
+  @apply my-0.5 h-auto rounded-sm py-0.5;
 }
 
 /* note(PeerRich): TODO move @layer components into proper React Components: <Button color="primary" size="xs" /> */
@@ -192,7 +217,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email > [type="text"] {
-  @apply focus:border-brand block w-full rounded-md border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply block w-full rounded-md border-gray-300 shadow-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {
@@ -236,34 +261,6 @@ button[role="switch"][data-state="checked"] span {
 .react-multi-email [data-tag] [data-tag-handle] {
   margin-left: 0.833em;
   cursor: pointer;
-}
-
-/* !important to override react-select */
-.react-select__value-container {
-  border: 0 !important;
-}
-
-.react-select__input input {
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
-.react-select__option--is-focused {
-  background: #000 !important;
-  color: #fff !important;
-}
-
-.react-select__control {
-  border: 2px solid transparent !important;
-  box-shadow: none !important;
-}
-
-.react-select__control.react-select__control--is-focused {
-  border: 2px solid #000 !important;
-  border-color: #000 !important;
-  box-shadow: none !important;
-  margin: -1px;
-  padding: 1px;
 }
 
 /* !important to override react-dates */

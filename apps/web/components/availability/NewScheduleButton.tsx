@@ -60,7 +60,19 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
             createMutation.mutate(values);
           }}>
           <div className="mt-3 space-y-4">
-            <TextField placeholder={t("default_schedule_name")} label={t("name")} {...register("name")} />
+            <label htmlFor="label" className="block text-sm font-medium text-gray-700">
+              {t("name")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                id="name"
+                required
+                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                placeholder={t("default_schedule_name")}
+                {...register("name")}
+              />
+            </div>
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button type="submit" loading={createMutation.isLoading}>

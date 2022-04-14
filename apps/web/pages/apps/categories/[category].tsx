@@ -15,7 +15,7 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
 
   return (
     <>
-      <Shell large>
+      <Shell isPublic large>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 bg-gray-50 px-4 pb-2">
             <Link href="/apps">
