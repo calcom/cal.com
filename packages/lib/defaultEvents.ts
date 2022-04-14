@@ -139,15 +139,29 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
   return slugLink;
 };
 
-export const getUsernameList = (users: string): string[] => {
-  return users
-    ?.toLowerCase()
-    .replace(/ /g, "+")
-    .replace(/%20/g, "+")
-    .split("+")
-    .filter((el) => {
-      return el.length != 0;
-    });
+export const getUsernameList = (users: string | string[] | undefined): string[] => {
+  if (!users) {
+    return [];
+  }
+  if (!(users instanceof Array)) {
+    users = [users];
+  }
+  const allUsers: string[] = [];
+  // Multiple users can come in case of a team round-robin booking and in that case dynamic link won't be a user.
+  // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
+  users.forEach((user) => {
+    allUsers.push(
+      ...user
+        ?.toLowerCase()
+        .replace(/ /g, "+")
+        .replace(/%20/g, "+")
+        .split("+")
+        .filter((el) => {
+          return el.length != 0;
+        })
+    );
+  });
+  return allUsers;
 };
 
 export default defaultEvents;
