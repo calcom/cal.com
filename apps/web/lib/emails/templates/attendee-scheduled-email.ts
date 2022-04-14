@@ -4,21 +4,19 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
-import nodemailer from "nodemailer";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import type { Person, CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { serverConfig } from "@lib/serverConfig";
+import BaseEmail from "@lib/emails/templates/_base-email";
 
 import {
-  emailHead,
-  emailSchedulingBodyHeader,
   emailBodyLogo,
+  emailHead,
   emailScheduledBodyHeaderContent,
   emailSchedulingBodyDivider,
+  emailSchedulingBodyHeader,
   linkIcon,
 } from "./common";
 
@@ -27,30 +25,14 @@ dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
-export default class AttendeeScheduledEmail {
+export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
 
   constructor(calEvent: CalendarEvent, attendee: Person) {
+    super();
     this.calEvent = calEvent;
     this.attendee = attendee;
-  }
-
-  public sendEmail() {
-    new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
-          if (_err) {
-            const err = getErrorFromUnknown(_err);
-            this.printNodeMailerError(err);
-            reject(err);
-          } else {
-            resolve(info);
-          }
-        })
-    ).catch((e) => console.error("sendEmail", e));
-    return new Promise((resolve) => resolve("send mail async"));
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -106,12 +88,6 @@ export default class AttendeeScheduledEmail {
     };
   }
 
-  protected getMailerOptions() {
-    return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    };
-  }
   protected getDescription(): string {
     if (!this.calEvent.description) return "";
     return `
@@ -134,6 +110,8 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected printNodeMailerError(error: Error): void {
+    /** Don't clog the logs with unsent emails in E2E */
+    if (process.env.NEXT_PUBLIC_IS_E2E) return;
     console.error("SEND_BOOKING_CONFIRMATION_ERROR", this.attendee.email, error);
   }
 
