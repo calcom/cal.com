@@ -20,6 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -108,6 +109,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
   const isEmbed = useIsEmbed();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(telemetryEventTypes.pageView, collectPageParameters("/[user]"))
+    );
+  }, [telemetry]);
   return (
     <>
       <Theme />
