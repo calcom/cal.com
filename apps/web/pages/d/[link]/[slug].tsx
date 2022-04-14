@@ -146,6 +146,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: {} as JSONObject,
     periodStartDate: null,
     periodEndDate: null,
+    slug,
   });
 
   const schedule = {

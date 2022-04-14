@@ -6,13 +6,6 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
-import {
-  getDefaultEvent,
-  getDynamicEventName,
-  getGroupName,
-  getUsernameList,
-} from "@calcom/lib/defaultEvents";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
