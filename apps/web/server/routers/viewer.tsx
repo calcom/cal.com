@@ -387,6 +387,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           },
           status: true,
+          payment: true,
           paid: true,
           user: {
             select: {

@@ -228,8 +228,8 @@ export default class EventManager {
       },
     });
 
-    // Wait for all deletions to be applied.
-    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+    // Wait for all deletions to be applied. If one fails, all should revert.
+    await prisma.$transaction([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
 
     return {
       results,

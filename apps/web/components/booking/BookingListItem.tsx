@@ -4,18 +4,35 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+
+function BookingStatusTags({ booking, className = "" }: { booking: BookingItem; className?: string }) {
+  const { t } = useLocale();
+  return (
+    <>
+      {!!booking.payment &&
+        (booking.paid ? (
+          <Tag className={className}>{t("pending_payment")}</Tag>
+        ) : (
+          <Tag className={className} color="green">
+            {t("paid")}
+          </Tag>
+        ))}
+      {!booking.confirmed && !booking.rejected && <Tag className={className}>{t("unconfirmed")}</Tag>}
+    </>
+  );
+}
 
 function BookingListItem(booking: BookingItem) {
   // Get user so we can determine 12/24 hour format preferences
@@ -131,12 +148,7 @@ function BookingListItem(booking: BookingItem) {
         </td>
         <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
           <div className="sm:hidden">
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
-            )}
+            <BookingStatusTags booking={booking} className="mb-2 ltr:mr-2 rtl:ml-2" />
             <div className="text-sm font-medium text-gray-900">
               {startTime}:{" "}
               <small className="text-sm text-gray-500">
@@ -149,12 +161,7 @@ function BookingListItem(booking: BookingItem) {
             className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
             {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
             {booking.title}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-            )}
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
-            )}
+            <BookingStatusTags booking={booking} className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex" />
           </div>
           {booking.description && (
             <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500" title={booking.description}>
@@ -186,10 +193,14 @@ function BookingListItem(booking: BookingItem) {
   );
 }
 
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
+const Tag = ({
+  children,
+  className = "",
+  color = "yellow",
+}: React.PropsWithChildren<{ className?: string; color?: string }>) => {
   return (
     <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
+      className={`inline-flex items-center rounded-sm bg-${color}-100 px-1.5 py-0.5 text-xs font-medium text-${color}-800 ${className}`}>
       {children}
     </span>
   );

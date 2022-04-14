@@ -111,11 +111,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
-    title: bookingToDelete?.title,
-    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
-    description: bookingToDelete?.description || "",
-    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
-    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
+    title: bookingToDelete.title,
+    type: (bookingToDelete.eventType?.title as string) || bookingToDelete.title,
+    description: bookingToDelete.description || "",
+    startTime: bookingToDelete.startTime ? dayjs(bookingToDelete.startTime).format() : "",
+    endTime: bookingToDelete.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
       email: organizer.email,
       name: organizer.name ?? "Nameless",
