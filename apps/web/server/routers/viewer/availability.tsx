@@ -191,6 +191,20 @@ export const availabilityRouter = createProtectedRouter()
         });
       }
 
+      // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
+      // Bug: https://github.com/prisma/prisma/issues/7290
+      const userSchedule = await prisma.schedule.findUnique({
+        where: {
+          id: input.scheduleId,
+        },
+      });
+
+      if (!userSchedule || userSchedule.userId !== user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
       const schedule = await prisma.schedule.update({
         where: {
           id: input.scheduleId,
