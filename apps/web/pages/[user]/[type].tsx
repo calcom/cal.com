@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -48,6 +49,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
+  const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
 
   if (!userParam || !typeParam) {
     throw new Error(`File is not named [type]/[user]`);
@@ -261,6 +263,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, rescheduleUid);
+  }
+
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {
         return user.name || "";
@@ -302,6 +309,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };
