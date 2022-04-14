@@ -243,8 +243,6 @@ model Booking {
   references          BookingReference[]
   eventType           EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId         Int?
-  disposableLink      DisposableLink?      @relation(fields: [disposableLinkId], references: [id])
-  disposableLinkId    Int?
   title               String
   description         String?
   startTime           DateTime
@@ -386,7 +384,6 @@ model DisposableLink {
   eventType               EventType              @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId             Int
   availability            Availability[]
-  booking                 Booking?
   timeZone                String?
   expired                 Boolean                @default(false)
 

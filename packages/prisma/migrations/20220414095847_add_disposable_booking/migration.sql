@@ -1,14 +1,5 @@
-/*
-  Warnings:
-
-  - A unique constraint covering the columns `[disposableLinkId]` on the table `Booking` will be added. If there are existing duplicate values, this will fail.
-
-*/
 -- AlterTable
 ALTER TABLE "Availability" ADD COLUMN     "disposableLinkId" INTEGER;
-
--- AlterTable
-ALTER TABLE "Booking" ADD COLUMN     "disposableLinkId" INTEGER;
 
 -- CreateTable
 CREATE TABLE "DisposableLink" (
@@ -37,12 +28,6 @@ CREATE UNIQUE INDEX "_disposable_user_AB_unique" ON "_disposable_user"("A", "B")
 
 -- CreateIndex
 CREATE INDEX "_disposable_user_B_index" ON "_disposable_user"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Booking_disposableLinkId_key" ON "Booking"("disposableLinkId");
-
--- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_disposableLinkId_fkey" FOREIGN KEY ("disposableLinkId") REFERENCES "DisposableLink"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Availability" ADD CONSTRAINT "Availability_disposableLinkId_fkey" FOREIGN KEY ("disposableLinkId") REFERENCES "DisposableLink"("id") ON DELETE SET NULL ON UPDATE CASCADE;
