@@ -22,7 +22,7 @@ export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
 export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const isExpired = props?.apiKey?.expiresAt ? props?.apiKey?.expiresAt < new Date() : null;
+  const isExpired = props?.apiKey?.expiresAt ? props.apiKey.expiresAt < new Date() : null;
   const neverExpires = props?.apiKey?.expiresAt === null;
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete", {
     async onSuccess() {
