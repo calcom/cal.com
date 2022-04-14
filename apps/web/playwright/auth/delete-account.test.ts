@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("Can delete user account", async ({ page }) => {
+  //FIXME: This test depends on seed.
   // Login to account to delete
   await page.goto(`/auth/login`);
   // Click input[name="email"]

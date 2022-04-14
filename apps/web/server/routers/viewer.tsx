@@ -131,6 +131,7 @@ const loggedInViewerRouter = createProtectedRouter()
         price: true,
         currency: true,
         position: true,
+        successRedirectUrl: true,
         users: {
           select: {
             id: true,
@@ -343,7 +344,7 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
-        past: { startTime: "desc" },
+        past: { startTime: "asc" },
         cancelled: { startTime: "asc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
@@ -392,6 +393,7 @@ const loggedInViewerRouter = createProtectedRouter()
               id: true,
             },
           },
+          rescheduled: true,
         },
         orderBy,
         take: take + 1,
@@ -618,6 +620,7 @@ const loggedInViewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
+      allowDynamicBooking: z.boolean().optional(),
       brandColor: z.string().optional(),
       darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),

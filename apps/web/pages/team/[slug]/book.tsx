@@ -2,11 +2,16 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { getLocationLabels } from "@calcom/app-store/utils";
+
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
+
+import { getTranslation } from "@server/lib/i18n";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -52,6 +57,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       users: {
         select: {
+          id: true,
           avatar: true,
           name: true,
         },
@@ -70,32 +76,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
-    return prisma.booking.findFirst({
-      where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
-      },
-      select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
-  let booking: Booking | null = null;
-
+  let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking();
+    booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
+
+  const t = await getTranslation(context.locale ?? "en", "common");
 
   return {
     props: {
+      locationLabels: getLocationLabels(t),
       profile: {
         ...eventTypeObject.team,
         slug: "team/" + eventTypeObject.slug,
@@ -103,9 +93,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null /* Teams don't have a theme, and `BookingPage` uses it */,
         brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
         darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
+        eventName: null,
       },
       eventType: eventTypeObject,
       booking,
+      isDynamicGroupBooking: false,
     },
   };
 }

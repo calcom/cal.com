@@ -1,4 +1,10 @@
-import { CalendarIcon, ClockIcon, CreditCardIcon, ExclamationIcon } from "@heroicons/react/solid";
+import {
+  CalendarIcon,
+  ClockIcon,
+  CreditCardIcon,
+  ExclamationIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -12,6 +18,9 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
+import { useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
@@ -20,23 +29,24 @@ import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
-import { parseZone } from "@lib/parseZone";
+import { parseDate } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
-const PhoneInput = dynamic(() => import("@components/ui/form/PhoneInput"));
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps;
 
@@ -52,11 +62,20 @@ type BookingFormValues = {
   };
 };
 
-const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
+const BookingPage = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  locationLabels,
+}: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  const isEmbed = useIsEmbed();
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
+  const isBackgroundTransparent = useIsBackgroundTransparent();
+
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -96,11 +115,13 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         query: {
           date,
           type: eventType.id,
+          eventSlug: eventType.slug,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
           location,
+          eventName: profile.eventName || "",
         },
       });
     },
@@ -130,21 +151,11 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
   const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-
-  // TODO: Move to translations
-  // Also TODO: Get these dynamically from App Store
-  const locationLabels = {
-    [LocationType.InPerson]: t("in_person_meeting"),
-    [LocationType.Phone]: t("phone_call"),
-    [LocationType.GoogleMeet]: "Google Meet",
-    [LocationType.Zoom]: "Zoom Video",
-    [LocationType.Jitsi]: "Jitsi Meet",
-    [LocationType.Daily]: "Daily.co Video",
-    [LocationType.Huddle01]: "Huddle01 Video",
-    [LocationType.Tandem]: "Tandem Video",
-    [LocationType.Teams]: "MS Teams",
-  };
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
+  const guestListEmails = !isDynamicGroupBooking
+    ? booking?.attendees.slice(1).map((attendee) => attendee.email)
+    : [];
+
   const defaultValues = () => {
     if (!rescheduleUid) {
       return {
@@ -171,7 +182,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
-      guests: booking.attendees.slice(1).map((attendee) => attendee.email),
+      guests: guestListEmails,
+      notes: booking.description || "",
     };
   };
 
@@ -210,17 +222,12 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
     }
   };
 
-  const parseDate = (date: string | null) => {
-    if (!date) return "No date";
-    const parsedZone = parseZone(date);
-    if (!parsedZone?.isValid()) return "Invalid date";
-    const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
-    return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
-  };
-
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
-      jitsu.track(telemetryEventTypes.bookingConfirmed, collectPageParameters())
+      jitsu.track(
+        telemetryEventTypes.bookingConfirmed,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      )
     );
 
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
@@ -252,6 +259,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       start: dayjs(date).format(),
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
@@ -266,6 +274,8 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
       })),
     });
   };
+
+  const disableInput = !!rescheduleUid;
 
   return (
     <div>
@@ -286,9 +296,19 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-      <main className="mx-auto my-0 max-w-3xl rounded-sm sm:my-24 sm:border sm:dark:border-gray-600">
+      <main
+        className={classNames(
+          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24",
+          "max-w-3xl  sm:border sm:dark:border-gray-600"
+        )}>
         {isReady && (
-          <div className="overflow-hidden border border-gray-200 bg-white dark:border-0 dark:bg-gray-800 sm:rounded-sm">
+          <div
+            className={classNames(
+              "overflow-hidden",
+              isEmbed ? "" : "border border-gray-200",
+              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
+              "sm:rounded-sm"
+            )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
                 <AvatarGroup
@@ -303,17 +323,25 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       }))
                   )}
                 />
-                <h2 className="font-cal mt-2 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                <h1 className="mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                <h2 className="font-cal text-bookinglight mt-2 font-medium dark:text-gray-300">
+                  {profile.name}
+                </h2>
+                <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
-                <p className="mb-2 text-gray-500">
-                  <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                {eventType?.description && (
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                    {eventType.description}
+                  </p>
+                )}
+                <p className="text-bookinglight mb-2 dark:text-white">
+                  <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                   {eventType.length} {t("minutes")}
                 </p>
                 {eventType.price > 0 && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
+                    <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
                         value={eventType.price / 100.0}
@@ -323,16 +351,26 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                     </IntlProvider>
                   </p>
                 )}
-                <p className="mb-4 text-green-500">
-                  <CalendarIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                  {parseDate(date)}
+                <p className="text-bookinghighlight mb-4">
+                  <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                  {parseDate(date, i18n)}
                 </p>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
+                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
                   </p>
                 )}
-                <p className="mb-8 text-gray-600 dark:text-white">{eventType.description}</p>
+                {booking?.startTime && rescheduleUid && (
+                  <div>
+                    <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                      {t("former_time")}
+                    </p>
+                    <p className="text-gray-500 line-through dark:text-white">
+                      <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="sm:w-1/2 sm:pl-8 sm:pr-4">
                 <Form form={bookingForm} handleSubmit={bookEvent}>
@@ -347,8 +385,12 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         name="name"
                         id="name"
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className={classNames(
+                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                        )}
                         placeholder={t("example_name")}
+                        disabled={disableInput}
                       />
                     </div>
                   </div>
@@ -362,9 +404,13 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                       <EmailInput
                         {...bookingForm.register("email")}
                         required
-                        className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                        className={classNames(
+                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                        )}
                         placeholder="you@example.com"
                         type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                        disabled={disableInput}
                       />
                     </div>
                   </div>
@@ -381,6 +427,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
+                            disabled={disableInput}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
@@ -397,13 +444,13 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                         {t("phone_number")}
                       </label>
                       <div className="mt-1">
-                        <PhoneInput
-                          // @ts-expect-error
+                        <PhoneInput<BookingFormValues>
                           control={bookingForm.control}
                           name="phone"
                           placeholder={t("enter_phone_number")}
                           id="phone"
                           required
+                          disabled={disableInput}
                         />
                       </div>
                     </div>
@@ -426,8 +473,12 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={classNames(
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                            )}
                             placeholder={input.placeholder}
+                            disabled={disableInput}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -439,6 +490,7 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             id={"custom_" + input.id}
                             className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             placeholder={input.placeholder}
+                            disabled={disableInput}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -490,32 +542,49 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                             className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {t("guests")}
                           </label>
-                          <Controller
-                            control={bookingForm.control}
-                            name="guests"
-                            render={({ field: { onChange, value } }) => (
-                              <ReactMultiEmail
-                                className="relative"
-                                placeholder="guest@example.com"
-                                emails={value}
-                                onChange={onChange}
-                                getLabel={(
-                                  email: string,
-                                  index: number,
-                                  removeEmail: (index: number) => void
-                                ) => {
-                                  return (
-                                    <div data-tag key={index}>
-                                      {email}
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    </div>
-                                  );
-                                }}
-                              />
-                            )}
-                          />
+                          {!disableInput && (
+                            <Controller
+                              control={bookingForm.control}
+                              name="guests"
+                              render={({ field: { onChange, value } }) => (
+                                <ReactMultiEmail
+                                  className="relative"
+                                  placeholder="guest@example.com"
+                                  emails={value}
+                                  onChange={onChange}
+                                  getLabel={(
+                                    email: string,
+                                    index: number,
+                                    removeEmail: (index: number) => void
+                                  ) => {
+                                    return (
+                                      <div data-tag key={index} className="cursor-pointer">
+                                        {email}
+                                        {!disableInput && (
+                                          <span data-tag-handle onClick={() => removeEmail(index)}>
+                                            ×
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  }}
+                                />
+                              )}
+                            />
+                          )}
+                          {/* Custom code when guest emails should not be editable */}
+                          {disableInput && guestListEmails && guestListEmails.length > 0 && (
+                            <div data-tag className="react-multi-email">
+                              {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                              {guestListEmails.map((email, index) => {
+                                return (
+                                  <div key={index} className="cursor-pointer">
+                                    <span data-tag>{email}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -529,9 +598,14 @@ const BookingPage = ({ eventType, booking, profile }: BookingPageProps) => {
                     <textarea
                       {...bookingForm.register("notes")}
                       id="notes"
+                      name="notes"
                       rows={3}
-                      className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                      className={classNames(
+                        "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                        disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                      )}
                       placeholder={t("share_additional_notes")}
+                      disabled={disableInput}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">

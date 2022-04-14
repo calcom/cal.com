@@ -18,7 +18,9 @@ export default function AppStoreCategories({
       <div className="grid-col-1 grid gap-3 md:grid-flow-col">
         {categories.map((category) => (
           <Link key={category.name} href={"/apps/categories/" + category.name}>
-            <a className="relative flex rounded-sm bg-gray-100 px-6 py-4 sm:block">
+            <a
+              data-testid={`app-store-category-${category.name}`}
+              className="relative flex rounded-sm bg-gray-100 px-6 py-4 sm:block">
               <div className="min-w-24 -ml-5 text-center sm:ml-0">
                 <Image
                   alt={category.name}

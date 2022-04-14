@@ -20,6 +20,7 @@ export default function AppCard(props: AppCardProps) {
         <div className="flex">
           <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
           <Button
+            data-testid={`app-store-app-card-${props.slug}`}
             color="secondary"
             className="ml-auto flex self-start"
             onClick={() => {
