@@ -5,6 +5,11 @@ export type BookingConfirmBody = {
   id: number;
 };
 
+export type DisposableBookingObject = {
+  slug?: string;
+  link?: string;
+};
+
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -27,6 +32,8 @@ export type BookingCreateBody = {
   metadata: {
     [key: string]: string;
   };
+  isDisposableBookingLink: boolean;
+  disposableBookingObject: DisposableBookingObject;
 };
 
 export type BookingResponse = Booking & {

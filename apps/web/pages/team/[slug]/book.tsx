@@ -115,6 +115,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       booking,
       isDynamicGroupBooking: false,
+      isDisposableBookingLink: false,
+      disposableBookingObject: {},
     },
   };
 }

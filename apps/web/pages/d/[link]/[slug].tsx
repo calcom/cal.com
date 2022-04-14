@@ -96,6 +96,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
+  // Handle expired links here
+  const linkExpired = disposableType?.expired;
+  if (linkExpired) {
+    return {
+      notFound: true,
+    };
+  }
+
   const userId = disposableType?.userId || disposableType?.eventType.userId;
 
   if (!userId)

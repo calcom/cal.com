@@ -224,6 +224,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // handle dynamic user
   const dynamicUserList = getUsernameList(reqBody.user as string);
+  const isDisposableBookingLink = reqBody.isDisposableBookingLink;
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -685,6 +686,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+  // expire disposable link if disposable booking link used
+  if (isDisposableBookingLink) {
+    await prisma.disposableLink.update({
+      where: {
+        link_slug: {
+          link: reqBody.disposableBookingObject.link as string,
+          slug: reqBody.disposableBookingObject.slug as string,
+        },
+      },
+      data: {
+        expired: true,
+      },
+    });
+  }
 
   // booking successful
   return res.status(201).json(booking);

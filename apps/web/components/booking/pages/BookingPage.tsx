@@ -63,6 +63,8 @@ const BookingPage = ({
   profile,
   isDynamicGroupBooking,
   locationLabels,
+  isDisposableBookingLink,
+  disposableBookingObject,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -267,6 +269,8 @@ const BookingPage = ({
         label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
+      isDisposableBookingLink,
+      disposableBookingObject,
     });
   };
 

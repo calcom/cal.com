@@ -9,6 +9,7 @@ import { getLocationLabels } from "@calcom/app-store/utils";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
+import { DisposableBookingObject } from "@lib/types/booking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
@@ -88,6 +89,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       expired: true,
     },
   });
+  // Handle expired links here
+  const linkExpired = disposableType?.expired;
+  if (linkExpired) {
+    return {
+      notFound: true,
+    };
+  }
 
   const userId = disposableType?.userId || disposableType?.eventType.userId;
 
@@ -168,6 +176,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
   }
+  const disposableBookingObject: DisposableBookingObject = {
+    slug,
+    link,
+  };
 
   type Booking = Prisma.PromiseReturnType<typeof getBooking>;
   let booking: Booking | null = null;
@@ -192,6 +204,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking: false,
+      isDisposableBookingLink: true,
+      disposableBookingObject,
     },
   };
 }
