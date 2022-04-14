@@ -196,10 +196,6 @@ test.describe("Reschedule Tests", async () => {
 
         await selectFirstAvailableTimeSlotNextMonth(page);
 
-        await expect(page.locator('[name="name"]')).toBeDisabled();
-        await expect(page.locator('[name="email"]')).toBeDisabled();
-        await expect(page.locator('[name="notes"]')).toBeDisabled();
-
         await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
         await page.waitForNavigation({
@@ -233,10 +229,6 @@ test.describe("Reschedule Tests", async () => {
           await page.goto(`/${user?.username}/${eventType?.slug}?rescheduleUid=${booking?.uid}`);
 
           await selectFirstAvailableTimeSlotNextMonth(page);
-
-          await expect(page.locator('[name="name"]')).toBeDisabled();
-          await expect(page.locator('[name="email"]')).toBeDisabled();
-          await expect(page.locator('[name="notes"]')).toBeDisabled();
 
           await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
