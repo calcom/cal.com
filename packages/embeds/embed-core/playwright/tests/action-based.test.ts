@@ -18,3 +18,9 @@ test("should open embed iframe on click", async ({ page, addEmbedListeners, getA
     pathname: "/free",
   });
 });
+
+todo("Floating Button Test with Dark Theme");
+
+todo("Floating Button Test with Light Theme");
+
+todo("Add snapshot test for embed iframe");
