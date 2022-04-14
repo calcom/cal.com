@@ -18,6 +18,7 @@ import React, { Fragment, ReactNode, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPlan } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -31,9 +32,8 @@ import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import classNames from "@lib/classNames";
-import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
+import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
-import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -69,7 +69,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       router.replace({
         pathname: "/auth/login",
         query: {
-          callbackUrl: `${NEXT_PUBLIC_BASE_URL}/${location.pathname}${location.search}`,
+          callbackUrl: `${WEBAPP_URL}/${location.pathname}${location.search}`,
         },
       });
     }
