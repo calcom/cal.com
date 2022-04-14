@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -262,41 +263,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
-  type Booking = {
-    startTime: Date | string;
-    description: string | null;
-    attendees?: {
-      email: string;
-      name: string;
-    }[];
-  } | null;
-  // @NOTE: being used several times refactor to exported function
-  async function getBooking(rescheduleUid: string): Promise<Booking> {
-    return await prisma.booking.findFirst({
-      where: {
-        uid: rescheduleUid,
-      },
-      select: {
-        startTime: true,
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  let booking: Booking | null = null;
+  let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(rescheduleUid);
-    if (booking) {
-      // @NOTE: had to do this because Server side cant return [Object objects]
-      // probably fixable with json.stringify -> json.parse
-      booking["startTime"] = (booking?.startTime as Date)?.toISOString();
-    }
+    booking = await getBooking(prisma, rescheduleUid);
   }
 
   const dynamicNames = isDynamicGroup

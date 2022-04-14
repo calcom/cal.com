@@ -203,7 +203,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     return encodeURIComponent(event.value ? event.value : false);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
-  console.log({ userIsOwner });
   return (
     (isReady && (
       <div
