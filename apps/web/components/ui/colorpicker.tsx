@@ -87,7 +87,7 @@ const ColorPicker = (props: ColorPickerProps) => {
         </div>
       )}
       <HexColorInput
-        className="ml-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800 sm:text-sm"
+        className="ml-1 block w-full rounded-sm border border-gray-300 px-3 py-2 shadow-sm sm:text-sm"
         color={color}
         onChange={(val) => {
           setColor(val);
