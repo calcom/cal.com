@@ -23,7 +23,7 @@ export class CalendarEventDirector {
     if (this.existingBooking && this.existingBooking.eventTypeId && this.existingBooking.uid) {
       await this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);
       await this.builder.buildUsersFromInnerClass();
-      await this.builder.buildAttendeesList();
+      this.builder.buildAttendeesList();
       this.builder.setLocation(this.existingBooking.location);
       this.builder.setUId(this.existingBooking.uid);
       this.builder.setCancellationReason(this.cancellationReason);
