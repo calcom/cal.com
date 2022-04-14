@@ -1,7 +1,7 @@
 import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -19,16 +19,16 @@ import { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm(props: {
   title: string;
-  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt">;
+  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean };
   handleClose: () => void;
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [neverExpires, setNeverExpires] = useState(false);
 
   const {
     defaultValues = {
       note: "",
+      nexerExpires: false,
       expiresAt: dayjs().add(1, "month").toDate(),
     },
   } = props;
@@ -51,6 +51,8 @@ export default function ApiKeyDialogForm(props: {
   const form = useForm({
     defaultValues,
   });
+  const watchNeverExpires = form.watch("neverExpires");
+
   return (
     <>
       {successfulNewApiKeyModal ? (
@@ -95,7 +97,7 @@ export default function ApiKeyDialogForm(props: {
           </DialogFooter>
         </>
       ) : (
-        <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt">>
+        <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean }>
           form={form}
           handleSubmit={async (event) => {
             const newApiKey = await utils.client.mutation("viewer.apiKeys.create", event);
@@ -114,30 +116,23 @@ export default function ApiKeyDialogForm(props: {
             placeholder={t("personal_note_placeholder")}
             {...form.register("note")}
             type="text"
-            // onChange={handleNoteChange}
           />
 
           <div className="flex flex-col">
             <div className="flex justify-between py-2">
               <span className="block text-sm font-medium text-gray-700">{t("expire_date")}</span>
-              <Switch
-                label={t("never_expire_key")}
-                defaultChecked={neverExpires}
-                onCheckedChange={(isChecked) => {
-                  if (isChecked) {
-                    form.setValue("expiresAt", null);
-                    setNeverExpires(true);
-                  } else {
-                    setNeverExpires(false);
-                    form.setValue("expiresAt", form.getValues().expiresAt || new Date());
-                  }
-                }}
+              <Controller
+                name="neverExpires"
+                render={({ field: { onChange, value } }) => (
+                  <Switch label={t("never_expire_key")} onCheckedChange={onChange} checked={value} />
+                )}
               />
             </div>
+
             <DatePicker
-              disabled={form.getValues().expiresAt === null}
+              disabled={watchNeverExpires}
               minDate={new Date()}
-              date={selectedDate as Date}
+              date={selectedDate}
               onDatesChange={handleDateChange}
             />
           </div>

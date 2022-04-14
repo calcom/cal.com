@@ -35,7 +35,7 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
         <div className="flex max-w-full flex-col truncate">
           <div className="flex space-x-2">
             <span className="text-gray-900">
-              {props?.apiKey?.note ? props?.apiKey?.note : t("api_key_no_note")}
+              {props?.apiKey?.note ? props.apiKey.note : t("api_key_no_note")}
             </span>
             {!neverExpires && isExpired && (
               <Badge className="-p-2" variant="default">
