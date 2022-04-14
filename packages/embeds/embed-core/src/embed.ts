@@ -348,7 +348,7 @@ export class Cal {
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
       // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
-      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://cal.com",
+      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://app.cal.com",
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
