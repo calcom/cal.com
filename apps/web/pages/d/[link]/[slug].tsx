@@ -75,9 +75,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     },
     select: {
-      title: true,
-      locations: true,
-      length: true,
       users: {
         select: {
           avatar: true,
@@ -89,7 +86,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
       userId: true,
-      eventTypes: {
+      eventType: {
         select: eventTypeSelect,
       },
       availability: true,
@@ -99,7 +96,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const userId = disposableType?.userId || disposableType?.eventTypes[0].userId;
+  const userId = disposableType?.userId || disposableType?.eventType.userId;
 
   if (!userId)
     return {
@@ -145,7 +142,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const [user] = users;
-  const eventTypeObject = Object.assign({}, disposableType, {
+  const eventTypeObject = Object.assign({}, disposableType.eventType, {
     metadata: {} as JSONObject,
     periodStartDate: null,
     periodEndDate: null,
@@ -164,7 +161,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       timeZone,
     },
     schedule.availability ||
-      (disposableType.availability.length ? disposableType.availability : user.availability)
+      (disposableType.availability.length
+        ? disposableType.availability
+        : disposableType.eventType.availability.length
+        ? disposableType.eventType.availability
+        : user.availability)
   );
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
