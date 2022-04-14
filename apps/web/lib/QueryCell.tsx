@@ -16,8 +16,13 @@ import Loader from "@components/Loader";
 import type { AppRouter } from "@server/routers/_app";
 import type { TRPCClientErrorLike } from "@trpc/client";
 import type { UseTRPCQueryOptions } from "@trpc/react";
-import type { inferProcedures } from "@trpc/react/src/createReactQueryHooks";
-import type { inferHandlerInput } from "@trpc/server";
+// import type { inferProcedures } from "@trpc/react/src/createReactQueryHooks";
+import type {
+  inferHandlerInput,
+  inferProcedureInput,
+  inferProcedureOutput,
+  ProcedureRecord,
+} from "@trpc/server";
 
 type ErrorLike = {
   message: string;
@@ -81,6 +86,12 @@ export function QueryCell<TData, TError extends ErrorLike>(
   return null;
 }
 
+type inferProcedures<TObj extends ProcedureRecord<any, any, any, any, any, any>> = {
+  [TPath in keyof TObj]: {
+    input: inferProcedureInput<TObj[TPath]>;
+    output: inferProcedureOutput<TObj[TPath]>;
+  };
+};
 type TQueryValues = inferProcedures<AppRouter["_def"]["queries"]>;
 type TQueries = AppRouter["_def"]["queries"];
 type TError = TRPCClientErrorLike<AppRouter>;
