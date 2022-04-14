@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 import type Prisma from "@prisma/client";
 
@@ -7,7 +8,9 @@ import { prisma } from "@calcom/prisma";
 
 import { TimeZoneEnum } from "./types";
 
-type UserFixture = ReturnType<typeof createUserFixture>;
+const TIMEOUT = 60000;
+
+export type UserFixture = ReturnType<typeof createUserFixture>;
 
 // creates a user fixture instance and stores the collection
 export const createUsersFixture = (page: Page) => {
@@ -23,7 +26,7 @@ export const createUsersFixture = (page: Page) => {
     },
     get: () => store.users,
     logout: async () => {
-      await page.goto("/auth/logout");
+      await page.goto("/auth/logout", { timeout: TIMEOUT });
     },
   };
 };
@@ -40,6 +43,10 @@ const createUserFixture = (user: Prisma.User, page: Page) => {
     id: user.id,
     self,
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    onboard: async () =>
+      (await self()).completedOnboarding
+        ? Promise.resolve(console.log("User is already onboarded"))
+        : await onboard(store.page),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
@@ -80,11 +87,39 @@ export async function login(
   const signInLocator = await loginLocator.locator('[type="submit"]');
 
   //login
-  await page.goto("/");
+  await page.goto("/", { timeout: TIMEOUT });
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
-
-  // 2 seconds of delay to give the session enough time for a clean load
   await page.waitForTimeout(2000);
+}
+
+// onboards the user with all the provided defaults
+async function onboard(page: Page) {
+  await page.goto("/", { timeout: TIMEOUT });
+  try {
+    const onboardingLocator = await page.locator("[data-testid=onboarding]");
+
+    // STEP 1: fullname & timezone
+    await onboardingLocator.locator("[data-testid=continue-button-0]").click({ timeout: TIMEOUT });
+    await page.waitForTimeout(1000);
+
+    // STEP 2: connecting calendars
+    await onboardingLocator.locator("[data-testid=onboarding-skip-btn]").click({ timeout: TIMEOUT });
+    await page.waitForTimeout(1000);
+
+    // STEP 3: Set a default availability schedule
+    await onboardingLocator
+      .locator("[data-testid=onboarding-availability-submit-btn]")
+      .click({ timeout: TIMEOUT });
+
+    // STEP 4: Fill "About Me"
+    await onboardingLocator.locator("[data-testid=continue-button-3]").click({ timeout: TIMEOUT });
+
+    await expect(await page.locator("[data-testid=dashboard-shell]")).toBeVisible({ timeout: TIMEOUT });
+
+    // final timeout needs to be very gentle to let the onboaring process finish building all the user entities
+  } catch (e) {
+    throw new Error("You need to log in before onboarding");
+  }
 }

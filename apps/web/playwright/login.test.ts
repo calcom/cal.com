@@ -1,37 +1,44 @@
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 
-import { ErrorCode } from "@lib/auth";
-
 import { login } from "./fixtures/users";
+import type { UserFixture } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/testUtils";
 
-test.describe("Login and logout tests", () => {
+const TIMEOUT = 60000;
+
+test.describe.parallel("Account tests", () => {
   // Test login with all plans
-  const plans = [UserPlan.PRO, UserPlan.FREE, UserPlan.TRIAL];
-  plans.forEach((plan) => {
-    test(`Should login with a ${plan} account`, async ({ page, users }) => {
-      // Create user and login
-      const pro = await users.create({ plan });
-      await pro.login();
+  test(`Should login with a PRO account`, async ({ page, users }) => {
+    // Create user and login
+    const pro = await users.create({ plan: UserPlan.PRO });
+    await pro.login();
+    await page.goto("/", { timeout: TIMEOUT });
 
-      const shellLocator = await page.locator(`[data-testid=dashboard-shell]`);
+    // expects the home page for an authorized user
+    const shellLocator = await page.locator(`[data-testid=dashboard-shell]`);
 
-      // expects the home page for an authorized user
-      await page.goto("/");
-      await expect(shellLocator).toBeVisible();
+    // Asserts to read the tested plan
+    const planLocator = shellLocator.locator("[data-testid=plan-pro] >> text=PRO");
+    await expect(planLocator).toBeVisible();
+  });
 
-      // Asserts to read the tested plan
-      const planLocator = shellLocator.locator(`[data-testid=plan-${plan.toLowerCase()}]`);
-      await expect(planLocator).toBeVisible();
-      await await expect(planLocator).toHaveText;
+  test(`Should login with a TRIAL account`, async ({ page, users }) => {
+    // Create user and login
+    const pro = await users.create({ plan: UserPlan.TRIAL });
+    await pro.login();
+    await page.goto("/", { timeout: TIMEOUT });
 
-      // When TRIAL check if the TRIAL banner is visible
-      if (plan === UserPlan.TRIAL) {
-        await expect(page.locator(`[data-testid=trial-banner]`)).toBeVisible();
-      }
-    });
+    // expects the home page for an authorized user
+    const shellLocator = await page.locator(`[data-testid=dashboard-shell]`);
+
+    // Asserts to read the tested plan
+    const planLocator = shellLocator.locator("[data-testid=plan-trial] >> text=TRIAL");
+    await expect(planLocator).toBeVisible();
+
+    // check if the TRIAL banner is visible
+    await expect(page.locator(`[data-testid=trial-banner]`)).toBeVisible();
   });
 
   test("Should warn when user does not exist", async ({ page, users }) => {
@@ -40,9 +47,8 @@ test.describe("Login and logout tests", () => {
     // Login with a non-existent user
     const never = "never";
     await login({ username: never }, page);
-
     // assert for the visibility of the localized alert message
-    await expect(page.locator(`text=${alertMessage}`)).toBeVisible();
+    await expect(page.locator(`text=${alertMessage}`)).toBeVisible({ timeout: TIMEOUT });
   });
 
   test("Should warn when password is incorrect", async ({ page, users }) => {
@@ -54,29 +60,28 @@ test.describe("Login and logout tests", () => {
     await login({ username: "pro", password: "wrong" }, page);
 
     // assert for the visibility of the localized  alert message
-    await expect(page.locator(`text=${alertMessage}`)).toBeVisible();
+    await expect(page.locator(`text=${alertMessage}`)).toBeVisible({ timeout: TIMEOUT });
   });
 
   test("Should logout", async ({ page, users }) => {
     const signOutLabel = (await localize("en"))("sign_out");
-    const userDropdownDisclose = async () =>
-      (await page.locator("[data-testid=user-dropdown-trigger]")).click();
 
     // creates a user and login
     const pro = await users.create();
     await pro.login();
-
+    await page.goto("/", { timeout: TIMEOUT });
     // disclose and click the sign out button from the user dropdown
-    await userDropdownDisclose();
+    await page.locator("[data-testid=user-dropdown-trigger]").click({ timeout: TIMEOUT });
     const signOutBtn = await page.locator(`text=${signOutLabel}`);
-    await signOutBtn.click();
+    await signOutBtn.click({ timeout: TIMEOUT });
 
-    // 2s of delay to assure the session is cleared
+    // for CI
     await page.waitForTimeout(2000);
 
     // Reroute to the home page to check if the login form shows up
-    await page.goto("/");
-    await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
+    await page.goto("/", { timeout: TIMEOUT });
+
+    await expect(page.locator(`[data-testid=login-form]`)).toBeVisible({ timeout: TIMEOUT });
   });
 
   test("Should logout using the logout route", async ({ page, users }) => {
@@ -84,11 +89,12 @@ test.describe("Login and logout tests", () => {
     const pro = await users.create();
     await pro.login();
 
+    await page.goto("/", { timeout: TIMEOUT });
     // users.logout() action uses the logout route "/auth/logout" to clear the session
     await users.logout();
 
     // check if we are at the login page
-    await page.goto("/");
-    await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
+    await page.goto("/", { timeout: TIMEOUT });
+    await expect(page.locator(`[data-testid=login-form]`)).toBeVisible({ timeout: TIMEOUT });
   });
 });
