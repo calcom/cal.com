@@ -204,8 +204,9 @@ model BookingReference {
   meetingId       String?
   meetingPassword String?
   meetingUrl      String?
-  booking         Booking? @relation(fields: [bookingId], references: [id])
+  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId       Int?
+  deleted         Boolean?
 }
 
 model Attendee {
@@ -260,6 +261,8 @@ model Booking {
   rejectionReason     String?
   dynamicEventSlugRef String?
   dynamicGroupSlugRef String?
+  rescheduled         Boolean?
+  fromReschedule      String?
 }
 
 model Schedule {
@@ -342,7 +345,7 @@ model Payment {
   uid        String      @unique
   type       PaymentType
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount     Int
   fee        Int
   currency   String

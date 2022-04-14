@@ -13,20 +13,20 @@
  * Override the default tailwindcss-forms styling (default is: 'colors.blue.600')
  * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006 
  */
-[type='text']:focus,
-[type='email']:focus,
-[type='url']:focus,
-[type='password']:focus,
-[type='number']:focus,
-[type='date']:focus,
-[type='datetime-local']:focus,
-[type='month']:focus,
-[type='search']:focus,
-[type='tel']:focus,
-[type='checkbox']:focus,
-[type='radio']:focus,
-[type='time']:focus,
-[type='week']:focus,
+[type="text"]:focus,
+[type="email"]:focus,
+[type="url"]:focus,
+[type="password"]:focus,
+[type="number"]:focus,
+[type="date"]:focus,
+[type="datetime-local"]:focus,
+[type="month"]:focus,
+[type="search"]:focus,
+[type="tel"]:focus,
+[type="checkbox"]:focus,
+[type="radio"]:focus,
+[type="time"]:focus,
+[type="week"]:focus,
 [multiple]:focus,
 textarea:focus,
 select:focus {
@@ -217,7 +217,7 @@ button[role="switch"][data-state="checked"] span {
 }
 
 .react-multi-email > [type="text"] {
-  @apply block w-full rounded-md border-gray-300 shadow-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
+  @apply focus:border-brand block w-full rounded-[2px] border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:text-sm;
 }
 
 .react-multi-email [data-tag] {
