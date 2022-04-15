@@ -18,7 +18,7 @@ export default function ApiKeyListContainer() {
 
   const [newApiKeyModal, setNewApiKeyModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [apiKeyToEdit, setApiKeyToEdit] = useState<TApiKeys | null>(null);
+  const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires: boolean }) | null>(null);
   return (
     <QueryCell
       query={query}
@@ -36,9 +36,9 @@ export default function ApiKeyListContainer() {
             </div>
           </div>
 
-          {data.length ? (
+          {data.length && (
             <List className="pb-6">
-              {data.map((item) => (
+              {data.map((item: any) => (
                 <ApiKeyListItem
                   key={item.id}
                   apiKey={item}
@@ -49,7 +49,7 @@ export default function ApiKeyListContainer() {
                 />
               ))}
             </List>
-          ) : null}
+          )}
 
           {/* New api key dialog */}
           <Dialog open={newApiKeyModal} onOpenChange={(isOpen) => !isOpen && setNewApiKeyModal(false)}>
