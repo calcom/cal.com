@@ -4,12 +4,10 @@ const VITAL_ENV = "sandbox";
 const VITAL_REGION = "us";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const getLinkToken = async (client_user_id: String) => {
+  const getLinkToken = async () => {
     const res = await fetch("/api/integrations/vital/token", {
       method: "POST",
-      body: JSON.stringify({
-        client_user_id,
-      }),
+      body: JSON.stringify({}),
       headers: {
         "Content-Type": "application/json",
       },
@@ -23,7 +21,7 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
     <>
       {props.render({
         onClick() {
-          getLinkToken("test_user_123")
+          getLinkToken()
             .then((data) => {
               window.open(
                 `https://link.tryvital.io/?token=${data?.token}&env=${VITAL_ENV}&region=${VITAL_REGION}`, "_self"

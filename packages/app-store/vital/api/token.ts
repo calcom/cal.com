@@ -15,14 +15,20 @@ const client = new VitalClient({
  * @param res
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Create a user 
+  // Get user id
+  const client_user_id = req.session?.user?.id;
+  if (!client_user_id) {
+    res.status(400).json({ error: "No user id" });
+  }
+
+  // Create a user
   let user;
   try {
-    user = await client.User.create(req.body?.client_user_id);
+    user = await client.User.create(`cal_${client_user_id}`);
   } catch (e) {
-    user = await client.User.resolve(req.body?.client_user_id);
+    user = await client.User.resolve(`cal_${client_user_id}`);
   }
-  try{
+  try {
     const token = await client.Link.create(
       user?.user_id,
       undefined,
