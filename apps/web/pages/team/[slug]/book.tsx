@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 import { getLocationLabels } from "@calcom/app-store/utils";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -56,6 +57,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       users: {
         select: {
+          id: true,
           avatar: true,
           name: true,
         },
@@ -74,28 +76,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
-    return prisma.booking.findFirst({
-      where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
-      },
-      select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
-  let booking: Booking | null = null;
-
+  let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking();
+    booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
 
   const t = await getTranslation(context.locale ?? "en", "common");

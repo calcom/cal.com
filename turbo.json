@@ -115,6 +115,7 @@
       "cache": false,
       "outputs": ["lint-results"]
     },
+    "postinstall": {},
     "start": {},
     "test": {
       "dependsOn": ["^test"]
