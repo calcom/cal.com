@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "vital",
-  "version": "0.0.0",
+  "name": "Vital",
+  "version": "0.1.0",
   "main": "./index.ts",
   "description": "Connect your health data",
   "dependencies": {

@@ -6,7 +6,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 const client = new VitalClient({
   client_id: process.env.VITAL_CLIENT_ID || "",
   client_secret: process.env.VITAL_CLIENT_SECRET || "",
-  environment: "sandbox",
+  // @ts-ignore
+  environment: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
 });
 
 /**
@@ -32,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = await client.Link.create(
       user?.user_id,
       undefined,
-      WEBAPP_URL + "/api/integrations/vital/callback"
+      WEBAPP_URL + "/api/integrations/vitalother/callback"
     );
     return res.status(200).json({ token: token.link_token });
   } catch (e) {
