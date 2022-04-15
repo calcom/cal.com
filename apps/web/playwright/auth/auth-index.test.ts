@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { BASE_URL } from "@lib/config/constants";
+import { WEBAPP_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 
 import { todo } from "../lib/testUtils";
@@ -40,7 +40,7 @@ test.describe("Can signup from a team invite", async () => {
       select: { token: true },
     });
     token = tokenObj?.token;
-    signupFromInviteURL = `/auth/signup?token=${token}&callbackUrl=${BASE_URL}/settings/teams`;
+    signupFromInviteURL = `/auth/signup?token=${token}&callbackUrl=${WEBAPP_URL}/settings/teams`;
   });
 
   test.afterAll(async () => {

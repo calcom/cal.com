@@ -87,8 +87,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // busyTimes.push(...await getBusyVideoTimes(currentUser.credentials, dateFrom.format(), dateTo.format()));
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
-    end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
+    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute"),
+    end: dayjs(a.end).add(currentUser.bufferTime, "minute"),
   }));
 
   const schedule = eventType?.schedule
