@@ -10,12 +10,22 @@ interface IWipeMyCalActionButtonProps {
 
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   const { trpc } = props;
+
   const [openDialog, setOpenDialog] = useState(false);
+  const { isSuccess, isLoading, data } = trpc.useQuery(["viewer.integrations"]);
+
   return (
-    <>
-      <ConfirmDialog trpc={trpc} isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
-      <Button onClick={() => setOpenDialog(true)}>Wipe Today</Button>
-    </>
+    <div>
+      {data &&
+        isSuccess &&
+        !isLoading &&
+        data?.other?.items.find((item: { type: string }) => item.type === "wipe_my_cal_other") && (
+          <>
+            <ConfirmDialog trpc={trpc} isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
+            <Button onClick={() => setOpenDialog(true)}>Wipe Today</Button>
+          </>
+        )}
+    </div>
   );
 };
 
