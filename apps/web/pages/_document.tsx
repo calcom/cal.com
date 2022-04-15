@@ -5,7 +5,7 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
-    const isEmbed = ctx.req?.url?.includes("embed");
+    const isEmbed = ctx.req?.url?.includes("embed=");
     return { ...initialProps, isEmbed };
   }
 

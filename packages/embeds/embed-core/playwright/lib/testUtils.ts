@@ -57,6 +57,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
       return url.pathname.includes(`/${username}/book`);
     },
   });
+  expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
