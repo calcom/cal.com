@@ -13,8 +13,8 @@ module.exports = withTM({
   async headers() {
     return [
       {
-        // matching all API routes
-        source: "/api/:path*",
+        // matching all routes, because we redirect to API in rewrites
+        source: "/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
