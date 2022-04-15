@@ -1,7 +1,8 @@
 {
   "name": "@calcom/embed-snippet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "src/index.ts",
+  "description": "Vanilla JS embed snippet that is responsible to fetch @calcom/embed-core and thus show Cal Link as an embed on a page.",
   "scripts": {
     "build": "vite build",
     "type-check": "tsc --pretty --noEmit",
