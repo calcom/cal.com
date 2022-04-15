@@ -1,5 +1,7 @@
 import { Attendee, Booking } from "@prisma/client";
 
+import { WorkingHours } from "./schedule";
+
 export type BookingConfirmBody = {
   confirmed: boolean;
   id: number;
@@ -8,6 +10,14 @@ export type BookingConfirmBody = {
 export type DisposableBookingObject = {
   slug?: string;
   link?: string;
+};
+
+export type DisposableLinkCreateBody = {
+  eventTypeId: number;
+  slug: string;
+  user?: string | string[];
+  timeZone: string;
+  availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
 };
 
 export type BookingCreateBody = {
