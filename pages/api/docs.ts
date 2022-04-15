@@ -2,7 +2,6 @@ import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
 import { withSwagger } from "next-swagger-doc";
 
-import { withCors } from "@lib/helpers/withCors";
 import { withCorsMiddleware } from "@lib/helpers/withCorsMiddleware";
 
 const swaggerHandler = withSwagger({
@@ -19,4 +18,4 @@ const swaggerHandler = withSwagger({
   tags: ["users", "teams", "memeberships"],
   sort: true,
 });
-export default withCorsMiddleware()(swaggerHandler());
+export default swaggerHandler();
