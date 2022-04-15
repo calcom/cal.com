@@ -3,11 +3,11 @@ import NextAuth, { getServerSession, Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { getSession } from "next-auth/react";
 import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { UserPermissionRole } from "@calcom/prisma/client";
+import ImpersonationProvider from "@ee/lib/impersonation/ImpersonationProvider";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -96,45 +96,7 @@ const providers: Provider[] = [
       };
     },
   }),
-  CredentialsProvider({
-    id: "impersonation-auth",
-    name: "Impersonation",
-    type: "credentials",
-    credentials: {
-      username: { label: "Username", type: "text " },
-    },
-    async authorize(creds, req) {
-      // @ts-ignore need to figure out how to correctly type this
-      const session = await getSession({ req });
-      if (session?.user.role != "ADMIN" || !session) {
-        throw new Error("You do not have permission to do this.");
-      }
-
-      if (session?.user.username == creds?.username) {
-        throw new Error("You cannot impersonate yourself.");
-      }
-
-      const user = await prisma.user.findUnique({
-        where: {
-          username: creds?.username,
-        },
-      });
-
-      if (!user) {
-        throw new Error("This user does not exist");
-      }
-
-      const obj = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        impersonatedByUID: session?.user.id,
-      };
-      return obj;
-    },
-  }),
+  ImpersonationProvider,
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
@@ -196,7 +158,6 @@ export default NextAuth({
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
-      console.log({ token });
       const autoMergeIdentities = async () => {
         if (!hostedCal) {
           const existingUser = await prisma.user.findFirst({

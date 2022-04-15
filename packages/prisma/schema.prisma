@@ -161,6 +161,8 @@ model User {
   verified            Boolean?             @default(false)
   role                UserPermissionRole   @default(USER)
 
+  impersonatedUsers Impersonations[] @relation("impersonated_user")
+  impersonatedBy    Impersonations[] @relation("impersonated_by_user")
   @@map(name: "users")
 }
 
@@ -375,4 +377,13 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+}
+
+model Impersonations {
+  id                   Int      @id @default(autoincrement())
+  createdAt            DateTime @default(now())
+  impersonatedUser     User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
+  impersonatedBy       User     @relation("impersonated_by_user", fields: [impersonatedUserById], references: [id])
+  impersonatedUserId   Int
+  impersonatedUserById Int
 }

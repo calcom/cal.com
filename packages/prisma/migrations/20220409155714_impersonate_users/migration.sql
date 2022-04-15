@@ -4,8 +4,18 @@ CREATE TYPE "UserPermissionRole" AS ENUM ('USER', 'ADMIN');
 -- AlterTable
 ALTER TABLE "users" ADD COLUMN     "role" "UserPermissionRole" NOT NULL DEFAULT E'USER';
 
--- RenameIndex
-ALTER INDEX "VerificationRequest.identifier_token_unique" RENAME TO "VerificationRequest_identifier_token_key";
+-- CreateTable
+CREATE TABLE "Impersonations" (
+    "id" SERIAL NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "impersonatedUserId" INTEGER NOT NULL,
+    "impersonatedUserById" INTEGER NOT NULL,
 
--- RenameIndex
-ALTER INDEX "VerificationRequest.token_unique" RENAME TO "VerificationRequest_token_key";
+    CONSTRAINT "Impersonations_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Impersonations" ADD CONSTRAINT "Impersonations_impersonatedUserId_fkey" FOREIGN KEY ("impersonatedUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Impersonations" ADD CONSTRAINT "Impersonations_impersonatedUserById_fkey" FOREIGN KEY ("impersonatedUserById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

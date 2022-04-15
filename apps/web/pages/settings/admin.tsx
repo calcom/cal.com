@@ -1,25 +1,17 @@
-import crypto from "crypto";
 import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { ComponentProps, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
 
-import { QueryCell } from "@lib/QueryCell";
 import { getSession } from "@lib/auth";
-import prisma from "@lib/prisma";
-import { trpc } from "@lib/trpc";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 
-type Props = inferSSRProps<typeof getServerSideProps>;
-
-function AdminView(props: ComponentProps<typeof Admin> & { localeProp: string }) {
+function AdminView() {
   const { t } = useLocale();
 
   const usernameRef = useRef<HTMLInputElement>(null!);
@@ -59,14 +51,13 @@ function AdminView(props: ComponentProps<typeof Admin> & { localeProp: string })
   );
 }
 
-export default function Admin(props: Props) {
+export default function Admin() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.i18n"]);
 
   return (
     <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
       <SettingsShell>
-        <QueryCell query={query} success={({ data }) => <AdminView {...props} localeProp={data.locale} />} />
+        <AdminView />
       </SettingsShell>
     </Shell>
   );
@@ -78,41 +69,5 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!session?.user?.id || session.user.role != "ADMIN") {
     return { redirect: { permanent: false, destination: "/settings/profile" } };
   }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      avatar: true,
-      timeZone: true,
-      weekStart: true,
-      hideBranding: true,
-      theme: true,
-      plan: true,
-      brandColor: true,
-      darkBrandColor: true,
-      metadata: true,
-      timeFormat: true,
-      allowDynamicBooking: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User seems logged in but cannot be found in the db");
-  }
-
-  return {
-    props: {
-      user: {
-        ...user,
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
-    },
-  };
+  return { props: {} };
 };
