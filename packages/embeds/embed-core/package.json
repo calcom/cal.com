@@ -10,7 +10,8 @@
     "dev": "run-p 'build --watch' 'vite --port 3002 --strict-port --open'",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
-    "test-playwright": "yarn playwright test --config=playwright/config/playwright.config.ts"
+    "test-playwright": "yarn playwright test --config=playwright/config/playwright.config.ts",
+    "test-playwright-quick": "QUICK=true yarn test-playwright"
   },
   "devDependencies": {
     "vite": "^2.8.6",

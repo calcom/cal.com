@@ -5,6 +5,14 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
+      (()=> {
+        const u = new URL(document.URL);
+        const only = u.searchParams.get("only");
+        const ns = only ? only.replace("ns:",""): null
+        if (ns) {
+          location.hash="#cal-booking-place-" + ns
+        }
+      })()
     </script>
     <script>
       (function (C, A, L) {
@@ -93,11 +101,7 @@
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
         <div >
-          <div>
-            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
-            have to scroll to see the entire content
-          </div>
-          <div class="place" style="width:50%; max-height: 30vh; overflow: scroll"></div>
+          <div class="place" style="width:50%;"></div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
         </div>
       </div>
@@ -152,7 +156,7 @@
       </div>
 
       <div class="debug" id="cal-booking-place-fourth">
-        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline]</h2>
+        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline taking entire width]</h2>
         <div>
           <i><a href="?only=ns:fourth">Test in Zen Mode</a></i>
         </div>
@@ -162,6 +166,23 @@
         <div style="width: 30%" class="place">
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
           <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug" id="cal-booking-place-fifth">
+      <h2>Namespace "fifth"(Cal.ns.fifth)[Team Event Test][inline along with some content]</h2>
+      <div>
+        <i><a href="?only=ns:fifth">Test in Zen Mode</a></i>
+      </div>
+      <i class="last-action">
+        <i>You would see last Booking page action in my place</i>
+      </i>
+      <div style="display:flex;align-items: center;">
+        <h2 style="width: 30%">
+          On the right side you can book a team meeting =>
+        </h2>
+        <div style="width: 70%" class="place">
         </div>
       </div>
     </div>
@@ -304,7 +325,25 @@
           callback,
         });
       }
-
+      if (!only || only === "ns:fifth") {
+        Cal("init", "fifth", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.fifth(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-fifth .place",
+              calLink: "team/test-team",
+            },
+          ],
+        );
+        Cal.ns.fifth("on", {
+          action: "*",
+          callback,
+        });
+      }
       if (!only || only === "prerender-test") {
         Cal('init', 'prerendertestLightTheme', {
           debug: 1,

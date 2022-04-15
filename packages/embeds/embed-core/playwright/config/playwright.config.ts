@@ -3,10 +3,10 @@ import * as path from "path";
 
 const outputDir = path.join("../results");
 const testDir = path.join("../tests");
-
+const QuickMode = process.env.QUICK === "true";
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 1,
+  retries: QuickMode ? 0 : 1,
   workers: 1,
   timeout: 60_000,
   reporter: [
@@ -19,6 +19,12 @@ const config: PlaywrightTestConfig = {
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,
+  expect: {
+    toMatchSnapshot: {
+      // Opacity transitions can cause small differences
+      maxDiffPixels: 50,
+    },
+  },
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
     command: "yarn workspace @calcom/embed-core dev",
@@ -38,16 +44,20 @@ const config: PlaywrightTestConfig = {
       testDir,
       use: { ...devices["Desktop Chrome"] },
     },
-    {
-      name: "firefox",
-      testDir,
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      testDir,
-      use: { ...devices["Desktop Safari"] },
-    },
+    QuickMode
+      ? {}
+      : {
+          name: "firefox",
+          testDir,
+          use: { ...devices["Desktop Firefox"] },
+        },
+    QuickMode
+      ? {}
+      : {
+          name: "webkit",
+          testDir,
+          use: { ...devices["Desktop Safari"] },
+        },
   ],
 };
 export type ExpectedUrlDetails = {

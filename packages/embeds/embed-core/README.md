@@ -33,19 +33,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Hot reload doesn't work with CSS files in the way we use vite.
 
-## Concepts of making Iframe behave like inline-block
-
-- So that it can be placed anywhere on the page.To achieve that embed JS
-  - keeps a tight control on width of iframe but still allowing content to take the entire width available outside the iframe.
-  - increases the iframe width and height to an extent that scroll doesn't occur.
-- In the popup as the width is still 100% and actual content might be smaller in width than that(there is max-width), border-radius can't be implemented on iframe, it is supposed to be directly over the content and thus it would be part of content itself.
-
-- Problems & Workarounds embed.js took
-  - To allow iframe content to consider the width outside iframe, on certain actions embed JS is informed of a request in increase in width. In that case, iframe's width is temporarily set to 100% and now suddenly iframe content has the exact same space available as the parent. It re-adjusts content and then inform parent to lock the width at that. 
-    - But because of the two steps, there is a temporary increase in width(to 100%) which might be noticeable, if there is a background set on body of iframe. This problem seems unsolvable at the moment.
-    - So, let iframe behave like a block element, taking the entire width available to it by setting it's width to 100%. It automatically handles responsiveness well, both in portrait and landscape mode.
-    - By default Iframe would be positioned in center horizontally and thus if there is some content above it positioned left, iframe wouldn't look aligned to content.
-
 ## Known Bugs and Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
@@ -90,7 +77,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
   - Show Demo of inline-block behavior of embed.
     - width and height of iframe, both are according to the iframe content
-    
 
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 
@@ -98,7 +84,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Custom written Tailwind CSS is sent multiple times for different custom elements.
   
 - Embed Code Generator
-
+- Option to disable redirect banner and let parent handle redirect.
 - Release Issues
   - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
     - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js

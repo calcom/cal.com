@@ -87,7 +87,7 @@ function RedirectionToast({ url }: { url: string }) {
 
   return (
     <>
-      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+      <div className="relative z-[60] pb-2 sm:pb-5">
         <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
           <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
             <div className="flex flex-wrap items-center justify-between">
@@ -215,22 +215,19 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl py-24")}>
-          <div className={classNames("main overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
               <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
             ) : null}{" "}
             <div
               className={classNames(
                 shouldAlignCentrally ? "text-center" : "",
-                "flex min-h-screen items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
+                "flex items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
               )}>
               <div
-                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
                 aria-hidden="true">
-                <span className="inline-block h-screen align-middle" aria-hidden="true">
-                  &#8203;
-                </span>
                 <div
                   className={classNames(
                     "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
