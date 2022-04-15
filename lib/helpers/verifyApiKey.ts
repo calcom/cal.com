@@ -15,7 +15,7 @@ const today = new Date();
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   const pathIsDocs = req.url?.startsWith("/docs");
   if (pathIsDocs) await next();
-  if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
+  else if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
 
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
   const hashedKey = hashAPIKey(strippedApiKey);
