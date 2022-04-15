@@ -80,7 +80,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js
+- Node.js (Version: ^12.20.0 || ^14.13.1 || >=16.0.0)
 - PostgreSQL
 - Yarn _(recommended)_
 
