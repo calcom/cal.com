@@ -38,6 +38,7 @@
     "next-swagger-doc": "^0.2.1",
     "next-transpile-modules": "^9.0.0",
     "next-validations": "^0.1.11",
+    "nextjs-cors": "^2.1.1",
     "typescript": "^4.6.3"
   }
 }

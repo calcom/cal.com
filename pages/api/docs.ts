@@ -2,6 +2,9 @@ import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
 import { withSwagger } from "next-swagger-doc";
 
+import { withCors } from "@lib/helpers/withCors";
+import { withMiddleware } from "@lib/helpers/withMiddleware";
+
 const swaggerHandler = withSwagger({
   definition: {
     openapi: "3.0.0",
@@ -16,4 +19,4 @@ const swaggerHandler = withSwagger({
   tags: ["users", "teams", "memeberships"],
   sort: true,
 });
-export default swaggerHandler();
+export default withMiddleware(withCors)(swaggerHandler());
