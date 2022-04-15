@@ -19,7 +19,7 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
       {data &&
         isSuccess &&
         !isLoading &&
-        data?.other?.items.find((item: { type: string }) => item.type === "wipe_my_cal_other") && (
+        data?.other?.items.find((item: { type: string }) => item.type === "wipemycal_other") && (
           <>
             <ConfirmDialog trpc={trpc} isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
             <Button onClick={() => setOpenDialog(true)}>Wipe Today</Button>
