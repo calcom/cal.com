@@ -2,8 +2,6 @@ import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
 import { withSwagger } from "next-swagger-doc";
 
-import { withCorsMiddleware } from "@lib/helpers/withCorsMiddleware";
-
 const swaggerHandler = withSwagger({
   definition: {
     openapi: "3.0.0",
