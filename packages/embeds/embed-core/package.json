@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-core",
-  "version": "0.1.0",
-  "description": "The core script adds the booking embed",
+  "version": "1.0.0",
+  "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./index.ts",
   "scripts": {
     "build": "vite build",
