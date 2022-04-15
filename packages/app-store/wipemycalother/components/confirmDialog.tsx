@@ -82,18 +82,12 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <DialogClose asChild>
-          <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-            <XIcon className="w-4" />
-          </div>
-        </DialogClose>
-        <div style={{ display: "flex", flexDirection: "row" }}>
+        <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
           </div>
-          <div className="px-4 pt-1">
+          <div className="pt-1">
             <DialogHeader title={"Wipe My Calendar"} />
-
             <p className="mt-2 text-sm text-gray-500">
               This will cancel all upcoming meetings from: <br />{" "}
               <strong className="text-black">
@@ -101,28 +95,28 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
               </strong>
             </p>
             <p className="mt-6 mb-2 text-sm font-bold text-black">Are you sure? This can&apos;t be undone</p>
-
-            <DialogFooter>
-              <DialogClose>
-                <Button color="secondary">{t("cancel")}</Button>
-              </DialogClose>
-              <Button
-                data-testid="send_request"
-                disabled={isLoading}
-                onClick={async () => {
-                  try {
-                    rescheduleApi.mutate();
-                  } catch (error) {
-                    if (error instanceof Error) {
-                      logger.error(error.message);
-                    }
-                  }
-                }}>
-                Confirm
-              </Button>
-            </DialogFooter>
           </div>
         </div>
+
+        <DialogFooter>
+          <DialogClose>
+            <Button color="secondary">{t("cancel")}</Button>
+          </DialogClose>
+          <Button
+            data-testid="send_request"
+            disabled={isLoading}
+            onClick={async () => {
+              try {
+                rescheduleApi.mutate();
+              } catch (error) {
+                if (error instanceof Error) {
+                  logger.error(error.message);
+                }
+              }
+            }}>
+            {t("confirm")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

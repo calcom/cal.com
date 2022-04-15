@@ -87,7 +87,7 @@ function BookingListItem(booking: BookingItem) {
       actions: [
         {
           id: "edit",
-          label: t("reschedule_booking"),
+          label: t("edit_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
