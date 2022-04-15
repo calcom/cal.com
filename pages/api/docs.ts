@@ -3,7 +3,7 @@ import pjson from "@/package.json";
 import { withSwagger } from "next-swagger-doc";
 
 import { withCors } from "@lib/helpers/withCors";
-import { withMiddleware } from "@lib/helpers/withMiddleware";
+import { withCorsMiddleware } from "@lib/helpers/withCorsMiddleware";
 
 const swaggerHandler = withSwagger({
   definition: {
@@ -19,4 +19,4 @@ const swaggerHandler = withSwagger({
   tags: ["users", "teams", "memeberships"],
   sort: true,
 });
-export default withMiddleware(withCors)(swaggerHandler());
+export default withCorsMiddleware()(swaggerHandler());
