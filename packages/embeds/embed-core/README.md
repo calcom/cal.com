@@ -60,6 +60,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Changes in Non Embed
     - Right now border has been changed to border-md instead of border-sm to make the popup look cleaner. It seems okay to me to have the same in non embed as well. But if requirement comes it can be done.[Needs Review by Team]
   - Transparent support is not properly done for team links
+  - Maybe don't set border radius in inline mode or give option to configure border radius.
 
 - Branding
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.
