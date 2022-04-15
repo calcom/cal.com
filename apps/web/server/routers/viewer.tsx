@@ -576,7 +576,6 @@ const loggedInViewerRouter = createProtectedRouter()
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant === "other" ? [item] : []));
       return {
         conferencing: {
           items: conferencing,
