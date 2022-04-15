@@ -6,7 +6,7 @@ const withNextra = require("nextra")({
 module.exports = withNextra({
   async rewrites() {
     return [
-      // This redirects requests recieved at / the root to the /api/ folder.
+      // This redirects requests recieved at /api to /public-api to workaround nextjs default use of /api.
       {
         source: "/api",
         destination: "/public-api",
