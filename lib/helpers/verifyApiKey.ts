@@ -13,12 +13,11 @@ const today = new Date();
 
 // This verifies the API key and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
-  const pathIsDocs = req.url?.startsWith("/docs");
-  if (pathIsDocs) await next();
-  else if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
+  if (!req.query.apiKey) res.status(401).json({ message: "No API key provided" });
 
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
   const hashedKey = hashAPIKey(strippedApiKey);
+
   await prisma.apiKey
     .findUnique({ where: { hashedKey } })
     .then(async (apiKey) => {
