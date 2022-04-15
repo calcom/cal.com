@@ -111,7 +111,6 @@ export default class EventManager {
   constructor(user: EventManagerUser) {
     const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
-    console.log({ calendarCredentials: this.calendarCredentials });
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
 
