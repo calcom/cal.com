@@ -13,6 +13,7 @@ test.describe.serial("Stripe integration", () => {
   test.afterAll(() => {
     teardown.deleteAllPaymentsByEmail("pro@example.com");
     teardown.deleteAllBookingsByEmail("pro@example.com");
+    teardown.deleteAllPaymentCredentialsByEmail("pro@example.com");
   });
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
