@@ -55,43 +55,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Carry out logic here to determine what to do if sleep is less
       // than 8 hours or readiness score is less than 70
       try {
-        // Getting total hours of sleep seconds/60/60 = hours
-        const minimumSleepTime = 5;
-        const totalHoursSleep = event.data.duration / 60 / 60;
-        if (totalHoursSleep < minimumSleepTime) {
-          // Trigger reschedule
-          try {
-            const todayDate = dayjs();
-            const todayBookings = await prisma.booking.findMany({
-              where: {
-                startTime: {
-                  gte: todayDate.startOf("day").toISOString(),
-                },
-                endTime: {
-                  lte: todayDate.endOf("day").toISOString(),
-                },
-                status: {
-                  in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
-                },
+        if (event.data.user_id) {
+          const json = { userVitalId: event.data.user_id as string };
+          const credential = await prisma.credential.findFirst({
+            rejectOnNotFound: true,
+            where: {
+              type: "vital_other",
+              key: {
+                equals: json,
               },
-              select: {
-                id: true,
-                uid: true,
-                status: true,
-              },
-            });
-            // const [booking] = todayBookings;
-            const q = queue({ results: [] });
-            if (todayBookings.length > 0) {
-              todayBookings.forEach((booking) =>
-                q.push(() => {
-                  return Reschedule(booking.uid, "Can't do it");
-                })
-              );
+            },
+          });
+          if (!credential) {
+            return res.status(404);
+          }
+
+          // Getting total hours of sleep seconds/60/60 = hours
+          const minimumSleepTime = 5;
+          const totalHoursSleep = event.data.duration / 60 / 60;
+          if (totalHoursSleep < minimumSleepTime) {
+            // Trigger reschedule
+            try {
+              const todayDate = dayjs();
+              const todayBookings = await prisma.booking.findMany({
+                where: {
+                  startTime: {
+                    gte: todayDate.startOf("day").toISOString(),
+                  },
+                  endTime: {
+                    lte: todayDate.endOf("day").toISOString(),
+                  },
+                  status: {
+                    in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+                  },
+                  // @NOTE: very important filter
+                  userId: credential?.userId,
+                },
+                select: {
+                  id: true,
+                  uid: true,
+                  userId: true,
+                  status: true,
+                },
+              });
+
+              const q = queue({ results: [] });
+              if (todayBookings.length > 0) {
+                todayBookings.forEach((booking) =>
+                  q.push(() => {
+                    return Reschedule(booking.uid, "");
+                  })
+                );
+              }
+              await q.start();
+            } catch (error) {
+              throw new Error("Failed to reschedule bookings");
             }
-            await q.start();
-          } catch (error) {
-            throw new Error("Failed to reschedule bookings");
           }
         }
       } catch (error) {
