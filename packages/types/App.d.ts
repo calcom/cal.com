@@ -29,7 +29,7 @@ export interface App {
   /** The icon to display in /apps/installed */
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing";
+  variant: "calendar" | "payment" | "conferencing" | "other";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */

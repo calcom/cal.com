@@ -1,7 +1,5 @@
 # cal-react
 
-Makes the embed available as a React component.
+Embed Cal Link as a React Component
 
-To add the embed on a webpage built using React. Follow the steps
-
-See docs.cal.com/integrations/embed
+To know how to use it, follow the steps at <https://docs.cal.com/integrations/embed>
