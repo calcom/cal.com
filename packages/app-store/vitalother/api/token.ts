@@ -1,7 +1,9 @@
+import { Prisma } from "@prisma/client";
 import { VitalClient } from "@tryvital/vital-node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
 const client = new VitalClient({
   client_id: process.env.VITAL_CLIENT_ID || "",
@@ -17,21 +19,31 @@ const client = new VitalClient({
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Get user id
-  const client_user_id = req.session?.user?.id;
-  if (!client_user_id) {
+  const calcomUserId = req.session?.user?.id;
+  if (!calcomUserId) {
     res.status(400).json({ error: "No user id" });
   }
 
-  // Create a user
-  let user;
+  // Create a user on vital
+  let userVital;
   try {
-    user = await client.User.create(`cal_${client_user_id}`);
+    userVital = await client.User.create(`cal_${calcomUserId}`);
   } catch (e) {
-    user = await client.User.resolve(`cal_${client_user_id}`);
+    userVital = await client.User.resolve(`cal_${calcomUserId}`);
   }
+
   try {
+    if (userVital && userVital?.user_id) {
+      await prisma.credential.create({
+        data: {
+          type: "vital_other",
+          key: { userVitalId: userVital?.user_id } as unknown as Prisma.InputJsonObject,
+          userId: req.session?.user.id,
+        },
+      });
+    }
     const token = await client.Link.create(
-      user?.user_id,
+      userVital?.user_id,
       undefined,
       WEBAPP_URL + "/api/integrations/vitalother/callback"
     );

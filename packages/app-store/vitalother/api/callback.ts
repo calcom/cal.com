@@ -10,14 +10,32 @@ import prisma from "@calcom/prisma";
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const data = { vital_connected: true };
-    await prisma.credential.create({
+    const userWithMetadata = await prisma.user.findFirst({
+      where: {
+        id: req?.session?.user.id,
+      },
+      select: {
+        id: true,
+        metadata: true,
+      },
+    });
+
+    await prisma.user.update({
+      where: {
+        id: req?.session?.user.id,
+      },
       data: {
-        type: "vital_other",
-        key: data as unknown as Prisma.InputJsonObject,
-        userId: req.session?.user.id,
+        metadata: {
+          ...(userWithMetadata?.metadata as Prisma.JsonObject),
+          vitalSettings: {
+            ...(userWithMetadata?.metadata as Prisma.JsonObject),
+            connected: true,
+          },
+        },
       },
     });
     return res.redirect("/apps/installed");
-  } catch (e) {}
+  } catch (e) {
+    return res.status(500);
+  }
 }

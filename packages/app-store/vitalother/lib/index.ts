@@ -1,1 +1,1 @@
-export { default as VideoApiAdapter } from "./VideoApiAdapter";
+export { default as Reschedule } from "./reschedule";
