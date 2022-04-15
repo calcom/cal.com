@@ -112,7 +112,7 @@ export default function App({
           </div>
 
           <div className="justify-between px-4 py-10 md:flex">
-            <div className="prose-sm prose">{body}</div>
+            <div className="prose-sm prose mb-6">{body}</div>
             <div className="md:max-w-80 flex-1 md:ml-8">
               <h4 className="font-medium text-gray-900 ">{t("categories")}</h4>
               <div className="space-x-2">
