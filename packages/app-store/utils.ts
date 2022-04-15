@@ -3,11 +3,13 @@ import { TFunction } from "next-i18next";
 
 import type { App } from "@calcom/types/App";
 
-import appStore from ".";
 import { LocationType } from "./locations";
+// If you import this file on any app it should produce circular dependency
+// import appStore from "./index";
+import { appStoreMetadata } from "./metadata";
 
-const ALL_APPS_MAP = Object.keys(appStore).reduce((store, key) => {
-  store[key] = appStore[key as keyof typeof appStore].metadata;
+const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
+  store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
   return store;
 }, {} as Record<string, App>);
 
