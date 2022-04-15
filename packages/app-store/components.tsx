@@ -19,6 +19,7 @@ export const InstallAppButtonMap = {
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
+  wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
@@ -36,6 +37,7 @@ export const InstallAppButton = (
       <InstallAppButtonComponent
         render={() => (
           <Button
+            data-testid="install-app-button"
             color="primary"
             href={`${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`}>
             {t("install_app")}

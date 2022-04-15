@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedStyles } from "@calcom/embed-core";
+import { sdkActionManager, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
 import defaultEvents, {
   getDynamicEventDescription,
   getUsernameList,
@@ -20,6 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -107,6 +108,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
+  const isEmbed = useIsEmbed();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(telemetryEventTypes.pageView, collectPageParameters("/[user]"))
+    );
+  }, [telemetry]);
   return (
     <>
       <Theme />
@@ -119,7 +128,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
-      <div className="h-screen dark:bg-neutral-900">
+      <div className={"h-screen dark:bg-neutral-900" + isEmbed ? " bg:white m-auto max-w-3xl" : ""}>
         <main className="mx-auto max-w-3xl px-4 py-24">
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">

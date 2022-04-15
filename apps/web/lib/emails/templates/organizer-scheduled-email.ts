@@ -175,6 +175,7 @@ ${getRichDescription(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
@@ -287,11 +288,24 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getAdditionalNotes(): string {
-    if (!this.calEvent.description) return "";
+    if (!this.calEvent.additionalNotes) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.organizer.language.translate("additional_notes")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.additionalNotes
+      }</p>
+    </div>
+    `;
+  }
+
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
         this.calEvent.description
       }</p>
