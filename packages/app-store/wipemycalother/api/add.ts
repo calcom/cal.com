@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
-  const appType = "wipe_my_cal_other";
+  const appType = "wipemycal_other";
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
