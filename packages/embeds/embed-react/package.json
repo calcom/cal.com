@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-react",
-  "version": "0.1.0",
-  "description": "Embed Cal Booking anywhere",
+  "version": "1.0.0",
+  "description": "Embed Cal Link as a React Component",
   "scripts": {
     "dev": "vite --port=3003 --open",
     "build": "vite build",
@@ -10,6 +10,9 @@
     "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src"
   },
   "main": "src/Cal.tsx",
+  "dependencies": {
+    "@calcom/embed-snippet": "^1.0.0"
+  },
   "devDependencies": {
     "vite": "^2.8.6",
     "eslint": "^8.10.0"
