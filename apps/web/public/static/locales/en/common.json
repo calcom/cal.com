@@ -581,6 +581,8 @@
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
   "opt_in_booking": "Opt-in Booking",
   "opt_in_booking_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
+  "recurring_event": "Recurring Event",
+  "recurring_event_description": "Users can subscribe for recurring events",
   "disable_guests": "Disable Guests",
   "disable_guests_description": "Disable adding additional guests while booking.",
   "invitees_can_schedule": "Invitees can schedule",

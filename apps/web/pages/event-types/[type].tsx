@@ -1313,6 +1313,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <Controller
+                          name="recurringEvent"
+                          control={formMethods.control}
+                          defaultValue={eventType.recurringEvent}
+                          render={() => (
+                            <CheckboxField
+                              id="recurringEvent"
+                              name="recurringEvent"
+                              label={t("recurring_event")}
+                              description={t("recurring_event_description")}
+                              defaultChecked={eventType.recurringEvent}
+                              onChange={(e) => {
+                                formMethods.setValue("recurringEvent", e?.target.checked);
+                              }}
+                            />
+                          )}
+                        />
+
+                        <Controller
                           name="disableGuests"
                           control={formMethods.control}
                           defaultValue={eventType.disableGuests}
