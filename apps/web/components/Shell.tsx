@@ -1,25 +1,23 @@
 import { SelectorIcon } from "@heroicons/react/outline";
 import {
-  ArrowLeftIcon,
   CalendarIcon,
   ClockIcon,
   CogIcon,
   ExternalLinkIcon,
   LinkIcon,
   LogoutIcon,
-  MapIcon,
-  MoonIcon,
   ViewGridIcon,
+  MoonIcon,
+  MapIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/solid";
-import { SessionContextValue, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
-import { useIsEmbed } from "@calcom/embed-core";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -32,14 +30,16 @@ import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
 import classNames from "@lib/classNames";
-import { WEBAPP_URL } from "@lib/config/constants";
+import { NEXT_PUBLIC_BASE_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
@@ -55,13 +55,13 @@ export function useMeQuery() {
   return meQuery;
 }
 
-function useRedirectToLoginIfUnauthenticated(isPublic = false) {
+function useRedirectToLoginIfUnauthenticated() {
   const { data: session, status } = useSession();
   const loading = status === "loading";
   const router = useRouter();
 
   useEffect(() => {
-    if (isPublic) {
+    if (router.pathname.startsWith("/apps")) {
       return;
     }
 
@@ -69,12 +69,12 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       router.replace({
         pathname: "/auth/login",
         query: {
-          callbackUrl: `${WEBAPP_URL}/${location.pathname}${location.search}`,
+          callbackUrl: `${NEXT_PUBLIC_BASE_URL}/${location.pathname}${location.search}`,
         },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, session, isPublic]);
+  }, [loading, session]);
 
   return {
     loading: loading && !session,
@@ -121,14 +121,25 @@ export function ShellSubHeading(props: {
   );
 }
 
-const Layout = ({
-  status,
-  plan,
-  ...props
-}: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan }) => {
-  const isEmbed = useIsEmbed();
-  const router = useRouter();
+export default function Shell(props: {
+  centered?: boolean;
+  title?: string;
+  heading?: ReactNode;
+  subtitle?: ReactNode;
+  children: ReactNode;
+  CTA?: ReactNode;
+  large?: boolean;
+  HeadingLeftIcon?: ReactNode;
+  backPath?: string; // renders back button to specified path
+  // use when content needs to expand with flex
+  flexChildrenContainer?: boolean;
+}) {
   const { t } = useLocale();
+  const router = useRouter();
+  const { loading, session } = useRedirectToLoginIfUnauthenticated();
+  const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
+  const telemetry = useTelemetry();
+
   const navigation = [
     {
       name: t("event_types_page_title"),
@@ -173,10 +184,35 @@ const Layout = ({
       current: router.asPath.startsWith("/settings"),
     },
   ];
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) => {
+      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
+    });
+  }, [telemetry, router.asPath]);
+
   const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+
+  const query = useMeQuery();
+  const user = query.data;
+
+  const i18n = useViewerI18n();
+  const { status } = useSession();
+
+  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
+    // show spinner whilst i18n is loading to avoid language flicker
+    return (
+      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!session) return null;
 
   return (
     <>
+      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
       <HeadSeo
         title={pageTitle ?? "Cal.com"}
         description={props.subtitle ? props.subtitle?.toString() : ""}
@@ -193,7 +229,7 @@ const Layout = ({
         className={classNames("flex h-screen overflow-hidden", props.large ? "bg-white" : "bg-gray-100")}
         data-testid="dashboard-shell">
         {status === "authenticated" && (
-          <div style={isEmbed ? { display: "none" } : {}} className="hidden md:flex lg:flex-shrink-0">
+          <div className="hidden md:flex lg:flex-shrink-0">
             <div className="flex w-14 flex-col lg:w-56">
               <div className="flex h-0 flex-1 flex-col border-r border-gray-200 bg-white">
                 <div className="flex flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -266,8 +302,8 @@ const Layout = ({
                 <small style={{ fontSize: "0.5rem" }} className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
                   &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
                   {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-                  <span className="lowercase" data-testid={`plan-${plan?.toLowerCase()}`}>
-                    -{plan}
+                  <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
+                    -{user && user.plan}
                   </span>
                 </small>
               </div>
@@ -284,9 +320,7 @@ const Layout = ({
             )}>
             {/* show top navigation for md and smaller (tablet and phones) */}
             {status === "authenticated" && (
-              <nav
-                style={isEmbed ? { display: "none" } : {}}
-                className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
+              <nav className="flex items-center justify-between border-b border-gray-200 bg-white p-4 md:hidden">
                 <Link href="/event-types">
                   <a>
                     <Logo />
@@ -311,6 +345,7 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
+              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button
@@ -346,9 +381,7 @@ const Layout = ({
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
-                <nav
-                  style={isEmbed ? { display: "none" } : {}}
-                  className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
+                <nav className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
                   {navigation.flatMap((item, itemIdx) =>
                     item.href === "/settings/profile" ? (
@@ -384,60 +417,6 @@ const Layout = ({
           </main>
         </div>
       </div>
-    </>
-  );
-};
-
-const MemoizedLayout = React.memo(Layout);
-
-type LayoutProps = {
-  centered?: boolean;
-  title?: string;
-  heading?: ReactNode;
-  subtitle?: ReactNode;
-  children: ReactNode;
-  CTA?: ReactNode;
-  large?: boolean;
-  HeadingLeftIcon?: ReactNode;
-  backPath?: string; // renders back button to specified path
-  // use when content needs to expand with flex
-  flexChildrenContainer?: boolean;
-  isPublic?: boolean;
-};
-
-export default function Shell(props: LayoutProps) {
-  const router = useRouter();
-  const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const telemetry = useTelemetry();
-
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
-    });
-  }, [telemetry, router.asPath]);
-
-  const query = useMeQuery();
-  const user = query.data;
-
-  const i18n = useViewerI18n();
-  const { status } = useSession();
-
-  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
-    // show spinner whilst i18n is loading to avoid language flicker
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (!session && !props.isPublic) return null;
-
-  return (
-    <>
-      <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <MemoizedLayout plan={user?.plan} status={status} {...props} />
     </>
   );
 }

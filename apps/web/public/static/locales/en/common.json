@@ -736,5 +736,9 @@
   "send_reschedule_request": "Send reschedule request",
   "edit_booking": "Edit booking",
   "reschedule_booking": "Reschedule booking",
-  "former_time": "Former time"
+  "former_time": "Former time",
+  "impersonate":"Impersonate",
+  "impersonate_user_tip":"All uses of this features is audited.",
+  "impersonating_user_warning":"You are currently impersonating {{user}}.",
+  "impersonating_stop_instructions": "To stop impersonating <1>Click Here</1>."
 }

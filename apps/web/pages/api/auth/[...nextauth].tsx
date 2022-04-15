@@ -1,11 +1,13 @@
 import { IdentityProvider } from "@prisma/client";
-import NextAuth, { Session } from "next-auth";
+import NextAuth, { getServerSession, Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { UserPermissionRole } from "@calcom/prisma/client";
+import ImpersonationProvider from "@ee/lib/impersonation/ImpersonationProvider";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -90,9 +92,11 @@ const providers: Provider[] = [
         username: user.username,
         email: user.email,
         name: user.name,
+        role: user.role,
       };
     },
   }),
+  ImpersonationProvider,
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
@@ -169,6 +173,8 @@ export default NextAuth({
             username: existingUser.username,
             name: existingUser.name,
             email: existingUser.email,
+            role: existingUser.role,
+            impersonatedByUID: token?.impersonatedByUID as number,
           };
         }
 
@@ -185,6 +191,8 @@ export default NextAuth({
           name: user.name,
           username: user.username,
           email: user.email,
+          role: user.role,
+          impersonatedByUID: user?.impersonatedByUID as number,
         };
       }
 
@@ -218,6 +226,8 @@ export default NextAuth({
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
+          role: existingUser.role,
+          impersonatedByUID: token.impersonatedByUID as number,
         };
       }
 
@@ -231,6 +241,8 @@ export default NextAuth({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          role: token.role as UserPermissionRole,
+          impersonatedByUID: token.impersonatedByUID as number,
         },
       };
       return calendsoSession;
