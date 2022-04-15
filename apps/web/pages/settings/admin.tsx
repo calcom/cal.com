@@ -20,17 +20,12 @@ import Shell from "@components/Shell";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 function AdminView(props: ComponentProps<typeof Admin> & { localeProp: string }) {
-  const utils = trpc.useContext();
   const { t } = useLocale();
 
   const usernameRef = useRef<HTMLInputElement>(null!);
 
-  const [hasErrors, setHasErrors] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
   return (
     <div className="divide-y divide-gray-200 lg:col-span-9">
-      {hasErrors && <Alert severity="error" title={errorMessage} />}
       <div className="py-6 lg:pb-8">
         <form
           className="mb-6 w-full sm:w-1/2"

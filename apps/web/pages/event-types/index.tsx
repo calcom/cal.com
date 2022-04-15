@@ -492,7 +492,6 @@ const EventTypesPage = () => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.eventTypes"]);
   const session = useSession();
-  console.log(session.data?.user);
   return (
     <div>
       <Head>
