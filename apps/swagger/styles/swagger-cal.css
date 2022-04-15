@@ -4,7 +4,6 @@
   background: black;
   color: white;
   border: none;
-  /* text-transform: uppercase; */
 }
 .model .model-title {
   background: black;
@@ -12,7 +11,6 @@
   font-size: 1.5em;
   font-weight: bold;
   text-align: center;
-  /* margin-bottom: 20px; */
 }
 .models-control {
   border-radius: 0;
@@ -185,7 +183,15 @@
   font-family: "Cal Sans", sans-serif;
   color: #fff;
 }
-
+@media only screen and (max-width: 600px) {
+.swagger-ui .opblock .opblock-summary-method {
+  margin-right: -5px;
+}
+.swagger-ui .opblock .opblock-summary-path,
+.swagger-ui .opblock .opblock-summary-path__deprecated {
+  margin-top: 20px;
+}
+}
 .swagger-ui .opblock .opblock-summary-path,
 .swagger-ui .opblock .opblock-summary-path__deprecated {
   font-size: 22px;
@@ -233,7 +239,12 @@
   color: #ffffff;
   text-transform: lowercase;
 }
-
+@media only screen and (max-width: 600px) {
+  .swagger-ui .opblock .opblock-summary-description {
+    margin: auto;
+    margin-top: 10px;
+}
+}
 .swagger-ui .opblock .opblock-summary {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -759,7 +770,11 @@
   color: white;
   border: none;
 }
-
+@media only screen and (max-width: 600px) {
+.swagger-ui button {
+  display: grid;
+}
+}
 .swagger-ui select {
   font-size: 14px;
   font-weight: 700;
