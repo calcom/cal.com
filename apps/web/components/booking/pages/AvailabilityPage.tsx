@@ -120,7 +120,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       {
         query: {
           ...router.query,
-          date: newDate.format("YYYY-MM-DDZZ"),
+          date: newDate.tz(timeZone(), true).format("YYYY-MM-DDZZ"),
         },
       },
       undefined,
