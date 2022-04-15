@@ -51,7 +51,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
   const initialDate = today.startOf("day");
   const endDate = today.endOf("day");
   const dateFormat = "ddd, MMM D, YYYY h:mm A";
-  console.log({ props });
+
   const utils = trpc.useContext();
 
   const rescheduleApi = useMutation(
