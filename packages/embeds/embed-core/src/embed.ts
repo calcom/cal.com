@@ -249,7 +249,7 @@ export class Cal {
       },
     });
     const template = document.createElement("template");
-    template.innerHTML = `<cal-floating-button data-cal-namespace=${this.namespace} data-cal-link=${calLink}></cal-floating-button>`;
+    template.innerHTML = `<cal-floating-button data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
     document.body.appendChild(template.content);
   }
 
