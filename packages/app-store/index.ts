@@ -11,6 +11,7 @@ import * as office365video from "./office365video";
 import * as slackmessaging from "./slackmessaging";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
+import * as wipemycalother from "./wipemycalother";
 import * as zoomvideo from "./zoomvideo";
 import * as vital from "./vital";
 
@@ -29,6 +30,7 @@ const appStore = {
   stripepayment,
   tandemvideo,
   zoomvideo,
+  wipemycalother,
   vital
 };
 

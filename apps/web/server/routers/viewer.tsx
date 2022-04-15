@@ -393,6 +393,7 @@ const loggedInViewerRouter = createProtectedRouter()
               id: true,
             },
           },
+          rescheduled: true,
         },
         orderBy,
         take: take + 1,
@@ -574,7 +575,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-
+      const other = apps.flatMap((item) => (item.variant === "other" ? [item] : []));
       return {
         conferencing: {
           items: conferencing,
@@ -587,6 +588,10 @@ const loggedInViewerRouter = createProtectedRouter()
         payment: {
           items: payment,
           numActive: countActive(payment),
+        },
+        other: {
+          items: other,
+          numActive: countActive(other),
         },
       };
     },
