@@ -722,5 +722,7 @@
   "duplicate": "Duplicate",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
   "impersonate":"Impersonate",
-  "impersonate_user_tip":"All uses of this features is audited."
+  "impersonate_user_tip":"All uses of this features is audited.",
+  "impersonating_user_warning":"You are currently impersonating {{user}}.",
+  "impersonating_stop_instructions": "To stop impersonating <1>Click Here</1>."
 }

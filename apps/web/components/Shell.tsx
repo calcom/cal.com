@@ -15,8 +15,9 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -38,6 +39,7 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
@@ -136,7 +138,6 @@ export default function Shell(props: {
   const router = useRouter();
   const { loading, session } = useRedirectToLoginIfUnauthenticated();
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-
   const telemetry = useTelemetry();
 
   const navigation = [
@@ -344,6 +345,7 @@ export default function Shell(props: {
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
+              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button

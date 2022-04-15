@@ -196,6 +196,7 @@ export default NextAuth({
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
+      console.log({ token });
       const autoMergeIdentities = async () => {
         if (!hostedCal) {
           const existingUser = await prisma.user.findFirst({
@@ -212,7 +213,7 @@ export default NextAuth({
             name: existingUser.name,
             email: existingUser.email,
             role: existingUser.role,
-            impersonatedByUID: token?.impersonatedByUID,
+            impersonatedByUID: token?.impersonatedByUID as number,
           };
         }
 
@@ -230,7 +231,7 @@ export default NextAuth({
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: token?.impersonatedByUID,
+          impersonatedByUID: user?.impersonatedByUID as number,
         };
       }
 
@@ -265,7 +266,7 @@ export default NextAuth({
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
-          impersonatedByUID: token.impersonatedByUID,
+          impersonatedByUID: token.impersonatedByUID as number,
         };
       }
 
@@ -280,10 +281,9 @@ export default NextAuth({
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
-          impersonatedByUID: token.impersonatedByUID as string,
+          impersonatedByUID: token.impersonatedByUID as number,
         },
       };
-      console.log({ token });
       return calendsoSession;
     },
     async signIn({ user, account, profile }) {

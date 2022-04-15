@@ -6,7 +6,7 @@ declare module "next-auth" {
   type CalendsoSessionUser = DefaultSessionUser & {
     id: number;
     username: string;
-    impersonatedByUID?: string;
+    impersonatedByUID?: number;
     role: UserPermissionRole;
   };
   /**
