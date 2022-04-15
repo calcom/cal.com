@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -178,6 +179,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
+  let booking: GetBookingType | null = null;
+
   const profile = {
     name: user.name || user.username,
     image: user.avatar,
@@ -198,6 +201,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };

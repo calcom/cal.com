@@ -51,6 +51,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     userId: true,
     users: {
       select: {
+        id: true,
         username: true,
         name: true,
         email: true,
@@ -71,6 +72,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       users: {
         select: {
+          id: true,
           avatar: true,
           name: true,
           username: true,

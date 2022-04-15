@@ -279,19 +279,19 @@ model Schedule {
 }
 
 model Availability {
-  id                Int               @id @default(autoincrement())
-  user              User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?
-  eventType         EventType?        @relation(fields: [eventTypeId], references: [id])
-  eventTypeId       Int?
-  disposableLink    DisposableLink?   @relation(fields: [disposableLinkId], references: [id])
-  disposableLinkId  Int?
-  days              Int[]
-  startTime         DateTime          @db.Time
-  endTime           DateTime          @db.Time
-  date              DateTime?         @db.Date
-  Schedule          Schedule?         @relation(fields: [scheduleId], references: [id])
-  scheduleId        Int?
+  id               Int             @id @default(autoincrement())
+  user             User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int?
+  eventType        EventType?      @relation(fields: [eventTypeId], references: [id])
+  eventTypeId      Int?
+  disposableLink   DisposableLink? @relation(fields: [disposableLinkId], references: [id])
+  disposableLinkId Int?
+  days             Int[]
+  startTime        DateTime        @db.Time
+  endTime          DateTime        @db.Time
+  date             DateTime?       @db.Date
+  Schedule         Schedule?       @relation(fields: [scheduleId], references: [id])
+  scheduleId       Int?
 }
 
 model SelectedCalendar {
@@ -379,16 +379,16 @@ model Webhook {
 }
 
 model DisposableLink {
-  id                      Int                    @id @default(autoincrement())
-  link                    String
-  slug                    String
-  users                   User[]                 @relation("disposable_user")
-  userId                  Int?
-  eventType               EventType              @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId             Int
-  availability            Availability[]
-  timeZone                String?
-  expired                 Boolean                @default(false)
+  id           Int            @id @default(autoincrement())
+  link         String
+  slug         String
+  users        User[]         @relation("disposable_user")
+  userId       Int?
+  eventType    EventType      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId  Int
+  availability Availability[]
+  timeZone     String?
+  expired      Boolean        @default(false)
 
   @@unique([link, slug])
 }
