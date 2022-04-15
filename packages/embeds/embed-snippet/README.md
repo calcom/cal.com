@@ -1,6 +1,6 @@
 # embed-snippet
 
-This is the code snippet that is to be installed by the user on his website.
+Vanilla JS embed snippet that is responsible to fetch @calcom/embed-core and thus show Cal Link as an embed on a page.
 
 ## Development
 
