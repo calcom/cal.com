@@ -23,7 +23,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   let result = false;
   try {
-    console.log("try");
     const { initialDate, endDate } = req.body;
 
     const todayBookings = await prisma.booking.findMany({
@@ -37,6 +36,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
         },
+        userId: req.session.user.id,
       },
       select: {
         id: true,
@@ -44,25 +44,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         status: true,
       },
     });
-    // const [booking] = todayBookings;
+
     const q = queue({ results: [] });
     if (todayBookings.length > 0) {
       todayBookings.forEach((booking) =>
         q.push(() => {
-          return Reschedule(booking.uid, "Can't do it");
+          return Reschedule(booking.uid, "");
         })
       );
     }
-    const result = await q.start();
-    console.log({ result });
-    // result = !!(await Reschedule(booking.uid, "Can't do it"));
+    await q.start();
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });
     }
     return res.status(500);
   }
-  return res.status(200).json({ success: result });
+  return res.status(200).json({ success: true });
 };
 
 function validate(
