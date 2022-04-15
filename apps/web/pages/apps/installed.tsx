@@ -225,15 +225,15 @@ function IntegrationsContainer() {
           <ShellSubHeading
             className="mt-10"
             title={
-              <SubHeadingTitleWithConnections title={t("other")} numConnections={data.other.numActive} />
+              <SubHeadingTitleWithConnections title={"Others"} numConnections={data?.other?.numActive || 0} />
             }
           />
           <List>
             {data.other.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
-                title={item.title}
                 imageSrc={item.imageSrc}
+                title={item.title}
                 description={item.description}
                 actions={
                   <ConnectOrDisconnectIntegrationButton

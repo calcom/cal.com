@@ -50,7 +50,7 @@ export function getLocationOptions(integrations: AppMeta, t: TFunction) {
 }
 
 /**
- * This should get all avaialable apps to the user based on his saved
+ * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
 function getApps(userCredentials: CredentialData[]) {

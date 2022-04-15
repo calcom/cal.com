@@ -5,7 +5,7 @@
   "name": "@calcom/stripepayment",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Stripe is the world's leading payment provider. Start charging for your bookings today.",
+  "description": "A Saas company a payment processing software, and application programming interfaces for e-commerce websites and mobile applications.",
   "dependencies": {
     "@calcom/prisma": "*"
   },

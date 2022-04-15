@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "WipeMyCal",
+  "version": "0.1.0",
+  "main": "./index.ts",
+  "description": "Wipe My Cal is a Cal.com exclusive app that redefines what it looks like to reschedule multiple meetings at the same time. Simply install the app, and select ‘Wipe’ for whatever date you need to mass reschedule. Handle emergencies, unexpected sick days and last minute events with the simple click of a button.",
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "queue": "^6.0.2"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
