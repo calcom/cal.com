@@ -56,7 +56,6 @@ export default class OrganizerRequestRescheduledEmail extends BaseTemplate {
 
   // @OVERRIDE
   protected getiCalEventAsString(): string | undefined {
-    console.log("overriding");
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
