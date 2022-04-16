@@ -32,7 +32,10 @@ export default function APIDocs() {
       docExpansion="none"
       operationsSorter="method"
       filter={true}
-      url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "https://api.cal.com/api/docs"}
+      withCredentials={true}
+      persistAuthorization={true}
+      url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "http://localhost:3002/api/docs"}
+      // preauthorizeApiKey=""
     />
   );
 }
