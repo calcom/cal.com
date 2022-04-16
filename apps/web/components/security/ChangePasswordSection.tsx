@@ -56,11 +56,11 @@ const ChangePasswordSection = () => {
 
   return (
     <>
-      <div className="mt-6">
-        <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
-      </div>
       <form className="divide-y divide-gray-200 lg:col-span-9" onSubmit={changePasswordHandler}>
-        <div className="py-6 lg:pb-8">
+        <div className="py-6 lg:pb-5">
+          <div className="my-3">
+            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("change_password")}</h2>
+          </div>
           <div className="flex">
             <div className="w-1/2 ltr:mr-2 rtl:ml-2">
               <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
@@ -99,9 +99,10 @@ const ChangePasswordSection = () => {
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
           <div className="flex justify-end py-8">
-            <Button type="submit">{t("save")}</Button>
+            <Button color="secondary" type="submit">
+              {t("save")}
+            </Button>
           </div>
-          <hr className="mt-4" />
         </div>
       </form>
     </>
