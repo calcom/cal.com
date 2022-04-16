@@ -1,10 +1,11 @@
 import { IdentityProvider } from "@prisma/client";
 import React from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import ApiKeyListContainer from "@ee/components/apiKeys/ApiKeyListContainer";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { identityProviderNameMap } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
@@ -34,10 +35,11 @@ export default function Security() {
             </p>
           </>
         ) : (
-          <>
+          <div className="space-y-2 divide-y">
             <ChangePasswordSection />
+            <ApiKeyListContainer />
             <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled || false} />
-          </>
+          </div>
         )}
 
         <SAMLConfiguration teamsView={false} teamId={null} />
