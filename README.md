@@ -384,6 +384,19 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
+### Obtaining HubSpot Client ID and Secret
+
+1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
+2. From within the home of the Developer account page, go to "Manage apps".
+3. Click "Create app" button top right.
+4. Fill in any information you want in the "App info" tab
+5. Go to tab "Auth"
+6. Now copy the Client ID and Client Secret to your .env file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot othercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
+9. Click the "Save" button at the bottom footer.
+10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
+
 <!-- LICENSE -->
 
 ## License
