@@ -189,10 +189,8 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ### E2E-Testing
 
 ```sh
-# In first terminal. Must run on port 3000.
-yarn dx
-# In second terminal
-yarn workspace @calcom/web test-e2e
+# In a terminal. Just run:
+yarn test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report
@@ -206,7 +204,13 @@ yarn workspace @calcom/web playwright-report
    git pull
    ```
 
-2. Apply database migrations by running <b>one of</b> the following commands:
+1. Check if dependencies got added/updated/removed
+
+   ```sh
+   yarn
+   ```
+
+1. Apply database migrations by running <b>one of</b> the following commands:
 
    In a development environment, run:
 
@@ -222,16 +226,13 @@ yarn workspace @calcom/web playwright-report
    yarn workspace @calcom/prisma db-deploy
    ```
 
-3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
-   in your current `.env`, add them there.
+1. Check for `.env` variables changes
 
-   For the current version, especially check if the variable `BASE_URL` is present and properly set in your environment, for example:
+    ```sh
+    yarn predev
+    ```
 
-   ```
-   BASE_URL='https://yourdomain.com'
-   ```
-
-4. Start the server. In a development environment, just do:
+1. Start the server. In a development environment, just do:
 
    ```sh
    yarn dev
@@ -244,7 +245,7 @@ yarn workspace @calcom/web playwright-report
    yarn start
    ```
 
-5. Enjoy the new version.
+1. Enjoy the new version.
 <!-- DEPLOYMENT -->
 
 ## Deployment
