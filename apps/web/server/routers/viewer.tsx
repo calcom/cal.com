@@ -20,6 +20,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
@@ -851,4 +852,5 @@ export const viewerRouter = createRouter()
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
-  .merge("webhook.", webhookRouter);
+  .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter);
