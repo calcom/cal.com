@@ -107,6 +107,7 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
     calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
   }
 
+  // TODO: Surfice success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch((e) => {
         log.error("createEvent failed", e, calEvent);

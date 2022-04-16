@@ -12,7 +12,7 @@ export const getCalendar = (credential: Credential | null): Calendar | null => {
   const { type: calendarType } = credential;
   const calendarApp = appStore[calendarType.split("_").join("") as keyof typeof appStore];
   if (!(calendarApp && "lib" in calendarApp && "CalendarService" in calendarApp.lib)) {
-    log.warn(`calendar of type ${calendarType} does not implemented`);
+    log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
   const CalendarService = calendarApp.lib.CalendarService;
