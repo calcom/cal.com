@@ -574,8 +574,8 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant === "other" ? [item] : []));
       return {
         conferencing: {
           items: conferencing,
