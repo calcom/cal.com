@@ -34,7 +34,7 @@ export default function APIDocs() {
       filter={true}
       withCredentials={true}
       persistAuthorization={true}
-      url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "http://localhost:3002/api/docs"}
+      url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "https://api.cal.com/api/docs"}
       // preauthorizeApiKey=""
     />
   );
