@@ -102,13 +102,6 @@ Here is what you need to be able to run Cal.
    cd cal.com
    ```
 
-1. Copy `apps/web/.env.example` to `apps/web/.env`
-
-   ```sh
-   cp apps/web/.env.example apps/web/.env
-   cp packages/prisma/.env.example packages/prisma/.env
-   ```
-
 1. Install packages with yarn
 
    ```sh
@@ -126,10 +119,10 @@ yarn dx
 
 #### Development tip
 
-> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `apps/web/.env` to get logging information for all the queries and mutations driven by **trpc**.
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **trpc**.
 
 ```sh
-echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
+echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
 
 #### Manual setup
