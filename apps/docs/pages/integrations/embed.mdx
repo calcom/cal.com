@@ -8,8 +8,6 @@ The Embed allows your website visitors to book a meeting with you directly from 
 
 ## Install on any website
 
-TODO: Mention possibility of installation through tag managers as well
-
 - _Step-1._ Install the Vanilla JS Snippet
 
   ```javascript
@@ -46,7 +44,7 @@ TODO: Mention possibility of installation through tag managers as well
 - _Step-2_. Initialize it
 
   ```javascript
-  Cal("init)
+  Cal("init")
   ```
 
 ## Install with a Framework
@@ -65,7 +63,7 @@ You can use Vanilla JS Snippet to install
 
 ## Popular ways in which you can embed on your website
 
-Assuming that you have followed the steps of installing and initializing the snippet, you can add show the embed in following ways:
+Assuming that you have followed the steps of installing and initializing the snippet, you can show the embed in following ways:
 
 ### Inline
 
@@ -139,7 +137,6 @@ To show the embed as a popup on clicking an element, simply add `data-cal-link` 
 ````
 
 </details>
-### Full Screen
 
 ## Supported Instructions
 
@@ -180,7 +177,7 @@ Cal("preload", { calLink });
 - `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL [https://cal.com/john]()
 
 ## Actions
-You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term events to not confuse it with Cal Events.
+You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
 ```javascript
 Cal("on", {
   action: "ANY_ACTION_NAME",
@@ -195,7 +192,7 @@ Cal("on", {
 
 Following are the list of supported actions.
 - 
-| action               | description                                                                                                                        | properties                                                                                                                                                                                                                                                                             |
+| Action               | Description                                                                                                                        | Properties                                                                                                                                                                                                                                                                             |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | eventTypeSelected    | When user chooses an event-type from the listing.                                                                                  | eventType:object // Event Type that has been selected"                                                                                                                                                                                                                               |
 | bookingSuccessful    | When the booking is successfully done. It might not be confirmed.                                                                  | confirmed: boolean; //Whether confirmation from organizer is pending or not  <br/><br/>eventType: "Object for Event Type that has been booked";  <br/><br/>date: string; // Date of Event  <br/><br/>duration: number; //Duration of booked Event  <br/><br/>organizer: object //Organizer details like name, timezone, email  |
