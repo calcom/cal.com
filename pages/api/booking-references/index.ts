@@ -15,6 +15,8 @@ import {
  * /v1/booking-references:
  *   get:
  *     summary: Get all booking references
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - booking-references
  *     responses:
@@ -26,6 +28,8 @@ import {
  *         description: No booking references were found
  *   post:
  *     summary: Creates a new  booking reference
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - booking-references
  *     responses:

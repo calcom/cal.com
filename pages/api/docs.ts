@@ -13,7 +13,6 @@ const swaggerHandler = withSwagger({
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
       schemas: { ...jsonSchema.definitions },
     },
-    // definitions: jsonSchema.definitions,
   },
   apiFolder: "pages/api",
   tags: ["users", "teams", "memeberships"],

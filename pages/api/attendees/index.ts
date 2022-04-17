@@ -12,6 +12,8 @@ import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } fro
  * /v1/attendees:
  *   get:
  *     summary: Get all attendees
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - attendees
  *     responses:
@@ -23,6 +25,8 @@ import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } fro
  *         description: No attendees were found
  *   post:
  *     summary: Creates a new attendee
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - attendees
  *     responses:

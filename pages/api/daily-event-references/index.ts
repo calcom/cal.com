@@ -14,6 +14,8 @@ import {
  * /v1/daily-event-references:
  *   get:
  *     summary: Get all daily event reference
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - daily-event-reference
  *     responses:
@@ -25,6 +27,8 @@ import {
  *         description: No daily event references were found
  *   post:
  *     summary: Creates a new daily event reference
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - daily-event-reference
  *     responses:

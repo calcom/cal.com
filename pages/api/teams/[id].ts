@@ -23,6 +23,8 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the team to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
@@ -50,6 +52,8 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
@@ -69,6 +73,8 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:

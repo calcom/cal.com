@@ -22,6 +22,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the reminderMail to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - reminder-mails
  *     responses:
@@ -49,6 +51,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the reminderMail to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - reminder-mails
  *     responses:
@@ -68,6 +72,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the reminderMail to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - reminder-mails
  *     responses:

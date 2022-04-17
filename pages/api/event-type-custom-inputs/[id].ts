@@ -25,6 +25,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the eventTypeCustomInput to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -52,6 +54,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -71,6 +75,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-type-custom-inputs
  *     responses:

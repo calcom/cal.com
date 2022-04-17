@@ -23,6 +23,8 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the user to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:
@@ -50,6 +52,8 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:
@@ -69,6 +73,8 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:

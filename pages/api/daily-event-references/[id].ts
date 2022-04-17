@@ -25,6 +25,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the daily event reference to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -52,6 +54,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -71,6 +75,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - daily-event-references
  *     responses:

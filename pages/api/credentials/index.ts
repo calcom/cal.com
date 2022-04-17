@@ -12,6 +12,8 @@ import { schemaCredentialBodyParams, schemaCredentialPublic } from "@lib/validat
  * /api/credentials:
  *   get:
  *     summary: Get all credentials
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - credentials
  *     responses:
@@ -23,6 +25,8 @@ import { schemaCredentialBodyParams, schemaCredentialPublic } from "@lib/validat
  *         description: No credentials were found
  *   post:
  *     summary: Creates a new credential
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - credentials
  *     responses:

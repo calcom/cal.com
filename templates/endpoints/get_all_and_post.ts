@@ -11,6 +11,8 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  * /v1/payments:
  *   get:
  *     summary: Get all payments
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:
@@ -22,6 +24,8 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  *         description: No payments were found
  *   post:
  *     summary: Creates a new payment
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:

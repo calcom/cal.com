@@ -12,6 +12,8 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  * /v1/payments:
  *   get:
  *     summary: Get all payments
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:

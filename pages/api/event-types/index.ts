@@ -11,6 +11,8 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  * /v1/event-types:
  *   get:
  *     summary: Get all event types
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     responses:
@@ -22,6 +24,8 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *         description: No event types were found
  *   post:
  *     summary: Creates a new event type
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     responses:

@@ -23,6 +23,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the payment to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:
