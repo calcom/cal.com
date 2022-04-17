@@ -223,9 +223,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
               <div
                 className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
                 aria-hidden="true">
-                <span className="inline-block h-screen align-middle" aria-hidden="true">
-                  &#8203;
-                </span>
                 <div
                   className={classNames(
                     "inline-block transform overflow-hidden rounded-sm",

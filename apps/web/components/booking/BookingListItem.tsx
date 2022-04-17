@@ -87,11 +87,13 @@ function BookingListItem(booking: BookingItem) {
       actions: [
         {
           id: "edit",
+          icon: ClockIcon,
           label: t("edit_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
+          icon: ClockIcon,
           label: t("send_reschedule_request"),
           onClick: () => setIsOpenRescheduleDialog(true),
         },
