@@ -105,7 +105,7 @@ Here is what you need to be able to run Cal.
 1. Copy `apps/web/.env.example` to `apps/web/.env`
 
    ```sh
-   cp .env.example apps/web/.env
+   cp apps/web/.env.example apps/web/.env
    cp packages/prisma/.env.example packages/prisma/.env
    ```
 
