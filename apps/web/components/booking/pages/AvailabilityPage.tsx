@@ -182,18 +182,20 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   />
                   <div className="mt-4 sm:-mt-2">
                     <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="mt-2 flex gap-2 text-xl font-medium dark:text-gray-100">
-                      {eventType.title}
+                    <div className="mt-2  gap-2 dark:text-gray-100">
+                      <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+                        {eventType.title}
+                      </h1>
                       {eventType?.description && (
-                        <p className="mb-2 text-gray-600 dark:text-white">
+                        <p className="text-bookinglight mb-2 dark:text-white">
                           <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {eventType.description}
                         </p>
                       )}
-                      <div>
-                        <ClockIcon className="mr-[10px] -mt-1 inline-block h-4 w-4" />
+                      <p className="text-bookinglight mb-2 dark:text-white">
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
-                      </div>
+                      </p>
                       {eventType.price > 0 && (
                         <div className="text-gray-600 dark:text-white">
                           <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
@@ -206,12 +208,29 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           </IntlProvider>
                         </div>
                       )}
+                      <div className="md:hidden">
+                        {booking?.startTime && rescheduleUid && (
+                          <div>
+                            <p
+                              className="mt-8 mb-2 text-gray-600 dark:text-white"
+                              data-testid="former_time_p">
+                              {t("former_time")}
+                            </p>
+                            <p className="text-gray-500 line-through dark:text-white">
+                              <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                              {typeof booking.startTime === "string" &&
+                                parseDate(dayjs(booking.startTime), i18n)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
+                {/* Following div is marked hidden. Should we remove it ? */}
                 <div
                   className={
                     "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
@@ -239,12 +258,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     {eventType.title}
                   </h1>
                   {eventType?.description && (
-                    <p className="mb-2 text-gray-600 dark:text-white">
+                    <p className="text-bookinglight mb-2 dark:text-white">
                       <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {eventType.description}
                     </p>
                   )}
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                  <p className="text-bookinglight mb-2 dark:text-white">
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
@@ -273,7 +292,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
                   {booking?.startTime && rescheduleUid && (
                     <div>
-                      <p className="mt-8 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                      <p className="mt-4 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-white">
@@ -283,6 +302,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   )}
                 </div>
+
                 <DatePicker
                   date={selectedDate}
                   periodType={eventType?.periodType}
