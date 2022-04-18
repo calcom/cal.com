@@ -84,11 +84,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <div className="mt-1">
+              <div className="mt-1 self-center">
                 <AvatarGroup
                   border="border-2 border-white"
                   truncateAfter={4}
-                  className="flex-shrink-0"
+                  className="flex flex-shrink-0"
                   size={10}
                   items={props.users.map((user) => ({
                     alt: user.name || "",
