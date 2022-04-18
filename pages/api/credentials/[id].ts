@@ -23,6 +23,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the credential to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - credentials
  *     responses:
@@ -50,6 +52,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the credential to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - credentials
  *     responses:
@@ -69,6 +73,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the credential to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - credentials
  *     responses:

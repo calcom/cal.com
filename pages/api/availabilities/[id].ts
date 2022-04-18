@@ -23,6 +23,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the availability to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
  *     responses:
@@ -50,6 +52,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
  *     responses:
@@ -69,6 +73,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
  *     responses:

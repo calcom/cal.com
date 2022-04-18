@@ -21,6 +21,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - resources
  *     responses:

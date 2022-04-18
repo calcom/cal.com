@@ -15,6 +15,8 @@ import {
  * /v1/selected-calendars:
  *   get:
  *     summary: Get all selected calendars
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -26,6 +28,8 @@ import {
  *         description: No selected calendars were found
  *   post:
  *     summary: Creates a new selected calendar
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - selected-calendars
  *     responses:

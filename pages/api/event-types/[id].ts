@@ -22,6 +22,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the eventType to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     responses:
@@ -49,6 +51,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventType to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     responses:
@@ -68,6 +72,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventType to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     responses:

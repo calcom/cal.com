@@ -23,6 +23,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the booking to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - bookings
  *     responses:
@@ -50,6 +52,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - bookings
  *     responses:
@@ -69,6 +73,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - bookings
  *     responses:

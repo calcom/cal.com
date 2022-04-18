@@ -11,6 +11,8 @@ import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } fro
  * /v1/schedules:
  *   get:
  *     summary: Get all schedules
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - schedules
  *     responses:
@@ -22,6 +24,8 @@ import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } fro
  *         description: No schedules were found
  *   post:
  *     summary: Creates a new schedule
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - schedules
  *     responses:

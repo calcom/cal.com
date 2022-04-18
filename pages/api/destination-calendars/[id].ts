@@ -25,6 +25,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the destination calendar to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -52,6 +54,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the destination calendar to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -71,6 +75,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the destination calendar to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - destination-calendars
  *     responses:

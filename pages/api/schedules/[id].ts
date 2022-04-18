@@ -22,6 +22,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the schedule to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - schedules
  *     responses:
@@ -49,6 +51,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - schedules
  *     responses:
@@ -68,6 +72,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - schedules
  *     responses:

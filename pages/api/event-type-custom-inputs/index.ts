@@ -14,6 +14,8 @@ import {
  * /v1/event-type-custom-inputs:
  *   get:
  *     summary: Get all eventTypeCustomInputs
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -25,6 +27,8 @@ import {
  *         description: No eventTypeCustomInputs were found
  *   post:
  *     summary: Creates a new eventTypeCustomInput
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - event-type-custom-inputs
  *     responses:

@@ -23,6 +23,8 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the attendee to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - attendees
  *     responses:
@@ -50,6 +52,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the attendee to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - attendees
  *     responses:
@@ -69,6 +73,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the attendee to delete
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - attendees
  *     responses:

@@ -15,6 +15,8 @@ import {
  * /v1/reminder-mails:
  *   get:
  *     summary: Get all reminder mails
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - reminder-mails
  *     responses:
@@ -26,6 +28,8 @@ import {
  *         description: No reminder mails were found
  *   post:
  *     summary: Creates a new reminder mail
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - reminder-mails
  *     responses:

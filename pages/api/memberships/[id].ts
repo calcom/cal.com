@@ -25,6 +25,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - memberships
  *     responses:
@@ -58,6 +60,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - memberships
  *     responses:
@@ -83,6 +87,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - memberships
  *     responses:

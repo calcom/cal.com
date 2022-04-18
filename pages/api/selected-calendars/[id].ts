@@ -34,6 +34,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -73,6 +75,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -104,6 +108,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - selected-calendars
  *     responses:

@@ -12,6 +12,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  * /v1/availabilities:
  *   get:
  *     summary: Get all availabilities
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
  *     responses:
@@ -23,6 +25,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  *         description: No availabilities were found
  *   post:
  *     summary: Creates a new availability
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
  *     responses:

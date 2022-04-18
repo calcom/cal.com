@@ -22,6 +22,8 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to edit
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - resources
  *     responses:

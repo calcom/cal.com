@@ -12,6 +12,8 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
  * /v1/teams:
  *   get:
  *     summary: Get all teams
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
@@ -23,6 +25,8 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
  *         description: No teams were found
  *   post:
  *     summary: Creates a new team
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:

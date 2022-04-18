@@ -11,6 +11,8 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  * /v1/memberships:
  *   get:
  *     summary: Get all memberships
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - memberships
  *     responses:
@@ -22,6 +24,8 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  *         description: No memberships were found
  *   post:
  *     summary: Creates a new membership
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - memberships
  *     responses:

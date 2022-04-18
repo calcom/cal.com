@@ -12,6 +12,8 @@ import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "
  * /v1/bookings:
  *   get:
  *     summary: Get all bookings
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - bookings
  *     responses:
@@ -23,6 +25,8 @@ import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "
  *         description: No bookings were found
  *   post:
  *     summary: Creates a new booking
+ *     security:
+ *       - ApiKeyAuth: []
  *     tags:
  *     - bookings
  *     responses:
