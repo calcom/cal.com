@@ -3,7 +3,7 @@ import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core";
 import Button from "@calcom/ui/Button";
@@ -15,6 +15,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { defaultAvatarSrc } from "@lib/profile";
 import { getTeamWithMembers } from "@lib/queries/teams";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -25,13 +26,24 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Text from "@components/ui/Text";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-
 function TeamPage({ team }: TeamPageProps) {
   const { isReady, Theme } = useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
   const isEmbed = useIsEmbed();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        telemetryEventTypes.pageView,
+        collectPageParameters("/team/[slug]", {
+          isTeamBooking: true,
+        })
+      )
+    );
+  }, [telemetry]);
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (
@@ -48,11 +60,11 @@ function TeamPage({ team }: TeamPageProps) {
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <div className="mt-1">
+              <div className="mt-1 self-center">
                 <AvatarGroup
                   border="border-2 border-white dark:border-neutral-800"
                   truncateAfter={4}
-                  className="flex-shrink-0"
+                  className="flex flex-shrink-0"
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",

@@ -51,7 +51,7 @@ function IframeEmbedContainer() {
               <div className="text-right">
                 <input
                   id="iframe"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={iframeTemplate}
                   readOnly
@@ -76,7 +76,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="fullscreen"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={htmlTemplate}
                   readOnly
@@ -205,6 +205,31 @@ function IntegrationsContainer() {
           />
           <List>
             {data.payment.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                imageSrc={item.imageSrc}
+                title={item.title}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
+              />
+            ))}
+          </List>
+
+          <ShellSubHeading
+            className="mt-10"
+            title={
+              <SubHeadingTitleWithConnections title={"Others"} numConnections={data?.other?.numActive || 0} />
+            }
+          />
+          <List>
+            {data.other.items.map((item) => (
               <IntegrationListItem
                 key={item.title}
                 imageSrc={item.imageSrc}
