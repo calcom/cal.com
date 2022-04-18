@@ -469,6 +469,9 @@ document.addEventListener("click", (e) => {
   if (namespace) {
     api = globalCal.ns![namespace];
   }
+  if (!api) {
+    throw new Error(`Namespace ${namespace} isn't defined`);
+  }
   api("modal", {
     calLink: path,
     config,
