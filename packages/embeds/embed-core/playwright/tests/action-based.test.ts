@@ -3,7 +3,11 @@ import { expect } from "@playwright/test";
 import { test } from "../fixtures/fixtures";
 import { todo, getEmbedIframe, bookFirstEvent, getBooking, deleteAllBookingsByEmail } from "../lib/testUtils";
 
-test("should open embed iframe on click", async ({ page, addEmbedListeners, getActionFiredDetails }) => {
+test("should open embed iframe on click - Configured with light theme", async ({
+  page,
+  addEmbedListeners,
+  getActionFiredDetails,
+}) => {
   await deleteAllBookingsByEmail("embed-user@example.com");
 
   const calNamespace = "prerendertestLightTheme";

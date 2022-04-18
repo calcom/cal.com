@@ -32,7 +32,15 @@ export class ModalBox extends HTMLElement {
 
   connectedCallback() {
     const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
-
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        this.close();
+      },
+      {
+        once: true,
+      }
+    );
     this.shadowRoot!.host.addEventListener("click", (e) => {
       this.close();
     });

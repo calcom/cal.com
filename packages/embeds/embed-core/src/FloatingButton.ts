@@ -8,7 +8,7 @@ export class FloatingButton extends HTMLElement {
 			${tailwindCss}
 			</style>
 			<button
-                  class="fixed bottom-4 right-4 flex h-16 origin-center transform cursor-pointer items-center rounded-full py-4 px-6 text-base outline-none drop-shadow-md transition transition-all focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50 active:scale-95 md:bottom-6 md:right-10"
+                  class="drop-shadow-lg fixed bottom-4 right-4 flex h-16 origin-center transform cursor-pointer items-center rounded-full py-4 px-6 text-base outline-none transition transition-all focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50 active:scale-95 md:bottom-6 md:right-10"
                   style="background-color: rgb(255, 202, 0); color: rgb(20, 30, 47); z-index: 10001">
                   <div class="mr-3 flex items-center justify-center">
                     <svg

@@ -147,8 +147,6 @@ export class Cal {
     iframe.className = "cal-embed";
     iframe.name = "cal-embed";
     const config = this.getConfig();
-    if (queryObject.hasOwnProperty("iframeAttrs")) {
-    }
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
     if (iframeAttrs && typeof iframeAttrs !== "string" && !(iframeAttrs instanceof Array)) {

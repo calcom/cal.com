@@ -42,12 +42,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Accessibility and UI/UX Issues
   - let user choose the loader for ModalBox
-  - Close popup with escape button
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
-  - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
-  - Changes in Non Embed
-    - Right now border has been changed to border-md instead of border-sm to make the popup look cleaner. It seems okay to me to have the same in non embed as well. But if requirement comes it can be done.[Needs Review by Team]
   - Transparent support is not properly done for team links
   - Maybe don't set border radius in inline mode or give option to configure border radius.
 
@@ -56,7 +52,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Branding at the bottom has been removed for UI improvements, need to see where to add it.
 
 - API
-  - Allow loader color customization using UI command itself too.
+  - Allow loader color customization using UI command itself too. Right now it's possible using CSS only.
 
 - Automation Tests
   - Run automation tests in CI
@@ -75,8 +71,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Dev Experience/Ease of Installation
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
-  - Show Demo of inline-block behavior of embed.
-    - width and height of iframe, both are according to the iframe content
 
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
 
