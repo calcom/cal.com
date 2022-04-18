@@ -54,6 +54,10 @@
       .loader {
         color: green;
       }
+      * {
+        --cal-brand-border-color: blue;
+        --cal-brand-background-color: blue;
+      }
     </style>
   </head>
   <body>
@@ -61,10 +65,6 @@
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
       <button data-cal-namespace="prerendertestLightTheme" data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
-      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
-      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
-
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -72,6 +72,14 @@
           local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
           slow</i
         >
+      </div>
+      <h2>Other Popup Examples</h2>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+      <div>
+        <h2>Embed for Pages behind authentication</h2>
+        <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
       </div>
     </div>
     <div id="namespaces-test">
@@ -83,11 +91,12 @@
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
-        <div style="max-height: 30vh; overflow: scroll" class="place">
+        <div >
           <div>
             if you render booking embed in me, I would not let it be more than 30vh in height. So you would
             have to scroll to see the entire content
           </div>
+          <div class="place" style="width:50%; max-height: 30vh; overflow: scroll"></div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
         </div>
       </div>
@@ -320,6 +329,21 @@
         debug: 1,
         origin: "http://localhost:3000",
       })
+
+      Cal('init', 'upcomingBookings', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal("init", "floatingButton", {
+        debug: 1,
+        origin: "http://localhost:3000",
+      });
+      if (!only  || only == "ns:floatingButton") {
+      Cal.ns.floatingButton("floatingButton", {
+        calLink: "pro"
+      })
+    }
     </script>
     <script></script>
   </body>

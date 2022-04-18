@@ -154,6 +154,7 @@ model User {
   allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
+  apiKeys             ApiKey[]
 
   @@map(name: "users")
 }
@@ -204,8 +205,9 @@ model BookingReference {
   meetingId       String?
   meetingPassword String?
   meetingUrl      String?
-  booking         Booking? @relation(fields: [bookingId], references: [id])
+  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId       Int?
+  deleted         Boolean?
 }
 
 model Attendee {
@@ -260,6 +262,8 @@ model Booking {
   rejectionReason     String?
   dynamicEventSlugRef String?
   dynamicGroupSlugRef String?
+  rescheduled         Boolean?
+  fromReschedule      String?
 }
 
 model Schedule {
@@ -342,7 +346,7 @@ model Payment {
   uid        String      @unique
   type       PaymentType
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount     Int
   fee        Int
   currency   String
@@ -369,4 +373,15 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String    @id @unique @default(cuid())
+  userId     Int
+  note       String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  hashedKey  String    @unique()
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

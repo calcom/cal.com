@@ -1,6 +1,7 @@
 /// <reference path="../types/ical.d.ts"/>
 import { Credential, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import ICAL from "ical.js";
@@ -36,6 +37,7 @@ const DEFAULT_CALENDAR_TYPE = "caldav";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isBetween);
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
@@ -241,25 +243,64 @@ export default abstract class BaseCalendarService implements Calendar {
       )
     ).flat();
 
-    const events = objects
-      .filter((e) => !!e.data)
-      .map((object) => {
-        const jcalData = ICAL.parse(object.data);
-        const vcalendar = new ICAL.Component(jcalData);
-        const vevent = vcalendar.getFirstSubcomponent("vevent");
-        const event = new ICAL.Event(vevent);
-        const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
-        if (vtimezone) {
-          const zone = new ICAL.Timezone(vtimezone);
-          event.startDate = event.startDate.convertToZone(zone);
-          event.endDate = event.endDate.convertToZone(zone);
+    const events: { start: string; end: string }[] = [];
+
+    objects.forEach((object) => {
+      if (object.data == null) return;
+
+      const jcalData = ICAL.parse(object.data);
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevent = vcalendar.getFirstSubcomponent("vevent");
+      const event = new ICAL.Event(vevent);
+      const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+
+      if (event.isRecurring()) {
+        let maxIterations = 365;
+        if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
+          console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+          return;
         }
 
-        return {
-          start: dayjs(event.startDate.toJSDate()).toISOString(),
-          end: dayjs(event.endDate.toJSDate()).toISOString(),
-        };
+        const start = dayjs(dateFrom);
+        const end = dayjs(dateTo);
+
+        const iterator = event.iterator();
+        let current;
+        let currentEvent;
+        let currentStart;
+
+        do {
+          maxIterations -= 1;
+          current = iterator.next();
+          currentEvent = event.getOccurrenceDetails(current);
+          // as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
+          // recurring events are always in utc
+          currentStart = dayjs(currentEvent.startDate.toJSDate());
+
+          if (currentStart.isBetween(start, end) === true) {
+            return events.push({
+              start: currentStart.toISOString(),
+              end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+            });
+          }
+        } while (maxIterations > 0 && currentStart.isAfter(end) === false);
+        if (maxIterations <= 0) {
+          console.warn("could not find any occurrence for recurring event in 365 iterations");
+        }
+        return;
+      }
+
+      if (vtimezone) {
+        const zone = new ICAL.Timezone(vtimezone);
+        event.startDate = event.startDate.convertToZone(zone);
+        event.endDate = event.endDate.convertToZone(zone);
+      }
+
+      return events.push({
+        start: dayjs(event.startDate.toJSDate()).toISOString(),
+        end: dayjs(event.endDate.toJSDate()).toISOString(),
       });
+    });
 
     return Promise.resolve(events);
   }

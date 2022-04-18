@@ -7,7 +7,7 @@ on:
       - public/static/locales/**
 jobs:
   test:
-    timeout-minutes: 10
+    timeout-minutes: 15
     name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     strategy:
       matrix:
