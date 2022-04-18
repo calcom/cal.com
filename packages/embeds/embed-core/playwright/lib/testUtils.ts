@@ -8,11 +8,28 @@ export function todo(title: string) {
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
     where: {
-      user: {
-        email,
+      attendees: {
+        some: {
+          email: email,
+        },
       },
     },
   });
+
+export const getBooking = async (bookingId: string) => {
+  const booking = await prisma.booking.findUnique({
+    where: {
+      uid: bookingId,
+    },
+    include: {
+      attendees: true,
+    },
+  });
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
+  return booking;
+};
 
 export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname: string }) => {
   // FIXME: Need to wait for the iframe to be properly added to shadow dom. There should be a no time boundation way to do it.
@@ -62,6 +79,9 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
   await frame.press('[name="email"]', "Enter");
+  const response = await page.waitForResponse("**/api/book/event");
+  const responseObj = await response.json();
+  const bookingId = responseObj.uid;
   // Make sure we're navigated to the success page
   await frame.waitForNavigation({
     url(url) {
@@ -69,4 +89,5 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
     },
   });
   expect(await page.screenshot()).toMatchSnapshot("success-page.png");
+  return bookingId;
 }

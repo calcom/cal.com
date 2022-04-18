@@ -8,7 +8,7 @@ test("Inline Iframe - Configured with Dark Theme", async ({
   getActionFiredDetails,
   addEmbedListeners,
 }) => {
-  await deleteAllBookingsByEmail("pro@example.com");
+  await deleteAllBookingsByEmail("embed-user@example.com");
   await addEmbedListeners("");
   await page.goto("/?only=ns:default");
   const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
@@ -23,7 +23,7 @@ test("Inline Iframe - Configured with Dark Theme", async ({
     throw new Error("Embed iframe not found");
   }
   await bookFirstEvent("pro", embedIframe, page);
-  await deleteAllBookingsByEmail("pro@example.com");
+  await deleteAllBookingsByEmail("embed-user@example.com");
 });
 
 todo(

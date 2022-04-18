@@ -96,7 +96,7 @@ export class Cal {
     return {
       ...config,
       // guests is better for API but Booking Page accepts guest. So do the mapping
-      guest: config.guests ?? "",
+      guest: config.guests ?? undefined,
     };
   }
 
@@ -154,7 +154,10 @@ export class Cal {
 
     // Prepare searchParams from config
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(queryObject)) {
+    for (const [key, value] of Object.entries(restQueryObject)) {
+      if (value === undefined) {
+        continue;
+      }
       if (value instanceof Array) {
         value.forEach((val) => searchParams.append(key, val));
       } else {

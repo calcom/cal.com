@@ -42,6 +42,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Accessibility and UI/UX Issues
   - let user choose the loader for ModalBox
+  - Close popup with escape button
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
   - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
