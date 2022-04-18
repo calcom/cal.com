@@ -90,7 +90,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventType: {
         select: eventTypeSelect,
       },
-      availability: true,
       timeZone: true,
       expired: true,
     },
@@ -170,9 +169,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       timeZone,
     },
     schedule.availability ||
-      (disposableType.availability.length
-        ? disposableType.availability
-        : disposableType.eventType.availability.length
+      (disposableType.eventType.availability.length
         ? disposableType.eventType.availability
         : user.availability)
   );

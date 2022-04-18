@@ -95,7 +95,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const availability = [...currentUser.availability];
   const timeZone = currentUser.timeZone;
 
   const seed = `${currentUser.username}:${new Date().getTime()}`;
@@ -112,9 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: currentUser.id,
       eventType: {
         connect: { id: eventTypeId },
-      },
-      availability: {
-        connect: availability.map((schedule) => ({ id: schedule.id })),
       },
       timeZone,
       expired: false,

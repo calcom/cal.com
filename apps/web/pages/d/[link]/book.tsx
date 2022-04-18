@@ -85,7 +85,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: {
         select: eventTypeSelect,
       },
-      availability: true,
       timeZone: true,
       expired: true,
     },
