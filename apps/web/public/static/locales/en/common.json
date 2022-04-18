@@ -500,6 +500,7 @@
   "url": "URL",
   "hidden": "Hidden",
   "readonly": "Readonly",
+  "one_time_link": "One-time link",
   "plan_description": "You're currently on the {{plan}} plan.",
   "plan_upgrade_invitation": "Upgrade your account to the pro plan to unlock all of the features we have to offer.",
   "plan_upgrade": "You need to upgrade your plan to have more than one active event type.",

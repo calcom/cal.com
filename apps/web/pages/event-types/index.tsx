@@ -70,6 +70,7 @@ interface EventTypeListProps {
 
 const Item = ({ type, group, readOnly }: any) => {
   const { t } = useLocale();
+  const disposable = type.disposableLink.length > 0;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -93,6 +94,11 @@ const Item = ({ type, group, readOnly }: any) => {
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly")}
+            </span>
+          )}
+          {disposable && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 ltr:ml-2">
+              {t("one_time_link")}
             </span>
           )}
         </div>
