@@ -13,12 +13,14 @@ export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
+  hubspotothercalendar: dynamic(() => import("./hubspotothercalendar/components/InstallAppButton")),
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
+  wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
@@ -28,7 +30,7 @@ export const InstallAppButton = (
 ) => {
   const { status } = useSession();
   const { t } = useLocale();
-  const appName = props.type.replace("_", "") as keyof typeof InstallAppButtonMap;
+  const appName = props.type.replaceAll("_", "") as keyof typeof InstallAppButtonMap;
   const InstallAppButtonComponent = InstallAppButtonMap[appName];
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")
@@ -36,6 +38,7 @@ export const InstallAppButton = (
       <InstallAppButtonComponent
         render={() => (
           <Button
+            data-testid="install-app-button"
             color="primary"
             href={`${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`}>
             {t("install_app")}

@@ -1,9 +1,11 @@
 # embed-core
 
-See [index.html](index.html) to see various examples
+This is the vanilla JS core script that embeds Cal Link.
 
 ## How to use embed on any webpage no matter what framework
 See <https://docs.cal.com/integrations/embed>
+
+You can also see various example usages [here](https://github.com/calcom/cal.com/blob/main/packages/embeds/embed-core/index.html)
 
 ## Development
 

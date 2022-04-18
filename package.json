@@ -25,6 +25,7 @@
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
     "lint:report": "turbo run lint:report",
+    "postinstall": "turbo run postinstall",
     "pre-commit": "lint-staged",
     "predev": "dotenv-checker --schema .env.example --env .env",
     "prepare": "husky install",

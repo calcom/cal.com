@@ -1,11 +1,13 @@
 // Get router variables
 import {
   ArrowLeftIcon,
+  CalendarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ClockIcon,
   CreditCardIcon,
   GlobeIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -24,14 +26,15 @@ import {
   useEmbedType,
 } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { BASE_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { parseDate } from "@lib/parseDate";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
@@ -51,12 +54,12 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage }: Props) => {
+const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
@@ -189,15 +192,23 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   />
                   <div className="mt-4 sm:-mt-2">
                     <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="text-bookingmedian flex gap-2 text-xs font-medium dark:text-gray-100">
-                      {eventType.title}
-                      <div>
-                        <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <div className="mt-2  gap-2 dark:text-gray-100">
+                      <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+                        {eventType.title}
+                      </h1>
+                      {eventType?.description && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          {eventType.description}
+                        </p>
+                      )}
+                      <p className="text-bookinglight mb-2 dark:text-white">
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
-                      </div>
+                      </p>
                       {eventType.price > 0 && (
-                        <div>
-                          <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                        <div className="text-gray-600 dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -207,13 +218,29 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           </IntlProvider>
                         </div>
                       )}
+                      <div className="md:hidden">
+                        {booking?.startTime && rescheduleUid && (
+                          <div>
+                            <p
+                              className="mt-8 mb-2 text-gray-600 dark:text-white"
+                              data-testid="former_time_p">
+                              {t("former_time")}
+                            </p>
+                            <p className="text-gray-500 line-through dark:text-white">
+                              <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                              {typeof booking.startTime === "string" &&
+                                parseDate(dayjs(booking.startTime), i18n)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
+                {/* Following div is marked hidden. Should we remove it ? */}
                 <div
                   className={
                     "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
@@ -236,17 +263,23 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="dark:text-bookinglight mt-3 font-medium text-gray-500">{profile.name}</h2>
-                  <h1 className="font-cal text-bookingdark mb-4 text-3xl font-semibold dark:text-white">
+                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
+                  <h1 className="font-cal mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
-                  <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
-                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  {eventType?.description && (
+                    <p className="text-bookinglight mb-2 dark:text-white">
+                      <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {eventType.description}
+                    </p>
+                  )}
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
-                    <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
-                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -258,8 +291,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
 
                   <TimezoneDropdown />
-
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                   {previousPage === `${BASE_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
@@ -269,7 +300,19 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <p className="sr-only">Go Back</p>
                     </div>
                   )}
+                  {booking?.startTime && rescheduleUid && (
+                    <div>
+                      <p className="mt-4 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                        {t("former_time")}
+                      </p>
+                      <p className="text-gray-500 line-through dark:text-white">
+                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
                 <DatePicker
                   date={selectedDate}
                   periodType={eventType?.periodType}
@@ -315,8 +358,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left">
-          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />
