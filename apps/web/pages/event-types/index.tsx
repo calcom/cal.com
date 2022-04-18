@@ -70,7 +70,7 @@ interface EventTypeListProps {
 
 const Item = ({ type, group, readOnly }: any) => {
   const { t } = useLocale();
-  const disposable = type.disposableLink.length > 0;
+  const disposable = type.disposableLink;
 
   return (
     <Link href={"/event-types/" + type.id}>
