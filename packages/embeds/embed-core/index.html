@@ -84,8 +84,9 @@
       <h2>Other Popup Examples</h2>
       <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
       <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team">Book with Test Team[Light Theme]</button>
-      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
       <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -311,7 +312,7 @@
             "inline",
             {
               elementOrSelector: "#cal-booking-place-fourth .place",
-              calLink: "team/test-team",
+              calLink: "team/seeded-team",
               config: {
                 iframeAttrs: {
                   id: "cal-booking-place-fourth-iframe"
@@ -353,7 +354,7 @@
             "inline",
             {
               elementOrSelector: "#cal-booking-place-fifth .place",
-              calLink: "team/test-team",
+              calLink: "team/seeded-team/collective-seeded-team-event",
               config: {
                 iframeAttrs: {
                   id: "cal-booking-place-fifth-iframe"
@@ -393,7 +394,12 @@
         origin: "http://localhost:3000",
       })
 
-      Cal('init', 'upcomingBookings', {
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal('init', 'popupTeamLinksList', {
         debug: 1,
         origin: "http://localhost:3000",
       })

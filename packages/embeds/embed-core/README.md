@@ -73,8 +73,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Need to reduce the number of colors on booking page, so that UI configuration is simpler
 
 - Dev Experience/Ease of Installation
-  - Improved Demo
-    - Seeding might be done for team event so that such an example is also available readily in index.html
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
   - Show Demo of inline-block behavior of embed.
     - width and height of iframe, both are according to the iframe content
