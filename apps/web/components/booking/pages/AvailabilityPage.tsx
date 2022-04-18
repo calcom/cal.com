@@ -230,7 +230,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
-                {/* Following div is marked hidden. Should we remove it ? */}
                 <div
                   className={
                     "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
