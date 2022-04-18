@@ -213,7 +213,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           <div>
                             <p
                               className="mt-8 mb-2 text-gray-600 dark:text-white"
-                              data-testid="former_time_p">
+                              data-testid="former_time_p_mobile">
                               {t("former_time")}
                             </p>
                             <p className="text-gray-500 line-through dark:text-white">
@@ -230,7 +230,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
-                {/* Following div is marked hidden. Should we remove it ? */}
                 <div
                   className={
                     "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
@@ -292,7 +291,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
                   {booking?.startTime && rescheduleUid && (
                     <div>
-                      <p className="mt-4 mb-2 text-gray-600 dark:text-white" data-testid="former_time_p">
+                      <p
+                        className="mt-4 mb-2 text-gray-600 dark:text-white"
+                        data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-white">
