@@ -1,4 +1,4 @@
-import { BanIcon, CheckIcon, ClockIcon, XIcon } from "@heroicons/react/outline";
+import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/outline";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
@@ -87,7 +87,7 @@ function BookingListItem(booking: BookingItem) {
       actions: [
         {
           id: "edit",
-          icon: ClockIcon,
+          icon: PencilAltIcon,
           label: t("edit_booking"),
           href: `/reschedule/${booking.uid}`,
         },
