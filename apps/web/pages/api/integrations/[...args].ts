@@ -31,7 +31,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
     const response = await handler(req, res);
-    console.log("response", response);
 
     return res.status(200);
   } catch (error) {
