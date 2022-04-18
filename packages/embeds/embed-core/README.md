@@ -44,7 +44,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
-  - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
   - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
   - Changes in Non Embed
     - Right now border has been changed to border-md instead of border-sm to make the popup look cleaner. It seems okay to me to have the same in non embed as well. But if requirement comes it can be done.[Needs Review by Team]
