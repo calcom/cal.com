@@ -12,6 +12,7 @@ const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {},
   namespace: null,
+  embedType: undefined,
   theme: null,
   // Store all React State setters here.
   reactStylesStateSetters: {},
@@ -21,6 +22,7 @@ const embedStore = {
   styles: UiConfig["styles"];
   namespace: string | null;
   theme: string | null;
+  embedType: undefined | null | string;
   reactStylesStateSetters: any;
   parentInformedAboutContentHeight: boolean;
   windowLoadEventFired: boolean;
@@ -84,7 +86,9 @@ interface EmbedStyles {
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
-interface EmbedStylesBranding {
+interface EmbedNonStylesConfig {
+  /** Default would be center */
+  align: "left";
   branding?: {
     brandColor?: string;
     lightColor?: string;
@@ -97,7 +101,7 @@ interface EmbedStylesBranding {
   };
 }
 
-type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedStylesBranding>>;
+type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedNonStylesConfig>>;
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
@@ -111,14 +115,14 @@ const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   }
 };
 
-const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding, setStyles: any) => {
+const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig, setStyles: any) => {
   embedStore.reactStylesStateSetters[elementName] = setStyles;
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
   setStyles(embedStore.styles);
 };
 
-const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding) => {
+const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig) => {
   delete embedStore.reactStylesStateSetters[elementName];
 };
 
@@ -157,8 +161,8 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   return styles[elementName] || {};
 };
 
-export const useEmbedBranding = (elementName: keyof EmbedStylesBranding) => {
-  const [styles, setStyles] = useState({} as EmbedStylesBranding);
+export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
+  const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
     registerNewSetter(elementName, setStyles);
@@ -177,7 +181,7 @@ export const useIsBackgroundTransparent = () => {
   // TODO: Background should be read as ui.background and not ui.body.background
   const bodyEmbedStyles = useEmbedStyles("body");
 
-  if (bodyEmbedStyles?.background === "transparent") {
+  if (bodyEmbedStyles.background === "transparent") {
     isBackgroundTransparent = true;
   }
   return isBackgroundTransparent;
@@ -185,8 +189,8 @@ export const useIsBackgroundTransparent = () => {
 
 export const useBrandColors = () => {
   // TODO: Branding shouldn't be part of ui.styles. It should exist as ui.branding.
-  const brandingColors = useEmbedBranding("branding");
-  return brandingColors;
+  const brandingColors = useEmbedNonStylesConfig("branding") as EmbedNonStylesConfig["branding"];
+  return brandingColors || {};
 };
 
 function getNamespace() {
@@ -236,7 +240,7 @@ export const useIsEmbed = () => {
 };
 
 export const useEmbedType = () => {
-  const [state, setState] = useState(null);
+  const [state, setState] = useState<string | null | undefined>(null);
   useEffect(() => {
     setState(getEmbedType());
   }, []);
@@ -326,7 +330,7 @@ function keepParentInformedAboutDimensionChanges() {
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
-      document.getElementsByClassName("main")[0] ||
+      (document.getElementsByClassName("main")[0] as HTMLElement) ||
       document.getElementsByTagName("main")[0] ||
       document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;

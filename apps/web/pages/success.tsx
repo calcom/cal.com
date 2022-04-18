@@ -12,7 +12,12 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import {
+  useIsEmbed,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -142,7 +147,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
-  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
 
   const attendeeName = typeof name === "string" ? name : "Nameless";

@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -107,7 +107,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   );
   const isEmbed = useIsEmbed();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
-  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)

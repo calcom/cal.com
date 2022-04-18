@@ -141,14 +141,17 @@ export class Cal {
     queryObject = {},
   }: {
     calLink: string;
-    queryObject?: Record<string, string | string[]>;
+    queryObject?: Record<string, string | string[] | Record<string, string>>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
     iframe.name = "cal-embed";
     const config = this.getConfig();
+    if (queryObject.hasOwnProperty("iframeAttrs")) {
+    }
     const { iframeAttrs, ...restQueryObject } = queryObject;
-    if (iframeAttrs?.id) {
+
+    if (iframeAttrs && typeof iframeAttrs !== "string" && !(iframeAttrs instanceof Array)) {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
@@ -161,7 +164,7 @@ export class Cal {
       if (value instanceof Array) {
         value.forEach((val) => searchParams.append(key, val));
       } else {
-        searchParams.set(key, value);
+        searchParams.set(key, value as string);
       }
     }
 

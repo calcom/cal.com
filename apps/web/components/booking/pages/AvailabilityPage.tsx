@@ -24,6 +24,7 @@ import {
   useIsBackgroundTransparent,
   sdkActionManager,
   useEmbedType,
+  useEmbedNonStylesConfig,
 } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -62,8 +63,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const { t, i18n } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
-  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
-  const embedType = useEmbedType();
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);

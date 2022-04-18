@@ -18,7 +18,13 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent, useEmbedType } from "@calcom/embed-core";
+import {
+  useIsEmbed,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useEmbedType,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -71,8 +77,7 @@ const BookingPage = ({
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  const embedType = useEmbedType();
-  const shouldAlignCentrallyInEmbed = useEmbedStyles("align") !== "left";
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
   const { contracts } = useContracts();
