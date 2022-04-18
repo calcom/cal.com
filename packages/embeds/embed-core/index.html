@@ -10,7 +10,7 @@
         const only = u.searchParams.get("only");
         const ns = only ? only.replace("ns:",""): null
         if (ns) {
-          location.hash="#cal-booking-place-" + ns
+          location.hash="#cal-booking-place-" + ns + "-iframe"
         }
       })()
     </script>
@@ -213,6 +213,9 @@
           elementOrSelector: "#cal-booking-place-default .place",
           calLink: "pro?case=1",
           config: {
+            iframeAttrs: {
+              id: "cal-booking-place-default-iframe"
+            },
             name: "John",
             email: "johndoe@gmail.com",
             notes: "Test Meeting",
@@ -239,6 +242,11 @@
             {
               elementOrSelector: "#cal-booking-place-second .place",
               calLink: "pro?case=2",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-second-iframe"
+                },
+              }
             },
           ]
         );
@@ -261,6 +269,11 @@
             {
               elementOrSelector: "#cal-booking-place-third .place",
               calLink: "pro/30min",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-third-iframe"
+                },
+              }
             },
           ],
           [
@@ -299,6 +312,11 @@
             {
               elementOrSelector: "#cal-booking-place-fourth .place",
               calLink: "team/test-team",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fourth-iframe"
+                },
+              }
             },
           ],
           [
@@ -336,6 +354,11 @@
             {
               elementOrSelector: "#cal-booking-place-fifth .place",
               calLink: "team/test-team",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fifth-iframe"
+                },
+              }
             },
           ],
         );

@@ -147,6 +147,10 @@ export class Cal {
     iframe.className = "cal-embed";
     iframe.name = "cal-embed";
     const config = this.getConfig();
+    const { iframeAttrs, ...restQueryObject } = queryObject;
+    if (iframeAttrs?.id) {
+      iframe.setAttribute("id", iframeAttrs.id);
+    }
 
     // Prepare searchParams from config
     const searchParams = new URLSearchParams();
@@ -402,6 +406,13 @@ export class Cal {
         this.doInIframe({ method, arg });
       });
     });
+
+    this.actionManager.on("__routeChanged", () => {
+      if (this.inlineEl) {
+        this.inlineEl.scrollIntoView();
+      }
+    });
+
     this.actionManager.on("linkReady", (e) => {
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");

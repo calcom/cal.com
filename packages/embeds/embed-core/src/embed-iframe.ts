@@ -128,6 +128,12 @@ function isValidNamespace(ns: string | null | undefined) {
 
 export const useEmbedTheme = () => {
   const router = useRouter();
+  useEffect(() => {
+    router.events.on("routeChangeComplete", () => {
+      sdkActionManager?.fire("__routeChanged", {});
+    });
+  }, [router.events]);
+
   if (embedStore.theme) {
     return embedStore.theme;
   }
