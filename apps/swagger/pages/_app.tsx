@@ -1,5 +1,8 @@
+import "highlight.js/styles/default.css";
+
 import "../styles/globals.css";
-import "../styles/swagger-cal.css";
+
+// import "../styles/swagger-cal.css";
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />;
