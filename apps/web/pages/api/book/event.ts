@@ -220,6 +220,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      recurringEvent: true,
     },
   });
 };

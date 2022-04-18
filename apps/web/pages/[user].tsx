@@ -258,6 +258,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       description: true,
       hidden: true,
       schedulingType: true,
+      recurringEvent: true,
       price: true,
       currency: true,
       metadata: true,

@@ -262,6 +262,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+  const [recurringEventVisible, setRecurringEventVisible] = useState(eventType.recurringEvent > 0);
+  const [recurringEventValue, setRecurringEventValue] = useState(eventType.recurringEvent ?? 1);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -466,6 +468,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
+    recurringEvent: number;
     schedulingType: SchedulingType | null;
     price: number;
     currency: string;
@@ -1312,23 +1315,57 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
-                        <Controller
-                          name="recurringEvent"
-                          control={formMethods.control}
-                          defaultValue={eventType.recurringEvent}
-                          render={() => (
-                            <CheckboxField
-                              id="recurringEvent"
-                              name="recurringEvent"
-                              label={t("recurring_event")}
-                              description={t("recurring_event_description")}
-                              defaultChecked={eventType.recurringEvent}
-                              onChange={(e) => {
-                                formMethods.setValue("recurringEvent", e?.target.checked);
-                              }}
-                            />
-                          )}
-                        />
+                        <div className="block items-start sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0">
+                            <label
+                              htmlFor="recurringEvent"
+                              className="flex text-sm font-medium text-neutral-700">
+                              {t("recurring_event")}
+                            </label>
+                          </div>
+                          <div className="w-full">
+                            <div className="relative flex items-start">
+                              <div className="flex h-5 items-center">
+                                <input
+                                  onChange={(event) => {
+                                    setRecurringEventVisible(event?.target.checked);
+                                    if (!event?.target.checked) {
+                                      formMethods.setValue("recurringEvent", 0);
+                                    } else {
+                                      formMethods.setValue("recurringEvent", eventType.recurringEvent || 1);
+                                    }
+                                  }}
+                                  type="checkbox"
+                                  className="text-primary-600  h-4 w-4 rounded border-gray-300"
+                                  defaultChecked={eventType.recurringEvent > 0}
+                                />
+                              </div>
+                              <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                <p className="text-neutral-900">{t("recurring_event_description")}</p>
+                              </div>
+                            </div>
+                            <Collapsible
+                              open={recurringEventVisible}
+                              onOpenChange={() => setRecurringEventVisible(!recurringEventVisible)}>
+                              <CollapsibleContent className="mt-2 flex items-center text-sm">
+                                <p className="mr-2 text-neutral-900">{t("every")}</p>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                  {...formMethods.register("recurringEvent", { valueAsNumber: true })}
+                                  defaultValue={eventType.recurringEvent || 1}
+                                  onChange={(event) => {
+                                    setRecurringEventValue(parseInt(event?.target.value));
+                                  }}
+                                />
+                                <p className="text-neutral-900">
+                                  {t("week", { count: recurringEventValue })}
+                                </p>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </div>
+                        </div>
 
                         <Controller
                           name="disableGuests"
@@ -1442,7 +1479,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
@@ -1953,6 +1990,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,

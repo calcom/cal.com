@@ -1,11 +1,12 @@
-import { ClockIcon, CreditCardIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
+import { ClockIcon, CreditCardIcon, RefreshIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import React from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: {
@@ -14,6 +15,7 @@ const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
     price: true,
     currency: true,
     schedulingType: true,
+    recurringEvent: true,
     description: true,
   },
 });
@@ -40,13 +42,19 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
           <li className="flex whitespace-nowrap">
             <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-            {eventType.length}m
+            {eventType.length}m{" "}
+            {eventType.recurringEvent > 0 ? t("every_week", { count: eventType.recurringEvent }) : ``}
           </li>
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
               <UsersIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
+            </li>
+          ) : eventType.recurringEvent > 0 ? (
+            <li className="flex whitespace-nowrap">
+              <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+              {t("recurring")}
             </li>
           ) : (
             <li className="flex whitespace-nowrap">

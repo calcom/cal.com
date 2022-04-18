@@ -8,6 +8,7 @@ import {
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
+  RefreshIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -20,11 +21,11 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { BASE_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -248,6 +249,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
+                  {eventType.recurringEvent > 0 && (
+                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                      <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      {t("cap_every_week", { count: eventType.recurringEvent })}
+                    </p>
+                  )}
                   {eventType.price > 0 && (
                     <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
                       <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
@@ -262,7 +269,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
 
                   <TimezoneDropdown />
-                  {previousPage === `${BASE_URL}/${profile.slug}` && (
+                  {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
                         className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"

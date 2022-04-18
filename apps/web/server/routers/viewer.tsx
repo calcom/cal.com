@@ -126,6 +126,7 @@ const loggedInViewerRouter = createProtectedRouter()
         description: true,
         length: true,
         schedulingType: true,
+        recurringEvent: true,
         slug: true,
         hidden: true,
         price: true,
