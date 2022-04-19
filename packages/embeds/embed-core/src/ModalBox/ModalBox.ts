@@ -35,7 +35,9 @@ export class ModalBox extends HTMLElement {
     document.addEventListener(
       "keydown",
       (e) => {
-        this.close();
+        if (e.key === "Escape") {
+          this.close();
+        }
       },
       {
         once: true,
