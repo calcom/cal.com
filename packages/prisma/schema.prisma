@@ -162,6 +162,7 @@ model User {
   role                UserPermissionRole   @default(USER)
   impersonatedUsers   Impersonations[]     @relation("impersonated_user")
   impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
+  apiKeys             ApiKey[]
 
   @@map(name: "users")
 }
@@ -389,4 +390,14 @@ model Impersonations {
   impersonatedBy       User     @relation("impersonated_by_user", fields: [impersonatedUserById], references: [id])
   impersonatedUserId   Int
   impersonatedUserById Int
+
+model ApiKey {
+  id         String    @id @unique @default(cuid())
+  userId     Int
+  note       String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  hashedKey  String    @unique()
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
