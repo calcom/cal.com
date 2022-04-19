@@ -15,7 +15,7 @@ export default function AppStoreCategories({
   return (
     <div className="mb-16">
       <h2 className="mb-2 text-lg font-semibold text-gray-900">{t("popular_categories")}</h2>
-      <div className="grid-col-1 grid gap-3 md:grid-flow-col">
+      <div className="grid-col-1 grid w-full gap-3 overflow-scroll sm:grid-flow-col">
         {categories.map((category) => (
           <Link key={category.name} href={"/apps/categories/" + category.name}>
             <a

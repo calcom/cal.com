@@ -104,7 +104,7 @@ test.describe("Reschedule Tests", async () => {
     await page.goto(
       `/${originalBooking?.user?.username}/${eventType?.slug}?rescheduleUid=${originalBooking?.uid}`
     );
-    const formerTimeElement = await page.locator('[data-testid="former_time_p"]');
+    const formerTimeElement = await page.locator('[data-testid="former_time_p_desktop"]');
     await expect(formerTimeElement).toBeVisible();
   });
 
