@@ -356,7 +356,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
-  
+
   const externalBooking = await prisma.booking.findFirst({
     where: {
       userId: users[0].id,
@@ -385,7 +385,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
-    externalIdCalendar: externalBooking?.externalIdCalendar, 
+    externalIdCalendar: externalBooking?.externalIdCalendar,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
