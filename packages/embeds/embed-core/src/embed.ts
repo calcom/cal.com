@@ -1,14 +1,14 @@
 import type { CalWindow } from "@calcom/embed-snippet";
 
-import { FloatingButton } from "./FloatingButton";
-import { ModalBox } from "./ModalBox";
+import { FloatingButton } from "./FloatingButton/FloatingButton";
+import { Inline } from "./Inline/inline";
+import { ModalBox } from "./ModalBox/ModalBox";
 import { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
-import { Inline } from "./inline";
 import { SdkActionManager } from "./sdk-action-manager";
+import allCss from "./tailwind.generated.css";
 
 declare module "*.css";
-
 type Namespace = string;
 type Config = {
   origin: string;
@@ -16,7 +16,7 @@ type Config = {
 };
 
 const globalCal = (window as CalWindow).Cal;
-
+globalCal.__css = allCss;
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }

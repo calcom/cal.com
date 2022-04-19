@@ -1,5 +1,5 @@
-import loaderCss from "./loader.css";
-import tailwindCss from "./tailwind.css";
+import loaderCss from "../loader.css";
+import inlineHtml from "./inlineHtml";
 
 export class Inline extends HTMLElement {
   //@ts-ignore
@@ -14,14 +14,6 @@ export class Inline extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot!.innerHTML = `
-	<style> ${tailwindCss}${loaderCss}</style>
-	<div id="loader" style="left:0;right:0" class="absolute z-highest flex h-screen w-full items-center">
-		<div class="loader border-brand dark:border-darkmodebrand">
-			<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
-		</div>
-	</div>
-<slot></slot>
-`;
+    this.shadowRoot!.innerHTML = `<style>${loaderCss}</style>${inlineHtml}`;
   }
 }
