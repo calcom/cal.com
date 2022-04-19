@@ -736,11 +736,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (
-      typeof eventType.price === "number" &&
-      eventType.price > 0 &&
-      !originalRescheduledBooking?.paid &&
-      booking
-      ){
+    typeof eventType.price === "number" &&
+    eventType.price > 0 &&
+    !originalRescheduledBooking?.paid &&
+    booking
+  ) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
 
