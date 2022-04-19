@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         credentials: {
           delete: {
-            id: credentialToDeleteId
+            id: credentialToDeleteId,
           },
         },
       },
