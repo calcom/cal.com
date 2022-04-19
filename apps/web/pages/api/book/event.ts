@@ -360,11 +360,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const externalBooking = await prisma.booking.findFirst({
     where: {
       userId: users[0].id,
-      uid: rescheduleUid
+      uid: rescheduleUid,
     },
     select: {
       externalIdCalendar: true,
-    }
+    },
   });
 
   const evt: CalendarEvent = {
@@ -457,16 +457,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const externalId = await prisma.destinationCalendar.findFirst({
       where: {
-        userId: users[0].id
+        userId: users[0].id,
       },
       select: {
         externalId: true,
         integration: true,
-      }
+      },
     });
 
     const externalIdCalendar = rescheduleUid ? externalBooking?.externalIdCalendar : externalId?.externalId;
-   
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -534,7 +533,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return prisma.booking.create(createBookingObj);
-    
   }
 
   let results: EventResult[] = [];
