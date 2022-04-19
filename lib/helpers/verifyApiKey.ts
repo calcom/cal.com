@@ -26,7 +26,8 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
       // Right now API Keys are user centric, we only allow resources related to this userId throughout the application.
       // if the api key is not expired, and the user id is present in the database.
       // Set the user in the request. as x-calcom-user-id.
-      res.setHeader("X-Calcom-User-ID", apiKey.userId);
+      if (apiKey.userId) res.setHeader("X-Calcom-User-ID", apiKey.userId);
+
       // Pass the request to the next middleware.
       await next();
     }

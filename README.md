@@ -1,21 +1,58 @@
 # Cal.com Public API (Enterprise Only)
 
-## This will be the new public enterprise-only API
+This is the public REST api for cal.com. It exposes CRUD Endpoints of all our most important resources. It makes it easy for anyone to integrate with cal at the programming level.
 
-This is the public REST api for cal.com
+> The priority is the booking-related API routes so people can build their own booking flow, then event type management routes, then availability management routes etc
 
-## NextJS + TypeScript
+## Stack
 
-It's a barebones **NextJS** + **TypeScript** project leveraging the nextJS API with a pages/api folder.
+- NextJS
+- TypeScript
+- Prisma
+- No tRPC (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
 
-- `api.cal.com/v1`
-- `api.cal.com/api/v1`
+## API Authentication (API Keys)
+
+The API requires a valid apiKey query param to be passed:
+You can generate them at <https://app.cal.com/settings/security>
+
+For example:
+```sh
+GET https://api.cal.com/v1/users?apiKey={INSERT_YOUR_CAL.COM_API_KEY_HERE}
+```
+
+API Keys optionally may have expiry dates, if they are expired they won't work. If you create an apiKey without a userId relation, it won't work either for now as it relies on it to establish the current authenticated user.
+
+In the future we might add support for header Beaer Auth if we need to or our customers require it.
+
+## Redirects
+
+Since this is an API only project, we don't want to have to type /api/ in all the routes, and so redirect all traffic to api, so a call to `api.cal.com/v1` will resolve to `api.cal.com/api/v1`
+
+Likewise, v1 is added as param query called version to final /api call so we don't duplicate endpoints in the future for versioning if needed.
 
 ## API Endpoint Validation
 
-### Zod
+We validate that only the supported methods are accepted at each endpoint, so in
 
-The API uses `zod` library like our main web repo. It validates that either GET query parameters or POST body content's are valid and up to our spec. It gives appropiate errors when parsing result's with schemas.
+- **/endpoint**: you can only [GET] (all) and [POST] (create new)
+- **/endpoint/id**: you can read create and edit [GET, PATCH, DELETE]
+
+### Zod Validations
+
+The API uses `zod` library like our main web repo. It validates that either GET query parameters or POST body content's are valid and up to our spec. It gives errors when parsing result's with schemas and failing validation.
+
+We use it in several ways, but mainly, we first import the auto-generated schema from @calcom/prisma for each model, which lives in `lib/validations/`
+
+We have some shared validations which several resources require, like baseApiParams which parses apiKey in all requests, or querIdAsString or TransformParseInt which deal with the id's coming from req.query.
+
+- **[*]BaseBodyParams** that omits any values from the model that are too sensitive or we don't want to pick when creating a new resource like id, userId, etc.. (those are gotten from context or elswhere)
+
+- **[*]Public** that also omits any values that we don't want to expose when returning the model as a response, which we parse against before returning all resources.
+
+- **[*]BodyParams** which merges both `[*]BaseBodyParams.merge([*]RequiredParams);`
+
+- **withValid[*]** which is currently not being much used because is only useful in only post endpoints (we do post/get all in same file). This would validate the req.body of a POST call to API against our BaseBodyParams validation
 
 ### Next Validations
 
@@ -29,14 +66,7 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 
 ## Next.config.js
 
-### Redirects
-
-Since this will only support an API, we redirect the requests to root to the /api folder.
-We also added a redirect for future-proofing API versioning when we might need it, without having to resort to dirty hacks like a v1/v2 folders with lots of duplicated code, instead we redirect /api/v*/:rest to /api/:rest?version=*
-
-The priority is the booking-related API routes so people can build their own booking flow, then event type management routes, then availability management routes etc
-
-How to add a new model or endpoint
+### How to add a new model or endpoint
 
 Basically there's three places of the codebase you need to think about for each feature.
 
@@ -44,7 +74,7 @@ Basically there's three places of the codebase you need to think about for each 
 
 - This is the most important one, and where your endpoint will live. You will leverage nextjs dynamic routes and expose one file for each endpoint you want to support ideally.
 
-## How the codebase is organized.
+## How the codebase is organized
 
 ## The example resource -model- and it's endpoints
 
@@ -77,3 +107,48 @@ tests/endpoint/resource.new.test.ts - Create new resource
 ## `/lib/validations/yourEndpoint.ts`
 
 - This is where our model validations, live, we try to make a 1:1 for db models, and also extract out any re-usable code into the /lib/validations/shared/ sub-folder.
+
+## Endpoints matrix
+
+| resource                 | get [id] | get all  | create  | edit  | delete |
+|--------------------------|----------|----------|---------|-------|--------|
+| attendees                |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| availabilities           |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| booking-references       |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| daily-event-references   |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| destination-calendars    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| event-type-custom-inputs |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| event-types              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| memberships              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| payments                 |     ✅    |    ✅    |    ❌   |   ❌  |    ❌   |
+| reminder-mails           |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| schedules                |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| selected-calendars       |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
+| users                    |     ✅    |   👤[1]  |    ✅   |   ✅  |    ✅   |
+
+## Models from database that are not exposed
+
+mostly because they're deemed too sensitive  can be revisited if needed.
+
+- [] Api Keys
+- [] Credentials
+
+## Documentation (OpenAPI)
+
+You will see that each endpoint has a comment at the top with the annotation `@swagger` with the documentation of the endpoint, **please update it if you change the code!** This is what auto-generates the OpenAPI spec by collecting the YAML in each endpoint and parsing it in /docs alongside the json-schema (auto-generated from prisma package, not added to code but manually for now, need to fix later)
+
+### @calcom/apps/swagger
+
+The documentation of the API lives inside the code, and it's auto-generated, the only endpoints that return without a valid apiKey are the homepage, with a JSON message redirecting you to the docs. and the /docs endpoint, which returns the OpenAPI 3.0 JSON Spec. Which SwaggerUi then consumes and generates the docs on.
+
+## Deployment
+
+`scripts/vercel-deploy.sh`
+The API is deployed to vercel.com, it uses a similar deployment script to website or webapp, and requires transpilation of several shared packages that are part of our turborepo ["app-store", "prisma", "lib", "ee"]
+in order to build and deploy properly.
+
+## Envirorment variables
+
+DATABASE_URL=
+API_KEY_PREFIX=cal_# This can be changed per envirorment so cal_test_ for staging for example.

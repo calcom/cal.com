@@ -17,7 +17,7 @@ import {
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
- *     - daily-event-reference
+ *     - daily-event-references
  *     responses:
  *       200:
  *         description: OK
@@ -30,7 +30,7 @@ import {
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
- *     - daily-event-reference
+ *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, daily event reference created

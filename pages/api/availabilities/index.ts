@@ -16,6 +16,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       200:
  *         description: OK
@@ -29,6 +31,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability created

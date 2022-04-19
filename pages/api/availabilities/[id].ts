@@ -27,6 +27,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       200:
  *         description: OK
@@ -56,6 +58,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability edited successfuly
@@ -77,6 +81,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability removed successfuly
