@@ -344,6 +344,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
       ""
     );
+
+  // Initialize EventManager with credentials
+  const rescheduleUid = reqBody.rescheduleUid;
+  
+  const externalBooking = await prisma.booking.findFirst({
+    where: {
+      userId: users[0].id,
+      uid: rescheduleUid
+    },
+    select: {
+      externalIdCalendar: true,
+    }
+  });
+
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -362,6 +376,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
+    externalIdCalendar: externalBooking?.externalIdCalendar, 
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
@@ -371,8 +386,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
-  // Initialize EventManager with credentials
-  const rescheduleUid = reqBody.rescheduleUid;
 
   async function createBooking() {
     // @TODO: check as metadata
@@ -392,6 +405,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
+    const externalId = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: users[0].id
+      },
+      select: {
+        externalId: true,
+        integration: true,
+      }
+    });
+
+    const externalIdCalendar = rescheduleUid ? externalBooking?.externalIdCalendar : externalId?.externalId;
+   
     return prisma.booking.create({
       include: {
         user: {
@@ -408,6 +433,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
         location: evt.location,
         eventType: eventTypeRel,
+        externalIdCalendar: externalIdCalendar ?? null,
         attendees: {
           createMany: {
             data: evt.attendees.map((attendee) => {

@@ -161,7 +161,11 @@ export default class GoogleCalendarService implements Calendar {
         if (event.location) {
           payload["location"] = getLocation(event);
         }
-
+        
+        /** If the destination calendar is different from the calendar in which the reservation was created, 
+         * the calendar of the booking will be taken */
+        const calendarId = event.destinationCalendar?.externalId == event.externalIdCalendar ? 
+        event.destinationCalendar?.externalId : event.externalIdCalendar;
         const calendar = google.calendar({
           version: "v3",
           auth: myGoogleAuth,
@@ -169,8 +173,8 @@ export default class GoogleCalendarService implements Calendar {
         calendar.events.update(
           {
             auth: myGoogleAuth,
-            calendarId: event.destinationCalendar?.externalId
-              ? event.destinationCalendar.externalId
+            calendarId: calendarId
+              ? calendarId
               : "primary",
             eventId: uid,
             sendNotifications: true,
@@ -193,6 +197,11 @@ export default class GoogleCalendarService implements Calendar {
   async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
+
+        /** If the destination calendar is different from the calendar in which the reservation was created, 
+         * the calendar of the booking will be taken */
+        const calendarId = event.destinationCalendar?.externalId == event.externalIdCalendar ? 
+        event.destinationCalendar?.externalId : event.externalIdCalendar;
         const calendar = google.calendar({
           version: "v3",
           auth: myGoogleAuth,
@@ -200,8 +209,8 @@ export default class GoogleCalendarService implements Calendar {
         calendar.events.delete(
           {
             auth: myGoogleAuth,
-            calendarId: event.destinationCalendar?.externalId
-              ? event.destinationCalendar.externalId
+            calendarId: calendarId
+              ? calendarId
               : "primary",
             eventId: uid,
             sendNotifications: true,

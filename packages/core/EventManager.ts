@@ -187,6 +187,7 @@ export default class EventManager {
           },
         },
         destinationCalendar: true,
+        externalIdCalendar: true,
       },
     });
 

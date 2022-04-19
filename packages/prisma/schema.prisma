@@ -260,6 +260,7 @@ model Booking {
   rejectionReason     String?
   dynamicEventSlugRef String?
   dynamicGroupSlugRef String?
+  externalIdCalendar  String?
 }
 
 model Schedule {
