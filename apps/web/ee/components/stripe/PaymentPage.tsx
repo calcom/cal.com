@@ -15,6 +15,7 @@ import { PaymentPageProps } from "@ee/pages/payment/[uid]";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
+import { LocationOptionsToString } from "@lib/locationOptions";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 
 dayjs.extend(utc);
@@ -60,6 +61,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                     <CreditCardIcon className="h-8 w-8 text-green-600" />
                   </div>
+
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
                       className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
@@ -86,7 +88,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       {props.booking.location && (
                         <>
                           <div className="font-medium">{t("where")}</div>
-                          <div className="col-span-2 mb-6">{props.booking.location}</div>
+                          <div className="col-span-2 mb-6">
+                            {LocationOptionsToString(props.booking.location, t)}
+                          </div>
                         </>
                       )}
                       <div className="font-medium">{t("price")}</div>
