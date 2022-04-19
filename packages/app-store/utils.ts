@@ -40,13 +40,14 @@ const defaultLocations: OptionTypeBase[] = [
 ];
 
 export function getLocationOptions(integrations: AppMeta, t: TFunction) {
+  const locations = [...defaultLocations];
   integrations.forEach((app) => {
     if (app.locationOption) {
-      defaultLocations.push(app.locationOption);
+      locations.push(app.locationOption);
     }
   });
 
-  return translateLocations(defaultLocations, t);
+  return translateLocations(locations, t);
 }
 
 /**

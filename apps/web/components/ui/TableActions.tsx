@@ -52,6 +52,12 @@ const DropdownActions = ({ actions, actionTrigger }: { actions: ActionType[]; ac
 };
 
 const TableActions: FC<Props> = ({ actions }) => {
+  const mobileActions = actions.flatMap((action) => {
+    if (action.actions) {
+      return action.actions;
+    }
+    return action;
+  });
   return (
     <>
       <div className="hidden space-x-2 rtl:space-x-reverse lg:block">
@@ -72,12 +78,11 @@ const TableActions: FC<Props> = ({ actions }) => {
           if (!action.actions) {
             return button;
           }
-
           return <DropdownActions key={action.id} actions={action.actions} actionTrigger={button} />;
         })}
       </div>
       <div className="inline-block text-left lg:hidden">
-        <DropdownActions actions={actions} />
+        <DropdownActions actions={mobileActions} />
       </div>
     </>
   );
