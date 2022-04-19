@@ -20,6 +20,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
@@ -344,8 +345,8 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
-        past: { startTime: "asc" },
-        cancelled: { startTime: "asc" },
+        past: { startTime: "desc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -574,8 +575,8 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant === "other" ? [item] : []));
       return {
         conferencing: {
           items: conferencing,
@@ -851,4 +852,5 @@ export const viewerRouter = createRouter()
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
-  .merge("webhook.", webhookRouter);
+  .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter);
