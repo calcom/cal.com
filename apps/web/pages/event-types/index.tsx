@@ -71,6 +71,8 @@ interface EventTypeListProps {
 const Item = ({ type, group, readOnly }: any) => {
   const { t } = useLocale();
   const disposable = type.disposableLink;
+  const groupSlug = disposable ? `d/${type.disposableLink.link}` : group.profile.slug;
+  const typeSlug = disposable ? type.disposableLink.slug : type.slug;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -85,7 +87,7 @@ const Item = ({ type, group, readOnly }: any) => {
           </span>
           <small
             className="hidden text-neutral-500 sm:inline"
-            data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+            data-testid={"event-type-slug-" + type.id}>{`/${groupSlug}/${typeSlug}`}</small>
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
               {t("hidden")}
