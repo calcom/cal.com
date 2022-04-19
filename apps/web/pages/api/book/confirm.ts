@@ -100,6 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         uid: true,
         payment: true,
         destinationCalendar: true,
+        paid: true,
       },
     });
 
@@ -113,6 +114,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (booking.confirmed) {
       return res.status(400).json({ message: "booking already confirmed" });
+    }
+
+    /** If we are confirming a booking that need pay and does not have payment,
+     * it would not have to save in destination calendar */
+    if (booking.payment.length > 0 && !booking.paid) {
+      await prisma.booking.update({
+        where: {
+          id: bookingId,
+        },
+        data: {
+          confirmed: true,
+        },
+      });
+
+      return res.status(204).end();
     }
 
     const attendeesListPromises = booking.attendees.map(async (attendee) => {

@@ -508,8 +508,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    return prisma.booking.create(createBookingObj);
+    /*Validate if there is any stripe_payment credential for this user*/
+    const eventTypePayment = await prisma.credential.findFirst({
+      where: {
+        type: "stripe_payment",
+        userId: users[0].id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    /** If the stripe_payment credential exists then it creates the booking OR*/
+    /** If the stripe_payment credential does not exist but the eventTypes is
+    * without payment then create the booking
+    */
+    if ((eventTypePayment != null && eventType.price > 0) || (!eventType.price)){
+      return prisma.booking.create(createBookingObj);
+    }
+    /** If the stripe_payment credential does not exist and the eventTypes is
+    * with payment then return null
+    */
+    return null;
   }
+
 
   let results: EventResult[] = [];
   let referencesToCreate: PartialReference[] = [];
@@ -550,6 +571,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               ],
             },
           ],
+          confirmed: true,
+          paid: true,
+          rejected: false,
         },
       })
       .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
@@ -623,7 +647,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let booking: Booking | null = null;
   try {
     booking = await createBooking();
-    evt.uid = booking.uid;
+    evt.uid = booking?.uid ?? null;
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -643,7 +667,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking.id);
+    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking?.id);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -712,7 +736,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await sendAttendeeRequestEmail(evt, attendeesList[0]);
   }
 
-  if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
+  if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid && booking) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
 
@@ -760,21 +784,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
   await Promise.all(promises);
   // Avoid passing referencesToCreate with id unique constrain values
-  await prisma.booking.update({
-    where: {
-      uid: booking.uid,
-    },
-    data: {
-      references: {
-        createMany: {
-          data: referencesToCreate,
+
+  if (booking) {
+    await prisma.booking.update({
+      where: {
+        uid: booking.uid,
+      },
+      data: {
+        references: {
+          createMany: {
+            data: referencesToCreate,
+          },
         },
       },
-    },
-  });
-
-  // booking successful
-  return res.status(201).json(booking);
+    });
+    // booking successful
+    return res.status(201).json(booking);
+  }
+  return res.status(500).json({ message: "There is not a stripe_payment credential" });
 }
 
 export function getLuckyUsers(
