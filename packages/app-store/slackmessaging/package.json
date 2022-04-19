@@ -4,7 +4,7 @@
   "name": "@calcom/slackmessaging",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "This is a package for the intergration of slack into the app-store",
+  "description": ": A business communication platform that includes persistent chat rooms (channels), private groups and direct messaging.",
   "dependencies": {
     "@calcom/prisma": "*",
     "@slack/web-api": "^6.7.0",

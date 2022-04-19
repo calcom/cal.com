@@ -124,6 +124,10 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
+      if (process.env.DAILY_API_KEY) {
+        data.locations = [{ type: "integrations:daily" }];
+      }
+
       if (teamId && schedulingType) {
         const hasMembership = await ctx.prisma.membership.findFirst({
           where: {
