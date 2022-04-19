@@ -83,20 +83,14 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal ? (
-                  <Button color="secondary" disabled title="This app is globally installed">
-                    {t("installed")}
-                  </Button>
-                ) : (
-                  <InstallAppButton
-                    type={type}
-                    render={(buttonProps) => (
-                      <Button data-testid="install-app-button" {...buttonProps}>
-                        {t("install_app")}
-                      </Button>
-                    )}
-                  />
-                )}
+                <InstallAppButton
+                  type={type}
+                  render={(buttonProps) => (
+                    <Button data-testid="install-app-button" {...buttonProps}>
+                      {t("install_app")}
+                    </Button>
+                  )}
+                />
                 {price !== 0 && (
                   <small className="block text-right">
                     {feeType === "usage-based"
