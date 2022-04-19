@@ -264,6 +264,7 @@ model Booking {
   dynamicGroupSlugRef String?
   rescheduled         Boolean?
   fromReschedule      String?
+  externalIdCalendar  String?
 }
 
 model Schedule {

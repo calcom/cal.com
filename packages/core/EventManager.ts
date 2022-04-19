@@ -192,6 +192,7 @@ export default class EventManager {
         },
         destinationCalendar: true,
         payment: true,
+        externalIdCalendar: true,
       },
     });
 
