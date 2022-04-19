@@ -249,6 +249,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const mergedEventTypes = Object.values(eventTypesHashMap).map((et, index) => ({
         ...et,
         $disabled: user.plan === "FREE" && index > 0,
+        $expired: et.disposableLink?.expired || false,
       }));
 
       eventTypeGroups.push({

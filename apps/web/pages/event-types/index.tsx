@@ -101,6 +101,11 @@ const Item = ({ type, group, readOnly }: any) => {
               {t("one_time_link")}
             </span>
           )}
+          {type.$expired && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
+              {t("expired")}
+            </span>
+          )}
         </div>
         <EventTypeDescription eventType={type} />
       </a>
