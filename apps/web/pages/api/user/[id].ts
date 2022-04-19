@@ -4,6 +4,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
+import slugify from "@lib/slugify";
+import { randomString } from "@lib/random";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
 
@@ -33,6 +36,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PATCH") {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: authenticatedUser.id,
+      },
+      select: {
+        username: true,
+        name: true,
+      },
+    });
+
+    if(!user?.username && user?.name && req.body.data?.completedOnboarding){
+      const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+      const firstUserName =  usernameSlug(user.name);
+      await prisma.user.update({
+        where: {
+          id: authenticatedUser.id,
+        },
+        data: {
+          username: firstUserName,
+        },
+      });
+    }
     const updatedUser = await prisma.user.update({
       where: {
         id: authenticatedUser.id,
