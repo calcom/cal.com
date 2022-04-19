@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
@@ -26,6 +27,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
+ *     externalDocs:
+ *        url: https://docs.cal.com/event-types
  *     responses:
  *       200:
  *         description: OK
@@ -55,6 +58,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
+ *     externalDocs:
+ *        url: https://docs.cal.com/event-types
  *     responses:
  *       201:
  *         description: OK, eventType edited successfuly
@@ -76,6 +81,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
+ *     externalDocs:
+ *        url: https://docs.cal.com/event-types
  *     responses:
  *       201:
  *         description: OK, eventType removed successfuly
@@ -90,44 +97,61 @@ export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<Ev
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = await getCalcomUserId(res);
+  const data = await prisma.eventType.findMany({ where: { userId } });
+  const userEventTypes = data.map((eventType) => eventType.id);
+  if (userEventTypes.includes(safeQuery.data.id)) {
+    switch (method) {
+      case "GET":
+        await prisma.eventType
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaEventTypePublic.parse(data))
+          .then((event_type) => res.status(200).json({ event_type }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.eventType
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaEventTypePublic.parse(data))
-        .then((event_type) => res.status(200).json({ event_type }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.eventType
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((data) => schemaEventTypePublic.parse(data))
+          .then((event_type) => res.status(200).json({ event_type }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.eventType
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaEventTypePublic.parse(data))
-        .then((event_type) => res.status(200).json({ event_type }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.eventType
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res.status(200).json({
+              message: `EventType with id: ${safeQuery.data.id} deleted`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.eventType
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() => res.status(200).json({ message: `EventType with id: ${safeQuery.data.id} deleted` }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
   }
 }
 

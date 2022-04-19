@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 
 /**
@@ -15,6 +16,8 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
+ *     externalDocs:
+ *        url: https://docs.cal.com/event-types
  *     responses:
  *       200:
  *         description: OK
@@ -28,6 +31,8 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
+ *     externalDocs:
+ *        url: https://docs.cal.com/event-types
  *     responses:
  *       201:
  *         description: OK, event type created
@@ -42,8 +47,10 @@ async function createOrlistAllEventTypes(
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
   const { method } = req;
+  const userId = await getCalcomUserId(res);
+
   if (method === "GET") {
-    const data = await prisma.eventType.findMany();
+    const data = await prisma.eventType.findMany({ where: { userId } });
     const event_types = data.map((eventType) => schemaEventTypePublic.parse(eventType));
     if (event_types) res.status(200).json({ event_types });
     else
@@ -56,7 +63,7 @@ async function createOrlistAllEventTypes(
     const safe = schemaEventTypeBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const data = await prisma.eventType.create({ data: safe.data });
+    const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
     const event_type = schemaEventTypePublic.parse(data);
 
     if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
