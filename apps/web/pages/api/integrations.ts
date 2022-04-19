@@ -124,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await prisma.$transaction([deletePayments, updateBookings, deleteBookingReferences]);
       } catch (e) {
         console.error(e);
-        res.status(500).json({ message: "Integration can not be deleted" });
+        res.status(500).json({ message: "Integration could not be deleted" });
       }
     }
     res.status(200).json({ message: "Integration deleted successfully" });
