@@ -36,7 +36,7 @@ export default function ApiKeyListContainer() {
             </div>
           </div>
 
-          {data.length && (
+          {data.length > 0 && (
             <List className="pb-6">
               {data.map((item: any) => (
                 <ApiKeyListItem
