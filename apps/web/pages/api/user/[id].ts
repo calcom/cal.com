@@ -45,9 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if(!user?.username && user?.name && req.body.data?.completedOnboarding){
+    if (!user?.username && user?.name && req.body.data?.completedOnboarding) {
       const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
-      const firstUserName =  usernameSlug(user.name);
+      const firstUserName = usernameSlug(user.name);
       await prisma.user.update({
         where: {
           id: authenticatedUser.id,
