@@ -520,9 +520,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     /** If the stripe_payment credential exists then it creates the booking OR*/
     /** If the stripe_payment credential does not exist but the eventTypes is
-    *   without payment then create the booking
-    */
-    if ((eventTypePayment != null && eventType.price > 0) || !eventType.price){
+     *   without payment then create the booking
+     */
+    if ((eventTypePayment && eventType.price > 0) || !eventType.price) {
       return prisma.booking.create(createBookingObj);
     }
     /** If the stripe_payment credential does not exist and the eventTypes is
