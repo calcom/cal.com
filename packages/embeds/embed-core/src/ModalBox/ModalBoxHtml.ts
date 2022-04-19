@@ -49,7 +49,7 @@ const html = `<style>
   cursor: pointer;
 }
 .loader {
-  --cal-brand-border-color: white;
+  --brand-color: white;
   --cal-brand-background-color: white;
  }
 </style>
@@ -59,7 +59,7 @@ const html = `<style>
 </div>
 <div class="modal-box">
   <div class="body">
-    <div id="loader" class="z-[999999999999] absolute flex h-screen w-full items-center">
+    <div id="loader" class="z-[999999999999] absolute flex w-full items-center">
       <div class="loader border-brand dark:border-darkmodebrand">
         <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
       </div>

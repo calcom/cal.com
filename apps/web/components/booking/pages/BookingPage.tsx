@@ -308,15 +308,15 @@ const BookingPage = ({
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
           isEmbed ? "" : "sm:my-24",
-          "my-0 max-w-3xl sm:dark:border-gray-600"
+          "my-0 max-w-3xl "
         )}>
         {isReady && (
           <div
             className={classNames(
-              "overflow-hidden",
+              "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
-              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
-              "rounded-md sm:border"
+              isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
+              "rounded-md sm:border sm:dark:border-gray-600"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">

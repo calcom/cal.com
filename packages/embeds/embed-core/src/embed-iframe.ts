@@ -335,6 +335,7 @@ function keepParentInformedAboutDimensionChanges() {
       document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
+
     const contentHeight = mainElement.offsetHeight;
     const contentWidth = mainElement.offsetWidth;
 

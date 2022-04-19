@@ -1,10 +1,6 @@
+const base = require("@calcom/config/tailwind-preset");
+
 module.exports = {
-  // purge: [],
+  ...base,
   content: ["**/*Html.ts"],
-  darkMode: false, // or 'media' or 'class'
-  theme: {
-    extend: {},
-  },
-  variants: {},
-  plugins: [],
 };
