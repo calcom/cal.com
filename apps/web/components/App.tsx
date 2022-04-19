@@ -15,6 +15,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
+import { trpc } from "@lib/trpc";
+
 //import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -55,6 +57,11 @@ export default function App({
 }) {
   const { t } = useLocale();
 
+  const { isSuccess, isLoading, data } = trpc.useQuery(["viewer.integrations"]);
+  const appCredentials: { credentialIds: number[] | undefined } | undefined = data?.other?.items.find(
+    (item: { type: any }) => item.type === type
+  );
+  const [credentialId] = appCredentials?.credentialIds || [false];
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -83,7 +90,7 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal ? (
+                {isGlobal || (data && !isLoading && isSuccess && credentialId) ? (
                   <Button color="secondary" disabled title="This app is globally installed">
                     {t("installed")}
                   </Button>
