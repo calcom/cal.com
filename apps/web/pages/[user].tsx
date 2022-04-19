@@ -135,16 +135,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
-      <div
-        className={classNames(
-          shouldAlignCentrally ? "mx-auto" : "",
-          " dark:bg-neutral-900 ",
-          isEmbed ? "max-w-3xl" : ""
-        )}>
+      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " bg-white" : "",
+            isEmbed ? " bg-white dark:bg-neutral-900" : "",
             "border-bookinglightest max-w-3xl rounded-md border py-24 px-4 sm:dark:border-gray-600"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
