@@ -124,7 +124,7 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      if (process.env.DAILY_API_KEY && process.env.DAILY_SCALE_PLAN) {
+      if (process.env.DAILY_API_KEY) {
         data.locations = [{ type: "integrations:daily" }];
       }
 
