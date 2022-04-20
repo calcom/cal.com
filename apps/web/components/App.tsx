@@ -97,7 +97,7 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {data && !isLoading && isSuccess && credentialId && variant !== "calendar" ? (
+                {isGlobal || (data && !isLoading && isSuccess && credentialId && variant !== "calendar") ? (
                   <Button color="secondary" disabled title="This app is globally installed">
                     {t("installed")}
                   </Button>

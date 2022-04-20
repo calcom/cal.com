@@ -60,14 +60,14 @@ function getApps(userCredentials: CredentialData[]) {
     let locationOption: OptionTypeBase | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
-    // if (appMeta.isGlobal) {
-    //   credentials.push({
-    //     id: +new Date().getTime(),
-    //     type: appMeta.type,
-    //     key: appMeta.key!,
-    //     userId: +new Date().getTime(),
-    //   });
-    // }
+    if (appMeta.isGlobal) {
+      credentials.push({
+        id: +new Date().getTime(),
+        type: appMeta.type,
+        key: appMeta.key!,
+        userId: +new Date().getTime(),
+      });
+    }
 
     /** Check if app has location option AND add it if user has credentials for it */
     if (credentials.length > 0 && appMeta?.locationType) {
