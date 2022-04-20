@@ -11,6 +11,17 @@ This is the public REST api for cal.com. It exposes CRUD Endpoints of all our mo
 - Prisma
 - No tRPC (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
 
+
+## How to run it
+
+First clone the main repo with --recursive-submodules flag. This will clone our monorepo, and all the private git submodules within it.
+``
+Be sure to be authenticated in gh-cli or via PAT in your shell, as this will clone private repos that requires this (website, api)
+``
+
+`cp .env.example .env`
+
+`yarn workspace @calcom/api dev
 ## API Authentication (API Keys)
 
 The API requires a valid apiKey query param to be passed:
@@ -133,6 +144,9 @@ mostly because they're deemed too sensitive  can be revisited if needed.
 
 - [] Api Keys
 - [] Credentials
+- [] Webhooks
+- [] ResetPasswordRequest
+- [] VerificationToken
 
 ## Documentation (OpenAPI)
 
