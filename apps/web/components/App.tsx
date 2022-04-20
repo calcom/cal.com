@@ -15,9 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
-import { trpc } from "@lib/trpc";
-
-//import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
 
@@ -37,7 +34,6 @@ export default function App({
   email,
   tos,
   privacy,
-  category,
 }: {
   name: string;
   type: AppType["type"];
@@ -55,7 +51,6 @@ export default function App({
   email: string; // required
   tos?: string;
   privacy?: string;
-  category: string;
 }) {
   const { t } = useLocale();
 
@@ -79,7 +74,6 @@ export default function App({
         if (result.status === 200) {
           setInstalledApp(true);
         }
-        console.log(result);
       } catch (error) {
         if (error instanceof Error) {
           console.log(error.message);
