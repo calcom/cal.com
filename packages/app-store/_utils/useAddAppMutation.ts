@@ -19,7 +19,8 @@ function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMut
       throw new Error("Something went wrong");
     }
 
-    window.location.href = res.url;
+    const json = await res.json();
+    window.location.href = json.url;
   }, options);
 
   return mutation;
