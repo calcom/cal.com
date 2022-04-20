@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { MembershipResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
@@ -106,48 +107,82 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
   const safeBody = schemaMembershipBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and teamId in the query for managing compoundId.
-  const [userId, teamId] = safeQuery.data.id.split("_");
+  const [paramUserId, teamId] = safeQuery.data.id.split("_");
+  const userId = getCalcomUserId(res);
+  if (parseInt(paramUserId) === userId) {
+    switch (method) {
+      case "GET":
+        await prisma.membership
+          .findUnique({
+            where: {
+              userId_teamId: {
+                userId: userId,
+                teamId: parseInt(teamId),
+              },
+            },
+          })
+          .then((data) => schemaMembershipPublic.parse(data))
+          .then((membership) => res.status(200).json({ membership }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Membership with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.membership
-        .findUnique({ where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } } })
-        .then((data) => schemaMembershipPublic.parse(data))
-        .then((membership) => res.status(200).json({ membership }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Membership with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.membership
+          .update({
+            where: {
+              userId_teamId: {
+                userId: userId,
+                teamId: parseInt(teamId),
+              },
+            },
+            data: safeBody.data,
+          })
+          .then((data) => schemaMembershipPublic.parse(data))
+          .then((membership) => res.status(200).json({ membership }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Membership with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.membership
-        .update({
-          where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } },
-          data: safeBody.data,
-        })
-        .then((data) => schemaMembershipPublic.parse(data))
-        .then((membership) => res.status(200).json({ membership }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Membership with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.membership
+          .delete({
+            where: {
+              userId_teamId: {
+                userId: userId,
+                teamId: parseInt(teamId),
+              },
+            },
+          })
+          .then(() =>
+            res.status(200).json({
+              message: `Membership with id: ${safeQuery.data.id} deleted successfully`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Membership with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.membership
-        .delete({ where: { userId_teamId: { userId: parseInt(userId), teamId: parseInt(teamId) } } })
-        .then(() =>
-          res.status(200).json({ message: `Membership with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Membership with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
-  }
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
+  } else res.status(401).json({ message: "Unauthorized" });
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdString(membershipById));
