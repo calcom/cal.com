@@ -117,6 +117,12 @@
     },
     "postinstall": {},
     "start": {},
+    "embed-tests": {
+      "cache": false
+    },
+    "embed-tests-quick": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^test"]
     },

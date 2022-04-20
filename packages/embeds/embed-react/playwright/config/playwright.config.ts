@@ -5,6 +5,17 @@ import path from "path";
 import baseConfig from "@calcom/embed-core/playwright/config/playwright.config";
 
 const testDir = path.join("../tests");
+
+const projects = baseConfig.projects?.map((project) => {
+  if (!project.name) {
+    return {};
+  }
+  return {
+    ...project,
+    testDir,
+  };
+});
+
 const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
@@ -18,12 +29,6 @@ const config: PlaywrightTestConfig = {
     ...baseConfig.use,
     baseURL: "http://localhost:3003",
   },
-  projects: [
-    {
-      name: "chromium",
-      testDir,
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
+  projects,
 };
 export default config;
