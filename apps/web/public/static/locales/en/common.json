@@ -69,7 +69,7 @@
   "request_reschedule_title_attendee": "Request to reschedule your booking",
   "request_reschedule_subtitle": "{{organizer}} has cancelled the booking and requested you to pick another time.",
   "request_reschedule_title_organizer": "You have requested {{attendee}} to reschedule",
-  "request_reschedule_subtitle_organizer": "You have cancelled the booking and {{attendee}} should be pick a new booking time with you.",
+  "request_reschedule_subtitle_organizer": "You have cancelled the booking and {{attendee}} should pick a new booking time with you.",
   "reschedule_reason": "Reason for reschedule",
   "hi_user_name": "Hi {{name}}",
   "ics_event_title": "{{eventType}} with {{name}}",
