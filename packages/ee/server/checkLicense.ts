@@ -1,7 +1,7 @@
 import cache from "memory-cache";
 
 async function checkLicense(license: string): Promise<boolean> {
-  const url = `https://cal.com/api/license?key=${license}`;
+  const url = `${process.env.NEXT_PUBLIC_CONSOLE_URL}/api/license?key=${license}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
     return cachedResponse;
