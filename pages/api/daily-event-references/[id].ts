@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DailyEventReferenceResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaDailyEventReferenceBodyParams,
   schemaDailyEventReferencePublic,
@@ -96,53 +97,69 @@ export async function dailyEventReferenceById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDailyEventReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = getCalcomUserId(res);
+  const userBookings = await prisma.booking.findMany({ where: { userId } });
+  const userBookingIds = userBookings.map((booking) => booking.id);
+  const userBookingDailyEventReferences = await prisma.dailyEventReference.findMany({
+    where: { bookingId: { in: userBookingIds } },
+  });
+  const userBookingDailyEventReferenceIds = userBookingDailyEventReferences.map(
+    (dailyEventReference) => dailyEventReference.id
+  );
+  if (userBookingDailyEventReferenceIds.includes(safeQuery.data.id)) {
+    switch (method) {
+      case "GET":
+        await prisma.dailyEventReference
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaDailyEventReferencePublic.parse(data))
+          .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `DailyEventReference with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.dailyEventReference
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaDailyEventReferencePublic.parse(data))
-        .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
-        .catch((error: Error) =>
-          res
-            .status(404)
-            .json({ message: `DailyEventReference with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.dailyEventReference
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((data) => schemaDailyEventReferencePublic.parse(data))
+          .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `DailyEventReference with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.dailyEventReference
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaDailyEventReferencePublic.parse(data))
-        .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
-        .catch((error: Error) =>
-          res
-            .status(404)
-            .json({ message: `DailyEventReference with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.dailyEventReference
+          .delete({
+            where: { id: safeQuery.data.id },
+          })
+          .then(() =>
+            res.status(200).json({
+              message: `DailyEventReference with id: ${safeQuery.data.id} deleted`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `DailyEventReference with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.dailyEventReference
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `DailyEventReference with id: ${safeQuery.data.id} deleted` })
-        )
-        .catch((error: Error) =>
-          res
-            .status(404)
-            .json({ message: `DailyEventReference with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
-  }
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
+  } else res.status(401).json({ message: "Unauthorized" });
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(

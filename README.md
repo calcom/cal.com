@@ -139,11 +139,6 @@ tests/endpoint/resource.new.test.ts - Create new resource
 | teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | users                    |     ✅    |   👤[1]  |    ✅   |   ✅  |    ✅   |
 
-## Models missing userId relation
-
-- daily-event-references
-
-
 ## Models from database that are not exposed
 
 mostly because they're deemed too sensitive can be revisited if needed. most are expected to be used via cal's webapp.
@@ -154,7 +149,7 @@ mostly because they're deemed too sensitive can be revisited if needed. most are
 - [ ] ResetPasswordRequest
 - [ ] VerificationToken
 - [ ] ReminderMail
-- [ ] 
+
 ## Documentation (OpenAPI)
 
 You will see that each endpoint has a comment at the top with the annotation `@swagger` with the documentation of the endpoint, **please update it if you change the code!** This is what auto-generates the OpenAPI spec by collecting the YAML in each endpoint and parsing it in /docs alongside the json-schema (auto-generated from prisma package, not added to code but manually for now, need to fix later)
@@ -171,7 +166,11 @@ in order to build and deploy properly.
 
 ## Envirorment variables
 
-DATABASE_URL=
-API_KEY_PREFIX=cal_# This can be changed per envirorment so cal_test_ for staging for example.
+### Required
 
-If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal_ (not providing any envirorment variable) or modify it
+DATABASE_URL=DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
+
+## Optional
+
+API_KEY_PREFIX=cal_# This can be changed per envirorment so cal_test_ for staging for example.
+> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal_ (not providing any envirorment variable) or modify it

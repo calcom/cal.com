@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { DailyEventReferenceResponse, DailyEventReferencesResponse } from "@lib/types";
+import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaDailyEventReferenceBodyParams,
   schemaDailyEventReferencePublic,
@@ -45,8 +46,14 @@ async function createOrlistAllDailyEventReferences(
   res: NextApiResponse<DailyEventReferencesResponse | DailyEventReferenceResponse>
 ) {
   const { method } = req;
+  const userId = getCalcomUserId(res);
+  const userBookings = await prisma.booking.findMany({ where: { userId } });
+  const userBookingIds = userBookings.map((booking) => booking.id);
+
   if (method === "GET") {
-    const data = await prisma.dailyEventReference.findMany();
+    const data = await prisma.dailyEventReference.findMany({
+      where: { bookingId: { in: userBookingIds } },
+    });
     const daily_event_references = data.map((dailyEventReference) =>
       schemaDailyEventReferencePublic.parse(dailyEventReference)
     );
