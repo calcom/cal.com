@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "PORT=4200 next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
+    "highlight.js": "^11.5.1",
     "isarray": "2.0.5",
     "next": "12.1.4",
+    "openapi-snippet": "^0.13.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "swagger-ui-react": "4.8.1"

@@ -80,7 +80,7 @@ export default function TeamAvailabilityModal(props: Props) {
       </div>
       {props.team && props.member && (
         <TeamAvailabilityTimes
-          className="overflow-scroll"
+          className="overflow-auto"
           teamId={props.team.id}
           memberId={props.member.id}
           frequency={frequency}
