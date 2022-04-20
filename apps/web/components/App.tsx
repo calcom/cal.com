@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,6 +37,7 @@ export default function App({
   email,
   tos,
   privacy,
+  category,
 }: {
   name: string;
   type: AppType["type"];
@@ -54,20 +55,39 @@ export default function App({
   email: string; // required
   tos?: string;
   privacy?: string;
+  category: string;
 }) {
   const { t } = useLocale();
 
-  const { isSuccess, isLoading, data } = trpc.useQuery(["viewer.integrations"]);
-  const appCredentials: { credentialIds: number[] | undefined } | undefined = data?.other?.items.find(
-    (item: { type: any }) => item.type === type
-  );
-  const [credentialId] = appCredentials?.credentialIds || [false];
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     useGrouping: false,
   }).format(price);
-
+  const [installedApp, setInstalledApp] = useState(false);
+  useEffect(() => {
+    async function getInstalledApp(appCredentialType: string) {
+      const queryParam = new URLSearchParams();
+      queryParam.set("app-credential-type", appCredentialType);
+      try {
+        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (result.status === 200) {
+          setInstalledApp(true);
+        }
+        console.log(result);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(error.message);
+        }
+      }
+    }
+    getInstalledApp(type);
+  }, []);
   return (
     <>
       <Shell large>
@@ -90,7 +110,7 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal || (data && !isLoading && isSuccess && credentialId) ? (
+                {isGlobal || installedApp ? (
                   <Button color="secondary" disabled title="This app is globally installed">
                     {t("installed")}
                   </Button>
