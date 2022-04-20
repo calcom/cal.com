@@ -1,3 +1,4 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { IdentityProvider } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
@@ -194,6 +195,7 @@ export default NextAuth({
     error: "/auth/error", // Error code passed in query string as ?error=
     newUser: "/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
+  adapter: PrismaAdapter(prisma),
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
