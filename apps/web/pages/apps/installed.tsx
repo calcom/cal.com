@@ -141,14 +141,6 @@ function ConnectOrDisconnectIntegrationButton(props: {
       </div>
     );
   }
-  /** We don't need to "Connect", just show that it's installed */
-  // if (props.isGlobal) {
-  //   return (
-  //     <div className="truncate px-3 py-2">
-  //       <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
-  //     </div>
-  //   );
-  // }
   return (
     <InstallAppButton
       type={props.type}
