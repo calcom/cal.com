@@ -73,6 +73,7 @@ model EventType {
   successRedirectUrl      String?
 
   @@unique([userId, slug])
+  @@unique([teamId, slug])
 }
 
 model Credential {
