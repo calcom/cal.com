@@ -17,7 +17,7 @@ import slugify from "@lib/slugify";
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
-const WEBSITE_BASE_URL = process.env.WEBSITE_BASE_URL || "";
+const NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "";
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -148,7 +148,7 @@ export default NextAuth({
     strategy: "jwt",
   },
   secret: process.env.JWT_SECRET,
-  cookies: defaultCookies(WEBSITE_BASE_URL?.startsWith("https://")),
+  cookies: defaultCookies(NEXT_PUBLIC_WEBSITE_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
