@@ -56,16 +56,11 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <DialogClose asChild>
-          <div className="fixed top-1 right-1 flex h-8 w-8 justify-center rounded-full hover:bg-gray-200">
-            <XIcon className="w-4" />
-          </div>
-        </DialogClose>
-        <div style={{ display: "flex", flexDirection: "row" }}>
+        <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
             <ClockIcon className="m-auto h-6 w-6"></ClockIcon>
           </div>
-          <div className="px-4 pt-1">
+          <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
 
             <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
