@@ -34,7 +34,7 @@
         "$EMAIL_SERVER_USER",
         "$GOOGLE_API_CREDENTIALS",
         "$GOOGLE_LOGIN_ENABLED",
-        "$JWT_SECRET",
+        "$NEXTAUTH_SECRET",
         "$MS_GRAPH_CLIENT_ID",
         "$MS_GRAPH_CLIENT_SECRET",
         "$NEXT_PUBLIC_HELPSCOUT_KEY",
