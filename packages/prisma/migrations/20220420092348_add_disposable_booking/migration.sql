@@ -9,6 +9,8 @@ CREATE TABLE "DisposableLink" (
     "userId" INTEGER,
     "eventTypeId" INTEGER NOT NULL,
     "timeZone" TEXT,
+    "remainingUsage" INTEGER NOT NULL DEFAULT 1,
+    "expireOn" TIMESTAMP(3),
     "expired" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "DisposableLink_pkey" PRIMARY KEY ("id")
@@ -21,10 +23,10 @@ CREATE TABLE "_disposable_user" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DisposableLink_link_slug_key" ON "DisposableLink"("link", "slug");
+CREATE UNIQUE INDEX "DisposableLink_eventTypeId_key" ON "DisposableLink"("eventTypeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "DisposableLink_eventTypeId_key" ON "DisposableLink"("eventTypeId");
+CREATE UNIQUE INDEX "DisposableLink_link_slug_key" ON "DisposableLink"("link", "slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_disposable_user_AB_unique" ON "_disposable_user"("A", "B");

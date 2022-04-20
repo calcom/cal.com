@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE")
 }
 
 generator client {
@@ -390,15 +391,17 @@ model ApiKey {
 }
 
 model DisposableLink {
-  id          Int       @id @default(autoincrement())
-  link        String
-  slug        String
-  users       User[]    @relation("disposable_user")
-  userId      Int?
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int       @unique
-  timeZone    String?
-  expired     Boolean   @default(false)
+  id             Int       @id @default(autoincrement())
+  link           String
+  slug           String
+  users          User[]    @relation("disposable_user")
+  userId         Int?
+  eventType      EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId    Int       @unique
+  timeZone       String?
+  remainingUsage Int       @default(1)
+  expireOn       DateTime?
+  expired        Boolean   @default(false)
 
   @@unique([link, slug])
 }
