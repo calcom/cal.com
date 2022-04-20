@@ -12,10 +12,13 @@ function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMut
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
+
     const res = await fetch(`/api/integrations/${appName}/add` + searchParams);
+
     if (!res.ok) {
       throw new Error("Something went wrong");
     }
+
     const json = await res.json();
     window.location.href = json.url;
   }, options);
