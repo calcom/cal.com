@@ -147,7 +147,6 @@ tests/endpoint/resource.new.test.ts - Create new resource
 - reminder-mails
 - schedules
 - selected-calendars
-- teams
 
 ## Models from database that are not exposed
 
