@@ -7,9 +7,6 @@ This is the public REST api for cal.com. It exposes CRUD Endpoints of all our mo
 - NextJS
 - TypeScript
 - Prisma
-- No tRPC **
-
-** (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
 
 ## Development
 
@@ -75,7 +72,7 @@ Likewise, v1 is added as param query called version to final /api call so we don
 
 We're calling several packages from monorepo, this need to be transpiled before building since are not available as regular npm packages. That's what withTM does.
 
-```sh
+```js
   "@calcom/app-store",
   "@calcom/prisma",
   "@calcom/lib",
