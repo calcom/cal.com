@@ -138,6 +138,17 @@ tests/endpoint/resource.new.test.ts - Create new resource
 | teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | users                    |     ✅    |   👤[1]  |    ✅   |   ✅  |    ✅   |
 
+## Models missing userId relation.
+
+- daily-event-references
+- destination-calendars
+- event-types-custom-input
+- memberships
+- reminder-mails
+- schedules
+- selected-calendars
+- teams
+
 ## Models from database that are not exposed
 
 mostly because they're deemed too sensitive  can be revisited if needed.
@@ -166,3 +177,5 @@ in order to build and deploy properly.
 
 DATABASE_URL=
 API_KEY_PREFIX=cal_# This can be changed per envirorment so cal_test_ for staging for example.
+
+If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal_ (not providing any envirorment variable) or modify it
