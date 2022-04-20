@@ -70,9 +70,6 @@ interface EventTypeListProps {
 
 const Item = ({ type, group, readOnly }: any) => {
   const { t } = useLocale();
-  const disposable = type.disposableLink;
-  const groupSlug = disposable ? `d/${type.disposableLink.link}` : group.profile.slug;
-  const typeSlug = disposable ? type.disposableLink.slug : type.slug;
 
   return (
     <Link href={"/event-types/" + type.id}>
@@ -87,7 +84,7 @@ const Item = ({ type, group, readOnly }: any) => {
           </span>
           <small
             className="hidden text-neutral-500 sm:inline"
-            data-testid={"event-type-slug-" + type.id}>{`/${groupSlug}/${typeSlug}`}</small>
+            data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
               {t("hidden")}
@@ -96,16 +93,6 @@ const Item = ({ type, group, readOnly }: any) => {
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly")}
-            </span>
-          )}
-          {disposable && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800 ltr:ml-2">
-              {t("one_time_link")}
-            </span>
-          )}
-          {type.$expired && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 ltr:ml-2">
-              {t("expired")}
             </span>
           )}
         </div>
