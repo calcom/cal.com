@@ -28,7 +28,6 @@ export type EventTypeDescriptionProps = {
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
-  const disposableLink = eventType.disposableLink;
 
   return (
     <>
@@ -54,12 +53,6 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             <li className="flex whitespace-nowrap">
               <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {t("1_on_1")}
-            </li>
-          )}
-          {disposableLink && !disposableLink?.expired && (
-            <li className="flex whitespace-nowrap">
-              <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              Has a disposable link
             </li>
           )}
           {eventType.price > 0 && (
