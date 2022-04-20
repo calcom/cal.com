@@ -233,7 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dynamicUserList = Array.isArray(reqBody.user)
     ? getGroupName(req.body.user)
     : getUsernameList(reqBody.user as string);
-  const isDisposableBookingLink = reqBody.isDisposableBookingLink;
+  const hasHashedBookingLink = reqBody.hasHashedBookingLink;
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -773,17 +773,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
-  // expire disposable link if disposable booking link used
-  if (isDisposableBookingLink) {
-    await prisma.disposableLink.update({
+  // refresh hashed link if used
+  const seeder = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
+  const hashedUid = translator.fromUUID(uuidv5(seeder, uuidv5.URL));
+
+  if (hasHashedBookingLink) {
+    await prisma.hashedLink.update({
       where: {
-        link_slug: {
-          link: reqBody.disposableBookingObject.link as string,
-          slug: reqBody.disposableBookingObject.slug as string,
-        },
+        link: reqBody.hashedLink as string,
       },
       data: {
-        expired: true,
+        link: hashedUid,
       },
     });
   }

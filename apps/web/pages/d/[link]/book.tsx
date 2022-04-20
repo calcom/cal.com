@@ -9,7 +9,6 @@ import { getLocationLabels } from "@calcom/app-store/utils";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
-import { DisposableBookingObject } from "@lib/types/booking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
@@ -20,9 +19,9 @@ import { ssrInit } from "@server/lib/ssr";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
+export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Book(props: BookPageProps) {
+export default function Book(props: HashLinkPageProps) {
   return <BookingPage {...props} />;
 }
 
@@ -62,42 +61,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  const disposableType = await prisma.disposableLink.findUnique({
+  const hashedLink = await prisma.hashedLink.findUnique({
     where: {
-      link_slug: {
-        link,
-        slug,
-      },
+      link,
     },
     select: {
-      users: {
-        select: {
-          id: true,
-          avatar: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          plan: true,
-          timeZone: true,
-        },
-      },
-      userId: true,
+      eventTypeId: true,
       eventType: {
         select: eventTypeSelect,
       },
-      timeZone: true,
-      expired: true,
     },
   });
-  // Handle expired links here
-  const linkExpired = disposableType?.expired;
-  if (linkExpired) {
-    return {
-      notFound: true,
-    };
-  }
 
-  const userId = disposableType?.userId || disposableType?.eventType.userId;
+  const userId = hashedLink?.eventType.userId || null;
 
   if (!userId)
     return {
@@ -124,7 +100,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!users.length) return { notFound: true };
   const [user] = users;
-  const eventTypeRaw = disposableType?.eventType;
+  const eventTypeRaw = hashedLink?.eventType;
 
   if (!eventTypeRaw) return { notFound: true };
 
@@ -176,10 +152,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
   }
-  const disposableBookingObject: DisposableBookingObject = {
-    slug,
-    link,
-  };
 
   type Booking = Prisma.PromiseReturnType<typeof getBooking>;
   let booking: Booking | null = null;
@@ -204,8 +176,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking: false,
-      isDisposableBookingLink: true,
-      disposableBookingObject,
+      hasHashedBookingLink: true,
+      hashedLink: link,
     },
   };
 }

@@ -1,13 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
-import getBooking, { GetBookingType } from "@lib/getBooking";
+import { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -68,42 +65,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const disposableType = await prisma.disposableLink.findUnique({
+  const hashedLink = await prisma.hashedLink.findUnique({
     where: {
-      link_slug: {
-        link,
-        slug,
-      },
+      link,
     },
     select: {
-      users: {
-        select: {
-          avatar: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          plan: true,
-          timeZone: true,
-        },
-      },
-      userId: true,
+      eventTypeId: true,
       eventType: {
         select: eventTypeSelect,
       },
-      timeZone: true,
-      expired: true,
     },
   });
 
-  // Handle expired links here
-  const linkExpired = disposableType?.expired;
-  if (linkExpired) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const userId = disposableType?.userId || disposableType?.eventType.userId;
+  const userId = hashedLink?.eventType.userId;
 
   if (!userId)
     return {
@@ -149,10 +123,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const [user] = users;
-  const eventTypeObject = Object.assign({}, disposableType.eventType, {
+  const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
-    periodStartDate: null,
-    periodEndDate: null,
+    periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
   });
 
@@ -162,16 +136,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     )[0],
   };
 
-  const timeZone = schedule.timeZone || disposableType.timeZone || user.timeZone;
+  const timeZone = schedule.timeZone || user.timeZone;
 
   const workingHours = getWorkingHours(
     {
       timeZone,
     },
-    schedule.availability ||
-      (disposableType.eventType.availability.length
-        ? disposableType.eventType.availability
-        : user.availability)
+    schedule.availability || user.availability
   );
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];

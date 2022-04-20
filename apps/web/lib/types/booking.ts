@@ -7,11 +7,6 @@ export type BookingConfirmBody = {
   id: number;
 };
 
-export type DisposableBookingObject = {
-  slug?: string;
-  link?: string;
-};
-
 export type DisposableLinkCreateBody = {
   eventTypeId: number;
   slug: string;
@@ -42,8 +37,8 @@ export type BookingCreateBody = {
   metadata: {
     [key: string]: string;
   };
-  isDisposableBookingLink: boolean;
-  disposableBookingObject: DisposableBookingObject;
+  hasHashedBookingLink: boolean;
+  hashedLink?: string;
 };
 
 export type BookingResponse = Booking & {

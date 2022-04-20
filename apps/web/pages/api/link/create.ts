@@ -37,23 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!currentUser) {
     return res.status(404).json({ message: "User not found" });
   }
-  type User = Prisma.UserGetPayload<typeof userSelect>;
-
-  const userSelect = Prisma.validator<Prisma.UserArgs>()({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      username: true,
-      timeZone: true,
-      credentials: true,
-      bufferTime: true,
-      destinationCalendar: true,
-      locale: true,
-    },
-  });
-
-  const users: User[] = [];
 
   const reqBody = req.body as DisposableLinkCreateBody;
   const eventTypeId = reqBody.eventTypeId as number;
@@ -62,58 +45,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!eventTypeId) {
     return res.status(404).json({ message: "Event type not found" });
   }
+
   const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
     where: {
       id: eventTypeId,
     },
     select: {
-      users: userSelect,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      title: true,
-      length: true,
-      eventName: true,
-      schedulingType: true,
-      description: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodDays: true,
-      periodCountCalendarDays: true,
-      requiresConfirmation: true,
-      userId: true,
-      price: true,
-      currency: true,
-      metadata: true,
-      destinationCalendar: true,
-      hideCalendarNotes: true,
+      id: true,
     },
   });
 
-  const timeZone = currentUser.timeZone;
+  if (!eventType?.id) {
+    return res.status(404).json({ message: "Event type not found" });
+  }
 
   const seed = `${currentUser.username}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   // create a disposable link
-  const link = await prisma.disposableLink.create({
+  const link = await prisma.hashedLink.create({
     data: {
       link: uid,
-      slug: reqBody.slug,
-      users: {
-        connect: users.map((user) => ({ id: user.id })),
-      },
-      userId: currentUser.id,
       eventType: {
         connect: { id: eventTypeId },
       },
-      timeZone,
-      expired: false,
     },
   });
 

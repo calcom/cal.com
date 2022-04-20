@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { HashLinkPageProps } from "pages/d/[link]/book";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -48,7 +49,7 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps;
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {
   name: string;
@@ -68,8 +69,8 @@ const BookingPage = ({
   profile,
   isDynamicGroupBooking,
   locationLabels,
-  isDisposableBookingLink,
-  disposableBookingObject,
+  hasHashedBookingLink,
+  hashedLink,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -274,8 +275,8 @@ const BookingPage = ({
         label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
-      isDisposableBookingLink,
-      disposableBookingObject,
+      hasHashedBookingLink,
+      hashedLink,
     });
   };
 
