@@ -134,7 +134,6 @@ tests/endpoint/resource.new.test.ts - Create new resource
 | event-types              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | memberships              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | payments                 |     ✅    |    ✅    |    ❌   |   ❌  |    ❌   |
-| reminder-mails           |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | schedules                |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | selected-calendars       |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
@@ -144,9 +143,7 @@ tests/endpoint/resource.new.test.ts - Create new resource
 
 - daily-event-references
 - destination-calendars
-- event-types-custom-input
-- memberships
-- reminder-mails
+
 
 ## Models from database that are not exposed
 
@@ -157,7 +154,8 @@ mostly because they're deemed too sensitive can be revisited if needed. most are
 - [ ] Webhooks
 - [ ] ResetPasswordRequest
 - [ ] VerificationToken
-
+- [ ] ReminderMail
+- [ ] 
 ## Documentation (OpenAPI)
 
 You will see that each endpoint has a comment at the top with the annotation `@swagger` with the documentation of the endpoint, **please update it if you change the code!** This is what auto-generates the OpenAPI spec by collecting the YAML in each endpoint and parsing it in /docs alongside the json-schema (auto-generated from prisma package, not added to code but manually for now, need to fix later)
