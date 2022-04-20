@@ -146,7 +146,6 @@ tests/endpoint/resource.new.test.ts - Create new resource
 - memberships
 - reminder-mails
 - schedules
-- selected-calendars
 
 ## Models from database that are not exposed
 
