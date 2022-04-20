@@ -47,7 +47,7 @@ async function createOrlistAllAvailabilities(
   res: NextApiResponse<AvailabilitiesResponse | AvailabilityResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
 
   if (method === "GET") {
     const data = await prisma.availability.findMany({ where: { userId } });

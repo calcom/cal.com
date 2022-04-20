@@ -46,7 +46,7 @@ async function createOrlistAllBookingReferences(
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
@@ -72,7 +72,7 @@ async function createOrlistAllBookingReferences(
     }
 
     // const booking_reference = schemaBookingReferencePublic.parse(data);
-    const userId = await getCalcomUserId(res);
+    const userId = getCalcomUserId(res);
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },

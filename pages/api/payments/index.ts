@@ -25,7 +25,7 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  *         description: No payments were found
  */
 async function allPayments(_: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
 
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },

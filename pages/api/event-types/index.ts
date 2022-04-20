@@ -47,7 +47,7 @@ async function createOrlistAllEventTypes(
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
 
   if (method === "GET") {
     const data = await prisma.eventType.findMany({ where: { userId } });

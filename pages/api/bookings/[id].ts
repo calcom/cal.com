@@ -91,7 +91,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaBookingBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },

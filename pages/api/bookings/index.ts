@@ -43,7 +43,7 @@ async function createOrlistAllBookings(
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
 
   if (method === "GET") {
     const data = await prisma.booking.findMany({ where: { userId } });

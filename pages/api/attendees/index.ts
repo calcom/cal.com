@@ -68,7 +68,7 @@ async function createOrlistAllAttendees(
       throw new Error("Invalid request body", safe.error);
     }
     const bookingId = safe.data.bookingId;
-    const userId = await getCalcomUserId(res);
+    const userId = getCalcomUserId(res);
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },

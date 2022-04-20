@@ -97,7 +97,7 @@ export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<Ev
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   if (userEventTypes.includes(safeQuery.data.id)) {

@@ -38,7 +38,7 @@ import {
 export async function paymentById(req: NextApiRequest, res: NextApiResponse<PaymentResponse>) {
   const { method, query } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const userId = await getCalcomUserId(res);
+  const userId = getCalcomUserId(res);
 
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
