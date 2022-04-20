@@ -15,7 +15,6 @@ const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
     currency: true,
     schedulingType: true,
     description: true,
-    disposableLink: true,
   },
 });
 
