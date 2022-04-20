@@ -142,7 +142,6 @@ tests/endpoint/resource.new.test.ts - Create new resource
 ## Models missing userId relation
 
 - daily-event-references
-- destination-calendars
 
 
 ## Models from database that are not exposed
