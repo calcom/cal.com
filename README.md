@@ -9,7 +9,9 @@ This is the public REST api for cal.com. It exposes CRUD Endpoints of all our mo
 - NextJS
 - TypeScript
 - Prisma
-- No tRPC (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
+- No tRPC **
+
+** (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
 
 
 ## How to run it
@@ -138,24 +140,23 @@ tests/endpoint/resource.new.test.ts - Create new resource
 | teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
 | users                    |     ✅    |   👤[1]  |    ✅   |   ✅  |    ✅   |
 
-## Models missing userId relation.
+## Models missing userId relation
 
 - daily-event-references
 - destination-calendars
 - event-types-custom-input
 - memberships
 - reminder-mails
-- schedules
 
 ## Models from database that are not exposed
 
-mostly because they're deemed too sensitive  can be revisited if needed.
+mostly because they're deemed too sensitive can be revisited if needed. most are expected to be used via cal's webapp.
 
-- [] Api Keys
-- [] Credentials
-- [] Webhooks
-- [] ResetPasswordRequest
-- [] VerificationToken
+- [ ] Api Keys
+- [ ] Credentials
+- [ ] Webhooks
+- [ ] ResetPasswordRequest
+- [ ] VerificationToken
 
 ## Documentation (OpenAPI)
 
