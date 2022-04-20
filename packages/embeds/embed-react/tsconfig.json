@@ -4,8 +4,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "baseUrl": ".",
+    "declaration": true,
     "jsx": "preserve"
   },
   "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "node_modules", "test-cal.tsx"]
 }

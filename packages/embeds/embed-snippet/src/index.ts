@@ -13,6 +13,7 @@ export interface GlobalCal {
   /** If user registers multiple namespaces, those are available here */
   ns?: Record<string, GlobalCal>;
   instance?: CalClass;
+  __css?: string;
 }
 
 export interface CalWindow extends Window {

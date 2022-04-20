@@ -16,11 +16,10 @@ type Config = {
 };
 
 const globalCal = (window as CalWindow).Cal;
-globalCal.__css = allCss;
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }
-
+globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
 function log(...args: any[]) {

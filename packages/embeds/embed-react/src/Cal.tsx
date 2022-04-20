@@ -13,6 +13,9 @@ export default function Cal({
   config?: any;
   embedJsUrl?: string;
 }) {
+  if (!calLink) {
+    throw new Error("calLink is required");
+  }
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
