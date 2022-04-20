@@ -56,16 +56,15 @@ async function createOrlistAllTeams(req: NextApiRequest, res: NextApiResponse<Te
           error,
         });
   } else if (method === "POST") {
-    // FIXME: add userId as owner of the team
     const safe = schemaTeamBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
     const team = await prisma.team.create({ data: safe.data });
+    // We're also creating the relation membership of team ownership in this call.
     const membership = await prisma.membership
       .create({
         data: { userId, teamId: team.id, role: "OWNER", accepted: true },
       })
       .then((membership) => schemaMembershipPublic.parse(membership));
-    // We're also creating the relation membership of team ownership in this call.
     const data = schemaTeamPublic.parse(team);
     // We are also returning the new ownership relation as owner besides team.
     if (data)
