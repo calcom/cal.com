@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "prepare": "yarn build",
     "type-check": "tsc --pretty --noEmit",
-    "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src"
+    "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
+    "test-playwright": "WEBSITE_PORT=3003 WEBSITE_START='yarn workspace @calcom/embed-react dev' yarn playwright test --config=./playwright/config/playwright.config.ts"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
@@ -36,6 +37,7 @@
     "vite": "^2.9.5"
   },
   "dependencies": {
+    "playwright": "^1.21.1",
     "typescript": "^4.6.3"
   }
 }

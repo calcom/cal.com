@@ -133,9 +133,16 @@ expect.extend({
       }
     }
 
-    const iframeReadyEventDetail = await getActionFiredDetails({
-      calNamespace,
-      actionType: "__iframeReady",
+    const iframeReadyEventDetail = await new Promise(async (resolve) => {
+      setInterval(async () => {
+        const iframeReadyEventDetail = await getActionFiredDetails({
+          calNamespace,
+          actionType: "linkReady",
+        });
+        if (iframeReadyEventDetail) {
+          resolve(iframeReadyEventDetail);
+        }
+      }, 500);
     });
 
     if (!iframeReadyEventDetail) {
