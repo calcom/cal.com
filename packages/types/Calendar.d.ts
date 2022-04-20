@@ -12,6 +12,8 @@ export type Person = {
   email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  username?: string;
+  id?: string;
 };
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;
@@ -70,19 +72,21 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+// If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
   title: string;
   startTime: string;
   endTime: string;
+  organizer: Person;
+  attendees: Person[];
+  additionalNotes?: string | null;
   description?: string | null;
   team?: {
     name: string;
     members: string[];
   };
   location?: string | null;
-  organizer: Person;
-  attendees: Person[];
   conferenceData?: ConferenceData;
   additionInformation?: AdditionInformation;
   uid?: string | null;

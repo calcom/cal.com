@@ -1,11 +1,13 @@
 // Get router variables
 import {
   ArrowLeftIcon,
+  CalendarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ClockIcon,
   CreditCardIcon,
   GlobeIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -16,12 +18,17 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
+import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { BASE_URL } from "@lib/config/constants";
-import { useLocale } from "@lib/hooks/useLocale";
+import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { parseDate } from "@lib/parseDate";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
@@ -41,13 +48,16 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
-const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Props) => {
+const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
+  const isEmbed = useIsEmbed();
   const { rescheduleUid } = router.query;
   const { isReady, Theme } = useTheme(profile.theme);
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { contracts } = useContracts();
-
+  const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  let isBackgroundTransparent = useIsBackgroundTransparent();
+  useExposePlanGlobally(plan);
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
@@ -76,6 +86,10 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
     return null;
   }, [router.query.date]);
 
+  if (selectedDate) {
+    // Let iframe take the width available due to increase in max-width
+    sdkActionManager?.fire("__refreshWidth", {});
+  }
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
 
@@ -84,7 +98,12 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.pageView, collectPageParameters()));
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        telemetryEventTypes.pageView,
+        collectPageParameters("availability", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
   }, [telemetry]);
 
   const changeDate = (newDate: Dayjs) => {
@@ -128,14 +147,22 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
       <div>
         <main
           className={
-            "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
-            (selectedDate ? "max-w-5xl" : "max-w-3xl")
+            isEmbed
+              ? classNames("m-auto", selectedDate ? "max-w-5xl" : "max-w-3xl")
+              : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
+                (selectedDate ? "max-w-5xl" : "max-w-3xl")
           }>
           {isReady && (
-            <div className="rounded-sm border-gray-200 bg-white dark:bg-gray-800 sm:dark:border-gray-600 md:border">
+            <div
+              style={availabilityDatePickerEmbedStyles}
+              className={classNames(
+                isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
+                "border-bookinglightest rounded-sm md:border",
+                isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
+              )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
-                <div className="flex items-center">
+                <div className="block items-center sm:flex sm:space-x-4">
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
                     items={
@@ -153,17 +180,25 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="ltr:ml-3 rtl:mr-3">
-                    <p className="text-sm font-medium text-black dark:text-gray-300">{profile.name}</p>
-                    <div className="flex gap-2 text-xs font-medium text-gray-600">
-                      {eventType.title}
-                      <div>
-                        <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  <div className="mt-4 sm:-mt-2">
+                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <div className="mt-2  gap-2 dark:text-gray-100">
+                      <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+                        {eventType.title}
+                      </h1>
+                      {eventType?.description && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          {eventType.description}
+                        </p>
+                      )}
+                      <p className="text-bookinglight mb-2 dark:text-white">
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
-                      </div>
+                      </p>
                       {eventType.price > 0 && (
-                        <div>
-                          <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                        <div className="text-gray-600 dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -173,10 +208,25 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                           </IntlProvider>
                         </div>
                       )}
+                      <div className="md:hidden">
+                        {booking?.startTime && rescheduleUid && (
+                          <div>
+                            <p
+                              className="mt-8 mb-2 text-gray-600 dark:text-white"
+                              data-testid="former_time_p_mobile">
+                              {t("former_time")}
+                            </p>
+                            <p className="text-gray-500 line-through dark:text-white">
+                              <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                              {typeof booking.startTime === "string" &&
+                                parseDate(dayjs(booking.startTime), i18n)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <p className="mt-3 text-gray-600 dark:text-gray-200">{eventType.description}</p>
               </div>
 
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
@@ -203,16 +253,22 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                     truncateAfter={3}
                   />
                   <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-3xl font-semibold text-gray-800 dark:text-white">
+                  <h1 className="font-cal mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
-                  <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                    <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                  {eventType?.description && (
+                    <p className="text-bookinglight mb-2 dark:text-white">
+                      <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {eventType.description}
+                    </p>
+                  )}
+                  <p className="text-bookinglight mb-2 dark:text-white">
+                    <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-500">
-                      <CreditCardIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                      <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={eventType.price / 100.0}
@@ -224,8 +280,6 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                   )}
 
                   <TimezoneDropdown />
-
-                  <p className="mt-3 mb-8 text-gray-600 dark:text-gray-200">{eventType.description}</p>
                   {previousPage === `${BASE_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
@@ -235,7 +289,21 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                       <p className="sr-only">Go Back</p>
                     </div>
                   )}
+                  {booking?.startTime && rescheduleUid && (
+                    <div>
+                      <p
+                        className="mt-4 mb-2 text-gray-600 dark:text-white"
+                        data-testid="former_time_p_desktop">
+                        {t("former_time")}
+                      </p>
+                      <p className="text-gray-500 line-through dark:text-white">
+                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
                 <DatePicker
                   date={selectedDate}
                   periodType={eventType?.periodType}
@@ -259,6 +327,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
                     timeFormat={timeFormat}
                     minimumBookingNotice={eventType.minimumBookingNotice}
                     eventTypeId={eventType.id}
+                    eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
                     date={selectedDate}
@@ -271,7 +340,7 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
               </div>
             </div>
           )}
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && <PoweredByCal />}
+          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
     </>
@@ -280,8 +349,8 @@ const AvailabilityPage = ({ profile, eventType, workingHours, previousPage }: Pr
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-500">
-          <GlobeIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
+        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+          <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
             <ChevronUpIcon className="ml-1 -mt-1 inline-block h-4 w-4" />

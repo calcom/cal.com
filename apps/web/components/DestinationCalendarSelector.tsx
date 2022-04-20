@@ -25,20 +25,18 @@ const DestinationCalendarSelector = ({
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
-    if (!selectedOption) {
-      const selected = query.data?.connectedCalendars
-        .map((connected) => connected.calendars ?? [])
-        .flat()
-        .find((cal) => cal.externalId === value);
+    const selected = query.data?.connectedCalendars
+      .map((connected) => connected.calendars ?? [])
+      .flat()
+      .find((cal) => cal.externalId === value);
 
-      if (selected) {
-        setSelectedOption({
-          value: `${selected.integration}:${selected.externalId}`,
-          label: selected.name || "",
-        });
-      }
+    if (selected) {
+      setSelectedOption({
+        value: `${selected.integration}:${selected.externalId}`,
+        label: selected.name || "",
+      });
     }
-  }, [query.data?.connectedCalendars, selectedOption, value]);
+  }, [query.data?.connectedCalendars, value]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
@@ -70,7 +68,7 @@ const DestinationCalendarSelector = ({
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         isSearchable={false}
-        className="focus:ring-primary-500 focus:border-primary-500 mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
+        className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
         onChange={(option) => {
           setSelectedOption(option);
           if (!option) {

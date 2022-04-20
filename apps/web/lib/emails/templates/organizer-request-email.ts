@@ -57,6 +57,7 @@ ${this.calEvent.organizer.language.translate("someone_requested_an_event")}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"

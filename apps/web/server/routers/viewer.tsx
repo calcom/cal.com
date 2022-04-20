@@ -20,6 +20,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
@@ -131,6 +132,7 @@ const loggedInViewerRouter = createProtectedRouter()
         price: true,
         currency: true,
         position: true,
+        successRedirectUrl: true,
         users: {
           select: {
             id: true,
@@ -344,7 +346,7 @@ const loggedInViewerRouter = createProtectedRouter()
       > = {
         upcoming: { startTime: "asc" },
         past: { startTime: "desc" },
-        cancelled: { startTime: "asc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -392,6 +394,7 @@ const loggedInViewerRouter = createProtectedRouter()
               id: true,
             },
           },
+          rescheduled: true,
         },
         orderBy,
         take: take + 1,
@@ -428,6 +431,50 @@ const loggedInViewerRouter = createProtectedRouter()
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+
+      if (connectedCalendars.length === 0) {
+        /* As there are no connected calendars, delete the destination calendar if it exists */
+        if (user.destinationCalendar) {
+          await ctx.prisma.destinationCalendar.delete({
+            where: { userId: user.id },
+          });
+          user.destinationCalendar = null;
+        }
+      } else if (!user.destinationCalendar) {
+        /*
+        There are connected calendars, but no destination calendar
+        So create a default destination calendar with the first primary connected calendar
+        */
+        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
+          data: {
+            userId: user.id,
+            integration,
+            externalId,
+          },
+        });
+      } else {
+        /* There are connected calendars and a destination calendar */
+
+        // Check if destinationCalendar exists in connectedCalendars
+        const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+        const destinationCal = allCals.find(
+          (cal) =>
+            cal.externalId === user.destinationCalendar?.externalId &&
+            cal.integration === user.destinationCalendar?.integration
+        );
+        if (!destinationCal) {
+          // If destinationCalendar is out of date, update it with the first primary connected calendar
+          const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+          user.destinationCalendar = await ctx.prisma.destinationCalendar.update({
+            where: { userId: user.id },
+            data: {
+              integration,
+              externalId,
+            },
+          });
+        }
+      }
 
       return {
         connectedCalendars,
@@ -528,8 +575,8 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-
       return {
         conferencing: {
           items: conferencing,
@@ -542,6 +589,10 @@ const loggedInViewerRouter = createProtectedRouter()
         payment: {
           items: payment,
           numActive: countActive(payment),
+        },
+        other: {
+          items: other,
+          numActive: countActive(other),
         },
       };
     },
@@ -574,6 +625,7 @@ const loggedInViewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
+      allowDynamicBooking: z.boolean().optional(),
       brandColor: z.string().optional(),
       darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
@@ -800,4 +852,5 @@ export const viewerRouter = createRouter()
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
-  .merge("webhook.", webhookRouter);
+  .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter);

@@ -1,0 +1,7 @@
+/**
+ These styles are applied to the entire page, so the selectors need to be specific
+*/
+.cal-embed {
+  border: 0px;
+  min-height: 300px;
+}

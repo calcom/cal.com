@@ -1,23 +1,29 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ClockIcon } from "@heroicons/react/solid";
+import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
+import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { sdkActionManager } from "@calcom/embed-core";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
-import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -31,32 +37,142 @@ dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
 
+function redirectToExternalUrl(url: string) {
+  window.parent.location.href = url;
+}
+
+/**
+ * Redirects to external URL with query params from current URL.
+ * Query Params and Hash Fragment if present in external URL are kept intact.
+ */
+function RedirectionToast({ url }: { url: string }) {
+  const [timeRemaining, setTimeRemaining] = useState(10);
+  const [isToastVisible, setIsToastVisible] = useState(true);
+  const parsedSuccessUrl = new URL(document.URL);
+  const parsedExternalUrl = new URL(url);
+
+  /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
+  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+    parsedSuccessUrl.searchParams.set(name, value);
+  }
+
+  const urlWithSuccessParams =
+    parsedExternalUrl.origin +
+    parsedExternalUrl.pathname +
+    "?" +
+    parsedSuccessUrl.searchParams.toString() +
+    parsedExternalUrl.hash;
+
+  const { t } = useLocale();
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    timerRef.current = window.setInterval(() => {
+      if (timeRemaining > 0) {
+        setTimeRemaining((timeRemaining) => {
+          return timeRemaining - 1;
+        });
+      } else {
+        redirectToExternalUrl(urlWithSuccessParams);
+        window.clearInterval(timerRef.current as number);
+      }
+    }, 1000);
+    return () => {
+      window.clearInterval(timerRef.current as number);
+    };
+  }, [timeRemaining, urlWithSuccessParams]);
+
+  if (!isToastVisible) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
+          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
+            <div className="flex flex-wrap items-center justify-between">
+              <div className="flex w-0 flex-1 items-center">
+                <p className="truncate font-medium text-white sm:mx-3">
+                  <span className="md:hidden">Redirecting to {url} ...</span>
+                  <span className="hidden md:inline">
+                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
+                  </span>
+                </p>
+              </div>
+              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
+                <button
+                  onClick={() => {
+                    redirectToExternalUrl(urlWithSuccessParams);
+                  }}
+                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm hover:bg-green-50">
+                  {t("continue")}
+                </button>
+              </div>
+              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToastVisible(false);
+                    window.clearInterval(timerRef.current as number);
+                  }}
+                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  <XIcon className="h-6 w-6 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
+  const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
+  const { eventType } = props;
 
-  useEffect(() => {
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, []);
-
+  const isBackgroundTransparent = useIsBackgroundTransparent();
+  const isEmbed = useIsEmbed();
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
-    eventName: props.eventType.eventName,
+    eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     t,
   };
 
   const eventName = getEventName(eventNameObject);
+  const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+
+  useEffect(() => {
+    const users = eventType.users;
+    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
+    sdkActionManager!.fire("bookingSuccessful", {
+      eventType,
+      date: date.toString(),
+      duration: eventType.length,
+      organizer: {
+        name: users[0].name || "Nameless",
+        email: users[0].email || "Email-less",
+        timeZone: users[0].timeZone,
+      },
+      confirmed: !needsConfirmation,
+      // TODO: Add payment details
+    });
+    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+  }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -86,27 +202,34 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
-
-  const needsConfirmation = props.eventType.requiresConfirmation && reschedule != "true";
-
+  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   return (
     (isReady && (
-      <div className="h-screen bg-neutral-100 dark:bg-neutral-900" data-testid="success-page">
+      <div
+        className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
+        data-testid="success-page">
         <Theme />
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className="mx-auto max-w-3xl py-24">
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+        <main className={classNames("mx-auto", isEmbed ? "" : "max-w-3xl py-24")}>
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
+            {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
+              <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
+            ) : null}{" "}
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-                <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-                  &#8203;
-                </span>
+              <div
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
+                aria-hidden="true">
                 <div
-                  className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                  className={classNames(
+                    "inline-block transform overflow-hidden rounded-sm",
+                    isEmbed ? "" : "border sm:my-8 sm:max-w-lg ",
+                    isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
+                    "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
+                  )}
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="modal-headline">
@@ -130,7 +253,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             : t("emailed_you_and_attendees")}
                         </p>
                       </div>
-                      <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
+                      <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
@@ -138,14 +261,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           {date.format("dddd, DD MMMM YYYY")}
                           <br />
                           {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                          <span className="text-gray-500">
+                          <span className="text-bookinglight">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
                         </div>
                         {location && (
                           <>
-                            <div className="font-medium">{t("where")}</div>
-                            <div className="col-span-2">
+                            <div className="mt-6 font-medium">{t("where")}</div>
+                            <div className="col-span-2 mt-6">
                               {location.startsWith("http") ? (
                                 <a title="Meeting Link" href={location}>
                                   {location}
@@ -160,7 +283,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                     </div>
                   </div>
                   {!needsConfirmation && (
-                    <div className="mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                    <div className="border-bookinglightest mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -258,8 +381,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {!props.hideBranding && (
-                    <div className="pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
+                  {!(userIsOwner || props.hideBranding) && (
+                    <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                       <form
@@ -272,13 +395,22 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           name="email"
                           id="email"
                           defaultValue={router.query.email}
-                          className="focus:border-brand mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
+                          className="focus:border-brand border-bookinglightest mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button size="lg" type="submit" className="min-w-max" color="primary">
                           {t("try_for_free")}
                         </Button>
                       </form>
+                    </div>
+                  )}
+                  {userIsOwner && (
+                    <div className="mt-4">
+                      <Link href="/bookings">
+                        <a className="flex items-center text-black dark:text-white">
+                          <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                        </a>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -292,17 +424,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-
-  if (isNaN(typeId)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventType = await prisma.eventType.findUnique({
+const getEventTypesFromDB = async (typeId: number) => {
+  return await prisma.eventType.findUnique({
     where: {
       id: typeId,
     },
@@ -314,14 +437,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventName: true,
       requiresConfirmation: true,
       userId: true,
+      successRedirectUrl: true,
       users: {
         select: {
+          id: true,
           name: true,
           hideBranding: true,
           plan: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          email: true,
+          timeZone: true,
         },
       },
       team: {
@@ -332,6 +459,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
+  const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
+
+  if (isNaN(typeId)) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventType) {
     return {
@@ -345,12 +487,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         id: eventType.userId,
       },
       select: {
+        id: true,
         name: true,
         hideBranding: true,
         plan: true,
         theme: true,
         brandColor: true,
         darkBrandColor: true,
+        email: true,
+        timeZone: true,
       },
     });
     if (user) {
@@ -364,11 +509,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
+  // if (!typeId) eventType["eventName"] = getDynamicEventName(users, typeSlug);
+
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
+    email: eventType.team ? null : eventType.users[0].email || null,
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor,
+    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
   return {
@@ -377,6 +525,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType,
       trpcState: ssr.dehydrate(),
+      dynamicEventName,
     },
   };
 }
