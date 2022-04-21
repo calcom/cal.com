@@ -9,7 +9,7 @@ CREATE TABLE "Impersonations" (
     "id" SERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "impersonatedUserId" INTEGER NOT NULL,
-    "impersonatedUserById" INTEGER NOT NULL,
+    "impersonatedById" INTEGER NOT NULL,
 
     CONSTRAINT "Impersonations_pkey" PRIMARY KEY ("id")
 );
@@ -18,4 +18,4 @@ CREATE TABLE "Impersonations" (
 ALTER TABLE "Impersonations" ADD CONSTRAINT "Impersonations_impersonatedUserId_fkey" FOREIGN KEY ("impersonatedUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Impersonations" ADD CONSTRAINT "Impersonations_impersonatedUserById_fkey" FOREIGN KEY ("impersonatedUserById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Impersonations" ADD CONSTRAINT "Impersonations_impersonatedById_fkey" FOREIGN KEY ("impersonatedById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

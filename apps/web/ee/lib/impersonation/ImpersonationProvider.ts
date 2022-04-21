@@ -13,7 +13,7 @@ const ImpersonationProvider = CredentialsProvider({
   async authorize(creds, req) {
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
-    if (session?.user.role != "ADMIN" || !session) {
+    if (session?.user.role != "ADMIN") {
       throw new Error("You do not have permission to do this.");
     }
 

@@ -66,7 +66,7 @@ export default function Admin() {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getSession(context);
 
-  if (!session?.user?.id || session.user.role != "ADMIN") {
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
     return { redirect: { permanent: false, destination: "/settings/profile" } };
   }
   return { props: {} };

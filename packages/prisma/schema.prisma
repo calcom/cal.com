@@ -385,12 +385,13 @@ model Webhook {
 }
 
 model Impersonations {
-  id                   Int      @id @default(autoincrement())
-  createdAt            DateTime @default(now())
-  impersonatedUser     User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
-  impersonatedBy       User     @relation("impersonated_by_user", fields: [impersonatedUserById], references: [id])
-  impersonatedUserId   Int
-  impersonatedUserById Int
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUserId Int
+  impersonatedById   Int
+}
 
 model ApiKey {
   id         String    @id @unique @default(cuid())
