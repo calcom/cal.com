@@ -7,14 +7,6 @@ export type BookingConfirmBody = {
   id: number;
 };
 
-export type DisposableLinkCreateBody = {
-  eventTypeId: number;
-  slug: string;
-  user?: string | string[];
-  timeZone: string;
-  availability?: { openingHours: WorkingHours[]; dateOverrides: WorkingHours[] };
-};
-
 export type BookingCreateBody = {
   email: string;
   end: string;

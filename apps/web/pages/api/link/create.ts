@@ -5,7 +5,6 @@ import { v5 as uuidv5 } from "uuid";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
-import { DisposableLinkCreateBody } from "@lib/types/booking";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const translator = short();
@@ -38,8 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "User not found" });
   }
 
-  const reqBody = req.body as DisposableLinkCreateBody;
-  const eventTypeId = reqBody.eventTypeId as number;
+  const eventTypeId = req.body.eventTypeId as number;
 
   // fetch eventType
   if (!eventTypeId) {
@@ -63,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   // create a disposable link
-  const link = await prisma.hashedLink.create({
+  await prisma.hashedLink.create({
     data: {
       link: uid,
       eventType: {
