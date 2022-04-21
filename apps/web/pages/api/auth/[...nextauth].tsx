@@ -185,6 +185,7 @@ if (true) {
 }
 
 export default NextAuth({
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
@@ -193,9 +194,8 @@ export default NextAuth({
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
-    newUser: "/new", // New users will be directed here on first sign in (leave the property out if not of interest)
+    newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
-  adapter: PrismaAdapter(prisma),
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
@@ -280,7 +280,9 @@ export default NextAuth({
       };
       return calendsoSession;
     },
-    async signIn({ user, account, profile }) {
+    async signIn(params) {
+      console.log("params", params);
+      const { user, account, profile } = params;
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
