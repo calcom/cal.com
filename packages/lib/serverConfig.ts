@@ -1,6 +1,8 @@
 import SendmailTransport from "nodemailer/lib/sendmail-transport";
 import SMTPConnection from "nodemailer/lib/smtp-connection";
 
+import { isENVDev } from "@calcom/lib/env";
+
 function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string {
   if (process.env.EMAIL_SERVER) {
     return process.env.EMAIL_SERVER;
@@ -16,6 +18,9 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
         pass: process.env.EMAIL_SERVER_PASSWORD,
       },
       secure: port === 465,
+      tls: {
+        rejectUnauthorized: isENVDev ? false : true,
+      },
     };
 
     return transport;

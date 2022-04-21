@@ -1,19 +1,32 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { IdentityProvider } from "@prisma/client";
+import { readFileSync } from "fs";
+import Handlebars from "handlebars";
 import NextAuth, { Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
+import path from "path";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { defaultCookies } from "@calcom/lib/default-cookies";
+import { serverConfig } from "@calcom/lib/serverConfig";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
-import { isSAMLLoginEnabled, samlLoginUrl, hostedCal } from "@lib/saml";
+import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+
+const transporter = nodemailer.createTransport<TransportOptions>({
+  ...(serverConfig.transport as TransportOptions),
+} as TransportOptions);
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
 
@@ -141,15 +154,50 @@ if (isSAMLLoginEnabled) {
   });
 }
 
+if (true) {
+  const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
+  providers.push(
+    EmailProvider({
+      maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
+      // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
+      sendVerificationRequest: ({ identifier, url }) => {
+        // Here we add /new endpoint to the callback URL by adding it before &token=.
+        // This is not elegant but it works. We should probably use a different approach when we can.
+        url = url.includes("/auth/new") ? url : url.replace("&token", "/auth/new&token");
+        const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
+          encoding: "utf8",
+        });
+        const emailTemplate = Handlebars.compile(emailFile);
+        transporter.sendMail({
+          from: `${process.env.EMAIL_FROM}` || "Cal.com",
+          to: identifier,
+          subject: "Your sign-in link for Cal.com",
+          html: emailTemplate({
+            base_url: WEBSITE_URL,
+            signin_url: url,
+            email: identifier,
+          }),
+        });
+      },
+    })
+  );
+}
+
 export default NextAuth({
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
-  secret: process.env.JWT_SECRET,
+  /** @deprecated remove once PR#2122 is merged */
+  jwt: {
+    secret: process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET,
+  },
+  cookies: defaultCookies(WEBSITE_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
+    newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
   callbacks: {
@@ -235,7 +283,11 @@ export default NextAuth({
       };
       return calendsoSession;
     },
-    async signIn({ user, account, profile }) {
+    async signIn(params) {
+      const { user, account, profile } = params;
+      if (account.provider === "email") {
+        return true;
+      }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
