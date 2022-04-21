@@ -280,7 +280,6 @@ export default NextAuth({
       return calendsoSession;
     },
     async signIn(params) {
-      console.log("params", params);
       const { user, account, profile } = params;
       if (account.provider === "email") {
         return true;
