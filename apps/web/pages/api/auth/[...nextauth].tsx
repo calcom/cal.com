@@ -163,7 +163,7 @@ if (true) {
       sendVerificationRequest: ({ identifier, url }) => {
         // Here we add /new endpoint to the callback URL by adding it before &token=.
         // This is not elegant but it works. We should probably use a different approach when we can.
-        url = url.includes("/new") ? url : url.replace("&token", "/new&token");
+        url = url.includes("/auth/new") ? url : url.replace("&token", "/auth/new&token");
         const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
           encoding: "utf8",
         });
