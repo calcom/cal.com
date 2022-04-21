@@ -198,6 +198,12 @@ function getNamespace() {
 
 const isEmbed = () => {
   const namespace = getNamespace();
+  const _isValidNamespace = isValidNamespace(namespace);
+  if (parent !== window && !_isValidNamespace) {
+    log(
+      "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
+    );
+  }
   return isValidNamespace(namespace);
 };
 
@@ -269,6 +275,7 @@ const messageParent = (data: any) => {
 
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: Number | null = null;
+  let knownIframeWidth: Number | null = null;
   let numDimensionChanges = 0;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
@@ -284,18 +291,20 @@ function keepParentInformedAboutDimensionChanges() {
       setTimeout(() => {
         isWindowLoadComplete = true;
         informAboutScroll();
-      }, 10);
+      }, 100);
       return;
     }
     if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("windowLoadComplete", {});
+      sdkActionManager?.fire("__windowLoadComplete", {});
     }
     embedStore.windowLoadEventFired = true;
-
+    // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
+    // It avoids the unwanted padding outside main tag.
+    const mainElement = document.getElementsByTagName("main")[0] || document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
-    const contentHeight = document.documentElement.offsetHeight;
-    const contentWidth = document.documentElement.offsetWidth;
+    const contentHeight = mainElement.offsetHeight;
+    const contentWidth = mainElement.offsetWidth;
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
@@ -303,12 +312,16 @@ function keepParentInformedAboutDimensionChanges() {
     let iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
     let iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
     embedStore.parentInformedAboutContentHeight = true;
-    // TODO: Handle width as well.
-    if (knownIframeHeight !== iframeHeight) {
+    if (!iframeHeight || !iframeWidth) {
+      runAsap(informAboutScroll);
+      return;
+    }
+    if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
       knownIframeHeight = iframeHeight;
+      knownIframeWidth = iframeWidth;
       numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkActionManager?.fire("dimension-changed", {
+      sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,
         iframeWidth,
         isFirstTime,
@@ -344,6 +357,16 @@ if (isBrowser) {
       messageParent(detail);
     });
 
+    // This event should be fired whenever you want to let the content take automatic width which is available.
+    // Because on cal-iframe we set explicty width to make it look inline and part of page, there is never space available for content to automatically expand
+    // This is a HACK to quickly tell iframe to go full width and let iframe content adapt to that and set new width.
+    sdkActionManager?.on("__refreshWidth", () => {
+      sdkActionManager?.fire("__dimensionChanged", {
+        iframeWidth: 100,
+        __unit: "%",
+      });
+    });
+
     window.addEventListener("message", (e) => {
       const data: Record<string, any> = e.data;
       if (!data) {
@@ -357,7 +380,7 @@ if (isBrowser) {
 
     if (!pageStatus || pageStatus == "200") {
       keepParentInformedAboutDimensionChanges();
-      sdkActionManager?.fire("iframeReady", {});
+      sdkActionManager?.fire("__iframeReady", {});
     } else
       sdkActionManager?.fire("linkFailed", {
         code: pageStatus,
