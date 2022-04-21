@@ -106,7 +106,7 @@ We have some shared validations which several resources require, like baseApiPar
 
 [Next-Validations Docs](https://next-validations.productsway.com/)
 [Next-Validations Repo](https://github.com/jellydn/next-validations)
-We also use this useful helper library that let's us wrap our endpoints in a validate HOC that checks the req against our validation schema built out with zod for either query and / or body's requests.
+We also use this useful helper library that let us wrap our endpoints in a validate HOC that checks the req against our validation schema built out with zod for either query and / or body's requests.
 
 ## Testing with Jest + node-mocks-http
 
@@ -132,7 +132,7 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 
 ## Models from database that are not exposed
 
-mostly because they're deemed too sensitive can be revisited if needed. most are expected to be used via cal's webapp.
+mostly because they're deemed too sensitive can be revisited if needed. Also they are expected to be used via cal's webapp.
 
 - [ ] Api Keys
 - [ ] Credentials
