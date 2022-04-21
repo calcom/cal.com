@@ -391,7 +391,7 @@ model ApiKey {
 model ZapierSubscription {
   id           String               @id @unique @default(cuid())
   userId       Int
-  TriggerEvent WebhookTriggerEvents
+  triggerEvent WebhookTriggerEvents
   targetUrl    String
   user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
