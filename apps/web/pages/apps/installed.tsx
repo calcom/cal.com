@@ -134,18 +134,18 @@ function ConnectOrDisconnectIntegrationButton(props: {
       />
     );
   }
+  if (!props.installed) {
+    return (
+      <div className="flex items-center truncate">
+        <Alert severity="warning" title={t("not_installed")} />
+      </div>
+    );
+  }
   /** We don't need to "Connect", just show that it's installed */
   if (props.isGlobal) {
     return (
       <div className="truncate px-3 py-2">
         <h3 className="text-sm font-medium text-gray-700">{t("installed")}</h3>
-      </div>
-    );
-  }
-  if (!props.installed) {
-    return (
-      <div className="flex items-center truncate">
-        <Alert severity="warning" title={t("not_installed")} />
       </div>
     );
   }
