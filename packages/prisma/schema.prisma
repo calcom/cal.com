@@ -188,7 +188,7 @@ model Membership {
   @@id([userId, teamId])
 }
 
-model VerificationRequest {
+model VerificationToken {
   id         Int      @id @default(autoincrement())
   identifier String
   token      String   @unique
