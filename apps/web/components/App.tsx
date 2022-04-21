@@ -8,16 +8,13 @@ import {
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
-import { trpc } from "@lib/trpc";
-
-//import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
 
@@ -74,7 +71,29 @@ export default function App({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-
+  const [installedApp, setInstalledApp] = useState(false);
+  useEffect(() => {
+    async function getInstalledApp(appCredentialType: string) {
+      const queryParam = new URLSearchParams();
+      queryParam.set("app-credential-type", appCredentialType);
+      try {
+        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (result.status === 200) {
+          setInstalledApp(true);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(error.message);
+        }
+      }
+    }
+    getInstalledApp(type);
+  }, []);
   return (
     <>
       <Shell large>
@@ -97,7 +116,7 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal || (data && !isLoading && isSuccess && credentialId && variant !== "calendar") ? (
+                {isGlobal || installedApp ? (
                   <Button color="secondary" disabled title="This app is globally installed">
                     {t("installed")}
                   </Button>
