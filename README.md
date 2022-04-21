@@ -58,7 +58,7 @@ GET https://api.cal.com/v1/users?apiKey={INSERT_YOUR_CAL.COM_API_KEY_HERE}
 
 API Keys optionally may have expiry dates, if they are expired they won't work. If you create an apiKey without a userId relation, it won't work either for now as it relies on it to establish the current authenticated user.
 
-In the future we might add support for header Beaer Auth if we need to or our customers require it.
+In the future we might add support for header Bearer Auth if we need to or our customers require it.
 
 ## Next.config.js
 
