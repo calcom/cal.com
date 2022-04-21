@@ -19,7 +19,6 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
       NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      JWT_SECRET: secret # TODO: remove once PR#2122 is merged
       NEXTAUTH_SECRET: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
