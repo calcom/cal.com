@@ -188,10 +188,6 @@ export default NextAuth({
   session: {
     strategy: "jwt",
   },
-  /** @deprecated remove once PR#2122 is merged */
-  jwt: {
-    secret: process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET,
-  },
   cookies: defaultCookies(WEBSITE_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
