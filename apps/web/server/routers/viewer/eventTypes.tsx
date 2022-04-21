@@ -246,34 +246,46 @@ export const eventTypesRouter = createProtectedRouter()
         };
       }
 
+      const connectedLink = await ctx.prisma.hashedLink.findFirst({
+        where: {
+          eventTypeId: input.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
       if (hashedLink) {
         // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
-        const translator = short();
-        const seed = `${input.eventName}:${input.id}:${new Date().getTime()}`;
-        const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-        // create a hashed link
-        await ctx.prisma.hashedLink.upsert({
-          where: {
-            eventTypeId: input.id,
-          },
-          update: {
-            link: uid,
-          },
-          create: {
-            link: uid,
-            eventType: {
-              connect: { id: input.id },
+        if (!connectedLink) {
+          const translator = short();
+          const seed = `${input.eventName}:${input.id}:${new Date().getTime()}`;
+          const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+          // create a hashed link
+          await ctx.prisma.hashedLink.upsert({
+            where: {
+              eventTypeId: input.id,
             },
-          },
-        });
+            update: {
+              link: uid,
+            },
+            create: {
+              link: uid,
+              eventType: {
+                connect: { id: input.id },
+              },
+            },
+          });
+        }
       } else {
-        // check if hashed connection exists. If it doesn, disconnect
-        await ctx.prisma.hashedLink.delete({
-          where: {
-            eventTypeId: input.id,
-          },
-        });
+        // check if hashed connection exists. If it does, disconnect
+        if (connectedLink) {
+          await ctx.prisma.hashedLink.delete({
+            where: {
+              eventTypeId: input.id,
+            },
+          });
+        }
       }
 
       const eventType = await ctx.prisma.eventType.update({
