@@ -155,8 +155,7 @@ if (isSAMLLoginEnabled) {
 }
 
 if (true) {
-  const emailsDir = path.resolve(process.cwd(), "emails");
-
+  const emailsDir = path.resolve(process.cwd(), "lib", "emails", "templates");
   providers.push(
     EmailProvider({
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
@@ -283,6 +282,9 @@ export default NextAuth({
     async signIn(params) {
       console.log("params", params);
       const { user, account, profile } = params;
+      if (account.provider === "email") {
+        return true;
+      }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account.type === "credentials") {
