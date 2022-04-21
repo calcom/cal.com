@@ -267,10 +267,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
-                  {eventType.recurringEvent > 0 && (
+                  {eventType.recurringEvent && eventType.recurringEvent.count > 0 && (
                     <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
                       <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      {t("cap_every_week", { count: eventType.recurringEvent })}
+                      {t("cap_every_week", { count: eventType.recurringEvent.count })}
                     </p>
                   )}
                   {eventType.price > 0 && (

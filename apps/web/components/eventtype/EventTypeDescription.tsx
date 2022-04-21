@@ -43,7 +43,9 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           <li className="flex whitespace-nowrap">
             <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
             {eventType.length}m{" "}
-            {eventType.recurringEvent > 0 ? t("every_week", { count: eventType.recurringEvent }) : ``}
+            {eventType.recurringEvent && eventType.recurringEvent.count > 0
+              ? t("every_week", { count: eventType.recurringEvent.count })
+              : ``}
           </li>
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
@@ -51,15 +53,16 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
               {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
             </li>
-          ) : eventType.recurringEvent > 0 ? (
-            <li className="flex whitespace-nowrap">
-              <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {t("recurring")}
-            </li>
           ) : (
             <li className="flex whitespace-nowrap">
               <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {t("1_on_1")}
+            </li>
+          )}
+          {eventType.recurringEvent && eventType.recurringEvent.count > 0 && (
+            <li className="flex whitespace-nowrap">
+              <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+              {t("recurring")}
             </li>
           )}
           {eventType.price > 0 && (

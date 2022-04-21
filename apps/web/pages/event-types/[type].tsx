@@ -262,7 +262,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-  const [recurringEventVisible, setRecurringEventVisible] = useState(eventType.recurringEvent > 0);
+  const [recurringEventVisible, setRecurringEventVisible] = useState(
+    eventType.recurringEvent && eventType.recurringEvent.count > 0
+  );
   const [recurringEventValue, setRecurringEventValue] = useState(eventType.recurringEvent ?? 1);
 
   useEffect(() => {
@@ -468,7 +470,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
-    recurringEvent: number;
+    // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
+    recurringEvent: {
+      dtstart?: Date | null;
+      interval: number;
+      count?: number | null;
+      until?: Date | null;
+      tzid?: string | null;
+    } | null;
     schedulingType: SchedulingType | null;
     price: number;
     currency: string;
@@ -494,6 +503,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || null,
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -1337,7 +1347,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   }}
                                   type="checkbox"
                                   className="text-primary-600  h-4 w-4 rounded border-gray-300"
-                                  defaultChecked={eventType.recurringEvent > 0}
+                                  defaultChecked={
+                                    eventType.recurringEvent && eventType.recurringEvent.count > 0
+                                  }
                                 />
                               </div>
                               <div className="text-sm ltr:ml-3 rtl:mr-3">
