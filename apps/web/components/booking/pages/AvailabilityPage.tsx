@@ -64,7 +64,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -283,7 +283,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {previousPage === `${BASE_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>
