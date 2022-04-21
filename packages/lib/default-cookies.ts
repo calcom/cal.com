@@ -17,58 +17,47 @@ import { isENVDev } from "@calcom/lib/env";
 const NEXTAUTH_COOKIE_DOMAIN = process.env.NEXTAUTH_COOKIE_DOMAIN || "";
 export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
   const cookiePrefix = useSecureCookies ? "__Secure-" : "";
-  // To enable cookies on widgets,
-  // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
-  // But we need to set it as `lax` in development
-  const sameSite = isENVDev ? "lax" : "none";
+
+  const defaultOptions = {
+    domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
+    // To enable cookies on widgets,
+    // https://stackoverflow.com/questions/45094712/iframe-not-reading-cookies-in-chrome
+    // But we need to set it as `lax` in development
+    sameSite: useSecureCookies ? "none" : "lax",
+    path: "/",
+    secure: useSecureCookies,
+  };
   return {
     sessionToken: {
       name: `${cookiePrefix}next-auth.session-token`,
       options: {
+        ...defaultOptions,
         httpOnly: true,
-        domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
-        sameSite,
-        path: "/",
-        secure: useSecureCookies,
       },
     },
     callbackUrl: {
       name: `${cookiePrefix}next-auth.callback-url`,
-      options: {
-        domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
-        sameSite,
-        path: "/",
-        secure: useSecureCookies,
-      },
+      options: defaultOptions,
     },
     csrfToken: {
       name: `${cookiePrefix}next-auth.csrf-token`,
       options: {
-        domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
+        ...defaultOptions,
         httpOnly: true,
-        sameSite,
-        path: "/",
-        secure: useSecureCookies,
       },
     },
     pkceCodeVerifier: {
       name: `${cookiePrefix}next-auth.pkce.code_verifier`,
       options: {
-        domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
+        ...defaultOptions,
         httpOnly: true,
-        sameSite,
-        path: "/",
-        secure: useSecureCookies,
       },
     },
     state: {
       name: `${cookiePrefix}next-auth.state`,
       options: {
-        domain: isENVDev ? undefined : NEXTAUTH_COOKIE_DOMAIN,
+        ...defaultOptions,
         httpOnly: true,
-        sameSite,
-        path: "/",
-        secure: useSecureCookies,
       },
     },
   };
