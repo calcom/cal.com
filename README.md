@@ -2,47 +2,82 @@
 
 This is the public REST api for cal.com. It exposes CRUD Endpoints of all our most important resources. It makes it easy for anyone to integrate with cal at the programming level.
 
-> The priority is the booking-related API routes so people can build their own booking flow, then event type management routes, then availability management routes etc
-
 ## Stack
 
 - NextJS
 - TypeScript
 - Prisma
-- No tRPC **
 
-** (for now) We hook directly into prisma client, but probably should look into adding a new @calcom/trpc package that adds pagination and such stuff and can be shared between webapp and API.
+## Development
 
+### Setup
 
-## How to run it
+1. Clone the main repo (NOT THIS ONE)
 
-First clone the main repo with --recursive-submodules flag. This will clone our monorepo, and all the private git submodules within it.
-``
-Be sure to be authenticated in gh-cli or via PAT in your shell, as this will clone private repos that requires this (website, api)
-``
+   ```sh
+   git clone --recurse-submodules -j8 https://github.com/calcom/cal.com.git
+   ```
 
-`cp .env.example .env`
+1. Go to the project folder
 
-`yarn workspace @calcom/api dev
+   ```sh
+   cd cal.com
+   ```
+
+1. Copy `apps/api/.env.example` to `apps/api/.env`
+
+   ```sh
+   cp apps/api/.env.example apps/api/.env
+   cp packages/prisma/.env.example packages/prisma/.env
+   ```
+
+1. Install packages with yarn
+
+   ```sh
+   yarn
+   ```
+
+1. Start developing
+
+   ```sh
+   yarn workspace @calcom/api dev
+   ```
+
+1. Open [http://localhost:3002](http://localhost:3002) with your browser to see the result.
+
 ## API Authentication (API Keys)
 
 The API requires a valid apiKey query param to be passed:
 You can generate them at <https://app.cal.com/settings/security>
 
 For example:
+
 ```sh
 GET https://api.cal.com/v1/users?apiKey={INSERT_YOUR_CAL.COM_API_KEY_HERE}
 ```
 
 API Keys optionally may have expiry dates, if they are expired they won't work. If you create an apiKey without a userId relation, it won't work either for now as it relies on it to establish the current authenticated user.
 
-In the future we might add support for header Beaer Auth if we need to or our customers require it.
+In the future we might add support for header Bearer Auth if we need to or if our customers require it.
 
-## Redirects
+## Next.config.js
+
+### Redirects
 
 Since this is an API only project, we don't want to have to type /api/ in all the routes, and so redirect all traffic to api, so a call to `api.cal.com/v1` will resolve to `api.cal.com/api/v1`
 
 Likewise, v1 is added as param query called version to final /api call so we don't duplicate endpoints in the future for versioning if needed.
+
+### Transpiling locally shared monorepo modules
+
+We're calling several packages from monorepo, this need to be transpiled before building since are not available as regular npm packages. That's what withTM does.
+
+```js
+  "@calcom/app-store",
+  "@calcom/prisma",
+  "@calcom/lib",
+  "@calcom/ee",
+```
 
 ## API Endpoint Validation
 
@@ -71,55 +106,11 @@ We have some shared validations which several resources require, like baseApiPar
 
 [Next-Validations Docs](https://next-validations.productsway.com/)
 [Next-Validations Repo](https://github.com/jellydn/next-validations)
-We also use this useful helper library that let's us wrap our endpoints in a validate HOC that checks the req against our validation schema built out with zod for either query and / or body's requests.
+We also use this useful helper library that let us wrap our endpoints in a validate HOC that checks the req against our validation schema built out with zod for either query and / or body's requests.
 
 ## Testing with Jest + node-mocks-http
 
 We aim to provide a fully tested API for our peace of mind, this is accomplished by using jest + node-mocks-http
-
-## Next.config.js
-
-### How to add a new model or endpoint
-
-Basically there's three places of the codebase you need to think about for each feature.
-
-/pages/api/
-
-- This is the most important one, and where your endpoint will live. You will leverage nextjs dynamic routes and expose one file for each endpoint you want to support ideally.
-
-## How the codebase is organized
-
-## The example resource -model- and it's endpoints
-
-### `pages/api/endpoint/`
-
-GET pages/api/endpoint/index.ts - Read All of your resource
-POST pages/api/endpoint/new.ts - Create new resource
-
-### `pages/api/endpoint/[id]/`
-
-GET pages/api/endpoint/[id]/index.ts - Read All of your resource
-PATCH pages/api/endpoint/[id]/edit.ts - Create new resource
-DELETE pages/api/endpoint/[id]/delete.ts - Create new resource
-
-## `/tests/`
-
-This is where all your endpoint's tests live, we mock prisma calls. We aim for at least 50% global coverage. Test each of your endpoints.
-
-### `/tests/endpoint/`
-
-/tests/endpoint/resource.index.test.ts - Test for your pages/api/endpoint/index.ts file
-tests/endpoint/resource.new.test.ts - Create new resource
-
-### `/tests/endpoint/[id]/`
-
-`/tests/endpoint/[id]/resource.index.test.ts` - Read All of your resource
-`/tests/endpoint/[id]/resource.edit.test.ts` - Create new resource
-`/tests/endpoint/[id]/resource.delete.test.ts` - Create new resource
-
-## `/lib/validations/yourEndpoint.ts`
-
-- This is where our model validations, live, we try to make a 1:1 for db models, and also extract out any re-usable code into the /lib/validations/shared/ sub-folder.
 
 ## Endpoints matrix
 
@@ -141,7 +132,7 @@ tests/endpoint/resource.new.test.ts - Create new resource
 
 ## Models from database that are not exposed
 
-mostly because they're deemed too sensitive can be revisited if needed. most are expected to be used via cal's webapp.
+mostly because they're deemed too sensitive can be revisited if needed. Also they are expected to be used via cal's webapp.
 
 - [ ] Api Keys
 - [ ] Credentials
