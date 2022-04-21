@@ -19,7 +19,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
       NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      NEXTAUTH_SECRET: secret
+      NEXTAUTH_SECRET: bxUpZV+KogCbPbFpgZV2heqIGmPLxv6lLNg4cLAFXgE=
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
