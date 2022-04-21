@@ -146,6 +146,7 @@ model User {
   invitedTo           Int?
   plan                UserPlan             @default(TRIAL)
   webhooks            Webhook[]
+  zapierSubscriptions ZapierSubscription[]
   brandColor          String               @default("#292929")
   darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
@@ -385,4 +386,12 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ZapierSubscription {
+  id           String               @id @unique @default(cuid())
+  userId       Int
+  TriggerEvent WebhookTriggerEvents
+  targetUrl    String
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

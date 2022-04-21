@@ -13,9 +13,8 @@ import * as slackmessaging from "./slackmessaging";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as wipemycalother from "./wipemycalother";
-import * as zoomvideo from "./zoomvideo";
 import * as zapierother from "./zapierother";
-
+import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
   //   example,
@@ -34,7 +33,7 @@ const appStore = {
   tandemvideo,
   zoomvideo,
   wipemycalother,
-  zapierother
+  zapierother,
 };
 
 export default appStore;
