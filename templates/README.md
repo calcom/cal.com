@@ -11,30 +11,37 @@ Basically there's three places of the codebase you need to think about for each 
 ## The example resource -model- and it's endpoints
 
 ### `pages/api/endpoint/`
-
-GET pages/api/endpoint/index.ts - Read All of your resource
-POST pages/api/endpoint/new.ts - Create new resource
+| Method | route | action |
+| ------ | ----- | -----  |
+| GET | pages/api/endpoint/index.ts | Read All of your resource |
+| POST |pages/api/endpoint/new.ts | Create new resource |
 
 ### `pages/api/endpoint/[id]/`
 
-GET pages/api/endpoint/[id]/index.ts - Read All of your resource
-PATCH pages/api/endpoint/[id]/edit.ts - Create new resource
-DELETE pages/api/endpoint/[id]/delete.ts - Create new resource
+| Method | route                             | action                    |
+| ------ | --------------------------------- | ------------------------- |
+| GET    | pages/api/endpoint/[id]/index.ts  | Read All of your resource |
+| PATCH  | pages/api/endpoint/[id]/edit.ts   | Create new resource       |
+| DELETE | pages/api/endpoint/[id]/delete.ts | Create new resource       |
 
 ## `/tests/`
 
-This is where all your endpoint's tests live, we mock prisma calls. We aim for at least 50% global coverage. Test each of your endpoints.
+This is where all your endpoint's tests live, we mock prisma calls. We aim for at least 50% global coverage. Please test each of your endpoints.
 
 ### `/tests/endpoint/`
 
-/tests/endpoint/resource.index.test.ts - Test for your pages/api/endpoint/index.ts file
-tests/endpoint/resource.new.test.ts - Create new resource
+| route                                  | action                                         |
+| -------------------------------------- | ---------------------------------------------- |
+| /tests/endpoint/resource.index.test.ts | Test for your pages/api/endpoint/index.ts file |
+| tests/endpoint/resource.new.test.ts    | Create new resource                            |
 
 ### `/tests/endpoint/[id]/`
 
-`/tests/endpoint/[id]/resource.index.test.ts` - Read All of your resource
-`/tests/endpoint/[id]/resource.edit.test.ts` - Create new resource
-`/tests/endpoint/[id]/resource.delete.test.ts` - Create new resource
+| route                                          | action                    |
+| ---------------------------------------------- | ------------------------- |
+| `/tests/endpoint/[id]/resource.index.test.ts`  | Read All of your resource |
+| `/tests/endpoint/[id]/resource.edit.test.ts`   | Create new resource       |
+| `/tests/endpoint/[id]/resource.delete.test.ts` | Create new resource       |
 
 ## `/lib/validations/yourEndpoint.ts`
 
