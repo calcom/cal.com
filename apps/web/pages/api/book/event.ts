@@ -774,8 +774,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
   // refresh hashed link if used
-  const seeder = `${users[0].username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
-  const hashedUid = translator.fromUUID(uuidv5(seeder, uuidv5.URL));
+  const urlSeed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   if (hasHashedBookingLink) {
     await prisma.hashedLink.update({

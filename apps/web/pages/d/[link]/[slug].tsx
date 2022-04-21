@@ -84,6 +84,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
 
+  if (hashedLink?.eventType.slug !== slug)
+    return {
+      notFound: true,
+    };
+
   const users = await prisma.user.findMany({
     where: {
       id: userId,
