@@ -34,7 +34,6 @@ export default function App({
   email,
   tos,
   privacy,
-  variant,
 }: {
   name: string;
   type: AppType["type"];
@@ -52,20 +51,9 @@ export default function App({
   email: string; // required
   tos?: string;
   privacy?: string;
-  variant: string;
 }) {
   const { t } = useLocale();
 
-  const { isSuccess, isLoading, data } = trpc.useQuery(["viewer.integrations"]);
-  let appCredentials: { credentialIds: number[] | undefined } | undefined;
-
-  if (data) {
-    let apps = data[variant as keyof typeof data];
-    appCredentials = apps.items.find((item: { type: any }) => item.type === type);
-  }
-
-  console.log("🚀 ~ file: App.tsx ~ line 64 ~ appCredentials", appCredentials);
-  const [credentialId] = appCredentials?.credentialIds || [false];
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
