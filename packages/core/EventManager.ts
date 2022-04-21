@@ -161,7 +161,11 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+  public async update(
+    event: CalendarEvent,
+    rescheduleUid: string,
+    newBookingId?: number
+  ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -187,6 +191,7 @@ export default class EventManager {
           },
         },
         destinationCalendar: true,
+        payment: true,
       },
     });
 
@@ -209,6 +214,23 @@ export default class EventManager {
 
     // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+    const bookingPayment = booking?.payment;
+
+    // Updating all payment to new
+    if (bookingPayment && newBookingId) {
+      const paymentIds = bookingPayment.map((payment) => payment.id);
+      await prisma.payment.updateMany({
+        where: {
+          id: {
+            in: paymentIds,
+          },
+        },
+        data: {
+          bookingId: newBookingId,
+        },
+      });
+    }
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -344,5 +366,17 @@ export default class EventManager {
     } else {
       return Promise.reject("No suitable credentials given for the requested integration name.");
     }
+  }
+
+  /**
+   * Update event to set a cancelled event placeholder on users calendar
+   * remove if virtual calendar is already done and user availability its read from there
+   * and not only in their calendars
+   * @param event
+   * @param booking
+   * @public
+   */
+  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
+    await this.updateAllCalendarEvents(event, booking);
   }
 }
