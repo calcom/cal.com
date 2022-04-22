@@ -9,7 +9,7 @@ The Embed allows your website visitors to book a meeting with you directly from 
 ## Install on any website
 
 - _Step-1._ Install the Vanilla JS Snippet
-  ```html
+```html
 <script>
   (function (C, A, L) {
     let p = function (a, ar) {
@@ -41,7 +41,7 @@ The Embed allows your website visitors to book a meeting with you directly from 
     })(window, "https://cal.com/embed.js", "init");
     Cal("init")
   </script>
-  ```
+```
 
 ## Install with a Framework
 
@@ -144,8 +144,10 @@ Consider an instruction as a function with that name and that would be called wi
 
 Appends embed inline as the child of the element.
 
-```javascript
+```html
+<script>
 Cal("inline", { elementOrSelector, calLink });
+</script>
 ````
 
 - `elementOrSelector` - Give it either a valid CSS selector or an HTMLElement instance directly
@@ -156,8 +158,10 @@ Cal("inline", { elementOrSelector, calLink });
 
 Configure UI for embed. Make it look part of your webpage.
 
-```javascript
+```html
+<script>
 Cal("inline", { styles });
+</script>
 ```
 
 - `styles` - It supports styling for `body` and `eventTypeListItem`. Right now we support just background on these two.
@@ -168,15 +172,18 @@ Usage:
 
 If you want to open cal link on some action. Make it pop open instantly by preloading it.
 
-```javascript
+```html
+<script>
 Cal("preload", { calLink });
+</script>
 ```
 
 - `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL [https://cal.com/john]()
 
 ## Actions
 You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
-```javascript
+```html
+<script>
 Cal("on", {
   action: "ANY_ACTION_NAME",
   callback: (e)=>{
@@ -186,6 +193,7 @@ Cal("on", {
     const {data, type, namespace} = e.detail;
   }
 })
+</script>
 ```
 
 Following are the list of supported actions.
