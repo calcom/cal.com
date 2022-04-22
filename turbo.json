@@ -34,7 +34,7 @@
         "$EMAIL_SERVER_USER",
         "$GOOGLE_API_CREDENTIALS",
         "$GOOGLE_LOGIN_ENABLED",
-        "$JWT_SECRET",
+        "$NEXTAUTH_SECRET",
         "$MS_GRAPH_CLIENT_ID",
         "$MS_GRAPH_CLIENT_SECRET",
         "$NEXT_PUBLIC_HELPSCOUT_KEY",
@@ -52,6 +52,7 @@
         "$NEXT_PUBLIC_ZENDESK_KEY",
         "$NEXTAUTH_COOKIE_DOMAIN",
         "$NEXTAUTH_URL",
+        "$NEXTAUTH_COOKIE_DOMAIN",
         "$PAYMENT_FEE_FIXED",
         "$PAYMENT_FEE_PERCENTAGE",
         "$PGSSLMODE",
@@ -76,6 +77,7 @@
     },
     "@calcom/website#build": {
       "dependsOn": [
+        "$NEXT_PUBLIC_INTERCOM_APP_ID",
         "$NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE",
         "$NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE",
         "$NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE",
@@ -83,6 +85,9 @@
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
         "$NEXT_PUBLIC_WEBSITE_URL",
+        "$NEXTAUTH_COOKIE_DOMAIN",
+        "$SECRET",
+        "$STRIPE_PRIVATE_KEY",
         "$STRIPE_WEBHOOK_SECRET"
       ],
       "outputs": [".next/**"]

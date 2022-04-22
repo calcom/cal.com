@@ -20,7 +20,7 @@ export const metadata = {
   slug: "jitsi_video",
   title: "Jitsi Meet",
   trending: true,
-  isGlobal: true,
+  isGlobal: false,
   email: "help@cal.com",
   locationType: LocationType.Jitsi,
   locationLabel: "Jitsi Video",
