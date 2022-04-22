@@ -21,12 +21,14 @@ export const webhookRouter = createProtectedRouter()
         return await ctx.prisma.webhook.findMany({
           where: {
             eventTypeId: input.eventTypeId,
+            isZapierSubscription: false,
           },
         });
       }
       return await ctx.prisma.webhook.findMany({
         where: {
           userId: ctx.user.id,
+          isZapierSubscription: false,
         },
       });
     },
@@ -44,6 +46,7 @@ export const webhookRouter = createProtectedRouter()
         return await ctx.prisma.webhook.create({
           data: {
             id: v4(),
+            isZapierSubscription: false,
             ...input,
           },
         });
@@ -51,6 +54,7 @@ export const webhookRouter = createProtectedRouter()
       return await ctx.prisma.webhook.create({
         data: {
           id: v4(),
+          isZapierSubscription: false,
           userId: ctx.user.id,
           ...input,
         },

@@ -40,6 +40,7 @@ import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
+import getZapierSubscribers from "@lib/zapier/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -737,8 +738,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     triggerEvent: eventTrigger,
   };
 
+  const zapierAppInstalled = await prisma.credential.findFirst({
+    where: {
+      AND: [
+        {
+          userId: user.id,
+        },
+        { type: "zapier_other" },
+      ],
+    },
+  });
+
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(subscriberOptions);
+  //todo: check if zapier is installed
+
+  if (zapierAppInstalled) {
+    const zapierSubscribers = await getZapierSubscribers(subscriberOptions);
+    subscribers.push(...zapierSubscribers);
+  }
+
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,

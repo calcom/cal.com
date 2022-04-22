@@ -146,7 +146,6 @@ model User {
   invitedTo           Int?
   plan                UserPlan             @default(TRIAL)
   webhooks            Webhook[]
-  zapierSubscriptions ZapierSubscription[]
   brandColor          String               @default("#292929")
   darkBrandColor      String               @default("#fafafa")
   // the location where the events will end up
@@ -365,16 +364,17 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id              String                 @id @unique
-  userId          Int?
-  eventTypeId     Int?
-  subscriberUrl   String
-  payloadTemplate String?
-  createdAt       DateTime               @default(now())
-  active          Boolean                @default(true)
-  eventTriggers   WebhookTriggerEvents[]
-  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  id                   String                 @id @unique
+  userId               Int?
+  eventTypeId          Int?
+  subscriberUrl        String
+  payloadTemplate      String?
+  createdAt            DateTime               @default(now())
+  active               Boolean                @default(true)
+  eventTriggers        WebhookTriggerEvents[]
+  user                 User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType            EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  isZapierSubscription Boolean
 }
 
 model ApiKey {
@@ -386,12 +386,4 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model ZapierSubscription {
-  id           String               @id @unique @default(cuid())
-  userId       Int
-  triggerEvent WebhookTriggerEvents
-  targetUrl    String
-  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

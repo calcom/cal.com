@@ -15,6 +15,7 @@ import { sendCancelledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
+import getZapierSubscribers from "@lib/zapier/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -136,7 +137,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
     triggerEvent: eventTrigger,
   };
+
+  const zapierAppInstalled = await prisma.credential.findFirst({
+    where: {
+      AND: [
+        {
+          userId: bookingToDelete.userId,
+        },
+        { type: "zapier_other" },
+      ],
+    },
+  });
+
   const subscribers = await getSubscribers(subscriberOptions);
+
+  if (zapierAppInstalled) {
+    const zapierSubscribers = await getZapierSubscribers(subscriberOptions);
+    subscribers.push(...zapierSubscribers);
+  }
+
   const promises = subscribers.map((sub) =>
     sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
       (e) => {

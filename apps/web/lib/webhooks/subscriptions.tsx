@@ -27,6 +27,9 @@ const getSubscribers = async (options: GetSubscriberOptions) => {
         active: {
           equals: true,
         },
+        isZapierSubscription: {
+          equals: false,
+        },
       },
     },
     select: {

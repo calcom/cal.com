@@ -12,6 +12,7 @@ export const _WebhookModel = z.object({
   createdAt: z.date(),
   active: z.boolean(),
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
+  isZapierSubscription: z.boolean(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
