@@ -55,6 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     slotInterval: true,
     users: {
       select: {
+        id: true,
         avatar: true,
         name: true,
         username: true,
@@ -77,8 +78,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const userId = hashedLink?.eventType.userId;
-
+  const userId = hashedLink?.eventType.userId || hashedLink?.eventType.users[0]?.id;
   if (!userId)
     return {
       notFound: true,
