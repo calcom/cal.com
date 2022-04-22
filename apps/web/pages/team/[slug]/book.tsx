@@ -99,7 +99,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking,
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,
-      hashedLink: undefined,
+      hashedLink: null,
     },
   };
 }
