@@ -73,7 +73,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  const userId = hashedLink?.eventType.userId || null;
+  const userId = hashedLink?.eventType.userId || hashedLink?.eventType.users[0]?.id;
 
   if (!userId)
     return {
