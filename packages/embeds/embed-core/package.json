@@ -8,7 +8,7 @@
     "build:cal": "NEXT_PUBLIC_WEBSITE_URL='https://cal.com' yarn build",
     "vite": "vite",
     "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css --watch",
-    "buildWatchAndServer": "run-p 'build --watch' 'vite --port 3002 --strict-port --open'",
+    "buildWatchAndServer": "run-p 'build --watch' 'vite --port 3100 --strict-port --open'",
     "dev": "run-p 'tailwind' 'buildWatchAndServer'",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",

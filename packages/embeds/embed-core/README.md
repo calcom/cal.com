@@ -9,7 +9,7 @@ You can also see various example usages [here](https://github.com/calcom/cal.com
 
 ## Development
 
-Run the following command and then you can test the embed in the automatically opened page `http://localhost:3002`
+Run the following command and then you can test the embed in the automatically opened page `http://localhost:3100`
 
 ```bash
 yarn dev

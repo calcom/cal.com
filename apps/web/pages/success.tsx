@@ -415,7 +415,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </form>
                     </div>
                   )}
-                  {userIsOwner && (
+                  {userIsOwner && !isEmbed && (
                     <div className="mt-4">
                       <Link href="/bookings">
                         <a className="flex items-center text-black dark:text-white">

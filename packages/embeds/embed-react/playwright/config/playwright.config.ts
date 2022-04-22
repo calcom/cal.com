@@ -21,13 +21,13 @@ const config: PlaywrightTestConfig = {
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
     command: "yarn workspace @calcom/embed-react dev",
-    port: 3003,
+    port: 3101,
     timeout: 60_000,
     reuseExistingServer: true,
   },
   use: {
     ...baseConfig.use,
-    baseURL: "http://localhost:3003",
+    baseURL: "http://localhost:3101",
   },
   projects,
 };

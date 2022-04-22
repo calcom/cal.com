@@ -42,7 +42,7 @@
             }
             p(cal, ar);
           };
-      })(window, "//localhost:3002/dist/embed.umd.js", "init");
+      })(window, "//localhost:3100/dist/embed.umd.js", "init");
     </script>
 
     <style>
@@ -87,6 +87,7 @@
       <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
       <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
+      <button data-cal-namespace="popupPaidEvent" data-cal-link="payment/2dc18205-e744-42f2-9e99-6a6c29c4712f?date=2022-05-30T17%3A30%3A00%2B05%3A30&name=sd">Book Paid Event [Auto Theme]</button>
       <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -400,6 +401,11 @@
       })
 
       Cal('init', 'popupTeamLinksList', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      
+      Cal('init', 'popupPaidEvent', {
         debug: 1,
         origin: "http://localhost:3000",
       })

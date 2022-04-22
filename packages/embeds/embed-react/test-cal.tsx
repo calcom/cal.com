@@ -10,7 +10,7 @@ function App() {
       </h1>
       <Cal
         calOrigin="http://localhost:3000"
-        embedJsUrl="//localhost:3002/dist/embed.umd.js"
+        embedJsUrl="//localhost:3100/dist/embed.umd.js"
         calLink="pro"
         config={{
           name: "John Doe",

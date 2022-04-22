@@ -28,12 +28,12 @@ const config: PlaywrightTestConfig = {
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
     command: "yarn workspace @calcom/embed-core dev",
-    port: 3002,
+    port: 3100,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
   },
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: "http://localhost:3100",
     locale: "en-US",
     trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,

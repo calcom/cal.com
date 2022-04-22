@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "description": "Embed Cal Link as a React Component",
   "scripts": {
-    "dev": "vite --port=3003 --open",
+    "dev": "vite --port=3101 --open",
     "tsc": "tsc",
     "build": "vite build && yarn tsc  --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
