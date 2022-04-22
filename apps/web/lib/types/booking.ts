@@ -28,7 +28,7 @@ export type BookingCreateBody = {
     [key: string]: string;
   };
   hasHashedBookingLink: boolean;
-  hashedLink?: string;
+  hashedLink?: string | null;
 };
 
 export type BookingResponse = Booking & {
