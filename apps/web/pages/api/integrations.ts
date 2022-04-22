@@ -30,16 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method == "DELETE") {
-    /** Get the id from the stripe_payment credential for this user */
-    const paymentCredential = await prisma.credential.findFirst({
-      where: {
-        userId: session?.user?.id,
-        type: "stripe_payment",
-      },
-      select: {
-        id: true,
-      },
-    });
     const credentialToDeleteId = req.body.id;
 
     await prisma.user.update({
@@ -54,12 +44,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
+    
+    /** Get the id from the stripe_payment credential for this user */
+    const stripePaymentCredential = await prisma.credential.findFirst({
+      where: {
+        id: req.body.id,
+        userId: session?.user?.id,
+        type: "stripe_payment",
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    /** This validates if you disconnect the Stripe credential.
-    When you disconnect this credential, you have to delete the information from payment 
-    and then update the booking status to Rejected, this is just for those booking that are unconfirmed and 
-    unpaid*/
-    if (paymentCredential?.id === credentialToDeleteId) {
+    /** If stripePaymentCredential was deleted successfully we need to delete the information from payment 
+    * and then update all the user's bookings that where unconfirmed and unpaid to a status = "rejected"
+    */
+    if (stripePaymentCredential?.id === credentialToDeleteId) {
       try {
         const bookingWithPaymentIds = await prisma.booking
           .findMany({
@@ -124,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await prisma.$transaction([deletePayments, updateBookings, deleteBookingReferences]);
       } catch (e) {
         console.error(e);
-        res.status(500).json({ message: "Integration can not be deleted" });
+        res.status(500).json({ message: "Integration could not be deleted" });
       }
     }
     res.status(200).json({ message: "Integration deleted successfully" });

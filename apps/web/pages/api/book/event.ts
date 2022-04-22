@@ -508,8 +508,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    /*Validate if there is any stripe_payment credential for this user*/
-    const eventTypePayment = await prisma.credential.findFirst({
+    /* Validate if there is any stripe_payment credential for this user */
+    const stripePaymentCredential = await prisma.credential.findFirst({
       where: {
         type: "stripe_payment",
         userId: users[0].id,
@@ -518,16 +518,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: true,
       },
     });
-    /** If the stripe_payment credential exists then it creates the booking OR*/
-    /** If the stripe_payment credential does not exist but the eventTypes is
-    *   without payment then create the booking
-    */
-    if ((eventTypePayment != null && eventType.price > 0) || !eventType.price){
+    /** eventType doesn’t require payment then we create a booking
+     * OR
+     * stripePaymentCredential is found and price is higher than 0 then we create a booking
+     */
+    if (!eventType.price || (stripePaymentCredential && eventType.price > 0)) {
       return prisma.booking.create(createBookingObj);
     }
-    /** If the stripe_payment credential does not exist and the eventTypes is
-     * with payment then return null
-     */
+    // stripePaymentCredential not found and eventType requires payment we return null
     return null;
   }
 
@@ -736,11 +734,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (
-      typeof eventType.price === "number" &&
-      eventType.price > 0 &&
-      !originalRescheduledBooking?.paid &&
-      booking
-      ){
+    !Number.isNaN(eventType.price) &&
+    eventType.price > 0 &&
+    !originalRescheduledBooking?.paid &&
+    !!booking
+  ) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
 

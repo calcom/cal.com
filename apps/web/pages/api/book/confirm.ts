@@ -116,8 +116,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "booking already confirmed" });
     }
 
-    /** If we are confirming a booking that need pay and does not have payment,
-     * it would not have to save in destination calendar */
+    /** When a booking that requires payment its being confirmed but doesn't have any payment, 
+     * we shouldn’t save it on DestinationCalendars*/
     if (booking.payment.length > 0 && !booking.paid) {
       await prisma.booking.update({
         where: {
