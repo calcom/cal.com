@@ -1,5 +1,4 @@
 import type { IncomingMessage } from "http";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { NextMiddleware } from "next-api-middleware";
 
 import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
@@ -21,7 +20,7 @@ export const dateInPast = function (date: Date) {
 };
 
 // This verifies the API key and sets the user if it is valid.
-export const verifyApiKey: NextMiddleware = async (req: NextApiRequest, res: NextApiResponse, next) => {
+export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.query.apiKey) return res.status(401).json({ message: "No api key provided" });
   // We remove the prefix from the user provided api_key. If no env set default to "cal_"
   const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
