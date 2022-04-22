@@ -1,7 +1,5 @@
 import { Attendee, Booking } from "@prisma/client";
 
-import { WorkingHours } from "./schedule";
-
 export type BookingConfirmBody = {
   confirmed: boolean;
   id: number;
