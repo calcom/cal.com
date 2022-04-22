@@ -264,7 +264,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-  const [hashedLinkVisible, setHashedLinkVisible] = useState(eventType.hashedLink ? true : false);
+  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
 
   useEffect(() => {
     const fetchTokens = async () => {
