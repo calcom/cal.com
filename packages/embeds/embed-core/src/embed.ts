@@ -274,8 +274,12 @@ export class Cal {
     iframe.style.width = "100%";
     const template = document.createElement("template");
     template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+
     this.modalBox = template.content.children[0];
     this.modalBox.appendChild(iframe);
+    this.actionManager.on("__closeIframe", () => {
+      this.modalBox.setAttribute("state", "closed");
+    });
     document.body.appendChild(template.content);
   }
 

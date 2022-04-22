@@ -18,6 +18,8 @@ function applyThemeAndAddListener(theme: string) {
         document.documentElement.classList.remove("dark");
       }
     } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("light");
       document.documentElement.classList.add(theme);
     }
   };

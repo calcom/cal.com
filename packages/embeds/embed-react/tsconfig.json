@@ -5,7 +5,10 @@
     "moduleResolution": "Node",
     "baseUrl": ".",
     "declaration": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "paths": {
+      "@lib/*": ["../../../apps/web/lib/*"]
+    },
   },
   "include": ["."],
   "exclude": ["dist", "build", "node_modules", "test-cal.tsx"]

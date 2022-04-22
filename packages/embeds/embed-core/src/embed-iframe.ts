@@ -413,6 +413,19 @@ if (isBrowser) {
       }
     });
 
+    document.addEventListener("click", (e) => {
+      if (!e.target) {
+        return;
+      }
+      const mainElement =
+        (document.getElementsByClassName("main")[0] as HTMLElement) ||
+        document.getElementsByTagName("main")[0] ||
+        document.documentElement;
+      if ((e.target as HTMLElement).contains(mainElement)) {
+        sdkActionManager?.fire("__closeIframe", {});
+      }
+    });
+
     if (!pageStatus || pageStatus == "200") {
       keepParentInformedAboutDimensionChanges();
       sdkActionManager?.fire("__iframeReady", {});

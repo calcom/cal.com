@@ -2,7 +2,7 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-import { Cal as CalClass, Instruction, InstructionQueue } from "@calcom/embed-core/src/embed";
+import { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/src/embed";
 
 export interface GlobalCal {
   (methodName: string, arg?: any): void;

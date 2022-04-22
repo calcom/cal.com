@@ -13,11 +13,13 @@ export class ModalBox extends HTMLElement {
   show(show: boolean) {
     // We can't make it display none as that takes iframe width and height calculations to 0
     (this.shadowRoot!.host as unknown as any).style.visibility = show ? "visible" : "hidden";
+    if (!show) {
+      document.body.style.overflow = ModalBox.htmlOverflow;
+    }
   }
 
   close() {
     this.show(false);
-    document.body.style.overflow = ModalBox.htmlOverflow;
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -29,6 +31,8 @@ export class ModalBox extends HTMLElement {
       (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
     } else if (newValue === "started") {
       this.show(true);
+    } else if (newValue == "closed") {
+      this.show(false);
     }
   }
 
