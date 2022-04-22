@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { TeamResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -91,7 +90,7 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });

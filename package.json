@@ -14,24 +14,17 @@
     "lint-fix": "next lint --fix && prettier --write .",
     "test": "jest --detectOpenHandles",
     "type-check": "tsc --pretty --noEmit",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-    "prepare": "husky install",
-    "pre-commit": "next lint"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.8",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-typescript": "^7.16.7",
-    "@calcom/prisma": "*",
     "@calcom/tsconfig": "*",
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "babel-jest": "^27.5.1",
-    "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "node-mocks-http": "^1.11.0",
-    "prettier": "^2.6.1"
+    "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
+    "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.3",
     "next": "^12.1.4",
     "next-api-middleware": "^1.0.1",

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingReferenceResponse, BookingReferencesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaBookingReferenceBodyParams,
   schemaBookingReferencePublic,
@@ -46,7 +45,7 @@ async function createOrlistAllBookingReferences(
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
@@ -72,7 +71,7 @@ async function createOrlistAllBookingReferences(
     }
 
     // const booking_reference = schemaBookingReferencePublic.parse(data);
-    const userId = getCalcomUserId(res);
+    const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },

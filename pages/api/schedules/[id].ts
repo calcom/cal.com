@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ScheduleResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 import {
   schemaQueryIdParseInt,
@@ -91,7 +90,7 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userSchedules = await prisma.schedule.findMany({ where: { userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
   if (userScheduleIds.includes(safeQuery.data.id)) {

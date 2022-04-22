@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaBookingBodyParams, schemaBookingPublic } from "@lib/validations/booking";
 import {
   schemaQueryIdParseInt,
@@ -91,7 +90,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaBookingBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },

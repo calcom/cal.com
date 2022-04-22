@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { TeamResponse, TeamsResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/validations/team";
 
@@ -41,7 +40,7 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
  */
 async function createOrlistAllTeams(req: NextApiRequest, res: NextApiResponse<TeamsResponse | TeamResponse>) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   if (method === "GET") {
     const userWithMemberships = await prisma.membership.findMany({
       where: { userId: userId },

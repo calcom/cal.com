@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { DestinationCalendarResponse, DestinationCalendarsResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaDestinationCalendarBodyParams,
   schemaDestinationCalendarPublic,
@@ -46,7 +45,7 @@ async function createOrlistAllDestinationCalendars(
   res: NextApiResponse<DestinationCalendarsResponse | DestinationCalendarResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
 
   if (method === "GET") {
     const data = await prisma.destinationCalendar.findMany({ where: { userId } });

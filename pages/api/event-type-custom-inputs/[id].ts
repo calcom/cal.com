@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeCustomInputResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaEventTypeCustomInputBodyParams,
   schemaEventTypeCustomInputPublic,
@@ -94,7 +93,7 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { UserResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -91,7 +90,7 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaUserBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   if (safeQuery.data.id === userId) {
     switch (method) {
       case "GET":

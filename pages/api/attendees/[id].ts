@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAttendeeBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
@@ -93,7 +92,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
   if (!safeQuery.success) {
     throw new Error("Invalid request query", safeQuery.error);
   }
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({
     where: { userId },
     include: { attendees: true },

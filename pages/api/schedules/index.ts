@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } from "@lib/validations/schedule";
 
 /**
@@ -43,7 +42,7 @@ async function createOrlistAllSchedules(
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
 
   if (method === "GET") {
     const data = await prisma.schedule.findMany({ where: { userId } });

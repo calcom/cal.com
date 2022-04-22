@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "@lib/validations/booking";
 
 /**
@@ -43,7 +42,7 @@ async function createOrlistAllBookings(
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
 
   if (method === "GET") {
     const data = await prisma.booking.findMany({ where: { userId } });

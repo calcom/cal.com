@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { MembershipResponse, MembershipsResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 
 /**
@@ -43,7 +42,7 @@ async function createOrlistAllMemberships(
   res: NextApiResponse<MembershipsResponse | MembershipResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   if (method === "GET") {
     const data = await prisma.membership.findMany({ where: { userId } });
     const memberships = data.map((membership) => schemaMembershipPublic.parse(membership));

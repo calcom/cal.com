@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { SelectedCalendarResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaSelectedCalendarBodyParams,
   schemaSelectedCalendarPublic,
@@ -132,7 +131,7 @@ export async function selectedCalendarById(
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and externalId in the query for managing compoundId.
   const [paramUserId, integration, externalId] = safeQuery.data.id.split("_");
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   if (userId === parseInt(paramUserId)) {
     switch (method) {
       case "GET":

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { PaymentsResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaPaymentPublic } from "@lib/validations/payment";
 
 /**
@@ -24,8 +23,8 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  *       404:
  *         description: No payments were found
  */
-async function allPayments(_: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
-  const userId = getCalcomUserId(res);
+async function allPayments(req: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
+  const userId = req.userId;
 
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },

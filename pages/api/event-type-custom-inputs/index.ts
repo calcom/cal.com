@@ -45,7 +45,7 @@ async function createOrlistAllEventTypeCustomInputs(
   res: NextApiResponse<EventTypeCustomInputsResponse | EventTypeCustomInputResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   // const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({

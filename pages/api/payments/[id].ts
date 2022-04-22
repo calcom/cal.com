@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { PaymentResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaPaymentPublic } from "@lib/validations/payment";
 import {
   schemaQueryIdParseInt,
@@ -38,7 +37,7 @@ import {
 export async function paymentById(req: NextApiRequest, res: NextApiResponse<PaymentResponse>) {
   const { method, query } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
 
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({

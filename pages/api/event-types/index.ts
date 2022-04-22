@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 
 /**
@@ -47,7 +46,7 @@ async function createOrlistAllEventTypes(
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
 
   if (method === "GET") {
     const data = await prisma.eventType.findMany({ where: { userId } });

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DailyEventReferenceResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaDailyEventReferenceBodyParams,
   schemaDailyEventReferencePublic,
@@ -97,7 +96,7 @@ export async function dailyEventReferenceById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDailyEventReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({ where: { userId } });
   const userBookingIds = userBookings.map((booking) => booking.id);
   const userBookingDailyEventReferences = await prisma.dailyEventReference.findMany({

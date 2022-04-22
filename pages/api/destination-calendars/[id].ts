@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DestinationCalendarResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaDestinationCalendarBodyParams,
   schemaDestinationCalendarPublic,
@@ -97,7 +96,7 @@ export async function destionationCalendarById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDestinationCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const data = await prisma.destinationCalendar.findMany({ where: { userId } });
   const userDestinationCalendars = data.map((destinationCalendar) => destinationCalendar.id);
   //  FIXME: Should we also check ownership of bokingId and eventTypeId to avoid users cross-pollinating other users calendars.

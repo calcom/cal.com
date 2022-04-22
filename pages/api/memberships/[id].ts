@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { MembershipResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
@@ -108,7 +107,7 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and teamId in the query for managing compoundId.
   const [paramUserId, teamId] = safeQuery.data.id.split("_");
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   if (parseInt(paramUserId) === userId) {
     switch (method) {
       case "GET":
