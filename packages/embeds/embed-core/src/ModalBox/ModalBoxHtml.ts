@@ -12,15 +12,15 @@ const html = `<style>
 
 @media only screen and (min-width:600px) {
   .modal-box {
-  margin:0 auto;
-  margin-top:20px;
-  margin-bottom:20px;
-  position:absolute;
-  width:50%;
-  top:50%;
-  left:50%;
-  transform: translateY(-50%) translateX(-50%);
-  overflow: scroll;
+    margin:0 auto;
+    margin-top:20px;
+    margin-bottom:20px;
+    position:absolute;
+    width:100%;
+    top:50%;
+    left:50%;
+    transform: translateY(-50%) translateX(-50%);
+    overflow: scroll;
   }
 }
 

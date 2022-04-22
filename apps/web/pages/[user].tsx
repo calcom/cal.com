@@ -139,8 +139,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? " bg-white dark:bg-neutral-900" : "",
-            "border-bookinglightest max-w-3xl rounded-md border py-24 px-4 sm:dark:border-gray-600"
+            isEmbed
+              ? " border-bookinglightest  rounded-md border bg-white dark:bg-neutral-900 sm:dark:border-gray-600"
+              : "",
+            "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
