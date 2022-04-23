@@ -110,6 +110,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       defaultScheduleId: true,
       allowDynamicBooking: true,
+      away: true,
       schedules: {
         select: {
           availability: true,
@@ -166,6 +167,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      away: user.away,
       isDynamicGroup: false,
       profile,
       plan: user.plan,
