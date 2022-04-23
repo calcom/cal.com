@@ -12,8 +12,8 @@ const schemaEventTypeRequiredParams = z.object({
 });
 
 export const schemaEventTypeBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeRequiredParams);
-
-export const schemaEventTypePublic = EventType.omit({});
+// @NOTE: Removing locations and metadata properties before validation, add them later if required
+export const schemaEventTypePublic = EventType.omit({ locations: true, metadata: true });
 
 export const withValidEventType = withValidation({
   schema: schemaEventTypeBodyParams,

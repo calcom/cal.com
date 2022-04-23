@@ -7,7 +7,6 @@ import { SelectedCalendarResponse, SelectedCalendarsResponse } from "@lib/types"
 import {
   schemaSelectedCalendarBodyParams,
   schemaSelectedCalendarPublic,
-  withValidSelectedCalendar,
 } from "@lib/validations/selected-calendar";
 
 /**
@@ -46,8 +45,10 @@ async function createOrlistAllSelectedCalendars(
   res: NextApiResponse<SelectedCalendarsResponse | SelectedCalendarResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
+
   if (method === "GET") {
-    const data = await prisma.selectedCalendar.findMany();
+    const data = await prisma.selectedCalendar.findMany({ where: { userId } });
     const selected_calendars = data.map((selected_calendar) =>
       schemaSelectedCalendarPublic.parse(selected_calendar)
     );
@@ -61,8 +62,10 @@ async function createOrlistAllSelectedCalendars(
   } else if (method === "POST") {
     const safe = schemaSelectedCalendarBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
-
-    const data = await prisma.selectedCalendar.create({ data: safe.data });
+    // Create new selectedCalendar connecting it to current userId
+    const data = await prisma.selectedCalendar.create({
+      data: { ...safe.data, user: { connect: { id: userId } } },
+    });
     const selected_calendar = schemaSelectedCalendarPublic.parse(data);
 
     if (selected_calendar)
@@ -76,6 +79,4 @@ async function createOrlistAllSelectedCalendars(
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET_OR_POST")(
-  withValidSelectedCalendar(createOrlistAllSelectedCalendars)
-);
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllSelectedCalendars);

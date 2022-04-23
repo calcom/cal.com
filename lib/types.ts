@@ -37,6 +37,7 @@ export type UsersResponse = BaseResponse & {
 // Team
 export type TeamResponse = BaseResponse & {
   team?: Partial<Team>;
+  owner?: Partial<Membership>;
 };
 export type TeamsResponse = BaseResponse & {
   teams?: Partial<Team>[];

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAttendeeBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
@@ -93,7 +92,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
   if (!safeQuery.success) {
     throw new Error("Invalid request query", safeQuery.error);
   }
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({
     where: { userId },
     include: { attendees: true },
@@ -101,7 +100,8 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
   const attendees = userBookings.map((booking) => booking.attendees).flat();
   const attendeeIds = attendees.map((attendee) => attendee.id);
   // Here we make sure to only return attendee's of the user's own bookings.
-  if (attendeeIds.includes(safeQuery.data.id)) {
+  if (!attendeeIds.includes(safeQuery.data.id))  res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.attendee
@@ -152,7 +152,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(attendeeById));

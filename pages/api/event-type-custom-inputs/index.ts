@@ -45,8 +45,12 @@ async function createOrlistAllEventTypeCustomInputs(
   res: NextApiResponse<EventTypeCustomInputsResponse | EventTypeCustomInputResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
+  const data = await prisma.eventType.findMany({ where: { userId } });
+  const userEventTypes = data.map((eventType) => eventType.id);
+
   if (method === "GET") {
-    const data = await prisma.eventTypeCustomInput.findMany();
+    const data = await prisma.eventTypeCustomInput.findMany({ where: { eventType: userEventTypes } });
     const event_type_custom_inputs = data.map((eventTypeCustomInput) =>
       schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput)
     );
@@ -60,13 +64,25 @@ async function createOrlistAllEventTypeCustomInputs(
   } else if (method === "POST") {
     const safe = schemaEventTypeCustomInputBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
-
-    const data = await prisma.eventTypeCustomInput.create({ data: safe.data });
-    const event_type_custom_input = schemaEventTypeCustomInputPublic.parse(data);
-
-    if (event_type_custom_input)
-      res.status(201).json({ event_type_custom_input, message: "EventTypeCustomInput created successfully" });
-    else
+    // Since we're supporting a create or connect relation on eventType, we need to treat them differently
+    // When using connect on event type, check if userId is the owner of the event
+    if (safe.data.eventType.connect && !userEventTypes.includes(safe.data.eventType.connect.id as number)) {
+      const data = await prisma.eventTypeCustomInput.create({ data: { ...safe.data } });
+      const event_type_custom_input = schemaEventTypeCustomInputPublic.parse(data);
+      if (event_type_custom_input)
+        res
+          .status(201)
+          .json({ event_type_custom_input, message: "EventTypeCustomInput created successfully" });
+      // When creating, no need
+      // FIXME: we might want to pass userId to the new created/linked eventType, though.
+    } else if (safe.data.eventType.create) {
+      const data = await prisma.eventTypeCustomInput.create({ data: { ...safe.data } });
+      const event_type_custom_input = schemaEventTypeCustomInputPublic.parse(data);
+      if (event_type_custom_input)
+        res
+          .status(201)
+          .json({ event_type_custom_input, message: "EventTypeCustomInput created successfully" });
+    } else
       (error: Error) =>
         res.status(400).json({
           message: "Could not create new eventTypeCustomInput",

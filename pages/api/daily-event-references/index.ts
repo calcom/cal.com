@@ -17,7 +17,7 @@ import {
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
- *     - daily-event-reference
+ *     - daily-event-references
  *     responses:
  *       200:
  *         description: OK
@@ -30,7 +30,7 @@ import {
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
- *     - daily-event-reference
+ *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, daily event reference created
@@ -45,8 +45,14 @@ async function createOrlistAllDailyEventReferences(
   res: NextApiResponse<DailyEventReferencesResponse | DailyEventReferenceResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
+  const userBookings = await prisma.booking.findMany({ where: { userId } });
+  const userBookingIds = userBookings.map((booking) => booking.id);
+
   if (method === "GET") {
-    const data = await prisma.dailyEventReference.findMany();
+    const data = await prisma.dailyEventReference.findMany({
+      where: { bookingId: { in: userBookingIds } },
+    });
     const daily_event_references = data.map((dailyEventReference) =>
       schemaDailyEventReferencePublic.parse(dailyEventReference)
     );

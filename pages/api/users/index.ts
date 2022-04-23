@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UsersResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaUserPublic } from "@lib/validations/user";
 
 /**
@@ -25,7 +24,7 @@ import { schemaUserPublic } from "@lib/validations/user";
  *         description: No users were found
  */
 async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>) {
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const data = await prisma.user.findMany({
     where: {
       id: userId,

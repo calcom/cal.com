@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } from "@lib/validations/attendee";
 
 /**
@@ -43,7 +42,7 @@ async function createOrlistAllAttendees(
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
   const { method } = req;
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   // Here we make sure to only return attendee's of the user's own bookings.
   const userBookings = await prisma.booking.findMany({
     where: {
@@ -68,7 +67,7 @@ async function createOrlistAllAttendees(
       throw new Error("Invalid request body", safe.error);
     }
     const bookingId = safe.data.bookingId;
-    const userId = await getCalcomUserId(res);
+    const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },
@@ -77,7 +76,8 @@ async function createOrlistAllAttendees(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-    if (userBookingIds.includes(bookingId)) {
+    if (!userBookingIds.includes(bookingId)) res.status(401).json({ message: "Unauthorized" });
+    else {
       delete safe.data.bookingId;
       const noBookingId = safe.data;
       const data = await prisma.attendee.create({
@@ -100,7 +100,7 @@ async function createOrlistAllAttendees(
             error,
           });
       }
-    } else res.status(401).json({ message: "Unauthorized" });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

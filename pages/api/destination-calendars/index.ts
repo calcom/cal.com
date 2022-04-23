@@ -45,8 +45,10 @@ async function createOrlistAllDestinationCalendars(
   res: NextApiResponse<DestinationCalendarsResponse | DestinationCalendarResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
+
   if (method === "GET") {
-    const data = await prisma.destinationCalendar.findMany();
+    const data = await prisma.destinationCalendar.findMany({ where: { userId } });
     const destination_calendars = data.map((destinationCalendar) =>
       schemaDestinationCalendarPublic.parse(destinationCalendar)
     );
@@ -61,7 +63,7 @@ async function createOrlistAllDestinationCalendars(
     const safe = schemaDestinationCalendarBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const data = await prisma.destinationCalendar.create({ data: safe.data });
+    const data = await prisma.destinationCalendar.create({ data: { ...safe.data, userId } });
     const destination_calendar = schemaDestinationCalendarPublic.parse(data);
 
     if (destination_calendar)

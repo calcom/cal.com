@@ -130,71 +130,85 @@ export async function selectedCalendarById(
   const safeBody = schemaSelectedCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and externalId in the query for managing compoundId.
-  const [userId, integration, externalId] = safeQuery.data.id.split("_");
-
-  switch (method) {
-    case "GET":
-      await prisma.selectedCalendar
-        .findUnique({
-          where: {
-            userId_integration_externalId: {
-              userId: parseInt(userId),
-              integration: integration,
-              externalId: externalId,
+  const [paramUserId, integration, externalId] = safeQuery.data.id.split("_");
+  const userId = req.userId;
+  if (userId !== parseInt(paramUserId)) res.status(401).json({ message: "Unauthorized" });
+  else {
+    switch (method) {
+      case "GET":
+        await prisma.selectedCalendar
+          .findUnique({
+            where: {
+              userId_integration_externalId: {
+                userId: userId,
+                integration: integration,
+                externalId: externalId,
+              },
             },
-          },
-        })
-        .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+          })
+          .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
+          .then((selected_calendar) => res.status(200).json({ selected_calendar }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `SelectedCalendar with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.selectedCalendar
-        .update({
-          where: {
-            userId_integration_externalId: {
-              userId: parseInt(userId),
-              integration: integration,
-              externalId: externalId,
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.selectedCalendar
+          .update({
+            where: {
+              userId_integration_externalId: {
+                userId: userId,
+                integration: integration,
+                externalId: externalId,
+              },
             },
-          },
-          data: safeBody.data,
-        })
-        .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
-        .then((selected_calendar) => res.status(200).json({ selected_calendar }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+            data: safeBody.data,
+          })
+          .then((selectedCalendar) => schemaSelectedCalendarPublic.parse(selectedCalendar))
+          .then((selected_calendar) => res.status(200).json({ selected_calendar }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `SelectedCalendar with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.selectedCalendar
-        .delete({
-          where: {
-            userId_integration_externalId: {
-              userId: parseInt(userId),
-              integration: integration,
-              externalId: externalId,
+      case "DELETE":
+        await prisma.selectedCalendar
+          .delete({
+            where: {
+              userId_integration_externalId: {
+                userId: userId,
+                integration: integration,
+                externalId: externalId,
+              },
             },
-          },
-        })
-        .then(() =>
-          res
-            .status(200)
-            .json({ message: `SelectedCalendar with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `SelectedCalendar with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+          })
+          .then(() =>
+            res.status(200).json({
+              message: `SelectedCalendar with id: ${safeQuery.data.id} deleted successfully`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `SelectedCalendar with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
   }
 }
 

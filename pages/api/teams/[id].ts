@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { TeamResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -91,51 +90,65 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
+  const userId = req.userId;
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });
   //FIXME: This is a hack to get the teamId from the user's membership
   console.log(userWithMemberships);
-  switch (method) {
-    case "GET":
-      await prisma.team
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaTeamPublic.parse(data))
-        .then((team) => res.status(200).json({ team }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+  const userTeamIds = userWithMemberships.map((membership) => membership.teamId);
+  if (!userTeamIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
+    switch (method) {
+      case "GET":
+        await prisma.team
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaTeamPublic.parse(data))
+          .then((team) => res.status(200).json({ team }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Team with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.team
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((team) => schemaTeamPublic.parse(team))
-        .then((team) => res.status(200).json({ team }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.team
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((team) => schemaTeamPublic.parse(team))
+          .then((team) => res.status(200).json({ team }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Team with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.team
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Team with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Team with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.team
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res.status(200).json({
+              message: `Team with id: ${safeQuery.data.id} deleted successfully`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Team with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
   }
 }
 

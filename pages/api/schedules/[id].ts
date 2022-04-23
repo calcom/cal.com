@@ -90,46 +90,61 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = req.userId;
+  const userSchedules = await prisma.schedule.findMany({ where: { userId } });
+  const userScheduleIds = userSchedules.map((schedule) => schedule.id);
+  if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
+    switch (method) {
+      case "GET":
+        await prisma.schedule
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaSchedulePublic.parse(data))
+          .then((schedule) => res.status(200).json({ schedule }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Schedule with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.schedule
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaSchedulePublic.parse(data))
-        .then((schedule) => res.status(200).json({ schedule }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.schedule
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((data) => schemaSchedulePublic.parse(data))
+          .then((schedule) => res.status(200).json({ schedule }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Schedule with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.schedule
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaSchedulePublic.parse(data))
-        .then((schedule) => res.status(200).json({ schedule }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.schedule
+          .delete({ where: { id: safeQuery.data.id } })
+          .then(() =>
+            res.status(200).json({
+              message: `Schedule with id: ${safeQuery.data.id} deleted successfully`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `Schedule with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.schedule
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `Schedule with id: ${safeQuery.data.id} deleted successfully` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `Schedule with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
   }
 }
 

@@ -42,8 +42,9 @@ async function createOrlistAllMemberships(
   res: NextApiResponse<MembershipsResponse | MembershipResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
   if (method === "GET") {
-    const data = await prisma.membership.findMany();
+    const data = await prisma.membership.findMany({ where: { userId } });
     const memberships = data.map((membership) => schemaMembershipPublic.parse(membership));
     if (memberships) res.status(200).json({ memberships });
     else
@@ -56,7 +57,7 @@ async function createOrlistAllMemberships(
     const safe = schemaMembershipBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
-    const data = await prisma.membership.create({ data: safe.data });
+    const data = await prisma.membership.create({ data: { ...safe.data, userId } });
     const membership = schemaMembershipPublic.parse(data);
 
     if (membership) res.status(201).json({ membership, message: "Membership created successfully" });

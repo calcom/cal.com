@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
 import {
   schemaQueryIdParseInt,
@@ -27,6 +26,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       200:
  *         description: OK
@@ -56,6 +57,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability edited successfuly
@@ -77,6 +80,8 @@ import {
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability removed successfuly
@@ -91,10 +96,11 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = await getCalcomUserId(res);
+  const userId = req.userId;
   const data = await prisma.availability.findMany({ where: { userId } });
   const availabiltiesIds = data.map((availability) => availability.id);
-  if (availabiltiesIds.includes(safeQuery.data.id)) {
+  if (!availabiltiesIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.availability
@@ -137,8 +143,6 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
   }
 }
 

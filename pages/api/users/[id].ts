@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { UserResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -91,8 +90,9 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaUserBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = getCalcomUserId(res);
-  if (safeQuery.data.id === userId) {
+  const userId = req.userId;
+  if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" }); 
+  else {
     switch (method) {
       case "GET":
         await prisma.user
@@ -133,7 +133,7 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(userById));

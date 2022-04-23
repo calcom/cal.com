@@ -93,46 +93,70 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  const userId = req.userId;
+  const data = await prisma.eventType.findMany({ where: { userId } });
+  const userEventTypes = data.map((eventType) => eventType.id);
+  const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({
+    where: { eventType: userEventTypes },
+  });
+  const userEventTypeCustomInputIds = userEventTypeCustomInputs.map(
+    (eventTypeCustomInput) => eventTypeCustomInput.id
+  );
+  if (!userEventTypeCustomInputIds.includes(safeQuery.data.id))
+    res.status(401).json({ message: "Unauthorized" });
+  else {
+    switch (method) {
+      case "GET":
+        await prisma.eventTypeCustomInput
+          .findUnique({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaEventTypeCustomInputPublic.parse(data))
+          .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-  switch (method) {
-    case "GET":
-      await prisma.eventTypeCustomInput
-        .findUnique({ where: { id: safeQuery.data.id } })
-        .then((data) => schemaEventTypeCustomInputPublic.parse(data))
-        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "PATCH":
+        if (!safeBody.success) {
+          throw new Error("Invalid request body");
+        }
+        await prisma.eventTypeCustomInput
+          .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
+          .then((data) => schemaEventTypeCustomInputPublic.parse(data))
+          .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "PATCH":
-      if (!safeBody.success) throw new Error("Invalid request body");
-      await prisma.eventTypeCustomInput
-        .update({
-          where: { id: safeQuery.data.id },
-          data: safeBody.data,
-        })
-        .then((data) => schemaEventTypeCustomInputPublic.parse(data))
-        .then((event_type_custom_input) => res.status(200).json({ event_type_custom_input }))
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
+      case "DELETE":
+        await prisma.eventTypeCustomInput
+          .delete({
+            where: { id: safeQuery.data.id },
+          })
+          .then(() =>
+            res.status(200).json({
+              message: `CustomInputEventType with id: ${safeQuery.data.id} deleted`,
+            })
+          )
+          .catch((error: Error) =>
+            res.status(404).json({
+              message: `EventType with id: ${safeQuery.data.id} not found`,
+              error,
+            })
+          );
+        break;
 
-    case "DELETE":
-      await prisma.eventTypeCustomInput
-        .delete({ where: { id: safeQuery.data.id } })
-        .then(() =>
-          res.status(200).json({ message: `CustomInputEventType with id: ${safeQuery.data.id} deleted` })
-        )
-        .catch((error: Error) =>
-          res.status(404).json({ message: `EventType with id: ${safeQuery.data.id} not found`, error })
-        );
-      break;
-
-    default:
-      res.status(405).json({ message: "Method not allowed" });
-      break;
+      default:
+        res.status(405).json({ message: "Method not allowed" });
+        break;
+    }
   }
 }
 

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingReferenceResponse, BookingReferencesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import {
   schemaBookingReferenceBodyParams,
   schemaBookingReferencePublic,
@@ -46,7 +45,7 @@ async function createOrlistAllBookingReferences(
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
@@ -72,7 +71,7 @@ async function createOrlistAllBookingReferences(
     }
 
     // const booking_reference = schemaBookingReferencePublic.parse(data);
-    const userId = await getCalcomUserId(res);
+    const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },
@@ -81,7 +80,8 @@ async function createOrlistAllBookingReferences(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-    if (userBookingIds.includes(safe.data.bookingId)) {
+    if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
+    else {
       const booking_reference = await prisma.bookingReference.create({
         data: { ...safe.data },
       });
@@ -97,7 +97,7 @@ async function createOrlistAllBookingReferences(
             error,
           });
       }
-    } else res.status(401).json({ message: "Unauthorized" });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

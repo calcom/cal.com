@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AvailabilityResponse, AvailabilitiesResponse } from "@lib/types";
-import { getCalcomUserId } from "@lib/utils/getCalcomUserId";
 import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
 
 /**
@@ -16,6 +15,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       200:
  *         description: OK
@@ -29,6 +30,8 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
  *       - ApiKeyAuth: []
  *     tags:
  *     - availabilities
+ *     externalDocs:
+ *        url: https://docs.cal.com/availability
  *     responses:
  *       201:
  *         description: OK, availability created
@@ -43,7 +46,7 @@ async function createOrlistAllAvailabilities(
   res: NextApiResponse<AvailabilitiesResponse | AvailabilityResponse>
 ) {
   const { method } = req;
-  const userId = await getCalcomUserId(res);
+  const userId = req.userId;
 
   if (method === "GET") {
     const data = await prisma.availability.findMany({ where: { userId } });

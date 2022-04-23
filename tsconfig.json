@@ -1,23 +1,19 @@
 {
-  "extends": "@calcom/tsconfig/base.json",
-  "exclude": ["node_modules", "templates"],
+  "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
-    "strictNullChecks": true,
     "baseUrl": ".",
-
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "noEmit": true,
-    "incremental": true,
-    "module": "esnext",
-    "resolveJsonModule": true,
-    "jsx": "preserve",
     "paths": {
       "@api/*": ["pages/api/*"],
       "@lib/*": ["lib/*"],
       "@/*": ["*"]
     }
   },
-  "include": ["./**/*.ts*"]
+  "include": [
+    "next-env.d.ts",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["node_modules", "templates"]
 }

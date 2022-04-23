@@ -42,8 +42,10 @@ async function createOrlistAllSchedules(
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
   const { method } = req;
+  const userId = req.userId;
+
   if (method === "GET") {
-    const data = await prisma.schedule.findMany();
+    const data = await prisma.schedule.findMany({ where: { userId } });
     const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
     if (schedules) res.status(200).json({ schedules });
     else
@@ -55,8 +57,7 @@ async function createOrlistAllSchedules(
   } else if (method === "POST") {
     const safe = schemaScheduleBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
-
-    const data = await prisma.schedule.create({ data: safe.data });
+    const data = await prisma.schedule.create({ data: { ...safe.data, userId } });
     const schedule = schemaSchedulePublic.parse(data);
 
     if (schedule) res.status(201).json({ schedule, message: "Schedule created successfully" });
