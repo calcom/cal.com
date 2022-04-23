@@ -91,7 +91,7 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
   const safeBody = schemaUserBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
-  if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" }); 
+  if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
       case "GET":

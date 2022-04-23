@@ -126,6 +126,20 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
         break;
 
       case "DELETE":
+        // Look for user to check if schedule is user's default
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+        if (user.defaultScheduleId === safeQuery.data.id) {
+          // unset default
+          await prisma.user.update({
+            where: {
+              id: userId,
+            },
+            data: {
+              defaultScheduleId: undefined,
+            },
+          });
+        }
         await prisma.schedule
           .delete({ where: { id: safeQuery.data.id } })
           .then(() =>
