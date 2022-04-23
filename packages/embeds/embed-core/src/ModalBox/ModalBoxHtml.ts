@@ -48,10 +48,6 @@ const html = `<style>
   color:white;
   cursor: pointer;
 }
-.loader {
-  --brand-color: white;
-  --cal-brand-background-color: white;
- }
 </style>
 <div class="my-backdrop">
 <div class="header">
@@ -60,7 +56,7 @@ const html = `<style>
 <div class="modal-box">
   <div class="body">
     <div id="loader" class="z-[999999999999] absolute flex w-full items-center">
-      <div class="loader border-brand dark:border-darkmodebrand">
+      <div class="loader modal-loader border-brand dark:border-darkmodebrand">
         <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
       </div>
     </div>
