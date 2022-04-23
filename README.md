@@ -1,6 +1,8 @@
 # Cal.com Public API (Enterprise Only)
 
-This is the public REST api for cal.com. It exposes CRUD Endpoints of all our most important resources. It makes it easy for anyone to integrate with cal at the programming level.
+This is the public REST api for cal.com. 
+It exposes CRUD Endpoints of all our most important resources. 
+And it makes it easy for anyone to integrate with Cal.com at the application programming level.
 
 ## Stack
 
@@ -59,6 +61,11 @@ GET https://api.cal.com/v1/users?apiKey={INSERT_YOUR_CAL.COM_API_KEY_HERE}
 API Keys optionally may have expiry dates, if they are expired they won't work. If you create an apiKey without a userId relation, it won't work either for now as it relies on it to establish the current authenticated user.
 
 In the future we might add support for header Bearer Auth if we need to or if our customers require it.
+
+## Middlewares
+We don't use the new NextJS 12 Beta Middlewares, mainly because they run on the edge, and are not able to call prisma from api endpoints. We use instead a very nifty library called next-api-middleware that let's us use a similar approach building our own middlewares and applying them as we see fit.
+
+* withMiddleware() requires some default middlewares (verifyApiKey, etc...)
 
 ## Next.config.js
 
