@@ -151,6 +151,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     host: props.profile.name || "Nameless",
     t,
   };
+  const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
+  const giphyImage = metadata?.giphyThankYouPage;
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -234,8 +236,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                   aria-modal="true"
                   aria-labelledby="modal-headline">
                   <div>
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                      {!needsConfirmation && <CheckIcon className="h-8 w-8 text-green-600" />}
+                    <div
+                      className={classNames(
+                        "mx-auto flex items-center justify-center",
+                        !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
+                      )}>
+                      {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                      {!giphyImage && !needsConfirmation && <CheckIcon className="h-8 w-8 text-green-600" />}
                       {needsConfirmation && <ClockIcon className="h-8 w-8 text-green-600" />}
                     </div>
                     <div className="mt-3 text-center sm:mt-5">
@@ -457,6 +464,7 @@ const getEventTypesFromDB = async (typeId: number) => {
           hideBranding: true,
         },
       },
+      metadata: true,
     },
   });
 };

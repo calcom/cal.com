@@ -763,5 +763,7 @@
   "send_reschedule_request": "Request reschedule ",
   "edit_booking": "Edit booking",
   "reschedule_booking": "Reschedule booking",
-  "former_time": "Former time"
+  "former_time": "Former time",
+  "confirmation_page_gif": "Gif for confirmation page",
+  "search": "Search"
 }
