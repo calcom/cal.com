@@ -3,10 +3,10 @@ import * as path from "path";
 
 const outputDir = path.join("../results");
 const testDir = path.join("../tests");
-const QuickMode = process.env.QUICK === "true";
+const quickMode = process.env.QUICK === "true";
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: QuickMode ? 0 : 1,
+  retries: quickMode ? 0 : 1,
   workers: 1,
   timeout: 60_000,
   reporter: [
@@ -44,14 +44,14 @@ const config: PlaywrightTestConfig = {
       testDir,
       use: { ...devices["Desktop Chrome"] },
     },
-    QuickMode
+    quickMode
       ? {}
       : {
           name: "firefox",
           testDir,
           use: { ...devices["Desktop Firefox"] },
         },
-    QuickMode
+    quickMode
       ? {}
       : {
           name: "webkit",

@@ -6,11 +6,12 @@
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
       (()=> {
-        const u = new URL(document.URL);
-        const only = u.searchParams.get("only");
-        const ns = only ? only.replace("ns:",""): null
-        if (ns) {
-          location.hash="#cal-booking-place-" + ns + "-iframe"
+        const url = new URL(document.URL);
+        // Only run the example specified by only=, avoids distraction and faster to test.
+        const only = url.searchParams.get("only");
+        const namespace = only ? only.replace("ns:",""): null
+        if (namespace) {
+          location.hash="#cal-booking-place-" + namespace + "-iframe"
         }
       })()
     </script>
@@ -95,7 +96,7 @@
     <div id="namespaces-test">
       <div class="debug" id="cal-booking-place-default">
         <h2>
-          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@gmail.com and test@gmail.com)]</i>
+          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@example.com and test@example.com)]</i>
         </h2>
         <div>
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
@@ -220,7 +221,7 @@
             name: "John",
             email: "johndoe@gmail.com",
             notes: "Test Meeting",
-            guests: ["janedoe@gmail.com", "test@gmail.com"],
+            guests: ["janedoe@example.com", "test@example.com"],
             theme: "dark",
           },
         });
