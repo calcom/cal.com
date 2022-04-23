@@ -1,4 +1,4 @@
-const html = `<div id="loader" style="left:0;right:0" class="absolute z-highest flex h-screen w-full items-center">
+const html = `<div id="loader" style="top:calc(50% - 30px); left:calc(50% - 30px)" class="absolute z-highest">
 <div class="loader border-brand dark:border-darkmodebrand">
 	<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
 </div>

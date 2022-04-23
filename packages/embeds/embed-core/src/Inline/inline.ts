@@ -1,3 +1,5 @@
+import { CalWindow } from "@calcom/embed-snippet";
+
 import loaderCss from "../loader.css";
 import inlineHtml from "./inlineHtml";
 
@@ -14,6 +16,8 @@ export class Inline extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot!.innerHTML = `<style>${loaderCss}</style>${inlineHtml}`;
+    this.shadowRoot!.innerHTML = `<style>${
+      (window as CalWindow).Cal!.__css
+    }</style><style>${loaderCss}</style>${inlineHtml}`;
   }
 }

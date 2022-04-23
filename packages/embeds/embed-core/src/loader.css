@@ -53,7 +53,7 @@
   display: block;
   width: 30px;
   height: 30px;
-  margin: 60px auto;
+  /* margin: 60px auto; */
   position: relative;
   border-width: 4px;
   border-style: solid;

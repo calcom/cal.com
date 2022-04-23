@@ -8,6 +8,10 @@ import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css";
 
+customElements.define("cal-modal-box", ModalBox);
+customElements.define("cal-floating-button", FloatingButton);
+customElements.define("cal-inline", Inline);
+
 declare module "*.css";
 type Namespace = string;
 type Config = {
@@ -239,7 +243,7 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative"></cal-inline>`;
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap"></cal-inline>`;
     this.inlineEl = template.content.children[0];
     this.inlineEl.appendChild(iframe);
     element.appendChild(template.content);
@@ -485,7 +489,3 @@ document.addEventListener("click", (e) => {
     uid: modalUniqueId,
   });
 });
-
-customElements.define("cal-modal-box", ModalBox);
-customElements.define("cal-floating-button", FloatingButton);
-customElements.define("cal-inline", Inline);
