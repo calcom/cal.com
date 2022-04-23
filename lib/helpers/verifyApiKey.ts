@@ -14,7 +14,7 @@ declare module "next" {
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {
   const now = new Date();
-  if (now.setHours(0, 0, 0, 0) <= date.setHours(0, 0, 0, 0)) {
+  if (now.setHours(0, 0, 0, 0) >= date.setHours(0, 0, 0, 0)) {
     return true;
   }
 };
