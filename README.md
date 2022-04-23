@@ -343,6 +343,7 @@ oauth_config:
     bot:
       - chat:write
       - commands
+      - chat:write.public 
 settings:
   interactivity:
     is_enabled: true

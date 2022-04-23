@@ -22,6 +22,8 @@ export const InstallAppButtonMap = {
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   zapierother: dynamic(() => import("./zapierother/components/InstallAppButton")),
+  jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
+  huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (

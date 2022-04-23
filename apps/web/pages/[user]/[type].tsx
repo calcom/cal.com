@@ -20,7 +20,22 @@ export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  return props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
+  return props.away ? (
+    <div className="h-screen dark:bg-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
+              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                😴{" " + t("user_away")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_away_description")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -118,6 +133,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       defaultScheduleId: true,
       allowDynamicBooking: true,
+      away: true,
       schedules: {
         select: {
           availability: true,
@@ -301,6 +317,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      away: user.away,
       isDynamicGroup,
       profile,
       plan: user.plan,
