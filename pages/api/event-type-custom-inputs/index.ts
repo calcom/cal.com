@@ -48,12 +48,7 @@ async function createOrlistAllEventTypeCustomInputs(
   const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
-  // const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({
-  //   where: { eventType: userEventTypes },
-  // });
-  // const userEventTypeCustomInputIds = userEventTypeCustomInputs.map(
-  //   (eventTypeCustomInput) => eventTypeCustomInput.id
-  // );
+
   if (method === "GET") {
     const data = await prisma.eventTypeCustomInput.findMany({ where: { eventType: userEventTypes } });
     const event_type_custom_inputs = data.map((eventTypeCustomInput) =>
