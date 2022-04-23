@@ -21,6 +21,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import DatePicker from "@calcom/ui/booker/DatePicker";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -34,7 +35,6 @@ import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
 import AvailableTimes from "@components/booking/AvailableTimes";
-import DatePicker from "@components/booking/DatePicker";
 import TimeOptions from "@components/booking/TimeOptions";
 import { HeadSeo } from "@components/seo/head-seo";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -305,17 +305,16 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                 </div>
 
                 <DatePicker
-                  date={selectedDate}
-                  periodType={eventType?.periodType}
-                  periodStartDate={eventType?.periodStartDate}
-                  periodEndDate={eventType?.periodEndDate}
-                  periodDays={eventType?.periodDays}
-                  periodCountCalendarDays={eventType?.periodCountCalendarDays}
-                  onDatePicked={changeDate}
-                  workingHours={workingHours}
-                  weekStart={profile.weekStart || "Sunday"}
-                  eventLength={eventType.length}
-                  minimumBookingNotice={eventType.minimumBookingNotice}
+                  className={
+                    "mt-8 w-full sm:mt-0 sm:min-w-[455px] " +
+                    (selectedDate
+                      ? "sm:w-1/2 sm:border-r sm:pl-4 sm:pr-6 sm:dark:border-gray-700 md:w-1/3 "
+                      : "sm:pl-4")
+                  }
+                  selected={selectedDate?.toDate()}
+                  locale={i18n.language}
+                  onChange={(date) => changeDate(dayjs(date))}
+                  weekStart={profile.weekStart === "Monday" ? 1 : 0}
                 />
 
                 <div className="mt-4 ml-1 block sm:hidden">

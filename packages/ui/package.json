@@ -5,6 +5,7 @@
   "types": "./index.tsx",
   "license": "MIT",
   "dependencies": {
+    "@heroicons/react": "^1.0.6",
     "@radix-ui/react-dialog": "^0.1.0",
     "next": "^12.1.0"
   },
