@@ -26,6 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       response_type: "code",
       "stripe_user[email]": user?.email,
       "stripe_user[first_name]": user?.name,
+      /** We need this so E2E don't fail for international users */
+      "stripe_user[country]": process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       redirect_uri,
     };
     const query = stringify(stripeConnectParams);
