@@ -48,6 +48,10 @@ const html = `<style>
   color:white;
   cursor: pointer;
 }
+/*Modal background is black only, so hardcode white */
+.loader {
+  --cal-brand-color:white;
+}
 </style>
 <div class="my-backdrop">
 <div class="header">

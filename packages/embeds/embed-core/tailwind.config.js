@@ -9,7 +9,8 @@ module.exports = {
       ...base.theme.extend,
       colors: {
         ...base.theme.extend.colors,
-        brand: "var(--cal-brand-color, white)",
+        // Set default as black
+        brand: "var(--cal-brand-color, black)",
       },
     },
   },
