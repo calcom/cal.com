@@ -20,6 +20,7 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
+  recurringCount: number;
   eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;
@@ -36,6 +37,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeSlug,
   slotInterval,
   minimumBookingNotice,
+  recurringCount,
   timeFormat,
   users,
   schedulingType,
@@ -89,6 +91,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 date: slot.time.format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
+                ...(recurringCount && { count: recurringCount }),
               },
             };
 

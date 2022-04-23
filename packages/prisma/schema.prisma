@@ -267,7 +267,7 @@ model Booking {
   dynamicGroupSlugRef String?
   rescheduled         Boolean?
   fromReschedule      String?
-  recurringEventId    Int?
+  recurringEventId    String?
 }
 
 model Schedule {

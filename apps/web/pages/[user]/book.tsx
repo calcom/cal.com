@@ -54,6 +54,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));
   const eventTypeSlug = context.query.slug as string;
+  const recurringEventCount = context.query.count as number;
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -95,6 +96,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             periodDays: true,
             periodStartDate: true,
             periodEndDate: true,
+            recurringEvent: true,
             metadata: true,
             periodCountCalendarDays: true,
             price: true,
@@ -187,6 +189,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       };
 
   const t = await getTranslation(context.locale ?? "en", "common");
+  const validRecurringEventCount =
+    recurringEventCount <= eventType.recurringEvent.count
+      ? recurringEventCount
+      : eventType.recurringEvent.count;
 
   return {
     props: {
@@ -194,6 +200,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType: eventTypeObject,
       booking,
+      recurringEventCount: validRecurringEventCount,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
     },

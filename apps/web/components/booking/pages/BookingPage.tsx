@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  RefreshIcon,
 } from "@heroicons/react/solid";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
@@ -17,13 +18,17 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { Frequency as RRuleFrequency } from "rrule";
+import { v4 as uuidv4 } from "uuid";
 
 import { useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -67,6 +72,7 @@ const BookingPage = ({
   booking,
   profile,
   isDynamicGroupBooking,
+  recurringEventCount,
   locationLabels,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
@@ -116,6 +122,7 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
+          recurringEventCount,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -253,6 +260,9 @@ const BookingPage = ({
       };
     }
 
+    // Identify set of bookings to one intance of recurring event to support batch changes
+    const recurringEventId = uuidv4();
+
     mutation.mutate({
       ...booking,
       web3Details,
@@ -260,6 +270,7 @@ const BookingPage = ({
       end: dayjs(date).add(eventType.length, "minute").format(),
       eventTypeId: eventType.id,
       eventTypeSlug: eventType.slug,
+      recurringEventId,
       timeZone: timeZone(),
       language: i18n.language,
       rescheduleUid,
@@ -276,6 +287,12 @@ const BookingPage = ({
   };
 
   const disableInput = !!rescheduleUid;
+  const bookedDates = parseDate(
+    date,
+    i18n,
+    eventType.recurringEvent as RecurringEvent,
+    parseInt(recurringEventCount.toString())
+  );
 
   return (
     <div>
@@ -351,10 +368,44 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                <p className="text-bookinghighlight mb-4">
-                  <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                  {parseDate(date, i18n)}
-                </p>
+                {eventType.recurringEvent && (
+                  <div className="mb-3 text-gray-600 dark:text-white">
+                    <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <p className="mb-1 -ml-2 inline px-2 py-1">
+                      {`${t("every_for_freq", {
+                        freq: t(
+                          `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
+                            .toString()
+                            .toLowerCase()}`
+                        ),
+                      })} ${recurringEventCount} ${t(
+                        `recurring_${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        { count: parseInt(recurringEventCount.toString()) }
+                      )}`}
+                    </p>
+                  </div>
+                )}
+                <div className="text-bookinghighlight mb-4 flex">
+                  <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                  <div className="-mt-1">
+                    {bookedDates.slice(0, 5).map((aDate, key) => (
+                      <p key={key}>{aDate}</p>
+                    ))}
+                    {bookedDates.length > 5 && (
+                      <div className="flex">
+                        <Tooltip
+                          side="bottom"
+                          content={bookedDates.slice(5).map((aDate, key) => (
+                            <p key={key}>{aDate}</p>
+                          ))}>
+                          <p className="text-gray-600 dark:text-white">
+                            {t("plus_more", { count: bookedDates.length - 5 })}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}

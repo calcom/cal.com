@@ -72,6 +72,15 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+export interface RecurringEvent {
+  dtstart?: Date | undefined;
+  interval?: number;
+  count?: number;
+  freq?: RRuleFrequency;
+  until?: Date | undefined;
+  tzid?: string | undefined;
+}
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
@@ -96,6 +105,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  recurringEvent?: RecurringEvent;
 }
 
 export interface EntryPoint {

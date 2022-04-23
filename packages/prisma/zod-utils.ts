@@ -1,4 +1,4 @@
-import type { Options } from "rrule";
+import { Frequency as RRuleFrequency } from "rrule";
 import { z } from "zod";
 
 import { LocationType } from "@calcom/core/location";
@@ -15,8 +15,9 @@ export const eventTypeLocations = z.array(
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEvent = z.object({
   dtstart: z.date().optional(),
-  interval: z.number(),
+  interval: z.number().optional(),
   count: z.number().optional(),
+  freq: z.nativeEnum(RRuleFrequency).optional(),
   until: z.date().optional(),
   tzid: z.string().optional(),
 });

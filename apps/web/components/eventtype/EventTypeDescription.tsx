@@ -42,10 +42,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
         <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
           <li className="flex whitespace-nowrap">
             <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-            {eventType.length}m{" "}
-            {eventType.recurringEvent && eventType.recurringEvent.count > 0
-              ? t("every_week", { count: eventType.recurringEvent.count })
-              : ``}
+            {eventType.length}m
           </li>
           {eventType.schedulingType ? (
             <li className="flex whitespace-nowrap">
@@ -62,7 +59,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           {eventType.recurringEvent && eventType.recurringEvent.count > 0 && (
             <li className="flex whitespace-nowrap">
               <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {t("recurring")}
+              {t("recurs_up_to", { count: eventType.recurringEvent.count })}
             </li>
           )}
           {eventType.price > 0 && (

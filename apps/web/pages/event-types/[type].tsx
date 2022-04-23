@@ -25,6 +25,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { Frequency as RRuleFrequency } from "rrule";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
@@ -32,6 +33,7 @@ import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/u
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
@@ -61,7 +63,7 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
-import Select, { SelectProps } from "@components/ui/form/Select";
+import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
@@ -262,10 +264,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
-  const [recurringEventVisible, setRecurringEventVisible] = useState(
-    eventType.recurringEvent && eventType.recurringEvent.count > 0
+  const [recurringEventDefined, setRecurringEventDefined] = useState(
+    eventType.recurringEvent !== null && eventType.recurringEvent.count !== undefined
   );
-  const [recurringEventValue, setRecurringEventValue] = useState(eventType.recurringEvent ?? 1);
+  const [recurringEventInterval, setRecurringEventInterval] = useState(
+    (eventType.recurringEvent !== null && eventType.recurringEvent.interval) || 1
+  );
+  const [recurringEventFrequency, setRecurringEventFrequency] = useState(
+    (eventType.recurringEvent !== null && eventType.recurringEvent.freq) || RRuleFrequency.WEEKLY
+  );
+  const [recurringEventCount, setRecurringEventCount] = useState(
+    (eventType.recurringEvent !== null && eventType.recurringEvent.count) || 12
+  );
+
+  /* Just yearly-0, monthly-1 and weekly-2 */
+  const recurringEventFreqOptions = Object.entries(RRuleFrequency)
+    .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
+    .map(([key, value]) => ({
+      label: t(`recurring_${key.toString().toLowerCase()}`, { count: recurringEventInterval }),
+      value: value.toString(),
+    }));
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -471,13 +489,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     disableGuests: boolean;
     requiresConfirmation: boolean;
     // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
-    recurringEvent: {
-      dtstart?: Date | null;
-      interval: number;
-      count?: number | null;
-      until?: Date | null;
-      tzid?: string | null;
-    } | null;
+    recurringEvent: RecurringEvent;
     schedulingType: SchedulingType | null;
     price: number;
     currency: string;
@@ -503,7 +515,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
-      recurringEvent: eventType.recurringEvent || null,
+      recurringEvent: eventType.recurringEvent || {},
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -921,6 +933,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       smartContractAddress,
                       beforeBufferTime,
                       afterBufferTime,
+                      recurringEvent,
                       locations,
                       ...input
                     } = values;
@@ -930,6 +943,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     updateMutation.mutate({
                       ...input,
                       locations,
+                      recurringEvent,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -1338,18 +1352,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <div className="flex h-5 items-center">
                                 <input
                                   onChange={(event) => {
-                                    setRecurringEventVisible(event?.target.checked);
+                                    setRecurringEventDefined(event?.target.checked);
                                     if (!event?.target.checked) {
-                                      formMethods.setValue("recurringEvent", 0);
+                                      formMethods.setValue("recurringEvent", {});
                                     } else {
-                                      formMethods.setValue("recurringEvent", eventType.recurringEvent || 1);
+                                      formMethods.setValue(
+                                        "recurringEvent",
+                                        recurringEventDefined
+                                          ? eventType.recurringEvent
+                                          : {
+                                              interval: 1,
+                                              count: 12,
+                                              freq: RRuleFrequency.WEEKLY,
+                                            }
+                                      );
                                     }
+                                    eventType.recurringEvent = formMethods.getValues("recurringEvent");
                                   }}
                                   type="checkbox"
                                   className="text-primary-600  h-4 w-4 rounded border-gray-300"
-                                  defaultChecked={
-                                    eventType.recurringEvent && eventType.recurringEvent.count > 0
-                                  }
+                                  defaultChecked={recurringEventDefined}
                                 />
                               </div>
                               <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -1357,23 +1379,64 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                             </div>
                             <Collapsible
-                              open={recurringEventVisible}
-                              onOpenChange={() => setRecurringEventVisible(!recurringEventVisible)}>
-                              <CollapsibleContent className="mt-2 flex items-center text-sm">
-                                <p className="mr-2 text-neutral-900">{t("every")}</p>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                  {...formMethods.register("recurringEvent", { valueAsNumber: true })}
-                                  defaultValue={eventType.recurringEvent || 1}
-                                  onChange={(event) => {
-                                    setRecurringEventValue(parseInt(event?.target.value));
-                                  }}
-                                />
-                                <p className="text-neutral-900">
-                                  {t("week", { count: recurringEventValue })}
-                                </p>
+                              open={recurringEventDefined}
+                              onOpenChange={() => setRecurringEventDefined(!recurringEventDefined)}>
+                              <CollapsibleContent className="mt-4 text-sm">
+                                <div className="flex items-center">
+                                  <p className="mr-2 text-neutral-900">{t("repeats_every")}</p>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="20"
+                                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                    defaultValue={
+                                      (eventType.recurringEvent && eventType.recurringEvent.interval) || 1
+                                    }
+                                    onChange={(event) => {
+                                      setRecurringEventInterval(parseInt(event?.target.value));
+                                      eventType.recurringEvent.interval = parseInt(event?.target.value);
+                                      formMethods.setValue("recurringEvent", eventType.recurringEvent);
+                                    }}
+                                  />
+                                  <Select
+                                    options={recurringEventFreqOptions}
+                                    value={recurringEventFreqOptions[recurringEventFrequency]}
+                                    isSearchable={false}
+                                    className="w-18 block min-w-0 rounded-sm sm:text-sm"
+                                    onChange={(e) => {
+                                      if (e?.value) {
+                                        setRecurringEventFrequency(parseInt(e?.value));
+                                        eventType.recurringEvent.freq = parseInt(e?.value);
+                                        formMethods.setValue("recurringEvent", eventType.recurringEvent);
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <div className="mt-4 flex items-center">
+                                  <p className="mr-2 text-neutral-900">{t("max")}</p>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="20"
+                                    className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                    defaultValue={
+                                      (eventType.recurringEvent && eventType.recurringEvent.count) || 12
+                                    }
+                                    onChange={(event) => {
+                                      setRecurringEventCount(parseInt(event?.target.value));
+                                      eventType.recurringEvent.count = parseInt(event?.target.value);
+                                      formMethods.setValue("recurringEvent", eventType.recurringEvent);
+                                    }}
+                                  />
+                                  <p className="mr-2 text-neutral-900">
+                                    {t(
+                                      `recurring_${RRuleFrequency[recurringEventFrequency]
+                                        .toString()
+                                        .toLowerCase()}`,
+                                      { count: recurringEventCount }
+                                    )}
+                                  </p>
+                                </div>
                               </CollapsibleContent>
                             </Collapsible>
                           </div>
@@ -2062,9 +2125,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-  const { locations, metadata, ...restEventType } = rawEventType;
+  const { locations, recurringEvent, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    recurringEvent: recurringEvent as unknown as RecurringEvent,
     locations: locations as unknown as Location[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

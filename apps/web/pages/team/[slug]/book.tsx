@@ -21,6 +21,7 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
+  const recurringEventCount = parseInt(asStringOrThrow(context.query.count));
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
       notFound: true,
@@ -44,6 +45,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      recurringEvent: true,
       disableGuests: true,
       price: true,
       currency: true,
@@ -96,6 +98,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventName: null,
       },
       eventType: eventTypeObject,
+      recurringEventCount,
       booking,
       isDynamicGroupBooking: false,
     },

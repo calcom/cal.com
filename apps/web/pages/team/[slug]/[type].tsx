@@ -69,6 +69,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           minimumBookingNotice: true,
           beforeEventBuffer: true,
           afterEventBuffer: true,
+          recurringEvent: true,
           price: true,
           currency: true,
           timeZone: true,
