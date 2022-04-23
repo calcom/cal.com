@@ -76,7 +76,8 @@ async function createOrlistAllAttendees(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-    if (userBookingIds.includes(bookingId)) {
+    if (!userBookingIds.includes(bookingId)) res.status(401).json({ message: "Unauthorized" });
+    else {
       delete safe.data.bookingId;
       const noBookingId = safe.data;
       const data = await prisma.attendee.create({
@@ -99,7 +100,7 @@ async function createOrlistAllAttendees(
             error,
           });
       }
-    } else res.status(401).json({ message: "Unauthorized" });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

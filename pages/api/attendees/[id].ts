@@ -100,7 +100,8 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
   const attendees = userBookings.map((booking) => booking.attendees).flat();
   const attendeeIds = attendees.map((attendee) => attendee.id);
   // Here we make sure to only return attendee's of the user's own bookings.
-  if (attendeeIds.includes(safeQuery.data.id)) {
+  if (!attendeeIds.includes(safeQuery.data.id))  res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.attendee
@@ -151,7 +152,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(attendeeById));
