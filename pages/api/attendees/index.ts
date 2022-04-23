@@ -41,8 +41,7 @@ async function createOrlistAllAttendees(
   req: NextApiRequest,
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
+  const { method, userId } = req;
   // Here we make sure to only return attendee's of the user's own bookings.
   const userBookings = await prisma.booking.findMany({
     where: {
@@ -76,14 +75,16 @@ async function createOrlistAllAttendees(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-    if (!userBookingIds.includes(bookingId)) res.status(401).json({ message: "Unauthorized" });
+    // Here we make sure to only return attendee's of the user's own bookings.
+    if (!userBookingIds.includes(parseInt(safe.data.bookingId)))
+      res.status(401).json({ message: "Unauthorized" });
     else {
       delete safe.data.bookingId;
       const noBookingId = safe.data;
       const data = await prisma.attendee.create({
         data: {
           ...noBookingId,
-          booking: { connect: { id: bookingId } },
+          booking: { connect: { id: parseInt(bookingId) } },
         },
       });
       const attendee = schemaAttendeePublic.parse(data);
