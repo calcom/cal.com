@@ -99,7 +99,8 @@ export async function eventTypeById(req: NextApiRequest, res: NextApiResponse<Ev
   const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
-  if (userEventTypes.includes(safeQuery.data.id)) {
+  if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.eventType

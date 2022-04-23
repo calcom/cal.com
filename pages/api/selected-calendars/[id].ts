@@ -132,7 +132,8 @@ export async function selectedCalendarById(
   // This is how we set the userId and externalId in the query for managing compoundId.
   const [paramUserId, integration, externalId] = safeQuery.data.id.split("_");
   const userId = req.userId;
-  if (userId === parseInt(paramUserId)) {
+  if (userId !== parseInt(paramUserId)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.selectedCalendar
@@ -208,7 +209,7 @@ export async function selectedCalendarById(
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdString(selectedCalendarById));

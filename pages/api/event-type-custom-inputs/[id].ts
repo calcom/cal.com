@@ -102,7 +102,9 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
   const userEventTypeCustomInputIds = userEventTypeCustomInputs.map(
     (eventTypeCustomInput) => eventTypeCustomInput.id
   );
-  if (userEventTypeCustomInputIds.includes(safeQuery.data.id)) {
+  if (!userEventTypeCustomInputIds.includes(safeQuery.data.id))
+    res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.eventTypeCustomInput
@@ -155,7 +157,7 @@ async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventType
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(eventTypeById));

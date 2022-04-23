@@ -97,7 +97,8 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
   //FIXME: This is a hack to get the teamId from the user's membership
   console.log(userWithMemberships);
   const userTeamIds = userWithMemberships.map((membership) => membership.teamId);
-  if (userTeamIds.includes(safeQuery.data.id)) {
+  if (!userTeamIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.team
@@ -148,7 +149,7 @@ export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamRes
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(teamById));

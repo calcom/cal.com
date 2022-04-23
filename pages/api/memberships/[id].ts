@@ -108,7 +108,8 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
   // This is how we set the userId and teamId in the query for managing compoundId.
   const [paramUserId, teamId] = safeQuery.data.id.split("_");
   const userId = req.userId;
-  if (parseInt(paramUserId) === userId) {
+  if (parseInt(paramUserId) !== userId) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.membership
@@ -181,7 +182,7 @@ export async function membershipById(req: NextApiRequest, res: NextApiResponse<M
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdString(membershipById));

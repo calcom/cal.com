@@ -80,7 +80,8 @@ async function createOrlistAllBookingReferences(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-    if (userBookingIds.includes(safe.data.bookingId)) {
+    if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
+    else {
       const booking_reference = await prisma.bookingReference.create({
         data: { ...safe.data },
       });
@@ -96,7 +97,7 @@ async function createOrlistAllBookingReferences(
             error,
           });
       }
-    } else res.status(401).json({ message: "Unauthorized" });
+    }
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

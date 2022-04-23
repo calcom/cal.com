@@ -93,7 +93,8 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
   const userId = req.userId;
   const userSchedules = await prisma.schedule.findMany({ where: { userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
-  if (userScheduleIds.includes(safeQuery.data.id)) {
+  if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.schedule
@@ -144,7 +145,7 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(scheduleById));

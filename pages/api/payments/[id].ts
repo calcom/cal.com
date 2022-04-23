@@ -48,10 +48,10 @@ export async function paymentById(req: NextApiRequest, res: NextApiResponse<Paym
       .findUnique({ where: { id: safeQuery.data.id } })
       .then((data) => schemaPaymentPublic.parse(data))
       .then((payment) => {
-        if (userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
-          res.status(200).json({ payment });
-        } else {
+        if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
           res.status(401).json({ message: "Unauthorized" });
+        } else {
+          res.status(200).json({ payment });
         }
       })
       .catch((error: Error) =>

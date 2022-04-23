@@ -105,7 +105,9 @@ export async function dailyEventReferenceById(
   const userBookingDailyEventReferenceIds = userBookingDailyEventReferences.map(
     (dailyEventReference) => dailyEventReference.id
   );
-  if (userBookingDailyEventReferenceIds.includes(safeQuery.data.id)) {
+  if (!userBookingDailyEventReferenceIds.includes(safeQuery.data.id))
+    res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.dailyEventReference
@@ -158,7 +160,7 @@ export async function dailyEventReferenceById(
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(

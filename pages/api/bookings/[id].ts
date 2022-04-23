@@ -97,7 +97,8 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
-  if (userBookingIds.includes(safeQuery.data.id)) {
+  if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.booking
@@ -151,7 +152,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(bookingById));

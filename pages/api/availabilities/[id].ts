@@ -99,7 +99,8 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
   const userId = req.userId;
   const data = await prisma.availability.findMany({ where: { userId } });
   const availabiltiesIds = data.map((availability) => availability.id);
-  if (availabiltiesIds.includes(safeQuery.data.id)) {
+  if (!availabiltiesIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         await prisma.availability
@@ -142,8 +143,6 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
   }
 }
 
