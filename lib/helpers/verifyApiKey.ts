@@ -12,7 +12,7 @@ declare module "next" {
 }
 
 // Used to check if the API key is not expired, could be extracted if reused. but not for now.
-export const dateInPast = function (date: Date) {
+export const dateNotInPast = function (date: Date) {
   const now = new Date();
   if (now.setHours(0, 0, 0, 0) <= date.setHours(0, 0, 0, 0)) {
     return true;
@@ -30,7 +30,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
   // If we cannot find any api key. Throw a 401 Unauthorized.
   if (!apiKey) return res.status(401).json({ error: "Your api key is not valid" });
-  if (apiKey.expiresAt && dateInPast(apiKey.expiresAt)) {
+  if (apiKey.expiresAt && dateNotInPast(apiKey.expiresAt)) {
     return res.status(401).json({ error: "This api key is expired" });
   }
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this api key" });
