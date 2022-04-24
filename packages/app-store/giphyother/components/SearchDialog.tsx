@@ -67,6 +67,7 @@ export const SearchDialog = (props: ISearchDialog) => {
             }}
             name="search"
             type="text"
+            className="mt-2"
             labelProps={{ style: { display: "none" } }}
             placeholder="Search Giphy"
           />
