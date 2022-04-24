@@ -37,9 +37,11 @@ import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
-import { parseDate } from "@lib/parseDate";
+import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
+import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { BookingCreateBody } from "@lib/types/booking";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -93,7 +95,7 @@ const BookingPage = ({
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async (responseData) => {
+    onSuccess: async (responseData: any) => {
       const { attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
@@ -122,7 +124,49 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          recurringEventCount,
+          count: recurringEventCount,
+          user: profile.slug,
+          reschedule: !!rescheduleUid,
+          name: attendees[0].name,
+          email: attendees[0].email,
+          location,
+          eventName: profile.eventName || "",
+        },
+      });
+    },
+  });
+
+  const reucrringMutation = useMutation(createRecurringBooking, {
+    onSuccess: async (responseData: any[]) => {
+      const { attendees, paymentUid } = responseData[0];
+      if (paymentUid) {
+        return await router.push(
+          createPaymentLink({
+            paymentUid,
+            date,
+            name: attendees[0].name,
+            absolute: false,
+          })
+        );
+      }
+
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData[0].location);
+
+      return router.push({
+        pathname: "/success",
+        query: {
+          date,
+          type: eventType.id,
+          eventSlug: eventType.slug,
+          count: recurringEventCount,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -229,6 +273,18 @@ const BookingPage = ({
     }
   };
 
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [],
+    recurringDates: Date[] = [];
+  if (eventType.recurringEvent && recurringEventCount !== null) {
+    [recurringStrings, recurringDates] = parseRecurringDates(
+      date,
+      i18n,
+      eventType.recurringEvent,
+      parseInt(recurringEventCount.toString())
+    );
+  }
+
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
@@ -251,7 +307,7 @@ const BookingPage = ({
         {}
       );
 
-    let web3Details;
+    let web3Details: any;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
         // @ts-ignore
@@ -260,39 +316,57 @@ const BookingPage = ({
       };
     }
 
-    // Identify set of bookings to one intance of recurring event to support batch changes
-    const recurringEventId = uuidv4();
-
-    mutation.mutate({
-      ...booking,
-      web3Details,
-      start: dayjs(date).format(),
-      end: dayjs(date).add(eventType.length, "minute").format(),
-      eventTypeId: eventType.id,
-      eventTypeSlug: eventType.slug,
-      recurringEventId,
-      timeZone: timeZone(),
-      language: i18n.language,
-      rescheduleUid,
-      user: router.query.user,
-      location: getLocationValue(
-        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
-      ),
-      metadata,
-      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        value: booking.customInputs![inputId],
-      })),
-    });
+    if (recurringDates) {
+      // Identify set of bookings to one intance of recurring event to support batch changes
+      const recurringEventId = uuidv4();
+      const recurringBookings: BookingCreateBody[] = recurringDates.map((recurringDate) => ({
+        ...booking,
+        web3Details,
+        start: dayjs(recurringDate).format(),
+        end: dayjs(recurringDate).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        recurringEventId,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+      }));
+      reucrringMutation.mutate(recurringBookings);
+    } else {
+      mutation.mutate({
+        ...booking,
+        web3Details,
+        start: dayjs(date).format(),
+        end: dayjs(date).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        recurringEventId: undefined,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+      });
+    }
   };
 
   const disableInput = !!rescheduleUid;
-  const bookedDates = parseDate(
-    date,
-    i18n,
-    eventType.recurringEvent as RecurringEvent,
-    parseInt(recurringEventCount.toString())
-  );
 
   return (
     <div>
@@ -368,7 +442,7 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                {eventType.recurringEvent && (
+                {eventType.recurringEvent && recurringEventCount && (
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
@@ -388,18 +462,17 @@ const BookingPage = ({
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {bookedDates.slice(0, 5).map((aDate, key) => (
-                      <p key={key}>{aDate}</p>
-                    ))}
-                    {bookedDates.length > 5 && (
+                    {!eventType.recurringEvent && parseDate(date, i18n)}
+                    {eventType.recurringEvent &&
+                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                    {eventType.recurringEvent && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
-                          side="bottom"
-                          content={bookedDates.slice(5).map((aDate, key) => (
+                          content={recurringStrings.slice(5).map((aDate, key) => (
                             <p key={key}>{aDate}</p>
                           ))}>
                           <p className="text-gray-600 dark:text-white">
-                            {t("plus_more", { count: bookedDates.length - 5 })}
+                            {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
                       </div>

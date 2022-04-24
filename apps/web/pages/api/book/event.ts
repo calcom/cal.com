@@ -15,6 +15,7 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import { boolean } from "zod";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
@@ -227,8 +228,10 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
+type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean };
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const reqBody = req.body as BookingCreateBody;
+  const reqBody = req.body as ExtendedBookingCreateBody;
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -362,6 +365,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     additionalNotes,
     startTime: reqBody.start,
     endTime: reqBody.end,
+    recurringEventId: reqBody.recurringEventId,
     organizer: {
       name: users[0].name || "Nameless",
       email: users[0].email || "Email-less",
@@ -453,6 +457,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
+      recurringEventId: evt.recurringEventId,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -674,7 +679,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      await sendRescheduledEmails({ ...evt, additionInformation: metadata });
+      if (reqBody.noEmail !== true) {
+        await sendRescheduledEmails({ ...evt, additionInformation: metadata });
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -704,11 +711,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      await sendScheduledEmails({ ...evt, additionInformation: metadata });
+      if (reqBody.noEmail !== true) {
+        await sendScheduledEmails({ ...evt, additionInformation: metadata });
+      }
     }
   }
 
-  if (eventType.requiresConfirmation && !rescheduleUid) {
+  if (eventType.requiresConfirmation && !rescheduleUid && reqBody.noEmail !== true) {
     await sendOrganizerRequestEmail(evt);
     await sendAttendeeRequestEmail(evt, attendeesList[0]);
   }

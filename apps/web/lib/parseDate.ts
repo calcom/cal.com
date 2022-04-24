@@ -20,16 +20,21 @@ export const parseDate = (
   i18n: I18n,
   recurringEvent?: RecurringEvent,
   recurringCount?: number
-): string[] => {
+) => {
   if (!date) return ["No date"];
-  if (!recurringEvent) {
-    return [processDate(date, i18n)];
-  } else {
-    if (!recurringCount) return ["No occurances"];
-    const { count, ...restRecurringEvent } = recurringEvent;
-    const rule = new RRule({ ...restRecurringEvent, count: recurringCount, dtstart: dayjs(date).toDate() });
-    return rule.all().map((r) => {
-      return processDate(dayjs(r), i18n);
-    });
-  }
+  return processDate(date, i18n);
+};
+
+export const parseRecurringDates = (
+  date: string | null | Dayjs,
+  i18n: I18n,
+  recurringEvent: RecurringEvent,
+  recurringCount: number
+): [string[], Date[]] => {
+  const { count, ...restRecurringEvent } = recurringEvent;
+  const rule = new RRule({ ...restRecurringEvent, count: recurringCount, dtstart: dayjs(date).toDate() });
+  const dateStrings = rule.all().map((r) => {
+    return processDate(dayjs(r), i18n);
+  });
+  return [dateStrings, rule.all()];
 };

@@ -24,6 +24,7 @@ import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManage
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -294,19 +295,21 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <input
                         type="number"
                         min="1"
-                        max={eventType.recurringEvent && eventType.recurringEvent.count}
-                        className="w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                        defaultValue={eventType.recurringEvent && eventType.recurringEvent.count}
+                        max={eventType.recurringEvent.count}
+                        className="w-16 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                        defaultValue={eventType.recurringEvent.count}
                         onChange={(event) => {
                           setRecurringEventCount(parseInt(event?.target.value));
                         }}
                       />
-                      <p className="inline text-neutral-900">
+                      <p className="inline text-gray-600 dark:text-white">
                         {t(
                           `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
                             .toString()
                             .toLowerCase()}`,
-                          { count: recurringEventCount }
+                          {
+                            count: recurringEventCount,
+                          }
                         )}
                       </p>
                     </div>
@@ -375,7 +378,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
-                    recurringCount={recurringEventCount ?? null}
+                    recurringCount={recurringEventCount}
                     date={selectedDate}
                     users={eventType.users}
                     schedulingType={eventType.schedulingType ?? null}

@@ -265,16 +265,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
   const [recurringEventDefined, setRecurringEventDefined] = useState(
-    eventType.recurringEvent !== null && eventType.recurringEvent.count !== undefined
+    eventType.recurringEvent && eventType.recurringEvent.count !== undefined
   );
   const [recurringEventInterval, setRecurringEventInterval] = useState(
-    (eventType.recurringEvent !== null && eventType.recurringEvent.interval) || 1
+    (eventType.recurringEvent && eventType.recurringEvent.interval) || 1
   );
   const [recurringEventFrequency, setRecurringEventFrequency] = useState(
-    (eventType.recurringEvent !== null && eventType.recurringEvent.freq) || RRuleFrequency.WEEKLY
+    (eventType.recurringEvent && eventType.recurringEvent.freq) || RRuleFrequency.WEEKLY
   );
   const [recurringEventCount, setRecurringEventCount] = useState(
-    (eventType.recurringEvent !== null && eventType.recurringEvent.count) || 12
+    (eventType.recurringEvent && eventType.recurringEvent.count) || 12
   );
 
   /* Just yearly-0, monthly-1 and weekly-2 */
@@ -2125,10 +2125,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
-  const { locations, recurringEvent, metadata, ...restEventType } = rawEventType;
+  const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
-    recurringEvent: recurringEvent as unknown as RecurringEvent,
+    recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
     locations: locations as unknown as Location[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

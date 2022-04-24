@@ -20,7 +20,7 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
-  recurringCount: number;
+  recurringCount: number | undefined;
   eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;

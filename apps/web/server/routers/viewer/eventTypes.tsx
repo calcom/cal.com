@@ -198,11 +198,21 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
-        input;
+      const {
+        schedule,
+        periodType,
+        locations,
+        destinationCalendar,
+        customInputs,
+        recurringEvent,
+        users,
+        id,
+        ...rest
+      } = input;
       assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
+      data.recurringEvent = recurringEvent as any;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
       }

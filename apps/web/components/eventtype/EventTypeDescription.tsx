@@ -1,10 +1,11 @@
 import { ClockIcon, CreditCardIcon, RefreshIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import React from "react";
+import React, { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import classNames from "@lib/classNames";
 
@@ -29,6 +30,11 @@ export type EventTypeDescriptionProps = {
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
+
+  const recurringEvent: RecurringEvent = useMemo(
+    () => (eventType.recurringEvent as RecurringEvent) || [],
+    [eventType.recurringEvent]
+  );
 
   return (
     <>
@@ -56,10 +62,10 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               {t("1_on_1")}
             </li>
           )}
-          {eventType.recurringEvent && eventType.recurringEvent.count > 0 && (
+          {recurringEvent && recurringEvent.count && recurringEvent.count > 0 && (
             <li className="flex whitespace-nowrap">
               <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
-              {t("recurs_up_to", { count: eventType.recurringEvent.count })}
+              {t("recurs_up_to", { count: recurringEvent.count })}
             </li>
           )}
           {eventType.price > 0 && (

@@ -11,11 +11,13 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
+import rrule, { Frequency as RRuleFrequency } from "rrule";
 
 import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -264,6 +266,27 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           <span className="text-bookinglight">
                             ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                           </span>
+                          {props.eventType.recurringEvent &&
+                            props.recurringEventCount &&
+                            props.recurringEventCount > 1 && (
+                              <>
+                                <br />
+                                <span>
+                                  {`${t("every_for_freq", {
+                                    freq: t(
+                                      `recurring_${RRuleFrequency[props.eventType.recurringEvent.freq]
+                                        .toString()
+                                        .toLowerCase()}`
+                                    ),
+                                  })} ${props.recurringEventCount} ${t(
+                                    `recurring_${RRuleFrequency[props.eventType.recurringEvent.freq]
+                                      .toString()
+                                      .toLowerCase()}`,
+                                    { count: parseInt(props.recurringEventCount.toString()) }
+                                  )}`}
+                                </span>
+                              </>
+                            )}
                         </div>
                         {location && (
                           <>
@@ -298,7 +321,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                               props.eventType.description
                             }` +
-                            (typeof location === "string" ? "&location=" + encodeURIComponent(location) : "")
+                            (typeof location === "string"
+                              ? "&location=" + encodeURIComponent(location)
+                              : "") +
+                            (props.eventType.recurringEvent
+                              ? "&recur=" +
+                                encodeURIComponent(new rrule(props.eventType.recurringEvent).toString())
+                              : "")
                           }>
                           <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
                             <svg
@@ -435,6 +464,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       description: true,
       length: true,
       eventName: true,
+      recurringEvent: true,
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
@@ -464,6 +494,7 @@ const getEventTypesFromDB = async (typeId: number) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const recurringEventCountQuery = asStringOrNull(context.query.count);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
 
@@ -473,18 +504,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  let eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
-  if (!eventType) {
+  if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
-  if (!eventType.users.length && eventType.userId) {
+  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
     // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
     const user = await prisma.user.findUnique({
       where: {
-        id: eventType.userId,
+        id: eventTypeRaw.userId,
       },
       select: {
         id: true,
@@ -499,15 +530,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
     if (user) {
-      eventType.users.push(user);
+      eventTypeRaw.users.push(user as any);
     }
   }
 
-  if (!eventType.users.length) {
+  if (!eventTypeRaw.users.length) {
     return {
       notFound: true,
     };
   }
+
+  const eventType = {
+    ...eventTypeRaw,
+    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+  };
 
   // if (!typeId) eventType["eventName"] = getDynamicEventName(users, typeSlug);
 
@@ -519,11 +555,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
+  // Checking if number of recurring event ocurrances is valid against event type configuration
+  const recurringEventCount =
+    (eventType.recurringEvent &&
+      recurringEventCountQuery &&
+      eventType.recurringEvent.count &&
+      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
+        ? recurringEventCountQuery
+        : eventType.recurringEvent.count)) ||
+    null;
+
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
       profile,
       eventType,
+      recurringEventCount,
       trpcState: ssr.dehydrate(),
       dynamicEventName,
     },
