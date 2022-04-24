@@ -488,7 +488,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
-    // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
     recurringEvent: RecurringEvent;
     schedulingType: SchedulingType | null;
     price: number;
