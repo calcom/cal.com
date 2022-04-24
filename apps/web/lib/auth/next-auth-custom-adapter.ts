@@ -31,22 +31,6 @@ export default function CalComAdapter(prismaClient: PrismaClient, options = {}) 
     updateUser: ({ id, ...data }: Prisma.UserUncheckedCreateInput) =>
       prismaClient.user.update({ where: { id }, data }),
     deleteUser: (id: User["id"]) => prismaClient.user.delete({ where: { id } }),
-    linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
-    unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
-      prismaClient.account.delete({ where: { provider_providerAccountId } }),
-    async getSessionAndUser(sessionToken: string) {
-      const userAndSession = await prismaClient.session.findUnique({
-        where: { sessionToken },
-        include: { user: true },
-      });
-      if (!userAndSession) return null;
-      const { user, ...session } = userAndSession;
-      return { user, session };
-    },
-    createSession: (data: Prisma.SessionCreateInput) => prismaClient.session.create({ data }),
-    updateSession: (data: Prisma.SessionWhereUniqueInput) =>
-      prismaClient.session.update({ where: { sessionToken: data.sessionToken }, data }),
-    deleteSession: (sessionToken: string) => prismaClient.session.delete({ where: { sessionToken } }),
     async createVerificationToken(data: VerificationToken) {
       const { id: _, ...verificationToken } = await prismaClient.verificationToken.create({
         data,
@@ -67,5 +51,22 @@ export default function CalComAdapter(prismaClient: PrismaClient, options = {}) 
         throw error;
       }
     },
+    // @NOTE: All methods below here are not properly configured
+    linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
+    unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
+      prismaClient.account.delete({ where: { provider_providerAccountId } }),
+    async getSessionAndUser(sessionToken: string) {
+      const userAndSession = await prismaClient.session.findUnique({
+        where: { sessionToken },
+        include: { user: true },
+      });
+      if (!userAndSession) return null;
+      const { user, ...session } = userAndSession;
+      return { user, session };
+    },
+    createSession: (data: Prisma.SessionCreateInput) => prismaClient.session.create({ data }),
+    updateSession: (data: Prisma.SessionWhereUniqueInput) =>
+      prismaClient.session.update({ where: { sessionToken: data.sessionToken }, data }),
+    deleteSession: (sessionToken: string) => prismaClient.session.delete({ where: { sessionToken } }),
   };
 }
