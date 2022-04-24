@@ -16,7 +16,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
   const [showDialog, setShowDialog] = useState(false);
 
   return (
-    <div className="flex flex-col items-start space-x-2 space-y-2 pt-3">
+    <div className="flex flex-col items-start space-x-2 space-y-2">
       {selectedGif && (
         <div>
           <img alt={"Selected Gif Image"} src={selectedGif} />
