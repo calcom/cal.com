@@ -2,6 +2,8 @@ import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import { AriaRole, FC, Fragment } from "react";
 
+import { CONSOLE_URL } from "@calcom/lib/constants";
+
 import EmptyScreen from "@components/EmptyScreen";
 
 type LicenseRequiredProps = {
@@ -27,13 +29,9 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
           headline="This is an enterprise feature"
           description={
             <>
-              To enable this feature, please refer to{" "}
-              <a
-                href="https://cal.com/enterprise"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline">
-                cal.com/enterprise
+              To enable this feature, get a deployment key at{" "}
+              <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
+                Cal.com console
               </a>
               .
             </>

@@ -1,7 +1,9 @@
 import cache from "memory-cache";
 
+import { CONSOLE_URL } from "@calcom/lib/constants";
+
 async function checkLicense(license: string): Promise<boolean> {
-  const url = `${process.env.NEXT_PUBLIC_CONSOLE_URL}/api/license?key=${license}`;
+  const url = `${CONSOLE_URL}/api/license?key=${license}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
     return cachedResponse;
