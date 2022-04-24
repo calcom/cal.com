@@ -114,16 +114,20 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
 
       case "PATCH":
         if (!safeBody.success) throw new Error("Invalid request body");
-        await prisma.availability
+        const edited = await prisma.availability
           .update({
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
           .then((data) => schemaAvailabilityPublic.parse(data))
           .then((availability) => res.status(200).json({ availability }))
-          .catch((error: Error) =>
-            res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
-          );
+          .catch((error: Error) => {
+            console.log(error);
+            res.status(404).json({
+              message: `Availability with id: ${safeQuery.data.id} not found`,
+              error,
+            });
+          });
         break;
 
       case "DELETE":

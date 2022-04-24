@@ -86,13 +86,13 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function attendeeById(req: NextApiRequest, res: NextApiResponse<AttendeeResponse>) {
-  const { method, query, body } = req;
+  const { method, query, body, userId } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaAttendeeBodyParams.safeParse(body);
   if (!safeQuery.success) {
+    res.status(400).json({ error: safeQuery.error });
     throw new Error("Invalid request query", safeQuery.error);
   }
-  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({
     where: { userId },
     include: { attendees: true },
@@ -118,6 +118,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
 
       case "PATCH":
         if (!safeBody.success) {
+          res.status(400).json({ message: "Bad request", error: safeBody.error });
           throw new Error("Invalid request body");
         }
         await prisma.attendee

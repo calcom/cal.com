@@ -59,10 +59,12 @@ async function createOrlistAllAvailabilities(
           error,
         });
   } else if (method === "POST") {
+    console.log(req.body);
     const safe = schemaAvailabilityBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.availability.create({ data: { ...safe.data, userId } });
+    console.log(data);
     const availability = schemaAvailabilityPublic.parse(data);
 
     if (availability) res.status(201).json({ availability, message: "Availability created successfully" });
