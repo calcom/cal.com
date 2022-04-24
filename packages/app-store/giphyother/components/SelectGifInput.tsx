@@ -1,11 +1,10 @@
 import { SearchIcon, TrashIcon } from "@heroicons/react/solid";
-import Image from "next/image";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
-import { SearchDialog } from "./searchDialog";
+import { SearchDialog } from "./SearchDialog";
 
 interface ISelectGifInput {
   defaultValue?: string | null;
