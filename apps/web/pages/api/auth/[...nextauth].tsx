@@ -17,6 +17,7 @@ import { defaultCookies } from "@calcom/lib/default-cookies";
 import { serverConfig } from "@calcom/lib/serverConfig";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
+import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
@@ -184,7 +185,8 @@ if (true) {
 }
 
 export default NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // @ts-ignore
+  adapter: CalComAdapter(prisma),
   session: {
     strategy: "jwt",
   },
@@ -239,7 +241,6 @@ export default NextAuth({
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-
         const existingUser = await prisma.user.findFirst({
           where: {
             AND: [
@@ -313,9 +314,9 @@ export default NextAuth({
           return "/auth/error?error=unverified-email";
         }
 
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findUnique({
           where: {
-            AND: [{ identityProvider: idP }, { identityProviderId: user.id as string }],
+            id: user.id as unknown as number,
           },
         });
 
