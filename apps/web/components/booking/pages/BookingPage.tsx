@@ -124,7 +124,6 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          count: recurringEventCount,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
