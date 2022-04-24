@@ -1,4 +1,5 @@
 import { withValidation } from "next-validations";
+import * as tzdb from "tzdata";
 import { z } from "zod";
 
 import { _UserModel as User } from "@calcom/prisma/zod";
@@ -14,11 +15,45 @@ enum weekdays {
   SUNDAY = "Sunday",
 }
 
+// @note: extracted from apps/web/next-i18next.config.js, update if new locales.
+enum locales {
+  EN = "en",
+  FR = "fr",
+  IT = "it",
+  RU = "ru",
+  ES = "es",
+  DE = "de",
+  PT = "pt",
+  RO = "ro",
+  NL = "nl",
+  PT_BR = "pt-BR",
+  ES_419 = "es-419",
+  KO = "ko",
+  JA = "ja",
+  PL = "pl",
+  AR = "ar",
+  IW = "iw",
+  ZH_CN = "zh-CN",
+  ZH_TW = "zh-TW",
+  CS = "cs",
+  SR = "sr",
+  SV = "sv",
+  VI = "vi",
+}
+enum theme {
+  DARK = "dark",
+  LIGHT = "light",
+}
+
+enum timeFormat {
+  TWELVE = 12,
+  TWENTY_FOUR = 24,
+}
+
 // @note: These are the values that are editable via PATCH method on the user Model
 export const schemaUserBaseBodyParams = User.pick({
   name: true,
   bio: true,
-  avatar: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
@@ -31,6 +66,8 @@ export const schemaUserBaseBodyParams = User.pick({
   darkBrandColor: true,
   allowDynamicBooking: true,
   away: true,
+  // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.
+  // avatar: true,
 }).partial();
 // @note: partial() is used to allow for the user to edit only the fields they want to edit making all optional,
 // if want to make any required do it in the schemaRequiredParams
@@ -39,9 +76,26 @@ export const schemaUserBaseBodyParams = User.pick({
 // for example making weekStart only accept weekdays as input
 const schemaUserRequiredParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
+  brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  timeZone: z
+    .string()
+    // @note: This is a custom validation that checks if the timezone is valid and exists in the tzdb library
+    .refine((tz: string) => Object.keys(tzdb.zones).includes(tz))
+    .optional(),
+  bufferTime: z.number().min(0).max(86400).optional(),
+  startTime: z.number().min(0).max(86400).optional(),
+  endTime: z.number().min(0).max(86400).optional(),
+  theme: z.nativeEnum(theme).optional(),
+  timeFormat: z.nativeEnum(timeFormat).optional(),
+  defaultScheduleId: z
+    .number()
+    .refine((id: number) => id > 0)
+    .optional(),
+  locale: z.nativeEnum(locales),
 });
 
-// @note: These are the values that are editable via PATCH method on the user Model
+// @note: These are the values that are editable via PATCH method on the user Model,
+// merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
 export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserRequiredParams).omit({});
 
 // @note: These are the values that are always returned when reading a user

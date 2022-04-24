@@ -104,11 +104,22 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<any>) {
         break;
 
       case "PATCH":
-        // FIXME: Validate body against different Edit validation, skip username.
         const safeBody = schemaUserEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
           throw new Error("Invalid request body");
+        }
+        const userSchedules = await prisma.schedule.findMany({
+          where: { userId },
+        });
+        const userSchedulesIds = userSchedules.map((schedule) => schedule.id);
+        // @note: here we make sure user can only make as default his own scheudles
+        if (!userSchedulesIds.includes(Number(safeBody?.data?.defaultScheduleId))) {
+          res.status(400).json({
+            message: "Bad request",
+            error: "Invalid default schedule id",
+          });
+          throw new Error("Invalid request body value: defaultScheduleId");
         }
         await prisma.user
           .update({
