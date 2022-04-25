@@ -529,6 +529,7 @@ const EventTypesPage = () => {
         subtitle={t("event_types_page_subtitle")}
         CTA={<CTA />}
         customLoader={<SkeletonLoader />}>
+        {/* <SkeletonLoader></SkeletonLoader> */}
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (

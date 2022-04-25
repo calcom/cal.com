@@ -4,11 +4,20 @@ import React from "react";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
-      <SkeletonItem />
-      <SkeletonItem />
-      <SkeletonItem />
-    </ul>
+    <div className="animate-pulse">
+      <div className="mb-4 flex items-center">
+        <div className="mt-1 h-8 w-8 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2" />
+        <div className="space-y-1">
+          <div className="h-4 w-16 rounded-md bg-gray-200"></div>
+          <div className="h-4 w-24 rounded-md bg-gray-200"></div>
+        </div>
+      </div>
+      <ul className="animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+        <SkeletonItem />
+        <SkeletonItem />
+        <SkeletonItem />
+      </ul>
+    </div>
   );
 }
 
