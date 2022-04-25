@@ -151,11 +151,28 @@ const AvailabilitySelect = ({
   onBlur: Noop;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
+  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
     <QueryCell
       query={query}
+      loading={() => {
+        return (
+          <Select
+            isDisabled
+            options={[]}
+            isSearchable={false}
+            onChange={props.onChange}
+            classNamePrefix="react-select"
+            className={classNames(
+              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
+              className
+            )}
+            placeholder={t("loading")}
+          />
+        );
+      }}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
