@@ -4,7 +4,7 @@ import BookingsShell from "@components/BookingsShell";
 
 function SkeletonLoader() {
   return (
-    <ul className="mt-6 animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white">
+    <ul className="mt-6 animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -20,10 +20,10 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
-            <div className="h-4 w-32 rounded-md bg-gray-300"></div>
+            <div className="h-5 w-32 rounded-md bg-gray-300"></div>
             <div className="h-4 w-16 rounded-md bg-gray-300"></div>
           </div>
-          <div className="ml-4 h-6 w-24 rounded-md bg-gray-300"></div>
+          <div className="ml-4 h-5 w-24 rounded-md bg-gray-300"></div>
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">

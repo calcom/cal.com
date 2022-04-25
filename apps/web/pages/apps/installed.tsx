@@ -339,7 +339,6 @@ export default function IntegrationsPage() {
       customLoader={<SkeletonLoader />}>
       <AppsShell>
         <ClientSuspense fallback={<SkeletonLoader />}>
-          <SkeletonLoader></SkeletonLoader>
           <IntegrationsContainer />
           <CalendarListContainer />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />

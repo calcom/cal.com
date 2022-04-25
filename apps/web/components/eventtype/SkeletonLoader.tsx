@@ -4,7 +4,7 @@ import React from "react";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white">
+    <ul className="animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -19,7 +19,7 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div>
-          <div className="h-6 w-32 rounded-md bg-gray-300"></div>
+          <div className="h-5 w-32 rounded-md bg-gray-300"></div>
         </div>
         <div className="text-neutral-500 dark:text-white">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
