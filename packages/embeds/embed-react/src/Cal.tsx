@@ -13,12 +13,17 @@ export default function Cal({
   config?: any;
   embedJsUrl?: string;
 }) {
+  if (!calLink) {
+    throw new Error("calLink is required");
+  }
+  const initializedRef = useRef(false);
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!Cal) {
+    if (!Cal || initializedRef.current) {
       return;
     }
+    initializedRef.current = true;
     const element = ref.current;
     let initConfig = {};
     if (calOrigin) {
@@ -30,9 +35,6 @@ export default function Cal({
       calLink,
       config,
     });
-    return () => {
-      element?.querySelector(".cal-embed")?.remove();
-    };
   }, [Cal, calLink, config, calOrigin]);
 
   if (!Cal) {

@@ -32,7 +32,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       bookingId: true,
     },
   });
-
+  if (!payment?.bookingId) {
+    console.log(JSON.stringify(payment));
+  }
   if (!payment?.bookingId) throw new Error("Payment not found");
 
   const booking = await prisma.booking.findUnique({
