@@ -53,10 +53,13 @@
   display: block;
   width: 30px;
   height: 30px;
-  margin: 60px auto;
   position: relative;
   border-width: 4px;
   border-style: solid;
   -webkit-animation: loader 2s infinite ease;
   animation: loader 2s infinite ease;
+ }
+
+.loader.modal-loader {
+  margin: 60px auto;
 }

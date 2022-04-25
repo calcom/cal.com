@@ -2,6 +2,9 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "module": "esnext",
+    "paths": {
+      "@lib/*": ["../../../apps/web/lib/*"]
+    },
     "moduleResolution": "Node",
     "baseUrl": "."
   },
