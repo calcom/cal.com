@@ -1,6 +1,10 @@
-import SwaggerUI from "swagger-ui-react";
+// import SwaggerUI from "swagger-ui-react";
+import dynamic from "next/dynamic";
+import { ComponentType } from "react";
 
 import { SnippedGenerator, requestSnippets } from "@lib/snippets";
+
+const SwaggerUI: any = dynamic(() => import("swagger-ui-react"), { ssr: false });
 
 export default function APIDocs() {
   return (

@@ -77,7 +77,7 @@ export const SnippedGenerator = {
               //             method,
               //             targets
               //             // Since I don't know why hostname was undefinedundefined, I harcoded it here
-              //           ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+              //           ).snippets[0].content;
               //         } catch (err) {
               //           // set to error in case it happens the npm package has some flaws
               //           snippet = JSON.stringify(snippet);
@@ -104,12 +104,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -136,12 +132,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -168,12 +160,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -200,12 +188,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -237,7 +221,7 @@ export const SnippedGenerator = {
               //             path,
               //             method,
               //             targets
-              //           ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+              //           ).snippets[0].content;
               //         } catch (err) {
               //           // set to error in case it happens the npm package has some flaws
               //           snippet = JSON.stringify(snippet);
@@ -269,7 +253,7 @@ export const SnippedGenerator = {
               //             path,
               //             method,
               //             targets
-              //           ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+              //           ).snippets[0].content;
               //         } catch (err) {
               //           // set to error in case it happens the npm package has some flaws
               //           snippet = JSON.stringify(snippet);
@@ -296,12 +280,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -328,12 +308,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
@@ -360,12 +336,8 @@ export const SnippedGenerator = {
                     let snippet;
                     try {
                       // set request snippet content
-                      snippet = OpenAPISnippet.getEndpointSnippets(
-                        spec,
-                        path,
-                        method,
-                        targets
-                      ).snippets[0].content.replaceAll("undefinedundefined", "https://api.cal.com");
+                      snippet = OpenAPISnippet.getEndpointSnippets(spec, path, method, targets).snippets[0]
+                        .content;
                     } catch (err) {
                       // set to error in case it happens the npm package has some flaws
                       snippet = JSON.stringify(snippet);
