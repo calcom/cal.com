@@ -359,6 +359,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   options={[
                     { value: "Sunday", label: nameOfDay(props.localeProp, 0) },
                     { value: "Monday", label: nameOfDay(props.localeProp, 1) },
+                    { value: "Saturday", label: nameOfDay(props.localeProp, 6) },
                   ]}
                 />
               </div>
