@@ -10,25 +10,31 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
+  CodeIcon,
+  EyeIcon,
+  LightBulbIcon,
+  SunIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
+import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent, DialogClose, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
+import { Input, Label, TextArea } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -36,6 +42,7 @@ import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import EmptyScreen from "@components/EmptyScreen";
+import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -44,6 +51,8 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
+import ColorPicker from "@components/ui/colorpicker";
+import Select from "@components/ui/form/Select";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
@@ -175,7 +184,20 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       { shallow: true }
     );
   };
-
+  const openEmbedModal = () => {
+    const query = {
+      ...router.query,
+      dialog: "embed",
+    };
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
@@ -323,6 +345,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               {t("delete_event_type_description")}
                             </ConfirmationDialogContent>
                           </Dialog>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="sm"
+                            className="w-full rounded-none"
+                            data-testid={"event-type-embed-" + type.id}
+                            StartIcon={CodeIcon}
+                            onClick={() => openEmbedModal()}>
+                            {t("Embed")}
+                          </Button>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
@@ -514,9 +548,234 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
+const EmbedTypesDialogContent = () => {
+  const { t } = useLocale();
+  const router = useRouter();
+  return (
+    <DialogContent size="l">
+      <div className="mb-4">
+        <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+          {t("How do you want to add Cal to your site?")}
+        </h3>
+        <div>
+          <p className="text-sm text-gray-500">
+            {t("Choose one of the following ways to put Cal on your site.")}
+          </p>
+        </div>
+      </div>
+      <div className="flex">
+        {[
+          {
+            title: "Inline Embed",
+            subtitle: "Loads your Cal scheduling page directly inline with your other website content",
+            type: "inline",
+            shortTitle: "Inline",
+          },
+          {
+            title: "Floating pop-up button",
+            subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
+            type: "floating-popup",
+            shortTitle: "Popup",
+          },
+          {
+            title: "Pop up via element click",
+            subtitle: "Open your Cal dialog when someone clicks an element.",
+            type: "element-click",
+            shortTitle: "Element Click",
+          },
+        ].map((widget, index) => (
+          <button
+            className="mr-2 w-1/3 text-left"
+            key={index}
+            onClick={() => {
+              router.push({
+                query: {
+                  dialog: "embed",
+                  type: widget.type,
+                  shortTitle: widget.shortTitle,
+                },
+              });
+            }}>
+            <div className="order-none  mx-0 my-3 box-border h-[20rem] flex-none rounded-sm border border-solid bg-white"></div>
+            <div className="font-medium text-neutral-900">{widget.title}</div>
+            <p className="text-sm text-gray-500">{widget.subtitle}</p>
+          </button>
+        ))}
+      </div>
+    </DialogContent>
+  );
+};
+
+const EmbedNavBar = () => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const codeHref = { ...router.query, view: "embed-code" };
+  const previewHref = { ...router.query, view: "embed-preview" };
+  const tabs = [
+    {
+      name: t("Embed"),
+      href: {
+        query: codeHref,
+      },
+      icon: CodeIcon,
+    },
+    {
+      name: t("Preview"),
+      href: {
+        query: previewHref,
+      },
+      icon: EyeIcon,
+    },
+  ];
+
+  return <NavTabs tabs={tabs} linkProps={{ shallow: true }} />;
+};
+const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
+  return (
+    <components.Control {...props}>
+      <SunIcon className="h-[32px] w-[32px]" />
+      {children}
+    </components.Control>
+  );
+};
+const EmbedTypeCodeAndPreviewDialogContent = ({ type, shortTitle }) => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const iframeRef = useRef();
+  const [palette, setPalette] = useState({});
+  const addToPalette = (update) => {
+    setPalette((palette) => {
+      return {
+        ...palette,
+        ...update,
+      };
+    });
+  };
+  const previewInstruction = (instruction) => {
+    iframeRef.current?.contentWindow.postMessage(
+      {
+        mode: "cal:preview",
+        type: "instruction",
+        instruction,
+      },
+      "*"
+    );
+  };
+  previewInstruction({
+    name: "ui",
+    arg: {
+      styles: {
+        branding: {
+          ...palette,
+        },
+      },
+    },
+  });
+  const ThemeOptions = [
+    { value: "auto", label: "Auto" },
+    { value: "dark", label: "Dark" },
+    { value: "light", label: "Light" },
+  ];
+  return (
+    <DialogContent size="xl">
+      <div className="flex">
+        <div className="flex w-1/3 flex-col bg-white p-6">
+          <h3 className="mb-2 text-lg font-bold leading-6 text-gray-900" id="modal-title">
+            {shortTitle}
+          </h3>
+          <hr></hr>
+          <div className="mt-2">
+            <div className="flex items-center justify-between">
+              <div className="font-medium text-neutral-900">Booking Page Settings</div>
+            </div>
+
+            <p className="text-sm text-gray-500">
+              {t("Customize the look of your booking page to fit seamlessly into your website.")}
+            </p>
+          </div>
+          <div className="mt-2">
+            <Label className="flex justify-between text-base">
+              <div>Theme</div>
+              <Select
+                defaultValue={ThemeOptions[0]}
+                components={{
+                  Control: ThemeSelectControl,
+                }}
+                onChange={(option) => {
+                  previewInstruction({
+                    name: "ui",
+                    arg: {
+                      theme: option.value,
+                    },
+                  });
+                }}
+                options={ThemeOptions}></Select>
+            </Label>
+            {[
+              { name: "brandColor", title: "Brand Color" },
+              // { name: "lightColor", title: "Light Color" },
+              // { name: "lighterColor", title: "Lighter Color" },
+              // { name: "lightestColor", title: "Lightest Color" },
+              // { name: "highlightColor", title: "Highlight Color" },
+              // { name: "medianColor", title: "Median Color" },
+            ].map((palette) => (
+              <Label key={palette.name} className="flex items-center justify-between text-base">
+                <div>{palette.title}</div>
+                <ColorPicker
+                  defaultValue="#000000"
+                  onChange={(color) => {
+                    addToPalette({
+                      [palette.name]: color,
+                    });
+                  }}></ColorPicker>
+              </Label>
+            ))}
+          </div>
+        </div>
+        <div className="w-2/3 bg-gray-50 p-6">
+          <EmbedNavBar />
+          <div>
+            <div
+              className={classNames(router.query.view !== "embed-preview" ? "block" : "hidden", "h-[75vh]")}>
+              <div></div>
+              <TextArea
+                name="embed-code"
+                className="h-[20rem]"
+                defaultValue={`<!-- Cal inline widget begin -->
+<div class="cal-inline-widget" data-url="https://cal.com/isaactanlishung" style="min-width:320px;height:630px;"></div>
+<script type="text/javascript" src="https://assets.cal.com/assets/external/widget.js" async></script>
+<!-- Cal inline widget end -->`}></TextArea>
+              <p className="text-sm text-gray-500">
+                {t(
+                  "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
+                )}
+              </p>
+            </div>
+            <div className={router.query.view == "embed-preview" ? "block" : "hidden"}>
+              <iframe
+                ref={iframeRef}
+                className="h-[75vh]"
+                width="100%"
+                height="100%"
+                src="http://localhost:3100/preview.html"
+              />
+            </div>
+          </div>
+          <div className="mt-8 flex flex-row-reverse gap-x-2">
+            <Button type="submit">{t("Copy Code")}</Button>
+            <DialogClose asChild>
+              <Button color="secondary">{t("Close")}</Button>
+            </DialogClose>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  );
+};
+
 const EventTypesPage = () => {
   const { t } = useLocale();
-
+  const router = useRouter();
   return (
     <div>
       <Head>
@@ -564,6 +823,16 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
+              <Dialog name="embed" clearQueryParamsOnClose={["type", "shortTitle", "view"]}>
+                {!router.query.type ? (
+                  <EmbedTypesDialogContent />
+                ) : (
+                  <EmbedTypeCodeAndPreviewDialogContent
+                    type={router.query.type}
+                    shortTitle={router.query.shortTitle || router.query.type}
+                  />
+                )}
+              </Dialog>
             </>
           )}
         />

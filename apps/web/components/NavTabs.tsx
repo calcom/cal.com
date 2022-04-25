@@ -21,10 +21,25 @@ const NavTabs: FC<Props> = ({ tabs, linkProps }) => {
         className="-mb-px flex space-x-2 space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
         aria-label="Tabs">
         {tabs.map((tab) => {
-          const isCurrent = router.asPath === tab.href;
+          let hrefProps;
+          let isCurrent;
+          if (typeof tab.href === "string") {
+            hrefProps = { href: tab.href };
+            isCurrent = router.asPath === tab.href;
+          } else {
+            //TODO: Handle Current Implementation
+            hrefProps = {
+              href: "",
+              onClick: (e) => {
+                e.preventDefault();
+                router.push(tab.href);
+              },
+            };
+          }
           return (
-            <Link key={tab.name} href={tab.href} {...linkProps}>
+            <Link key={tab.name} href="" {...linkProps}>
               <a
+                onClick={hrefProps.onClick}
                 className={classNames(
                   isCurrent
                     ? "border-neutral-900 text-neutral-900"
