@@ -169,7 +169,10 @@ function DatePicker({
       weekdayOfFirst -= 1;
       if (weekdayOfFirst < 0) weekdayOfFirst = 6;
     }
-
+    if (weekStart === "Saturday") {
+      weekdayOfFirst += 1;
+      if (weekdayOfFirst < 0) weekdayOfFirst = 5;
+    }
     const days = Array(weekdayOfFirst).fill(null);
 
     const isDisabledMemoized = isDisabledRef.current;
@@ -259,7 +262,12 @@ function DatePicker({
         </div>
       </div>
       <div className="border-bookinglightest grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 sm:border-0">
-        {weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short").map((weekDay) => (
+        {weekdayNames(
+          i18n.language,
+          // @note: Double ternary operator to support also Saturday () as start of week
+          weekStart === "Sunday" ? 0 : weekStart === "Monday" ? 1 : 6,
+          "short"
+        ).map((weekDay) => (
           <div key={weekDay} className="text-bookinglight my-4 text-xs uppercase tracking-widest">
             {weekDay}
           </div>
