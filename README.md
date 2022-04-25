@@ -230,9 +230,9 @@ yarn workspace @calcom/web playwright-report
 
 1. Check for `.env` variables changes
 
-    ```sh
-    yarn predev
-    ```
+   ```sh
+   yarn predev
+   ```
 
 1. Start the server. In a development environment, just do:
 
@@ -406,10 +406,10 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 1. Open [Vital](https://tryvital.io/) and click Get API Keys.
 2. Create a team with the team name you desire
 3. Head to the configuration section on the sidebar of the dashboard
-4. Click on API keys and you'll find your sandbox Client ID and Client Secret. 
-6. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALENDSO URL>/api/integrations/vital/webhook` as webhook for connected applications.
-7. Select all events for the webhook you interested, e.g. `sleep_created`
-8. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env file.
+4. Click on API keys and you'll find your sandbox Client ID and Client Secret.
+5. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vitalother/webhook` as webhook for connected applications.
+6. Select all events for the webhook you interested, e.g. `sleep_created`
+7. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env file.
 
 <!-- LICENSE -->
 

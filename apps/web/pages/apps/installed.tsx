@@ -24,6 +24,7 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
+import { VitalsConfiguration } from "@components/integrations/Vitals/Configuration";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 function IframeEmbedContainer() {
@@ -192,8 +193,7 @@ function IntegrationsContainer() {
                     isGlobal={item.isGlobal}
                     installed={item.installed}
                   />
-                }
-              />
+                }></IntegrationListItem>
             ))}
           </List>
 
@@ -242,8 +242,9 @@ function IntegrationsContainer() {
                     isGlobal={item.isGlobal}
                     installed={item.installed}
                   />
-                }
-              />
+                }>
+                <VitalsConfiguration isVisible={item.type === "vital_other"} />
+              </IntegrationListItem>
             ))}
           </List>
         </>
