@@ -69,7 +69,7 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
       router.replace({
         pathname: "/auth/login",
         query: {
-          callbackUrl: `${WEBAPP_URL}/${location.pathname}${location.search}`,
+          callbackUrl: `${WEBAPP_URL}${location.pathname}${location.search}`,
         },
       });
     }

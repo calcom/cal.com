@@ -18,7 +18,7 @@
       "description": "Application Key for symmetric encryption and decryption. Must be 32 bytes for AES256 encryption algorithm.",
       "value": "secret"
     },
-    "JWT_SECRET": "secret"
+    "NEXTAUTH_SECRET": "secret"
   },
   "scripts": {
     "postdeploy": "cd packages/prisma && npx prisma migrate deploy"
