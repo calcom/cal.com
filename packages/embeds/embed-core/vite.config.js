@@ -2,7 +2,6 @@ require("dotenv").config({ path: "../../../.env" });
 
 const path = require("path");
 const { defineConfig } = require("vite");
-
 module.exports = defineConfig({
   envPrefix: "NEXT_PUBLIC_",
   build: {
