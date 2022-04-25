@@ -39,12 +39,10 @@ import { schemaUserEditBodyParams, schemaUserReadPublic, withValidUser } from "@
  *       - application/json
  *     parameters:
  *      - in: body
- *        name: user
- *        description: The user to edit
+ *        name: name
+ *        description: The users full name
  *        schema:
- *         type: object
- *         $ref: '#/components/schemas/User'
- *        required: true
+ *         type: string
  *      - in: path
  *        name: id
  *        schema:

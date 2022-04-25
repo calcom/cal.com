@@ -94,7 +94,6 @@ import {
 export async function availabilityById(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const data = await prisma.availability.findMany({ where: { userId } });
@@ -113,8 +112,16 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
         break;
 
       case "PATCH":
+        const safeBody = schemaAvailabilityBodyParams.safeParse(body);
+
         if (!safeBody.success) throw new Error("Invalid request body");
-        const edited = await prisma.availability
+        const userEventTypes = await prisma.eventType.findMany({ where: { userId } });
+        const userEventTypesIds = userEventTypes.map((event) => event.id);
+        if (safeBody.data.eventTypeId && !userEventTypesIds.includes(safeBody.data.eventTypeId)) {
+          res.status(401).json({ message: "Bad request. You're not the owner of eventTypeId" });
+          // throw new Error("Bad request. You're not the owner of eventTypeId");
+        }
+        await prisma.availability
           .update({
             where: { id: safeQuery.data.id },
             data: safeBody.data,
