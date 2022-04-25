@@ -427,7 +427,7 @@ export default function Shell(props: LayoutProps) {
   const isLoading =
     i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading;
 
-  if (isLoading && !props.customLoader) {
+  if (isLoading) {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
         <Loader />
