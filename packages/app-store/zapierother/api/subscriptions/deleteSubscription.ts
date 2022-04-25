@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "API not valid" });
   }
 
-  const id = req.query.id as string; //maybe change that again
+  const id = req.query.id as string;
 
   if (req.method === "DELETE") {
     await prisma.webhook.delete({
