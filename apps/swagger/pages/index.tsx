@@ -1,6 +1,4 @@
-// import SwaggerUI from "swagger-ui-react";
 import dynamic from "next/dynamic";
-import { ComponentType } from "react";
 
 import { SnippedGenerator, requestSnippets } from "@lib/snippets";
 
@@ -10,7 +8,7 @@ export default function APIDocs() {
   return (
     <SwaggerUI
       url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "https://api.cal.com/docs"}
-      supportedSubmitMethods={["get", "post", "put", "delete", "patch"]}
+      supportedSubmitMethods={["get", "post", "delete", "patch"]}
       requestSnippetsEnabled={true}
       requestSnippets={requestSnippets}
       plugins={[SnippedGenerator]}
