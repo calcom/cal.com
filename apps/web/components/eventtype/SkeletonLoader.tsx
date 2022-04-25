@@ -19,17 +19,17 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div>
-          <div className="h-5 w-32 rounded-md bg-gray-300"></div>
+          <div className="h-5 w-32 rounded-md bg-gray-100"></div>
         </div>
         <div className="text-neutral-500 dark:text-white">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400"></ClockIcon>
-              <div className="h-4 w-12 rounded-md bg-gray-300"></div>
+              <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></ClockIcon>
+              <div className="h-4 w-12 rounded-md bg-gray-100"></div>
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400"></UserIcon>
-              <div className="h-4 w-16 rounded-md bg-gray-300"></div>
+              <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></UserIcon>
+              <div className="h-4 w-16 rounded-md bg-gray-100"></div>
             </li>
           </ul>
         </div>

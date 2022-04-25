@@ -20,16 +20,16 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
-            <div className="h-5 w-32 rounded-md bg-gray-300"></div>
-            <div className="h-4 w-16 rounded-md bg-gray-300"></div>
+            <div className="h-5 w-32 rounded-md bg-gray-100"></div>
+            <div className="h-4 w-16 rounded-md bg-gray-100"></div>
           </div>
-          <div className="ml-4 h-5 w-24 rounded-md bg-gray-300"></div>
+          <div className="ml-4 h-5 w-24 rounded-md bg-gray-100"></div>
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <div className="h-6 w-16 rounded-md bg-gray-300"></div>
-          <div className="h-6 w-32 rounded-md bg-gray-300"></div>
+          <div className="h-6 w-16 rounded-md bg-gray-100"></div>
+          <div className="h-6 w-32 rounded-md bg-gray-100"></div>
         </div>
       </div>
     </li>
