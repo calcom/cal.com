@@ -135,9 +135,9 @@ const BookingPage = ({
     },
   });
 
-  const reucrringMutation = useMutation(createRecurringBooking, {
+  const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData: any[]) => {
-      const { attendees, paymentUid } = responseData[0];
+      const { attendees, paymentUid, recurringEventId } = responseData[0];
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -165,7 +165,7 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          count: recurringEventCount,
+          recur: recurringEventId,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -339,7 +339,7 @@ const BookingPage = ({
           value: booking.customInputs![inputId],
         })),
       }));
-      reucrringMutation.mutate(recurringBookings);
+      recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
         ...booking,

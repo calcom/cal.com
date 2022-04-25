@@ -1,5 +1,6 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -11,7 +12,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
-import rrule, { Frequency as RRuleFrequency } from "rrule";
+import rrule from "rrule";
 
 import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
@@ -142,6 +143,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType } = props;
 
+  const [moreEventsVisible, setMoreEventsVisible] = useState(false);
+
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const attendeeName = typeof name === "string" ? name : "Nameless";
@@ -213,7 +216,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         <Theme />
         <HeadSeo
           title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
-          description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
+          description={
+            needsConfirmation
+              ? props.recurringBookings
+                ? t("booking_submitted_recurring")
+                : t("booking_submitted")
+              : props.recurringBookings
+              ? t("booking_confirmed_recurring")
+              : t("booking_confirmed")
+          }
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
         <main className={classNames("mx-auto", isEmbed ? "" : "max-w-3xl py-24")}>
@@ -223,7 +234,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
             ) : null}{" "}
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
               <div
-                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "inset-0")}
                 aria-hidden="true">
                 <div
                   className={classNames(
@@ -244,11 +255,25 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       <h3
                         className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                         id="modal-headline">
-                        {needsConfirmation ? t("submitted") : t("meeting_is_scheduled")}
+                        {needsConfirmation
+                          ? props.recurringBookings
+                            ? t("submitted_recurring")
+                            : t("submitted")
+                          : props.recurringBookings
+                          ? t("meeting_is_scheduled_recurring")
+                          : t("meeting_is_scheduled")}
                       </h3>
                       <div className="mt-3">
                         <p className="text-sm text-neutral-600 dark:text-gray-300">
-                          {needsConfirmation
+                          {props.recurringBookings
+                            ? needsConfirmation
+                              ? props.profile.name !== null
+                                ? t("user_needs_to_confirm_or_reject_booking_recurring", {
+                                    user: props.profile.name,
+                                  })
+                                : t("needs_to_be_confirmed_or_rejected_recurring")
+                              : t("emailed_you_and_attendees_recurring")
+                            : needsConfirmation
                             ? props.profile.name !== null
                               ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
                               : t("needs_to_be_confirmed_or_rejected")
@@ -260,33 +285,58 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2">
-                          {date.format("dddd, DD MMMM YYYY")}
-                          <br />
-                          {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                          <span className="text-bookinglight">
-                            ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                          </span>
                           {props.eventType.recurringEvent &&
-                            props.recurringEventCount &&
-                            props.recurringEventCount > 1 && (
-                              <>
+                            props.recurringBookings &&
+                            props.recurringBookings.slice(0, 4).map((dateStr, idx) => (
+                              <div key={idx} className="mb-2">
+                                {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
                                 <br />
-                                <span>
-                                  {`${t("every_for_freq", {
-                                    freq: t(
-                                      `recurring_${RRuleFrequency[props.eventType.recurringEvent.freq]
-                                        .toString()
-                                        .toLowerCase()}`
-                                    ),
-                                  })} ${props.recurringEventCount} ${t(
-                                    `recurring_${RRuleFrequency[props.eventType.recurringEvent.freq]
-                                      .toString()
-                                      .toLowerCase()}`,
-                                    { count: parseInt(props.recurringEventCount.toString()) }
-                                  )}`}
+                                {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length}{" "}
+                                mins{" "}
+                                <span className="text-bookinglight">
+                                  ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                                 </span>
-                              </>
-                            )}
+                              </div>
+                            ))}
+                          {props.recurringBookings && props.recurringBookings.length > 4 && (
+                            <Collapsible
+                              open={moreEventsVisible}
+                              onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+                              <CollapsibleTrigger
+                                type="button"
+                                className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+                                {t("plus_more", { count: props.recurringBookings.length - 4 })}
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                {props.eventType.recurringEvent &&
+                                  props.recurringBookings &&
+                                  props.recurringBookings.slice(4).map((dateStr, idx) => (
+                                    <div key={idx} className="mb-2">
+                                      {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+                                      <br />
+                                      {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} -{" "}
+                                      {props.eventType.length} mins{" "}
+                                      <span className="text-bookinglight">
+                                        (
+                                        {localStorage.getItem("timeOption.preferredTimeZone") ||
+                                          dayjs.tz.guess()}
+                                        )
+                                      </span>
+                                    </div>
+                                  ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )}
+                          {!props.eventType.recurringEvent && (
+                            <>
+                              {date.format("dddd, DD MMMM YYYY")}
+                              <br />
+                              {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                              <span className="text-bookinglight">
+                                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                              </span>
+                            </>
+                          )}
                         </div>
                         {location && (
                           <>
@@ -494,7 +544,7 @@ const getEventTypesFromDB = async (typeId: number) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-  const recurringEventCountQuery = asStringOrNull(context.query.count);
+  const recurringEventIdQuery = asStringOrNull(context.query.recur);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
 
@@ -545,8 +595,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
   };
 
-  // if (!typeId) eventType["eventName"] = getDynamicEventName(users, typeSlug);
-
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
@@ -555,22 +603,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
-  // Checking if number of recurring event ocurrances is valid against event type configuration
-  const recurringEventCount =
-    (eventType.recurringEvent &&
-      recurringEventCountQuery &&
-      eventType.recurringEvent.count &&
-      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? recurringEventCountQuery
-        : eventType.recurringEvent.count)) ||
-    null;
+  let recurringBookings = null;
+  if (recurringEventIdQuery) {
+    // We need to get the dates for the bookings to be able to show them in the UI
+    recurringBookings = await prisma.booking.findMany({
+      where: {
+        recurringEventId: recurringEventIdQuery,
+      },
+      select: {
+        startTime: true,
+      },
+    });
+  }
 
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
       profile,
       eventType,
-      recurringEventCount,
+      recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
       dynamicEventName,
     },
