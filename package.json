@@ -33,6 +33,8 @@
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test": "turbo run test",
     "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
+    "embed-tests-quick": "turbo run embed-tests-quick",
+    "embed-tests": "turbo run embed-tests",
     "test-e2e": "turbo run test-e2e --concurrency=1",
     "type-check": "turbo run type-check"
   },

@@ -11,6 +11,7 @@ import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 import { ScheduleListItem } from "@components/availability/ScheduleListItem";
+import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
@@ -58,8 +59,12 @@ export default function AvailabilityPage() {
   const { t } = useLocale();
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
-        <WithQuery success={({ data }) => <AvailabilityList {...data} />} />
+      <Shell
+        heading={t("availability")}
+        subtitle={t("configure_availability")}
+        CTA={<NewScheduleButton />}
+        customLoader={<SkeletonLoader />}>
+        <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
     </div>
   );

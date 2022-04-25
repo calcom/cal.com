@@ -12,9 +12,9 @@ import { inferQueryInput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
-import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
+import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
@@ -45,7 +45,10 @@ export default function Bookings() {
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
   return (
-    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
+    <Shell
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      customLoader={<SkeletonLoader></SkeletonLoader>}>
       <WipeMyCalActionButton trpc={trpc} bookingStatus={status} bookingsEmpty={isEmpty} />
       <BookingsShell>
         <div className="-mx-4 flex flex-col sm:mx-auto">
@@ -54,7 +57,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {(query.status === "loading" || query.status === "idle") && <Loader />}
+              {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
               {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">
