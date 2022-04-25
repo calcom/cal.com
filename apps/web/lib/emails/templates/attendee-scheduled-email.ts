@@ -73,6 +73,7 @@ export default class AttendeeScheduledEmail {
         email: attendee.email,
       })),
       status: "CONFIRMED",
+      method: "CONFIRM",
     });
     if (icsEvent.error) {
       throw icsEvent.error;
