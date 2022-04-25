@@ -4,7 +4,7 @@
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./index.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && cp dist/embed.umd.js ../../../apps/website/public/embed.js && echo 'You need to commit the newly generated embed.js in apps/website'",
     "build:cal": "NEXT_PUBLIC_WEBSITE_URL='https://cal.com' yarn build",
     "vite": "vite",
     "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css --watch",
