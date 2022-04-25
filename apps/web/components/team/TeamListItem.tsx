@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -39,6 +40,7 @@ interface Props {
 export default function TeamListItem(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [deleting, setDeleting] = useState(false);
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
@@ -175,7 +177,13 @@ export default function TeamListItem(props: Props) {
                           variety="danger"
                           title={t("disband_team")}
                           confirmBtnText={t("confirm_disband_team")}
-                          onConfirm={() => props.onActionSelect("disband")}>
+                          loadingAction={deleting}
+                          onConfirm={() => {
+                            setDeleting(true);
+                            setTimeout(() => {
+                              props.onActionSelect("disband");
+                            }, 5000);
+                          }}>
                           {t("disband_team_confirmation_message")}
                         </ConfirmationDialogContent>
                       </Dialog>

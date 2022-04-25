@@ -8,10 +8,13 @@ import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
+import LightLoader from "@components/LightLoader";
+
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;
   confirmBtnText?: string;
   cancelBtnText?: string;
+  loadingAction?: boolean;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
@@ -25,6 +28,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     confirmBtn = null,
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
+    loadingAction,
     onConfirm,
     children,
   } = props;
@@ -59,10 +63,15 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         </div>
       </div>
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
-        <DialogClose onClick={onConfirm} asChild>
-          {confirmBtn || <Button color="primary">{confirmBtnText}</Button>}
+        <DialogClose disabled={loadingAction} onClick={onConfirm} asChild>
+          {confirmBtn || (
+            <Button color="primary">
+              {loadingAction ? <LightLoader style={{ margin: 0, marginRight: "10px" }} /> : null}
+              {loadingAction ? t("loading") : confirmBtnText}
+            </Button>
+          )}
         </DialogClose>
-        <DialogClose asChild>
+        <DialogClose disabled={loadingAction} asChild>
           <Button color="secondary">{cancelBtnText}</Button>
         </DialogClose>
       </div>
