@@ -247,7 +247,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
         const token: string = randomBytes(32).toString("hex");
 
-        await ctx.prisma.verificationRequest.create({
+        await ctx.prisma.verificationToken.create({
           data: {
             identifier: input.usernameOrEmail,
             token,
