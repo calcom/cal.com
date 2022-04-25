@@ -8,7 +8,7 @@ import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
+import { schemaUserEditBodyParams, schemaUserReadPublic, withValidUser } from "@lib/validations/user";
 
 /**
  * @swagger
@@ -39,12 +39,10 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  *       - application/json
  *     parameters:
  *      - in: body
- *        name: user
- *        description: The user to edit
+ *        name: name
+ *        description: The users full name
  *        schema:
- *         type: object
- *         $ref: '#/components/schemas/User'
- *        required: true
+ *         type: string
  *      - in: path
  *        name: id
  *        schema:
@@ -85,19 +83,18 @@ import { schemaUserBodyParams, schemaUserPublic } from "@lib/validations/user";
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function userById(req: NextApiRequest, res: NextApiResponse<UserResponse>) {
-  const { method, query, body } = req;
+export async function userById(req: NextApiRequest, res: NextApiResponse<any>) {
+  const { method, query, body, userId } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaUserBodyParams.safeParse(body);
+  console.log(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
       case "GET":
         await prisma.user
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaUserPublic.parse(data))
+          .then((data) => schemaUserReadPublic.parse(data))
           .then((user) => res.status(200).json({ user }))
           .catch((error: Error) =>
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })
@@ -105,13 +102,29 @@ export async function userById(req: NextApiRequest, res: NextApiResponse<UserRes
         break;
 
       case "PATCH":
-        if (!safeBody.success) throw new Error("Invalid request body");
+        const safeBody = schemaUserEditBodyParams.safeParse(body);
+        if (!safeBody.success) {
+          res.status(400).json({ message: "Bad request", error: safeBody.error });
+          throw new Error("Invalid request body");
+        }
+        const userSchedules = await prisma.schedule.findMany({
+          where: { userId },
+        });
+        const userSchedulesIds = userSchedules.map((schedule) => schedule.id);
+        // @note: here we make sure user can only make as default his own scheudles
+        if (!userSchedulesIds.includes(Number(safeBody?.data?.defaultScheduleId))) {
+          res.status(400).json({
+            message: "Bad request",
+            error: "Invalid default schedule id",
+          });
+          throw new Error("Invalid request body value: defaultScheduleId");
+        }
         await prisma.user
           .update({
-            where: { id: safeQuery.data.id },
+            where: { id: userId },
             data: safeBody.data,
           })
-          .then((data) => schemaUserPublic.parse(data))
+          .then((data) => schemaUserReadPublic.parse(data))
           .then((user) => res.status(200).json({ user }))
           .catch((error: Error) =>
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })

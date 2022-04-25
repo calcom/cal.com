@@ -3,13 +3,21 @@ import { z } from "zod";
 
 import { _AvailabilityModel as Availability } from "@calcom/prisma/zod";
 
-export const schemaAvailabilityBaseBodyParams = Availability.omit({ id: true }).partial();
+export const schemaAvailabilityBaseBodyParams = Availability.pick({
+  startTime: true,
+  endTime: true,
+  date: true,
+  scheduleId: true,
+  days: true,
+}).partial();
 
 export const schemaAvailabilityPublic = Availability.omit({});
 
 const schemaAvailabilityRequiredParams = z.object({
-  startTime: z.string(),
-  endTime: z.string(),
+  startTime: z.date().or(z.string()).optional(),
+  endTime: z.date().or(z.string()).optional(),
+  days: z.array(z.number()).optional(),
+  eventTypeId: z.number().optional(),
 });
 
 export const schemaAvailabilityBodyParams = schemaAvailabilityBaseBodyParams.merge(

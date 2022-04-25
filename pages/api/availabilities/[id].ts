@@ -93,8 +93,8 @@ import {
  */
 export async function availabilityById(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
   const { method, query, body } = req;
-  const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaAvailabilityBodyParams.safeParse(body);
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const data = await prisma.availability.findMany({ where: { userId } });
@@ -113,7 +113,15 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
         break;
 
       case "PATCH":
+
         if (!safeBody.success) throw new Error("Invalid request body");
+        const userEventTypes = await prisma.eventType.findMany({ where: { userId } });
+        const userEventTypesIds = userEventTypes.map((event) => event.id);
+        if (safeBody.data.eventTypeId && !userEventTypesIds.includes(safeBody.data.eventTypeId)) {
+          res.status(401).json({
+            message: `Bad request. You're not the owner of eventTypeId: ${safeBody.data.eventTypeId}`,
+          });
+        }
         await prisma.availability
           .update({
             where: { id: safeQuery.data.id },
@@ -121,9 +129,13 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
           })
           .then((data) => schemaAvailabilityPublic.parse(data))
           .then((availability) => res.status(200).json({ availability }))
-          .catch((error: Error) =>
-            res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
-          );
+          .catch((error: Error) => {
+            console.log(error);
+            res.status(404).json({
+              message: `Availability with id: ${safeQuery.data.id} not found`,
+              error,
+            });
+          });
         break;
 
       case "DELETE":

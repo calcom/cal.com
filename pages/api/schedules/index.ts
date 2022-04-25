@@ -70,4 +70,4 @@ async function createOrlistAllSchedules(
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
-export default withMiddleware("HTTP_GET_OR_POST")(withValidSchedule(createOrlistAllSchedules));
+export default withMiddleware("HTTP_GET_OR_POST")(createOrlistAllSchedules);

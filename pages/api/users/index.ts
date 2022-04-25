@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UsersResponse } from "@lib/types";
-import { schemaUserPublic } from "@lib/validations/user";
+import { schemaUserReadPublic } from "@lib/validations/user";
 
 /**
  * @swagger
@@ -30,7 +30,7 @@ async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>
       id: userId,
     },
   });
-  const users = data.map((user) => schemaUserPublic.parse(user));
+  const users = data.map((user) => schemaUserReadPublic.parse(user));
   if (users) res.status(200).json({ users });
   else
     (error: Error) =>
