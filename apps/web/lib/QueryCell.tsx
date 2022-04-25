@@ -1,3 +1,4 @@
+import React, { ReactNode } from "react";
 import {
   QueryObserverIdleResult,
   QueryObserverLoadingErrorResult,
@@ -31,6 +32,7 @@ type JSXElementOrNull = JSX.Element | null;
 
 interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
+  customLoader?: ReactNode;
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
@@ -77,10 +79,10 @@ export function QueryCell<TData, TError extends ErrorLike>(
     );
   }
   if (query.status === "loading") {
-    return opts.loading?.(query) ?? <Loader />;
+    return opts.loading?.(query) ?? opts.customLoader ? opts.customLoader : <Loader />;
   }
   if (query.status === "idle") {
-    return opts.idle?.(query) ?? <Loader />;
+    return opts.idle?.(query) ?? opts.customLoader ? opts.customLoader : <Loader />;
   }
   // impossible state
   return null;
@@ -108,6 +110,7 @@ const withQuery = <TPath extends keyof TQueryValues & string>(
     >
   ) {
     const query = trpc.useQuery(pathAndInput, params);
+
     return <QueryCell query={query} {...opts} />;
   };
 };
