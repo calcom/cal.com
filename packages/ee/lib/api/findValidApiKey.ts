@@ -1,19 +1,13 @@
 import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
-
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 const findValidApiKey = async (apiKey: string) => {
-  const hashedKey = hashAPIKey(apiKey.substring(4));
+  const hashedKey = hashAPIKey(apiKey.substring(process.env.API_KEY_PREFIX?.length || 0));
   const validKey = await prisma.apiKey.findFirst({
     where: {
       AND: [
         {
           hashedKey,
-        },
-        {
-          createdAt: {
-            lt: new Date(Date.now()),
-          },
         },
         {
           expiresAt: {

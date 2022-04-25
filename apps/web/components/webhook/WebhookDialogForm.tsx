@@ -29,8 +29,7 @@ export default function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
-      isZapierSubscription,
-    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId">,
+    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "subscriptionType">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);

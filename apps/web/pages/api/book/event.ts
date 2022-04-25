@@ -6,6 +6,7 @@ import {
   SchedulingType,
   WebhookTriggerEvents,
 } from "@prisma/client";
+import { SubscriptionType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -40,7 +41,6 @@ import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
-import getZapierSubscribers from "@lib/zapier/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -750,11 +750,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(subscriberOptions);
-  //todo: check if zapier is installed
+  const subscribers = await getSubscribers({
+    ...subscriberOptions,
+    subscriptionType: SubscriptionType.WEBHOOK,
+  });
 
   if (zapierAppInstalled) {
-    const zapierSubscribers = await getZapierSubscribers(subscriberOptions);
+    const zapierSubscribers = await getSubscribers({
+      ...subscriberOptions,
+      subscriptionType: SubscriptionType.ZAPIER,
+    });
     subscribers.push(...zapierSubscribers);
   }
 
@@ -772,6 +777,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         rescheduleUid,
         metadata: reqBody.metadata,
       },
+      sub.subscriptionType,
       sub.payloadTemplate
     ).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);

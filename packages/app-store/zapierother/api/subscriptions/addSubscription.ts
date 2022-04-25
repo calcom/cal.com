@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
-import prisma from "@lib/prisma";
-import findValidApiKey from "@lib/zapier/findValidApiKey";
+import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
+import prisma from "@calcom/prisma";
+import { SubscriptionType } from "@prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -28,13 +29,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           eventTriggers: [triggerEvent],
           subscriberUrl,
           active: true,
-          isZapierSubscription: true,
+          subscriptionType: SubscriptionType.ZAPIER,
         },
       });
-      res.status(201).json(createSubscription);
+      res.status(200).json(createSubscription);
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Unable to create subscription." });
+      return res.status(500).json({ message: "Could not create subscription." });
     }
   }
 }

@@ -1,4 +1,5 @@
 import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
+import { SubscriptionType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -15,7 +16,6 @@ import { sendCancelledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getSubscribers from "@lib/webhooks/subscriptions";
-import getZapierSubscribers from "@lib/zapier/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -149,19 +149,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const subscribers = await getSubscribers(subscriberOptions);
+  const subscribers = await getSubscribers({
+    ...subscriberOptions,
+    subscriptionType: SubscriptionType.WEBHOOK,
+  });
+  //const allSubscribersPromises = [getSubscribers(subscriberOptions)]
 
   if (zapierAppInstalled) {
-    const zapierSubscribers = await getZapierSubscribers(subscriberOptions);
+    const zapierSubscribers = await getSubscribers({
+      ...subscriberOptions,
+      subscriptionType: SubscriptionType.ZAPIER,
+    });
     subscribers.push(...zapierSubscribers);
+    //allSubscribersPromises.push(getZapierSubscribers(subscriberOptions));
   }
 
+  //await Promise.all(allSubscribersPromises)
+
   const promises = subscribers.map((sub) =>
-    sendPayload(eventTrigger, new Date().toISOString(), sub.subscriberUrl, evt, sub.payloadTemplate).catch(
-      (e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      }
-    )
+    sendPayload(
+      eventTrigger,
+      new Date().toISOString(),
+      sub.subscriberUrl,
+      evt,
+      sub.subscriptionType,
+      sub.payloadTemplate
+    ).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+    })
   );
   await Promise.all(promises);
 

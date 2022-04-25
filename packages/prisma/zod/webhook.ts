@@ -1,6 +1,6 @@
 import * as z from "zod"
 import * as imports from "../zod-utils"
-import { WebhookTriggerEvents } from "@prisma/client"
+import { WebhookTriggerEvents, SubscriptionType } from "@prisma/client"
 import { CompleteUser, UserModel, CompleteEventType, EventTypeModel } from "./index"
 
 export const _WebhookModel = z.object({
@@ -12,7 +12,7 @@ export const _WebhookModel = z.object({
   createdAt: z.date(),
   active: z.boolean(),
   eventTriggers: z.nativeEnum(WebhookTriggerEvents).array(),
-  isZapierSubscription: z.boolean(),
+  subscriptionType: z.nativeEnum(SubscriptionType),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {

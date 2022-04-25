@@ -1,3 +1,4 @@
+import { SubscriptionType } from "@prisma/client";
 import { compile } from "handlebars";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -29,6 +30,7 @@ const sendPayload = async (
     metadata?: { [key: string]: string };
     rescheduleUid?: string;
   },
+  subscriptionType: SubscriptionType,
   template?: string | null
 ) => {
   if (!subscriberUrl || !data) {
@@ -38,13 +40,21 @@ const sendPayload = async (
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
-  const body = template
-    ? applyTemplate(template, data, contentType)
-    : JSON.stringify({
-        triggerEvent: triggerEvent,
-        createdAt: createdAt,
-        payload: data,
-      });
+  data.description = data.description || data.additionalNotes;
+
+  let body;
+
+  if (subscriptionType === SubscriptionType.ZAPIER) {
+    body = JSON.stringify(data);
+  } else if (template) {
+    body = applyTemplate(template, data, contentType);
+  } else {
+    body = JSON.stringify({
+      triggerEvent: triggerEvent,
+      createdAt: createdAt,
+      payload: data,
+    });
+  }
 
   const response = await fetch(subscriberUrl, {
     method: "POST",

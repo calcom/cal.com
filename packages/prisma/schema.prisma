@@ -363,18 +363,23 @@ enum WebhookTriggerEvents {
   BOOKING_CANCELLED
 }
 
+enum SubscriptionType {
+  WEBHOOK
+  ZAPIER
+}
+
 model Webhook {
-  id                   String                 @id @unique
-  userId               Int?
-  eventTypeId          Int?
-  subscriberUrl        String
-  payloadTemplate      String?
-  createdAt            DateTime               @default(now())
-  active               Boolean                @default(true)
-  eventTriggers        WebhookTriggerEvents[]
-  user                 User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventType            EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  isZapierSubscription Boolean
+  id               String                 @id @unique
+  userId           Int?
+  eventTypeId      Int?
+  subscriberUrl    String
+  payloadTemplate  String?
+  createdAt        DateTime               @default(now())
+  active           Boolean                @default(true)
+  eventTriggers    WebhookTriggerEvents[]
+  user             User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType        EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  subscriptionType SubscriptionType       @default(WEBHOOK)
 }
 
 model ApiKey {

@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import prisma from "@lib/prisma";
-import findValidApiKey from "@lib/zapier/findValidApiKey";
+import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
+import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -20,7 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     try {
-      const bookings = await prisma.booking.findFirst({
+      const bookings = await prisma.booking.findMany({
+        take:3,
         where: {
           userId: validKey.userId,
         },
@@ -41,9 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      const payload = [{ payload: { ...bookings } }];
-
-      res.status(201).json(payload);
+      res.status(201).json(bookings);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Unable to get bookings." });
