@@ -31,7 +31,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { BASE_URL } from "@lib/config/constants";
+import { BASE_URL, WEBAPP_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -290,7 +290,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
 
                   <TimezoneDropdown />
-                  {previousPage === `${BASE_URL}/${profile.slug}` && (
+                  {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
                         className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
