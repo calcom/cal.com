@@ -18,6 +18,8 @@ function applyThemeAndAddListener(theme: string) {
         document.documentElement.classList.remove("dark");
       }
     } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("light");
       document.documentElement.classList.add(theme);
     }
   };
@@ -33,15 +35,16 @@ export default function useTheme(theme?: Maybe<string>) {
   const embedTheme = useEmbedTheme();
   // Embed UI configuration takes more precedence over App Configuration
   theme = embedTheme || theme;
-
+  const [_theme, setTheme] = useState<Maybe<string>>(null);
   useEffect(() => {
     // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.
     setIsReady(true);
+    setTheme(theme);
   }, []);
 
   function Theme() {
     const code = applyThemeAndAddListener.toString();
-    const themeStr = theme ? `"${theme}"` : null;
+    const themeStr = _theme ? `"${_theme}"` : null;
     return (
       <Head>
         <script dangerouslySetInnerHTML={{ __html: `(${code})(${themeStr})` }}></script>
