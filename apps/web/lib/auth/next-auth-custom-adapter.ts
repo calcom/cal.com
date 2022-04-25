@@ -30,7 +30,7 @@ export default function CalComAdapter(prismaClient: PrismaClient, options = {}) 
       }
 
       // NOTE: this code it's our fallback to users without Account but credentials in User Table
-      // We should remove this code after all users google current token has expired
+      // We should remove this code after all googles tokens have expired
       const provider = provider_providerAccountId?.provider.toUpperCase() as IdentityProvider;
       if (["GOOGLE", "SAML"].indexOf(provider) < 0) {
         return null;
@@ -67,8 +67,8 @@ export default function CalComAdapter(prismaClient: PrismaClient, options = {}) 
         throw error;
       }
     },
-    // @NOTE: All methods below here are not properly configured
     linkAccount: (data: Prisma.AccountCreateInput) => prismaClient.account.create({ data }),
+    // @NOTE: All methods below here are not being used but leaved if they are required
     unlinkAccount: (provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput) =>
       prismaClient.account.delete({ where: { provider_providerAccountId } }),
     async getSessionAndUser(sessionToken: string) {
