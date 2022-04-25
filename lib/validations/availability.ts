@@ -14,8 +14,8 @@ export const schemaAvailabilityBaseBodyParams = Availability.pick({
 export const schemaAvailabilityPublic = Availability.omit({});
 
 const schemaAvailabilityRequiredParams = z.object({
-  startTime: z.date().or(z.number()),
-  endTime: z.date().or(z.number()),
+  startTime: z.date(),
+  endTime: z.date(),
   days: z.array(z.number()).optional(),
   eventTypeId: z.number().optional(),
 });
