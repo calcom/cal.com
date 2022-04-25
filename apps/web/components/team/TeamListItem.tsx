@@ -180,9 +180,7 @@ export default function TeamListItem(props: Props) {
                           loadingAction={deleting}
                           onConfirm={() => {
                             setDeleting(true);
-                            setTimeout(() => {
-                              props.onActionSelect("disband");
-                            }, 5000);
+                            props.onActionSelect("disband");
                           }}>
                           {t("disband_team_confirmation_message")}
                         </ConfirmationDialogContent>
