@@ -21,7 +21,7 @@ export const metadata = {
   slug: "huddle01_video",
   title: "Huddle01",
   trending: true,
-  isGlobal: true,
+  isGlobal: false,
   email: "support@huddle01.com",
   locationType: LocationType.Huddle01,
   locationLabel: "Huddle01 Video",
