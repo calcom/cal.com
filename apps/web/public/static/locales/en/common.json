@@ -526,7 +526,7 @@
   "timezone": "Timezone",
   "first_day_of_week": "First Day of Week",
   "recurs_up_to": "Recurs up to {{count}} time",
-  "recurs_up_to_plural": "Recurs up to {{count}} times",
+  "recurs_up_to_plural": "Repeats up to {{count}} times",
   "every_for_freq": "Every {{freq}} for",
   "repeats_every": "Repeats every",
   "recurring_weekly": "week",
