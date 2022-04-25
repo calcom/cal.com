@@ -1,8 +1,15 @@
+import { useEffect } from "react";
+import { useState } from "react";
 import ReactDom from "react-dom";
 
-import Cal from "@calcom/embed-react";
+import Cal from "./src/index";
 
 function App() {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    // Simulate state change causing config object to change, causing rerender of Cal
+    setTimeout(setLoaded.bind(true), 1000);
+  }, []);
   return (
     <>
       <h1>
@@ -10,7 +17,7 @@ function App() {
       </h1>
       <Cal
         calOrigin="http://localhost:3000"
-        embedJsUrl="//localhost:3002/dist/embed.umd.js"
+        embedJsUrl="//localhost:3100/dist/embed.umd.js"
         calLink="pro"
         config={{
           name: "John Doe",
