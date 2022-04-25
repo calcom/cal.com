@@ -3,6 +3,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Loader from "../../../../apps/web/components/Loader";
+import { Tooltip } from "../../../../apps/web/components/Tooltip";
+import showToast from "@calcom/lib/notification";
+import { ClipboardCopyIcon } from "@heroicons/react/solid";
+
 import Icon from './icon'
 
 import { Button } from "@calcom/ui";
@@ -70,7 +74,21 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 ) : (
                   <>
                     <div className="mt-1 text-xl">Your unique API</div>
-                    <div className="p-3 mt-3 bg-gray-200 rounded">{newApiKey}</div>
+                    <div className="flex my-2 mt-3">
+                      <div className="w-full p-3 pr-5 mr-1 bg-gray-100 rounded">{newApiKey}</div>
+                      <Tooltip content="copy to clipboard">
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(newApiKey);
+                            showToast("Api key copied", "success");
+                          }}
+                          type="button"
+                          className="px-4 text-base ">
+                          <ClipboardCopyIcon className="w-5 h-5 mr-2 text-neutral-100" />
+                           copy
+                        </Button>
+                      </Tooltip>
+                    </div>
                     <div className="mt-2 mb-5 text-sm font-semibold text-gray-600">Copy this API key and save it somewhere safe. If you lose this key you have to generate a new one.</div>
                   </>
                 )}
@@ -85,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>5. You're set!</li>
                 </ul>
                 <Link href={"/apps/installed"} passHref={true}>
-                  <Button>Done</Button>
+                  <Button color="secondary">Done</Button>
                 </Link>
               </div>
             </div>
