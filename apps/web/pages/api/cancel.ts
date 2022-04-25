@@ -149,35 +149,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const subscribers = await getSubscribers({
-    ...subscriberOptions,
-    subscriptionType: SubscriptionType.WEBHOOK,
-  });
-  //const allSubscribersPromises = [getSubscribers(subscriberOptions)]
+  const subscriberPromises = [
+    getSubscribers({
+      ...subscriberOptions,
+      subscriptionType: SubscriptionType.WEBHOOK,
+    }),
+  ];
 
   if (zapierAppInstalled) {
-    const zapierSubscribers = await getSubscribers({
-      ...subscriberOptions,
-      subscriptionType: SubscriptionType.ZAPIER,
-    });
-    subscribers.push(...zapierSubscribers);
-    //allSubscribersPromises.push(getZapierSubscribers(subscriberOptions));
+    subscriberPromises.push(
+      getSubscribers({
+        ...subscriberOptions,
+        subscriptionType: SubscriptionType.ZAPIER,
+      })
+    );
   }
 
-  //await Promise.all(allSubscribersPromises)
+  const allSubscribers = await Promise.all(subscriberPromises);
 
-  const promises = subscribers.map((sub) =>
-    sendPayload(
-      eventTrigger,
-      new Date().toISOString(),
-      sub.subscriberUrl,
-      evt,
-      sub.subscriptionType,
-      sub.payloadTemplate
-    ).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-    })
+  const promises = allSubscribers.map((subArray) =>
+    subArray.map((sub) =>
+      sendPayload(
+        eventTrigger,
+        new Date().toISOString(),
+        sub.subscriberUrl,
+        evt,
+        sub.subscriptionType,
+        sub.payloadTemplate
+      ).catch((e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+      })
+    )
   );
+
   await Promise.all(promises);
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
