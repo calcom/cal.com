@@ -16,7 +16,7 @@ declare module "*.css";
 type Namespace = string;
 type Config = {
   origin: string;
-  debug: 1;
+  debug?: boolean;
 };
 
 const globalCal = (window as CalWindow).Cal;
@@ -78,7 +78,7 @@ export type InstructionQueue = Instruction[];
 export class Cal {
   iframe?: HTMLIFrameElement;
 
-  __config: any;
+  __config: Config;
 
   modalBox!: Element;
 
@@ -172,7 +172,7 @@ export class Cal {
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
-      urlInstance.searchParams.set("debug", config.debug);
+      urlInstance.searchParams.set("debug", "" + config.debug);
     }
 
     // Merge searchParams from config onto the URL which might have query params already
@@ -231,6 +231,14 @@ export class Cal {
       },
     });
     config = config || {};
+
+    // Keeping auto-scroll disabled for two reasons:
+    // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
+    // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
+    // Best solution might be to autoscroll only if the iframe is not fully visible, detection of full visibility might be tough
+
+    // We need to keep in mind that autoscroll is meant to solve the problem when on a certain view(which is availability page right now), the height goes too high and then suddenly it becomes normal
+    (config as unknown as any).__autoScroll = !!(config as unknown as any).__autoScroll;
     config.embedType = "inline";
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
@@ -245,6 +253,7 @@ export class Cal {
     const template = document.createElement("template");
     template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap"></cal-inline>`;
     this.inlineEl = template.content.children[0];
+    (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
     this.inlineEl.appendChild(iframe);
     element.appendChild(template.content);
   }
@@ -419,7 +428,7 @@ export class Cal {
     });
 
     this.actionManager.on("__routeChanged", () => {
-      if (this.inlineEl) {
+      if (this.inlineEl && (this.inlineEl as unknown as any).__CalAutoScroll) {
         this.inlineEl.scrollIntoView();
       }
     });

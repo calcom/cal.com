@@ -15,7 +15,7 @@
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "peerDependencies": {
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
