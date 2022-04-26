@@ -1,4 +1,4 @@
-import { CreditCardIcon, KeyIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import { CreditCardIcon, KeyIcon, LockClosedIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
 import React, { ComponentProps } from "react";
 
 import ErrorBoundary from "@lib/ErrorBoundary";
@@ -26,6 +26,12 @@ const tabs = [
     name: "billing",
     href: "/settings/billing",
     icon: CreditCardIcon,
+  },
+  {
+    name: "admin",
+    href: "/settings/admin",
+    icon: LockClosedIcon,
+    adminRequired: true,
   },
 ];
 
