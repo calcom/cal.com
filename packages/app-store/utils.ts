@@ -128,8 +128,8 @@ export function getLocationLabels(t: TFunction) {
   }, defaultLocationLabels);
 }
 
-export function getAppName(name: string) {
-  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name || "No App Name";
+export function getAppName(name: string): string | null {
+  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;
 }
 
 export function getAppType(name: string): string {
