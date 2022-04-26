@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { IdentityProvider } from "@prisma/client";
+import { IdentityProvider, UserPermissionRole } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
 import NextAuth, { Session } from "next-auth";
@@ -15,8 +15,10 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import ImpersonationProvider from "@ee/lib/impersonation/ImpersonationProvider";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
+import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import prisma from "@lib/prisma";
 import { randomString } from "@lib/random";
 import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
@@ -103,9 +105,11 @@ const providers: Provider[] = [
         username: user.username,
         email: user.email,
         name: user.name,
+        role: user.role,
       };
     },
   }),
+  ImpersonationProvider,
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
@@ -182,9 +186,10 @@ if (true) {
     })
   );
 }
-
+const calcomAdapter = CalComAdapter(prisma);
 export default NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // @ts-ignore
+  adapter: calcomAdapter,
   session: {
     strategy: "jwt",
   },
@@ -213,6 +218,8 @@ export default NextAuth({
             username: existingUser.username,
             name: existingUser.name,
             email: existingUser.email,
+            role: existingUser.role,
+            impersonatedByUID: token?.impersonatedByUID as number,
           };
         }
 
@@ -229,6 +236,8 @@ export default NextAuth({
           name: user.name,
           username: user.username,
           email: user.email,
+          role: user.role,
+          impersonatedByUID: user?.impersonatedByUID as number,
         };
       }
 
@@ -239,7 +248,6 @@ export default NextAuth({
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-
         const existingUser = await prisma.user.findFirst({
           where: {
             AND: [
@@ -262,6 +270,8 @@ export default NextAuth({
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
+          role: existingUser.role,
+          impersonatedByUID: token.impersonatedByUID as number,
         };
       }
 
@@ -275,12 +285,15 @@ export default NextAuth({
           id: token.id as number,
           name: token.name,
           username: token.username as string,
+          role: token.role as UserPermissionRole,
+          impersonatedByUID: token.impersonatedByUID as number,
         },
       };
       return calendsoSession;
     },
     async signIn(params) {
       const { user, account, profile } = params;
+
       if (account.provider === "email") {
         return true;
       }
@@ -312,10 +325,20 @@ export default NextAuth({
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
         }
+        // Only google oauth on this path
+        const provider = account.provider.toUpperCase() as IdentityProvider;
 
         const existingUser = await prisma.user.findFirst({
+          include: {
+            accounts: {
+              where: {
+                provider: account.provider,
+              },
+            },
+          },
           where: {
-            AND: [{ identityProvider: idP }, { identityProviderId: user.id as string }],
+            identityProvider: provider,
+            identityProviderId: account.providerAccountId,
           },
         });
 
@@ -323,6 +346,17 @@ export default NextAuth({
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
           if (existingUser.email === user.email) {
+            try {
+              // If old user without Account entry we link their google account
+              if (existingUser.accounts.length === 0) {
+                const linkAccountWithUserData = { ...account, userId: existingUser.id };
+                await calcomAdapter.linkAccount(linkAccountWithUserData);
+              }
+            } catch (error) {
+              if (error instanceof Error) {
+                console.error("Error while linking account of already existing user");
+              }
+            }
             return true;
           }
 
@@ -383,7 +417,7 @@ export default NextAuth({
           return "/auth/error?error=use-identity-login";
         }
 
-        await prisma.user.create({
+        const newUser = await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
@@ -395,6 +429,8 @@ export default NextAuth({
             identityProviderId: user.id as string,
           },
         });
+        const linkAccountNewUserData = { ...account, userId: newUser.id };
+        await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         return true;
       }
