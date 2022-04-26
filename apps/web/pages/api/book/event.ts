@@ -676,7 +676,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await sendRescheduledEmails({
         ...evt,
         additionInformation: metadata,
-        additionalNotes: evt.additionalNotes,
+        additionalNotes, // Resets back to the addtionalNote input and not the overriden value
       });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -710,14 +710,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await sendScheduledEmails({
         ...evt,
         additionInformation: metadata,
-        additionalNotes: evt.additionalNotes,
+        additionalNotes,
       });
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await sendOrganizerRequestEmail(evt);
-    await sendAttendeeRequestEmail(evt, attendeesList[0]);
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
