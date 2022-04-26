@@ -1,3 +1,4 @@
+import { ApiKeyType } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
@@ -11,8 +12,30 @@ export const apiKeysRouter = createProtectedRouter()
       return await ctx.prisma.apiKey.findMany({
         where: {
           userId: ctx.user.id,
+          NOT: {
+            apiKeyType: ApiKeyType.ZAPIER,
+          },
         },
         orderBy: { createdAt: "desc" },
+      });
+    },
+  })
+  .query("findKeyOfType", {
+    input: z.object({
+      apiKeyType: z.nativeEnum(ApiKeyType),
+    }),
+    async resolve({ ctx, input }) {
+      return await ctx.prisma.apiKey.findFirst({
+        where: {
+          AND: [
+            {
+              userId: ctx.user.id,
+            },
+            {
+              apiKeyType: input.apiKeyType,
+            },
+          ],
+        },
       });
     },
   })
@@ -21,22 +44,38 @@ export const apiKeysRouter = createProtectedRouter()
       note: z.string().optional().nullish(),
       expiresAt: z.date().optional().nullable(),
       neverExpires: z.boolean().optional(),
+      apiKeyType: z.nativeEnum(ApiKeyType).optional(),
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
       // Here we snap never expires before deleting it so it's not passed to prisma create call.
-      const neverExpires = input.neverExpires;
+      const { neverExpires, apiKeyType } = input;
       delete input.neverExpires;
-      await ctx.prisma.apiKey.create({
-        data: {
-          id: v4(),
-          userId: ctx.user.id,
-          ...input,
-          // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
-          expiresAt: neverExpires ? null : input.expiresAt,
-          hashedKey: hashedApiKey,
-        },
-      });
+      if (apiKeyType) {
+        await ctx.prisma.apiKey.create({
+          data: {
+            id: v4(),
+            userId: ctx.user.id,
+            ...input,
+            // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+            expiresAt: neverExpires ? null : input.expiresAt,
+            hashedKey: hashedApiKey,
+          },
+        });
+      } else {
+        await ctx.prisma.apiKey.create({
+          data: {
+            id: v4(),
+            userId: ctx.user.id,
+            apiKeyType: ApiKeyType.OTHER,
+            ...input,
+            // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+            expiresAt: neverExpires ? null : input.expiresAt,
+            hashedKey: hashedApiKey,
+          },
+        });
+      }
+
       const prefixedApiKey = `${process.env.API_KEY_PREFIX ?? "cal_"}${apiKey}`;
       return prefixedApiKey;
     },

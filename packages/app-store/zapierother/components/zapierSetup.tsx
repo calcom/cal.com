@@ -6,6 +6,7 @@ import Loader from "../../../../apps/web/components/Loader";
 import { Tooltip } from "../../../../apps/web/components/Tooltip";
 import showToast from "@calcom/lib/notification";
 import { ClipboardCopyIcon } from "@heroicons/react/solid";
+import { ApiKeyType } from "@prisma/client";
 
 import Icon from './icon'
 
@@ -21,25 +22,27 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const utils = trpc.useContext();
   const { data: session, status } = useSession();
-  const { isSuccess, isLoading, data } = trpc.useQuery(["viewer.integrations"]);
-  const zapierCredentials: { credentialIds: number[] } | undefined = data?.other?.items.find(
+  const integrations = trpc.useQuery(["viewer.integrations"]);
+  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType",{apiKeyType: ApiKeyType.ZAPIER}]);
+  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete")
+  const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
+  const showContent = integrations.data && integrations.isSuccess && credentialId
 
   async function createApiKey() {
-    const event = { note: "Zapier", expiresAt: null };
+    const event = { note: "Zapier", expiresAt: null, apiKeyType: ApiKeyType.ZAPIER };
     const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
-
+    if(oldApiKey.data) {
+      deleteApiKey.mutate({
+        id: oldApiKey.data.id,
+      })
+    }
     setNewApiKey(apiKey);
-    deleteApiKey();
   }
 
-  async function deleteApiKey() {
-    //Todo: delete old API key
-  }
-
-  if (isLoading || status === "loading") {
+  if (integrations.isLoading || status === "loading") {
     return (
       <div className="absolute z-50 flex items-center w-full h-screen bg-gray-200">
         <Loader />
@@ -56,7 +59,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   return (
     status === "authenticated" ? (
       <div className="flex h-screen bg-gray-200">
-        {data && isSuccess && credentialId ? (
+        {showContent ? (
           <div className="p-10 m-auto bg-white rounded">
             <div className="flex flex-row">
               <div className="mr-5">

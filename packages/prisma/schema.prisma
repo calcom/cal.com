@@ -382,13 +382,19 @@ model Webhook {
   subscriptionType SubscriptionType       @default(WEBHOOK)
 }
 
+enum ApiKeyType {
+  OTHER
+  ZAPIER
+}
+
 model ApiKey {
-  id         String    @id @unique @default(cuid())
+  id         String     @id @unique @default(cuid())
   userId     Int
   note       String?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime   @default(now())
   expiresAt  DateTime?
   lastUsedAt DateTime?
-  hashedKey  String    @unique()
-  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashedKey  String     @unique()
+  apiKeyType ApiKeyType @default(OTHER)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

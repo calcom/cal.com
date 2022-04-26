@@ -1,3 +1,4 @@
+import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
@@ -32,6 +33,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method == "DELETE") {
     const id = req.body.id;
 
+    const integration = await prisma.credential.findFirst({
+      where: {
+        id,
+      },
+    });
+
     await prisma.user.update({
       where: {
         id: session?.user?.id,
@@ -44,6 +51,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
+
+    if (integration?.type === "zapier_other") {
+      const keyToDelete = await prisma.apiKey.findFirst({
+        where: {
+          userId: session?.user?.id,
+          apiKeyType: ApiKeyType.ZAPIER,
+        },
+      });
+
+      await prisma.apiKey.delete({
+        where: {
+          id: keyToDelete?.id,
+        },
+      });
+    }
 
     res.status(200).json({ message: "Integration deleted successfully" });
   }
