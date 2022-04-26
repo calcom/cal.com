@@ -5,6 +5,15 @@
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
+      (()=> {
+        const url = new URL(document.URL);
+        // Only run the example specified by only=, avoids distraction and faster to test.
+        const only = url.searchParams.get("only");
+        const namespace = only ? only.replace("ns:",""): null
+        if (namespace) {
+          location.hash="#cal-booking-place-" + namespace + "-iframe"
+        }
+      })()
     </script>
     <script>
       (function (C, A, L) {
@@ -34,7 +43,7 @@
             }
             p(cal, ar);
           };
-      })(window, "//localhost:3002/dist/embed.umd.js", "init");
+      })(window, "//localhost:3100/dist/embed.umd.js", "init");
     </script>
 
     <style>
@@ -55,8 +64,7 @@
         color: green;
       }
       * {
-        --cal-brand-border-color: blue;
-        --cal-brand-background-color: blue;
+        --cal-brand-color: gray;
       }
     </style>
   </head>
@@ -64,7 +72,7 @@
     <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
     <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
     <div>
-      <button data-cal-namespace="prerendertestLightTheme" data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+      <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
       <div>
         <i
           >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
@@ -74,9 +82,12 @@
         >
       </div>
       <h2>Other Popup Examples</h2>
-      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free?dark&popup">Book with Free User[Dark Theme]</button>
-      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/test-team?team&light&popup">Book with Test Team[Light Theme]</button>
-      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/test-team?team&dark&popup">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
+      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
       <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
@@ -85,18 +96,14 @@
     <div id="namespaces-test">
       <div class="debug" id="cal-booking-place-default">
         <h2>
-          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@gmail.com and test@gmail.com)]</i>
+          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@example.com and test@example.com)]</i>
         </h2>
         <div>
           <i><a href="?only=ns:default">Test in Zen Mode</a></i>
         </div>
         <i class="last-action"> You would see last Booking page action in my place </i>
         <div >
-          <div>
-            if you render booking embed in me, I would not let it be more than 30vh in height. So you would
-            have to scroll to see the entire content
-          </div>
-          <div class="place" style="width:50%; max-height: 30vh; overflow: scroll"></div>
+          <div class="place" style="width:50%;"></div>
           <div class="loader" id="cal-booking-loader-">Loading .....</div>
         </div>
       </div>
@@ -109,7 +116,7 @@
           <i>You would see last Booking page action in my place</i>
         </i>
         <div class="place">
-          <div>If you render booking embed in me, I won't restrict you. The entire page is yours.</div>
+          <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
             Change <code>eventTypeListItem</code> bg color
@@ -117,6 +124,21 @@
           <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
             Change <code>body</code> bg color
           </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
+            Align left
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
+            Align Center
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
+            backgroundColor: '#D3D3D3',
+          },
+          disabledDateButton: {
+            backgroundColor: 'lightslategray',
+          },}})})()">
+            Change Date Button Color
+          </button>
+          
           <div class="loader" id="cal-booking-loader-second">Loading .....</div>
         </div>
       </div>
@@ -136,7 +158,7 @@
       </div>
 
       <div class="debug" id="cal-booking-place-fourth">
-        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline]</h2>
+        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline taking entire width]</h2>
         <div>
           <i><a href="?only=ns:fourth">Test in Zen Mode</a></i>
         </div>
@@ -146,6 +168,23 @@
         <div style="width: 30%" class="place">
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
           <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug" id="cal-booking-place-fifth">
+      <h2>Namespace "fifth"(Cal.ns.fifth)[Team Event Test][inline along with some content]</h2>
+      <div>
+        <i><a href="?only=ns:fifth">Test in Zen Mode</a></i>
+      </div>
+      <i class="last-action">
+        <i>You would see last Booking page action in my place</i>
+      </i>
+      <div style="display:flex;align-items: center;">
+        <h2 style="width: 30%">
+          On the right side you can book a team meeting =>
+        </h2>
+        <div style="width: 70%" class="place">
         </div>
       </div>
     </div>
@@ -176,10 +215,14 @@
           elementOrSelector: "#cal-booking-place-default .place",
           calLink: "pro?case=1",
           config: {
-            name: "John Doe",
+            __autoScroll:true,
+            iframeAttrs: {
+              id: "cal-booking-place-default-iframe"
+            },
+            name: "John",
             email: "johndoe@gmail.com",
             notes: "Test Meeting",
-            guests: ["janedoe@gmail.com", "test@gmail.com"],
+            guests: ["janedoe@example.com", "test@example.com"],
             theme: "dark",
           },
         });
@@ -202,25 +245,11 @@
             {
               elementOrSelector: "#cal-booking-place-second .place",
               calLink: "pro?case=2",
-            },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "white",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-second-iframe"
                 },
-                eventTypeListItem: {
-                  backgroundColor: "#D3D3D3",
-                },
-                enabledDateButton: {
-                  backgroundColor: "#D3D3D3",
-                },
-                disabledDateButton: {
-                  backgroundColor: "lightslategray",
-                },
-              },
+              }
             },
           ]
         );
@@ -243,6 +272,11 @@
             {
               elementOrSelector: "#cal-booking-place-third .place",
               calLink: "pro/30min",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-third-iframe"
+                },
+              }
             },
           ],
           [
@@ -280,7 +314,12 @@
             "inline",
             {
               elementOrSelector: "#cal-booking-place-fourth .place",
-              calLink: "team/test-team",
+              calLink: "team/seeded-team",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fourth-iframe"
+                },
+              }
             },
           ],
           [
@@ -307,7 +346,30 @@
           callback,
         });
       }
-
+      if (!only || only === "ns:fifth") {
+        Cal("init", "fifth", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.fifth(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-fifth .place",
+              calLink: "team/seeded-team/collective-seeded-team-event",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fifth-iframe"
+                },
+              }
+            },
+          ],
+        );
+        Cal.ns.fifth("on", {
+          action: "*",
+          callback,
+        });
+      }
       if (!only || only === "prerender-test") {
         Cal('init', 'prerendertestLightTheme', {
           debug: 1,
@@ -321,6 +383,10 @@
         debug: 1,
         origin: "http://localhost:3000",
       })
+      Cal('init', 'popupAutoTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
       Cal('init', 'popupTeamLinkLightTheme', {
         debug: 1,
         origin: "http://localhost:3000",
@@ -330,7 +396,17 @@
         origin: "http://localhost:3000",
       })
 
-      Cal('init', 'upcomingBookings', {
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal('init', 'popupTeamLinksList', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      
+      Cal('init', 'popupPaidEvent', {
         debug: 1,
         origin: "http://localhost:3000",
       })

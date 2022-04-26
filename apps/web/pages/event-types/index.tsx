@@ -41,6 +41,7 @@ import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
@@ -523,8 +524,13 @@ const EventTypesPage = () => {
         <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
+      <Shell
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
+        CTA={<CTA />}
+        customLoader={<SkeletonLoader />}>
         <WithQuery
+          customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
               {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (

@@ -18,13 +18,20 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
+import {
+  useEmbedStyles,
+  useIsEmbed,
+  useIsBackgroundTransparent,
+  sdkActionManager,
+  useEmbedType,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { BASE_URL } from "@lib/config/constants";
+import { BASE_URL, WEBAPP_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -56,6 +63,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const { t, i18n } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
@@ -146,18 +155,19 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
-          className={
+          className={classNames(
+            shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? classNames("m-auto", selectedDate ? "max-w-5xl" : "max-w-3xl")
+              ? classNames(selectedDate ? "max-w-5xl" : "max-w-3xl")
               : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
-                (selectedDate ? "max-w-5xl" : "max-w-3xl")
-          }>
+                  (selectedDate ? "max-w-5xl" : "max-w-3xl")
+          )}>
           {isReady && (
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
-                "border-bookinglightest rounded-sm md:border",
+                "border-bookinglightest rounded-md md:border",
                 isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
               )}>
               {/* mobile: details */}
@@ -280,7 +290,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
 
                   <TimezoneDropdown />
-                  {previousPage === `${BASE_URL}/${profile.slug}` && (
+                  {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
                         className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
