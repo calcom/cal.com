@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/payments/{id}:
+ * /payments/{id}:
  *   get:
  *     summary: Get one of your own payments by ID
  *     parameters:

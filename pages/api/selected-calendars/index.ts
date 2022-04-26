@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /v1/selected-calendars:
+ * /selected-calendars:
  *   get:
  *     summary: Get all selected calendars
  *     security:

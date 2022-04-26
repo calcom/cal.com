@@ -9,7 +9,7 @@ import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/vali
 
 /**
  * @swagger
- * /v1/teams:
+ * /teams:
  *   get:
  *     summary: Get all teams
  *     security:

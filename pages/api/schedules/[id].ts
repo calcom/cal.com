@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/schedules/{id}:
+ * /schedules/{id}:
  *   get:
  *     summary: Get a schedule by ID
  *     parameters:

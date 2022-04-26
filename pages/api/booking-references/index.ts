@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /v1/booking-references:
+ * /booking-references:
  *   get:
  *     summary: Get all booking references
  *     security:

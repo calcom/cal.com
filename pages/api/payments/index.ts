@@ -8,7 +8,7 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
 
 /**
  * @swagger
- * /v1/payments:
+ * /payments:
  *   get:
  *     summary: Get all payments
  *     security:

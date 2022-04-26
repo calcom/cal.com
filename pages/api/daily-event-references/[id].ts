@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /v1/daily-event-references/{id}:
+ * /daily-event-references/{id}:
  *   get:
  *     summary: Get a daily event reference by ID
  *     parameters:

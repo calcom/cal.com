@@ -8,7 +8,7 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
 
 /**
  * @swagger
- * /v1/event-types:
+ * /event-types:
  *   get:
  *     summary: Get all event types
  *     security:

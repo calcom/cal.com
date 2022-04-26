@@ -8,7 +8,7 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
 
 /**
  * @swagger
- * /v1/memberships:
+ * /memberships:
  *   get:
  *     summary: Get all memberships
  *     security:

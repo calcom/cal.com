@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /v1/destination-calendars:
+ * /destination-calendars:
  *   get:
  *     summary: Get all destination calendars
  *     security:

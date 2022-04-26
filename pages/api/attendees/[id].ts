@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/attendees/{id}:
+ * /attendees/{id}:
  *   get:
  *     summary: Get an attendee by ID
  *     parameters:

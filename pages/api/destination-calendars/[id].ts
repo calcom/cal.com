@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /v1/destination-calendars/{id}:
+ * /destination-calendars/{id}:
  *   get:
  *     summary: Get a destination calendar by ID
  *     parameters:
