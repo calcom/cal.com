@@ -143,7 +143,7 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string };
+  type Location = { type: LocationType; address?: string; link?: string; city?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -440,6 +440,7 @@ const BookingPage = ({
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
+                            {location.address && (<span> in {location.address}</span>)}
                           </span>
                         </label>
                       ))}

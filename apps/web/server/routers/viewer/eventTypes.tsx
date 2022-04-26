@@ -218,6 +218,7 @@ export const eventTypesRouter = createProtectedRouter()
       assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
+      
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
       }

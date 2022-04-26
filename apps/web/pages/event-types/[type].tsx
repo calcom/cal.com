@@ -360,7 +360,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 }
               />
             </div>
+            <p></p>
+            <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+              {t("set_city_place")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationCity")}
+                id="city"
+                required
+                className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.InPerson)?.city
+                }
+              />
+            </div>
           </div>
+          
         );
       case LocationType.Link:
         return (
@@ -471,7 +490,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
-    locations: { type: LocationType; address?: string; link?: string }[];
+    locations: { type: LocationType; address?: string; link?: string, city?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -503,12 +522,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationType: z.string(),
     locationAddress: z.string().optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationCity: z.string().optional(),
   });
 
   const locationFormMethods = useForm<{
     locationType: LocationType;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
+    locationCity?: string
   }>({
     resolver: zodResolver(locationFormSchema),
   });
@@ -829,6 +850,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.setValue("locationType", location.type);
                         locationFormMethods.unregister("locationLink");
                         locationFormMethods.unregister("locationAddress");
+                        locationFormMethods.unregister("locationCity");
                         openLocationModal(location.type);
                       }}
                       aria-label={t("edit")}
@@ -1748,7 +1770,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                     let details = {};
                     if (newLocation === LocationType.InPerson) {
-                      details = { address: values.locationAddress };
+                      details = { address: values.locationAddress, city: values.locationCity };
                     }
                     if (newLocation === LocationType.Link) {
                       details = { link: values.locationLink };
@@ -1773,6 +1795,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             locationFormMethods.setValue("locationType", val.value);
                             locationFormMethods.unregister("locationLink");
                             locationFormMethods.unregister("locationAddress");
+                            locationFormMethods.unregister("locationCity");
                             setSelectedLocation(val);
                           }
                         }}
@@ -1979,6 +2002,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   type Location = {
     type: LocationType;
     address?: string;
+    city?: string;
   };
 
   const credentials = await prisma.credential.findMany({

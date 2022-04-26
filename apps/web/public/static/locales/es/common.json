@@ -563,6 +563,7 @@
   "calendar_days": "Días del Calendário",
   "business_days": "Días Laborales",
   "set_address_place": "Establecer una dirección o un lugar",
+  "set_city_place": "Establecer una ciudad",
   "cal_invitee_phone_number_scheduling": "Cal le pedirá a su invitado que introduzca un número de teléfono antes de programar.",
   "cal_provide_google_meet_location": "Cal proporcionará una URL de reunión de Google Meet.",
   "cal_provide_zoom_meeting_url": "Cal proporcionará una URL de reunión de Zoom.",

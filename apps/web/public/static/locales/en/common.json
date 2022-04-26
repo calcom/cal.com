@@ -588,6 +588,7 @@
   "calendar_days": "calendar days",
   "business_days": "business days",
   "set_address_place": "Set an address or place",
+  "set_city_place": "Set a city",
   "set_link_meeting": "Set a link to the meeting",
   "cal_invitee_phone_number_scheduling": "Cal will ask your invitee to enter a phone number before scheduling.",
   "cal_provide_google_meet_location": "Cal will provide a Google Meet location.",
