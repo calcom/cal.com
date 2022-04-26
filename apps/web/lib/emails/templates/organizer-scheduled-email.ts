@@ -325,14 +325,12 @@ ${getRichDescription(this.calEvent)}
       providerName = this.calEvent.location;
     }
 
-    if(this.calEvent.zoomLink){
+    if (this.calEvent.zoomLink) {
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
         <p style="color: #494949;">${this.calEvent.organizer.language.translate("where")}</p>
-        <p style="color: #494949; font-weight: 400; line-height: 24px;">${
-          this.calEvent.zoomLink
-        }</p>
+        <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.zoomLink}</p>
       </div>
       `;
     }
