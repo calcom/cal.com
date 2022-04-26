@@ -8,7 +8,7 @@
     "jsx": "preserve",
     "paths": {
       "@lib/*": ["../../../apps/web/lib/*"]
-    },
+    }
   },
   "include": ["."],
   "exclude": ["dist", "build", "node_modules", "test-cal.tsx"]
