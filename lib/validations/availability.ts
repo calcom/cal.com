@@ -11,21 +11,32 @@ export const schemaAvailabilityBaseBodyParams = Availability.pick({
   days: true,
 }).partial();
 
-export const schemaAvailabilityPublic = Availability.omit({});
+export const schemaAvailabilityPublic = Availability.pick({
+  startTime: true,
+  endTime: true,
+  date: true,
+  scheduleId: true,
+  days: true,
+  userId: true,
+  eventTypeId: true,
+});
 
-const schemaAvailabilityRequiredParams = z.object({
+const schemaAvailabilityCreateParams = z.object({
+  startTime: z.date().or(z.string()),
+  endTime: z.date().or(z.string()),
+  days: z.array(z.number()).optional(),
+  eventTypeId: z.number().optional(),
+});
+
+const schemaAvailabilityEditParams = z.object({
   startTime: z.date().or(z.string()).optional(),
   endTime: z.date().or(z.string()).optional(),
   days: z.array(z.number()).optional(),
   eventTypeId: z.number().optional(),
 });
-
-export const schemaAvailabilityBodyParams = schemaAvailabilityBaseBodyParams.merge(
-  schemaAvailabilityRequiredParams
+export const schemaAvailabilityEditBodyParams = schemaAvailabilityBaseBodyParams.merge(
+  schemaAvailabilityEditParams
 );
-
-export const withValidAvailability = withValidation({
-  schema: schemaAvailabilityBodyParams,
-  type: "Zod",
-  mode: "body",
-});
+export const schemaAvailabilityCreateBodyParams = schemaAvailabilityBaseBodyParams.merge(
+  schemaAvailabilityCreateParams
+);

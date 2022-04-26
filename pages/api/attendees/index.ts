@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
-import { schemaAttendeeCreateBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
+import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 
 /**
  * @swagger
@@ -87,7 +87,7 @@ async function createOrlistAllAttendees(
           booking: { connect: { id: parseInt(bookingId) } },
         },
       });
-      const attendee = schemaAttendeePublic.parse(data);
+      const attendee = schemaAttendeeReadPublic.parse(data);
 
       if (attendee) {
         res.status(201).json({

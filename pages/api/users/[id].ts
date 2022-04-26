@@ -8,7 +8,7 @@ import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaUserEditBodyParams, schemaUserReadPublic, withValidUser } from "@lib/validations/user";
+import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations/user";
 
 /**
  * @swagger

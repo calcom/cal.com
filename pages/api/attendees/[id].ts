@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { schemaAttendeeEditBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
+import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -105,7 +105,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
       case "GET":
         await prisma.attendee
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaAttendeePublic.parse(data))
+          .then((data) => schemaAttendeeReadPublic.parse(data))
           .then((attendee) => res.status(200).json({ attendee }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -123,7 +123,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
         }
         await prisma.attendee
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaAttendeePublic.parse(data))
+          .then((data) => schemaAttendeeReadPublic.parse(data))
           .then((attendee) => res.status(200).json({ attendee }))
           .catch((error: Error) =>
             res.status(404).json({

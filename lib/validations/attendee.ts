@@ -10,25 +10,28 @@ export const schemaAttendeeBaseBodyParams = Attendee.pick({
   timeZone: true,
 }).partial();
 
-export const schemaAttendeePublic = Attendee.omit({});
-
-const schemaAttendeeCreateRequiredParams = z.object({
+const schemaAttendeeCreateParams = z.object({
   bookingId: z.any(),
   email: z.string().email(),
   name: z.string(),
   timeZone: z.string(),
 });
 
-const schemaAttendeeEditeRequiredParams = z.object({
-  // bookingId: z.any(),
-  // @note: disallowing email changes in attendee via API for now.
-  // email: z.string().email(),
+const schemaAttendeeEditParams = z.object({
+  // @note: disallowing email/bookingId changes in attendee via API for now as it would introduce side effects
   name: z.string(),
   timeZone: z.string(),
 });
 export const schemaAttendeeEditBodyParams = schemaAttendeeBaseBodyParams.merge(
-  schemaAttendeeEditeRequiredParams
+  schemaAttendeeEditParams
 );
 export const schemaAttendeeCreateBodyParams = schemaAttendeeBaseBodyParams.merge(
-  schemaAttendeeCreateRequiredParams
+  schemaAttendeeCreateParams
 );
+
+export const schemaAttendeeReadPublic = Attendee.pick({
+  bookingId: true,
+  name: true,
+  email: true,
+  timeZone: true,
+});
