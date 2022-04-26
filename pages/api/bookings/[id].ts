@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/bookings/{id}:
+ * /bookings/{id}:
  *   get:
  *     summary: Get a booking by ID
  *     parameters:

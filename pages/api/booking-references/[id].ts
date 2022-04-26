@@ -16,7 +16,7 @@ import {
 
 /**
  * @swagger
- * /v1/booking-references/{id}:
+ * /booking-references/{id}:
  *   get:
  *     summary: Get a daily event reference by ID
  *     parameters:

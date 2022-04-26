@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /v1/event-type-custom-inputs/{id}:
+ * /event-type-custom-inputs/{id}:
  *   get:
  *     summary: Get a eventTypeCustomInput by ID
  *     parameters:

@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/availabilities/{id}:
+ * /availabilities/{id}:
  *   get:
  *     summary: Get an availability by ID
  *     parameters:

@@ -9,7 +9,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
 
 /**
  * @swagger
- * /v1/memberships/{userId}_{teamId}:
+ * /memberships/{userId}_{teamId}:
  *   get:
  *     summary: Get a membership by userID and teamID
  *     parameters:

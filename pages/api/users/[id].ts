@@ -12,7 +12,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic, withValidUser } from "@
 
 /**
  * @swagger
- * /v1/users/{id}:
+ * /users/{id}:
  *   get:
  *     summary: Get a user by ID, returns your user if regular user.
  *     parameters:

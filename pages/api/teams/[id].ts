@@ -12,7 +12,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 /**
  * @swagger
- * /v1/teams/{id}:
+ * /teams/{id}:
  *   get:
  *     summary: Get a team by ID
  *     parameters:

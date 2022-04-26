@@ -11,7 +11,7 @@ import {
 
 /**
  * @swagger
- * /v1/daily-event-references:
+ * /daily-event-references:
  *   get:
  *     summary: Get all daily event reference
  *     security:

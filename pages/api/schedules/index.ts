@@ -8,7 +8,7 @@ import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } fro
 
 /**
  * @swagger
- * /v1/schedules:
+ * /schedules:
  *   get:
  *     summary: Get all schedules
  *     security:

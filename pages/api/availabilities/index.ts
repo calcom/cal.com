@@ -8,7 +8,7 @@ import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/val
 
 /**
  * @swagger
- * /v1/availabilities:
+ * /availabilities:
  *   get:
  *     summary: Get all availabilities
  *     security:

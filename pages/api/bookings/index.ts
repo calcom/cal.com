@@ -8,7 +8,7 @@ import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "
 
 /**
  * @swagger
- * /v1/bookings:
+ * /bookings:
  *   get:
  *     summary: Get all bookings
  *     security:

@@ -12,7 +12,7 @@ import {
 
 /**
  * @swagger
- * /v1/event-types/{id}:
+ * /event-types/{id}:
  *   get:
  *     summary: Get a eventType by ID
  *     parameters:
