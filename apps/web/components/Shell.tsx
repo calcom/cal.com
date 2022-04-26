@@ -125,7 +125,7 @@ const Layout = ({
   status,
   plan,
   ...props
-}: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan }) => {
+}: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
   const { t } = useLocale();
@@ -329,10 +329,21 @@ const Layout = ({
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
-                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                      {props.heading}
-                    </h1>
-                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    {props.isLoading ? (
+                      <>
+                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200"></div>
+                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200"></div>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                          {props.heading}
+                        </h1>
+                        <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
+                          {props.subtitle}
+                        </p>
+                      </>
+                    )}
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
@@ -342,7 +353,7 @@ const Layout = ({
                   "px-4 sm:px-6 md:px-8",
                   props.flexChildrenContainer && "flex flex-1 flex-col"
                 )}>
-                {props.children}
+                {!props.isLoading ? props.children : props.customLoader}
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
@@ -403,6 +414,7 @@ type LayoutProps = {
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
+  customLoader?: ReactNode;
 };
 
 export default function Shell(props: LayoutProps) {
@@ -423,8 +435,10 @@ export default function Shell(props: LayoutProps) {
   const i18n = useViewerI18n();
   const { status } = useSession();
 
-  if (i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading) {
-    // show spinner whilst i18n is loading to avoid language flicker
+  const isLoading =
+    i18n.status === "loading" || query.status === "loading" || isRedirectingToOnboarding || loading;
+
+  if (isLoading) {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
         <Loader />
@@ -437,7 +451,7 @@ export default function Shell(props: LayoutProps) {
   return (
     <>
       <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />
-      <MemoizedLayout plan={user?.plan} status={status} {...props} />
+      <MemoizedLayout plan={user?.plan} status={status} {...props} isLoading={isLoading} />
     </>
   );
 }
