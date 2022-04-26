@@ -1,5 +1,7 @@
 import React from "react";
 
+import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
+
 import { ShellSubHeading } from "@components/Shell";
 
 function SkeletonLoader() {
@@ -22,16 +24,16 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between p-3">
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-start space-x-2">
-          <div className="h-10 w-10 rounded-lg bg-gray-100"></div>
+          <SkeletonText width="10" height="10"></SkeletonText>
           <div className="space-y-2">
-            <div className="h-4 w-32 rounded-md bg-gray-100"></div>
-            <div className="h-4 w-16 rounded-md bg-gray-100"></div>
+            <SkeletonText height="4" width="32"></SkeletonText>
+            <SkeletonText height="4" width="16"></SkeletonText>
           </div>
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <div className="h-11 w-32 rounded-md bg-gray-100"></div>
+          <SkeletonText width="32" height="11"></SkeletonText>
         </div>
       </div>
     </li>
