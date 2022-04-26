@@ -1125,7 +1125,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full" data-testid="advanced-settings">
+                      <CollapsibleTrigger
+                        type="button"
+                        className="flex w-full"
+                        data-testid="advanced-settings">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
