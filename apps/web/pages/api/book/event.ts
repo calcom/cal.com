@@ -673,7 +673,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      await sendRescheduledEmails({ ...evt, additionInformation: metadata });
+      await sendRescheduledEmails({
+        ...evt,
+        additionInformation: metadata,
+        additionalNotes: evt.additionalNotes,
+      });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -703,7 +707,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      await sendScheduledEmails({ ...evt, additionInformation: metadata });
+      await sendScheduledEmails({
+        ...evt,
+        additionInformation: metadata,
+        additionalNotes: evt.additionalNotes,
+      });
     }
   }
 
