@@ -313,7 +313,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location && getAppName(this.calEvent.location); // This returns null if nothing is found
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
