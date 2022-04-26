@@ -1,7 +1,7 @@
 import { AdminRequired } from "components/ui/AdminRequired";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
-import React, { ElementType, FC, Fragment } from "react";
+import { ElementType, FC, Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -46,7 +46,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
                       aria-hidden="true"
                     />
                   )}
-                  <span>{tab.name}</span>
+                  <span>{t(tab.name)}</span>
                 </a>
               </Link>
             </Component>
