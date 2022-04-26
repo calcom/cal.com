@@ -30,7 +30,7 @@ export default function SetupInformation() {
     });
   }
 
-  if (appName === _packageZapier.name.toLowerCase()) {
+  if (appName === _packageZapier.name.toLowerCase() && status === "authenticated") {
     return <ZapierSetup trpc={trpc}></ZapierSetup>;
   }
 
