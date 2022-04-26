@@ -5,7 +5,7 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);
-    const isEmbed = ctx.req?.url?.includes("embed");
+    const isEmbed = ctx.req?.url?.includes("embed=");
     return { ...initialProps, isEmbed };
   }
 
@@ -27,7 +27,9 @@ class MyDocument extends Document<Props> {
         </Head>
 
         {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body className="bg-gray-100 dark:bg-neutral-900" style={props.isEmbed ? { display: "none" } : {}}>
+        <body
+          className={props.isEmbed ? "bg-transparent" : "bg-gray-100 dark:bg-neutral-900"}
+          style={props.isEmbed ? { display: "none" } : {}}>
           <Main />
           <NextScript />
         </body>

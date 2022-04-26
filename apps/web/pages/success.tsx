@@ -14,7 +14,12 @@ import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 import rrule from "rrule";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import {
+  useIsEmbed,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -91,7 +96,7 @@ function RedirectionToast({ url }: { url: string }) {
 
   return (
     <>
-      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+      <div className="relative z-[60] pb-2 sm:pb-5">
         <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
           <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
             <div className="flex flex-wrap items-center justify-between">
@@ -147,6 +152,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
@@ -227,19 +235,22 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           }
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className={classNames("mx-auto", isEmbed ? "" : "max-w-3xl py-24")}>
-          <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
               <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
             ) : null}{" "}
-            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className={classNames(
+                shouldAlignCentrally ? "text-center" : "",
+                "flex items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
+              )}>
               <div
-                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "inset-0")}
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
                 aria-hidden="true">
                 <div
                   className={classNames(
-                    "inline-block transform overflow-hidden rounded-sm",
-                    isEmbed ? "" : "border sm:my-8 sm:max-w-lg ",
+                    "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
                     isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
                     "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                   )}
@@ -483,7 +494,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </form>
                     </div>
                   )}
-                  {userIsOwner && (
+                  {userIsOwner && !isEmbed && (
                     <div className="mt-4">
                       <Link href="/bookings">
                         <a className="flex items-center text-black dark:text-white">

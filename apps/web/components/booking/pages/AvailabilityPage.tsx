@@ -20,11 +20,17 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
-import { useEmbedStyles, useIsEmbed, useIsBackgroundTransparent, sdkActionManager } from "@calcom/embed-core";
+import {
+  useEmbedStyles,
+  useIsEmbed,
+  useIsBackgroundTransparent,
+  sdkActionManager,
+  useEmbedType,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -59,6 +65,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const { t, i18n } = useLocale();
   const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   let isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
@@ -161,17 +169,18 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
-          className={
+          className={classNames(
+            shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? classNames("m-auto", maxWidth)
-              : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " + maxWidth
-          }>
+              ? classNames(maxWidth)
+              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
+          )}>
           {isReady && (
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
-                "border-bookinglightest rounded-sm md:border",
+                "border-bookinglightest rounded-md md:border",
                 isEmbed ? "mx-auto" : maxWidth
               )}>
               {/* mobile: details */}

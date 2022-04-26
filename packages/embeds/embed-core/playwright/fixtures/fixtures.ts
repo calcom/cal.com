@@ -11,17 +11,25 @@ export const test = base.extend<Fixtures>({
         ({ calNamespace }: { calNamespace: string }) => {
           //@ts-ignore
           window.eventsFiredStoreForPlaywright = window.eventsFiredStoreForPlaywright || {};
-          document.addEventListener("DOMContentLoaded", () => {
+          document.addEventListener("DOMContentLoaded", function tryAddingListener() {
             if (parent !== window) {
               // Firefox seems to execute this snippet for iframe as well. Avoid that. It must be executed only for parent frame.
               return;
             }
-            console.log("PlaywrightTest:", "Adding listener for __iframeReady");
             //@ts-ignore
             let api = window.Cal;
+
+            if (!api) {
+              setTimeout(tryAddingListener, 500);
+              return;
+            }
             if (calNamespace) {
               //@ts-ignore
               api = window.Cal.ns[calNamespace];
+            }
+            console.log("PlaywrightTest:", "Adding listener for __iframeReady");
+            if (!api) {
+              throw new Error(`namespace "${calNamespace}" not found`);
             }
             api("on", {
               action: "*",
@@ -41,13 +49,15 @@ export const test = base.extend<Fixtures>({
   },
   getActionFiredDetails: async ({ page }, use) => {
     await use(async ({ calNamespace, actionType }) => {
-      return await page.evaluate(
-        ({ actionType, calNamespace }) => {
-          //@ts-ignore
-          return window.eventsFiredStoreForPlaywright[`${actionType}-${calNamespace}`];
-        },
-        { actionType, calNamespace }
-      );
+      if (!page.isClosed()) {
+        return await page.evaluate(
+          ({ actionType, calNamespace }) => {
+            //@ts-ignore
+            return window.eventsFiredStoreForPlaywright[`${actionType}-${calNamespace}`];
+          },
+          { actionType, calNamespace }
+        );
+      }
     });
   },
 });
