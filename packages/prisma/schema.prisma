@@ -107,6 +107,11 @@ model DestinationCalendar {
   eventTypeId Int?       @unique
 }
 
+enum UserPermissionRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
@@ -155,6 +160,9 @@ model User {
   allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
+  role                UserPermissionRole   @default(USER)
+  impersonatedUsers   Impersonations[]     @relation("impersonated_user")
+  impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
   apiKeys             ApiKey[]
 
   @@map(name: "users")
@@ -374,6 +382,15 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+}
+
+model Impersonations {
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUserId Int
+  impersonatedById   Int
 }
 
 model ApiKey {

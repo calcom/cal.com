@@ -1,3 +1,4 @@
+import React, { ReactNode } from "react";
 import {
   QueryObserverIdleResult,
   QueryObserverLoadingErrorResult,
@@ -31,6 +32,7 @@ type JSXElementOrNull = JSX.Element | null;
 
 interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
   query: UseQueryResult<TData, TError>;
+  customLoader?: ReactNode;
   error?: (
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
@@ -62,7 +64,6 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
-
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
       return opts.empty(query);
@@ -76,11 +77,13 @@ export function QueryCell<TData, TError extends ErrorLike>(
       )
     );
   }
+  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
+
   if (query.status === "loading") {
-    return opts.loading?.(query) ?? <Loader />;
+    return opts.loading?.(query) ?? StatusLoader;
   }
   if (query.status === "idle") {
-    return opts.idle?.(query) ?? <Loader />;
+    return opts.idle?.(query) ?? StatusLoader;
   }
   // impossible state
   return null;
@@ -108,6 +111,7 @@ const withQuery = <TPath extends keyof TQueryValues & string>(
     >
   ) {
     const query = trpc.useQuery(pathAndInput, params);
+
     return <QueryCell query={query} {...opts} />;
   };
 };
