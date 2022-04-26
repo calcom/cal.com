@@ -18,7 +18,13 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 
-import { useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import {
+  useIsEmbed,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useEmbedType,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -71,6 +77,8 @@ const BookingPage = ({
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
@@ -298,16 +306,17 @@ const BookingPage = ({
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
-          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24",
-          "max-w-3xl  sm:border sm:dark:border-gray-600"
+          shouldAlignCentrally ? "mx-auto" : "",
+          isEmbed ? "" : "sm:my-24",
+          "my-0 max-w-3xl "
         )}>
         {isReady && (
           <div
             className={classNames(
-              "overflow-hidden",
+              "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
-              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
-              "sm:rounded-sm"
+              isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
+              "rounded-md sm:border sm:dark:border-gray-600"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">

@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
+import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -9,9 +10,10 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
 import defaultEvents, {
   getDynamicEventDescription,
+  getGroupName,
   getUsernameList,
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
@@ -23,6 +25,7 @@ import prisma from "@lib/prisma";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
@@ -37,7 +40,7 @@ interface EvtsToVerify {
 }
 
 export default function User(props: inferSSRProps<typeof getServerSideProps>) {
-  const { users } = props;
+  const { users, profile } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   const { Theme } = useTheme(user.theme);
   const { t } = useLocale();
@@ -102,13 +105,15 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
       ))}
     </ul>
   );
+  const isEmbed = useIsEmbed();
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
-  const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
 
   useEffect(() => {
@@ -128,8 +133,17 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
         // avatar={user.avatar || undefined}
       />
-      <div className={"h-screen dark:bg-neutral-900" + isEmbed ? " bg:white m-auto max-w-3xl" : ""}>
-        <main className="mx-auto max-w-3xl px-4 py-24">
+      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
+
+      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
+        <main
+          className={classNames(
+            shouldAlignCentrally ? "mx-auto" : "",
+            isEmbed
+              ? " border-bookinglightest  rounded-md border bg-white dark:bg-neutral-900 sm:dark:border-gray-600"
+              : "",
+            "max-w-3xl py-24 px-4"
+          )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
@@ -284,6 +298,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       email: true,
       name: true,
       bio: true,
+      brandColor: true,
+      darkBrandColor: true,
       avatar: true,
       theme: true,
       plan: true,
@@ -298,10 +314,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
-
   const isDynamicGroup = users.length > 1;
 
+  const dynamicNames = isDynamicGroup
+    ? users.map((user) => {
+        return user.name || "";
+      })
+    : [];
   const [user] = users; //to be used when dealing with single user, not dynamic group
+
+  const profile = isDynamicGroup
+    ? {
+        name: getGroupName(dynamicNames),
+        image: null,
+        theme: null,
+        weekStart: "Sunday",
+        brandColor: "",
+        darkBrandColor: "",
+        allowDynamicBooking: users.some((user) => {
+          return !user.allowDynamicBooking;
+        })
+          ? false
+          : true,
+      }
+    : {
+        name: user.name || user.username,
+        image: user.avatar,
+        theme: user.theme,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+      };
   const usersIds = users.map((user) => user.id);
   const credentials = await prisma.credential.findMany({
     where: {
@@ -337,6 +379,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       users,
+      profile,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
       },

@@ -7,13 +7,30 @@
     "build": "vite build",
     "build:cal": "NEXT_PUBLIC_WEBSITE_URL='https://cal.com' yarn build",
     "vite": "vite",
-    "dev": "run-p 'build --watch' 'vite --port 3002 --strict-port --open'",
+    "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css --watch",
+    "buildWatchAndServer": "run-p 'build --watch' 'vite --port 3100 --strict-port --open'",
+    "dev": "run-p 'tailwind' 'buildWatchAndServer'",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
-    "test-playwright": "yarn playwright test --config=playwright/config/playwright.config.ts"
+    "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
+    "embed-tests-quick": "QUICK=true yarn embed-tests"
+  },
+  "postcss": {
+    "map": false,
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
   },
   "devDependencies": {
-    "vite": "^2.8.6",
-    "eslint": "^8.10.0"
+    "autoprefixer": "^10.4.4",
+    "eslint": "^8.10.0",
+    "postcss": "^8.4.12",
+    "vite": "^2.8.6"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.0.24",
+    "tsc": "^2.0.4",
+    "typescript": "^4.6.3"
   }
 }
