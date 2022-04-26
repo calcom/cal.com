@@ -1,8 +1,10 @@
+import { Prisma } from "@prisma/client";
 import { BookingStatus } from "@prisma/client";
 import { VitalClient } from "@tryvital/vital-node";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
+import { JSONObject } from "superjson/dist/types";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -71,9 +73,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           // Getting total hours of sleep seconds/60/60 = hours
-          const minimumSleepTime = 5;
-          const totalHoursSleep = event.data.duration / 60 / 60;
-          if (totalHoursSleep < minimumSleepTime) {
+          const userWithMetadata = await prisma?.user.findFirst({
+            select: {
+              metadata: true,
+            },
+            where: {
+              id: credential.userId as number,
+            },
+          });
+          let minimumSleepTime = 0;
+          let parameterFilter = "";
+          const userMetadata = userWithMetadata?.metadata as Prisma.JsonObject;
+          const vitalSettings =
+            ((userWithMetadata?.metadata as Prisma.JsonObject)?.vitalSettings as Prisma.JsonObject) || {};
+          if (!!userMetadata && !!vitalSettings) {
+            minimumSleepTime = vitalSettings.sleepValue as number;
+            parameterFilter = vitalSettings.parameter as string;
+          } else {
+            res.status(404).json({ message: "Vital configuration not found for user" });
+            return;
+          }
+
+          if (!event.data.hasOwnProperty(parameterFilter)) {
+            res.status(500).json({ message: "Selected param not available" });
+            return;
+          }
+          const totalHoursSleep = event.data[parameterFilter] / 60 / 60;
+
+          if (minimumSleepTime > 0 && parameterFilter !== "" && totalHoursSleep <= minimumSleepTime) {
             // Trigger reschedule
             try {
               const todayDate = dayjs();

@@ -1,47 +1,94 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z, ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export type VitalSettingsResponse = {
+  connected: boolean;
+  sleepValue: number;
+  selectedParam: string;
+};
+
+const vitalSettingsUpdateSchema = z.object({
+  connected: z.boolean().optional(),
+  selectedParam: z.string().optional(),
+  sleepValue: z.number().optional(),
+});
+
+const handler = async (
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<VitalSettingsResponse | NextApiResponse | void> => {
   if (req.method === "PUT" && req.session && req.session.user.id) {
     const userId = req.session.user.id;
+    const body = req.body;
     try {
       const userWithMetadata = await prisma.user.findFirst({
         where: {
-          id: req?.session?.user.id,
+          id: userId,
         },
         select: {
           id: true,
           metadata: true,
         },
       });
-
+      const userMetadata = userWithMetadata?.metadata as Prisma.JsonObject;
+      const vitalSettings =
+        ((userWithMetadata?.metadata as Prisma.JsonObject)?.vitalSettings as Prisma.JsonObject) || {};
       await prisma.user.update({
         where: {
-          id: req?.session?.user.id,
+          id: userId,
         },
         data: {
           metadata: {
-            ...(userWithMetadata?.metadata as Prisma.JsonObject),
+            ...userMetadata,
             vitalSettings: {
-              ...(userWithMetadata?.metadata as Prisma.JsonObject),
-              connected: true,
+              ...vitalSettings,
+              ...body,
             },
           },
         },
       });
 
-      if (vitalConfig && !!vitalConfig.key) {
-        res.status(200).json(vitalConfig.key);
+      if (vitalSettings) {
+        res.status(200).json(vitalSettings);
       } else {
         res.status(404);
       }
     } catch (error) {
+      console.log(error);
       res.status(500);
     }
   } else {
     res.status(400);
   }
   res.end();
+};
+
+function validate(
+  handler: (
+    req: NextApiRequest,
+    res: NextApiResponse
+  ) => Promise<VitalSettingsResponse | NextApiResponse | void>
+) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        console.log(req.body);
+        vitalSettingsUpdateSchema.parse(req.body);
+      } catch (error) {
+        if (error instanceof ZodError && error?.name === "ZodError") {
+          console.log(error);
+          return res.status(400).json(error?.issues);
+        }
+        return res.status(402);
+      }
+    } else {
+      return res.status(405);
+    }
+    await handler(req, res);
+  };
 }
+
+export default validate(handler);
