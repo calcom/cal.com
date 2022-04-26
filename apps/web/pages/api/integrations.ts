@@ -1,6 +1,8 @@
 import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import _metadata from "@calcom/app-store/zapierother/_metadata";
+
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
@@ -52,8 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (integration?.type === "zapier_other") {
-      const keyToDelete = await prisma.apiKey.findFirst({
+    if (integration?.type === _metadata.type) {
+      const apiKeyToDelete = await prisma.apiKey.findFirst({
         where: {
           userId: session?.user?.id,
           apiKeyType: ApiKeyType.ZAPIER,
@@ -62,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await prisma.apiKey.delete({
         where: {
-          id: keyToDelete?.id,
+          id: apiKeyToDelete?.id,
         },
       });
     }
