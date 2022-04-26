@@ -16,7 +16,7 @@ addAliases({
 
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
-
+console.log("LICENSE CHECK:", process.env.NEXT_PUBLIC_LICENSE_CONSENT);
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: 1,
