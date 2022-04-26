@@ -64,7 +64,6 @@ export function QueryCell<TData, TError extends ErrorLike>(
   opts: QueryCellOptionsNoEmpty<TData, TError> | QueryCellOptionsWithEmpty<TData, TError>
 ) {
   const { query } = opts;
-
   if (query.status === "success") {
     if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
       return opts.empty(query);
@@ -78,11 +77,13 @@ export function QueryCell<TData, TError extends ErrorLike>(
       )
     );
   }
+  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
+
   if (query.status === "loading") {
-    return opts.loading?.(query) ?? opts.customLoader ? opts.customLoader : <Loader />;
+    return opts.loading?.(query) ?? StatusLoader;
   }
   if (query.status === "idle") {
-    return opts.idle?.(query) ?? opts.customLoader ? opts.customLoader : <Loader />;
+    return opts.idle?.(query) ?? StatusLoader;
   }
   // impossible state
   return null;
