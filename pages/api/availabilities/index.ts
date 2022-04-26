@@ -4,7 +4,10 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AvailabilityResponse, AvailabilitiesResponse } from "@lib/types";
-import { schemaAvailabilityCreateBodyParams, schemaAvailabilityReadPublic } from "@lib/validations/availability";
+import {
+  schemaAvailabilityCreateBodyParams,
+  schemaAvailabilityReadPublic,
+} from "@lib/validations/availability";
 
 /**
  * @swagger

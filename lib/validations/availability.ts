@@ -11,7 +11,7 @@ export const schemaAvailabilityBaseBodyParams = Availability.pick({
   days: true,
 }).partial();
 
-export const schemaAvailabilityPublic = Availability.pick({
+export const schemaAvailabilityReadPublic = Availability.pick({
   startTime: true,
   endTime: true,
   date: true,

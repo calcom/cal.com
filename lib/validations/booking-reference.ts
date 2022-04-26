@@ -3,21 +3,45 @@ import { z } from "zod";
 
 import { _BookingReferenceModel as BookingReference } from "@calcom/prisma/zod";
 
-export const schemaBookingReferenceBaseBodyParams = BookingReference.omit({ id: true }).partial();
+export const schemaBookingReferenceBaseBodyParams = BookingReference.pick({
+  type: true,
+  bookingId: true,
+  uid: true,
+  meetingId: true,
+  meetingPassword: true,
+  meetingUrl: true,
+  deleted: true,
+}).partial();
 
-export const schemaBookingReferencePublic = BookingReference.omit({});
+export const schemaBookingReferenceReadPublic = BookingReference.pick({
+  type: true,
+  bookingId: true,
+  uid: true,
+  meetingId: true,
+  meetingPassword: true,
+  meetingUrl: true,
+  deleted: true,
+});
 
-const schemaBookingReferenceRequiredParams = z.object({
+const schemaBookingReferenceEditParams = z.object({
   type: z.string(),
   uid: z.string(),
+  meetingId: z.string(),
+  meetingPassword: z.string(),
+  meetingUrl: z.string(),
+  deleted: z.boolean(),
 });
-
-export const schemaBookingReferenceBodyParams = schemaBookingReferenceBaseBodyParams.merge(
-  schemaBookingReferenceRequiredParams
+const schemaBookingReferenceCreateParams = z.object({
+  type: z.string(),
+  uid: z.string(),
+  meetingId: z.string(),
+  meetingPassword: z.string(),
+  meetingUrl: z.string(),
+  deleted: z.boolean(),
+});
+export const schemaBookingCreateBodyParams = schemaBookingReferenceBaseBodyParams.merge(
+  schemaBookingReferenceCreateParams
 );
-
-export const withValidBookingReference = withValidation({
-  schema: schemaBookingReferenceBodyParams,
-  type: "Zod",
-  mode: "body",
-});
+export const schemaBookingEditBodyParams = schemaBookingReferenceBaseBodyParams.merge(
+  schemaBookingReferenceEditParams
+);
