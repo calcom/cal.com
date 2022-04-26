@@ -12,17 +12,21 @@ const findValidApiKey = async (apiKey: string, apiKeyType: ApiKeyType) => {
             hashedKey,
           },
           {
+            apiKeyType,
+          },
+        ],
+        OR: [
+          {
             expiresAt: {
               gte: new Date(Date.now()),
             },
           },
           {
-            apiKeyType,
+            expiresAt: null,
           },
-        ],
+        ]
       },
     });
-
   return validKey;
 };
 

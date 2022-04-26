@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const validKey = await findValidApiKey(apiKey, ApiKeyType.ZAPIER);
 
   if (!validKey) {
-    return res.status(401).json({ message: "API not valid" });
+    return res.status(401).json({ message: "API key not valid" });
   }
 
   const id = req.query.id as string;
