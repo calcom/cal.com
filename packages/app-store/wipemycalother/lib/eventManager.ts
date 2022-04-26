@@ -323,7 +323,9 @@ export default class EventManager {
     if (credential) {
       return createMeeting(credential, event);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
   }
 
@@ -364,7 +366,9 @@ export default class EventManager {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
       return updateMeeting(credential, event, bookingRef);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
   }
 
