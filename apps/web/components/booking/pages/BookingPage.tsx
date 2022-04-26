@@ -440,7 +440,7 @@ const BookingPage = ({
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
-                            {location.address && (<span> in {location.address}</span>)}
+                            {location.address && <span> in {location.address}</span>}
                           </span>
                         </label>
                       ))}

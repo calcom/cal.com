@@ -379,7 +379,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               />
             </div>
           </div>
-          
         );
       case LocationType.Link:
         return (
@@ -490,7 +489,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
-    locations: { type: LocationType; address?: string; link?: string, city?: string }[];
+    locations: { type: LocationType; address?: string; link?: string; city?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -529,7 +528,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationType: LocationType;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
-    locationCity?: string
+    locationCity?: string;
   }>({
     resolver: zodResolver(locationFormSchema),
   });
