@@ -1,10 +1,10 @@
 import { SubscriptionType } from "@prisma/client";
+import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
 import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
 import prisma from "@calcom/prisma";
-import { ApiKeyType } from "@prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;

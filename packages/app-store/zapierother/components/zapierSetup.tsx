@@ -1,6 +1,5 @@
 import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { ApiKeyType } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -21,7 +20,6 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const router = useRouter();
   const [newApiKey, setNewApiKey] = useState("");
   const utils = trpc.useContext();
-  const { data: session, status } = useSession();
   const integrations = trpc.useQuery(["viewer.integrations"]);
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { apiKeyType: ApiKeyType.ZAPIER }]);
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
@@ -42,7 +40,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
     setNewApiKey(apiKey);
   }
 
-  if (integrations.isLoading || status === "loading") {
+  if (integrations.isLoading) {
     return (
       <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
         <Loader />
@@ -50,13 +48,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
     );
   }
 
-  if (status === "unauthenticated") {
-    router.replace({
-      pathname: "/auth/login",
-    });
-  }
-
-  return status === "authenticated" ? (
+  return (
     <div className="flex h-screen bg-gray-200">
       {showContent ? (
         <div className="m-auto rounded bg-white p-10">
@@ -121,10 +113,6 @@ export default function ZapierSetup(props: IZapierSetupProps) {
           </div>
         </div>
       )}
-    </div>
-  ) : (
-    <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
-      <Loader />
     </div>
   );
 }
