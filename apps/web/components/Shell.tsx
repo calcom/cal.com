@@ -329,10 +329,21 @@ const Layout = ({
                   )}>
                   {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
                   <div className="mb-8 w-full">
-                    <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
-                      {props.heading}
-                    </h1>
-                    <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{props.subtitle}</p>
+                    {props.isLoading ? (
+                      <>
+                        <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200"></div>
+                        <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200"></div>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                          {props.heading}
+                        </h1>
+                        <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">
+                          {props.subtitle}
+                        </p>
+                      </>
+                    )}
                   </div>
                   {props.CTA && <div className="mb-4 flex-shrink-0">{props.CTA}</div>}
                 </div>
