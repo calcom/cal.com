@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { schemaAttendeeBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
+import { schemaAttendeeEditBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -88,7 +88,6 @@ import {
 export async function attendeeById(req: NextApiRequest, res: NextApiResponse<AttendeeResponse>) {
   const { method, query, body, userId } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaAttendeeBodyParams.safeParse(body);
   if (!safeQuery.success) {
     res.status(400).json({ error: safeQuery.error });
     throw new Error("Invalid request query", safeQuery.error);
@@ -117,6 +116,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
         break;
 
       case "PATCH":
+        const safeBody = schemaAttendeeEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
           throw new Error("Invalid request body");

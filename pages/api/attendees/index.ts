@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
-import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } from "@lib/validations/attendee";
+import { schemaAttendeeCreateBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ async function createOrlistAllAttendees(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaAttendeeBodyParams.safeParse(req.body);
+    const safe = schemaAttendeeCreateBodyParams.safeParse(req.body);
     if (!safe.success) {
       throw new Error("Invalid request body", safe.error);
     }
