@@ -40,11 +40,11 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
   const { t } = useLocale();
   const options = [
     {
-      label: "Total (total = rem + light sleep + deep sleep)",
+      label: t("vital_app_total_label"),
       value: "total",
     },
     {
-      label: "Duration (duration = bedtime end - bedtime start)",
+      label: t("vital_app_duration_label"),
       value: "duration",
     },
   ];
@@ -88,21 +88,21 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
   return (
     <div className="flex-col items-start p-3 text-sm">
       <p>
-        <strong>Connected with Vital App: {connected ? "Yes" : "No"}</strong>
+        <strong>
+          {t("connected_vital_app")} Vital App: {connected ? "Yes" : "No"}
+        </strong>
       </p>
       <br />
       <p>
-        <strong>Sleeping reschedule automation</strong>
+        <strong>{t("vital_app_sleep_automation")}</strong>
       </p>
-      <p className="mt-1">
-        You can select different parameters to trigger the reschedule based on your sleeping metrics.
-      </p>
+      <p className="mt-1">{t("vital_app_automation_description")}</p>
 
       <div className="w-100 mt-2">
         <div className="block sm:flex">
           <div className="min-w-24 mb-4 mt-5 sm:mb-0">
             <label htmlFor="description" className="text-sm font-bold">
-              Parameter
+              {t("vital_app_parameter")}
             </label>
           </div>
           <div className="w-120 mt-2.5">
@@ -121,14 +121,16 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
       <div className="w-full">
         <div className="min-w-24 mb-4 mt-3">
           <label htmlFor="value" className="text-sm font-bold">
-            Trigger at below or equal than
+            {t("vital_app_trigger")}
           </label>
         </div>
         <div
           className={classNames(
             "mx-2 mt-0 w-24",
             "relative",
-            "after:absolute after:right-2 after:top-[12px] after:content-['hours'] sm:after:top-[9px]"
+            `after:absolute after:right-2 after:top-[12px] after:content-['${t(
+              "vital_app_hours"
+            )}'] sm:after:top-[9px]`
           )}>
           <input
             id="value"
@@ -154,7 +156,7 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
             saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
           }}
           disabled={disabledSaveButton}>
-          Save configuration
+          {t("vital_app_save_button")}
         </Button>
       </div>
     </div>

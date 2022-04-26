@@ -764,8 +764,17 @@
   "edit_booking": "Edit booking",
   "reschedule_booking": "Reschedule booking",
   "former_time": "Former time",
-  "impersonate":"Impersonate",
-  "impersonate_user_tip":"All uses of this feature is audited.",
-  "impersonating_user_warning":"Impersonating username \"{{user}}\".",
-  "impersonating_stop_instructions": "<0>Click Here to stop</0>."
+  "impersonate": "Impersonate",
+  "impersonate_user_tip": "All uses of this feature is audited.",
+  "impersonating_user_warning": "Impersonating username \"{{user}}\".",
+  "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
+  "connected_vital_app": "Connected with",
+  "vital_app_sleep_automation": "Sleeping reschedule automation",
+  "vital_app_automation_description": "You can select different parameters to trigger the reschedule based on your sleeping metrics.",
+  "vital_app_parameter": "Parameter",
+  "vital_app_trigger": "Trigger at below or equal than",
+  "vital_app_save_button": "Save configuration",
+  "vital_app_total_label": "Total (total = rem + light sleep + deep sleep)",
+  "vital_app_duration_label": "Duration (duration = bedtime end - bedtime start)",
+  "vital_app_hours": "hours"
 }

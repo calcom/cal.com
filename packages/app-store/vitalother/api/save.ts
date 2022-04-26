@@ -57,7 +57,6 @@ const handler = async (
         res.status(404);
       }
     } catch (error) {
-      console.log(error);
       res.status(500);
     }
   } else {
@@ -75,11 +74,9 @@ function validate(
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "POST" || req.method === "PUT") {
       try {
-        console.log(req.body);
         vitalSettingsUpdateSchema.parse(req.body);
       } catch (error) {
         if (error instanceof ZodError && error?.name === "ZodError") {
-          console.log(error);
           return res.status(400).json(error?.issues);
         }
         return res.status(402);
