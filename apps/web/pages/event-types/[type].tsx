@@ -1125,7 +1125,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger type="button" className="flex w-full" data-testid="advanced-settings">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1362,9 +1362,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <div className="relative mt-1 flex w-full">
                                       <input
                                         disabled
+                                        data-testid="generated-hash-url"
                                         type="text"
                                         className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
-                                        placeholder={t("meeting_with_user")}
                                         defaultValue={placeholderHashedLink}
                                       />
                                       <Tooltip
