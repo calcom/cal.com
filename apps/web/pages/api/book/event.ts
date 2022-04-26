@@ -750,38 +750,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers({
-    ...subscriberOptions,
-    subscriptionType: SubscriptionType.WEBHOOK,
-  });
+  const subscriberPromises = [
+    getSubscribers({
+      ...subscriberOptions,
+      subscriptionType: SubscriptionType.WEBHOOK,
+    }),
+  ];
 
   if (zapierAppInstalled) {
-    const zapierSubscribers = await getSubscribers({
-      ...subscriberOptions,
-      subscriptionType: SubscriptionType.ZAPIER,
-    });
-    subscribers.push(...zapierSubscribers);
+    subscriberPromises.push(
+      getSubscribers({
+        ...subscriberOptions,
+        subscriptionType: SubscriptionType.ZAPIER,
+      })
+    );
   }
+
+  const allSubscribers = await Promise.all(subscriberPromises);
 
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
   });
-  const promises = subscribers.map((sub) =>
-    sendPayload(
-      eventTrigger,
-      new Date().toISOString(),
-      sub.subscriberUrl,
-      {
-        ...evt,
-        rescheduleUid,
-        metadata: reqBody.metadata,
-      },
-      sub.subscriptionType,
-      sub.payloadTemplate
-    ).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-    })
+
+  const promises = allSubscribers.map((subArray) =>
+    subArray.map((sub) =>
+      sendPayload(
+        eventTrigger,
+        new Date().toISOString(),
+        sub.subscriberUrl,
+        {
+          ...evt,
+          rescheduleUid,
+          metadata: reqBody.metadata,
+        },
+        sub.subscriptionType,
+        sub.payloadTemplate
+      ).catch((e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+      })
+    )
   );
   await Promise.all(promises);
   // Avoid passing referencesToCreate with id unique constrain values
