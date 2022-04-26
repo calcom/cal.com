@@ -11,5 +11,5 @@ export default function Icon() {
         fill="#FF4A00"
       />
     </svg>
-  )
+  );
 }

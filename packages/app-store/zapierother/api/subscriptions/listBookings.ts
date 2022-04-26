@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     try {
       const bookings = await prisma.booking.findMany({
-        take:3,
+        take: 3,
         where: {
           userId: validKey.userId,
         },
