@@ -204,7 +204,7 @@ const BookingPage = ({
 
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
-    resolver: zodResolver(bookingFormSchema), // Since this isnt set to strict we only validate the feilds in the schema
+    resolver: zodResolver(bookingFormSchema), // Since this isnt set to strict we only validate the fields in the schema
   });
 
   const selectedLocation = useWatch({
