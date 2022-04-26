@@ -15,15 +15,16 @@ function ImpersonatingBanner({}: Props) {
   return (
     <Alert
       severity="warning"
-      title={<>{t("impersonating_user_warning", { user: data.user.username })}</>}
-      message={
-        <Trans i18nKey="impersonating_stop_instructions">
-          To stop impersonating
-          <a href="/auth/logout" className="underline">
-            Click Here
-          </a>
-          .
-        </Trans>
+      title={
+        <>
+          {t("impersonating_user_warning", { user: data.user.username })}{" "}
+          <Trans i18nKey="impersonating_stop_instructions">
+            <a href="/auth/logout" className="underline">
+              Click Here To stop
+            </a>
+            .
+          </Trans>
+        </>
       }
       className="mx-4 mb-2 sm:mx-6  md:mx-8"
     />

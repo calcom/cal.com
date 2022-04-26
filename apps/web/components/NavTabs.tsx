@@ -19,7 +19,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
   const router = useRouter();
   return (
     <>
-      <nav className="-mb-px flex  space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
+      <nav className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
         {tabs.map((tab) => {
           const isCurrent = router.asPath === tab.href;
           const Component = tab.adminRequired ? AdminRequired : Fragment;

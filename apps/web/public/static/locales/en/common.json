@@ -765,7 +765,7 @@
   "reschedule_booking": "Reschedule booking",
   "former_time": "Former time",
   "impersonate":"Impersonate",
-  "impersonate_user_tip":"All uses of this features is audited.",
-  "impersonating_user_warning":"You are currently impersonating {{user}}.",
-  "impersonating_stop_instructions": "To stop impersonating <1>Click Here</1>."
+  "impersonate_user_tip":"All uses of this feature is audited.",
+  "impersonating_user_warning":"Impersonating username \"{{user}}\".",
+  "impersonating_stop_instructions": "<0>Click Here to stop</0>."
 }

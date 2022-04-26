@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { AriaRole, FC, Fragment } from "react";
+import { FC, Fragment } from "react";
 
 type AdminRequiredProps = {
   as?: keyof JSX.IntrinsicElements;
