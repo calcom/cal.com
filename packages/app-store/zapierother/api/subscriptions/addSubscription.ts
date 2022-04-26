@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 
 import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
 import prisma from "@calcom/prisma";
+import { ApiKeyType } from "@prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "No API key provided" });
   }
 
-  const validKey = await findValidApiKey(apiKey);
+  const validKey = await findValidApiKey(apiKey, ApiKeyType.ZAPIER);
 
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
