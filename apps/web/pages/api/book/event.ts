@@ -220,6 +220,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      locations: true,
     },
   });
 };
@@ -354,6 +355,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ""
     );
 
+  const zoomLink = JSON.parse(reqBody.location).find((link: any) => link.type === "link");
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -372,6 +374,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || users[0].destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
+    zoomLink: zoomLink?.link,
   };
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
