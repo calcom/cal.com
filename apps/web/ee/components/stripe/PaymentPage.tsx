@@ -1,5 +1,6 @@
 import { CreditCardIcon } from "@heroicons/react/solid";
 import { Elements } from "@stripe/react-stripe-js";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
@@ -8,6 +9,7 @@ import Head from "next/head";
 import React, { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core";
 import getStripe from "@calcom/stripe/client";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
@@ -26,16 +28,33 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const { isReady, Theme } = useTheme(props.profile.theme);
-
+  const isEmbed = useIsEmbed();
   useEffect(() => {
+    let embedIframeWidth = 0;
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, []);
+    if (isEmbed) {
+      requestAnimationFrame(function fixStripeIframe() {
+        // HACK: Look for stripe iframe and center position it just above the embed content
+        const stripeIframeWrapper = document.querySelector(
+          'iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]'
+        )?.parentElement;
+        if (stripeIframeWrapper) {
+          stripeIframeWrapper.style.margin = "0 auto";
+          stripeIframeWrapper.style.width = embedIframeWidth + "px";
+        }
+        requestAnimationFrame(fixStripeIframe);
+      });
+      sdkActionManager?.on("__dimensionChanged", (e) => {
+        embedIframeWidth = e.detail.data.iframeWidth as number;
+      });
+    }
+  }, [isEmbed]);
 
   const eventName = props.booking.title;
 
   return isReady ? (
-    <div className="h-screen bg-neutral-50 dark:bg-neutral-900">
+    <div className="h-screen">
       <Theme />
       <Head>
         <title>
@@ -51,7 +70,10 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-sm border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:py-6 sm:align-middle"
+                className={classNames(
+                  "main inline-block transform overflow-hidden rounded-lg border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
+                  isEmbed ? "" : "sm:my-8"
+                )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
