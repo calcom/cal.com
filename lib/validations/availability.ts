@@ -21,19 +21,24 @@ export const schemaAvailabilityReadPublic = Availability.pick({
   eventTypeId: true,
 });
 
-const schemaAvailabilityCreateParams = z.object({
-  startTime: z.date().or(z.string()),
-  endTime: z.date().or(z.string()),
-  days: z.array(z.number()).optional(),
-  eventTypeId: z.number().optional(),
-});
+const schemaAvailabilityCreateParams = z
+  .object({
+    startTime: z.date().or(z.string()),
+    endTime: z.date().or(z.string()),
+    days: z.array(z.number()).optional(),
+    eventTypeId: z.number().optional(),
+  })
+  .strict();
 
-const schemaAvailabilityEditParams = z.object({
-  startTime: z.date().or(z.string()).optional(),
-  endTime: z.date().or(z.string()).optional(),
-  days: z.array(z.number()).optional(),
-  eventTypeId: z.number().optional(),
-});
+const schemaAvailabilityEditParams = z
+  .object({
+    startTime: z.date().or(z.string()).optional(),
+    endTime: z.date().or(z.string()).optional(),
+    days: z.array(z.number()).optional(),
+    eventTypeId: z.number().optional(),
+  })
+  .strict();
+
 export const schemaAvailabilityEditBodyParams = schemaAvailabilityBaseBodyParams.merge(
   schemaAvailabilityEditParams
 );

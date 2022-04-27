@@ -15,14 +15,13 @@ const schemaAttendeeCreateParams = z
   .object({
     bookingId: z.number().int(),
     email: z.string().email(),
-    name: z.string(),
+    name: z.string().optional(),
     timeZone: timeZone,
   })
   .strict();
 
 const schemaAttendeeEditParams = z
   .object({
-    // @note: disallowing bookingId changes in attendee via API for now as it would introduce side effects
     name: z.string().optional(),
     email: z.string().email().optional(),
     timeZone: timeZone.optional(),

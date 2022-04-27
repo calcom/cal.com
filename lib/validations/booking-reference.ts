@@ -23,22 +23,28 @@ export const schemaBookingReferenceReadPublic = BookingReference.pick({
   deleted: true,
 });
 
-const schemaBookingReferenceEditParams = z.object({
-  type: z.string(),
-  uid: z.string(),
-  meetingId: z.string(),
-  meetingPassword: z.string(),
-  meetingUrl: z.string(),
-  deleted: z.boolean(),
-});
-const schemaBookingReferenceCreateParams = z.object({
-  type: z.string(),
-  uid: z.string(),
-  meetingId: z.string(),
-  meetingPassword: z.string(),
-  meetingUrl: z.string(),
-  deleted: z.boolean(),
-});
+const schemaBookingReferenceCreateParams = z
+  .object({
+    type: z.string(),
+    uid: z.string(),
+    meetingId: z.string(),
+    meetingPassword: z.string(),
+    meetingUrl: z.string(),
+    deleted: z.boolean(),
+  })
+  .strict();
+
+const schemaBookingReferenceEditParams = z
+  .object({
+    type: z.string().optional(),
+    uid: z.string().optional(),
+    meetingId: z.string().optional(),
+    meetingPassword: z.string().optional(),
+    meetingUrl: z.string().optional(),
+    deleted: z.boolean().optional(),
+  })
+  .strict();
+
 export const schemaBookingCreateBodyParams = schemaBookingReferenceBaseBodyParams.merge(
   schemaBookingReferenceCreateParams
 );

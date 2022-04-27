@@ -8,21 +8,24 @@ export const schemaDailyEventReferenceBaseBodyParams = DailyEventReference.pick(
   bookingId: true,
 }).partial();
 
-const schemaDailyEventReferenceCreateParams = z.object({
-  dailytoken: z.string(),
-  dailyurl: z.string(),
-  bookingId: z.number(),
-});
+const schemaDailyEventReferenceCreateParams = z
+  .object({
+    dailytoken: z.string(),
+    dailyurl: z.string(),
+    bookingId: z.number(),
+  })
+  .strict();
 
 export const schemaDailyEventReferenceCreateBodyParams = schemaDailyEventReferenceBaseBodyParams.merge(
   schemaDailyEventReferenceCreateParams
 );
 
-const schemaDailyEventReferenceEditParams = z.object({
-  dailytoken: z.string(),
-  dailyurl: z.string(),
-  // @note: disallowing bookingId changes in daily-event-reference via API endpoint for now as it would introduce side effects
-});
+const schemaDailyEventReferenceEditParams = z
+  .object({
+    dailytoken: z.string().optional(),
+    dailyurl: z.string().optional(),
+  })
+  .strict();
 
 export const schemaDailyEventReferenceEditBodyParams = schemaDailyEventReferenceBaseBodyParams.merge(
   schemaDailyEventReferenceEditParams

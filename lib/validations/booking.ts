@@ -11,24 +11,27 @@ const schemaBookingBaseBodyParams = Booking.pick({
   endTime: true,
 }).partial();
 
-const schemaBookingCreateParams = z.object({
-  uid: z.string(),
-  userId: z.number(),
-  eventTypeId: z.number(),
-  title: z.string(),
-  startTime: z.date(),
-  endTime: z.date(),
-});
+const schemaBookingCreateParams = z
+  .object({
+    uid: z.string(),
+    userId: z.number(),
+    eventTypeId: z.number(),
+    title: z.string(),
+    startTime: z.date(),
+    endTime: z.date(),
+  })
+  .strict();
 
 export const schemaBookingCreateBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingCreateParams);
 
-// @note: disallowing userId/eventTypeId changes in booking endpoint via PATCH for now as it would introduce side effects
-const schemaBookingEditParams = z.object({
-  uid: z.string(),
-  title: z.string(),
-  startTime: z.date(),
-  endTime: z.date(),
-});
+const schemaBookingEditParams = z
+  .object({
+    uid: z.string().optional(),
+    title: z.string().optional(),
+    startTime: z.date().optional(),
+    endTime: z.date().optional(),
+  })
+  .strict();
 
 export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingEditParams);
 
