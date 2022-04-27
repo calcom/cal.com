@@ -142,7 +142,7 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
             "mx-2 mt-0 w-24",
             "relative",
             "after:absolute after:right-2 after:top-[12px] sm:after:top-[9px]",
-            `after:content-['${t("vital_app_hours")}']`
+            `after:content-['hours']`
           )}>
           <input
             id="value"
