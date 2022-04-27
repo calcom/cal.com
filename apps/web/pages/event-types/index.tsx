@@ -458,7 +458,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
       <a>
         <Avatar
           alt={profile?.name || ""}
-          imageSrc={profile?.image || undefined}
+          imageSrc={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}/avatar.png` || undefined}
           size={8}
           className="mt-1 inline ltr:mr-2 rtl:ml-2"
         />
