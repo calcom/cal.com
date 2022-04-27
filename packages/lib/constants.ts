@@ -7,3 +7,10 @@ export const TRIAL_LIMIT_DAYS = 14;
 export const HOSTED_CAL_FEATURES = process.env.HOSTED_CAL_FEATURES || BASE_URL === "https://app.cal.com";
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
+export const VITAL_ENV = {
+  mode: process.env.VITAL_DEVELOPMENT_MODE,
+  region: "us",
+  client_id: process.env.VITAL_CLIENT_ID,
+  client_secret: process.env.VITAL_CLIENT_SECRET,
+  webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+};

@@ -243,7 +243,7 @@ function IntegrationsContainer() {
                     installed={item.installed}
                   />
                 }>
-                <VitalsConfiguration isVisible={item.type === "vital_other"} />
+                {item.type === "vital_other" && <VitalsConfiguration trpc={trpc} />}
               </IntegrationListItem>
             ))}
           </List>

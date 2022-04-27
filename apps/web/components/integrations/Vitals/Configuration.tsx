@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 
 import Select from "@components/ui/form/Select";
 
 interface IVitalsConfigurationProps {
-  isVisible: boolean;
+  trpc: any;
 }
 
 const saveSettings = async ({
@@ -37,7 +38,15 @@ const saveSettings = async ({
 };
 
 const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
+  const { trpc } = props;
   const { t } = useLocale();
+  const { data } = trpc.useQuery(["viewer.integrations"]);
+  const vitalCredentials: { credentialIds: number[] } = data?.other?.items.find(
+    (item: { type: string }) => item.type === "vital_other"
+  );
+
+  const [credentialId] = vitalCredentials?.credentialIds || [false];
+
   const options = [
     {
       label: t("vital_app_total_label"),
@@ -52,7 +61,8 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
   const [touchedForm, setTouchedForm] = useState(false);
   const defaultSleepValue = 0;
   const [sleepValue, setSleepValue] = useState(defaultSleepValue);
-  const [connected, setConnected] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   useEffect(() => {
     async function getVitalsConfig() {
       const response = await fetch("/api/integrations/vitalother/settings", {
@@ -67,20 +77,23 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
           parameter: string;
           sleepValue: number;
         } = await response.json();
-        if (vitalSettings && vitalSettings.connected && vitalSettings.sleepValue && vitalSettings.parameter) {
+
+        if (vitalSettings && vitalSettings.connected) {
+          setConnected(vitalSettings.connected);
+        }
+        if (vitalSettings.sleepValue && vitalSettings.parameter) {
           const selectedParam = options.find((item) => item.value === vitalSettings.parameter);
           if (selectedParam) {
             setSelectedParam(selectedParam);
           }
           setSleepValue(vitalSettings.sleepValue);
-          setConnected(vitalSettings.connected);
         }
       }
     }
     getVitalsConfig();
   }, []);
 
-  if (!props.isVisible) {
+  if (!credentialId) {
     return <></>;
   }
 
@@ -128,9 +141,8 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
           className={classNames(
             "mx-2 mt-0 w-24",
             "relative",
-            `after:absolute after:right-2 after:top-[12px] after:content-['${t(
-              "vital_app_hours"
-            )}'] sm:after:top-[9px]`
+            "after:absolute after:right-2 after:top-[12px] sm:after:top-[9px]",
+            `after:content-['${t("vital_app_hours")}']`
           )}>
           <input
             id="value"
@@ -152,9 +164,19 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
       <div>
         <Button
           className="my-4"
-          onClick={() => {
-            saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
+          onClick={async () => {
+            try {
+              setSaveLoading(true);
+              await saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
+              showToast(t("vital_app_save_success"), "success");
+            } catch (error) {
+              showToast(t("vital_app_save_error"), "error");
+              setSaveLoading(false);
+            }
+            setTouchedForm(false);
+            setSaveLoading(false);
           }}
+          loading={saveLoading}
           disabled={disabledSaveButton}>
           {t("vital_app_save_button")}
         </Button>

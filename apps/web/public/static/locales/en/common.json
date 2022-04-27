@@ -776,5 +776,7 @@
   "vital_app_save_button": "Save configuration",
   "vital_app_total_label": "Total (total = rem + light sleep + deep sleep)",
   "vital_app_duration_label": "Duration (duration = bedtime end - bedtime start)",
-  "vital_app_hours": "hours"
+  "vital_app_hours": "hours",
+  "vital_app_save_success": "Success saving your Vital Configurations",
+  "vital_app_save_error": "An error ocurred saving your Vital Configurations"
 }

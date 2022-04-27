@@ -4,7 +4,7 @@
   "name": "Vital",
   "version": "0.1.0",
   "main": "./index.ts",
-  "description": "Connect your health data or wearables to trigger actions on your calendar",
+  "description": "Connect your health data or wearables to trigger actions on your calendar.",
   "dependencies": {
     "@calcom/prisma": "*",
     "@tryvital/vital-node": "^1.3.3",

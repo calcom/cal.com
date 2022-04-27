@@ -1,7 +1,8 @@
-import { InstallAppButtonProps } from "../../types";
+import { useState } from "react";
 
-const VITAL_ENV = "sandbox";
-const VITAL_REGION = "us";
+import { VITAL_ENV as vitalEnv } from "@calcom/lib/constants";
+
+import { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const getLinkToken = async () => {
@@ -17,19 +18,24 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
     }
     return await res.json();
   };
+  const [loading, setLoading] = useState(false);
+  console.log({ vitalEnv }, process.env);
   return (
     <>
       {props.render({
         onClick() {
+          setLoading(true);
           getLinkToken()
             .then((data) => {
-              window.open(
-                `https://link.tryvital.io/?token=${data?.token}&env=${VITAL_ENV}&region=${VITAL_REGION}`,
-                "_self"
-              );
+              setLoading(false);
+              window.open(`${data.url}&token=${data.token}`, "_self");
             })
-            .catch(console.error);
+            .catch((error) => {
+              setLoading(false);
+              console.error(error);
+            });
         },
+        loading: loading,
       })}
     </>
   );

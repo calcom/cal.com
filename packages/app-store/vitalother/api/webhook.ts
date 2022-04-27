@@ -4,8 +4,8 @@ import { VitalClient } from "@tryvital/vital-node";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
-import { JSONObject } from "superjson/dist/types";
 
+import { VITAL_ENV as vitalEnv } from "@calcom/lib/constants";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -15,10 +15,10 @@ import prisma from "@calcom/prisma";
 import { Reschedule } from "../lib";
 
 const client = new VitalClient({
-  client_id: process.env.VITAL_CLIENT_ID || "",
-  client_secret: process.env.VITAL_CLIENT_SECRET || "",
+  client_id: vitalEnv.client_id || "",
+  client_secret: vitalEnv.client_secret || "",
   // @ts-ignore
-  environment: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+  environment: vitalEnv.mode || "sandbox",
 });
 
 // @Note: not being used anymore but left as example
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const event: any = client.Webhooks.constructWebhookEvent(
       payload,
       req.headers as Record<string, string>,
-      process.env.VITAL_WEBHOOK_SECRET as string
+      vitalEnv.webhook_secret as string
     );
 
     if (event.event_type == "daily.data.sleep.created") {
