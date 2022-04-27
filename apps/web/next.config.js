@@ -9,6 +9,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/stripe",
   "@calcom/ui",
   "@calcom/embed-core",
+  "@calcom/embed-snippet",
 ]);
 const { i18n } = require("./next-i18next.config");
 

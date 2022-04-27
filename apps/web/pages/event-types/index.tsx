@@ -61,6 +61,12 @@ import ColorPicker from "@components/ui/colorpicker";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import Select from "@components/ui/form/Select";
 
+function getEmbedSnippetString() {
+  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "https://cal.com/embed.js", "init");
+  Cal("init");
+  `;
+}
+
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
 interface CreateEventTypeProps {
@@ -191,10 +197,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       { shallow: true }
     );
   };
-  const openEmbedModal = () => {
+  const openEmbedModal = ({ eventTypeId }) => {
     const query = {
       ...router.query,
       dialog: "embed",
+      eventTypeId,
     };
     router.push(
       {
@@ -361,7 +368,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             className="w-full rounded-none"
                             data-testid={"event-type-embed-" + type.id}
                             StartIcon={CodeIcon}
-                            onClick={() => openEmbedModal()}>
+                            onClick={() => openEmbedModal({ eventTypeId: type.id })}>
                             {t("Embed")}
                           </Button>
                         </DropdownMenuItem>
@@ -594,7 +601,7 @@ const EmbedTypesDialogContent = () => {
             onClick={() => {
               router.push({
                 query: {
-                  dialog: "embed",
+                  ...router.query,
                   type: widget.type,
                   title: widget.title,
                 },
@@ -639,10 +646,17 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
 /*
 FIXME: Title shouldn't be read from URL, it can be derived from URL 
 */
-const EmbedTypeCodeAndPreviewDialogContent = ({ type, title }) => {
+const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef();
+  const { data: eventType, isLoading } = trpc.useQuery([
+    "viewer.eventTypes.get",
+    {
+      id: +eventTypeId,
+    },
+  ]);
+
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
   const [palette, setPalette] = useState({});
@@ -654,6 +668,23 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ type, title }) => {
       },
     });
   }
+  if (!eventType && !isLoading) {
+    router.push({
+      query: "",
+    });
+    return null;
+  }
+  if (isLoading) {
+    return null;
+  }
+
+  const getInlineEmbedString = ({ calLink }) => {
+    return `Cal("inline", {
+    elementOrSelector:"#my-cal-inline",
+    calLink: "${calLink}"
+  })`;
+  };
+
   const addToPalette = (update) => {
     setPalette((palette) => {
       return {
@@ -890,14 +921,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ type, title }) => {
           <div>
             <div
               className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
-              <div></div>
+              <small className="my-4 flex text-neutral-500">
+                {t("Place this code in your HTML where you want your Cal widget to appear.")}
+              </small>
               <TextArea
                 name="embed-code"
-                className="h-[20rem]"
-                defaultValue={`<!-- Cal inline widget begin -->
-<div class="cal-inline-widget" data-url="https://cal.com/isaactanlishung" style="min-width:320px;height:630px;"></div>
-<script type="text/javascript" src="https://assets.cal.com/assets/external/widget.js" async></script>
-<!-- Cal inline widget end -->`}></TextArea>
+                className="h-[24rem]"
+                defaultValue={`<!-- Cal inline widget begins -->
+<div id="my-cal-inline"></div>
+<script type="text/javascript">
+  ${getEmbedSnippetString()}
+  ${getInlineEmbedString({ calLink: eventType.slug })}
+</script>
+<!-- Cal inline widget ends -->`}></TextArea>
               <p className="text-sm text-gray-500">
                 {t(
                   "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
@@ -981,11 +1017,15 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
-              <Dialog name="embed" clearQueryParamsOnClose={["type", "title", "tabName"]}>
+              <Dialog name="embed" clearQueryParamsOnClose={["type", "title", "tabName", "eventTypeId"]}>
                 {!router.query.type ? (
                   <EmbedTypesDialogContent />
                 ) : (
-                  <EmbedTypeCodeAndPreviewDialogContent type={router.query.type} title={router.query.title} />
+                  <EmbedTypeCodeAndPreviewDialogContent
+                    eventTypeId={router.query.eventTypeId}
+                    type={router.query.type}
+                    title={router.query.title}
+                  />
                 )}
               </Dialog>
             </>

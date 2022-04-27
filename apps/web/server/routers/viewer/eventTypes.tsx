@@ -109,6 +109,43 @@ export const eventTypesRouter = createProtectedRouter()
       });
     },
   })
+  .query("get", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          startTime: true,
+          endTime: true,
+          bufferTime: true,
+          avatar: true,
+          plan: true,
+        },
+      });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+      const eventType = await ctx.prisma.eventType.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      const detailedEventType = {
+        ...eventType,
+        // FIXME: Handle team
+        slug: `${user.username}/${eventType.slug}`,
+      };
+      return detailedEventType;
+    },
+  })
   .mutation("create", {
     input: createEventTypeInput,
     async resolve({ ctx, input }) {
