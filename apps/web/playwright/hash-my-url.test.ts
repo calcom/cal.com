@@ -31,7 +31,8 @@ test.describe("hash my url", () => {
     await page.waitForSelector('//*[@id="hashedLink"]');
     await page.click('//*[@id="hashedLink"]');
     // click update
-    await page.click('//button[@type="submit"]');
+    await page.focus('//button[@type="submit"]');
+    await page.keyboard.press("Enter");
   });
 
   test("book using generated url hash", async ({ page }) => {
