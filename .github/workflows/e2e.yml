@@ -89,7 +89,7 @@ jobs:
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn test-e2e
+      - run: NEXT_PUBLIC_LICENSE_CONSENT="agree" yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
