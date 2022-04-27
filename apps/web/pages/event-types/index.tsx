@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
@@ -458,7 +459,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
       <a>
         <Avatar
           alt={profile?.name || ""}
-          imageSrc={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}/avatar.png` || undefined}
+          imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
           size={8}
           className="mt-1 inline ltr:mr-2 rtl:ml-2"
         />
