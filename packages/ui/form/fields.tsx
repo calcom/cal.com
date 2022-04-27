@@ -42,6 +42,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 
 type InputFieldProps = {
   label?: ReactNode;
+  hint?: ReactNode;
   addOnLeading?: ReactNode;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
@@ -59,6 +60,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
+    hint,
     ...passThrough
   } = props;
   return (
@@ -82,6 +84,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
+      {hint}
       {methods?.formState?.errors[props.name] && (
         <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
       )}
