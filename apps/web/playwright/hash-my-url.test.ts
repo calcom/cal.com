@@ -5,7 +5,7 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testU
 
 test.describe("hash my url", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-
+  let $url = "";
   test.beforeEach(async ({ page }) => {
     await deleteAllBookingsByEmail("pro@example.com");
     await page.goto("/event-types");
@@ -46,7 +46,7 @@ test.describe("hash my url", () => {
     await page.click('//*[@data-testid="advanced-settings"]');
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
-    const $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
@@ -57,5 +57,19 @@ test.describe("hash my url", () => {
         return url.pathname.endsWith("/success");
       },
     });
+  });
+
+  test("hash regenerates after successful booking", async ({ page }) => {
+    await page.goto("/event-types");
+    // We wait until loading is finished
+    await page.waitForSelector('[data-testid="event-types"]');
+    await page.click('//ul[@data-testid="event-types"]/li[1]');
+    // We wait for the page to load
+    await page.waitForSelector('//*[@data-testid="advanced-settings"]');
+    await page.click('//*[@data-testid="advanced-settings"]');
+    // we wait for the hashedLink setting to load
+    await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
+    const $newUrl = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
+    expect($url !== $newUrl).toBeTruthy();
   });
 });
