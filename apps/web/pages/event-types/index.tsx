@@ -14,8 +14,13 @@ import {
   EyeIcon,
   LightBulbIcon,
   SunIcon,
+  ChevronRightIcon,
+  BackspaceIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { SliderThumb } from "@radix-ui/react-slider";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
@@ -25,7 +30,7 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button } from "@calcom/ui";
+import { Button, Switch } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogContent, DialogClose, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
@@ -34,7 +39,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
-import { Input, Label, TextArea } from "@calcom/ui/form/fields";
+import { Input, InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -53,6 +58,7 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
 import ColorPicker from "@components/ui/colorpicker";
+import CheckboxField from "@components/ui/form/CheckboxField";
 import Select from "@components/ui/form/Select";
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
@@ -570,19 +576,16 @@ const EmbedTypesDialogContent = () => {
             title: "Inline Embed",
             subtitle: "Loads your Cal scheduling page directly inline with your other website content",
             type: "inline",
-            shortTitle: "Inline",
           },
           {
             title: "Floating pop-up button",
             subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
             type: "floating-popup",
-            shortTitle: "Popup",
           },
           {
             title: "Pop up via element click",
             subtitle: "Open your Cal dialog when someone clicks an element.",
             type: "element-click",
-            shortTitle: "Element Click",
           },
         ].map((widget, index) => (
           <button
@@ -593,7 +596,7 @@ const EmbedTypesDialogContent = () => {
                 query: {
                   dialog: "embed",
                   type: widget.type,
-                  shortTitle: widget.shortTitle,
+                  title: widget.title,
                 },
               });
             }}>
@@ -609,22 +612,15 @@ const EmbedTypesDialogContent = () => {
 
 const EmbedNavBar = () => {
   const { t } = useLocale();
-  const router = useRouter();
-  const codeHref = { ...router.query, view: "embed-code" };
-  const previewHref = { ...router.query, view: "embed-preview" };
   const tabs = [
     {
       name: t("Embed"),
-      href: {
-        query: codeHref,
-      },
+      tabName: "embed-code",
       icon: CodeIcon,
     },
     {
       name: t("Preview"),
-      href: {
-        query: previewHref,
-      },
+      tabName: "embed-preview",
       icon: EyeIcon,
     },
   ];
@@ -634,16 +630,30 @@ const EmbedNavBar = () => {
 const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
   return (
     <components.Control {...props}>
-      <SunIcon className="h-[32px] w-[32px]" />
+      <SunIcon className="h-[32px] w-[32px] text-gray-500" />
       {children}
     </components.Control>
   );
 };
-const EmbedTypeCodeAndPreviewDialogContent = ({ type, shortTitle }) => {
+
+/*
+FIXME: Title shouldn't be read from URL, it can be derived from URL 
+*/
+const EmbedTypeCodeAndPreviewDialogContent = ({ type, title }) => {
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef();
+  const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
+  const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
   const [palette, setPalette] = useState({});
+  if (!router.query.tabName) {
+    router.push({
+      query: {
+        ...router.query,
+        tabName: "embed-preview",
+      },
+    });
+  }
   const addToPalette = (update) => {
     setPalette((palette) => {
       return {
@@ -673,71 +683,213 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ type, shortTitle }) => {
     },
   });
   const ThemeOptions = [
-    { value: "auto", label: "Auto" },
-    { value: "dark", label: "Dark" },
-    { value: "light", label: "Light" },
+    { value: "auto", label: "Auto Theme" },
+    { value: "dark", label: "Dark Theme" },
+    { value: "light", label: "Light Theme" },
+  ];
+  const FloatingPopupPositionOptions = [
+    {
+      value: "right",
+      label: "Bottom Right",
+    },
+    {
+      value: "bottom-left",
+      label: "Bottom Left",
+    },
   ];
   return (
     <DialogContent size="xl">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-white p-6">
-          <h3 className="mb-2 text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {shortTitle}
+          <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
+            <button
+              onClick={() => {
+                const newQuery = { ...router.query };
+                delete newQuery.type;
+                delete newQuery.tabName;
+                router.push({
+                  query: {
+                    ...newQuery,
+                  },
+                });
+              }}>
+              <ArrowLeftIcon className="mr-4 w-4"></ArrowLeftIcon>
+            </button>
+            {title}
           </h3>
-          <hr></hr>
-          <div className="mt-2">
-            <div className="flex items-center justify-between">
-              <div className="font-medium text-neutral-900">Booking Page Settings</div>
-            </div>
-
-            <p className="text-sm text-gray-500">
-              {t("Customize the look of your booking page to fit seamlessly into your website.")}
-            </p>
+          <hr className={classNames("mt-4", type === "element-click" ? "hidden" : "")}></hr>
+          <div className={classNames("mt-4 font-medium", type === "element-click" ? "hidden" : "")}>
+            <Collapsible
+              open={isEmbedCustomizationOpen}
+              onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
+              <CollapsibleTrigger
+                type="button"
+                className="flex w-full items-center text-base font-medium text-neutral-900">
+                <div>
+                  {type === "inline"
+                    ? "Inline Embed Customization"
+                    : type === "floating-popup"
+                    ? "Floating Popup Customization"
+                    : "Element Click Customization"}
+                </div>
+                <ChevronRightIcon
+                  className={`${
+                    isEmbedCustomizationOpen ? "rotate-90 transform" : ""
+                  } ml-auto h-5 w-5 text-neutral-500`}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="text-sm">
+                <div className={classNames("mt-6", type === "inline" ? "flex" : "hidden")}>
+                  {/*TODO: Add Auto/Fixed toggle from Figma */}
+                  <div className="text-sm">Embed Window Sizing</div>
+                  <div className="flex items-center justify-between">
+                    <TextField required addOnLeading={<InputLeading>W</InputLeading>} />
+                    <span className="p-2">x</span>
+                    <TextField required addOnLeading={<InputLeading>H</InputLeading>} />
+                  </div>
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div className="text-sm">Button Text</div>
+                  {/* Default Values should come from preview iframe */}
+                  <TextField defaultValue="Book my Cal" required />
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 flex items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div className="text-sm">Display Calendar Icon Button</div>
+                  <Switch></Switch>
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 flex items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div>Position of Button</div>
+                  <Select
+                    defaultValue={FloatingPopupPositionOptions[0]}
+                    options={FloatingPopupPositionOptions}></Select>
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 flex items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div>Button Color</div>
+                  <div className="w-36">
+                    <ColorPicker
+                      defaultValue="#000000"
+                      onChange={(color) => {
+                        addToPalette({
+                          "floating-popup-button-color": color,
+                        });
+                      }}></ColorPicker>
+                  </div>
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 flex items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div>Text Color</div>
+                  <div className="w-36">
+                    <ColorPicker
+                      defaultValue="#000000"
+                      onChange={(color) => {
+                        addToPalette({
+                          "floating-popup-text-color": color,
+                        });
+                      }}></ColorPicker>
+                  </div>
+                </div>
+                <div
+                  className={classNames(
+                    "mt-4 flex items-center justify-between",
+                    type === "floating-popup" ? "flex" : "hidden"
+                  )}>
+                  <div>Button Color on Hover</div>
+                  <div className="w-36">
+                    <ColorPicker
+                      defaultValue="#000000"
+                      onChange={(color) => {
+                        addToPalette({
+                          "floating-popup-button-color-hover": color,
+                        });
+                      }}></ColorPicker>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
-          <div className="mt-2">
-            <Label className="flex justify-between text-base">
-              <div>Theme</div>
-              <Select
-                defaultValue={ThemeOptions[0]}
-                components={{
-                  Control: ThemeSelectControl,
-                }}
-                onChange={(option) => {
-                  previewInstruction({
-                    name: "ui",
-                    arg: {
-                      theme: option.value,
-                    },
-                  });
-                }}
-                options={ThemeOptions}></Select>
-            </Label>
-            {[
-              { name: "brandColor", title: "Brand Color" },
-              // { name: "lightColor", title: "Light Color" },
-              // { name: "lighterColor", title: "Lighter Color" },
-              // { name: "lightestColor", title: "Lightest Color" },
-              // { name: "highlightColor", title: "Highlight Color" },
-              // { name: "medianColor", title: "Median Color" },
-            ].map((palette) => (
-              <Label key={palette.name} className="flex items-center justify-between text-base">
-                <div>{palette.title}</div>
-                <ColorPicker
-                  defaultValue="#000000"
-                  onChange={(color) => {
-                    addToPalette({
-                      [palette.name]: color,
-                    });
-                  }}></ColorPicker>
-              </Label>
-            ))}
+          <hr className="mt-4"></hr>
+          <div className="mt-4 font-medium">
+            <Collapsible
+              open={isBookingCustomizationOpen}
+              onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
+              <CollapsibleTrigger className="flex w-full" type="button">
+                <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
+                <ChevronRightIcon
+                  className={`${
+                    isBookingCustomizationOpen ? "rotate-90 transform" : ""
+                  } ml-auto h-5 w-5 text-neutral-500`}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-6 text-sm">
+                  <Label className="flex items-center justify-between">
+                    <div>Theme</div>
+                    <Select
+                      className="w-36"
+                      defaultValue={ThemeOptions[0]}
+                      components={{
+                        Control: ThemeSelectControl,
+                      }}
+                      onChange={(option) => {
+                        previewInstruction({
+                          name: "ui",
+                          arg: {
+                            theme: option.value,
+                          },
+                        });
+                      }}
+                      options={ThemeOptions}></Select>
+                  </Label>
+                  {[
+                    { name: "brandColor", title: "Brand Color" },
+                    // { name: "lightColor", title: "Light Color" },
+                    // { name: "lighterColor", title: "Lighter Color" },
+                    // { name: "lightestColor", title: "Lightest Color" },
+                    // { name: "highlightColor", title: "Highlight Color" },
+                    // { name: "medianColor", title: "Median Color" },
+                  ].map((palette) => (
+                    <Label key={palette.name} className="flex items-center justify-between">
+                      <div>{palette.title}</div>
+                      <div className="w-36">
+                        <ColorPicker
+                          defaultValue="#000000"
+                          onChange={(color) => {
+                            addToPalette({
+                              [palette.name]: color,
+                            });
+                          }}></ColorPicker>
+                      </div>
+                    </Label>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
         <div className="w-2/3 bg-gray-50 p-6">
           <EmbedNavBar />
           <div>
             <div
-              className={classNames(router.query.view !== "embed-preview" ? "block" : "hidden", "h-[75vh]")}>
+              className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
               <div></div>
               <TextArea
                 name="embed-code"
@@ -752,7 +904,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ type, shortTitle }) => {
                 )}
               </p>
             </div>
-            <div className={router.query.view == "embed-preview" ? "block" : "hidden"}>
+            <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}>
               <iframe
                 ref={iframeRef}
                 className="h-[75vh]"
@@ -829,14 +981,11 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
-              <Dialog name="embed" clearQueryParamsOnClose={["type", "shortTitle", "view"]}>
+              <Dialog name="embed" clearQueryParamsOnClose={["type", "title", "tabName"]}>
                 {!router.query.type ? (
                   <EmbedTypesDialogContent />
                 ) : (
-                  <EmbedTypeCodeAndPreviewDialogContent
-                    type={router.query.type}
-                    shortTitle={router.query.shortTitle || router.query.type}
-                  />
+                  <EmbedTypeCodeAndPreviewDialogContent type={router.query.type} title={router.query.title} />
                 )}
               </Dialog>
             </>

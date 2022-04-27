@@ -21,7 +21,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
     <>
       <nav className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
         {tabs.map((tab) => {
-          let hrefProps;
+          let href;
           let isCurrent;
 
           if (tab.href) {
@@ -30,6 +30,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
           } else if (tab.tabName) {
             //TODO: Handle Current Implementation
             href = "";
+            isCurrent = router.query.tabName === tab.tabName;
           }
           const onClick = tab.tabName
             ? (e) => {
@@ -46,7 +47,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
           const Component = tab.adminRequired ? AdminRequired : Fragment;
           return (
             <Component key={tab.name}>
-              <Link key={tab.name} {...hrefProps} {...linkProps}>
+              <Link key={tab.name} href={href} {...linkProps}>
                 <a
                   onClick={onClick}
                   className={classNames(
