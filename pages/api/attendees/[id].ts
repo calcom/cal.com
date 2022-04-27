@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AttendeeResponse } from "@lib/types";
-import { schemaAttendeeBodyParams, schemaAttendeePublic } from "@lib/validations/attendee";
+import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -14,7 +14,7 @@ import {
  * @swagger
  * /attendees/{id}:
  *   get:
- *     summary: Get an attendee by ID
+ *     summary: Find an attendee by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -22,6 +22,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the attendee to get
+ *         example: 3
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -37,18 +38,34 @@ import {
  *     summary: Edit an existing attendee
  *     consumes:
  *       - application/json
+ *     requestBody:
+ *       description: Edit an existing attendee related to one of your bookings
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - name
+ *               - email
+ *               - timeZone
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: email@example.com
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               timeZone:
+ *                 type: string
+ *                 example: Europe/London
  *     parameters:
- *      - in: body
- *        name: attendee
- *        description: The attendee to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Attendee'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
+ *          example: 3
  *        required: true
  *        description: Numeric ID of the attendee to edit
  *     security:
@@ -88,7 +105,6 @@ import {
 export async function attendeeById(req: NextApiRequest, res: NextApiResponse<AttendeeResponse>) {
   const { method, query, body, userId } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaAttendeeBodyParams.safeParse(body);
   if (!safeQuery.success) {
     res.status(400).json({ error: safeQuery.error });
     throw new Error("Invalid request query", safeQuery.error);
@@ -106,7 +122,7 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
       case "GET":
         await prisma.attendee
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaAttendeePublic.parse(data))
+          .then((data) => schemaAttendeeReadPublic.parse(data))
           .then((attendee) => res.status(200).json({ attendee }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -117,13 +133,14 @@ export async function attendeeById(req: NextApiRequest, res: NextApiResponse<Att
         break;
 
       case "PATCH":
+        const safeBody = schemaAttendeeEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
           throw new Error("Invalid request body");
         }
         await prisma.attendee
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaAttendeePublic.parse(data))
+          .then((data) => schemaAttendeeReadPublic.parse(data))
           .then((attendee) => res.status(200).json({ attendee }))
           .catch((error: Error) =>
             res.status(404).json({

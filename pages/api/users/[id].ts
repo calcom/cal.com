@@ -8,13 +8,13 @@ import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
-import { schemaUserEditBodyParams, schemaUserReadPublic, withValidUser } from "@lib/validations/user";
+import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations/user";
 
 /**
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get a user by ID, returns your user if regular user.
+ *     summary: Find a user by ID, returns your user if regular user.
  *     parameters:
  *       - in: path
  *         name: id

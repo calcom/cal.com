@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingResponse } from "@lib/types";
-import { schemaBookingBodyParams, schemaBookingPublic } from "@lib/validations/booking";
+import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -14,7 +14,7 @@ import {
  * @swagger
  * /bookings/{id}:
  *   get:
- *     summary: Get a booking by ID
+ *     summary: Find a booking by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -88,7 +88,6 @@ import {
 export async function bookingById(req: NextApiRequest, res: NextApiResponse<BookingResponse>) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaBookingBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
@@ -103,7 +102,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
       case "GET":
         await prisma.booking
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaBookingPublic.parse(data))
+          .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -114,6 +113,8 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
         break;
 
       case "PATCH":
+        const safeBody = schemaBookingEditBodyParams.safeParse(body);
+
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
@@ -122,7 +123,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
-          .then((data) => schemaBookingPublic.parse(data))
+          .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
           .catch((error: Error) =>
             res.status(404).json({

@@ -5,15 +5,15 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingReferenceResponse, BookingReferencesResponse } from "@lib/types";
 import {
-  schemaBookingReferenceBodyParams,
-  schemaBookingReferencePublic,
+  schemaBookingCreateBodyParams,
+  schemaBookingReferenceReadPublic,
 } from "@lib/validations/booking-reference";
 
 /**
  * @swagger
  * /booking-references:
  *   get:
- *     summary: Get all booking references
+ *     summary: Find all booking references
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -55,7 +55,7 @@ async function createOrlistAllBookingReferences(
   if (method === "GET") {
     const data = await prisma.bookingReference.findMany({ where: { id: { in: userBookingIds } } });
     const booking_references = data.map((bookingReference) =>
-      schemaBookingReferencePublic.parse(bookingReference)
+      schemaBookingReferenceReadPublic.parse(bookingReference)
     );
     if (booking_references) res.status(200).json({ booking_references });
     else
@@ -65,7 +65,7 @@ async function createOrlistAllBookingReferences(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaBookingReferenceBodyParams.safeParse(req.body);
+    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
     if (!safe.success) {
       throw new Error("Invalid request body");
     }

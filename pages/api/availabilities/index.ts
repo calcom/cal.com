@@ -4,13 +4,16 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AvailabilityResponse, AvailabilitiesResponse } from "@lib/types";
-import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
+import {
+  schemaAvailabilityCreateBodyParams,
+  schemaAvailabilityReadPublic,
+} from "@lib/validations/availability";
 
 /**
  * @swagger
  * /availabilities:
  *   get:
- *     summary: Get all availabilities
+ *     summary: Find all availabilities
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -50,7 +53,7 @@ async function createOrlistAllAvailabilities(
 
   if (method === "GET") {
     const data = await prisma.availability.findMany({ where: { userId } });
-    const availabilities = data.map((availability) => schemaAvailabilityPublic.parse(availability));
+    const availabilities = data.map((availability) => schemaAvailabilityReadPublic.parse(availability));
     if (availabilities) res.status(200).json({ availabilities });
     else
       (error: Error) =>
@@ -59,13 +62,12 @@ async function createOrlistAllAvailabilities(
           error,
         });
   } else if (method === "POST") {
-    console.log(req.body);
-    const safe = schemaAvailabilityBodyParams.safeParse(req.body);
+    const safe = schemaAvailabilityCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.availability.create({ data: { ...safe.data, userId } });
     console.log(data);
-    const availability = schemaAvailabilityPublic.parse(data);
+    const availability = schemaAvailabilityReadPublic.parse(data);
 
     if (availability) res.status(201).json({ availability, message: "Availability created successfully" });
     else

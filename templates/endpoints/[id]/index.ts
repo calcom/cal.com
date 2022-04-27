@@ -14,7 +14,7 @@ import {
  * @swagger
  * /v1/resources/{id}:
  *   get:
- *   summary: Get a resource by ID
+ *   summary: Find a resource by ID
  *    parameters:
  *      - in: path
  *        name: id

@@ -5,8 +5,8 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DailyEventReferenceResponse } from "@lib/types";
 import {
-  schemaDailyEventReferenceBodyParams,
-  schemaDailyEventReferencePublic,
+  schemaDailyEventReferenceEditBodyParams,
+  schemaDailyEventReferenceReadPublic,
 } from "@lib/validations/daily-event-reference";
 import {
   schemaQueryIdParseInt,
@@ -17,7 +17,7 @@ import {
  * @swagger
  * /daily-event-references/{id}:
  *   get:
- *     summary: Get a daily event reference by ID
+ *     summary: Find a daily event reference by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,7 +94,7 @@ export async function dailyEventReferenceById(
 ) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaDailyEventReferenceBodyParams.safeParse(body);
+  const safeBody = schemaDailyEventReferenceEditBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const userBookings = await prisma.booking.findMany({ where: { userId } });
@@ -112,7 +112,7 @@ export async function dailyEventReferenceById(
       case "GET":
         await prisma.dailyEventReference
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaDailyEventReferencePublic.parse(data))
+          .then((data) => schemaDailyEventReferenceReadPublic.parse(data))
           .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -128,7 +128,7 @@ export async function dailyEventReferenceById(
         }
         await prisma.dailyEventReference
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaDailyEventReferencePublic.parse(data))
+          .then((data) => schemaDailyEventReferenceReadPublic.parse(data))
           .then((daily_event_reference) => res.status(200).json({ daily_event_reference }))
           .catch((error: Error) =>
             res.status(404).json({

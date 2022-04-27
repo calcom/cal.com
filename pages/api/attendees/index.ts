@@ -4,13 +4,13 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
-import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } from "@lib/validations/attendee";
+import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/validations/attendee";
 
 /**
  * @swagger
  * /attendees:
  *   get:
- *     summary: Get all attendees
+ *     summary: Find all attendees
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -26,6 +26,33 @@ import { schemaAttendeeBodyParams, schemaAttendeePublic, withValidAttendee } fro
  *     summary: Creates a new attendee
  *     security:
  *       - ApiKeyAuth: []
+ *     consumes:
+ *       - application/json
+ *     requestBody:
+ *       description: Create a new attendee related to one of your bookings
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - name
+ *               - email
+ *               - timeZone
+ *             properties:
+ *               bookingId:
+ *                 type: number
+ *                 example: 1
+ *               email:
+ *                 type: string
+ *                 example: email@example.com
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               timeZone:
+ *                 type: string
+ *                 example: Europe/London
  *     tags:
  *     - attendees
  *     responses:
@@ -61,11 +88,12 @@ async function createOrlistAllAttendees(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaAttendeeBodyParams.safeParse(req.body);
-    if (!safe.success) {
-      throw new Error("Invalid request body", safe.error);
+    const safePost = schemaAttendeeCreateBodyParams.safeParse(req.body);
+    if (!safePost.success) {
+      console.log(safePost.error);
+      res.status(400).json({ error: safePost.error });
+      throw new Error("Invalid request body", safePost.error);
     }
-    const bookingId = safe.data.bookingId;
     const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
@@ -76,18 +104,17 @@ async function createOrlistAllAttendees(
     }
     const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
     // Here we make sure to only return attendee's of the user's own bookings.
-    if (!userBookingIds.includes(parseInt(safe.data.bookingId)))
-      res.status(401).json({ message: "Unauthorized" });
+    if (!userBookingIds.includes(safePost.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
-      delete safe.data.bookingId;
-      const noBookingId = safe.data;
       const data = await prisma.attendee.create({
         data: {
-          ...noBookingId,
-          booking: { connect: { id: parseInt(bookingId) } },
+          email: safePost.data.email,
+          name: safePost.data.name,
+          timeZone: safePost.data.timeZone,
+          booking: { connect: { id: safePost.data.bookingId } },
         },
       });
-      const attendee = schemaAttendeePublic.parse(data);
+      const attendee = schemaAttendeeReadPublic.parse(data);
 
       if (attendee) {
         res.status(201).json({

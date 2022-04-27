@@ -10,7 +10,7 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  * @swagger
  * /v1/payments:
  *   get:
- *     summary: Get all payments
+ *     summary: Find all payments
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

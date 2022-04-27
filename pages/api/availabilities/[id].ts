@@ -4,7 +4,10 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
-import { schemaAvailabilityBodyParams, schemaAvailabilityPublic } from "@lib/validations/availability";
+import {
+  schemaAvailabilityEditBodyParams,
+  schemaAvailabilityReadPublic,
+} from "@lib/validations/availability";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -14,7 +17,7 @@ import {
  * @swagger
  * /availabilities/{id}:
  *   get:
- *     summary: Get an availability by ID
+ *     summary: Find an availability by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -93,7 +96,6 @@ import {
  */
 export async function availabilityById(req: NextApiRequest, res: NextApiResponse<AvailabilityResponse>) {
   const { method, query, body } = req;
-  const safeBody = schemaAvailabilityBodyParams.safeParse(body);
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
@@ -105,7 +107,7 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
       case "GET":
         await prisma.availability
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaAvailabilityPublic.parse(data))
+          .then((data) => schemaAvailabilityReadPublic.parse(data))
           .then((availability) => res.status(200).json({ availability }))
           .catch((error: Error) =>
             res.status(404).json({ message: `Availability with id: ${safeQuery.data.id} not found`, error })
@@ -113,7 +115,7 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
         break;
 
       case "PATCH":
-
+        const safeBody = schemaAvailabilityEditBodyParams.safeParse(body);
         if (!safeBody.success) throw new Error("Invalid request body");
         const userEventTypes = await prisma.eventType.findMany({ where: { userId } });
         const userEventTypesIds = userEventTypes.map((event) => event.id);
@@ -127,7 +129,7 @@ export async function availabilityById(req: NextApiRequest, res: NextApiResponse
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
-          .then((data) => schemaAvailabilityPublic.parse(data))
+          .then((data) => schemaAvailabilityReadPublic.parse(data))
           .then((availability) => res.status(200).json({ availability }))
           .catch((error: Error) => {
             console.log(error);

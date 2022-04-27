@@ -13,7 +13,7 @@ import {
  * @swagger
  * /selected-calendars:
  *   get:
- *     summary: Get all selected calendars
+ *     summary: Find all selected calendars
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

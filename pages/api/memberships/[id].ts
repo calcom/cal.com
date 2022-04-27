@@ -11,7 +11,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * @swagger
  * /memberships/{userId}_{teamId}:
  *   get:
- *     summary: Get a membership by userID and teamID
+ *     summary: Find a membership by userID and teamID
  *     parameters:
  *      - in: path
  *        name: userId

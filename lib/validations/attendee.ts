@@ -1,23 +1,39 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _AttendeeModel as Attendee } from "@calcom/prisma/zod";
 
-export const schemaAttendeeBaseBodyParams = Attendee.omit({ id: true }).partial();
+import { timeZone } from "@lib/validations/shared/timeZone";
 
-export const schemaAttendeePublic = Attendee.omit({});
+export const schemaAttendeeBaseBodyParams = Attendee.pick({
+  bookingId: true,
+  email: true,
+  name: true,
+  timeZone: true,
+}).partial();
 
-const schemaAttendeeRequiredParams = z.object({
-  bookingId: z.any(),
-  email: z.string().email(),
-  name: z.string(),
-  timeZone: z.string(),
-});
+const schemaAttendeeCreateParams = z
+  .object({
+    bookingId: z.number().int(),
+    email: z.string().email(),
+    name: z.string().optional(),
+    timeZone: timeZone,
+  })
+  .strict();
 
-export const schemaAttendeeBodyParams = schemaAttendeeBaseBodyParams.merge(schemaAttendeeRequiredParams);
+const schemaAttendeeEditParams = z
+  .object({
+    name: z.string().optional(),
+    email: z.string().email().optional(),
+    timeZone: timeZone.optional(),
+  })
+  .strict();
+export const schemaAttendeeEditBodyParams = schemaAttendeeBaseBodyParams.merge(schemaAttendeeEditParams);
+export const schemaAttendeeCreateBodyParams = schemaAttendeeBaseBodyParams.merge(schemaAttendeeCreateParams);
 
-export const withValidAttendee = withValidation({
-  schema: schemaAttendeeBodyParams,
-  type: "Zod",
-  mode: "body",
+export const schemaAttendeeReadPublic = Attendee.pick({
+  id: true,
+  bookingId: true,
+  name: true,
+  email: true,
+  timeZone: true,
 });

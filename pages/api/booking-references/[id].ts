@@ -6,8 +6,8 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { BookingReferenceResponse } from "@lib/types";
 import {
-  schemaBookingReferenceBodyParams,
-  schemaBookingReferencePublic,
+  schemaBookingEditBodyParams,
+  schemaBookingReferenceReadPublic,
 } from "@lib/validations/booking-reference";
 import {
   schemaQueryIdParseInt,
@@ -18,14 +18,14 @@ import {
  * @swagger
  * /booking-references/{id}:
  *   get:
- *     summary: Get a daily event reference by ID
+ *     summary: Find a booking reference by ID
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the daily event reference to get
+ *         description: Numeric ID of the booking reference to get
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -38,7 +38,7 @@ import {
  *       404:
  *         description: BookingReference was not found
  *   patch:
- *     summary: Edit an existing daily event reference
+ *     summary: Edit an existing booking reference
  *     consumes:
  *       - application/json
  *     parameters:
@@ -54,7 +54,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the daily event reference to edit
+ *        description: Numeric ID of the booking reference to edit
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -68,14 +68,14 @@ import {
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
- *     summary: Remove an existing daily event reference
+ *     summary: Remove an existing booking reference
  *     parameters:
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the daily event reference to delete
+ *        description: Numeric ID of the booking reference to delete
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -95,7 +95,6 @@ export async function bookingReferenceById(
 ) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaBookingReferenceBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
@@ -111,7 +110,7 @@ export async function bookingReferenceById(
       case "GET":
         await prisma.bookingReference
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaBookingReferencePublic.parse(data))
+          .then((data) => schemaBookingReferenceReadPublic.parse(data))
           .then((booking_reference) => res.status(200).json({ booking_reference }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -122,12 +121,14 @@ export async function bookingReferenceById(
         break;
 
       case "PATCH":
+        const safeBody = schemaBookingEditBodyParams.safeParse(body);
+
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
         await prisma.bookingReference
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaBookingReferencePublic.parse(data))
+          .then((data) => schemaBookingReferenceReadPublic.parse(data))
           .then((booking_reference) => res.status(200).json({ booking_reference }))
           .catch((error: Error) =>
             res.status(404).json({

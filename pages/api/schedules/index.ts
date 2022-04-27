@@ -4,13 +4,13 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
-import { schemaScheduleBodyParams, schemaSchedulePublic, withValidSchedule } from "@lib/validations/schedule";
+import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 
 /**
  * @swagger
  * /schedules:
  *   get:
- *     summary: Get all schedules
+ *     summary: Find all schedules
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

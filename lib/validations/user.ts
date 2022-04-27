@@ -1,8 +1,8 @@
-import { withValidation } from "next-validations";
-import * as tzdb from "tzdata";
 import { z } from "zod";
 
 import { _UserModel as User } from "@calcom/prisma/zod";
+
+import { timeZone } from "@lib/validations/shared/timeZone";
 
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
 enum weekdays {
@@ -74,14 +74,10 @@ export const schemaUserBaseBodyParams = User.pick({
 
 // Here we can both require or not (adding optional or nullish) and also rewrite validations for any value
 // for example making weekStart only accept weekdays as input
-const schemaUserRequiredParams = z.object({
+const schemaUserEditParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
-  timeZone: z
-    .string()
-    // @note: This is a custom validation that checks if the timezone is valid and exists in the tzdb library
-    .refine((tz: string) => Object.keys(tzdb.zones).includes(tz))
-    .optional(),
+  timeZone: timeZone.optional(),
   bufferTime: z.number().min(0).max(86400).optional(),
   startTime: z.number().min(0).max(86400).optional(),
   endTime: z.number().min(0).max(86400).optional(),
@@ -96,7 +92,7 @@ const schemaUserRequiredParams = z.object({
 
 // @note: These are the values that are editable via PATCH method on the user Model,
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
-export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserRequiredParams).omit({});
+export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserEditParams).omit({});
 
 // @note: These are the values that are always returned when reading a user
 export const schemaUserReadPublic = User.pick({
@@ -123,6 +119,3 @@ export const schemaUserReadPublic = User.pick({
   verified: true,
   invitedTo: true,
 });
-
-// @note: This is the validation for the PATCH method on the user Model. Not used for now.
-export const withValidUser = withValidation({ schema: schemaUserEditBodyParams, type: "Zod", mode: "body" });

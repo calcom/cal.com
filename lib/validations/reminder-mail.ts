@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _ReminderMailModel as ReminderMail } from "@calcom/prisma/zod";
@@ -16,9 +15,3 @@ const schemaReminderMailRequiredParams = z.object({
 export const schemaReminderMailBodyParams = schemaReminderMailBaseBodyParams.merge(
   schemaReminderMailRequiredParams
 );
-
-export const withValidReminderMail = withValidation({
-  schema: schemaReminderMailBodyParams,
-  type: "Zod",
-  mode: "body",
-});

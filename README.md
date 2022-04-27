@@ -1,7 +1,7 @@
 # Cal.com Public API (Enterprise Only)
 
-This is the public REST api for cal.com. 
-It exposes CRUD Endpoints of all our most important resources. 
+This is the public REST api for cal.com.
+It exposes CRUD Endpoints of all our most important resources.
 And it makes it easy for anyone to integrate with Cal.com at the application programming level.
 
 ## Stack
@@ -63,9 +63,10 @@ API Keys optionally may have expiry dates, if they are expired they won't work. 
 In the future we might add support for header Bearer Auth if we need to or if our customers require it.
 
 ## Middlewares
+
 We don't use the new NextJS 12 Beta Middlewares, mainly because they run on the edge, and are not able to call prisma from api endpoints. We use instead a very nifty library called next-api-middleware that let's us use a similar approach building our own middlewares and applying them as we see fit.
 
-* withMiddleware() requires some default middlewares (verifyApiKey, etc...)
+- withMiddleware() requires some default middlewares (verifyApiKey, etc...)
 
 ## Next.config.js
 
@@ -121,21 +122,21 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 
 ## Endpoints matrix
 
-| resource                 | get [id] | get all  | create  | edit  | delete |
-|--------------------------|----------|----------|---------|-------|--------|
-| attendees                |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| availabilities           |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| booking-references       |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| daily-event-references   |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| destination-calendars    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| event-type-custom-inputs |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| event-types              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| memberships              |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| payments                 |     ✅    |    ✅    |    ❌   |   ❌  |    ❌   |
-| schedules                |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| selected-calendars       |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| teams                    |     ✅    |    ✅    |    ✅   |   ✅  |    ✅   |
-| users                    |     ✅    |   👤[1]  |    ✅   |   ✅  |    ✅   |
+| resource                 | get [id] | get all | create | edit | delete |
+| ------------------------ | -------- | ------- | ------ | ---- | ------ |
+| attendees                | ✅       | ✅      | ✅     | ✅   | ✅     |
+| availabilities           | ✅       | ✅      | ✅     | ✅   | ✅     |
+| booking-references       | ✅       | ✅      | ✅     | ✅   | ✅     |
+| daily-event-references   | ✅       | ✅      | ✅     | ✅   | ✅     |
+| destination-calendars    | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-type-custom-inputs | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-types              | ✅       | ✅      | ✅     | ✅   | ✅     |
+| memberships              | ✅       | ✅      | ✅     | ✅   | ✅     |
+| payments                 | ✅       | ✅      | ❌     | ❌   | ❌     |
+| schedules                | ✅       | ✅      | ✅     | ✅   | ✅     |
+| selected-calendars       | ✅       | ✅      | ✅     | ✅   | ✅     |
+| teams                    | ✅       | ✅      | ✅     | ✅   | ✅     |
+| users                    | ✅       | 👤[1]   | ✅     | ✅   | ✅     |
 
 ## Models from database that are not exposed
 
@@ -170,5 +171,6 @@ DATABASE_URL=DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
 
 ## Optional
 
-API_KEY_PREFIX=cal_# This can be changed per envirorment so cal_test_ for staging for example.
-> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal_ (not providing any envirorment variable) or modify it
+API*KEY_PREFIX=cal*# This can be changed per envirorment so cal*test* for staging for example.
+
+> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any envirorment variable) or modify it

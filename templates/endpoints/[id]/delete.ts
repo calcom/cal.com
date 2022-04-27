@@ -22,7 +22,7 @@ import {
  *        required: true
  *        description: Numeric ID of the resource to delete
  *     security:
- *       - ApiKeyAuth: []
+ *       - ApiKeyAuth: [] 
  *     tags:
  *     - resources
  *     responses:
