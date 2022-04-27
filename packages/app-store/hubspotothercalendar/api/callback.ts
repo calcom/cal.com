@@ -3,6 +3,7 @@ import { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/To
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
@@ -52,5 +53,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const state = decodeOAuthState(req);
-  res.redirect(state?.returnTo ?? "/apps/installed");
+  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
 }
