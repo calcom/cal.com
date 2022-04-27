@@ -8,13 +8,14 @@ export default function APIDocs() {
   return (
     <SwaggerUI
       url={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "https://api.cal.com/docs"}
-      supportedSubmitMethods={["get", "post", "delete", "patch"]}
+      persistAuthorization={true}
+      supportedSubmitMethods={["get", "post", "delete", "put", "options", "patch"]}
       requestSnippetsEnabled={true}
       requestSnippets={requestSnippets}
       plugins={[SnippedGenerator]}
       tryItOutEnabled={true}
       syntaxHighlight={true}
-      docExpansion="none"
+      docExpansion="list"
       filter={true}
     />
   );
