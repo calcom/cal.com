@@ -151,28 +151,11 @@ const AvailabilitySelect = ({
   onBlur: Noop;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
     <QueryCell
       query={query}
-      loading={() => {
-        return (
-          <Select
-            isDisabled
-            options={[]}
-            isSearchable={false}
-            onChange={props.onChange}
-            classNamePrefix="react-select"
-            className={classNames(
-              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
-              className
-            )}
-            placeholder={t("loading")}
-          />
-        );
-      }}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
@@ -1134,7 +1117,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger
+                        type="button"
+                        data-testid="show-advanced-settings"
+                        className="flex w-full">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1144,7 +1130,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("show_advanced_settings")}
                         </span>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6">
+                      <CollapsibleContent data-testid="advanced-settings-content" className="mt-4 space-y-6">
                         {/**
                          * Only display calendar selector if user has connected calendars AND if it's not
                          * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -1441,7 +1427,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
@@ -1680,7 +1666,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <Button href="/event-types" color="secondary" tabIndex={-1}>
                       {t("cancel")}
                     </Button>
-                    <Button type="submit" disabled={updateMutation.isLoading}>
+                    <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
                       {t("update")}
                     </Button>
                   </div>

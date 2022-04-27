@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
@@ -452,45 +453,48 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   );
 };
 
-const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
-  <div className="mb-4 flex">
-    <Link href="/settings/teams">
-      <a>
-        <Avatar
-          alt={profile?.name || ""}
-          imageSrc={profile?.image || undefined}
-          size={8}
-          className="mt-1 inline ltr:mr-2 rtl:ml-2"
-        />
-      </a>
-    </Link>
-    <div>
+const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
+  console.log(profile.slug);
+  return (
+    <div className="mb-4 flex">
       <Link href="/settings/teams">
-        <a className="font-bold">{profile?.name || ""}</a>
+        <a>
+          <Avatar
+            alt={profile?.name || ""}
+            imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+            size={8}
+            className="mt-1 inline ltr:mr-2 rtl:ml-2"
+          />
+        </a>
       </Link>
-      {membershipCount && (
-        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
-          <Link href="/settings/teams">
-            <a>
-              <Badge variant="gray">
-                <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
-                {membershipCount}
-              </Badge>
-            </a>
-          </Link>
-        </span>
-      )}
-      {profile?.slug && (
-        <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
-            "https://",
-            ""
-          )}/${profile.slug}`}</a>
+      <div>
+        <Link href="/settings/teams">
+          <a className="font-bold">{profile?.name || ""}</a>
         </Link>
-      )}
+        {membershipCount && (
+          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
+            <Link href="/settings/teams">
+              <a>
+                <Badge variant="gray">
+                  <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
+                  {membershipCount}
+                </Badge>
+              </a>
+            </Link>
+          </span>
+        )}
+        {profile?.slug && (
+          <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
+          </Link>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
   const { t } = useLocale();
