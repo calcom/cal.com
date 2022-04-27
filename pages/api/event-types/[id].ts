@@ -14,7 +14,7 @@ import {
  * @swagger
  * /event-types/{id}:
  *   get:
- *     summary: Get a eventType by ID
+ *     summary: Find a eventType by ID
  *     parameters:
  *       - in: path
  *         name: id

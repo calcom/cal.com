@@ -13,7 +13,7 @@ import {
  * @swagger
  * /event-type-custom-inputs:
  *   get:
- *     summary: Get all eventTypeCustomInputs
+ *     summary: Find all eventTypeCustomInputs
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

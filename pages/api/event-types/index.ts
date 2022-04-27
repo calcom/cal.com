@@ -10,7 +10,7 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  * @swagger
  * /event-types:
  *   get:
- *     summary: Get all event types
+ *     summary: Find all event types
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

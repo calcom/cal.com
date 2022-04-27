@@ -1,8 +1,8 @@
-import { withValidation } from "next-validations";
-import * as tzdb from "tzdata";
 import { z } from "zod";
 
 import { _UserModel as User } from "@calcom/prisma/zod";
+
+import { timeZone } from "@lib/validations/shared/timeZone";
 
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
 enum weekdays {
@@ -77,11 +77,7 @@ export const schemaUserBaseBodyParams = User.pick({
 const schemaUserEditParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
-  timeZone: z
-    .string()
-    // @note: This is a custom validation that checks if the timezone is valid and exists in the tzdb library
-    .refine((tz: string) => Object.keys(tzdb.zones).includes(tz))
-    .optional(),
+  timeZone: timeZone.optional(),
   bufferTime: z.number().min(0).max(86400).optional(),
   startTime: z.number().min(0).max(86400).optional(),
   endTime: z.number().min(0).max(86400).optional(),

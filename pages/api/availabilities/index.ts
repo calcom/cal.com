@@ -13,7 +13,7 @@ import {
  * @swagger
  * /availabilities:
  *   get:
- *     summary: Get all availabilities
+ *     summary: Find all availabilities
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

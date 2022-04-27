@@ -17,7 +17,7 @@ import {
  * @swagger
  * /availabilities/{id}:
  *   get:
- *     summary: Get an availability by ID
+ *     summary: Find an availability by ID
  *     parameters:
  *       - in: path
  *         name: id

@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _BookingReferenceModel as BookingReference } from "@calcom/prisma/zod";
@@ -14,6 +13,7 @@ export const schemaBookingReferenceBaseBodyParams = BookingReference.pick({
 }).partial();
 
 export const schemaBookingReferenceReadPublic = BookingReference.pick({
+  id: true,
   type: true,
   bookingId: true,
   uid: true,

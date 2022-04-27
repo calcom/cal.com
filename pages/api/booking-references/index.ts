@@ -13,7 +13,7 @@ import {
  * @swagger
  * /booking-references:
  *   get:
- *     summary: Get all booking references
+ *     summary: Find all booking references
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

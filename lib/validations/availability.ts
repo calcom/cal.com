@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _AvailabilityModel as Availability } from "@calcom/prisma/zod";
@@ -12,6 +11,7 @@ export const schemaAvailabilityBaseBodyParams = Availability.pick({
 }).partial();
 
 export const schemaAvailabilityReadPublic = Availability.pick({
+  id: true,
   startTime: true,
   endTime: true,
   date: true,

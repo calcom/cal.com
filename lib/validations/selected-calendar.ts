@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
@@ -24,9 +23,3 @@ const schemaSelectedCalendarRequiredParams = z.object({
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams.merge(
   schemaSelectedCalendarRequiredParams
 );
-
-export const withValidSelectedCalendar = withValidation({
-  schema: schemaSelectedCalendarBodyParams,
-  type: "Zod",
-  mode: "body",
-});

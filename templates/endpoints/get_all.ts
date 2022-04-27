@@ -10,7 +10,7 @@ import { schemaResourcePublic } from "@lib/validations/resource";
  * @swagger
  * /v1/resources:
  *   get:
- *     summary: Get all resources
+ *     summary: Find all resources
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

@@ -10,7 +10,7 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  * @swagger
  * /memberships:
  *   get:
- *     summary: Get all memberships
+ *     summary: Find all memberships
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

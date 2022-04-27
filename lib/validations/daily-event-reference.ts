@@ -1,22 +1,35 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _DailyEventReferenceModel as DailyEventReference } from "@calcom/prisma/zod";
 
-export const schemaDailyEventReferenceBaseBodyParams = DailyEventReference.omit({ id: true });
+export const schemaDailyEventReferenceBaseBodyParams = DailyEventReference.pick({
+  dailytoken: true,
+  dailyurl: true,
+  bookingId: true,
+}).partial();
 
-const schemaDailyEventReferenceRequiredParams = z.object({
-  email: z.string().email(),
+const schemaDailyEventReferenceCreateParams = z.object({
+  dailytoken: z.string(),
+  dailyurl: z.string(),
+  bookingId: z.number(),
 });
 
-export const schemaDailyEventReferenceBodyParams = schemaDailyEventReferenceBaseBodyParams.merge(
-  schemaDailyEventReferenceRequiredParams
+export const schemaDailyEventReferenceCreateBodyParams = schemaDailyEventReferenceBaseBodyParams.merge(
+  schemaDailyEventReferenceCreateParams
 );
 
-export const schemaDailyEventReferencePublic = DailyEventReference.omit({});
+const schemaDailyEventReferenceEditParams = z.object({
+  dailytoken: z.string(),
+  dailyurl: z.string(),
+  // @note: disallowing bookingId changes in daily-event-reference via API endpoint for now as it would introduce side effects
+});
 
-export const withValidDailyEventReference = withValidation({
-  schema: schemaDailyEventReferenceBodyParams,
-  type: "Zod",
-  mode: "body",
+export const schemaDailyEventReferenceEditBodyParams = schemaDailyEventReferenceBaseBodyParams.merge(
+  schemaDailyEventReferenceEditParams
+);
+export const schemaDailyEventReferenceReadPublic = DailyEventReference.pick({
+  id: true,
+  dailytoken: true,
+  dailyurl: true,
+  bookingId: true,
 });

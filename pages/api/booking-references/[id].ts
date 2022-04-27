@@ -18,7 +18,7 @@ import {
  * @swagger
  * /booking-references/{id}:
  *   get:
- *     summary: Get a booking reference by ID
+ *     summary: Find a booking reference by ID
  *     parameters:
  *       - in: path
  *         name: id

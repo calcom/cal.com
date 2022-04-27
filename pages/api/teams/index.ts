@@ -5,13 +5,13 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { TeamResponse, TeamsResponse } from "@lib/types";
 import { schemaMembershipPublic } from "@lib/validations/membership";
-import { schemaTeamBodyParams, schemaTeamPublic, withValidTeam } from "@lib/validations/team";
+import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
 /**
  * @swagger
  * /teams:
  *   get:
- *     summary: Get all teams
+ *     summary: Find all teams
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

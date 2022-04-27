@@ -5,15 +5,15 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { DestinationCalendarResponse, DestinationCalendarsResponse } from "@lib/types";
 import {
-  schemaDestinationCalendarBodyParams,
-  schemaDestinationCalendarPublic,
+  schemaDestinationCalendarCreateBodyParams,
+  schemaDestinationCalendarReadPublic,
 } from "@lib/validations/destination-calendar";
 
 /**
  * @swagger
  * /destination-calendars:
  *   get:
- *     summary: Get all destination calendars
+ *     summary: Find all destination calendars
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -50,7 +50,7 @@ async function createOrlistAllDestinationCalendars(
   if (method === "GET") {
     const data = await prisma.destinationCalendar.findMany({ where: { userId } });
     const destination_calendars = data.map((destinationCalendar) =>
-      schemaDestinationCalendarPublic.parse(destinationCalendar)
+      schemaDestinationCalendarReadPublic.parse(destinationCalendar)
     );
     if (data) res.status(200).json({ destination_calendars });
     else
@@ -60,11 +60,11 @@ async function createOrlistAllDestinationCalendars(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaDestinationCalendarBodyParams.safeParse(req.body);
+    const safe = schemaDestinationCalendarCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.destinationCalendar.create({ data: { ...safe.data, userId } });
-    const destination_calendar = schemaDestinationCalendarPublic.parse(data);
+    const destination_calendar = schemaDestinationCalendarReadPublic.parse(data);
 
     if (destination_calendar)
       res.status(201).json({ destination_calendar, message: "DestinationCalendar created successfully" });

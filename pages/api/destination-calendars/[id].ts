@@ -5,8 +5,8 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { DestinationCalendarResponse } from "@lib/types";
 import {
-  schemaDestinationCalendarBodyParams,
-  schemaDestinationCalendarPublic,
+  schemaDestinationCalendarEditBodyParams,
+  schemaDestinationCalendarReadPublic,
 } from "@lib/validations/destination-calendar";
 import {
   schemaQueryIdParseInt,
@@ -17,7 +17,7 @@ import {
  * @swagger
  * /destination-calendars/{id}:
  *   get:
- *     summary: Get a destination calendar by ID
+ *     summary: Find a destination calendar by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,7 +94,7 @@ export async function destionationCalendarById(
 ) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaDestinationCalendarBodyParams.safeParse(body);
+  const safeBody = schemaDestinationCalendarEditBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const userId = req.userId;
   const data = await prisma.destinationCalendar.findMany({ where: { userId } });
@@ -107,7 +107,7 @@ export async function destionationCalendarById(
       case "GET":
         await prisma.destinationCalendar
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaDestinationCalendarPublic.parse(data))
+          .then((data) => schemaDestinationCalendarReadPublic.parse(data))
           .then((destination_calendar) => res.status(200).json({ destination_calendar }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -123,7 +123,7 @@ export async function destionationCalendarById(
         }
         await prisma.destinationCalendar
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaDestinationCalendarPublic.parse(data))
+          .then((data) => schemaDestinationCalendarReadPublic.parse(data))
           .then((destination_calendar) => res.status(200).json({ destination_calendar }))
           .catch((error: Error) =>
             res.status(404).json({

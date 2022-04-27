@@ -14,7 +14,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  * @swagger
  * /selected-calendars/{userId}_{integration}_{externalId}:
  *   get:
- *     summary: Get a selected-calendar by userID and teamID
+ *     summary: Find a selected-calendar by userID and teamID
  *     parameters:
  *      - in: path
  *        name: userId

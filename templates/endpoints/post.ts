@@ -19,7 +19,7 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *           schema:
  *           $ref: '#/components/schemas/Resource'
  *     security:
- *       - ApiKeyAuth: []
+ *       - ApiKeyAuth: [] 
  *     tags:
  *     - resources
  *     responses:

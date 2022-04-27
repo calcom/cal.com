@@ -5,15 +5,15 @@ import prisma from "@calcom/prisma";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { DailyEventReferenceResponse, DailyEventReferencesResponse } from "@lib/types";
 import {
-  schemaDailyEventReferenceBodyParams,
-  schemaDailyEventReferencePublic,
+  schemaDailyEventReferenceCreateBodyParams,
+  schemaDailyEventReferenceReadPublic,
 } from "@lib/validations/daily-event-reference";
 
 /**
  * @swagger
  * /daily-event-references:
  *   get:
- *     summary: Get all daily event reference
+ *     summary: Find all daily event reference
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -54,7 +54,7 @@ async function createOrlistAllDailyEventReferences(
       where: { bookingId: { in: userBookingIds } },
     });
     const daily_event_references = data.map((dailyEventReference) =>
-      schemaDailyEventReferencePublic.parse(dailyEventReference)
+      schemaDailyEventReferenceReadPublic.parse(dailyEventReference)
     );
     if (daily_event_references) res.status(200).json({ daily_event_references });
     else
@@ -64,11 +64,11 @@ async function createOrlistAllDailyEventReferences(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaDailyEventReferenceBodyParams.safeParse(req.body);
+    const safe = schemaDailyEventReferenceCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.dailyEventReference.create({ data: safe.data });
-    const daily_event_reference = schemaDailyEventReferencePublic.parse(data);
+    const daily_event_reference = schemaDailyEventReferenceReadPublic.parse(data);
 
     if (daily_event_reference)
       res.status(201).json({ daily_event_reference, message: "DailyEventReference created successfully" });

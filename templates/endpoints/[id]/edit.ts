@@ -23,7 +23,7 @@ import {
  *        required: true
  *        description: Numeric ID of the resource to edit
  *     security:
- *       - ApiKeyAuth: []
+ *       - ApiKeyAuth: [] 
  *     tags:
  *     - resources
  *     responses:

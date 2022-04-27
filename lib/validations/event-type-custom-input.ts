@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _EventTypeCustomInputModel as EventTypeCustomInput } from "@calcom/prisma/zod";
@@ -17,8 +16,6 @@ const schemaEventTypeCustomInputRequiredParams = z.object({
   eventType: z.object({
     connect: z.object({
       id: z.number().optional(),
-      // username: z.string().optional(),
-      // email: z.string().optional(),
     }),
     // FIXME: Provide valid EventTypeModel schema here, but not sure how yet.
     create: z.any(),
@@ -28,9 +25,3 @@ const schemaEventTypeCustomInputRequiredParams = z.object({
 export const schemaEventTypeCustomInputBodyParams = schemaEventTypeCustomInputBaseBodyParams.merge(
   schemaEventTypeCustomInputRequiredParams
 );
-
-export const withValidEventTypeCustomInput = withValidation({
-  schema: schemaEventTypeCustomInputBodyParams,
-  type: "Zod",
-  mode: "body",
-});

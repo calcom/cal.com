@@ -10,7 +10,7 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  * @swagger
  * /users:
  *   get:
- *     summary: Get all users (admin only), returns your user if regular user.
+ *     summary: Find all users (admin only), returns your user if regular user.
  *     security:
  *       - ApiKeyAuth: []
  *     tags:

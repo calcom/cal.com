@@ -1,4 +1,3 @@
-import { withValidation } from "next-validations";
 import { z } from "zod";
 
 import { _ModelModel as Model } from "@calcom/prisma/zod";
@@ -14,10 +13,4 @@ export const schemaModelBodyParams = schemaModelBaseBodyParams.merge(schemaModel
 export const schemaModelPublic = Model.omit({
   id: true,
   userId: true,
-});
-
-export const withValidModel = withValidation({
-  schema: schemaModelBodyParams,
-  type: "Zod",
-  mode: "body",
 });

@@ -14,7 +14,7 @@ import {
  * @swagger
  * /schedules/{id}:
  *   get:
- *     summary: Get a schedule by ID
+ *     summary: Find a schedule by ID
  *     parameters:
  *       - in: path
  *         name: id

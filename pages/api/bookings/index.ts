@@ -4,13 +4,13 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
-import { schemaBookingBodyParams, schemaBookingPublic, withValidBooking } from "@lib/validations/booking";
+import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
 /**
  * @swagger
  * /bookings:
  *   get:
- *     summary: Get all bookings
+ *     summary: Find all bookings
  *     security:
  *       - ApiKeyAuth: []
  *     tags:
@@ -46,7 +46,7 @@ async function createOrlistAllBookings(
 
   if (method === "GET") {
     const data = await prisma.booking.findMany({ where: { userId } });
-    const bookings = data.map((booking) => schemaBookingPublic.parse(booking));
+    const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
     if (bookings) res.status(200).json({ bookings });
     else
       (error: Error) =>
@@ -55,11 +55,11 @@ async function createOrlistAllBookings(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaBookingBodyParams.safeParse(req.body);
+    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.booking.create({ data: { ...safe.data, userId } });
-    const booking = schemaBookingPublic.parse(data);
+    const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
     else
