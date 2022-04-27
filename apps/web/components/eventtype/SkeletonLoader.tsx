@@ -2,22 +2,24 @@ import { LinkIcon } from "@heroicons/react/outline";
 import { ClockIcon, DotsHorizontalIcon, ExternalLinkIcon, UserIcon } from "@heroicons/react/solid";
 import React from "react";
 
+import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
+
 function SkeletonLoader() {
   return (
-    <div className="animate-pulse">
+    <SkeletonContainer>
       <div className="mb-4 flex items-center">
-        <div className="mt-1 h-8 w-8 rounded-full bg-gray-200 ltr:mr-2 rtl:ml-2" />
+        <SkeletonAvatar width="8" height="8"></SkeletonAvatar>
         <div className="space-y-1">
-          <div className="h-4 w-16 rounded-md bg-gray-200"></div>
-          <div className="h-4 w-24 rounded-md bg-gray-200"></div>
+          <SkeletonText height="4" width="16"></SkeletonText>
+          <SkeletonText height="4" width="24"></SkeletonText>
         </div>
       </div>
-      <ul className="animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+      <ul className="divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />
       </ul>
-    </div>
+    </SkeletonContainer>
   );
 }
 
@@ -28,17 +30,17 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div>
-          <div className="h-5 w-32 rounded-md bg-gray-100"></div>
+          <SkeletonText width="32" height="5"></SkeletonText>
         </div>
-        <div className="text-neutral-500 dark:text-white">
+        <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
               <ClockIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></ClockIcon>
-              <div className="h-4 w-12 rounded-md bg-gray-100"></div>
+              <SkeletonText width="12" height="4"></SkeletonText>
             </li>
             <li className="flex items-center whitespace-nowrap">
               <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200"></UserIcon>
-              <div className="h-4 w-16 rounded-md bg-gray-100"></div>
+              <SkeletonText width="16" height="4"></SkeletonText>
             </li>
           </ul>
         </div>

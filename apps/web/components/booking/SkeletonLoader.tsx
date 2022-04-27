@@ -1,5 +1,7 @@
 import React from "react";
 
+import { SkeletonText } from "@calcom/ui";
+
 import BookingsShell from "@components/BookingsShell";
 
 function SkeletonLoader() {
@@ -20,16 +22,16 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
-            <div className="h-5 w-32 rounded-md bg-gray-100"></div>
-            <div className="h-4 w-16 rounded-md bg-gray-100"></div>
+            <SkeletonText width="32" height="5" />
+            <SkeletonText width="16" height="4" />
           </div>
-          <div className="ml-4 h-5 w-24 rounded-md bg-gray-100"></div>
+          <SkeletonText width="24" height="5" className="ml-4" />
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <div className="h-6 w-16 rounded-md bg-gray-100"></div>
-          <div className="h-6 w-32 rounded-md bg-gray-100"></div>
+          <SkeletonText width="16" height="6" />
+          <SkeletonText width="32" height="6" />
         </div>
       </div>
     </li>
