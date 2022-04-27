@@ -16,7 +16,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      NEXT_PUBLIC_LICENSE_CONSENT: agree
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
       NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
@@ -89,7 +88,7 @@ jobs:
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: NEXT_PUBLIC_LICENSE_CONSENT="agree" yarn test-e2e
+      - run: yarn test-e2e
 
       - name: Upload videos
         if: ${{ always() }}
