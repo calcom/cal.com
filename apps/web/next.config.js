@@ -80,6 +80,10 @@ const nextConfig = {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
       },
+      {
+        source: "/team/:teamname/avatar.png",
+        destination: "/api/user/avatar?teamname=:teamname",
+      },
     ];
   },
   async redirects() {
