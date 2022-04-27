@@ -153,7 +153,6 @@ const loggedInViewerRouter = createProtectedRouter()
           startTime: true,
           endTime: true,
           bufferTime: true,
-          avatar: true,
           plan: true,
           teams: {
             where: {
@@ -229,7 +228,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: typeof user["username"];
           name: typeof user["name"];
-          image: typeof user["avatar"];
         };
         metadata: {
           membershipCount: number;
@@ -254,7 +252,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: user.username,
           name: user.name,
-          image: user.avatar,
         },
         eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
