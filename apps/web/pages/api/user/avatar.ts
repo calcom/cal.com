@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import prisma from "@lib/prisma";
 import { defaultAvatarSrc } from "@lib/profile";
 
@@ -20,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     identity = {
+      name: username,
       email: user?.email,
       avatar: user?.avatar,
     };
@@ -33,6 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     identity = {
+      name: teamname,
+      shouldDefaultBeNameBased: true,
       avatar: team?.logo,
     };
   }
@@ -43,9 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .digest("hex");
   const img = identity?.avatar;
   if (!img) {
+    let defaultSrc = defaultAvatarSrc({ md5: emailMd5 });
+    if (identity?.shouldDefaultBeNameBased) {
+      defaultSrc = getPlaceholderAvatar(null, identity.name);
+    }
     res.writeHead(302, {
-      Location: defaultAvatarSrc({ md5: emailMd5 }),
+      Location: defaultSrc,
     });
+
     res.end();
   } else if (!img.includes("data:image")) {
     res.writeHead(302, {
