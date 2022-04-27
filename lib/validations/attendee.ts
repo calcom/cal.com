@@ -15,7 +15,7 @@ const schemaAttendeeCreateParams = z
   .object({
     bookingId: z.number().int(),
     email: z.string().email(),
-    name: z.string().optional(),
+    name: z.string(),
     timeZone: timeZone,
   })
   .strict();
