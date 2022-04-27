@@ -3,6 +3,15 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
+    "@calcom/admin#build": {
+      "dependsOn": [
+        "$ADMIN_DATABASE_URL",
+        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "$NEXT_PUBLIC_WEBAPP_URL",
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$STRIPE_PRIVATE_KEY"
+      ]
+    },
     "@calcom/prisma#build": {
       "dependsOn": ["$DATABASE_URL"],
       "outputs": ["zod/**"]
