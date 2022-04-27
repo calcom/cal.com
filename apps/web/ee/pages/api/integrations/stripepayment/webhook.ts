@@ -33,7 +33,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
   if (!payment?.bookingId) {
-    console.log(JSON.stringify(payment));
+    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
   }
   if (!payment?.bookingId) throw new Error("Payment not found");
 
