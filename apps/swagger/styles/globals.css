@@ -90,4 +90,41 @@ a {
   .swagger-ui .opblock-body pre.microlight {  
     font-size: 9px; 
   }
+  .swagger-ui table tbody tr td {
+    padding: 0px 0 0;
+    vertical-align: none;
+  }
+  td.response-col_description > div > div > p {
+    font-size: 12px;
+  }
+  div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > tbody > tr {
+        display: flex;
+    width: 100vw;
+    flex-direction: column;
+    font-size: 60%;
+  }
+  div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > thead > tr {
+    display: none;
+  }
+    /* Designing for scroll-bar */
+  ::-webkit-scrollbar {
+      width: 1px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+      background: gainsboro;
+      border-radius: 1px;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+      background: black;
+      border-radius: 1px;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+      background: #eee;
+  }
 }
