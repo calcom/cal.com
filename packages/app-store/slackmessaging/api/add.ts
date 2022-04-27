@@ -4,7 +4,7 @@ import { stringify } from "querystring";
 import prisma from "@calcom/prisma";
 
 const client_id = process.env.SLACK_CLIENT_ID;
-const scopes = ["commands", "users:read", "users:read.email","chat:write.public"];
+const scopes = ["commands", "users:read", "users:read.email", "chat:write.public", "chat.write"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
