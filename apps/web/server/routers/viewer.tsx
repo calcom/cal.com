@@ -137,7 +137,6 @@ const loggedInViewerRouter = createProtectedRouter()
           select: {
             id: true,
             username: true,
-            avatar: true,
             name: true,
           },
         },
