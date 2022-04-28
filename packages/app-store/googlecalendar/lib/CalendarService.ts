@@ -14,6 +14,8 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
+import { updateEvent } from "../../wipemycalother/lib/calendarManager";
+
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
 
 export default class GoogleCalendarService implements Calendar {
@@ -72,21 +74,22 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
+    console.log({ calEventRaw });
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
         const payload: calendar_v3.Schema$Event = {
-          summary: event.title,
-          description: getRichDescription(event),
+          summary: calEventRaw.title,
+          description: getRichDescription(calEventRaw),
           start: {
-            dateTime: event.startTime,
-            timeZone: event.organizer.timeZone,
+            dateTime: calEventRaw.startTime,
+            timeZone: calEventRaw.organizer.timeZone,
           },
           end: {
-            dateTime: event.endTime,
-            timeZone: event.organizer.timeZone,
+            dateTime: calEventRaw.endTime,
+            timeZone: calEventRaw.organizer.timeZone,
           },
-          attendees: event.attendees.map((attendee) => ({
+          attendees: calEventRaw.attendees.map((attendee) => ({
             ...attendee,
             responseStatus: "accepted",
           })),
@@ -95,23 +98,21 @@ export default class GoogleCalendarService implements Calendar {
           },
         };
 
-        if (event.location) {
-          payload["location"] = getLocation(event);
+        if (calEventRaw.location) {
+          payload["location"] = getLocation(calEventRaw);
         }
 
-        if (event.conferenceData && event.location === "integrations:google:meet") {
-          payload["conferenceData"] = event.conferenceData;
+        if (calEventRaw.conferenceData && calEventRaw.location === "integrations:google:meet") {
+          payload["conferenceData"] = calEventRaw.conferenceData;
         }
-
         const calendar = google.calendar({
           version: "v3",
-          auth: myGoogleAuth,
         });
         calendar.events.insert(
           {
             auth: myGoogleAuth,
-            calendarId: event.destinationCalendar?.externalId
-              ? event.destinationCalendar.externalId
+            calendarId: calEventRaw.destinationCalendar?.externalId
+              ? calEventRaw.destinationCalendar.externalId
               : "primary",
             requestBody: payload,
             conferenceDataVersion: 1,
@@ -121,6 +122,22 @@ export default class GoogleCalendarService implements Calendar {
               console.error("There was an error contacting google calendar service: ", err);
               return reject(err);
             }
+
+            calendar.events.patch({
+              // Update the same event but this time we know the hangout link
+              calendarId: calEventRaw.destinationCalendar?.externalId
+                ? calEventRaw.destinationCalendar.externalId
+                : "primary",
+              auth: myGoogleAuth,
+              eventId: event.data.id || "",
+              requestBody: {
+                description: getRichDescription({
+                  ...calEventRaw,
+                  additionInformation: { hangoutLink: event.data.hangoutLink || "" },
+                }),
+              },
+            });
+
             return resolve({
               uid: "",
               ...event.data,
