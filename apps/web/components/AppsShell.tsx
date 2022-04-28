@@ -24,7 +24,7 @@ export default function AppsShell({ children }: { children: React.ReactNode }) {
       <div className="mb-12 block lg:hidden">
         {status === "authenticated" && <NavTabs tabs={tabs} linkProps={{ shallow: true }} />}
       </div>
-      <main>{children}</main>
+      <main className="pb-6">{children}</main>
     </>
   );
 }
