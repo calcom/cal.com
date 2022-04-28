@@ -15,13 +15,6 @@ a {
   box-sizing: border-box;
 }
 
-/* .scheme-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-} */
 @media (max-width: 768px) {
   .swagger-ui .opblock-tag {
     font-size: 90% !important;
@@ -105,26 +98,5 @@ a {
   }
   div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > thead > tr {
     display: none;
-  }
-    /* Designing for scroll-bar */
-  ::-webkit-scrollbar {
-      width: 1px;
-  }
-
-  /* Track */
-  ::-webkit-scrollbar-track {
-      background: gainsboro;
-      border-radius: 1px;
-  }
-
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-      background: black;
-      border-radius: 1px;
-  }
-
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-      background: #eee;
   }
 }
