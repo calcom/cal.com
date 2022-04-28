@@ -16,6 +16,7 @@ import Select from "@components/ui/form/Select";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   team: TeamWithMembers | null;
+  currentMember: MembershipRole;
   onExit: () => void;
 };
 
@@ -47,8 +48,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       setErrorMessage(err.message);
     },
   });
-
-  const memberRole = props.team?.membership.role;
 
   function inviteMember(e: SyntheticEvent) {
     e.preventDefault();
@@ -102,7 +101,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               </label>
               <Select
                 defaultValue={options[0]}
-                options={memberRole !== MembershipRole.OWNER ? options.slice(0, 2) : options}
+                options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
                 id="role"
                 name="role"
                 className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
