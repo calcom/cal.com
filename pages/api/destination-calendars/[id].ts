@@ -25,8 +25,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the destination calendar to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -38,30 +37,20 @@ import {
  *         description: DestinationCalendar was not found
  *   patch:
  *     summary: Edit an existing destination calendar
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: destinationCalendar
- *        description: The destinationCalendar to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/DestinationCalendar'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the destination calendar to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - destination-calendars
  *     responses:
  *       201:
  *         description: OK, destinationCalendar edited successfuly
- *         model: DestinationCalendar
  *       400:
  *        description: Bad request. DestinationCalendar body is invalid.
  *       401:
@@ -75,14 +64,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the destination calendar to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - destination-calendars
  *     responses:
  *       201:
  *         description: OK, destinationCalendar removed successfuly
- *         model: DestinationCalendar
  *       400:
  *        description: Bad request. DestinationCalendar id is invalid.
  *       401:

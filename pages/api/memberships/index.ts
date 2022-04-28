@@ -11,8 +11,7 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  * /memberships:
  *   get:
  *     summary: Find all memberships
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - memberships
  *     responses:
@@ -24,14 +23,12 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  *         description: No memberships were found
  *   post:
  *     summary: Creates a new membership
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - memberships
  *     responses:
  *       201:
  *         description: OK, membership created
- *         model: Membership
  *       400:
  *        description: Bad request. Membership body is invalid.
  *       401:

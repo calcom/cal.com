@@ -34,8 +34,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -47,16 +46,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *         description: SelectedCalendar was not found
  *   patch:
  *     summary: Edit an existing selected calendar
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: selected-calendar
- *        description: The selected-calendar to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/SelectedCalendar'
- *        required: true
  *      - in: path
  *        name: userId
  *        schema:
@@ -75,14 +65,12 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - selected-calendars
  *     responses:
  *       201:
  *         description: OK, selected-calendar edited successfuly
- *         model: SelectedCalendar
  *       400:
  *        description: Bad request. SelectedCalendar body is invalid.
  *       401:
@@ -108,14 +96,12 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - selected-calendars
  *     responses:
  *       201:
  *         description: OK, selected-calendar removed successfuly
- *         model: SelectedCalendar
  *       400:
  *        description: Bad request. SelectedCalendar id is invalid.
  *       401:

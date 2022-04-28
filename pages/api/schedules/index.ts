@@ -11,8 +11,7 @@ import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations
  * /schedules:
  *   get:
  *     summary: Find all schedules
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - schedules
  *     responses:
@@ -24,14 +23,12 @@ import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations
  *         description: No schedules were found
  *   post:
  *     summary: Creates a new schedule
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - schedules
  *     responses:
  *       201:
  *         description: OK, schedule created
- *         model: Schedule
  *       400:
  *        description: Bad request. Schedule body is invalid.
  *       401:

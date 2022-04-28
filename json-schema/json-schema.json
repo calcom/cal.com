@@ -36,7 +36,7 @@
         "users": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/User"
+            "$ref": "#/components/schemas/User"
           }
         },
         "userId": {
@@ -45,7 +45,7 @@
         "team": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Team"
+              "$ref": "#/components/schemas/Team"
             },
             {
               "type": "null"
@@ -55,25 +55,25 @@
         "bookings": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Booking"
+            "$ref": "#/components/schemas/Booking"
           }
         },
         "availability": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Availability"
+            "$ref": "#/components/schemas/Availability"
           }
         },
         "webhooks": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Webhook"
+            "$ref": "#/components/schemas/Webhook"
           }
         },
         "destinationCalendar": {
           "anyOf": [
             {
-              "$ref": "#/definitions/DestinationCalendar"
+              "$ref": "#/components/schemas/DestinationCalendar"
             },
             {
               "type": "null"
@@ -86,7 +86,7 @@
         "customInputs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/EventTypeCustomInput"
+            "$ref": "#/components/schemas/EventTypeCustomInput"
           }
         },
         "timeZone": {
@@ -138,7 +138,7 @@
         "schedule": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Schedule"
+              "$ref": "#/components/schemas/Schedule"
             },
             {
               "type": "null"
@@ -176,7 +176,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -200,7 +200,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -210,7 +210,7 @@
         "booking": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Booking"
+              "$ref": "#/components/schemas/Booking"
             },
             {
               "type": "null"
@@ -220,7 +220,7 @@
         "eventType": {
           "anyOf": [
             {
-              "$ref": "#/definitions/EventType"
+              "$ref": "#/components/schemas/EventType"
             },
             {
               "type": "null"
@@ -296,31 +296,31 @@
         "eventTypes": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/EventType"
+            "$ref": "#/components/schemas/EventType"
           }
         },
         "credentials": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Credential"
+            "$ref": "#/components/schemas/Credential"
           }
         },
         "teams": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Membership"
+            "$ref": "#/components/schemas/Membership"
           }
         },
         "bookings": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Booking"
+            "$ref": "#/components/schemas/Booking"
           }
         },
         "schedules": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Schedule"
+            "$ref": "#/components/schemas/Schedule"
           }
         },
         "defaultScheduleId": {
@@ -329,7 +329,7 @@
         "selectedCalendars": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SelectedCalendar"
+            "$ref": "#/components/schemas/SelectedCalendar"
           }
         },
         "completedOnboarding": {
@@ -361,7 +361,7 @@
         "availability": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Availability"
+            "$ref": "#/components/schemas/Availability"
           }
         },
         "invitedTo": {
@@ -375,7 +375,7 @@
         "webhooks": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Webhook"
+            "$ref": "#/components/schemas/Webhook"
           }
         },
         "brandColor": {
@@ -389,7 +389,7 @@
         "destinationCalendar": {
           "anyOf": [
             {
-              "$ref": "#/definitions/DestinationCalendar"
+              "$ref": "#/components/schemas/DestinationCalendar"
             },
             {
               "type": "null"
@@ -410,7 +410,7 @@
         "apiKeys": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ApiKey"
+            "$ref": "#/components/schemas/ApiKey"
           }
         }
       }
@@ -440,13 +440,13 @@
         "members": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Membership"
+            "$ref": "#/components/schemas/Membership"
           }
         },
         "eventTypes": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/EventType"
+            "$ref": "#/components/schemas/EventType"
           }
         }
       }
@@ -463,10 +463,10 @@
           "enum": ["MEMBER", "ADMIN", "OWNER"]
         },
         "team": {
-          "$ref": "#/definitions/Team"
+          "$ref": "#/components/schemas/Team"
         },
         "user": {
-          "$ref": "#/definitions/User"
+          "$ref": "#/components/schemas/User"
         }
       }
     },
@@ -520,7 +520,7 @@
         "booking": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Booking"
+              "$ref": "#/components/schemas/Booking"
             },
             {
               "type": "null"
@@ -551,7 +551,7 @@
         "booking": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Booking"
+              "$ref": "#/components/schemas/Booking"
             },
             {
               "type": "null"
@@ -577,7 +577,7 @@
         "booking": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Booking"
+              "$ref": "#/components/schemas/Booking"
             },
             {
               "type": "null"
@@ -598,7 +598,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -608,13 +608,13 @@
         "references": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/BookingReference"
+            "$ref": "#/components/schemas/BookingReference"
           }
         },
         "eventType": {
           "anyOf": [
             {
-              "$ref": "#/definitions/EventType"
+              "$ref": "#/components/schemas/EventType"
             },
             {
               "type": "null"
@@ -638,7 +638,7 @@
         "attendees": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Attendee"
+            "$ref": "#/components/schemas/Attendee"
           }
         },
         "location": {
@@ -647,7 +647,7 @@
         "dailyRef": {
           "anyOf": [
             {
-              "$ref": "#/definitions/DailyEventReference"
+              "$ref": "#/components/schemas/DailyEventReference"
             },
             {
               "type": "null"
@@ -682,13 +682,13 @@
         "payment": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Payment"
+            "$ref": "#/components/schemas/Payment"
           }
         },
         "destinationCalendar": {
           "anyOf": [
             {
-              "$ref": "#/definitions/DestinationCalendar"
+              "$ref": "#/components/schemas/DestinationCalendar"
             },
             {
               "type": "null"
@@ -710,12 +710,12 @@
           "type": "integer"
         },
         "user": {
-          "$ref": "#/definitions/User"
+          "$ref": "#/components/schemas/User"
         },
         "eventType": {
           "anyOf": [
             {
-              "$ref": "#/definitions/EventType"
+              "$ref": "#/components/schemas/EventType"
             },
             {
               "type": "null"
@@ -731,7 +731,7 @@
         "availability": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Availability"
+            "$ref": "#/components/schemas/Availability"
           }
         }
       }
@@ -745,7 +745,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -755,7 +755,7 @@
         "eventType": {
           "anyOf": [
             {
-              "$ref": "#/definitions/EventType"
+              "$ref": "#/components/schemas/EventType"
             },
             {
               "type": "null"
@@ -783,7 +783,7 @@
         "Schedule": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Schedule"
+              "$ref": "#/components/schemas/Schedule"
             },
             {
               "type": "null"
@@ -796,7 +796,7 @@
       "type": "object",
       "properties": {
         "user": {
-          "$ref": "#/definitions/User"
+          "$ref": "#/components/schemas/User"
         },
         "integration": {
           "type": "string"
@@ -813,7 +813,7 @@
           "type": "integer"
         },
         "eventType": {
-          "$ref": "#/definitions/EventType"
+          "$ref": "#/components/schemas/EventType"
         },
         "label": {
           "type": "string"
@@ -892,7 +892,7 @@
         "booking": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Booking"
+              "$ref": "#/components/schemas/Booking"
             },
             {
               "type": "null"
@@ -949,7 +949,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -959,7 +959,7 @@
         "eventType": {
           "anyOf": [
             {
-              "$ref": "#/definitions/EventType"
+              "$ref": "#/components/schemas/EventType"
             },
             {
               "type": "null"
@@ -977,7 +977,7 @@
         "user": {
           "anyOf": [
             {
-              "$ref": "#/definitions/User"
+              "$ref": "#/components/schemas/User"
             },
             {
               "type": "null"
@@ -1001,64 +1001,64 @@
   "type": "object",
   "properties": {
     "eventType": {
-      "$ref": "#/definitions/EventType"
+      "$ref": "#/components/schemas/EventType"
     },
     "credential": {
-      "$ref": "#/definitions/Credential"
+      "$ref": "#/components/schemas/Credential"
     },
     "destinationCalendar": {
-      "$ref": "#/definitions/DestinationCalendar"
+      "$ref": "#/components/schemas/DestinationCalendar"
     },
     "user": {
-      "$ref": "#/definitions/User"
+      "$ref": "#/components/schemas/User"
     },
     "team": {
-      "$ref": "#/definitions/Team"
+      "$ref": "#/components/schemas/Team"
     },
     "membership": {
-      "$ref": "#/definitions/Membership"
+      "$ref": "#/components/schemas/Membership"
     },
     "verificationRequest": {
-      "$ref": "#/definitions/VerificationRequest"
+      "$ref": "#/components/schemas/VerificationRequest"
     },
     "bookingReference": {
-      "$ref": "#/definitions/BookingReference"
+      "$ref": "#/components/schemas/BookingReference"
     },
     "attendee": {
-      "$ref": "#/definitions/Attendee"
+      "$ref": "#/components/schemas/Attendee"
     },
     "dailyEventReference": {
-      "$ref": "#/definitions/DailyEventReference"
+      "$ref": "#/components/schemas/DailyEventReference"
     },
     "booking": {
-      "$ref": "#/definitions/Booking"
+      "$ref": "#/components/schemas/Booking"
     },
     "schedule": {
-      "$ref": "#/definitions/Schedule"
+      "$ref": "#/components/schemas/Schedule"
     },
     "availability": {
-      "$ref": "#/definitions/Availability"
+      "$ref": "#/components/schemas/Availability"
     },
     "selectedCalendar": {
-      "$ref": "#/definitions/SelectedCalendar"
+      "$ref": "#/components/schemas/SelectedCalendar"
     },
     "eventTypeCustomInput": {
-      "$ref": "#/definitions/EventTypeCustomInput"
+      "$ref": "#/components/schemas/EventTypeCustomInput"
     },
     "resetPasswordRequest": {
-      "$ref": "#/definitions/ResetPasswordRequest"
+      "$ref": "#/components/schemas/ResetPasswordRequest"
     },
     "reminderMail": {
-      "$ref": "#/definitions/ReminderMail"
+      "$ref": "#/components/schemas/ReminderMail"
     },
     "payment": {
-      "$ref": "#/definitions/Payment"
+      "$ref": "#/components/schemas/Payment"
     },
     "webhook": {
-      "$ref": "#/definitions/Webhook"
+      "$ref": "#/components/schemas/Webhook"
     },
     "apiKey": {
-      "$ref": "#/definitions/ApiKey"
+      "$ref": "#/components/schemas/ApiKey"
     }
   }
 }

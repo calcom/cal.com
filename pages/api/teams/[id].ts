@@ -22,8 +22,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the team to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - teams
  *     responses:
@@ -33,36 +32,27 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: Team was not found
+
  *   patch:
  *     summary: Edit an existing team
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: team
- *        description: The team to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Team'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - teams
  *     responses:
  *       201:
  *         description: OK, team edited successfuly
- *         model: Team
  *       400:
  *        description: Bad request. Team body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+
  *   delete:
  *     summary: Remove an existing team
  *     parameters:
@@ -72,14 +62,12 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - teams
  *     responses:
  *       201:
  *         description: OK, team removed successfuly
- *         model: Team
  *       400:
  *        description: Bad request. Team id is invalid.
  *       401:

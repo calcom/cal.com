@@ -14,8 +14,7 @@ import {
  * /availabilities:
  *   get:
  *     summary: Find all availabilities
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -29,8 +28,7 @@ import {
  *         description: No availabilities were found
  *   post:
  *     summary: Creates a new availability
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -38,7 +36,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, availability created
- *         model: Availability
  *       400:
  *        description: Bad request. Availability body is invalid.
  *       401:

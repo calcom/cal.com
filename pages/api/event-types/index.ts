@@ -11,8 +11,7 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  * /event-types:
  *   get:
  *     summary: Find all event types
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -26,8 +25,7 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *         description: No event types were found
  *   post:
  *     summary: Creates a new event type
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -35,7 +33,6 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *     responses:
  *       201:
  *         description: OK, event type created
- *         model: EventType
  *       400:
  *        description: Bad request. EventType body is invalid.
  *       401:

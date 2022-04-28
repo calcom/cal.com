@@ -26,8 +26,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the booking reference to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - booking-references
  *     responses:
@@ -39,30 +38,20 @@ import {
  *         description: BookingReference was not found
  *   patch:
  *     summary: Edit an existing booking reference
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: bookingReference
- *        description: The bookingReference to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/BookingReference'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking reference to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - booking-references
  *     responses:
  *       201:
  *         description: OK, bookingReference edited successfuly
- *         model: BookingReference
  *       400:
  *        description: Bad request. BookingReference body is invalid.
  *       401:
@@ -76,14 +65,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking reference to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - booking-references
  *     responses:
  *       201:
  *         description: OK, bookingReference removed successfuly
- *         model: BookingReference
  *       400:
  *        description: Bad request. BookingReference id is invalid.
  *       401:

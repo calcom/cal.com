@@ -11,8 +11,7 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  * /bookings:
  *   get:
  *     summary: Find all bookings
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - bookings
  *     responses:
@@ -24,14 +23,12 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  *         description: No bookings were found
  *   post:
  *     summary: Creates a new booking
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - bookings
  *     responses:
  *       201:
  *         description: OK, booking created
- *         model: Booking
  *       400:
  *        description: Bad request. Booking body is invalid.
  *       401:

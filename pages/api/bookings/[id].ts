@@ -22,8 +22,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the booking to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - bookings
  *     responses:
@@ -35,30 +34,20 @@ import {
  *         description: Booking was not found
  *   patch:
  *     summary: Edit an existing booking
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: booking
- *        description: The booking to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Booking'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - bookings
  *     responses:
  *       201:
  *         description: OK, booking edited successfuly
- *         model: Booking
  *       400:
  *        description: Bad request. Booking body is invalid.
  *       401:
@@ -72,14 +61,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - bookings
  *     responses:
  *       201:
  *         description: OK, booking removed successfuly
- *         model: Booking
  *       400:
  *        description: Bad request. Booking id is invalid.
  *       401:

@@ -12,8 +12,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  * /teams:
  *   get:
  *     summary: Find all teams
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - teams
  *     responses:
@@ -25,14 +24,12 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *         description: No teams were found
  *   post:
  *     summary: Creates a new team
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - teams
  *     responses:
  *       201:
  *         description: OK, team created
- *         model: Team
  *       400:
  *        description: Bad request. Team body is invalid.
  *       401:

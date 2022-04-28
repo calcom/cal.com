@@ -20,26 +20,9 @@ const swaggerHandler = withSwagger({
     },
     components: {
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
-      security: { ApiKeyAuth: [] },
-      schemas: { ...jsonSchema.definitions },
     },
+    security: [{ apiKey: [] }],
   },
   apiFolder: "pages/api",
-  tags: [
-    "users",
-    "teams",
-    "memeberships",
-    "selected-calendars",
-    "schedules",
-    "payments",
-    "event-types",
-    "event-type-custom-inputs",
-    "destination-calendars",
-    "daily-event-references",
-    "booking-references",
-    "availabilities",
-    "attendees",
-  ],
-  sort: true,
 });
 export default swaggerHandler();

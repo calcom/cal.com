@@ -21,14 +21,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to delete
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource removed successfuly
- *         model: Resource
  *       400:
  *        description: Bad request. Resource id is invalid.
  *       401:

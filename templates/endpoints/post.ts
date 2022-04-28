@@ -18,14 +18,12 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *       application/json:
  *           schema:
  *           $ref: '#/components/schemas/Resource'
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource created
- *         model: Resource
  *       400:
  *        description: Bad request. Resource body is invalid.
  *       401:

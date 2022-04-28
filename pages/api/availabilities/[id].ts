@@ -25,8 +25,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the availability to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -40,24 +39,14 @@ import {
  *         description: Availability was not found
  *   patch:
  *     summary: Edit an existing availability
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: availability
- *        description: The availability to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Availability'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -65,7 +54,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, availability edited successfuly
- *         model: Availability
  *       400:
  *        description: Bad request. Availability body is invalid.
  *       401:
@@ -79,8 +67,7 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -88,7 +75,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, availability removed successfuly
- *         model: Availability
  *       400:
  *        description: Bad request. Availability id is invalid.
  *       401:

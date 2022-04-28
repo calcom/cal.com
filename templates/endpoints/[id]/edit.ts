@@ -22,14 +22,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to edit
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource edited successfuly
- *         model: Resource
  *       400:
  *        description: Bad request. Resource body is invalid.
  *       401:

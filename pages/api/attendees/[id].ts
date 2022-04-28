@@ -23,8 +23,7 @@ import {
  *         required: true
  *         description: Numeric ID of the attendee to get
  *         example: 3
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - attendees
  *     responses:
@@ -36,8 +35,6 @@ import {
  *         description: Attendee was not found
  *   patch:
  *     summary: Edit an existing attendee
- *     consumes:
- *       - application/json
  *     requestBody:
  *       description: Edit an existing attendee related to one of your bookings
  *       required: true
@@ -68,14 +65,12 @@ import {
  *          example: 3
  *        required: true
  *        description: Numeric ID of the attendee to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - attendees
  *     responses:
  *       201:
  *         description: OK, attendee edited successfuly
- *         model: Attendee
  *       400:
  *        description: Bad request. Attendee body is invalid.
  *       401:
@@ -89,14 +84,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the attendee to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - attendees
  *     responses:
  *       201:
  *         description: OK, attendee removed successfuly
- *         model: Attendee
  *       400:
  *        description: Bad request. Attendee id is invalid.
  *       401:

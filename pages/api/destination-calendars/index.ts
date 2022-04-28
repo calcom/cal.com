@@ -14,8 +14,7 @@ import {
  * /destination-calendars:
  *   get:
  *     summary: Find all destination calendars
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -27,14 +26,12 @@ import {
  *         description: No destination calendars were found
  *   post:
  *     summary: Creates a new destination calendar
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - destination-calendars
  *     responses:
  *       201:
  *         description: OK, destination calendar created
- *         model: DestinationCalendar
  *       400:
  *        description: Bad request. DestinationCalendar body is invalid.
  *       401:

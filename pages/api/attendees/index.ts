@@ -11,8 +11,7 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/v
  * /attendees:
  *   get:
  *     summary: Find all attendees
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - attendees
  *     responses:
@@ -24,10 +23,7 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/v
  *         description: No attendees were found
  *   post:
  *     summary: Creates a new attendee
- *     security:
- *       - ApiKeyAuth: []
- *     consumes:
- *       - application/json
+
  *     requestBody:
  *       description: Create a new attendee related to one of your bookings
  *       required: true
@@ -58,7 +54,6 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/v
  *     responses:
  *       201:
  *         description: OK, attendee created
- *         model: Attendee
  *       400:
  *        description: Bad request. Attendee body is invalid.
  *       401:

@@ -22,8 +22,7 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - resources
  *     responses:

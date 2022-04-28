@@ -14,8 +14,7 @@ import {
  * /selected-calendars:
  *   get:
  *     summary: Find all selected calendars
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -27,14 +26,12 @@ import {
  *         description: No selected calendars were found
  *   post:
  *     summary: Creates a new selected calendar
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - selected-calendars
  *     responses:
  *       201:
  *         description: OK, selected calendar created
- *         model: SelectedCalendar
  *       400:
  *        description: Bad request. SelectedCalendar body is invalid.
  *       401:

@@ -37,16 +37,7 @@ import {
  *         description: EventType was not found
  *   patch:
  *     summary: Edit an existing eventType
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: eventType
- *        description: The eventType to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/EventType'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
@@ -62,7 +53,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, eventType edited successfuly
- *         model: EventType
  *       400:
  *        description: Bad request. EventType body is invalid.
  *       401:
@@ -85,7 +75,6 @@ import {
  *     responses:
  *       201:
  *         description: OK, eventType removed successfuly
- *         model: EventType
  *       400:
  *        description: Bad request. EventType id is invalid.
  *       401:

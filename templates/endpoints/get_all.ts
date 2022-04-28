@@ -11,8 +11,7 @@ import { schemaResourcePublic } from "@lib/validations/resource";
  * /v1/resources:
  *   get:
  *     summary: Find all resources
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - resources
  *     responses:

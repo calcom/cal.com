@@ -22,8 +22,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the schedule to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - schedules
  *     responses:
@@ -35,30 +34,21 @@ import {
  *         description: Schedule was not found
  *   patch:
  *     summary: Edit an existing schedule
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: schedule
- *        description: The schedule to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Schedule'
- *        required: true
+
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - schedules
  *     responses:
  *       201:
  *         description: OK, schedule edited successfuly
- *         model: Schedule
  *       400:
  *        description: Bad request. Schedule body is invalid.
  *       401:
@@ -72,14 +62,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - schedules
  *     responses:
  *       201:
  *         description: OK, schedule removed successfuly
- *         model: Schedule
  *       400:
  *        description: Bad request. Schedule id is invalid.
  *       401:

@@ -14,8 +14,7 @@ import {
  * /event-type-custom-inputs:
  *   get:
  *     summary: Find all eventTypeCustomInputs
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -27,14 +26,12 @@ import {
  *         description: No eventTypeCustomInputs were found
  *   post:
  *     summary: Creates a new eventTypeCustomInput
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput created
- *         model: EventTypeCustomInput
  *       400:
  *        description: Bad request. EventTypeCustomInput body is invalid.
  *       401:

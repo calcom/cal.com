@@ -25,8 +25,7 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - memberships
  *     responses:
@@ -38,16 +37,8 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *         description: Membership was not found
  *   patch:
  *     summary: Edit an existing membership
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: membership
- *        description: The membership to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Membership'
- *        required: true
  *      - in: path
  *        name: userId
  *        schema:
@@ -60,14 +51,12 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - memberships
  *     responses:
  *       201:
  *         description: OK, membership edited successfuly
- *         model: Membership
  *       400:
  *        description: Bad request. Membership body is invalid.
  *       401:
@@ -87,14 +76,12 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - memberships
  *     responses:
  *       201:
  *         description: OK, membership removed successfuly
- *         model: Membership
  *       400:
  *        description: Bad request. Membership id is invalid.
  *       401:

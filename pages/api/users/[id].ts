@@ -22,8 +22,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *           type: integer
  *         required: true
  *         description: Numeric ID of the user to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - users
  *     responses:
@@ -35,28 +34,20 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *         description: User was not found
  *   patch:
  *     summary: Edit an existing user
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: name
- *        description: The users full name
- *        schema:
- *         type: string
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - users
  *     responses:
  *       201:
  *         description: OK, user edited successfuly
- *         model: User
  *       400:
  *        description: Bad request. User body is invalid.
  *       401:
@@ -70,14 +61,12 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - users
  *     responses:
  *       201:
  *         description: OK, user removed successfuly
- *         model: User
  *       400:
  *        description: Bad request. User id is invalid.
  *       401:

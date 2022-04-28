@@ -25,8 +25,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the daily event reference to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -38,30 +37,20 @@ import {
  *         description: DailyEventReference was not found
  *   patch:
  *     summary: Edit an existing daily event reference
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: dailyEventReference
- *        description: The dailyEventReference to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/DailyEventReference'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, dailyEventReference edited successfuly
- *         model: DailyEventReference
  *       400:
  *        description: Bad request. DailyEventReference body is invalid.
  *       401:
@@ -75,14 +64,12 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - daily-event-references
  *     responses:
  *       201:
  *         description: OK, dailyEventReference removed successfuly
- *         model: DailyEventReference
  *       400:
  *        description: Bad request. DailyEventReference id is invalid.
  *       401:

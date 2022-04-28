@@ -14,8 +14,7 @@ import {
  * /booking-references:
  *   get:
  *     summary: Find all booking references
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - booking-references
  *     responses:
@@ -27,14 +26,13 @@ import {
  *         description: No booking references were found
  *   post:
  *     summary: Creates a new  booking reference
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - booking-references
  *     responses:
  *       201:
  *         description: OK,  booking reference created
- *         model: BookingReference
+
  *       400:
  *        description: Bad request. BookingReference body is invalid.
  *       401:

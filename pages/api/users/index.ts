@@ -11,8 +11,7 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  * /users:
  *   get:
  *     summary: Find all users (admin only), returns your user if regular user.
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - users
  *     responses:

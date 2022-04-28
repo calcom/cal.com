@@ -11,8 +11,7 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  * /v1/payments:
  *   get:
  *     summary: Find all payments
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - payments
  *     responses:
@@ -24,14 +23,12 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  *         description: No payments were found
  *   post:
  *     summary: Creates a new payment
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - payments
  *     responses:
  *       201:
  *         description: OK, payment created
- *         model: Payment
  *       400:
  *        description: Bad request. Payment body is invalid.
  *       401:

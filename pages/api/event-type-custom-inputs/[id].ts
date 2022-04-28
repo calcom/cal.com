@@ -25,8 +25,7 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the eventTypeCustomInput to get
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -35,35 +34,25 @@ import {
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         deCustomInputscription: EventType was not found
+ *         description: EventType was not found
  *   patch:
  *     summary: Edit an existing eventTypeCustomInput
- *     consumes:
- *       - application/json
+
  *     parameters:
- *      - in: body
- *        name: eventTypeCustomInput
- *        description: The eventTypeCustomInput to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/EventTypeCustomInput'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput edited successfuly
- *         model: EventTypeCustomInput
  *       400:
- *        desCustomInputcription: Bad request. EventType body is invalid.
+ *        description: Bad request. EventType body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
@@ -75,16 +64,14 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput removed successfuly
- *         model: EventTypeCustomInput
  *       400:
- *        desCustomInputcription: Bad request. EventType id is invalid.
+ *        description: Bad request. EventType id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
