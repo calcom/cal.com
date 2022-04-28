@@ -38,6 +38,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodDays: true,
     periodCountCalendarDays: true,
     schedulingType: true,
+    seatsPerTimeSlot: true,
     userId: true,
     schedule: {
       select: {
