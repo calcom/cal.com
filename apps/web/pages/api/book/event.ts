@@ -233,6 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dynamicUserList = Array.isArray(reqBody.user)
     ? getGroupName(req.body.user)
     : getUsernameList(reqBody.user as string);
+  const hasHashedBookingLink = reqBody.hasHashedBookingLink;
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -780,6 +781,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+  // refresh hashed link if used
+  const urlSeed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
+
+  if (hasHashedBookingLink) {
+    await prisma.hashedLink.update({
+      where: {
+        link: reqBody.hashedLink as string,
+      },
+      data: {
+        link: hashedUid,
+      },
+    });
+  }
 
   // booking successful
   return res.status(201).json(booking);
