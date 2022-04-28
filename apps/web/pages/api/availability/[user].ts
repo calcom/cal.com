@@ -123,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       select: {
-        id: true,
+        uid: true,
         startTime: true,
         _count: {
           select: {

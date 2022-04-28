@@ -319,13 +319,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (reqBody.bookingId) {
+  if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot)
       return res.status(404).json({ message: "Event type does not have seats" });
 
     const booking = await prisma.booking.findUnique({
       where: {
-        id: reqBody.bookingId,
+        uid: reqBody.bookingUid,
       },
       include: {
         attendees: true,
@@ -341,7 +341,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.booking.update({
       where: {
-        id: reqBody.bookingId,
+        uid: reqBody.bookingUid,
       },
       data: {
         attendees: {

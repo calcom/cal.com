@@ -103,8 +103,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             // If event already has an attendee add booking id
-            if (slot.bookingId) {
-              bookingUrl.query.bookingId = slot.bookingId;
+            if (slot.bookingUid) {
+              bookingUrl.query.bookingUid = slot.bookingUid;
             }
 
             return (
