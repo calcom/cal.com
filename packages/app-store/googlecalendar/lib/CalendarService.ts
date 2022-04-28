@@ -14,8 +14,6 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
-import { updateEvent } from "../../wipemycalother/lib/calendarManager";
-
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "";
 
 export default class GoogleCalendarService implements Calendar {
@@ -75,7 +73,6 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
-    console.log({ calEventRaw });
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
         const payload: calendar_v3.Schema$Event = {
