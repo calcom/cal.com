@@ -11,7 +11,6 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  * /event-types:
  *   get:
  *     summary: Find all event types
-
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -25,7 +24,6 @@ import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validatio
  *         description: No event types were found
  *   post:
  *     summary: Creates a new event type
-
  *     tags:
  *     - event-types
  *     externalDocs:

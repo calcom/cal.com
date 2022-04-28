@@ -14,7 +14,6 @@ import {
  * /destination-calendars:
  *   get:
  *     summary: Find all destination calendars
-
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -26,7 +25,6 @@ import {
  *         description: No destination calendars were found
  *   post:
  *     summary: Creates a new destination calendar
-
  *     tags:
  *     - destination-calendars
  *     responses:

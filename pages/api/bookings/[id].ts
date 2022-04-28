@@ -22,7 +22,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the booking to get
-
  *     tags:
  *     - bookings
  *     responses:
@@ -34,7 +33,6 @@ import {
  *         description: Booking was not found
  *   patch:
  *     summary: Edit an existing booking
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -42,7 +40,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to edit
-
  *     tags:
  *     - bookings
  *     responses:
@@ -61,7 +58,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking to delete
-
  *     tags:
  *     - bookings
  *     responses:

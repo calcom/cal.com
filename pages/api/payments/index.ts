@@ -11,7 +11,6 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  * /payments:
  *   get:
  *     summary: Find all payments
-
  *     tags:
  *     - payments
  *     responses:

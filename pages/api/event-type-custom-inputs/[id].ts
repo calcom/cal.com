@@ -25,7 +25,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the eventTypeCustomInput to get
-
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -37,7 +36,6 @@ import {
  *         description: EventType was not found
  *   patch:
  *     summary: Edit an existing eventTypeCustomInput
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -45,7 +43,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
-
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -64,7 +61,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
-
  *     tags:
  *     - event-type-custom-inputs
  *     responses:

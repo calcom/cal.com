@@ -14,7 +14,6 @@ import {
  * /selected-calendars:
  *   get:
  *     summary: Find all selected calendars
-
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -26,7 +25,6 @@ import {
  *         description: No selected calendars were found
  *   post:
  *     summary: Creates a new selected calendar
-
  *     tags:
  *     - selected-calendars
  *     responses:

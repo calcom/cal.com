@@ -22,7 +22,6 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *           type: integer
  *         required: true
  *         description: Numeric ID of the user to get
-
  *     tags:
  *     - users
  *     responses:
@@ -34,7 +33,6 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *         description: User was not found
  *   patch:
  *     summary: Edit an existing user
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -42,7 +40,6 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to edit
-
  *     tags:
  *     - users
  *     responses:
@@ -61,7 +58,6 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to delete
-
  *     tags:
  *     - users
  *     responses:

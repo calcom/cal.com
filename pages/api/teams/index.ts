@@ -12,7 +12,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  * /teams:
  *   get:
  *     summary: Find all teams
-
  *     tags:
  *     - teams
  *     responses:
@@ -24,7 +23,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *         description: No teams were found
  *   post:
  *     summary: Creates a new team
-
  *     tags:
  *     - teams
  *     responses:

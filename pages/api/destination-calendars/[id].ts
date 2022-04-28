@@ -25,7 +25,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the destination calendar to get
-
  *     tags:
  *     - destination-calendars
  *     responses:
@@ -37,7 +36,6 @@ import {
  *         description: DestinationCalendar was not found
  *   patch:
  *     summary: Edit an existing destination calendar
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -45,7 +43,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the destination calendar to edit
-
  *     tags:
  *     - destination-calendars
  *     responses:

@@ -22,7 +22,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the payment to get
-
  *     tags:
  *     - payments
  *     responses:

@@ -23,7 +23,6 @@ import {
  *         required: true
  *         description: Numeric ID of the attendee to get
  *         example: 3
-
  *     tags:
  *     - attendees
  *     responses:
@@ -65,7 +64,6 @@ import {
  *          example: 3
  *        required: true
  *        description: Numeric ID of the attendee to edit
-
  *     tags:
  *     - attendees
  *     responses:
@@ -84,7 +82,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the attendee to delete
-
  *     tags:
  *     - attendees
  *     responses:

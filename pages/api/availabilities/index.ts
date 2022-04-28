@@ -14,7 +14,6 @@ import {
  * /availabilities:
  *   get:
  *     summary: Find all availabilities
-
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -28,7 +27,6 @@ import {
  *         description: No availabilities were found
  *   post:
  *     summary: Creates a new availability
-
  *     tags:
  *     - availabilities
  *     externalDocs:

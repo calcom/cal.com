@@ -11,7 +11,6 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  * /memberships:
  *   get:
  *     summary: Find all memberships
-
  *     tags:
  *     - memberships
  *     responses:
@@ -23,7 +22,6 @@ import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validat
  *         description: No memberships were found
  *   post:
  *     summary: Creates a new membership
-
  *     tags:
  *     - memberships
  *     responses:

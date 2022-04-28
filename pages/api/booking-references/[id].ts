@@ -26,7 +26,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the booking reference to get
-
  *     tags:
  *     - booking-references
  *     responses:
@@ -38,7 +37,6 @@ import {
  *         description: BookingReference was not found
  *   patch:
  *     summary: Edit an existing booking reference
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -46,7 +44,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the booking reference to edit
-
  *     tags:
  *     - booking-references
  *     responses:

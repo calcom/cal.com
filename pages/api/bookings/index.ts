@@ -11,7 +11,6 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  * /bookings:
  *   get:
  *     summary: Find all bookings
-
  *     tags:
  *     - bookings
  *     responses:
@@ -23,7 +22,6 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  *         description: No bookings were found
  *   post:
  *     summary: Creates a new booking
-
  *     tags:
  *     - bookings
  *     responses:

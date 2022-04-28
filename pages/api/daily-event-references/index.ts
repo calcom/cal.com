@@ -14,7 +14,6 @@ import {
  * /daily-event-references:
  *   get:
  *     summary: Find all daily event reference
-
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -26,7 +25,6 @@ import {
  *         description: No daily event references were found
  *   post:
  *     summary: Creates a new daily event reference
-
  *     tags:
  *     - daily-event-references
  *     responses:

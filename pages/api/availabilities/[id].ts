@@ -25,7 +25,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the availability to get
-
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -46,7 +45,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to edit
-
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -67,7 +65,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the availability to delete
-
  *     tags:
  *     - availabilities
  *     externalDocs:

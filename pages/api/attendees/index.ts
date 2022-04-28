@@ -11,7 +11,6 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/v
  * /attendees:
  *   get:
  *     summary: Find all attendees
-
  *     tags:
  *     - attendees
  *     responses:
@@ -23,7 +22,6 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "@lib/v
  *         description: No attendees were found
  *   post:
  *     summary: Creates a new attendee
-
  *     requestBody:
  *       description: Create a new attendee related to one of your bookings
  *       required: true

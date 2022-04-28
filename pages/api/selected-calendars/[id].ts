@@ -34,7 +34,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
-
  *     tags:
  *     - selected-calendars
  *     responses:
@@ -65,7 +64,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: string
  *        required: true
  *        description: integration of the selected calendar to get
-
  *     tags:
  *     - selected-calendars
  *     responses:

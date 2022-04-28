@@ -25,7 +25,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the daily event reference to get
-
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -37,7 +36,6 @@ import {
  *         description: DailyEventReference was not found
  *   patch:
  *     summary: Edit an existing daily event reference
-
  *     parameters:
  *      - in: path
  *        name: id
@@ -45,7 +43,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to edit
-
  *     tags:
  *     - daily-event-references
  *     responses:
@@ -64,7 +61,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the daily event reference to delete
-
  *     tags:
  *     - daily-event-references
  *     responses:

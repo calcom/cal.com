@@ -22,7 +22,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the schedule to get
-
  *     tags:
  *     - schedules
  *     responses:
@@ -34,16 +33,13 @@ import {
  *         description: Schedule was not found
  *   patch:
  *     summary: Edit an existing schedule
-
  *     parameters:
-
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to edit
-
  *     tags:
  *     - schedules
  *     responses:
@@ -62,7 +58,6 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the schedule to delete
-
  *     tags:
  *     - schedules
  *     responses:

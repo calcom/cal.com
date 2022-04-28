@@ -14,7 +14,6 @@ import {
  * /booking-references:
  *   get:
  *     summary: Find all booking references
-
  *     tags:
  *     - booking-references
  *     responses:
@@ -26,13 +25,11 @@ import {
  *         description: No booking references were found
  *   post:
  *     summary: Creates a new  booking reference
-
  *     tags:
  *     - booking-references
  *     responses:
  *       201:
  *         description: OK,  booking reference created
-
  *       400:
  *        description: Bad request. BookingReference body is invalid.
  *       401:

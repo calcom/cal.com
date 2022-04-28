@@ -14,7 +14,6 @@ import {
  * /event-type-custom-inputs:
  *   get:
  *     summary: Find all eventTypeCustomInputs
-
  *     tags:
  *     - event-type-custom-inputs
  *     responses:
@@ -26,7 +25,6 @@ import {
  *         description: No eventTypeCustomInputs were found
  *   post:
  *     summary: Creates a new eventTypeCustomInput
-
  *     tags:
  *     - event-type-custom-inputs
  *     responses:

@@ -22,7 +22,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the team to get
-
  *     tags:
  *     - teams
  *     responses:
@@ -32,7 +31,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: Team was not found
-
  *   patch:
  *     summary: Edit an existing team
  *     parameters:
@@ -42,7 +40,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to edit
-
  *     tags:
  *     - teams
  *     responses:
@@ -52,7 +49,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        description: Bad request. Team body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
-
  *   delete:
  *     summary: Remove an existing team
  *     parameters:
@@ -62,7 +58,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to delete
-
  *     tags:
  *     - teams
  *     responses:

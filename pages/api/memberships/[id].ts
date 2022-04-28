@@ -25,7 +25,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
-
  *     tags:
  *     - memberships
  *     responses:
@@ -37,7 +36,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *         description: Membership was not found
  *   patch:
  *     summary: Edit an existing membership
-
  *     parameters:
  *      - in: path
  *        name: userId
@@ -51,7 +49,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
-
  *     tags:
  *     - memberships
  *     responses:
@@ -76,7 +73,6 @@ import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/
  *          type: integer
  *        required: true
  *        description: Numeric teamId of the membership to get
-
  *     tags:
  *     - memberships
  *     responses:
