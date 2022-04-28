@@ -44,17 +44,16 @@ export const SetLocationDialog = (props: IRescheduleDialog) => {
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
             <LocationMarkerIcon className="m-auto h-6 w-6"></LocationMarkerIcon>
           </div>
-          <div className="pt-1">
-            <DialogHeader title="Set Location" />
-            <p className="mt-6 mb-2 text-sm font-bold text-black">Current booking locaiton:</p>
-            <p className="mb-2 text-sm text-black">{currentLocation}</p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">Change location to:</p>
+          <div className="w-full pt-1 pr-2">
+            <DialogHeader title={t("set_location")} />
+            <p className="mt-6 mb-2 text-sm font-bold text-black">{t("current_location")}:</p>
+            <p className="mb-2 text-sm text-black">{currentLocation ? currentLocation : t("no_location")}</p>
+            <p className="mt-6 mb-2 text-sm font-bold text-black">{t("new_location")}:</p>
             <TextArea
-              data-testid="reschedule_reason"
-              name={t("reschedule_reason")}
+              name={t("new_location")}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="mb-5 sm:mb-6"
+              className="mb-5 w-full sm:mb-6"
             />
 
             <DialogFooter>
@@ -62,7 +61,6 @@ export const SetLocationDialog = (props: IRescheduleDialog) => {
                 <Button color="secondary">{t("cancel")}</Button>
               </DialogClose>
               <Button
-                data-testid="send_request"
                 onClick={() => {
                   mutation.mutate({ id: booking.id, location });
                   setIsOpenDialog(false);
