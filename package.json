@@ -9,6 +9,7 @@
     "packages/app-store/*"
   ],
   "scripts": {
+    "prebuild": "ts-node ./scripts/getEnvSecrets.ts",
     "build": "turbo run build --scope=\"@calcom/web\" --include-dependencies",
     "clean": "turbo run clean && rm -rf node_modules",
     "db-deploy": "turbo run db-deploy",
@@ -41,6 +42,7 @@
     "type-check": "turbo run type-check"
   },
   "devDependencies": {
+    "@types/pg": "^8.6.5",
     "dotenv-checker": "^1.1.5",
     "husky": "^7.0.1",
     "lint-staged": "^12.3.5",
