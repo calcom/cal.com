@@ -3,6 +3,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "@lib/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@lib/emails/templates/attendee-declined-email";
+import AttendeeLocationChangeEmail from "@lib/emails/templates/attendee-location-change-email";
 import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
 import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
@@ -15,6 +16,7 @@ import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-reque
 import OrganizerRequestRescheduleEmail from "@lib/emails/templates/organizer-request-reschedule-email";
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
+import OrganizerLocationChangeEmail from "@lib/emails/templates/orgranizer-location-change-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
@@ -235,6 +237,36 @@ export const sendRequestRescheduleEmail = async (
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRequestRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  emailsToSend.push(
+    ...calEvent.attendees.map((attendee) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const scheduledEmail = new AttendeeLocationChangeEmail(calEvent, attendee);
+          resolve(scheduledEmail.sendEmail());
+        } catch (e) {
+          reject(console.error("AttendeeLocationChangeEmail.sendEmail failed", e));
+        }
+      });
+    })
+  );
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerLocationChangeEmail(calEvent);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
       }
     })
   );

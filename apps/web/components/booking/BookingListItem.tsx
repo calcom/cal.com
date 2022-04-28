@@ -1,4 +1,11 @@
-import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
+import {
+  BanIcon,
+  CheckIcon,
+  ClockIcon,
+  XIcon,
+  PencilAltIcon,
+  LocationMarkerIcon,
+} from "@heroicons/react/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/outline";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
@@ -16,6 +23,7 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import { SetLocationDialog } from "@components/dialog/SetLocationDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
@@ -81,14 +89,14 @@ function BookingListItem(booking: BookingItem) {
       icon: XIcon,
     },
     {
-      id: "reschedule",
-      label: t("reschedule"),
+      id: "edit_booking",
+      label: t("edit_booking"),
       icon: ClockIcon,
       actions: [
         {
-          id: "edit",
+          id: "reschedule",
           icon: PencilAltIcon,
-          label: t("edit_booking"),
+          label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
@@ -96,6 +104,12 @@ function BookingListItem(booking: BookingItem) {
           icon: ClockIcon,
           label: t("send_reschedule_request"),
           onClick: () => setIsOpenRescheduleDialog(true),
+        },
+        {
+          id: "change_location",
+          label: "Change location", //todo: i18n
+          onClick: () => setIsOpenSetLocationDialog(true),
+          icon: LocationMarkerIcon,
         },
       ],
     },
@@ -112,12 +126,20 @@ function BookingListItem(booking: BookingItem) {
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenSetLocationDialog, setIsOpenSetLocationDialog] = useState(false);
+
   return (
     <>
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
+      />
+
+      <SetLocationDialog
+        isOpenDialog={isOpenSetLocationDialog}
+        setIsOpenDialog={setIsOpenSetLocationDialog}
+        booking={booking}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}

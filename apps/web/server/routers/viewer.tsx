@@ -373,6 +373,7 @@ const loggedInViewerRouter = createProtectedRouter()
           id: true,
           startTime: true,
           endTime: true,
+          location: true,
           eventType: {
             select: {
               price: true,
@@ -417,6 +418,23 @@ const loggedInViewerRouter = createProtectedRouter()
         bookings,
         nextCursor,
       };
+    },
+  })
+  .mutation("updateBooking", {
+    input: z.object({
+      id: z.number(),
+      location: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { id, location } = input;
+      await ctx.prisma.booking.update({
+        where: {
+          id,
+        },
+        data: {
+          location,
+        },
+      });
     },
   })
   .query("connectedCalendars", {
