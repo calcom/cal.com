@@ -1143,7 +1143,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger
+                        type="button"
+                        data-testid="show-advanced-settings"
+                        className="flex w-full">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1153,7 +1156,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("show_advanced_settings")}
                         </span>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6">
+                      <CollapsibleContent data-testid="advanced-settings-content" className="mt-4 space-y-6">
                         {/**
                          * Only display calendar selector if user has connected calendars AND if it's not
                          * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -1792,7 +1795,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <Button href="/event-types" color="secondary" tabIndex={-1}>
                       {t("cancel")}
                     </Button>
-                    <Button type="submit" disabled={updateMutation.isLoading}>
+                    <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
                       {t("update")}
                     </Button>
                   </div>

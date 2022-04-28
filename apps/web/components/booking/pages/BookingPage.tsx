@@ -6,6 +6,7 @@ import {
   InformationCircleIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -20,6 +21,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import {
   useIsEmbed,
@@ -245,8 +247,16 @@ const BookingPage = ({
     };
   };
 
+  const bookingFormSchema = z
+    .object({
+      name: z.string().min(1),
+      email: z.string().email(),
+    })
+    .passthrough();
+
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
+    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
   const selectedLocation = useWatch({
@@ -512,7 +522,7 @@ const BookingPage = ({
                     </label>
                     <div className="mt-1">
                       <input
-                        {...bookingForm.register("name")}
+                        {...bookingForm.register("name", { required: true })}
                         type="text"
                         name="name"
                         id="name"

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { BASE_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
@@ -62,5 +63,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const state = decodeOAuthState(req);
-  return res.redirect(state?.returnTo ?? "/apps/installed");
+  return res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
 }
