@@ -228,6 +228,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringEventCount,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
+      hasHashedBookingLink: false,
+      hashedLink: null,
     },
   };
 }

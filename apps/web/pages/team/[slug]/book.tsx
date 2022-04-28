@@ -117,6 +117,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringEventCount,
       booking,
       isDynamicGroupBooking: false,
+      hasHashedBookingLink: false,
+      hashedLink: null,
     },
   };
 }
