@@ -27,6 +27,8 @@ export type BookingCreateBody = {
   metadata: {
     [key: string]: string;
   };
+  hasHashedBookingLink: boolean;
+  hashedLink?: string | null;
 };
 
 export type BookingResponse = Booking & {
