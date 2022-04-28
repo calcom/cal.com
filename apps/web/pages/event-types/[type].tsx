@@ -1316,6 +1316,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("opt_in_booking")}
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
+                              disabled={enableSeats}
+                              checked={formMethods.watch("disableGuests")}
                               onChange={(e) => {
                                 formMethods.setValue("requiresConfirmation", e?.target.checked);
                               }}
@@ -1336,6 +1338,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               defaultChecked={eventType.disableGuests}
                               // If we have seats per booking then we need to disable guests
                               disabled={enableSeats}
+                              checked={formMethods.watch("disableGuests")}
                               onChange={(e) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
@@ -1590,9 +1593,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       // Want to disable individuals from taking multiple seats
                                       formMethods.setValue("seatsPerTimeSlot", defaultSeats);
                                       formMethods.setValue("disableGuests", true);
+                                      formMethods.setValue("requiresConfirmation", false);
                                     } else {
-                                      formMethods.setValue("seatsPerTimeSlot", null);
                                       setEnableSeats(false);
+                                      formMethods.setValue("seatsPerTimeSlot", null);
+                                      formMethods.setValue(
+                                        "requiresConfirmation",
+                                        eventType.requiresConfirmation
+                                      );
+                                      formMethods.setValue("disableGuests", eventType.disableGuests);
                                     }
                                   }}
                                 />
