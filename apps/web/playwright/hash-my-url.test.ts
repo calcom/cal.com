@@ -25,8 +25,8 @@ test.describe("hash my url", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await page.click('//ul[@data-testid="event-types"]/li[1]');
     // We wait for the page to load
-    await page.waitForSelector('//*[@data-testid="advanced-settings"]');
-    await page.click('//*[@data-testid="advanced-settings"]');
+    await page.waitForSelector('//*[@data-testid="show-advanced-settings"]');
+    await page.click('//*[@data-testid="show-advanced-settings"]');
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@id="hashedLink"]');
     await page.click('//*[@id="hashedLink"]');
@@ -42,8 +42,8 @@ test.describe("hash my url", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await page.click('//ul[@data-testid="event-types"]/li[1]');
     // We wait for the page to load
-    await page.waitForSelector('//*[@data-testid="advanced-settings"]');
-    await page.click('//*[@data-testid="advanced-settings"]');
+    await page.waitForSelector('//*[@data-testid="show-advanced-settings"]');
+    await page.click('//*[@data-testid="show-advanced-settings"]');
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
     $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
@@ -65,8 +65,8 @@ test.describe("hash my url", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await page.click('//ul[@data-testid="event-types"]/li[1]');
     // We wait for the page to load
-    await page.waitForSelector('//*[@data-testid="advanced-settings"]');
-    await page.click('//*[@data-testid="advanced-settings"]');
+    await page.waitForSelector('//*[@data-testid="show-advanced-settings"]');
+    await page.click('//*[@data-testid="show-advanced-settings"]');
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
     const $newUrl = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
