@@ -767,5 +767,6 @@
   "impersonate":"Impersonate",
   "impersonate_user_tip":"All uses of this feature is audited.",
   "impersonating_user_warning":"Impersonating username \"{{user}}\".",
-  "impersonating_stop_instructions": "<0>Click Here to stop</0>."
+  "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
+  "email_validation_error":"That doesn't look like an email address"
 }

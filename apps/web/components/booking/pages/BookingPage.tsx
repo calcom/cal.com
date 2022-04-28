@@ -2,6 +2,7 @@ import {
   CalendarIcon,
   ClockIcon,
   CreditCardIcon,
+  ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
 } from "@heroicons/react/solid";
@@ -431,6 +432,12 @@ const BookingPage = ({
                         type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                         disabled={disableInput}
                       />
+                      {bookingForm.formState.errors.email && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("email_validation_error")}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {locations.length > 1 && (
