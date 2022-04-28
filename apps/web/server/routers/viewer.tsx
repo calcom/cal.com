@@ -133,6 +133,7 @@ const loggedInViewerRouter = createProtectedRouter()
         currency: true,
         position: true,
         successRedirectUrl: true,
+        hashedLink: true,
         users: {
           select: {
             id: true,
