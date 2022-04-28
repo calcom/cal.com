@@ -46,6 +46,9 @@ ${organizer + attendees}
 };
 
 export const getAdditionalNotes = (calEvent: CalendarEvent) => {
+  if (!calEvent.additionalNotes) {
+    return "";
+  }
   return `
 ${calEvent.organizer.language.translate("additional_notes")}:
 ${calEvent.additionalNotes}
@@ -53,6 +56,9 @@ ${calEvent.additionalNotes}
 };
 
 export const getDescription = (calEvent: CalendarEvent) => {
+  if (!calEvent.description) {
+    return "";
+  }
   return `\n${calEvent.attendees[0].language.translate("description")}
     ${calEvent.description}
     `;

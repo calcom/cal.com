@@ -45,6 +45,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
+  hashedLink              HashedLink?
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -404,6 +405,13 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HashedLink {
+  id          Int       @id @default(autoincrement())
+  link        String    @unique()
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int       @unique
 }
 
 model Account {
