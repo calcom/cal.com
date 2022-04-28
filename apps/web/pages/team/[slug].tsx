@@ -60,11 +60,11 @@ function TeamPage({ team }: TeamPageProps) {
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <div className="mt-1">
+              <div className="mt-1 self-center">
                 <AvatarGroup
                   border="border-2 border-white dark:border-neutral-800"
                   truncateAfter={4}
-                  className="flex-shrink-0"
+                  className="flex flex-shrink-0"
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
@@ -86,7 +86,7 @@ function TeamPage({ team }: TeamPageProps) {
       <div>
         <Theme />
         <HeadSeo title={teamName} description={teamName} />
-        <div className="px-4 pt-24 pb-12">
+        <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-800 md:border">
           <div className="max-w-96 mx-auto mb-8 text-center">
             <Avatar
               alt={teamName}

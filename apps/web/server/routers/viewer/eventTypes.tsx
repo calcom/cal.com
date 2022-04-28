@@ -124,6 +124,10 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
+      if (process.env.DAILY_API_KEY) {
+        data.locations = [{ type: "integrations:daily" }];
+      }
+
       if (teamId && schedulingType) {
         const hasMembership = await ctx.prisma.membership.findFirst({
           where: {
@@ -187,6 +191,21 @@ export const eventTypesRouter = createProtectedRouter()
     if (!isAuthorized) {
       console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const inputUsers = (rawInput as any).users || [];
+
+    const isAllowed = (function () {
+      if (event.team) {
+        const allTeamMembers = event.team.members.map((member) => member.userId);
+        return inputUsers.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+      }
+      return inputUsers.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+    })();
+
+    if (!isAllowed) {
+      console.warn(`User ${ctx.user.id} attempted to an create an event for users ${inputUsers.join(", ")}.`);
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
 
     return next();

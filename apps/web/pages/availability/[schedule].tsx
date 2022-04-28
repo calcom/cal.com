@@ -2,7 +2,6 @@ import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import TimezoneSelect from "react-timezone-select";
 
 import { DEFAULT_SCHEDULE, availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +17,7 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 import Shell from "@components/Shell";
 import Schedule from "@components/availability/Schedule";
 import EditableHeading from "@components/ui/EditableHeading";
+import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.schedule">) {
   const { t } = useLocale();
@@ -99,7 +99,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
               render={({ field: { onChange, value } }) => (
                 <TimezoneSelect
                   value={value}
-                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+                  className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
                   onChange={(timezone) => onChange(timezone.value)}
                 />
               )}

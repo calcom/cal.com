@@ -1,5 +1,5 @@
 import { CheckIcon } from "@heroicons/react/outline";
-import { ClockIcon, XIcon } from "@heroicons/react/solid";
+import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -7,11 +7,17 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
-import { useIsEmbed, useEmbedStyles, useIsBackgroundTransparent } from "@calcom/embed-core";
+import {
+  useIsEmbed,
+  useEmbedStyles,
+  useIsBackgroundTransparent,
+  useEmbedNonStylesConfig,
+} from "@calcom/embed-core";
 import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -87,7 +93,7 @@ function RedirectionToast({ url }: { url: string }) {
 
   return (
     <>
-      <div className="relative inset-x-0 top-0 z-[60] pb-2 sm:fixed sm:top-2 sm:pb-5">
+      <div className="relative z-[60] pb-2 sm:pb-5">
         <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
           <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
             <div className="flex flex-wrap items-center justify-between">
@@ -133,6 +139,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { location: _location, name, reschedule } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
+  const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
@@ -140,6 +147,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
@@ -200,7 +210,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
-
+  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   return (
     (isReady && (
       <div
@@ -212,22 +222,22 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
         />
         <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
-        <main className={classNames("mx-auto", isEmbed ? "" : "max-w-3xl py-24")}>
-          <div className={classNames("overflow-y-auto", isEmbed ? "" : "fixed inset-0 z-50 ")}>
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
             {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
               <RedirectionToast url={eventType.successRedirectUrl}></RedirectionToast>
             ) : null}{" "}
-            <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className={classNames(
+                shouldAlignCentrally ? "text-center" : "",
+                "flex items-end justify-center px-4 pt-4 pb-20  sm:block sm:p-0"
+              )}>
               <div
-                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : "fixed inset-0")}
+                className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
                 aria-hidden="true">
-                <span className="inline-block h-screen align-middle" aria-hidden="true">
-                  &#8203;
-                </span>
                 <div
                   className={classNames(
-                    "inline-block transform overflow-hidden rounded-sm",
-                    isEmbed ? "" : "border sm:my-8 sm:max-w-lg ",
+                    "inline-block transform overflow-hidden rounded-md border sm:my-8 sm:max-w-lg",
                     isBackgroundTransparent ? "" : "bg-white dark:border-neutral-700 dark:bg-gray-800",
                     "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full  sm:py-6 sm:align-middle"
                   )}
@@ -268,8 +278,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </div>
                         {location && (
                           <>
-                            <div className="font-medium">{t("where")}</div>
-                            <div className="col-span-2">
+                            <div className="mt-6 font-medium">{t("where")}</div>
+                            <div className="col-span-2 mt-6">
                               {location.startsWith("http") ? (
                                 <a title="Meeting Link" href={location}>
                                   {location}
@@ -382,7 +392,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                       </div>
                     </div>
                   )}
-                  {!props.hideBranding && (
+                  {!(userIsOwner || props.hideBranding) && (
                     <div className="border-bookinglightest text-booking-lighter pt-4 text-center text-xs dark:border-gray-900 dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
@@ -403,6 +413,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           {t("try_for_free")}
                         </Button>
                       </form>
+                    </div>
+                  )}
+                  {userIsOwner && !isEmbed && (
+                    <div className="mt-4">
+                      <Link href="/bookings">
+                        <a className="flex items-center text-black dark:text-white">
+                          <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                        </a>
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -432,6 +451,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       successRedirectUrl: true,
       users: {
         select: {
+          id: true,
           name: true,
           hideBranding: true,
           plan: true,
@@ -478,6 +498,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         id: eventType.userId,
       },
       select: {
+        id: true,
         name: true,
         hideBranding: true,
         plan: true,

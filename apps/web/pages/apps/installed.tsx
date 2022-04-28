@@ -18,8 +18,8 @@ import { trpc } from "@lib/trpc";
 import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
+import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -51,7 +51,7 @@ function IframeEmbedContainer() {
               <div className="text-right">
                 <input
                   id="iframe"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={iframeTemplate}
                   readOnly
@@ -76,7 +76,7 @@ function IframeEmbedContainer() {
               <div>
                 <input
                   id="fullscreen"
-                  className="focus:border-brand px-2 py-1 text-sm text-gray-500 focus:ring-black"
+                  className="px-2 py-1 text-sm text-gray-500 "
                   placeholder={t("loading")}
                   defaultValue={htmlTemplate}
                   readOnly
@@ -221,6 +221,31 @@ function IntegrationsContainer() {
               />
             ))}
           </List>
+
+          <ShellSubHeading
+            className="mt-10"
+            title={
+              <SubHeadingTitleWithConnections title={"Others"} numConnections={data?.other?.numActive || 0} />
+            }
+          />
+          <List>
+            {data.other.items.map((item) => (
+              <IntegrationListItem
+                key={item.title}
+                imageSrc={item.imageSrc}
+                title={item.title}
+                description={item.description}
+                actions={
+                  <ConnectOrDisconnectIntegrationButton
+                    credentialIds={item.credentialIds}
+                    type={item.type}
+                    isGlobal={item.isGlobal}
+                    installed={item.installed}
+                  />
+                }
+              />
+            ))}
+          </List>
         </>
       )}></QueryCell>
   );
@@ -231,7 +256,7 @@ function Web3Container() {
 
   return (
     <>
-      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
+      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
       <div className="lg:col-span-9 lg:pb-8">
         <List>
           <ListItem className={classNames("flex-col")}>
@@ -307,9 +332,13 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
+    <Shell
+      heading={t("installed_apps")}
+      subtitle={t("manage_your_connected_apps")}
+      large
+      customLoader={<SkeletonLoader />}>
       <AppsShell>
-        <ClientSuspense fallback={<Loader />}>
+        <ClientSuspense fallback={<SkeletonLoader />}>
           <IntegrationsContainer />
           <CalendarListContainer />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />

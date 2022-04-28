@@ -8,11 +8,9 @@ The Embed allows your website visitors to book a meeting with you directly from 
 
 ## Install on any website
 
-TODO: Mention possibility of installation through tag managers as well
-
 - _Step-1._ Install the Vanilla JS Snippet
-
-  ```javascript
+```html
+<script>
   (function (C, A, L) {
     let p = function (a, ar) {
       a.q.push(ar);
@@ -40,14 +38,10 @@ TODO: Mention possibility of installation through tag managers as well
         }
         p(cal, ar);
       };
-  })(window, "https://cal.com/embed.js", "init");
-  ```
-
-- _Step-2_. Initialize it
-
-  ```javascript
-  Cal("init)
-  ```
+    })(window, "https://cal.com/embed.js", "init");
+    Cal("init")
+  </script>
+```
 
 ## Install with a Framework
 
@@ -65,7 +59,7 @@ You can use Vanilla JS Snippet to install
 
 ## Popular ways in which you can embed on your website
 
-Assuming that you have followed the steps of installing and initializing the snippet, you can add show the embed in following ways:
+Assuming that you have followed the steps of installing and initializing the snippet, you can show the embed in following ways:
 
 ### Inline
 
@@ -74,18 +68,20 @@ Show the embed inline inside a container element. It would take the width and he
 <details>
   <summary>_Vanilla JS_</summary>
 
-```javascript
-Cal("inline", {
-  elementOrSelector: "Your Embed Container Selector Path", // You can also provide an element directly
-  calLink: "jane", // The link that you want to embed. It would open https://cal.com/jane in embed
-  config: {
-    name: "John Doe", // Prefill Name
-    email: "johndoe@gmail.com", // Prefill Email
-    notes: "Test Meeting", // Prefill Notes
-    guests: ["janedoe@gmail.com", "test@gmail.com"], // Prefill Guests
-    theme: "dark", // "dark" or "light" theme
-  },
-});
+```html
+<script>
+  Cal("inline", {
+    elementOrSelector: "Your Embed Container Selector Path", // You can also provide an element directly
+    calLink: "jane", // The link that you want to embed. It would open https://cal.com/jane in embed
+    config: {
+      name: "John Doe", // Prefill Name
+      email: "johndoe@gmail.com", // Prefill Email
+      notes: "Test Meeting", // Prefill Notes
+      guests: ["janedoe@gmail.com", "test@gmail.com"], // Prefill Guests
+      theme: "dark", // "dark" or "light" theme
+    },
+  });
+</script>
 ```
 
 </details>
@@ -139,7 +135,6 @@ To show the embed as a popup on clicking an element, simply add `data-cal-link` 
 ````
 
 </details>
-### Full Screen
 
 ## Supported Instructions
 
@@ -149,8 +144,10 @@ Consider an instruction as a function with that name and that would be called wi
 
 Appends embed inline as the child of the element.
 
-```javascript
+```html
+<script>
 Cal("inline", { elementOrSelector, calLink });
+</script>
 ````
 
 - `elementOrSelector` - Give it either a valid CSS selector or an HTMLElement instance directly
@@ -161,8 +158,10 @@ Cal("inline", { elementOrSelector, calLink });
 
 Configure UI for embed. Make it look part of your webpage.
 
-```javascript
+```html
+<script>
 Cal("inline", { styles });
+</script>
 ```
 
 - `styles` - It supports styling for `body` and `eventTypeListItem`. Right now we support just background on these two.
@@ -173,15 +172,18 @@ Usage:
 
 If you want to open cal link on some action. Make it pop open instantly by preloading it.
 
-```javascript
+```html
+<script>
 Cal("preload", { calLink });
+</script>
 ```
 
 - `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL [https://cal.com/john]()
 
 ## Actions
-You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term events to not confuse it with Cal Events.
-```javascript
+You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
+```html
+<script>
 Cal("on", {
   action: "ANY_ACTION_NAME",
   callback: (e)=>{
@@ -191,11 +193,12 @@ Cal("on", {
     const {data, type, namespace} = e.detail;
   }
 })
+</script>
 ```
 
 Following are the list of supported actions.
 - 
-| action               | description                                                                                                                        | properties                                                                                                                                                                                                                                                                             |
+| Action               | Description                                                                                                                        | Properties                                                                                                                                                                                                                                                                             |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | eventTypeSelected    | When user chooses an event-type from the listing.                                                                                  | eventType:object // Event Type that has been selected"                                                                                                                                                                                                                               |
 | bookingSuccessful    | When the booking is successfully done. It might not be confirmed.                                                                  | confirmed: boolean; //Whether confirmation from organizer is pending or not  <br/><br/>eventType: "Object for Event Type that has been booked";  <br/><br/>date: string; // Date of Event  <br/><br/>duration: number; //Duration of booked Event  <br/><br/>organizer: object //Organizer details like name, timezone, email  |

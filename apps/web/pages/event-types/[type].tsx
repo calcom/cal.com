@@ -25,7 +25,6 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import Select, { Props as SelectProps } from "react-select";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
@@ -62,6 +61,7 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
+import Select, { SelectProps } from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
@@ -122,7 +122,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
             }}
             readOnly={proUpgradeRequired}
             type="url"
-            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            className="  block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
             placeholder={t("external_redirect_url")}
             defaultValue={eventType.successRedirectUrl || ""}
             {...formMethods.register("successRedirectUrl")}
@@ -172,11 +172,7 @@ const AvailabilitySelect = ({
             options={options}
             isSearchable={false}
             onChange={props.onChange}
-            classNamePrefix="react-select"
-            className={classNames(
-              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
-              className
-            )}
+            className={classNames("block w-full min-w-0 flex-1 rounded-sm sm:text-sm", className)}
             value={value}
           />
         );
@@ -361,7 +357,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                 defaultValue={
                   formMethods
                     .getValues("locations")
@@ -383,7 +379,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationLink")}
                 id="address"
                 required
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                className="  block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                 defaultValue={
                   formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
                     ?.link
@@ -530,8 +526,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <Select
               options={locationOptions}
               isSearchable={false}
-              classNamePrefix="react-select"
-              className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+              className="  block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
@@ -966,7 +961,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             id="slug"
                             aria-labelledby="slug-label"
                             required
-                            className="focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+                            className="  block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
                             {...formMethods.register("slug", {
                               setValueAs: (v) => slugify(v),
@@ -1032,7 +1027,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <textarea
                           id="description"
-                          className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                          className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                           placeholder={t("quick_video_meeting")}
                           {...formMethods.register("description")}
                           defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -1051,20 +1046,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("availability")} <InfoBadge content={t("you_can_manage_your_schedules")} />
                         </label>
                       </div>
-                      <div className="w-full">
-                        <Controller
-                          name="schedule"
-                          control={formMethods.control}
-                          render={({ field }) => (
-                            <AvailabilitySelect
-                              value={field.value}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              onChange={(selected) => field.onChange(selected?.value || null)}
-                            />
-                          )}
-                        />
-                      </div>
+                      <Controller
+                        name="schedule"
+                        control={formMethods.control}
+                        render={({ field }) => (
+                          <AvailabilitySelect
+                            value={field.value}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            onChange={(selected) => field.onChange(selected?.value || null)}
+                          />
+                        )}
+                      />
                     </div>
                   </div>
 
@@ -1132,7 +1125,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger
+                        type="button"
+                        data-testid="show-advanced-settings"
+                        className="flex w-full">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1142,7 +1138,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("show_advanced_settings")}
                         </span>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6">
+                      <CollapsibleContent data-testid="advanced-settings-content" className="mt-4 space-y-6">
                         {/**
                          * Only display calendar selector if user has connected calendars AND if it's not
                          * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -1185,7 +1181,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <div className="relative mt-1 rounded-sm shadow-sm">
                               <input
                                 type="text"
-                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                                 placeholder={t("meeting_with_user")}
                                 defaultValue={eventType.eventName || ""}
                                 {...formMethods.register("eventName")}
@@ -1207,7 +1203,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 {
                                   <input
                                     type="text"
-                                    className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                    className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                                     placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
                                     defaultValue={(eventType.metadata.smartContractAddress || "") as string}
                                     {...formMethods.register("smartContractAddress")}
@@ -1372,45 +1368,40 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               {t("slot_interval")}
                             </label>
                           </div>
-                          <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
-                              <Controller
-                                name="slotInterval"
-                                control={formMethods.control}
-                                render={() => {
-                                  const slotIntervalOptions = [
-                                    {
-                                      label: t("slot_interval_default"),
-                                      value: -1,
-                                    },
-                                    ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
-                                      label: minutes + " " + t("minutes"),
-                                      value: minutes,
-                                    })),
-                                  ];
-                                  return (
-                                    <Select
-                                      isSearchable={false}
-                                      classNamePrefix="react-select"
-                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                                      onChange={(val) => {
-                                        formMethods.setValue(
-                                          "slotInterval",
-                                          val && (val.value || 0) > 0 ? val.value : null
-                                        );
-                                      }}
-                                      defaultValue={
-                                        slotIntervalOptions.find(
-                                          (option) => option.value === eventType.slotInterval
-                                        ) || slotIntervalOptions[0]
-                                      }
-                                      options={slotIntervalOptions}
-                                    />
-                                  );
-                                }}
-                              />
-                            </div>
-                          </div>
+                          <Controller
+                            name="slotInterval"
+                            control={formMethods.control}
+                            render={() => {
+                              const slotIntervalOptions = [
+                                {
+                                  label: t("slot_interval_default"),
+                                  value: -1,
+                                },
+                                ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                                  label: minutes + " " + t("minutes"),
+                                  value: minutes,
+                                })),
+                              ];
+                              return (
+                                <Select
+                                  isSearchable={false}
+                                  className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                  onChange={(val) => {
+                                    formMethods.setValue(
+                                      "slotInterval",
+                                      val && (val.value || 0) > 0 ? val.value : null
+                                    );
+                                  }}
+                                  defaultValue={
+                                    slotIntervalOptions.find(
+                                      (option) => option.value === eventType.slotInterval
+                                    ) || slotIntervalOptions[0]
+                                  }
+                                  options={slotIntervalOptions}
+                                />
+                              );
+                            }}
+                          />
                         </div>
                         <hr className="my-2 border-neutral-200" />
 
@@ -1446,14 +1437,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="focus:border-primary-500 focus:ring-primary-500 block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
                                           />
                                           <select
                                             id=""
-                                            className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+                                            className="  block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
                                             {...formMethods.register("periodCountCalendarDays")}
                                             defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                             <option value="1">{t("calendar_days")}</option>
@@ -1524,8 +1515,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        classNamePrefix="react-select"
-                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        className="  block w-full min-w-0 flex-1 rounded-sm  sm:text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1563,8 +1553,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        classNamePrefix="react-select"
-                                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                                        className="  block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1730,7 +1719,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             id="requirePayment"
                                             name="requirePayment"
                                             type="checkbox"
-                                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
+                                            className="text-primary-600  h-4 w-4 rounded border-gray-300"
                                             defaultChecked={requirePayment}
                                           />
                                         </div>
@@ -1767,7 +1756,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 min="0.5"
                                                 type="number"
                                                 required
-                                                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                className="  block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
                                                 placeholder="Price"
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
@@ -1805,7 +1794,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <Button href="/event-types" color="secondary" tabIndex={-1}>
                       {t("cancel")}
                     </Button>
-                    <Button type="submit" disabled={updateMutation.isLoading}>
+                    <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
                       {t("update")}
                     </Button>
                   </div>
@@ -1909,8 +1898,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         defaultValue={selectedLocation}
                         options={locationOptions}
                         isSearchable={false}
-                        classNamePrefix="react-select"
-                        className="react-select-container focus:border-primary-500 focus:ring-primary-500 my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                        className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
                         onChange={(val) => {
                           if (val) {
                             locationFormMethods.setValue("locationType", val.value);

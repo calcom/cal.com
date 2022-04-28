@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -15,6 +14,7 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -30,7 +30,22 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
-  return props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
+  return props.away ? (
+    <div className="h-screen dark:bg-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
+              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                😴{" " + t("user_away")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_away_description")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -71,6 +86,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       brandColor: true,
       darkBrandColor: true,
       allowDynamicBooking: true,
+      away: true,
     },
   });
 
@@ -103,6 +119,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             seatsPerTimeSlot: true,
             users: {
               select: {
+                id: true,
                 username: true,
                 name: true,
                 email: true,
@@ -148,30 +165,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
-    return prisma.booking.findFirst({
-      where: {
-        // Find booking for reschedule or taking a seat
-        ...(context.query.rescheduleUid && { uid: asStringOrThrow(context.query.rescheduleUid) }),
-        ...(context.query.bookingId && { id: parseInt(context.query.bookingId as string) }),
-      },
-      select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
-  let booking: Booking | null = null;
-
-  if (context.query.rescheduleUid || context.query.bookingId) {
-    booking = await getBooking();
+  let booking: GetBookingType | null = null;
+  if (context.query.rescheduleUid) {
+    booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
 
   const isDynamicGroupBooking = users.length > 1;
@@ -211,6 +207,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      away: user.away,
       locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
