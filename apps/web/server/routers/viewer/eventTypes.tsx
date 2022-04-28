@@ -1,4 +1,6 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
 import {
@@ -89,6 +91,7 @@ const EventTypeUpdateInput = _EventTypeModel
     }),
     users: z.array(stringOrNumber).optional(),
     schedule: z.number().optional(),
+    hashedLink: z.boolean(),
   })
   .partial()
   .merge(
@@ -214,8 +217,17 @@ export const eventTypesRouter = createProtectedRouter()
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
-        input;
+      const {
+        schedule,
+        periodType,
+        locations,
+        destinationCalendar,
+        customInputs,
+        users,
+        id,
+        hashedLink,
+        ...rest
+      } = input;
       assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
@@ -248,6 +260,48 @@ export const eventTypesRouter = createProtectedRouter()
           set: [],
           connect: users.map((userId: number) => ({ id: userId })),
         };
+      }
+
+      const connectedLink = await ctx.prisma.hashedLink.findFirst({
+        where: {
+          eventTypeId: input.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (hashedLink) {
+        // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
+        if (!connectedLink) {
+          const translator = short();
+          const seed = `${input.eventName}:${input.id}:${new Date().getTime()}`;
+          const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+          // create a hashed link
+          await ctx.prisma.hashedLink.upsert({
+            where: {
+              eventTypeId: input.id,
+            },
+            update: {
+              link: uid,
+            },
+            create: {
+              link: uid,
+              eventType: {
+                connect: { id: input.id },
+              },
+            },
+          });
+        }
+      } else {
+        // check if hashed connection exists. If it does, disconnect
+        if (connectedLink) {
+          await ctx.prisma.hashedLink.delete({
+            where: {
+              eventTypeId: input.id,
+            },
+          });
+        }
       }
 
       const eventType = await ctx.prisma.eventType.update({
