@@ -197,14 +197,16 @@ const BookingPage = ({
     };
   };
 
-  const bookingFormSchema = z.object({
-    name: z.string().min(1),
-    email: z.string().email(),
-  });
+  const bookingFormSchema = z
+    .object({
+      name: z.string().min(1),
+      email: z.string().email(),
+    })
+    .passthrough();
 
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
-    resolver: zodResolver(bookingFormSchema), // Since this isnt set to strict we only validate the fields in the schema
+    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
   const selectedLocation = useWatch({
