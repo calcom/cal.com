@@ -30,6 +30,7 @@ function log(...args: any[]) {
   console.log(...args);
 }
 /**
+ * //TODO: Warn about extra properties not part of schema. Helps in fixing wrong expectations
  * A very simple data validator written with intention of keeping payload size low.
  * Extend the functionality of it as required by the embed.
  * @param data
@@ -258,19 +259,53 @@ export class Cal {
     element.appendChild(template.content);
   }
 
-  floatingButton({ calLink }: { calLink: string }) {
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          required: true,
-          type: "string",
-        },
-      },
-    });
-    const template = document.createElement("template");
-    template.innerHTML = `<cal-floating-button data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
-    document.body.appendChild(template.content);
+  floatingButton({
+    calLink,
+    buttonText = "Book my Cal",
+    hideButtonIcon = false,
+    attributes,
+    buttonPosition = "bottom-right",
+    buttonColor = "rgb(255, 202, 0)",
+    buttonTextColor = "rgb(20, 30, 47)",
+  }: {
+    calLink: string;
+    buttonText?: string;
+    attributes?: Record<string, string>;
+    hideButtonIcon?: boolean;
+    buttonPosition?: "bottom-left" | "bottom-right";
+    buttonColor: string;
+    buttonTextColor: string;
+  }) {
+    // validate(arguments[0], {
+    //   required: true,
+    //   props: {
+    //     calLink: {
+    //       required: true,
+    //       type: "string",
+    //     },
+    //   },
+    // });
+    let attributesString = "";
+    let existingEl = null;
+    if (attributes?.id) {
+      attributesString += ` id="${attributes.id}"`;
+      existingEl = document.getElementById(attributes.id);
+    }
+    let el = existingEl;
+    if (!existingEl) {
+      const template = document.createElement("template");
+      template.innerHTML = `<cal-floating-button ${attributesString}  data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
+      document.body.appendChild(template.content);
+      el = template.content as unknown as HTMLElement;
+    }
+
+    if (buttonText) {
+      el!.setAttribute("data-button-text", buttonText);
+    }
+    el!.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
+    el!.setAttribute("data-button-position", "" + buttonPosition);
+    el!.setAttribute("data-button-color", "" + buttonColor);
+    el!.setAttribute("data-button-text-color", "" + buttonTextColor);
   }
 
   modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {

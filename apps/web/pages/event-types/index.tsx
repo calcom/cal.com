@@ -646,7 +646,7 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
 /*
 FIXME: Title shouldn't be read from URL, it can be derived from URL 
 */
-const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
+const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title }) => {
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef();
@@ -659,7 +659,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const [palette, setPalette] = useState({});
+  const [previewState, setPreviewState] = useState({
+    inline: {
+      width: "100%",
+      height: "100%",
+    },
+    floatingPopup: {},
+    elementClick: {},
+  });
   if (!router.query.tabName) {
     router.push({
       query: {
@@ -686,13 +693,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
   };
 
   const addToPalette = (update) => {
-    setPalette((palette) => {
+    setPreviewState((previewState) => {
       return {
-        ...palette,
-        ...update,
+        ...previewState,
+        palette: {
+          ...previewState.palette,
+          ...update,
+        },
       };
     });
   };
+
   const previewInstruction = (instruction) => {
     iframeRef.current?.contentWindow.postMessage(
       {
@@ -708,11 +719,22 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
     arg: {
       styles: {
         branding: {
-          ...palette,
+          ...previewState.palette,
         },
       },
     },
   });
+
+  previewInstruction({
+    name: "floatingButton",
+    arg: {
+      attributes: {
+        id: "my-floating-button",
+      },
+      ...previewState.floatingPopup,
+    },
+  });
+
   const ThemeOptions = [
     { value: "auto", label: "Auto Theme" },
     { value: "dark", label: "Dark Theme" },
@@ -720,7 +742,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
   ];
   const FloatingPopupPositionOptions = [
     {
-      value: "right",
+      value: "bottom-right",
       label: "Bottom Right",
     },
     {
@@ -728,6 +750,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
       label: "Bottom Left",
     },
   ];
+
+  const getDimension = (dimension) => {
+    if (dimension.match(/^\d+$/)) {
+      dimension = `${dimension}%`;
+    }
+    return dimension;
+  };
   return (
     <DialogContent size="xl">
       <div className="flex">
@@ -748,8 +777,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
             </button>
             {title}
           </h3>
-          <hr className={classNames("mt-4", type === "element-click" ? "hidden" : "")}></hr>
-          <div className={classNames("mt-4 font-medium", type === "element-click" ? "hidden" : "")}>
+          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")}></hr>
+          <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
             <Collapsible
               open={isEmbedCustomizationOpen}
               onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
@@ -757,9 +786,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
                 type="button"
                 className="flex w-full items-center text-base font-medium text-neutral-900">
                 <div>
-                  {type === "inline"
+                  {embedType === "inline"
                     ? "Inline Embed Customization"
-                    : type === "floating-popup"
+                    : embedType === "floating-popup"
                     ? "Floating Popup Customization"
                     : "Element Click Customization"}
                 </div>
@@ -770,54 +799,135 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="text-sm">
-                <div className={classNames("mt-6", type === "inline" ? "flex" : "hidden")}>
+                <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
                   {/*TODO: Add Auto/Fixed toggle from Figma */}
                   <div className="text-sm">Embed Window Sizing</div>
-                  <div className="flex items-center justify-between">
-                    <TextField required addOnLeading={<InputLeading>W</InputLeading>} />
+                  <div className="justify-left flex items-center">
+                    <TextField
+                      name="width"
+                      labelProps={{ className: "hidden" }}
+                      required
+                      value={previewState.inline.width}
+                      onChange={(e) => {
+                        setPreviewState((previewState) => {
+                          let width = e.target.value || "100%";
+
+                          return {
+                            ...previewState,
+                            inline: {
+                              ...previewState.inline,
+                              width,
+                            },
+                          };
+                        });
+                      }}
+                      addOnLeading={<InputLeading>W</InputLeading>}
+                    />
                     <span className="p-2">x</span>
-                    <TextField required addOnLeading={<InputLeading>H</InputLeading>} />
+                    <TextField
+                      labelProps={{ className: "hidden" }}
+                      name="height"
+                      value={previewState.inline.height}
+                      required
+                      onChange={(e) => {
+                        const height = e.target.value || "100%";
+
+                        setPreviewState((previewState) => {
+                          return {
+                            ...previewState,
+                            inline: {
+                              ...previewState.inline,
+                              height,
+                            },
+                          };
+                        });
+                      }}
+                      addOnLeading={<InputLeading>H</InputLeading>}
+                    />
                   </div>
                 </div>
                 <div
                   className={classNames(
                     "mt-4 items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div className="text-sm">Button Text</div>
                   {/* Default Values should come from preview iframe */}
-                  <TextField defaultValue="Book my Cal" required />
+                  <TextField
+                    onChange={(e) => {
+                      setPreviewState((previewState) => {
+                        return {
+                          ...previewState,
+                          floatingPopup: {
+                            ...previewState.floatingPopup,
+                            buttonText: e.target.value,
+                          },
+                        };
+                      });
+                    }}
+                    defaultValue="Book my Cal"
+                    required
+                  />
                 </div>
                 <div
                   className={classNames(
                     "mt-4 flex items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div className="text-sm">Display Calendar Icon Button</div>
-                  <Switch></Switch>
+                  <Switch
+                    defaultChecked={true}
+                    onCheckedChange={(checked) => {
+                      setPreviewState((previewState) => {
+                        return {
+                          ...previewState,
+                          floatingPopup: {
+                            ...previewState.floatingPopup,
+                            hideButtonIcon: !checked,
+                          },
+                        };
+                      });
+                    }}></Switch>
                 </div>
                 <div
                   className={classNames(
                     "mt-4 flex items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div>Position of Button</div>
                   <Select
+                    onChange={(position) => {
+                      setPreviewState((previewState) => {
+                        return {
+                          ...previewState,
+                          floatingPopup: {
+                            ...previewState.floatingPopup,
+                            buttonPosition: position.value,
+                          },
+                        };
+                      });
+                    }}
                     defaultValue={FloatingPopupPositionOptions[0]}
                     options={FloatingPopupPositionOptions}></Select>
                 </div>
                 <div
                   className={classNames(
                     "mt-4 flex items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div>Button Color</div>
                   <div className="w-36">
                     <ColorPicker
                       defaultValue="#000000"
                       onChange={(color) => {
-                        addToPalette({
-                          "floating-popup-button-color": color,
+                        setPreviewState((previewState) => {
+                          return {
+                            ...previewState,
+                            floatingPopup: {
+                              ...previewState.floatingPopup,
+                              buttonColor: color,
+                            },
+                          };
                         });
                       }}></ColorPicker>
                   </div>
@@ -825,23 +935,29 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
                 <div
                   className={classNames(
                     "mt-4 flex items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div>Text Color</div>
                   <div className="w-36">
                     <ColorPicker
                       defaultValue="#000000"
                       onChange={(color) => {
-                        addToPalette({
-                          "floating-popup-text-color": color,
+                        setPreviewState((previewState) => {
+                          return {
+                            ...previewState,
+                            floatingPopup: {
+                              ...previewState.floatingPopup,
+                              buttonTextColor: color,
+                            },
+                          };
                         });
                       }}></ColorPicker>
                   </div>
                 </div>
                 <div
                   className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    type === "floating-popup" ? "flex" : "hidden"
+                    "mt-4 flex hidden items-center justify-between",
+                    embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div>Button Color on Hover</div>
                   <div className="w-36">
@@ -921,14 +1037,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
           <div>
             <div
               className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
-              <small className="my-4 flex text-neutral-500">
+              <small className="flex py-4 text-neutral-500">
                 {t("Place this code in your HTML where you want your Cal widget to appear.")}
               </small>
               <TextArea
                 name="embed-code"
                 className="h-[24rem]"
-                defaultValue={`<!-- Cal inline widget begins -->
-<div id="my-cal-inline"></div>
+                readOnly
+                value={`<!-- Cal inline widget begins -->
+<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
+                  previewState.inline.height
+                )}" id="my-cal-inline"></div>
 <script type="text/javascript">
   ${getEmbedSnippetString()}
   ${getInlineEmbedString({ calLink: eventType.slug })}
@@ -946,7 +1065,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, type, title }) => {
                 className="h-[75vh]"
                 width="100%"
                 height="100%"
-                src="http://localhost:3100/preview.html"
+                src={`http://localhost:3100/preview.html?embedType=${embedType}`}
               />
             </div>
           </div>
@@ -1023,7 +1142,7 @@ const EventTypesPage = () => {
                 ) : (
                   <EmbedTypeCodeAndPreviewDialogContent
                     eventTypeId={router.query.eventTypeId}
-                    type={router.query.type}
+                    embedType={router.query.type}
                     title={router.query.title}
                   />
                 )}
