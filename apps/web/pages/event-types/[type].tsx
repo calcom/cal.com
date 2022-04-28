@@ -1623,13 +1623,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           { value: 5, label: "5" },
                                           {
                                             value: -1,
-                                            isDisabled: false,
+                                            isDisabled: !eventType.users.some((user) => user.plan === "PRO"),
                                             label: (
                                               <div className="flex flex-row justify-between">
                                                 <span>6 +</span>
                                                 <Badge variant="default">PRO</Badge>
                                               </div>
-                                            ),
+                                            ) as unknown as string,
                                           },
                                         ];
                                         return (
