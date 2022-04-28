@@ -446,7 +446,6 @@ const BookingPage = ({
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
-                            disabled={disableInput}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
