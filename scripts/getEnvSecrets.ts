@@ -1,5 +1,7 @@
 import { Client, Pool } from "pg";
 
+import "@calcom/prisma/env";
+
 const connectionString = process.env.DATABASE_URL;
 
 const pool = new Pool({
