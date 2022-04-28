@@ -213,6 +213,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
+      hasHashedBookingLink: false,
+      hashedLink: null,
     },
   };
 }
