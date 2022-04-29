@@ -53,14 +53,20 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
   }, [isSuccess]);
 
   const applyNamingFormat = (location: string) => {
-    let finalString = "";
-    if (booking.location?.substring(0, 13) === "integrations:") {
+    let finalString = location;
+    if (location.substring(0, 13) === "integrations:") {
       finalString = location.substring(13);
       finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
       finalString = finalString.replace(":", " ");
     }
 
     return finalString;
+  };
+
+  const clearSelection = () => {
+    setSelectedLocation(undefined);
+    setAddress("");
+    setLink("");
   };
 
   const newMutation = useMutation(async (newLocation: string) => {
@@ -194,7 +200,9 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
 
             <DialogFooter>
               <DialogClose>
-                <Button color="secondary">{t("cancel")}</Button>
+                <Button color="secondary" onClick={() => clearSelection()}>
+                  {t("cancel")}
+                </Button>
               </DialogClose>
               <Button
                 onClick={() => {
@@ -206,9 +214,10 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
                   } else {
                     newLocation = selectedLocation?.value || "";
                   }
-                  setCurrentLocation(newLocation);
+                  setCurrentLocation(applyNamingFormat(newLocation));
                   setIsOpenDialog(false);
                   newMutation.mutate(newLocation);
+                  clearSelection();
                 }}>
                 {t("update_location")}
               </Button>
