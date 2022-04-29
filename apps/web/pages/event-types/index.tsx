@@ -232,7 +232,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}
                 <MemoizedItem type={type} group={group} readOnly={readOnly} />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                  <div className="flex justify-between rtl:space-x-reverse">
+                  <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
@@ -269,7 +269,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
