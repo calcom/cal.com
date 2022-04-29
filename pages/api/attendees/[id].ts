@@ -29,9 +29,9 @@ export async function attendeeById(
       // Flatten and merge all the attendees in one array
       (bookings) =>
         bookings
-          .map((bookings) => bookings.attendees) // Get the attendees IDs from user bookings
-          .flat() // Needed to flatten the array of arrays of all bookings attendees
-          .map((attendee) => attendee.id) // We only need the attendee IDs
+          .map((bookings) => bookings.attendees)
+          .flat()
+          .map((attendee) => attendee.id)
     );
   // @note: Here we make sure to only return attendee's of the user's own bookings.
   if (!userBookingsAttendeeIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
