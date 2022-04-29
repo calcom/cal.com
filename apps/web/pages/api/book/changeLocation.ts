@@ -12,14 +12,18 @@ import { sendLocationChangeEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const id = parseInt(req.body.id);
-  const location = req.body.newLocation || "";
-  console.log("location new: " + location);
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
+  const bookingId = req.body.bookingId;
+  const location = req.body.newLocation;
 
   const session = await getSession({ req: req });
 
   if (!session?.user?.id) {
-    return res.status(401).json({ message: "Not authenticated" });
+    res.status(401).json({ message: "Not authenticated" });
+    return;
   }
 
   try {
@@ -48,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (location) {
       await prisma.booking.updateMany({
         where: {
-          id,
+          id: bookingId,
         },
         data: {
           location,
@@ -58,31 +62,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const booking = await prisma.booking.findUnique({
       where: {
-        id,
+        id: bookingId,
       },
       select: {
         id: true,
         userId: true,
         user: {
           select: {
-            id: true,
-            credentials: true,
-            email: true,
-            timeZone: true,
-            name: true,
             destinationCalendar: true,
           },
         },
         attendees: true,
         location: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-          },
-        },
-        payment: true,
-        paid: true,
         title: true,
         eventType: {
           select: {
@@ -93,76 +84,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: true,
         endTime: true,
         uid: true,
-        eventTypeId: true,
         destinationCalendar: true,
       },
     });
 
-    const organizer = await prisma.user.findFirst({
-      where: {
-        id: booking?.userId || 0,
-      },
-      select: {
-        name: true,
-        email: true,
-        timeZone: true,
-        locale: true,
-      },
-      rejectOnNotFound: true,
-    });
-
-    const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
-
-    const attendeesListPromises = booking!.attendees.map(async (attendee) => {
-      return {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+    if (booking) {
+      const organizer = await prisma.user.findFirst({
+        where: {
+          id: booking.userId || 0,
         },
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+        },
+        rejectOnNotFound: true,
+      });
+
+      const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+
+      const attendeesListPromises = booking.attendees.map(async (attendee) => {
+        return {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
+        };
+      });
+
+      const attendeesList = await Promise.all(attendeesListPromises);
+
+      const evt: CalendarEvent = {
+        title: booking.title || "",
+        type: (booking.eventType?.title as string) || booking?.title || "",
+        description: booking.description || "",
+        startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
+        endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
+        organizer: {
+          email: organizer.email,
+          name: organizer.name ?? "Nameless",
+          timeZone: organizer.timeZone,
+          language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
+        },
+        attendees: attendeesList,
+        uid: booking.uid,
+        location: booking.location,
+        destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
       };
-    });
 
-    const attendeesList = await Promise.all(attendeesListPromises);
+      const eventManager = new EventManager(currentUser);
+      const scheduleResult = await eventManager.create(evt);
 
-    const evt: CalendarEvent = {
-      title: booking?.title || "",
-      type: (booking?.eventType?.title as string) || booking?.title || "",
-      description: booking?.description || "",
-      startTime: booking?.startTime ? dayjs(booking.startTime).format() : "",
-      endTime: booking?.endTime ? dayjs(booking.endTime).format() : "",
-      organizer: {
-        email: organizer.email,
-        name: organizer.name ?? "Nameless",
-        timeZone: organizer.timeZone,
-        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
-      },
-      attendees: attendeesList,
-      uid: booking?.uid,
-      location: booking?.location,
-      destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
-    };
-
-    const eventManager = new EventManager(currentUser);
-    const scheduleResult = await eventManager.create(evt);
-
-    const results = scheduleResult.results;
-    if (results.length > 0 && results.every((res) => !res.success)) {
-      console.log("failed");
+      const results = scheduleResult.results;
+      if (results.length > 0 && results.every((res) => !res.success)) {
+        console.log("failed");
+      } else {
+        const metadata: AdditionInformation = {};
+        if (results.length) {
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        }
+        try {
+          await sendLocationChangeEmails({ ...evt, additionInformation: metadata });
+        } catch (error) {
+          console.log("error");
+        }
+      }
     } else {
-      const metadata: AdditionInformation = {};
-      if (results.length) {
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
-      }
-      try {
-        await sendLocationChangeEmails({ ...evt, additionInformation: metadata });
-      } catch (error) {
-        console.log("error");
-      }
+      res.status(500).json({ message: "Booking not found" });
     }
   } catch {
     res.status(500).json({ message: "Updating Location failed" });

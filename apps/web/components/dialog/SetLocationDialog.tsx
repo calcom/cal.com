@@ -1,23 +1,19 @@
 import { LocationMarkerIcon, GlobeAltIcon, PhoneIcon, PencilIcon, PlusIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GetServerSidePropsContext } from "next";
-import { getSession } from "next-auth/react";
 import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 import { z } from "zod";
 
-import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 
 import { LocationType } from "@lib/location";
-import prisma from "@lib/prisma";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import Select, { SelectProps } from "@components/ui/form/Select";
+import Select from "@components/ui/form/Select";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -39,7 +35,6 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking: booking } = props;
   const [currentLocation, setCurrentLocation] = useState(booking.location || "");
-  const [location, setLocation] = useState(booking.location || "");
   const [address, setAddress] = useState("");
   const [link, setLink] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
@@ -61,7 +56,7 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
     await fetch("/api/book/changeLocation", {
       method: "POST",
       body: JSON.stringify({
-        id: booking.id,
+        bookingId: booking.id,
         newLocation,
       }),
       headers: {
@@ -111,9 +106,6 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
                     className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
                     onChange={(val) => {
                       if (val) {
-                        locationFormMethods.setValue("locationType", val.value);
-                        locationFormMethods.unregister("locationLink");
-                        locationFormMethods.unregister("locationAddress");
                         setSelectedLocation(val);
                       }
                     }}
@@ -203,7 +195,6 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
                   } else {
                     newLocation = selectedLocation?.value || "";
                   }
-                  setLocation(newLocation);
                   setCurrentLocation(newLocation);
                   setIsOpenDialog(false);
                   newMutation.mutate(newLocation);
