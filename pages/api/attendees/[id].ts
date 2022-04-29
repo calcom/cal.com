@@ -19,14 +19,22 @@ export async function attendeeById(
     res.status(400).json({ error: safeQuery.error });
     throw new Error("Invalid request query", safeQuery.error);
   }
-  const userBookings = await prisma.booking.findMany({
-    where: { userId },
-    include: { attendees: true },
-  });
-  const attendees = userBookings.map((booking) => booking.attendees).flat();
-  const attendeeIds = attendees.map((attendee) => attendee.id);
-  // Here we make sure to only return attendee's of the user's own bookings.
-  if (!attendeeIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  const userBookingsAttendeeIds = await prisma.booking
+    // Find all user bookings, including attendees
+    .findMany({
+      where: { userId },
+      include: { attendees: true },
+    })
+    .then(
+      // Flatten and merge all the attendees in one array
+      (bookings) =>
+        bookings
+          .map((bookings) => bookings.attendees) // Get the attendees IDs from user bookings
+          .flat() // Needed to flatten the array of arrays of all bookings attendees
+          .map((attendee) => attendee.id) // We only need the attendee IDs
+    );
+  // @note: Here we make sure to only return attendee's of the user's own bookings.
+  if (!userBookingsAttendeeIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
       /**

@@ -127,9 +127,9 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 | attendees                | ✅       | ✅      | ✅     | ✅   | ✅     |
 | availabilities           | ✅       | ✅      | ✅     | ✅   | ✅     |
 | booking-references       | ✅       | ✅      | ✅     | ✅   | ✅     |
-| daily-event-references   | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-references         | ✅       | ✅      | ✅     | ✅   | ✅     |
 | destination-calendars    | ✅       | ✅      | ✅     | ✅   | ✅     |
-| event-type-custom-inputs | ✅       | ✅      | ✅     | ✅   | ✅     |
+| custom-inputs            | ✅       | ✅      | ✅     | ✅   | ✅     |
 | event-types              | ✅       | ✅      | ✅     | ✅   | ✅     |
 | memberships              | ✅       | ✅      | ✅     | ✅   | ✅     |
 | payments                 | ✅       | ✅      | ❌     | ❌   | ❌     |

@@ -10,64 +10,6 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-/**
- * @swagger
- * /bookings/{id}:
- *   get:
- *     summary: Find a booking by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the booking to get
- *     tags:
- *     - bookings
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: Booking was not found
- *   patch:
- *     summary: Edit an existing booking
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the booking to edit
- *     tags:
- *     - bookings
- *     responses:
- *       201:
- *         description: OK, booking edited successfuly
- *       400:
- *        description: Bad request. Booking body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing booking
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the booking to delete
- *     tags:
- *     - bookings
- *     responses:
- *       201:
- *         description: OK, booking removed successfuly
- *       400:
- *        description: Bad request. Booking id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function bookingById(req: NextApiRequest, res: NextApiResponse<BookingResponse>) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -82,6 +24,28 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
   if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
+      /**
+       * @swagger
+       * /bookings/{id}:
+       *   get:
+       *     summary: Find a booking by ID
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         schema:
+       *           type: integer
+       *         required: true
+       *         description: Numeric ID of the booking to get
+       *     tags:
+       *     - bookings
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: Booking was not found
+       */
       case "GET":
         await prisma.booking
           .findUnique({ where: { id: safeQuery.data.id } })
@@ -94,10 +58,30 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /bookings/{id}:
+       *   patch:
+       *     summary: Edit an existing booking
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the booking to edit
+       *     tags:
+       *     - bookings
+       *     responses:
+       *       201:
+       *         description: OK, booking edited successfuly
+       *       400:
+       *        description: Bad request. Booking body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         const safeBody = schemaBookingEditBodyParams.safeParse(body);
-
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
@@ -115,7 +99,28 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /bookings/{id}:
+       *   delete:
+       *     summary: Remove an existing booking
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the booking to delete
+       *     tags:
+       *     - bookings
+       *     responses:
+       *       201:
+       *         description: OK, booking removed successfuly
+       *       400:
+       *        description: Bad request. Booking id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         await prisma.booking
           .delete({ where: { id: safeQuery.data.id } })

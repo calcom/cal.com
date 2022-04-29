@@ -11,11 +11,11 @@ import {
 
 /**
  * @swagger
- * /event-type-custom-inputs:
+ * /custom-inputs:
  *   get:
  *     summary: Find all eventTypeCustomInputs
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       200:
  *         description: OK
@@ -26,7 +26,7 @@ import {
  *   post:
  *     summary: Creates a new eventTypeCustomInput
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput created

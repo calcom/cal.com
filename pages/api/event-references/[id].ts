@@ -13,64 +13,6 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-/**
- * @swagger
- * /daily-event-references/{id}:
- *   get:
- *     summary: Find a daily event reference by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the daily event reference to get
- *     tags:
- *     - daily-event-references
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: DailyEventReference was not found
- *   patch:
- *     summary: Edit an existing daily event reference
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the daily event reference to edit
- *     tags:
- *     - daily-event-references
- *     responses:
- *       201:
- *         description: OK, dailyEventReference edited successfuly
- *       400:
- *        description: Bad request. DailyEventReference body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing daily event reference
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the daily event reference to delete
- *     tags:
- *     - daily-event-references
- *     responses:
- *       201:
- *         description: OK, dailyEventReference removed successfuly
- *       400:
- *        description: Bad request. DailyEventReference id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function dailyEventReferenceById(
   req: NextApiRequest,
   res: NextApiResponse<DailyEventReferenceResponse>
@@ -92,6 +34,28 @@ export async function dailyEventReferenceById(
     res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
+      /**
+       * @swagger
+       * /event-references/{id}:
+       *   get:
+       *     summary: Find a event reference by ID
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         schema:
+       *           type: integer
+       *         required: true
+       *         description: Numeric ID of the event reference to get
+       *     tags:
+       *     - event-references
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: EventReference was not found
+       */
       case "GET":
         await prisma.dailyEventReference
           .findUnique({ where: { id: safeQuery.data.id } })
@@ -105,6 +69,28 @@ export async function dailyEventReferenceById(
           );
         break;
 
+      /**
+       * @swagger
+       * /event-references/{id}:
+       *   patch:
+       *     summary: Edit an existing event reference
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the event reference to edit
+       *     tags:
+       *     - event-references
+       *     responses:
+       *       201:
+       *         description: OK, EventReference edited successfuly
+       *       400:
+       *        description: Bad request. EventReference body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         if (!safeBody.success) {
           throw new Error("Invalid request body");
@@ -121,6 +107,28 @@ export async function dailyEventReferenceById(
           );
         break;
 
+      /**
+       * @swagger
+       * /event-references/{id}:
+       *   delete:
+       *     summary: Remove an existing event reference
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the event reference to delete
+       *     tags:
+       *     - event-references
+       *     responses:
+       *       201:
+       *         description: OK, EventReference removed successfuly
+       *       400:
+       *        description: Bad request. EventReference id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         await prisma.dailyEventReference
           .delete({

@@ -6,6 +6,15 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
+async function createOrlistAllBookings(
+  req: NextApiRequest,
+  res: NextApiResponse<BookingsResponse | BookingResponse>
+) {
+  const { method } = req;
+  const userId = req.userId;
+
+  if (method === "GET") {
+
 /**
  * @swagger
  * /bookings:
@@ -20,6 +29,21 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: No bookings were found
+ */
+    const data = await prisma.booking.findMany({ where: { userId } });
+    const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
+    if (bookings) res.status(200).json({ bookings });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No Bookings were found",
+          error,
+        });
+  } else if (method === "POST") {
+
+/**
+ * @swagger
+ * /bookings:
  *   post:
  *     summary: Creates a new booking
  *     tags:
@@ -32,24 +56,6 @@ import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/val
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function createOrlistAllBookings(
-  req: NextApiRequest,
-  res: NextApiResponse<BookingsResponse | BookingResponse>
-) {
-  const { method } = req;
-  const userId = req.userId;
-
-  if (method === "GET") {
-    const data = await prisma.booking.findMany({ where: { userId } });
-    const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
-    if (bookings) res.status(200).json({ bookings });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Bookings were found",
-          error,
-        });
-  } else if (method === "POST") {
     const safe = schemaBookingCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 

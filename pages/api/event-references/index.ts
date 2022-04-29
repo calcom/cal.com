@@ -11,11 +11,11 @@ import {
 
 /**
  * @swagger
- * /daily-event-references:
+ * /event-references:
  *   get:
  *     summary: Find all daily event reference
  *     tags:
- *     - daily-event-references
+ *     - event-references
  *     responses:
  *       200:
  *         description: OK
@@ -26,7 +26,7 @@ import {
  *   post:
  *     summary: Creates a new daily event reference
  *     tags:
- *     - daily-event-references
+ *     - event-references
  *     responses:
  *       201:
  *         description: OK, daily event reference created

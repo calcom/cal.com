@@ -15,7 +15,7 @@ import {
 
 /**
  * @swagger
- * /event-type-custom-inputs/{id}:
+ * /custom-inputs/{id}:
  *   get:
  *     summary: Find a eventTypeCustomInput by ID
  *     parameters:
@@ -26,7 +26,7 @@ import {
  *         required: true
  *         description: Numeric ID of the eventTypeCustomInput to get
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       200:
  *         description: OK
@@ -44,7 +44,7 @@ import {
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput edited successfuly
@@ -62,7 +62,7 @@ import {
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput removed successfuly
