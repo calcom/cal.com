@@ -612,6 +612,23 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("credentials", {
+    async resolve({ ctx }) {
+      const { user } = ctx;
+      const credentials = await ctx.prisma.credential.findMany({
+        where: {
+          userId: user.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+        },
+      });
+      return credentials;
+    },
+  })
   .query("web3Integration", {
     async resolve({ ctx }) {
       const { user } = ctx;

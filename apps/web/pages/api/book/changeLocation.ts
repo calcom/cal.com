@@ -1,17 +1,50 @@
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import EventManager from "@calcom/core/EventManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionInformation } from "@calcom/types/Calendar";
 
+import { getSession } from "@lib/auth";
 import { sendLocationChangeEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const id = parseInt(req.body.id);
-  const location = req.body.location || "";
+  const location = req.body.newLocation || "";
+  console.log("location new: " + location);
+
+  const session = await getSession({ req: req });
+
+  if (!session?.user?.id) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 
   try {
+    const currentUser = await prisma.user.findFirst({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        credentials: {
+          orderBy: { id: "desc" as Prisma.SortOrder },
+        },
+        timeZone: true,
+        email: true,
+        name: true,
+        username: true,
+        destinationCalendar: true,
+        locale: true,
+      },
+    });
+
+    if (!currentUser) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
     if (location) {
       await prisma.booking.updateMany({
         where: {
@@ -111,7 +144,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: booking?.location,
       destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
     };
-    await sendLocationChangeEmails(evt);
+
+    const eventManager = new EventManager(currentUser);
+    const scheduleResult = await eventManager.create(evt);
+
+    const results = scheduleResult.results;
+    if (results.length > 0 && results.every((res) => !res.success)) {
+      console.log("failed");
+    } else {
+      const metadata: AdditionInformation = {};
+      if (results.length) {
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      }
+      try {
+        await sendLocationChangeEmails({ ...evt, additionInformation: metadata });
+      } catch (error) {
+        console.log("error");
+      }
+    }
   } catch {
     res.status(500).json({ message: "Updating Location failed" });
   }

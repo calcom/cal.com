@@ -673,7 +673,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata.entryPoints = updatedEvent.entryPoints;
         }
       }
-
+      console.log(
+        "test: " +
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes,
+          }
+      );
       await sendRescheduledEmails({
         ...evt,
         additionInformation: metadata,

@@ -140,6 +140,8 @@ function BookingListItem(booking: BookingItem) {
         isOpenDialog={isOpenSetLocationDialog}
         setIsOpenDialog={setIsOpenSetLocationDialog}
         booking={booking}
+        userLocale={user?.locale}
+        userId={user?.id}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
