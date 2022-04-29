@@ -6,6 +6,7 @@ export class CalendarEventDirector {
   private builder!: CalendarEventBuilder;
   private existingBooking!: Partial<Booking>;
   private cancellationReason!: string;
+  private dynamicSlug!: string | null;
 
   public setBuilder(builder: CalendarEventBuilder): void {
     this.builder = builder;
@@ -19,6 +20,11 @@ export class CalendarEventDirector {
     this.cancellationReason = reason;
   }
 
+  public setDynamicBookingSlug(slug: string | null) {
+    this.dynamicSlug = slug;
+  }
+
+  // Add dynamic event support
   public async buildForRescheduleEmail(): Promise<void> {
     if (this.existingBooking && this.existingBooking.eventTypeId && this.existingBooking.uid) {
       await this.builder.buildEventObjectFromInnerClass(this.existingBooking.eventTypeId);

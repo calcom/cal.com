@@ -97,27 +97,29 @@ const handler = async (
     const isDynamicBooking = !!(
       bookingToReschedule &&
       bookingToReschedule.dynamicEventSlugRef &&
-      bookingToReschedule.dynamicGroupSlugRef
+      bookingToReschedule.dynamicGroupSlugRef &&
+      userOwner
     );
-    const rescheduleConditions =
-      !!(bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) || isDynamicBooking;
+    const isRegularBooking = !!(bookingToReschedule && bookingToReschedule.eventTypeId && userOwner);
+    const rescheduleConditions = isRegularBooking || isDynamicBooking;
 
-    // console.log("conditions=>", rescheduleConditions);
+    const getEventTypeFromDB = async (id: number) => {
+      return await prisma.eventType.findFirst({
+        select: {
+          title: true,
+          schedulingType: true,
+        },
+        rejectOnNotFound: true,
+        where: {
+          id,
+        },
+      });
+    };
 
-    if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
+    if (rescheduleConditions) {
       const event = isDynamicBooking
         ? getDefaultEvent(`min${bookingToReschedule.dynamicEventSlugRef}event`)
-        : await prisma.eventType.findFirst({
-            select: {
-              title: true,
-              users: true,
-              schedulingType: true,
-            },
-            rejectOnNotFound: true,
-            where: {
-              id: bookingToReschedule.eventTypeId,
-            },
-          });
+        : await getEventTypeFromDB(bookingToReschedule.eventTypeId || 0); //ESLint causing issues for no reason
       await prisma.booking.update({
         where: {
           id: bookingToReschedule.id,
@@ -165,21 +167,26 @@ const handler = async (
         organizer: userOwnerAsPeopleType,
       });
 
+      console.log("=>Builder", builder);
+
       const director = new CalendarEventDirector();
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule as unknown as Booking);
       director.setCancellationReason(cancellationReason);
+      director.setDynamicBookingSlug(bookingToReschedule.dynamicEventSlugRef);
       await director.buildForRescheduleEmail();
-
+      console.log("=>director", director);
       // Handling calendar and videos cancellation
       // This can set previous time as available, until virtual calendar is done
       const credentialsMap = new Map();
       userOwner.credentials.forEach((credential) => {
         credentialsMap.set(credential.type, credential);
       });
+      console.log("=>Cmap", credentialsMap);
       const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
         (ref) => !!credentialsMap.get(ref.type)
       );
+      console.log("=>Bref", bookingRefsFiltered);
       bookingRefsFiltered.forEach((bookingRef) => {
         if (bookingRef.uid) {
           if (bookingRef.type.endsWith("_calendar")) {
@@ -191,6 +198,7 @@ const handler = async (
           }
         }
       });
+      console.log("=>BrefEach", bookingRefsFiltered);
 
       // Send emails
       await sendRequestRescheduleEmail(builder.calendarEvent, {
