@@ -1,9 +1,10 @@
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import prisma from "@calcom/prisma";
 
-const client_id = process.env.SLACK_CLIENT_ID;
+let client_id = "";
 const scopes = ["commands", "users:read", "users:read.email", "chat:write", "chat:write.public"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,6 +13,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
+    if (client_id === "") {
+      const app = await prisma.app.findUnique({ where: { slug: "slack_messaging" } });
+      if (app?.keys && typeof app?.keys === "object") {
+        const appKeys = app?.keys as Prisma.JsonObject;
+        if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+      }
+    }
     // Get user
     await prisma.user.findFirst({
       rejectOnNotFound: true,
