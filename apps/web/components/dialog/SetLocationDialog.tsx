@@ -34,12 +34,11 @@ type OptionTypeBase = {
 export const SetLocationDialog = (props: ISetLocationDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking: booking } = props;
-  const [currentLocation, setCurrentLocation] = useState(booking.location || "");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [address, setAddress] = useState("");
   const [link, setLink] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
-
   const [locationOptions, setLocationOptions] = useState<Array<any>>([]);
 
   useEffect(() => {
@@ -50,7 +49,19 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
       }
     };
     fetchData();
+    setCurrentLocation(applyNamingFormat(booking.location || ""));
   }, [isSuccess]);
+
+  const applyNamingFormat = (location: string) => {
+    let finalString = "";
+    if (booking.location?.substring(0, 13) === "integrations:") {
+      finalString = location.substring(13);
+      finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
+      finalString = finalString.replace(":", " ");
+    }
+
+    return finalString;
+  };
 
   const newMutation = useMutation(async (newLocation: string) => {
     await fetch("/api/book/changeLocation", {

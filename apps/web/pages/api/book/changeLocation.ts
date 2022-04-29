@@ -87,7 +87,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         destinationCalendar: true,
       },
     });
-
     if (booking) {
       const organizer = await prisma.user.findFirst({
         where: {
@@ -156,10 +155,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } else {
-      res.status(500).json({ message: "Booking not found" });
+      res.status(500).json({ message: "No booking found" });
     }
   } catch {
     res.status(500).json({ message: "Updating Location failed" });
   }
-  res.status(204).end();
+  return res.status(200).json({ message: "Location updated" });
 }
