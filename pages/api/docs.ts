@@ -21,7 +21,7 @@ const swaggerHandler = withSwagger({
     components: {
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
     },
-    security: [{ apiKey: [] }],
+    security: [{ ApiKeyAuth: [] }],
   },
   apiFolder: "pages/api",
 });
