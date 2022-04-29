@@ -36,7 +36,7 @@ async function main() {
     await createApp("msteams", ["VIDEO"]);
   }
   // Video apps
-  if (process.env.DAILY_API_KEY && process.env.DAILY_SCALE_PLAN) {
+  if (process.env.DAILY_API_KEY) {
     await createApp("dailyvideo", ["VIDEO"], {
       api_key: process.env.DAILY_API_KEY,
       scale_plan: process.env.DAILY_SCALE_PLAN,
@@ -55,6 +55,7 @@ async function main() {
       client_secret: process.env.ZOOM_CLIENT_SECRET,
     });
   }
+  await createApp("jitsi", ["VIDEO"]);
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
     await createApp("hubspot", ["OTHER"], {
