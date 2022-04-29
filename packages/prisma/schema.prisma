@@ -450,7 +450,7 @@ enum AppCategories {
     WEB3       @map("web3")
 }
 
-model AvailableApps {
+model App {
     // The slug for the app store public page inside `/apps/[slug]` and `/packages/app-store/[slug]`
     slug       String          @id @unique
     // Needed API Keys
