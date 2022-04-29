@@ -5,6 +5,7 @@ import {
   ExclamationIcon,
   InformationCircleIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -17,6 +18,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { z } from "zod";
 
 import {
   useIsEmbed,
@@ -47,6 +49,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
+import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
@@ -54,7 +57,7 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps;
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {
   name: string;
@@ -74,6 +77,8 @@ const BookingPage = ({
   profile,
   isDynamicGroupBooking,
   locationLabels,
+  hasHashedBookingLink,
+  hashedLink,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -195,8 +200,16 @@ const BookingPage = ({
     };
   };
 
+  const bookingFormSchema = z
+    .object({
+      name: z.string().min(1),
+      email: z.string().email(),
+    })
+    .passthrough();
+
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
+    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
   const selectedLocation = useWatch({
@@ -280,6 +293,8 @@ const BookingPage = ({
         label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
+      hasHashedBookingLink,
+      hashedLink,
     });
   };
 
@@ -389,7 +404,7 @@ const BookingPage = ({
                     </label>
                     <div className="mt-1">
                       <input
-                        {...bookingForm.register("name")}
+                        {...bookingForm.register("name", { required: true })}
                         type="text"
                         name="name"
                         id="name"
@@ -436,7 +451,6 @@ const BookingPage = ({
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
-                            disabled={disableInput}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
