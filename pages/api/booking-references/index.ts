@@ -10,7 +10,7 @@ import {
 } from "@lib/validations/booking-reference";
 
 async function createOrlistAllBookingReferences(
-  { method, userId }: NextApiRequest,
+  { method, userId, body }: NextApiRequest,
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
   const userWithBookings = await prisma.user.findUnique({
@@ -18,7 +18,7 @@ async function createOrlistAllBookingReferences(
     include: { bookings: true },
   });
   if (!userWithBookings) throw new Error("User not found");
-  const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+  const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
   if (method === "GET") {
     /**
      * @swagger
@@ -62,13 +62,11 @@ async function createOrlistAllBookingReferences(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
+    const safe = schemaBookingCreateBodyParams.safeParse(body);
     if (!safe.success) {
       throw new Error("Invalid request body");
     }
 
-    // const booking_reference = schemaBookingReferencePublic.parse(data);
-    const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },
@@ -76,7 +74,7 @@ async function createOrlistAllBookingReferences(
     if (!userWithBookings) {
       throw new Error("User not found");
     }
-    const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+    const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
     if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
       const booking_reference = await prisma.bookingReference.create({

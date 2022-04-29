@@ -28,7 +28,7 @@ export async function availabilityById(
        * @swagger
        * /availabilities/{id}:
        *   get:
-       *     summary: Find an availability by ID
+       *     summary: Find an availability
        *     parameters:
        *       - in: path
        *         name: id

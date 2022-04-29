@@ -95,7 +95,7 @@ async function createOrlistAllAttendees(
     if (!userWithBookings) {
       throw new Error("User not found");
     }
-    const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+    const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
     // Here we make sure to only return attendee's of the user's own bookings.
     if (!userBookingIds.includes(safePost.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {

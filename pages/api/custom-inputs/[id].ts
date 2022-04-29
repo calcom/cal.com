@@ -17,7 +17,7 @@ import {
  * @swagger
  * /custom-inputs/{id}:
  *   get:
- *     summary: Find a eventTypeCustomInput by ID
+ *     summary: Find a eventTypeCustomInput
  *     parameters:
  *       - in: path
  *         name: id
@@ -71,12 +71,13 @@ import {
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeCustomInputResponse>) {
-  const { method, query, body } = req;
+async function eventTypeById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<EventTypeCustomInputResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({

@@ -14,7 +14,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Find a user by ID, returns your user if regular user.
+ *     summary: Find a user, returns your user if regular user.
  *     parameters:
  *       - in: path
  *         name: id

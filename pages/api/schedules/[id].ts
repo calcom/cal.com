@@ -10,64 +10,6 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-/**
- * @swagger
- * /schedules/{id}:
- *   get:
- *     summary: Find a schedule by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the schedule to get
- *     tags:
- *     - schedules
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: Schedule was not found
- *   patch:
- *     summary: Edit an existing schedule
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the schedule to edit
- *     tags:
- *     - schedules
- *     responses:
- *       201:
- *         description: OK, schedule edited successfuly
- *       400:
- *        description: Bad request. Schedule body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing schedule
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the schedule to delete
- *     tags:
- *     - schedules
- *     responses:
- *       201:
- *         description: OK, schedule removed successfuly
- *       400:
- *        description: Bad request. Schedule id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function scheduleById(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
   const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
@@ -79,6 +21,28 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
   if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
+      /**
+       * @swagger
+       * /schedules/{id}:
+       *   get:
+       *     summary: Find a schedule
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         schema:
+       *           type: integer
+       *         required: true
+       *         description: Numeric ID of the schedule to get
+       *     tags:
+       *     - schedules
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: Schedule was not found
+       */
       case "GET":
         await prisma.schedule
           .findUnique({ where: { id: safeQuery.data.id } })
@@ -92,6 +56,28 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
           );
         break;
 
+      /**
+       * @swagger
+       * /schedules/{id}:
+       *   patch:
+       *     summary: Edit an existing schedule
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the schedule to edit
+       *     tags:
+       *     - schedules
+       *     responses:
+       *       201:
+       *         description: OK, schedule edited successfuly
+       *       400:
+       *        description: Bad request. Schedule body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         if (!safeBody.success) {
           throw new Error("Invalid request body");
@@ -108,6 +94,28 @@ export async function scheduleById(req: NextApiRequest, res: NextApiResponse<Sch
           );
         break;
 
+      /**
+       * @swagger
+       * /schedules/{id}:
+       *   delete:
+       *     summary: Remove an existing schedule
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the schedule to delete
+       *     tags:
+       *     - schedules
+       *     responses:
+       *       201:
+       *         description: OK, schedule removed successfuly
+       *       400:
+       *        description: Bad request. Schedule id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         // Look for user to check if schedule is user's default
         const user = await prisma.user.findUnique({ where: { id: userId } });

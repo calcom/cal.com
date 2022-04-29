@@ -6,34 +6,6 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 
-/**
- * @swagger
- * /schedules:
- *   get:
- *     summary: Find all schedules
-
- *     tags:
- *     - schedules
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No schedules were found
- *   post:
- *     summary: Creates a new schedule
-
- *     tags:
- *     - schedules
- *     responses:
- *       201:
- *         description: OK, schedule created
- *       400:
- *        description: Bad request. Schedule body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllSchedules(
   req: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
@@ -42,6 +14,21 @@ async function createOrlistAllSchedules(
   const userId = req.userId;
 
   if (method === "GET") {
+    /**
+     * @swagger
+     * /schedules:
+     *   get:
+     *     summary: Find all schedules
+     *     tags:
+     *     - schedules
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No schedules were found
+     */
     const data = await prisma.schedule.findMany({ where: { userId } });
     const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
     if (schedules) res.status(200).json({ schedules });
@@ -52,6 +39,21 @@ async function createOrlistAllSchedules(
           error,
         });
   } else if (method === "POST") {
+    /**
+     * @swagger
+     * /schedules:
+     *   post:
+     *     summary: Creates a new schedule
+     *     tags:
+     *     - schedules
+     *     responses:
+     *       201:
+     *         description: OK, schedule created
+     *       400:
+     *        description: Bad request. Schedule body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
     const safe = schemaScheduleBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
     const data = await prisma.schedule.create({ data: { ...safe.data, userId } });

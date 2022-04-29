@@ -7,29 +7,25 @@ import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
 async function createOrlistAllBookings(
-  req: NextApiRequest,
+  { method, userId }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
-
-/**
- * @swagger
- * /bookings:
- *   get:
- *     summary: Find all bookings
- *     tags:
- *     - bookings
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No bookings were found
- */
+    /**
+     * @swagger
+     * /bookings:
+     *   get:
+     *     summary: Find all bookings
+     *     tags:
+     *     - bookings
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No bookings were found
+     */
     const data = await prisma.booking.findMany({ where: { userId } });
     const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
     if (bookings) res.status(200).json({ bookings });
@@ -40,22 +36,21 @@ async function createOrlistAllBookings(
           error,
         });
   } else if (method === "POST") {
-
-/**
- * @swagger
- * /bookings:
- *   post:
- *     summary: Creates a new booking
- *     tags:
- *     - bookings
- *     responses:
- *       201:
- *         description: OK, booking created
- *       400:
- *        description: Bad request. Booking body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
+    /**
+     * @swagger
+     * /bookings:
+     *   post:
+     *     summary: Creates a new booking
+     *     tags:
+     *     - bookings
+     *     responses:
+     *       201:
+     *         description: OK, booking created
+     *       400:
+     *        description: Bad request. Booking body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
     const safe = schemaBookingCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 

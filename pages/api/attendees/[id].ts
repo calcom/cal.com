@@ -41,7 +41,7 @@ export async function attendeeById(
        * @swagger
        * /attendees/{id}:
        *   get:
-       *     summary: Find an attendee by ID
+       *     summary: Find an attendee
        *     parameters:
        *       - in: path
        *         name: id

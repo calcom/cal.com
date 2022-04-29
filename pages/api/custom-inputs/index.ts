@@ -9,42 +9,28 @@ import {
   schemaEventTypeCustomInputPublic,
 } from "@lib/validations/event-type-custom-input";
 
-/**
- * @swagger
- * /custom-inputs:
- *   get:
- *     summary: Find all eventTypeCustomInputs
- *     tags:
- *     - custom-inputs
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No eventTypeCustomInputs were found
- *   post:
- *     summary: Creates a new eventTypeCustomInput
- *     tags:
- *     - custom-inputs
- *     responses:
- *       201:
- *         description: OK, eventTypeCustomInput created
- *       400:
- *        description: Bad request. EventTypeCustomInput body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllEventTypeCustomInputs(
-  req: NextApiRequest,
+  { userId, method, body }: NextApiRequest,
   res: NextApiResponse<EventTypeCustomInputsResponse | EventTypeCustomInputResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
-  const userEventTypes = data.map((eventType) => eventType.id);
-
+  const userEventTypes: number[] = data.map((eventType) => eventType.id);
   if (method === "GET") {
+    /**
+     * @swagger
+     * /custom-inputs:
+     *   get:
+     *     summary: Find all eventTypeCustomInputs
+     *     tags:
+     *     - custom-inputs
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No eventTypeCustomInputs were found
+     */
     const data = await prisma.eventTypeCustomInput.findMany({ where: { eventType: userEventTypes } });
     const event_type_custom_inputs = data.map((eventTypeCustomInput) =>
       schemaEventTypeCustomInputPublic.parse(eventTypeCustomInput)
@@ -57,7 +43,22 @@ async function createOrlistAllEventTypeCustomInputs(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaEventTypeCustomInputBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /custom-inputs:
+     *   post:
+     *     summary: Creates a new eventTypeCustomInput
+     *     tags:
+     *     - custom-inputs
+     *     responses:
+     *       201:
+     *         description: OK, eventTypeCustomInput created
+     *       400:
+     *        description: Bad request. EventTypeCustomInput body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaEventTypeCustomInputBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
     // Since we're supporting a create or connect relation on eventType, we need to treat them differently
     // When using connect on event type, check if userId is the owner of the event

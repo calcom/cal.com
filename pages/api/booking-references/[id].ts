@@ -25,7 +25,7 @@ export async function bookingReferenceById(
     include: { bookings: true },
   });
   if (!userWithBookings) throw new Error("User not found");
-  const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+  const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
   const bookingReference = await prisma.bookingReference.findUnique({ where: { id: safeQuery.data.id } });
   if (!bookingReference) throw new Error("BookingReference not found");
   if (userBookingIds.includes(bookingReference.bookingId)) {
@@ -34,7 +34,7 @@ export async function bookingReferenceById(
        * @swagger
        * /booking-references/{id}:
        *   get:
-       *     summary: Find a booking reference by ID
+       *     summary: Find a booking reference
        *     parameters:
        *       - in: path
        *         name: id

@@ -10,101 +10,6 @@ import {
 } from "@lib/validations/selected-calendar";
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
-/**
- * @swagger
- * /selected-calendars/{userId}_{integration}_{externalId}:
- *   get:
- *     summary: Find a selected-calendar by userID and teamID
- *     parameters:
- *      - in: path
- *        name: userId
- *        schema:
- *          type: integer
- *        required: true
- *        description: userId of the selected calendar to get
- *      - in: path
- *        name: externalId
- *        schema:
- *          type: string
- *        required: true
- *        description: externalId of the selected calendar to get
- *      - in: path
- *        name: integration
- *        schema:
- *          type: string
- *        required: true
- *        description: integration of the selected calendar to get
- *     tags:
- *     - selected-calendars
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: SelectedCalendar was not found
- *   patch:
- *     summary: Edit an existing selected calendar
- *     parameters:
- *      - in: path
- *        name: userId
- *        schema:
- *          type: integer
- *        required: true
- *        description: userId of the selected calendar to get
- *      - in: path
- *        name: externalId
- *        schema:
- *          type: string
- *        required: true
- *        description: externalId of the selected calendar to get
- *      - in: path
- *        name: integration
- *        schema:
- *          type: string
- *        required: true
- *        description: integration of the selected calendar to get
- *     tags:
- *     - selected-calendars
- *     responses:
- *       201:
- *         description: OK, selected-calendar edited successfuly
- *       400:
- *        description: Bad request. SelectedCalendar body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing selected-calendar
- *     parameters:
- *      - in: path
- *        name: userId
- *        schema:
- *          type: integer
- *        required: true
- *        description: userId of the selected calendar to get
- *      - in: path
- *        name: externalId
- *        schema:
- *          type: integer
- *        required: true
- *        description: externalId of the selected-calendar to get
- *      - in: path
- *        name: integration
- *        schema:
- *          type: string
- *        required: true
- *        description: integration of the selected calendar to get
-
- *     tags:
- *     - selected-calendars
- *     responses:
- *       201:
- *         description: OK, selected-calendar removed successfuly
- *       400:
- *        description: Bad request. SelectedCalendar id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function selectedCalendarById(
   req: NextApiRequest,
   res: NextApiResponse<SelectedCalendarResponse>
@@ -119,6 +24,40 @@ export async function selectedCalendarById(
   if (userId !== parseInt(paramUserId)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
+      /**
+       * @swagger
+       * /selected-calendars/{userId}_{integration}_{externalId}:
+       *   get:
+       *     summary: Find a selected calendar
+       *     parameters:
+       *      - in: path
+       *        name: userId
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: userId of the selected calendar to get
+       *      - in: path
+       *        name: externalId
+       *        schema:
+       *          type: string
+       *        required: true
+       *        description: externalId of the selected calendar to get
+       *      - in: path
+       *        name: integration
+       *        schema:
+       *          type: string
+       *        required: true
+       *        description: integration of the selected calendar to get
+       *     tags:
+       *     - selected-calendars
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: SelectedCalendar was not found
+       */
       case "GET":
         await prisma.selectedCalendar
           .findUnique({
@@ -140,6 +79,40 @@ export async function selectedCalendarById(
           );
         break;
 
+      /**
+       * @swagger
+       * /selected-calendars/{userId}_{integration}_{externalId}:
+       *   patch:
+       *     summary: Edit a selected calendar
+       *     parameters:
+       *      - in: path
+       *        name: userId
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: userId of the selected calendar to get
+       *      - in: path
+       *        name: externalId
+       *        schema:
+       *          type: string
+       *        required: true
+       *        description: externalId of the selected calendar to get
+       *      - in: path
+       *        name: integration
+       *        schema:
+       *          type: string
+       *        required: true
+       *        description: integration of the selected calendar to get
+       *     tags:
+       *     - selected-calendars
+       *     responses:
+       *       201:
+       *         description: OK, selected-calendar edited successfuly
+       *       400:
+       *        description: Bad request. SelectedCalendar body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         if (!safeBody.success) {
           throw new Error("Invalid request body");
@@ -164,7 +137,40 @@ export async function selectedCalendarById(
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /selected-calendars/{userId}_{integration}_{externalId}:
+       *   delete:
+       *     summary: Remove a selected calendar
+       *     parameters:
+       *      - in: path
+       *        name: userId
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: userId of the selected calendar to get
+       *      - in: path
+       *        name: externalId
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: externalId of the selected-calendar to get
+       *      - in: path
+       *        name: integration
+       *        schema:
+       *          type: string
+       *        required: true
+       *        description: integration of the selected calendar to get
+       *     tags:
+       *     - selected-calendars
+       *     responses:
+       *       201:
+       *         description: OK, selected-calendar removed successfuly
+       *       400:
+       *        description: Bad request. SelectedCalendar id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         await prisma.selectedCalendar
           .delete({

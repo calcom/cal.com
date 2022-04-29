@@ -9,42 +9,29 @@ import {
   schemaDailyEventReferenceReadPublic,
 } from "@lib/validations/daily-event-reference";
 
-/**
- * @swagger
- * /event-references:
- *   get:
- *     summary: Find all daily event reference
- *     tags:
- *     - event-references
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No daily event references were found
- *   post:
- *     summary: Creates a new daily event reference
- *     tags:
- *     - event-references
- *     responses:
- *       201:
- *         description: OK, daily event reference created
- *       400:
- *        description: Bad request. DailyEventReference body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllDailyEventReferences(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<DailyEventReferencesResponse | DailyEventReferenceResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({ where: { userId } });
   const userBookingIds = userBookings.map((booking) => booking.id);
 
   if (method === "GET") {
+    /**
+     * @swagger
+     * /event-references:
+     *   get:
+     *     summary: Find all daily event reference
+     *     tags:
+     *     - event-references
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No daily event references were found
+     */
     const data = await prisma.dailyEventReference.findMany({
       where: { bookingId: { in: userBookingIds } },
     });
@@ -59,7 +46,22 @@ async function createOrlistAllDailyEventReferences(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaDailyEventReferenceCreateBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /event-references:
+     *   post:
+     *     summary: Creates a new daily event reference
+     *     tags:
+     *     - event-references
+     *     responses:
+     *       201:
+     *         description: OK, daily event reference created
+     *       400:
+     *        description: Bad request. DailyEventReference body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaDailyEventReferenceCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.dailyEventReference.create({ data: safe.data });

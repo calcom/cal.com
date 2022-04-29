@@ -6,44 +6,28 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
 import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
 
-/**
- * @swagger
- * /event-types:
- *   get:
- *     summary: Find all event types
- *     tags:
- *     - event-types
- *     externalDocs:
- *        url: https://docs.cal.com/event-types
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No event types were found
- *   post:
- *     summary: Creates a new event type
- *     tags:
- *     - event-types
- *     externalDocs:
- *        url: https://docs.cal.com/event-types
- *     responses:
- *       201:
- *         description: OK, event type created
- *       400:
- *        description: Bad request. EventType body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllEventTypes(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
+    /**
+     * @swagger
+     * /event-types:
+     *   get:
+     *     summary: Find all event types
+     *     tags:
+     *     - event-types
+     *     externalDocs:
+     *        url: https://docs.cal.com/event-types
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No event types were found
+     */
     const data = await prisma.eventType.findMany({ where: { userId } });
     const event_types = data.map((eventType) => schemaEventTypePublic.parse(eventType));
     if (event_types) res.status(200).json({ event_types });
@@ -54,7 +38,24 @@ async function createOrlistAllEventTypes(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaEventTypeBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /event-types:
+     *   post:
+     *     summary: Creates a new event type
+     *     tags:
+     *     - event-types
+     *     externalDocs:
+     *        url: https://docs.cal.com/event-types
+     *     responses:
+     *       201:
+     *         description: OK, event type created
+     *       400:
+     *        description: Bad request. EventType body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaEventTypeBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.eventType.create({ data: { ...safe.data, userId } });

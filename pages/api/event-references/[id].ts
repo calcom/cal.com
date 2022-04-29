@@ -14,16 +14,14 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function dailyEventReferenceById(
-  req: NextApiRequest,
+  { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<DailyEventReferenceResponse>
 ) {
-  const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDailyEventReferenceEditBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userBookings = await prisma.booking.findMany({ where: { userId } });
-  const userBookingIds = userBookings.map((booking) => booking.id);
+  const userBookingIds: number[] = userBookings.map((booking) => booking.id);
   const userBookingDailyEventReferences = await prisma.dailyEventReference.findMany({
     where: { bookingId: { in: userBookingIds } },
   });
@@ -38,7 +36,7 @@ export async function dailyEventReferenceById(
        * @swagger
        * /event-references/{id}:
        *   get:
-       *     summary: Find a event reference by ID
+       *     summary: Find a event reference
        *     parameters:
        *       - in: path
        *         name: id

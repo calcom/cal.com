@@ -10,17 +10,18 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-export async function bookingById(req: NextApiRequest, res: NextApiResponse<BookingResponse>) {
-  const { method, query, body } = req;
+export async function bookingById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<BookingResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
   });
   if (!userWithBookings) throw new Error("User not found");
-  const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+  const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
   if (!userBookingIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
@@ -28,7 +29,7 @@ export async function bookingById(req: NextApiRequest, res: NextApiResponse<Book
        * @swagger
        * /bookings/{id}:
        *   get:
-       *     summary: Find a booking by ID
+       *     summary: Find a booking
        *     parameters:
        *       - in: path
        *         name: id
