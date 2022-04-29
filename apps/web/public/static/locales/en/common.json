@@ -749,7 +749,7 @@
   "you_will_only_view_it_once": "You will not be able to view it again once you close this modal.",
   "copy_to_clipboard": "Copy to clipboard",
   "enabled_after_update": "Enabled after update",
-  "enabled_after_update_description": "You can copy the link after update",
+  "enabled_after_update_description": "The link will work after you Update",
   "confirm_delete_api_key": "Revoke this API key",
   "revoke_api_key": "Revoke API key",
   "api_key_copied": "API key copied!",
