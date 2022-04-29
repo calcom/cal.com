@@ -1395,7 +1395,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           onClick={() => {
                                             navigator.clipboard.writeText(placeholderHashedLink);
                                             if (eventType.hashedLink) {
-                                              showToast("Link copied!", "success");
+                                              showToast(t("link_copied"), "success");
                                             } else {
                                               showToast(t("enabled_after_update_description"), "warning");
                                             }
