@@ -421,23 +421,6 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .mutation("updateBooking", {
-    input: z.object({
-      id: z.number(),
-      location: z.string(),
-    }),
-    async resolve({ ctx, input }) {
-      const { id, location } = input;
-      await ctx.prisma.booking.update({
-        where: {
-          id,
-        },
-        data: {
-          location,
-        },
-      });
-    },
-  })
   .query("connectedCalendars", {
     async resolve({ ctx }) {
       const { user } = ctx;

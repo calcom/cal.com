@@ -210,7 +210,7 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
                   setIsOpenDialog(false);
                   newMutation.mutate(newLocation);
                 }}>
-                Change location
+                {t("update_location")}
               </Button>
             </DialogFooter>
           </div>
