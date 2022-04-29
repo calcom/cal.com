@@ -15,7 +15,7 @@ import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -40,6 +40,7 @@ import { trpc } from "@lib/trpc";
 import CustomBranding from "@components/CustomBranding";
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
@@ -128,6 +129,7 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
+
   const { t } = useLocale();
   const navigation = [
     {
@@ -311,6 +313,7 @@ const Layout = ({
                 props.flexChildrenContainer && "flex flex-1 flex-col",
                 !props.large && "py-8"
               )}>
+              <ImpersonatingBanner />
               {!!props.backPath && (
                 <div className="mx-3 mb-8 sm:mx-8">
                   <Button

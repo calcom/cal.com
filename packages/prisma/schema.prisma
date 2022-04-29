@@ -45,6 +45,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
+  hashedLink              HashedLink?
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -107,6 +108,11 @@ model DestinationCalendar {
   eventTypeId Int?       @unique
 }
 
+enum UserPermissionRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
   username            String?              @unique
@@ -155,7 +161,12 @@ model User {
   allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
+  role                UserPermissionRole   @default(USER)
+  impersonatedUsers   Impersonations[]     @relation("impersonated_user")
+  impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
   apiKeys             ApiKey[]
+  accounts            Account[]
+  sessions            Session[]
 
   @@map(name: "users")
 }
@@ -376,6 +387,15 @@ model Webhook {
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 }
 
+model Impersonations {
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUserId Int
+  impersonatedById   Int
+}
+
 model ApiKey {
   id         String    @id @unique @default(cuid())
   userId     Int
@@ -385,4 +405,38 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HashedLink {
+  id          Int       @id @default(autoincrement())
+  link        String    @unique()
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int       @unique
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
