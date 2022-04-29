@@ -9,44 +9,28 @@ import {
   schemaAvailabilityReadPublic,
 } from "@lib/validations/availability";
 
-/**
- * @swagger
- * /availabilities:
- *   get:
- *     summary: Find all availabilities
- *     tags:
- *     - availabilities
- *     externalDocs:
- *        url: https://docs.cal.com/availability
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No availabilities were found
- *   post:
- *     summary: Creates a new availability
- *     tags:
- *     - availabilities
- *     externalDocs:
- *        url: https://docs.cal.com/availability
- *     responses:
- *       201:
- *         description: OK, availability created
- *       400:
- *        description: Bad request. Availability body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllAvailabilities(
-  req: NextApiRequest,
+  { method, userId }: NextApiRequest,
   res: NextApiResponse<AvailabilitiesResponse | AvailabilityResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
+    /**
+     * @swagger
+     * /availabilities:
+     *   get:
+     *     summary: Find all availabilities
+     *     tags:
+     *     - availabilities
+     *     externalDocs:
+     *        url: https://docs.cal.com/availability
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No availabilities were found
+     */
     const data = await prisma.availability.findMany({ where: { userId } });
     const availabilities = data.map((availability) => schemaAvailabilityReadPublic.parse(availability));
     if (availabilities) res.status(200).json({ availabilities });
@@ -57,11 +41,27 @@ async function createOrlistAllAvailabilities(
           error,
         });
   } else if (method === "POST") {
+    /**
+     * @swagger
+     * /availabilities:
+     *   post:
+     *     summary: Creates a new availability
+     *     tags:
+     *     - availabilities
+     *     externalDocs:
+     *        url: https://docs.cal.com/availability
+     *     responses:
+     *       201:
+     *         description: OK, availability created
+     *       400:
+     *        description: Bad request. Availability body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
     const safe = schemaAvailabilityCreateBodyParams.safeParse(req.body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.availability.create({ data: { ...safe.data, userId } });
-    console.log(data);
     const availability = schemaAvailabilityReadPublic.parse(data);
 
     if (availability) res.status(201).json({ availability, message: "Availability created successfully" });

@@ -14,73 +14,12 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-/**
- * @swagger
- * /booking-references/{id}:
- *   get:
- *     summary: Find a booking reference by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the booking reference to get
- *     tags:
- *     - booking-references
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: BookingReference was not found
- *   patch:
- *     summary: Edit an existing booking reference
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the booking reference to edit
- *     tags:
- *     - booking-references
- *     responses:
- *       201:
- *         description: OK, bookingReference edited successfuly
- *       400:
- *        description: Bad request. BookingReference body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing booking reference
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the booking reference to delete
-
- *     tags:
- *     - booking-references
- *     responses:
- *       201:
- *         description: OK, bookingReference removed successfuly
- *       400:
- *        description: Bad request. BookingReference id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function bookingReferenceById(
-  req: NextApiRequest,
+  { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<BookingReferenceResponse>
 ) {
-  const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
@@ -91,6 +30,28 @@ export async function bookingReferenceById(
   if (!bookingReference) throw new Error("BookingReference not found");
   if (userBookingIds.includes(bookingReference.bookingId)) {
     switch (method) {
+      /**
+       * @swagger
+       * /booking-references/{id}:
+       *   get:
+       *     summary: Find a booking reference by ID
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         schema:
+       *           type: integer
+       *         required: true
+       *         description: Numeric ID of the booking reference to get
+       *     tags:
+       *     - booking-references
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: BookingReference was not found
+       */
       case "GET":
         await prisma.bookingReference
           .findUnique({ where: { id: safeQuery.data.id } })
@@ -103,10 +64,30 @@ export async function bookingReferenceById(
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /booking-references/{id}:
+       *   patch:
+       *     summary: Edit an existing booking reference
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the booking reference to edit
+       *     tags:
+       *     - booking-references
+       *     responses:
+       *       201:
+       *         description: OK, bookingReference edited successfuly
+       *       400:
+       *        description: Bad request. BookingReference body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         const safeBody = schemaBookingEditBodyParams.safeParse(body);
-
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
@@ -121,7 +102,28 @@ export async function bookingReferenceById(
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /booking-references/{id}:
+       *   delete:
+       *     summary: Remove an existing booking reference
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the booking reference to delete
+       *     tags:
+       *     - booking-references
+       *     responses:
+       *       201:
+       *         description: OK, bookingReference removed successfuly
+       *       400:
+       *        description: Bad request. BookingReference id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         await prisma.bookingReference
           .delete({
