@@ -21,10 +21,10 @@ import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { useCurrentUser } from "@components/team/currentUser";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
-import { useMeQuery } from "../Shell";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
@@ -54,12 +54,6 @@ export default function MemberListItem(props: Props) {
     const { members } = props.team;
     const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
     return owners.length;
-  };
-
-  const useCurrentUser = () => {
-    const query = useMeQuery();
-    const user = query.data;
-    return user?.id;
   };
 
   const currentUser = useCurrentUser();
