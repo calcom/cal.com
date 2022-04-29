@@ -107,7 +107,7 @@ function BookingListItem(booking: BookingItem) {
         },
         {
           id: "change_location",
-          label: "Change location", //todo: i18n
+          label: t("change_location"),
           onClick: () => setIsOpenSetLocationDialog(true),
           icon: LocationMarkerIcon,
         },

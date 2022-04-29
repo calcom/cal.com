@@ -1,5 +1,7 @@
 import { LocationMarkerIcon, GlobeAltIcon, PhoneIcon, PencilIcon, PlusIcon } from "@heroicons/react/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { GetServerSidePropsContext } from "next";
+import { getSession } from "next-auth/react";
 import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
@@ -10,7 +12,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Form, TextArea } from "@calcom/ui/form/fields";
 
 import { LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
@@ -34,8 +35,6 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-type AddInfo = { adress?: string; link?: string };
-
 export const SetLocationDialog = (props: ISetLocationDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking: booking } = props;
@@ -44,17 +43,15 @@ export const SetLocationDialog = (props: ISetLocationDialog) => {
   const [address, setAddress] = useState("");
   const [link, setLink] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
-  const query = trpc.useQuery(["viewer.integrations"]);
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
 
   const [locationOptions, setLocationOptions] = useState<Array<any>>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const translation = await getTranslation(props.userLocale ?? "en", "common");
       if (data) {
         const integrations = getApps(data);
-        setLocationOptions(getLocationOptions(integrations, translation));
+        setLocationOptions(getLocationOptions(integrations, t));
       }
     };
     fetchData();
