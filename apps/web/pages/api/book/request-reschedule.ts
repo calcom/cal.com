@@ -10,6 +10,7 @@ import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { Person } from "@calcom/types/Calendar";
 
@@ -76,6 +77,8 @@ const handler = async (
         location: true,
         attendees: true,
         references: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
       },
       rejectOnNotFound: true,
       where: {
@@ -88,18 +91,33 @@ const handler = async (
       },
     });
 
+    console.log("=>", bookingToReschedule);
+    console.log("id=>", bookingId);
+
+    const isDynamicBooking = !!(
+      bookingToReschedule &&
+      bookingToReschedule.dynamicEventSlugRef &&
+      bookingToReschedule.dynamicGroupSlugRef
+    );
+    const rescheduleConditions =
+      !!(bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) || isDynamicBooking;
+
+    // console.log("conditions=>", rescheduleConditions);
+
     if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
-      const event = await prisma.eventType.findFirst({
-        select: {
-          title: true,
-          users: true,
-          schedulingType: true,
-        },
-        rejectOnNotFound: true,
-        where: {
-          id: bookingToReschedule.eventTypeId,
-        },
-      });
+      const event = isDynamicBooking
+        ? getDefaultEvent(`min${bookingToReschedule.dynamicEventSlugRef}event`)
+        : await prisma.eventType.findFirst({
+            select: {
+              title: true,
+              users: true,
+              schedulingType: true,
+            },
+            rejectOnNotFound: true,
+            where: {
+              id: bookingToReschedule.eventTypeId,
+            },
+          });
       await prisma.booking.update({
         where: {
           id: bookingToReschedule.id,
