@@ -1783,7 +1783,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <EmbedButton
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
                   eventTypeId={eventType.id}
-                  eventTypeLink={permalink}
                 />
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">

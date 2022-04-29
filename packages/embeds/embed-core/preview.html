@@ -48,7 +48,9 @@
 
 	</style>
   <script>
-    const embedType = new URL(document.URL).searchParams.get("embedType");
+    const searchParams= new URL(document.URL).searchParams;
+    const embedType = searchParams.get("embedType");
+    const calLink = searchParams.get("calLink");
   </script>
   </head>
   <script type="module" src="./src/preview.ts"></script>
@@ -58,18 +60,18 @@
       if (embedType === "inline") {
         Cal("inline", {
           elementOrSelector: "#my-embed",
-          calLink: "pro",
+          calLink,
         });
       } else if (embedType === "floating-popup") {
        Cal("floatingButton", {
-          calLink: "pro",
+          calLink,
           attributes: {
             id: "my-floating-button"
           }
         });
       } else if (embedType === "element-click") {
         const button = document.createElement('button')
-        button.setAttribute("data-cal-link", "pro")
+        button.setAttribute("data-cal-link", calLink)
         button.innerHTML = 'I am a button that exists on your website'
         document.body.appendChild(button);
       }

@@ -4,7 +4,7 @@ import { useState, useEffect, CSSProperties } from "react";
 import { sdkActionManager } from "./sdk-event";
 
 export interface UiConfig {
-  theme?: string;
+  theme?: "dark" | "light" | "auto";
   styles?: EmbedStyles;
 }
 
@@ -24,6 +24,7 @@ const embedStore = {
   reactStylesStateSetters: any;
   parentInformedAboutContentHeight: boolean;
   windowLoadEventFired: boolean;
+  theme?: UiConfig["theme"];
   setTheme: (arg0: string) => void;
 };
 
@@ -272,7 +273,7 @@ export const methods = {
     }
 
     if (uiConfig.theme) {
-      embedStore.theme = uiConfig.theme;
+      embedStore.theme = uiConfig.theme as UiConfig["theme"];
       embedStore.setTheme(uiConfig.theme);
     }
 

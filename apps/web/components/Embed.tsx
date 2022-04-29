@@ -3,9 +3,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
+import { components, ControlProps, SingleValue } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose } from "@calcom/ui/Dialog";
@@ -32,8 +33,201 @@ function getEmbedSnippetString() {
 const EmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const embeds: {
+    illustration: React.ReactElement;
+    title: string;
+    subtitle: string;
+    type: EmbedType;
+  }[] = [
+    {
+      title: "Inline Embed",
+      subtitle: "Loads your Cal scheduling page directly inline with your other website content",
+      type: "inline",
+      illustration: (
+        <svg
+          width="100%"
+          height="100%"
+          className="rounded-md"
+          viewBox="0 0 308 265"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
+            fill="white"
+          />
+          <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          <rect x="24.5" y="51" width="139" height="163" rx="1.5" fill="#F8F8F8" />
+          <rect opacity="0.8" x="48" y="74.5" width="80" height="8" rx="2" fill="#E1E1E1" />
+          <rect x="48" y="86.5" width="48" height="4" rx="1" fill="#E1E1E1" />
+          <rect x="49" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="61" y="99.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="73" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="49" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="61" y="125.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <path
+            d="M61 124.5H67V122.5H61V124.5ZM68 125.5V131.5H70V125.5H68ZM67 132.5H61V134.5H67V132.5ZM60 131.5V125.5H58V131.5H60ZM61 132.5C60.4477 132.5 60 132.052 60 131.5H58C58 133.157 59.3431 134.5 61 134.5V132.5ZM68 131.5C68 132.052 67.5523 132.5 67 132.5V134.5C68.6569 134.5 70 133.157 70 131.5H68ZM67 124.5C67.5523 124.5 68 124.948 68 125.5H70C70 123.843 68.6569 122.5 67 122.5V124.5ZM61 122.5C59.3431 122.5 58 123.843 58 125.5H60C60 124.948 60.4477 124.5 61 124.5V122.5Z"
+            fill="#3E3E3E"
+          />
+          <rect x="73" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="49" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="61" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="73" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="137.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="109" y="137.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="121" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="49" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="61" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="73" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="149.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="109" y="149.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="121" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="49" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="61" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="73" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="85" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="97" y="161.5" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="109" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
+          <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          {/* <path
+          d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
+          fill="#CFCFCF"
+        /> */}
+        </svg>
+      ),
+    },
+    {
+      title: "Floating pop-up button",
+      subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
+      type: "floating-popup",
+      illustration: (
+        <svg
+          width="100%"
+          height="100%"
+          className="rounded-md"
+          viewBox="0 0 308 265"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
+            fill="white"
+          />
+          <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
+          <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
+          <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
+          {/* <path
+          d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
+          fill="#CFCFCF"
+        /> */}
+        </svg>
+      ),
+    },
+    {
+      title: "Pop up via element click",
+      subtitle: "Open your Cal dialog when someone clicks an element.",
+      type: "element-click",
+      illustration: (
+        <svg
+          width="100%"
+          height="100%"
+          className="rounded-md"
+          viewBox="0 0 308 265"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
+            fill="white"
+          />
+          <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
+          <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
+          <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+          <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" fill="#F8F8F8" />
+          <rect opacity="0.8" x="108" y="85" width="80" height="8" rx="2" fill="#E1E1E1" />
+          <rect x="108" y="97" width="48" height="4" rx="1" fill="#E1E1E1" />
+          <rect x="109" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="110" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="133" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="169" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="181" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="193" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="169" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="181" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="193" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="136" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <path
+            d="M121 135H127V133H121V135ZM128 136V142H130V136H128ZM127 143H121V145H127V143ZM120 142V136H118V142H120ZM121 143C120.448 143 120 142.552 120 142H118C118 143.657 119.343 145 121 145V143ZM128 142C128 142.552 127.552 143 127 143V145C128.657 145 130 143.657 130 142H128ZM127 135C127.552 135 128 135.448 128 136H130C130 134.343 128.657 133 127 133V135ZM121 133C119.343 133 118 134.343 118 136H120C120 135.448 120.448 135 121 135V133Z"
+            fill="#3E3E3E"
+          />
+          <rect x="133" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="169" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="181" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="193" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="169" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="181" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="193" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="169" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="181" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="193" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="109" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="121" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="133" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="145" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
+          <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
+          <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
+          {/* <path
+          d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
+          fill="#CFCFCF"
+        /> */}
+        </svg>
+      ),
+    },
+  ];
   return (
-    <DialogContent size="l">
+    <DialogContent size="lg">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
           {t("How do you want to add Cal to your site?")}
@@ -45,194 +239,7 @@ const EmbedTypesDialogContent = () => {
         </div>
       </div>
       <div className="flex">
-        {[
-          {
-            title: "Inline Embed",
-            subtitle: "Loads your Cal scheduling page directly inline with your other website content",
-            type: "inline",
-            illustration: (
-              <svg
-                width="100%"
-                height="100%"
-                className="rounded-md"
-                viewBox="0 0 308 265"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
-                  fill="white"
-                />
-                <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <rect x="24.5" y="51" width="139" height="163" rx="1.5" fill="#F8F8F8" />
-                <rect opacity="0.8" x="48" y="74.5" width="80" height="8" rx="2" fill="#E1E1E1" />
-                <rect x="48" y="86.5" width="48" height="4" rx="1" fill="#E1E1E1" />
-                <rect x="49" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="61" y="99.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="73" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="113.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="49" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="61" y="125.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <path
-                  d="M61 124.5H67V122.5H61V124.5ZM68 125.5V131.5H70V125.5H68ZM67 132.5H61V134.5H67V132.5ZM60 131.5V125.5H58V131.5H60ZM61 132.5C60.4477 132.5 60 132.052 60 131.5H58C58 133.157 59.3431 134.5 61 134.5V132.5ZM68 131.5C68 132.052 67.5523 132.5 67 132.5V134.5C68.6569 134.5 70 133.157 70 131.5H68ZM67 124.5C67.5523 124.5 68 124.948 68 125.5H70C70 123.843 68.6569 122.5 67 122.5V124.5ZM61 122.5C59.3431 122.5 58 123.843 58 125.5H60C60 124.948 60.4477 124.5 61 124.5V122.5Z"
-                  fill="#3E3E3E"
-                />
-                <rect x="73" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="125.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="49" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="61" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="73" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="137.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="109" y="137.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="121" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="137.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="49" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="61" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="73" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="149.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="109" y="149.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="121" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="149.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="49" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="61" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="73" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="85" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="97" y="161.5" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="109" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
-                <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                {/* <path
-                  d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-                  fill="#CFCFCF"
-                /> */}
-              </svg>
-            ),
-          },
-          {
-            title: "Floating pop-up button",
-            subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
-            type: "floating-popup",
-            illustration: (
-              <svg
-                width="100%"
-                height="100%"
-                className="rounded-md"
-                viewBox="0 0 308 265"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
-                  fill="white"
-                />
-                <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-                <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
-                <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
-                {/* <path
-                  d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-                  fill="#CFCFCF"
-                /> */}
-              </svg>
-            ),
-          },
-          {
-            title: "Pop up via element click",
-            subtitle: "Open your Cal dialog when someone clicks an element.",
-            type: "element-click",
-            illustration: (
-              <svg
-                width="100%"
-                height="100%"
-                className="rounded-md"
-                viewBox="0 0 308 265"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
-                  fill="white"
-                />
-                <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-                <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
-                <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" fill="#F8F8F8" />
-                <rect opacity="0.8" x="108" y="85" width="80" height="8" rx="2" fill="#E1E1E1" />
-                <rect x="108" y="97" width="48" height="4" rx="1" fill="#E1E1E1" />
-                <rect x="109" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="110" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="133" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="169" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="181" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="193" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="169" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="181" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="193" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="136" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <path
-                  d="M121 135H127V133H121V135ZM128 136V142H130V136H128ZM127 143H121V145H127V143ZM120 142V136H118V142H120ZM121 143C120.448 143 120 142.552 120 142H118C118 143.657 119.343 145 121 145V143ZM128 142C128 142.552 127.552 143 127 143V145C128.657 145 130 143.657 130 142H128ZM127 135C127.552 135 128 135.448 128 136H130C130 134.343 128.657 133 127 133V135ZM121 133C119.343 133 118 134.343 118 136H120C120 135.448 120.448 135 121 135V133Z"
-                  fill="#3E3E3E"
-                />
-                <rect x="133" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="169" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="181" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="193" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="169" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="181" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="193" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="169" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="181" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="193" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="109" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="121" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="133" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="145" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
-                <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-                <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
-                {/* <path
-                  d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
-                  fill="#CFCFCF"
-                /> */}
-              </svg>
-            ),
-          },
-        ].map((widget, index) => (
+        {embeds.map((widget, index) => (
           <button
             className="mr-2 w-1/3 p-3 text-left hover:rounded-md hover:border hover:bg-neutral-100"
             key={index}
@@ -274,7 +281,7 @@ const EmbedNavBar = () => {
 
   return <NavTabs tabs={tabs} linkProps={{ shallow: true }} />;
 };
-const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
+const ThemeSelectControl = ({ children, ...props }: ControlProps<any, false>) => {
   return (
     <components.Control {...props}>
       <SunIcon className="h-[32px] w-[32px] text-gray-500" />
@@ -283,14 +290,24 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
   );
 };
 
+type EmbedType = "inline" | "floating-popup" | "element-click";
+
 /*
   FIXME: Title shouldn't be read from URL, it can be derived from URL 
   */
-const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title }) => {
+const EmbedTypeCodeAndPreviewDialogContent = ({
+  eventTypeId,
+  embedType,
+  title,
+}: {
+  eventTypeId: EventType["id"];
+  embedType: EmbedType;
+  title: string;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
-  const iframeRef = useRef();
-  const embedCode = useRef();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const embedCode = useRef<HTMLTextAreaElement>(null);
   const { data: eventType, isLoading } = trpc.useQuery([
     "viewer.eventTypes.get",
     {
@@ -305,6 +322,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
       width: "100%",
       height: "100%",
     },
+    theme: "auto|light|dark",
     floatingPopup: {},
     elementClick: {},
     palette: {
@@ -324,7 +342,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
   if (isLoading) {
     return null;
   }
-  const calLink = `${eventType.teamId ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
+
+  if (!eventType) {
+    throw new Error("Event type not found");
+  }
+
+  const calLink = `${eventType.team ? `team/${eventType.team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
 
@@ -335,7 +358,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
 		}
 	  })`;
   };
-  const getEmbedTypeSpecificString = ({ calLink }) => {
+  const getEmbedTypeSpecificString = () => {
     if (embedType === "inline") {
       return `Cal("inline", {
 	  elementOrSelector:"#my-cal-inline",
@@ -359,7 +382,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
     return previewState.theme !== "auto" ? previewState.theme : null;
   };
 
-  const addToPalette = (update) => {
+  const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -371,8 +394,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
     });
   };
 
-  const previewInstruction = (instruction) => {
-    iframeRef.current?.contentWindow.postMessage(
+  const previewInstruction = (instruction: { name: string; arg: any }) => {
+    iframeRef.current?.contentWindow?.postMessage(
       {
         mode: "cal:preview",
         type: "instruction",
@@ -421,14 +444,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
     },
   ];
 
-  const getDimension = (dimension) => {
+  const getDimension = (dimension: string) => {
     if (dimension.match(/^\d+$/)) {
       dimension = `${dimension}%`;
     }
     return dimension;
   };
   return (
-    <DialogContent className="p-0.5" size="xl">
+    <DialogContent size="xl">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-white p-6">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -524,6 +547,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                   <div className="text-sm">Button Text</div>
                   {/* Default Values should come from preview iframe */}
                   <TextField
+                    name="buttonText"
+                    labelProps={{ className: "hidden" }}
                     onChange={(e) => {
                       setPreviewState((previewState) => {
                         return {
@@ -572,7 +597,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                           ...previewState,
                           floatingPopup: {
                             ...previewState.floatingPopup,
-                            buttonPosition: position.value,
+                            buttonPosition: position?.value,
                           },
                         };
                       });
@@ -624,9 +649,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                       }}></ColorPicker>
                   </div>
                 </div>
-                <div
+                {/* <div
                   className={classNames(
-                    "mt-4 flex hidden items-center justify-between",
+                    "mt-4 items-center justify-between",
                     embedType === "floating-popup" ? "flex" : "hidden"
                   )}>
                   <div>Button Color on Hover</div>
@@ -639,7 +664,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                         });
                       }}></ColorPicker>
                   </div>
-                </div>
+                </div> */}
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -667,6 +692,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                         Control: ThemeSelectControl,
                       }}
                       onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
                         setPreviewState((previewState) => {
                           return {
                             ...previewState,
@@ -690,6 +718,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                         <ColorPicker
                           defaultValue="#000000"
                           onChange={(color) => {
+                            //@ts-ignore - How to support dynamic palette names?
                             addToPalette({
                               [palette.name]: color,
                             });
@@ -725,7 +754,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                   `
   <script type="text/javascript">
 	${getEmbedSnippetString()}
-	${getEmbedTypeSpecificString({ calLink: calLink })}
+	${getEmbedTypeSpecificString()}
   </script>
   <!-- Cal ${embedType} embed code ends -->`
                 }></TextArea>
@@ -741,7 +770,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
                 className="border-1 h-[75vh] border"
                 width="100%"
                 height="100%"
-                src={`http://localhost:3100/preview.html?embedType=${embedType}`}
+                src={`http://localhost:3100/preview.html?embedType=${embedType}&calLink=${calLink}`}
               />
             </div>
           </div>
@@ -749,7 +778,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
             <Button
               type="submit"
               onClick={() => {
-                navigator.clipboard.writeText(embedCode.current?.value);
+                if (!embedCode.current) {
+                  return;
+                }
+                navigator.clipboard.writeText(embedCode.current.value);
                 showToast(t("link_copied"), "success");
               }}>
               {t("Copy Code")}
@@ -766,15 +798,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
 
 export const EmbedDialog = () => {
   const router = useRouter();
+  const eventTypeId: EventType["id"] = +(router.query.eventTypeId as string);
   return (
     <Dialog name="embed" clearQueryParamsOnClose={["embedType", "title", "tabName", "eventTypeId"]}>
       {!router.query.embedType ? (
         <EmbedTypesDialogContent />
       ) : (
         <EmbedTypeCodeAndPreviewDialogContent
-          eventTypeId={router.query.eventTypeId}
-          embedType={router.query.embedType}
-          title={router.query.title}
+          eventTypeId={eventTypeId}
+          embedType={router.query.embedType as EmbedType}
+          title={router.query.title as string}
         />
       )}
     </Dialog>
@@ -784,15 +817,12 @@ export const EmbedDialog = () => {
 export const EmbedButton = ({
   eventTypeId,
   className = "",
-  permalink,
   dark,
   ...props
 }: {
   eventTypeId: EventType["id"];
   className: string;
-  props: any[];
   dark?: boolean;
-  permalink: string;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
