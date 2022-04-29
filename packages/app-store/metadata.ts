@@ -6,6 +6,7 @@ import { metadata as googlevideo } from "./googlevideo/_metadata";
 import { metadata as hubspotothercalendar } from "./hubspotothercalendar/_metadata";
 import { metadata as huddle01video } from "./huddle01video/_metadata";
 import { metadata as jitsivideo } from "./jitsivideo/_metadata";
+import { metadata as metamaskweb3 } from "./metamaskweb3/_metadata";
 import { metadata as office365calendar } from "./office365calendar/_metadata";
 import { metadata as office365video } from "./office365video/_metadata";
 import { metadata as slackmessaging } from "./slackmessaging/_metadata";
@@ -30,6 +31,7 @@ export const appStoreMetadata = {
   tandemvideo,
   zoomvideo,
   wipemycalother,
+  metamaskweb3,
 };
 
 export default appStoreMetadata;

@@ -23,6 +23,7 @@ export const InstallAppButtonMap = {
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
+  metamaskweb3: dynamic(() => import("./metamaskweb3/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
