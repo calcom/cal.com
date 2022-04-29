@@ -13,7 +13,7 @@
     "db-setup": "run-s db-up db-deploy db-seed",
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
-    "deploy": "yarn prisma migrate deploy",
+    "deploy": "yarn prisma migrate deploy && yarn seed-app-store",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
     "postinstall": "yarn generate-schemas",

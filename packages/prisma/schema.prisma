@@ -77,11 +77,13 @@ model EventType {
 }
 
 model Credential {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
+  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId  String?
 }
 
 enum UserPlan {
@@ -451,12 +453,15 @@ enum AppCategories {
 }
 
 model App {
-  // The slug for the app store public page inside `/apps/[slug]` and `/packages/app-store/[slug]`
-  slug       String          @id @unique
+  // The slug for the app store public page inside `/apps/[slug]`
+  slug        String          @id @unique
+  // The directory name for `/packages/app-store/[dirName]`
+  dirName     String          @unique
   // Needed API Keys
-  keys       Json?
+  keys        Json?
   // One or multiple categories to which this app belongs
-  categories AppCategories[]
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  categories  AppCategories[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  credentials Credential[]
 }
