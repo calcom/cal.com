@@ -53,8 +53,9 @@ const EmbedTypesDialogContent = () => {
             type: "inline",
             illustration: (
               <svg
-                width="308"
-                height="265"
+                width="100%"
+                height="100%"
+                className="rounded-md"
                 viewBox="0 0 308 265"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -116,10 +117,10 @@ const EmbedTypesDialogContent = () => {
                 <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
                 <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
                 <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-                <path
+                {/* <path
                   d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
                   fill="#CFCFCF"
-                />
+                /> */}
               </svg>
             ),
           },
@@ -129,8 +130,9 @@ const EmbedTypesDialogContent = () => {
             type: "floating-popup",
             illustration: (
               <svg
-                width="308"
-                height="265"
+                width="100%"
+                height="100%"
+                className="rounded-md"
                 viewBox="0 0 308 265"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -145,10 +147,10 @@ const EmbedTypesDialogContent = () => {
                 <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
                 <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
                 <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
-                <path
+                {/* <path
                   d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
                   fill="#CFCFCF"
-                />
+                /> */}
               </svg>
             ),
           },
@@ -158,8 +160,9 @@ const EmbedTypesDialogContent = () => {
             type: "element-click",
             illustration: (
               <svg
-                width="308"
-                height="265"
+                width="100%"
+                height="100%"
+                className="rounded-md"
                 viewBox="0 0 308 265"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -223,16 +226,16 @@ const EmbedTypesDialogContent = () => {
                 <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
                 <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
                 <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
-                <path
+                {/* <path
                   d="M2 1H306V-1H2V1ZM307 2V263H309V2H307ZM306 264H2V266H306V264ZM1 263V1.99999H-1V263H1ZM2 264C1.44772 264 1 263.552 1 263H-1C-1 264.657 0.343147 266 2 266V264ZM307 263C307 263.552 306.552 264 306 264V266C307.657 266 309 264.657 309 263H307ZM306 1C306.552 1 307 1.44772 307 2H309C309 0.343145 307.657 -1 306 -1V1ZM2 -1C0.343151 -1 -1 0.343133 -1 1.99999H1C1 1.44771 1.44771 1 2 1V-1Z"
                   fill="#CFCFCF"
-                />
+                /> */}
               </svg>
             ),
           },
         ].map((widget, index) => (
           <button
-            className="mr-2 w-1/3 text-left"
+            className="mr-2 w-1/3 p-3 text-left hover:rounded-md hover:border hover:bg-neutral-100"
             key={index}
             onClick={() => {
               router.push({
@@ -243,10 +246,10 @@ const EmbedTypesDialogContent = () => {
                 },
               });
             }}>
-            <div className="order-none  mx-0 my-3 box-border h-[20rem] flex-none rounded-sm border border-solid bg-white">
+            <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
               {widget.illustration}
             </div>
-            <div className="font-medium text-neutral-900">{widget.title}</div>
+            <div className="mt-2 font-medium text-neutral-900">{widget.title}</div>
             <p className="text-sm text-gray-500">{widget.subtitle}</p>
           </button>
         ))}

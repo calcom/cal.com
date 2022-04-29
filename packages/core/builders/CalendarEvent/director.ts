@@ -27,6 +27,8 @@ export class CalendarEventDirector {
       this.builder.setLocation(this.existingBooking.location);
       this.builder.setUId(this.existingBooking.uid);
       this.builder.setCancellationReason(this.cancellationReason);
+      this.builder.setDescription(this.builder.eventType.description);
+      this.builder.setNotes(this.existingBooking.description);
       this.builder.buildRescheduleLink(this.existingBooking.uid);
     } else {
       throw new Error("buildForRescheduleEmail.missing.params.required");

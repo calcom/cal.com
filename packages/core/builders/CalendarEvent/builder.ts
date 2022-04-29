@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
@@ -124,6 +125,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
               slug: true,
             },
           },
+          description: true,
           slug: true,
           teamId: true,
           title: true,
@@ -261,6 +263,10 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
   public setDescription(description: CalendarEventClass["description"]) {
     this.calendarEvent.description = description;
+  }
+
+  public setNotes(notes: CalendarEvent["additionalNotes"]) {
+    this.calendarEvent.additionalNotes = notes;
   }
 
   public setCancellationReason(cancellationReason: CalendarEventClass["cancellationReason"]) {
