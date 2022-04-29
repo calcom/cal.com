@@ -1382,6 +1382,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             if (eventType.hashedLink) {
                                               navigator.clipboard.writeText(placeholderHashedLink);
                                               showToast("Link copied!", "success");
+                                            } else {
+                                              showToast(t("enabled_after_update_description"), "warning");
                                             }
                                           }}
                                           type="button"
