@@ -132,18 +132,15 @@ export const eventTypesRouter = createProtectedRouter()
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const eventType = await ctx.prisma.eventType.findUnique({
+      return await ctx.prisma.eventType.findUnique({
         where: {
           id: input.id,
         },
+        include: {
+          team: true,
+          users: true,
+        },
       });
-
-      const detailedEventType = {
-        ...eventType,
-        // FIXME: Handle team
-        slug: `${user.username}/${eventType.slug}`,
-      };
-      return detailedEventType;
     },
   })
   .mutation("create", {

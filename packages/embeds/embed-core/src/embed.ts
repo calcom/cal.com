@@ -295,8 +295,8 @@ export class Cal {
     if (!existingEl) {
       const template = document.createElement("template");
       template.innerHTML = `<cal-floating-button ${attributesString}  data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
+      el = template.content.children[0];
       document.body.appendChild(template.content);
-      el = template.content as unknown as HTMLElement;
     }
 
     if (buttonText) {

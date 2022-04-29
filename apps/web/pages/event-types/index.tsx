@@ -11,43 +11,33 @@ import {
   TrashIcon,
   PencilIcon,
   CodeIcon,
-  EyeIcon,
-  LightBulbIcon,
-  SunIcon,
-  ChevronRightIcon,
-  BackspaceIcon,
-  ArrowLeftIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { SliderThumb } from "@radix-ui/react-slider";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button, Switch } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Dialog, DialogContent, DialogClose, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
-import { Input, InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EmptyScreen from "@components/EmptyScreen";
-import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -57,15 +47,6 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
-import ColorPicker from "@components/ui/colorpicker";
-import CheckboxField from "@components/ui/form/CheckboxField";
-import Select from "@components/ui/form/Select";
-
-function getEmbedSnippetString() {
-  return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "https://cal.com/embed.js", "init");
-  Cal("init");
-  `;
-}
 
 type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
 
@@ -197,21 +178,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       { shallow: true }
     );
   };
-  const openEmbedModal = ({ eventTypeId }) => {
-    const query = {
-      ...router.query,
-      dialog: "embed",
-      eventTypeId,
-    };
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
-  };
+
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
@@ -361,16 +328,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Button
-                            type="button"
-                            color="minimal"
-                            size="sm"
+                          <EmbedButton
+                            dark
                             className="w-full rounded-none"
-                            data-testid={"event-type-embed-" + type.id}
-                            StartIcon={CodeIcon}
-                            onClick={() => openEmbedModal({ eventTypeId: type.id })}>
-                            {t("Embed")}
-                          </Button>
+                            eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
@@ -562,524 +523,6 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
-const EmbedTypesDialogContent = () => {
-  const { t } = useLocale();
-  const router = useRouter();
-  return (
-    <DialogContent size="l">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-          {t("How do you want to add Cal to your site?")}
-        </h3>
-        <div>
-          <p className="text-sm text-gray-500">
-            {t("Choose one of the following ways to put Cal on your site.")}
-          </p>
-        </div>
-      </div>
-      <div className="flex">
-        {[
-          {
-            title: "Inline Embed",
-            subtitle: "Loads your Cal scheduling page directly inline with your other website content",
-            type: "inline",
-          },
-          {
-            title: "Floating pop-up button",
-            subtitle: "Adds a floating button on your site that launches Cal in a dialog.",
-            type: "floating-popup",
-          },
-          {
-            title: "Pop up via element click",
-            subtitle: "Open your Cal dialog when someone clicks an element.",
-            type: "element-click",
-          },
-        ].map((widget, index) => (
-          <button
-            className="mr-2 w-1/3 text-left"
-            key={index}
-            onClick={() => {
-              router.push({
-                query: {
-                  ...router.query,
-                  type: widget.type,
-                  title: widget.title,
-                },
-              });
-            }}>
-            <div className="order-none  mx-0 my-3 box-border h-[20rem] flex-none rounded-sm border border-solid bg-white"></div>
-            <div className="font-medium text-neutral-900">{widget.title}</div>
-            <p className="text-sm text-gray-500">{widget.subtitle}</p>
-          </button>
-        ))}
-      </div>
-    </DialogContent>
-  );
-};
-
-const EmbedNavBar = () => {
-  const { t } = useLocale();
-  const tabs = [
-    {
-      name: t("Embed"),
-      tabName: "embed-code",
-      icon: CodeIcon,
-    },
-    {
-      name: t("Preview"),
-      tabName: "embed-preview",
-      icon: EyeIcon,
-    },
-  ];
-
-  return <NavTabs tabs={tabs} linkProps={{ shallow: true }} />;
-};
-const ThemeSelectControl = ({ children, ...props }: ControlProps<any, any>) => {
-  return (
-    <components.Control {...props}>
-      <SunIcon className="h-[32px] w-[32px] text-gray-500" />
-      {children}
-    </components.Control>
-  );
-};
-
-/*
-FIXME: Title shouldn't be read from URL, it can be derived from URL 
-*/
-const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title }) => {
-  const { t } = useLocale();
-  const router = useRouter();
-  const iframeRef = useRef();
-  const { data: eventType, isLoading } = trpc.useQuery([
-    "viewer.eventTypes.get",
-    {
-      id: +eventTypeId,
-    },
-  ]);
-
-  const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
-  const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const [previewState, setPreviewState] = useState({
-    inline: {
-      width: "100%",
-      height: "100%",
-    },
-    floatingPopup: {},
-    elementClick: {},
-  });
-  if (!router.query.tabName) {
-    router.push({
-      query: {
-        ...router.query,
-        tabName: "embed-preview",
-      },
-    });
-  }
-  if (!eventType && !isLoading) {
-    router.push({
-      query: "",
-    });
-    return null;
-  }
-  if (isLoading) {
-    return null;
-  }
-
-  const getInlineEmbedString = ({ calLink }) => {
-    return `Cal("inline", {
-    elementOrSelector:"#my-cal-inline",
-    calLink: "${calLink}"
-  })`;
-  };
-
-  const addToPalette = (update) => {
-    setPreviewState((previewState) => {
-      return {
-        ...previewState,
-        palette: {
-          ...previewState.palette,
-          ...update,
-        },
-      };
-    });
-  };
-
-  const previewInstruction = (instruction) => {
-    iframeRef.current?.contentWindow.postMessage(
-      {
-        mode: "cal:preview",
-        type: "instruction",
-        instruction,
-      },
-      "*"
-    );
-  };
-  previewInstruction({
-    name: "ui",
-    arg: {
-      styles: {
-        branding: {
-          ...previewState.palette,
-        },
-      },
-    },
-  });
-
-  previewInstruction({
-    name: "floatingButton",
-    arg: {
-      attributes: {
-        id: "my-floating-button",
-      },
-      ...previewState.floatingPopup,
-    },
-  });
-
-  const ThemeOptions = [
-    { value: "auto", label: "Auto Theme" },
-    { value: "dark", label: "Dark Theme" },
-    { value: "light", label: "Light Theme" },
-  ];
-  const FloatingPopupPositionOptions = [
-    {
-      value: "bottom-right",
-      label: "Bottom Right",
-    },
-    {
-      value: "bottom-left",
-      label: "Bottom Left",
-    },
-  ];
-
-  const getDimension = (dimension) => {
-    if (dimension.match(/^\d+$/)) {
-      dimension = `${dimension}%`;
-    }
-    return dimension;
-  };
-  return (
-    <DialogContent size="xl">
-      <div className="flex">
-        <div className="flex w-1/3 flex-col bg-white p-6">
-          <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
-            <button
-              onClick={() => {
-                const newQuery = { ...router.query };
-                delete newQuery.type;
-                delete newQuery.tabName;
-                router.push({
-                  query: {
-                    ...newQuery,
-                  },
-                });
-              }}>
-              <ArrowLeftIcon className="mr-4 w-4"></ArrowLeftIcon>
-            </button>
-            {title}
-          </h3>
-          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")}></hr>
-          <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
-            <Collapsible
-              open={isEmbedCustomizationOpen}
-              onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
-              <CollapsibleTrigger
-                type="button"
-                className="flex w-full items-center text-base font-medium text-neutral-900">
-                <div>
-                  {embedType === "inline"
-                    ? "Inline Embed Customization"
-                    : embedType === "floating-popup"
-                    ? "Floating Popup Customization"
-                    : "Element Click Customization"}
-                </div>
-                <ChevronRightIcon
-                  className={`${
-                    isEmbedCustomizationOpen ? "rotate-90 transform" : ""
-                  } ml-auto h-5 w-5 text-neutral-500`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="text-sm">
-                <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
-                  {/*TODO: Add Auto/Fixed toggle from Figma */}
-                  <div className="text-sm">Embed Window Sizing</div>
-                  <div className="justify-left flex items-center">
-                    <TextField
-                      name="width"
-                      labelProps={{ className: "hidden" }}
-                      required
-                      value={previewState.inline.width}
-                      onChange={(e) => {
-                        setPreviewState((previewState) => {
-                          let width = e.target.value || "100%";
-
-                          return {
-                            ...previewState,
-                            inline: {
-                              ...previewState.inline,
-                              width,
-                            },
-                          };
-                        });
-                      }}
-                      addOnLeading={<InputLeading>W</InputLeading>}
-                    />
-                    <span className="p-2">x</span>
-                    <TextField
-                      labelProps={{ className: "hidden" }}
-                      name="height"
-                      value={previewState.inline.height}
-                      required
-                      onChange={(e) => {
-                        const height = e.target.value || "100%";
-
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            inline: {
-                              ...previewState.inline,
-                              height,
-                            },
-                          };
-                        });
-                      }}
-                      addOnLeading={<InputLeading>H</InputLeading>}
-                    />
-                  </div>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div className="text-sm">Button Text</div>
-                  {/* Default Values should come from preview iframe */}
-                  <TextField
-                    onChange={(e) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            buttonText: e.target.value,
-                          },
-                        };
-                      });
-                    }}
-                    defaultValue="Book my Cal"
-                    required
-                  />
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div className="text-sm">Display Calendar Icon Button</div>
-                  <Switch
-                    defaultChecked={true}
-                    onCheckedChange={(checked) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            hideButtonIcon: !checked,
-                          },
-                        };
-                      });
-                    }}></Switch>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Position of Button</div>
-                  <Select
-                    onChange={(position) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            buttonPosition: position.value,
-                          },
-                        };
-                      });
-                    }}
-                    defaultValue={FloatingPopupPositionOptions[0]}
-                    options={FloatingPopupPositionOptions}></Select>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Button Color</div>
-                  <div className="w-36">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonColor: color,
-                            },
-                          };
-                        });
-                      }}></ColorPicker>
-                  </div>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Text Color</div>
-                  <div className="w-36">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            floatingPopup: {
-                              ...previewState.floatingPopup,
-                              buttonTextColor: color,
-                            },
-                          };
-                        });
-                      }}></ColorPicker>
-                  </div>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex hidden items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
-                  <div>Button Color on Hover</div>
-                  <div className="w-36">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
-                        addToPalette({
-                          "floating-popup-button-color-hover": color,
-                        });
-                      }}></ColorPicker>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-          <hr className="mt-4"></hr>
-          <div className="mt-4 font-medium">
-            <Collapsible
-              open={isBookingCustomizationOpen}
-              onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
-              <CollapsibleTrigger className="flex w-full" type="button">
-                <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
-                <ChevronRightIcon
-                  className={`${
-                    isBookingCustomizationOpen ? "rotate-90 transform" : ""
-                  } ml-auto h-5 w-5 text-neutral-500`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-6 text-sm">
-                  <Label className="flex items-center justify-between">
-                    <div>Theme</div>
-                    <Select
-                      className="w-36"
-                      defaultValue={ThemeOptions[0]}
-                      components={{
-                        Control: ThemeSelectControl,
-                      }}
-                      onChange={(option) => {
-                        previewInstruction({
-                          name: "ui",
-                          arg: {
-                            theme: option.value,
-                          },
-                        });
-                      }}
-                      options={ThemeOptions}></Select>
-                  </Label>
-                  {[
-                    { name: "brandColor", title: "Brand Color" },
-                    // { name: "lightColor", title: "Light Color" },
-                    // { name: "lighterColor", title: "Lighter Color" },
-                    // { name: "lightestColor", title: "Lightest Color" },
-                    // { name: "highlightColor", title: "Highlight Color" },
-                    // { name: "medianColor", title: "Median Color" },
-                  ].map((palette) => (
-                    <Label key={palette.name} className="flex items-center justify-between">
-                      <div>{palette.title}</div>
-                      <div className="w-36">
-                        <ColorPicker
-                          defaultValue="#000000"
-                          onChange={(color) => {
-                            addToPalette({
-                              [palette.name]: color,
-                            });
-                          }}></ColorPicker>
-                      </div>
-                    </Label>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        </div>
-        <div className="w-2/3 bg-gray-50 p-6">
-          <EmbedNavBar />
-          <div>
-            <div
-              className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
-              <small className="flex py-4 text-neutral-500">
-                {t("Place this code in your HTML where you want your Cal widget to appear.")}
-              </small>
-              <TextArea
-                name="embed-code"
-                className="h-[24rem]"
-                readOnly
-                value={`<!-- Cal inline widget begins -->
-<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
-                  previewState.inline.height
-                )}" id="my-cal-inline"></div>
-<script type="text/javascript">
-  ${getEmbedSnippetString()}
-  ${getInlineEmbedString({ calLink: eventType.slug })}
-</script>
-<!-- Cal inline widget ends -->`}></TextArea>
-              <p className="text-sm text-gray-500">
-                {t(
-                  "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
-                )}
-              </p>
-            </div>
-            <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}>
-              <iframe
-                ref={iframeRef}
-                className="h-[75vh]"
-                width="100%"
-                height="100%"
-                src={`http://localhost:3100/preview.html?embedType=${embedType}`}
-              />
-            </div>
-          </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button type="submit">{t("Copy Code")}</Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("Close")}</Button>
-            </DialogClose>
-          </div>
-        </div>
-      </div>
-    </DialogContent>
-  );
-};
 
 const EventTypesPage = () => {
   const { t } = useLocale();
@@ -1136,17 +579,7 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
-              <Dialog name="embed" clearQueryParamsOnClose={["type", "title", "tabName", "eventTypeId"]}>
-                {!router.query.type ? (
-                  <EmbedTypesDialogContent />
-                ) : (
-                  <EmbedTypeCodeAndPreviewDialogContent
-                    eventTypeId={router.query.eventTypeId}
-                    embedType={router.query.type}
-                    title={router.query.title}
-                  />
-                )}
-              </Dialog>
+              <EmbedDialog></EmbedDialog>
             </>
           )}
         />
