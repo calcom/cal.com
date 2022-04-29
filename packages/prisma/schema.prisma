@@ -442,12 +442,12 @@ model Session {
 }
 
 enum AppCategories {
-  CALENDAR   @map("calendar")
-  MESSAGING  @map("messaging")
-  OTHER      @map("other")
-  PAYMENT    @map("payment")
-  VIDEO      @map("video")
-  WEB3       @map("web3")
+  calendar
+  messaging
+  other
+  payment
+  video
+  web3
 }
 
 model App {
