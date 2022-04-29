@@ -9,13 +9,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EventType } from "@calcom/prisma/client";
 import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose } from "@calcom/ui/Dialog";
-import { Input, InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
 import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
-import CheckboxField from "@components/ui/form/CheckboxField";
 import Select from "@components/ui/form/Select";
 
 function getEmbedSnippetString() {
@@ -385,7 +384,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
   previewInstruction({
     name: "ui",
     arg: {
-      theme: getThemeForSnippet(),
+      theme: previewState.theme,
       styles: {
         branding: {
           ...previewState.palette,
@@ -429,7 +428,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
     return dimension;
   };
   return (
-    <DialogContent size="xl">
+    <DialogContent className="p-0.5" size="xl">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-white p-6">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -714,7 +713,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
               <TextArea
                 ref={embedCode}
                 name="embed-code"
-                className="h-[24rem]"
+                className="h-[36rem]"
                 readOnly
                 value={
                   `<!-- Cal ${embedType} embed code begins -->\n` +
@@ -730,7 +729,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({ eventTypeId, embedType, title })
   </script>
   <!-- Cal ${embedType} embed code ends -->`
                 }></TextArea>
-              <p className="text-sm text-gray-500">
+              <p className="hidden text-sm text-gray-500">
                 {t(
                   "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
                 )}

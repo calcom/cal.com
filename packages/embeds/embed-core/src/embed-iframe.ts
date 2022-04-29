@@ -138,7 +138,7 @@ export const useEmbedTheme = () => {
     });
   }, [router.events]);
   embedStore.setTheme = setTheme;
-  return theme;
+  return theme === "auto" ? null : theme;
 };
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
