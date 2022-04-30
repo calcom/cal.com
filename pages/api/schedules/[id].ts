@@ -10,12 +10,13 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-export async function scheduleById(req: NextApiRequest, res: NextApiResponse<ScheduleResponse>) {
-  const { method, query, body } = req;
+export async function scheduleById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<ScheduleResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userSchedules = await prisma.schedule.findMany({ where: { userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
   if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });

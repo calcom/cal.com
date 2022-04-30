@@ -10,7 +10,7 @@ import {
 } from "@lib/validations/availability";
 
 async function createOrlistAllAvailabilities(
-  { method, userId }: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<AvailabilitiesResponse | AvailabilityResponse>
 ) {
   if (method === "GET") {
@@ -58,7 +58,7 @@ async function createOrlistAllAvailabilities(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaAvailabilityCreateBodyParams.safeParse(req.body);
+    const safe = schemaAvailabilityCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.availability.create({ data: { ...safe.data, userId } });

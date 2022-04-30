@@ -7,7 +7,7 @@ import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
 async function createOrlistAllBookings(
-  { method, userId }: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
   if (method === "GET") {
@@ -51,7 +51,7 @@ async function createOrlistAllBookings(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
+    const safe = schemaBookingCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.booking.create({ data: { ...safe.data, userId } });

@@ -29,9 +29,9 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function createResource(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safe = schemaResourceBodyParams.safeParse(req.body);
-  if (!safe.success) throw new Error("Invalid request body", safe.error);
+async function createResource({body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+  const safe = schemaResourceBodyParams.safeParse(body);
+  if (!safe.success) throw new Error("Invalid request body");
 
   const resource = await prisma.resource.create({ data: safe.data });
   const data = schemaResourcePublic.parse(resource);

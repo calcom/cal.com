@@ -75,6 +75,7 @@ async function createOrlistAllBookingReferences(
       throw new Error("User not found");
     }
     const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
+    if (!safe.data.bookingId) throw new Error("BookingReference: bookingId not found");
     if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
       const booking_reference = await prisma.bookingReference.create({

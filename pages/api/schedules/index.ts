@@ -7,12 +7,9 @@ import { ScheduleResponse, SchedulesResponse } from "@lib/types";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 
 async function createOrlistAllSchedules(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
     /**
      * @swagger
@@ -54,7 +51,7 @@ async function createOrlistAllSchedules(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaScheduleBodyParams.safeParse(req.body);
+    const safe = schemaScheduleBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
     const data = await prisma.schedule.create({ data: { ...safe.data, userId } });
     const schedule = schemaSchedulePublic.parse(data);

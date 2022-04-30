@@ -108,8 +108,6 @@ We have some shared validations which several resources require, like baseApiPar
 
 - **[*]BodyParams** which merges both `[*]BaseBodyParams.merge([*]RequiredParams);`
 
-- **withValid[*]** which is currently not being much used because is only useful in only post endpoints (we do post/get all in same file). This would validate the req.body of a POST call to API against our BaseBodyParams validation
-
 ### Next Validations
 
 [Next-Validations Docs](https://next-validations.productsway.com/)

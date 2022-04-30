@@ -10,7 +10,7 @@ import {
 } from "@lib/validations/selected-calendar";
 
 async function createOrlistAllSelectedCalendars(
-  { method, userId }: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<SelectedCalendarsResponse | SelectedCalendarResponse>
 ) {
   if (method === "GET") {
@@ -67,7 +67,7 @@ async function createOrlistAllSelectedCalendars(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaSelectedCalendarBodyParams.safeParse(req.body);
+    const safe = schemaSelectedCalendarBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
     // Create new selectedCalendar connecting it to current userId
     const data = await prisma.selectedCalendar.create({

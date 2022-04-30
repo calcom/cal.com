@@ -68,12 +68,13 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
-  const { method, query, body } = req;
+export async function teamById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<TeamResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });

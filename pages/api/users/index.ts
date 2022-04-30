@@ -22,8 +22,7 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  *       404:
  *         description: No users were found
  */
-async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>) {
-  const userId = req.userId;
+async function allUsers({ userId }: NextApiRequest, res: NextApiResponse<UsersResponse>) {
   const data = await prisma.user.findMany({
     where: {
       id: userId,

@@ -6,6 +6,12 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { PaymentResponse, PaymentsResponse } from "@lib/types";
 import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/payment";
 
+async function createOrlistAllPayments(
+  {method, body}: NextApiRequest,
+  res: NextApiResponse<PaymentsResponse | PaymentResponse>
+) {
+  if (method === "GET") {
+
 /**
  * @swagger
  * /v1/payments:
@@ -21,6 +27,21 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: No payments were found
+ */
+    const payments = await prisma.payment.findMany();
+    const data = payments.map((payment) => schemaPaymentPublic.parse(payment));
+    if (data) res.status(200).json({ data });
+    else
+      (error: Error) =>
+        res.status(404).json({
+          message: "No Payments were found",
+          error,
+        });
+  } else if (method === "POST") {
+
+/**
+ * @swagger
+ * /v1/payments:
  *   post:
  *     summary: Creates a new payment
 
@@ -34,23 +55,7 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function createOrlistAllPayments(
-  req: NextApiRequest,
-  res: NextApiResponse<PaymentsResponse | PaymentResponse>
-) {
-  const { method } = req;
-  if (method === "GET") {
-    const payments = await prisma.payment.findMany();
-    const data = payments.map((payment) => schemaPaymentPublic.parse(payment));
-    if (data) res.status(200).json({ data });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Payments were found",
-          error,
-        });
-  } else if (method === "POST") {
-    const safe = schemaPaymentBodyParams.safeParse(req.body);
+    const safe = schemaPaymentBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const payment = await prisma.payment.create({ data: safe.data });

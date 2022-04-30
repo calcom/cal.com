@@ -71,8 +71,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function userById(req: NextApiRequest, res: NextApiResponse<any>) {
-  const { method, query, body, userId } = req;
+export async function userById({ method, query, body, userId }: NextApiRequest, res: NextApiResponse<any>) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   console.log(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);

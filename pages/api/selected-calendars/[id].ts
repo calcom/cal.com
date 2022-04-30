@@ -11,16 +11,14 @@ import {
 import { schemaQueryIdAsString, withValidQueryIdString } from "@lib/validations/shared/queryIdString";
 
 export async function selectedCalendarById(
-  req: NextApiRequest,
+  { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<SelectedCalendarResponse>
 ) {
-  const { method, query, body } = req;
   const safeQuery = schemaQueryIdAsString.safeParse(query);
   const safeBody = schemaSelectedCalendarBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   // This is how we set the userId and externalId in the query for managing compoundId.
   const [paramUserId, integration, externalId] = safeQuery.data.id.split("_");
-  const userId = req.userId;
   if (userId !== parseInt(paramUserId)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {

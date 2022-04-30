@@ -27,32 +27,33 @@ export async function bookingReferenceById(
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
   const bookingReference = await prisma.bookingReference.findUnique({ where: { id: safeQuery.data.id } });
-  if (!bookingReference) throw new Error("BookingReference not found");
+  if (!bookingReference?.bookingId) throw new Error("BookingReference: bookingId not found");
   if (userBookingIds.includes(bookingReference.bookingId)) {
     switch (method) {
-      /**
-       * @swagger
-       * /booking-references/{id}:
-       *   get:
-       *     summary: Find a booking reference
-       *     parameters:
-       *       - in: path
-       *         name: id
-       *         schema:
-       *           type: integer
-       *         required: true
-       *         description: Numeric ID of the booking reference to get
-       *     tags:
-       *     - booking-references
-       *     responses:
-       *       200:
-       *         description: OK
-       *       401:
-       *        description: Authorization information is missing or invalid.
-       *       404:
-       *         description: BookingReference was not found
-       */
       case "GET":
+        /**
+         * @swagger
+         * /booking-references/{id}:
+         *   get:
+         *     summary: Find a booking reference
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         schema:
+         *           type: integer
+         *         required: true
+         *         description: Numeric ID of the booking reference to get
+         *     tags:
+         *     - booking-references
+         *     responses:
+         *       200:
+         *         description: OK
+         *       401:
+         *        description: Authorization information is missing or invalid.
+         *       404:
+         *         description: BookingReference was not found
+         */
+
         await prisma.bookingReference
           .findUnique({ where: { id: safeQuery.data.id } })
           .then((data) => schemaBookingReferenceReadPublic.parse(data))
@@ -63,30 +64,32 @@ export async function bookingReferenceById(
               error,
             })
           );
+
         break;
-      /**
-       * @swagger
-       * /booking-references/{id}:
-       *   patch:
-       *     summary: Edit an existing booking reference
-       *     parameters:
-       *      - in: path
-       *        name: id
-       *        schema:
-       *          type: integer
-       *        required: true
-       *        description: Numeric ID of the booking reference to edit
-       *     tags:
-       *     - booking-references
-       *     responses:
-       *       201:
-       *         description: OK, bookingReference edited successfuly
-       *       400:
-       *        description: Bad request. BookingReference body is invalid.
-       *       401:
-       *        description: Authorization information is missing or invalid.
-       */
       case "PATCH":
+        /**
+         * @swagger
+         * /booking-references/{id}:
+         *   patch:
+         *     summary: Edit an existing booking reference
+         *     parameters:
+         *      - in: path
+         *        name: id
+         *        schema:
+         *          type: integer
+         *        required: true
+         *        description: Numeric ID of the booking reference to edit
+         *     tags:
+         *     - booking-references
+         *     responses:
+         *       201:
+         *         description: OK, bookingReference edited successfuly
+         *       400:
+         *        description: Bad request. BookingReference body is invalid.
+         *       401:
+         *        description: Authorization information is missing or invalid.
+         */
+
         const safeBody = schemaBookingEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           throw new Error("Invalid request body");
