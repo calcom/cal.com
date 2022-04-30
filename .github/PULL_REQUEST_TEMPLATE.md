@@ -4,8 +4,9 @@
 
 Fixes # (issue)
 
-<!-- Please provide a loom video for visual changes to speed up reviews -->
-Loom Video: https://www.loom.com/
+<!-- Please provide a loom video for visual changes to speed up reviews
+ Loom Video: https://www.loom.com/
+-->
 
 ## Type of change
 
