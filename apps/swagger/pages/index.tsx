@@ -18,6 +18,7 @@ export default function APIDocs() {
       plugins={[SnippedGenerator]}
       tryItOutEnabled={true}
       syntaxHighlight={true}
+      enableCORS={false} // Doesn't seem to work either
       docExpansion="list"
       filter={true}
     />
