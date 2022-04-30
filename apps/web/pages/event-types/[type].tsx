@@ -1360,8 +1360,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <CheckboxField
                                 id="hashedLinkCheck"
                                 name="hashedLinkCheck"
-                                label={t("hashed_link")}
-                                description={t("hashed_link_description")}
+                                label={t("private_link")}
+                                description={t("private_link_description")}
                                 defaultChecked={eventType.hashedLink ? true : false}
                                 onChange={(e) => {
                                   setHashedLinkVisible(e?.target.checked);
