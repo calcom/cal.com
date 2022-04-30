@@ -15,9 +15,9 @@ import {
 
 /**
  * @swagger
- * /event-type-custom-inputs/{id}:
+ * /custom-inputs/{id}:
  *   get:
- *     summary: Find a eventTypeCustomInput by ID
+ *     summary: Find a eventTypeCustomInput
  *     parameters:
  *       - in: path
  *         name: id
@@ -25,45 +25,31 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the eventTypeCustomInput to get
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       200:
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         deCustomInputscription: EventType was not found
+ *         description: EventType was not found
  *   patch:
  *     summary: Edit an existing eventTypeCustomInput
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: eventTypeCustomInput
- *        description: The eventTypeCustomInput to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/EventTypeCustomInput'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to edit
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput edited successfuly
- *         model: EventTypeCustomInput
  *       400:
- *        desCustomInputcription: Bad request. EventType body is invalid.
+ *        description: Bad request. EventType body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
@@ -75,25 +61,23 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the eventTypeCustomInput to delete
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
- *     - event-type-custom-inputs
+ *     - custom-inputs
  *     responses:
  *       201:
  *         description: OK, eventTypeCustomInput removed successfuly
- *         model: EventTypeCustomInput
  *       400:
- *        desCustomInputcription: Bad request. EventType id is invalid.
+ *        description: Bad request. EventType id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function eventTypeById(req: NextApiRequest, res: NextApiResponse<EventTypeCustomInputResponse>) {
-  const { method, query, body } = req;
+async function eventTypeById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<EventTypeCustomInputResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({

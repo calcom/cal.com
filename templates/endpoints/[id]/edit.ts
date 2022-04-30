@@ -22,22 +22,20 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to edit
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource edited successfuly
- *         model: Resource
  *       400:
  *        description: Bad request. Resource body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function editResource(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safeQuery = schemaQueryIdParseInt.safeParse(req.query);
-  const safeBody = schemaResourceBodyParams.safeParse(req.body);
+export async function editResource({query, body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaResourceBodyParams.safeParse(body);
 
   if (!safeQuery.success || !safeBody.success) throw new Error("Invalid request");
   const resource = await prisma.resource.update({

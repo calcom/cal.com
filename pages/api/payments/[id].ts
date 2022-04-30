@@ -14,7 +14,7 @@ import {
  * @swagger
  * /payments/{id}:
  *   get:
- *     summary: Find one of your own payments by ID
+ *     summary: Find a payment
  *     parameters:
  *       - in: path
  *         name: id
@@ -22,8 +22,6 @@ import {
  *           type: integer
  *         required: true
  *         description: Numeric ID of the payment to get
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:
@@ -34,11 +32,11 @@ import {
  *       404:
  *         description: Payment was not found
  */
-export async function paymentById(req: NextApiRequest, res: NextApiResponse<PaymentResponse>) {
-  const { method, query } = req;
+export async function paymentById(
+  { method, query, userId }: NextApiRequest,
+  res: NextApiResponse<PaymentResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const userId = req.userId;
-
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },

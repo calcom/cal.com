@@ -18,22 +18,20 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *       application/json:
  *           schema:
  *           $ref: '#/components/schemas/Resource'
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource created
- *         model: Resource
  *       400:
  *        description: Bad request. Resource body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function createResource(req: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
-  const safe = schemaResourceBodyParams.safeParse(req.body);
-  if (!safe.success) throw new Error("Invalid request body", safe.error);
+async function createResource({body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+  const safe = schemaResourceBodyParams.safeParse(body);
+  if (!safe.success) throw new Error("Invalid request body");
 
   const resource = await prisma.resource.create({ data: safe.data });
   const data = schemaResourcePublic.parse(resource);

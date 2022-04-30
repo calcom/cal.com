@@ -1,6 +1,8 @@
-import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
+import modifyRes from "modify-response-middleware";
+import { use } from "next-api-middleware";
 import { withSwagger } from "next-swagger-doc";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
 const swaggerHandler = withSwagger({
   definition: {
@@ -20,26 +22,18 @@ const swaggerHandler = withSwagger({
     },
     components: {
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
-      security: { ApiKeyAuth: [] },
-      schemas: { ...jsonSchema.definitions },
     },
+    security: [{ ApiKeyAuth: [] }],
   },
   apiFolder: "pages/api",
-  tags: [
-    "users",
-    "teams",
-    "memeberships",
-    "selected-calendars",
-    "schedules",
-    "payments",
-    "event-types",
-    "event-type-custom-inputs",
-    "destination-calendars",
-    "daily-event-references",
-    "booking-references",
-    "availabilities",
-    "attendees",
-  ],
-  sort: true,
 });
-export default swaggerHandler();
+
+export default use(
+  modifyRes((content: string, _req: NextApiRequest, _res: NextApiResponse) => {
+    if (content) {
+      const parsed = JSON.parse(content);
+      delete parsed.channels;
+      return Buffer.from(JSON.stringify(parsed));
+    }
+  })
+)(swaggerHandler());

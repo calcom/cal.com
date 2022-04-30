@@ -108,8 +108,6 @@ We have some shared validations which several resources require, like baseApiPar
 
 - **[*]BodyParams** which merges both `[*]BaseBodyParams.merge([*]RequiredParams);`
 
-- **withValid[*]** which is currently not being much used because is only useful in only post endpoints (we do post/get all in same file). This would validate the req.body of a POST call to API against our BaseBodyParams validation
-
 ### Next Validations
 
 [Next-Validations Docs](https://next-validations.productsway.com/)
@@ -127,9 +125,9 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 | attendees                | ✅       | ✅      | ✅     | ✅   | ✅     |
 | availabilities           | ✅       | ✅      | ✅     | ✅   | ✅     |
 | booking-references       | ✅       | ✅      | ✅     | ✅   | ✅     |
-| daily-event-references   | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-references         | ✅       | ✅      | ✅     | ✅   | ✅     |
 | destination-calendars    | ✅       | ✅      | ✅     | ✅   | ✅     |
-| event-type-custom-inputs | ✅       | ✅      | ✅     | ✅   | ✅     |
+| custom-inputs            | ✅       | ✅      | ✅     | ✅   | ✅     |
 | event-types              | ✅       | ✅      | ✅     | ✅   | ✅     |
 | memberships              | ✅       | ✅      | ✅     | ✅   | ✅     |
 | payments                 | ✅       | ✅      | ❌     | ❌   | ❌     |

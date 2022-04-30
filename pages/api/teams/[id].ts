@@ -14,7 +14,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  * @swagger
  * /teams/{id}:
  *   get:
- *     summary: Find a team by ID
+ *     summary: Find a team
  *     parameters:
  *       - in: path
  *         name: id
@@ -22,8 +22,6 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the team to get
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
@@ -35,30 +33,18 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *         description: Team was not found
  *   patch:
  *     summary: Edit an existing team
- *     consumes:
- *       - application/json
  *     parameters:
- *      - in: body
- *        name: team
- *        description: The team to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/Team'
- *        required: true
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to edit
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
  *       201:
  *         description: OK, team edited successfuly
- *         model: Team
  *       400:
  *        description: Bad request. Team body is invalid.
  *       401:
@@ -72,25 +58,23 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the team to delete
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - teams
  *     responses:
  *       201:
  *         description: OK, team removed successfuly
- *         model: Team
  *       400:
  *        description: Bad request. Team id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function teamById(req: NextApiRequest, res: NextApiResponse<TeamResponse>) {
-  const { method, query, body } = req;
+export async function teamById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<TeamResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });

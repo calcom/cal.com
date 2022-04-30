@@ -10,11 +10,10 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  * @swagger
  * /users:
  *   get:
- *     summary: Find all users (admin only), returns your user if regular user.
- *     security:
- *       - ApiKeyAuth: []
+ *     summary: Find all users.
  *     tags:
  *     - users
+ *     operationId: listUsers
  *     responses:
  *       200:
  *         description: OK
@@ -23,8 +22,7 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  *       404:
  *         description: No users were found
  */
-async function allUsers(req: NextApiRequest, res: NextApiResponse<UsersResponse>) {
-  const userId = req.userId;
+async function allUsers({ userId }: NextApiRequest, res: NextApiResponse<UsersResponse>) {
   const data = await prisma.user.findMany({
     where: {
       id: userId,

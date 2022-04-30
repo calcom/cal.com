@@ -9,45 +9,26 @@ import {
   schemaDestinationCalendarReadPublic,
 } from "@lib/validations/destination-calendar";
 
-/**
- * @swagger
- * /destination-calendars:
- *   get:
- *     summary: Find all destination calendars
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - destination-calendars
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No destination calendars were found
- *   post:
- *     summary: Creates a new destination calendar
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - destination-calendars
- *     responses:
- *       201:
- *         description: OK, destination calendar created
- *         model: DestinationCalendar
- *       400:
- *        description: Bad request. DestinationCalendar body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllDestinationCalendars(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<DestinationCalendarsResponse | DestinationCalendarResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
+    /**
+     * @swagger
+     * /destination-calendars:
+     *   get:
+     *     summary: Find all destination calendars
+     *     tags:
+     *     - destination-calendars
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No destination calendars were found
+     */
     const data = await prisma.destinationCalendar.findMany({ where: { userId } });
     const destination_calendars = data.map((destinationCalendar) =>
       schemaDestinationCalendarReadPublic.parse(destinationCalendar)
@@ -60,7 +41,22 @@ async function createOrlistAllDestinationCalendars(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaDestinationCalendarCreateBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /destination-calendars:
+     *   post:
+     *     summary: Creates a new destination calendar
+     *     tags:
+     *     - destination-calendars
+     *     responses:
+     *       201:
+     *         description: OK, destination calendar created
+     *       400:
+     *        description: Bad request. DestinationCalendar body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaDestinationCalendarCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.destinationCalendar.create({ data: { ...safe.data, userId } });

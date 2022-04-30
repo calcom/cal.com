@@ -6,44 +6,26 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { MembershipResponse, MembershipsResponse } from "@lib/types";
 import { schemaMembershipBodyParams, schemaMembershipPublic } from "@lib/validations/membership";
 
-/**
- * @swagger
- * /memberships:
- *   get:
- *     summary: Find all memberships
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - memberships
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No memberships were found
- *   post:
- *     summary: Creates a new membership
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - memberships
- *     responses:
- *       201:
- *         description: OK, membership created
- *         model: Membership
- *       400:
- *        description: Bad request. Membership body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllMemberships(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<MembershipsResponse | MembershipResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
   if (method === "GET") {
+    /**
+     * @swagger
+     * /memberships:
+     *   get:
+     *     summary: Find all memberships
+     *     tags:
+     *     - memberships
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No memberships were found
+     */
     const data = await prisma.membership.findMany({ where: { userId } });
     const memberships = data.map((membership) => schemaMembershipPublic.parse(membership));
     if (memberships) res.status(200).json({ memberships });
@@ -54,7 +36,22 @@ async function createOrlistAllMemberships(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaMembershipBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /memberships:
+     *   post:
+     *     summary: Creates a new membership
+     *     tags:
+     *     - memberships
+     *     responses:
+     *       201:
+     *         description: OK, membership created
+     *       400:
+     *        description: Bad request. Membership body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaMembershipBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.membership.create({ data: { ...safe.data, userId } });

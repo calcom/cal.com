@@ -9,45 +9,26 @@ import {
   schemaSelectedCalendarPublic,
 } from "@lib/validations/selected-calendar";
 
-/**
- * @swagger
- * /selected-calendars:
- *   get:
- *     summary: Find all selected calendars
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - selected-calendars
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No selected calendars were found
- *   post:
- *     summary: Creates a new selected calendar
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - selected-calendars
- *     responses:
- *       201:
- *         description: OK, selected calendar created
- *         model: SelectedCalendar
- *       400:
- *        description: Bad request. SelectedCalendar body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllSelectedCalendars(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<SelectedCalendarsResponse | SelectedCalendarResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
+    /**
+     * @swagger
+     * /selected-calendars:
+     *   get:
+     *     summary: Find all selected calendars
+     *     tags:
+     *     - selected-calendars
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No selected calendars were found
+     */
     const data = await prisma.selectedCalendar.findMany({ where: { userId } });
     const selected_calendars = data.map((selected_calendar) =>
       schemaSelectedCalendarPublic.parse(selected_calendar)
@@ -60,7 +41,33 @@ async function createOrlistAllSelectedCalendars(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaSelectedCalendarBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /selected-calendars:
+     *   get:
+     *     summary: Find all selected calendars
+     *     tags:
+     *     - selected-calendars
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No selected calendars were found
+     *   post:
+     *     summary: Creates a new selected calendar
+     *     tags:
+     *     - selected-calendars
+     *     responses:
+     *       201:
+     *         description: OK, selected calendar created
+     *       400:
+     *        description: Bad request. SelectedCalendar body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaSelectedCalendarBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
     // Create new selectedCalendar connecting it to current userId
     const data = await prisma.selectedCalendar.create({

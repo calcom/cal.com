@@ -7,41 +7,26 @@ import { TeamResponse, TeamsResponse } from "@lib/types";
 import { schemaMembershipPublic } from "@lib/validations/membership";
 import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
 
-/**
- * @swagger
- * /teams:
- *   get:
- *     summary: Find all teams
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - teams
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No teams were found
- *   post:
- *     summary: Creates a new team
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - teams
- *     responses:
- *       201:
- *         description: OK, team created
- *         model: Team
- *       400:
- *        description: Bad request. Team body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
-async function createOrlistAllTeams(req: NextApiRequest, res: NextApiResponse<TeamsResponse | TeamResponse>) {
-  const { method } = req;
-  const userId = req.userId;
+async function createOrlistAllTeams(
+  { method, body, userId }: NextApiRequest,
+  res: NextApiResponse<TeamsResponse | TeamResponse>
+) {
   if (method === "GET") {
+    /**
+     * @swagger
+     * /teams:
+     *   get:
+     *     summary: Find all teams
+     *     tags:
+     *     - teams
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No teams were found
+     */
     const userWithMemberships = await prisma.membership.findMany({
       where: { userId: userId },
     });
@@ -55,7 +40,22 @@ async function createOrlistAllTeams(req: NextApiRequest, res: NextApiResponse<Te
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaTeamBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /teams:
+     *   post:
+     *     summary: Creates a new team
+     *     tags:
+     *     - teams
+     *     responses:
+     *       201:
+     *         description: OK, team created
+     *       400:
+     *        description: Bad request. Team body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaTeamBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
     const team = await prisma.team.create({ data: safe.data });
     // We're also creating the relation membership of team ownership in this call.

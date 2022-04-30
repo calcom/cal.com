@@ -21,22 +21,20 @@ import {
  *          type: integer
  *        required: true
  *        description: Numeric ID of the resource to delete
- *     security:
- *       - ApiKeyAuth: [] 
+ 
  *     tags:
  *     - resources
  *     responses:
  *       201:
  *         description: OK, resource removed successfuly
- *         model: Resource
  *       400:
  *        description: Bad request. Resource id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function deleteResource(req: NextApiRequest, res: NextApiResponse<BaseResponse>) {
-  const safe = schemaQueryIdParseInt.safeParse(req.query);
-  if (!safe.success) throw new Error("Invalid request query", safe.error);
+export async function deleteResource({query}: NextApiRequest, res: NextApiResponse<BaseResponse>) {
+  const safe = schemaQueryIdParseInt.safeParse(query);
+  if (!safe.success) throw new Error("Invalid request query");
 
   const data = await prisma.resource.delete({ where: { id: safe.data.id } });
 

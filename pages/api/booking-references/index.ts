@@ -9,50 +9,32 @@ import {
   schemaBookingReferenceReadPublic,
 } from "@lib/validations/booking-reference";
 
-/**
- * @swagger
- * /booking-references:
- *   get:
- *     summary: Find all booking references
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - booking-references
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No booking references were found
- *   post:
- *     summary: Creates a new  booking reference
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - booking-references
- *     responses:
- *       201:
- *         description: OK,  booking reference created
- *         model: BookingReference
- *       400:
- *        description: Bad request. BookingReference body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllBookingReferences(
-  req: NextApiRequest,
+  { method, userId, body }: NextApiRequest,
   res: NextApiResponse<BookingReferencesResponse | BookingReferenceResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
   });
   if (!userWithBookings) throw new Error("User not found");
-  const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+  const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
   if (method === "GET") {
+    /**
+     * @swagger
+     * /booking-references:
+     *   get:
+     *     summary: Find all booking references
+     *     tags:
+     *     - booking-references
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No booking references were found
+     */
     const data = await prisma.bookingReference.findMany({ where: { id: { in: userBookingIds } } });
     const booking_references = data.map((bookingReference) =>
       schemaBookingReferenceReadPublic.parse(bookingReference)
@@ -65,13 +47,26 @@ async function createOrlistAllBookingReferences(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /booking-references:
+     *   post:
+     *     summary: Creates a new  booking reference
+     *     tags:
+     *     - booking-references
+     *     responses:
+     *       201:
+     *         description: OK,  booking reference created
+     *       400:
+     *        description: Bad request. BookingReference body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaBookingCreateBodyParams.safeParse(body);
     if (!safe.success) {
       throw new Error("Invalid request body");
     }
 
-    // const booking_reference = schemaBookingReferencePublic.parse(data);
-    const userId = req.userId;
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
       include: { bookings: true },
@@ -79,7 +74,8 @@ async function createOrlistAllBookingReferences(
     if (!userWithBookings) {
       throw new Error("User not found");
     }
-    const userBookingIds = userWithBookings.bookings.map((booking: any) => booking.id).flat();
+    const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
+    if (!safe.data.bookingId) throw new Error("BookingReference: bookingId not found");
     if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
       const booking_reference = await prisma.bookingReference.create({

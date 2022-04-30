@@ -14,7 +14,8 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Find a user by ID, returns your user if regular user.
+ *     summary: Find a user, returns your user if regular user.
+ *     operationId: getUserById
  *     parameters:
  *       - in: path
  *         name: id
@@ -22,8 +23,6 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *           type: integer
  *         required: true
  *         description: Numeric ID of the user to get
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:
@@ -35,34 +34,26 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *         description: User was not found
  *   patch:
  *     summary: Edit an existing user
- *     consumes:
- *       - application/json
+ *     operationId: editUserById
  *     parameters:
- *      - in: body
- *        name: name
- *        description: The users full name
- *        schema:
- *         type: string
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to edit
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:
  *       201:
  *         description: OK, user edited successfuly
- *         model: User
  *       400:
  *        description: Bad request. User body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
  *     summary: Remove an existing user
+ *     operationId: deleteUserById
  *     parameters:
  *      - in: path
  *        name: id
@@ -70,21 +61,17 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *          type: integer
  *        required: true
  *        description: Numeric ID of the user to delete
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - users
  *     responses:
  *       201:
  *         description: OK, user removed successfuly
- *         model: User
  *       400:
  *        description: Bad request. User id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function userById(req: NextApiRequest, res: NextApiResponse<any>) {
-  const { method, query, body, userId } = req;
+export async function userById({ method, query, body, userId }: NextApiRequest, res: NextApiResponse<any>) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   console.log(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);

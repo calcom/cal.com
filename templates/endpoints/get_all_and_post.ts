@@ -6,13 +6,18 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { PaymentResponse, PaymentsResponse } from "@lib/types";
 import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/payment";
 
+async function createOrlistAllPayments(
+  {method, body}: NextApiRequest,
+  res: NextApiResponse<PaymentsResponse | PaymentResponse>
+) {
+  if (method === "GET") {
+
 /**
  * @swagger
  * /v1/payments:
  *   get:
  *     summary: Find all payments
- *     security:
- *       - ApiKeyAuth: []
+
  *     tags:
  *     - payments
  *     responses:
@@ -22,27 +27,7 @@ import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/p
  *        description: Authorization information is missing or invalid.
  *       404:
  *         description: No payments were found
- *   post:
- *     summary: Creates a new payment
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - payments
- *     responses:
- *       201:
- *         description: OK, payment created
- *         model: Payment
- *       400:
- *        description: Bad request. Payment body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
  */
-async function createOrlistAllPayments(
-  req: NextApiRequest,
-  res: NextApiResponse<PaymentsResponse | PaymentResponse>
-) {
-  const { method } = req;
-  if (method === "GET") {
     const payments = await prisma.payment.findMany();
     const data = payments.map((payment) => schemaPaymentPublic.parse(payment));
     if (data) res.status(200).json({ data });
@@ -53,7 +38,24 @@ async function createOrlistAllPayments(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaPaymentBodyParams.safeParse(req.body);
+
+/**
+ * @swagger
+ * /v1/payments:
+ *   post:
+ *     summary: Creates a new payment
+
+ *     tags:
+ *     - payments
+ *     responses:
+ *       201:
+ *         description: OK, payment created
+ *       400:
+ *        description: Bad request. Payment body is invalid.
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ */
+    const safe = schemaPaymentBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const payment = await prisma.payment.create({ data: safe.data });

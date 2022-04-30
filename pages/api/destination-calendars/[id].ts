@@ -13,90 +13,13 @@ import {
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
-/**
- * @swagger
- * /destination-calendars/{id}:
- *   get:
- *     summary: Find a destination calendar by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the destination calendar to get
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - destination-calendars
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: DestinationCalendar was not found
- *   patch:
- *     summary: Edit an existing destination calendar
- *     consumes:
- *       - application/json
- *     parameters:
- *      - in: body
- *        name: destinationCalendar
- *        description: The destinationCalendar to edit
- *        schema:
- *         type: object
- *         $ref: '#/components/schemas/DestinationCalendar'
- *        required: true
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the destination calendar to edit
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - destination-calendars
- *     responses:
- *       201:
- *         description: OK, destinationCalendar edited successfuly
- *         model: DestinationCalendar
- *       400:
- *        description: Bad request. DestinationCalendar body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing destination calendar
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the destination calendar to delete
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - destination-calendars
- *     responses:
- *       201:
- *         description: OK, destinationCalendar removed successfuly
- *         model: DestinationCalendar
- *       400:
- *        description: Bad request. DestinationCalendar id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 export async function destionationCalendarById(
-  req: NextApiRequest,
+  { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<DestinationCalendarResponse>
 ) {
-  const { method, query, body } = req;
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDestinationCalendarEditBodyParams.safeParse(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
-  const userId = req.userId;
   const data = await prisma.destinationCalendar.findMany({ where: { userId } });
   const userDestinationCalendars = data.map((destinationCalendar) => destinationCalendar.id);
   //  FIXME: Should we also check ownership of bokingId and eventTypeId to avoid users cross-pollinating other users calendars.
@@ -104,6 +27,64 @@ export async function destionationCalendarById(
   if (userDestinationCalendars.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
+      /**
+       * @swagger
+       * /destination-calendars/{id}:
+       *   get:
+       *     summary: Find a destination calendar
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         schema:
+       *           type: integer
+       *         required: true
+       *         description: Numeric ID of the destination calendar to get
+       *     tags:
+       *     - destination-calendars
+       *     responses:
+       *       200:
+       *         description: OK
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *       404:
+       *         description: DestinationCalendar was not found
+       *   patch:
+       *     summary: Edit an existing destination calendar
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the destination calendar to edit
+       *     tags:
+       *     - destination-calendars
+       *     responses:
+       *       201:
+       *         description: OK, destinationCalendar edited successfuly
+       *       400:
+       *        description: Bad request. DestinationCalendar body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       *   delete:
+       *     summary: Remove an existing destination calendar
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the destination calendar to delete
+       *     tags:
+       *     - destination-calendars
+       *     responses:
+       *       201:
+       *         description: OK, destinationCalendar removed successfuly
+       *       400:
+       *        description: Bad request. DestinationCalendar id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "GET":
         await prisma.destinationCalendar
           .findUnique({ where: { id: safeQuery.data.id } })
@@ -116,7 +97,28 @@ export async function destionationCalendarById(
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /destination-calendars/{id}:
+       *   patch:
+       *     summary: Edit an existing destination calendar
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the destination calendar to edit
+       *     tags:
+       *     - destination-calendars
+       *     responses:
+       *       201:
+       *         description: OK, destinationCalendar edited successfuly
+       *       400:
+       *        description: Bad request. DestinationCalendar body is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "PATCH":
         if (!safeBody.success) {
           throw new Error("Invalid request body");
@@ -132,7 +134,28 @@ export async function destionationCalendarById(
             })
           );
         break;
-
+      /**
+       * @swagger
+       * /destination-calendars/{id}:
+       *   delete:
+       *     summary: Remove an existing destination calendar
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: Numeric ID of the destination calendar to delete
+       *     tags:
+       *     - destination-calendars
+       *     responses:
+       *       201:
+       *         description: OK, destinationCalendar removed successfuly
+       *       400:
+       *        description: Bad request. DestinationCalendar id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
       case "DELETE":
         await prisma.destinationCalendar
           .delete({

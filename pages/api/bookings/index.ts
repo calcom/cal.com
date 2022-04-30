@@ -6,45 +6,26 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingCreateBodyParams, schemaBookingReadPublic } from "@lib/validations/booking";
 
-/**
- * @swagger
- * /bookings:
- *   get:
- *     summary: Find all bookings
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - bookings
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No bookings were found
- *   post:
- *     summary: Creates a new booking
- *     security:
- *       - ApiKeyAuth: []
- *     tags:
- *     - bookings
- *     responses:
- *       201:
- *         description: OK, booking created
- *         model: Booking
- *       400:
- *        description: Bad request. Booking body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
 async function createOrlistAllBookings(
-  req: NextApiRequest,
+  { method, body, userId }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
-  const { method } = req;
-  const userId = req.userId;
-
   if (method === "GET") {
+    /**
+     * @swagger
+     * /bookings:
+     *   get:
+     *     summary: Find all bookings
+     *     tags:
+     *     - bookings
+     *     responses:
+     *       200:
+     *         description: OK
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     *       404:
+     *         description: No bookings were found
+     */
     const data = await prisma.booking.findMany({ where: { userId } });
     const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
     if (bookings) res.status(200).json({ bookings });
@@ -55,7 +36,22 @@ async function createOrlistAllBookings(
           error,
         });
   } else if (method === "POST") {
-    const safe = schemaBookingCreateBodyParams.safeParse(req.body);
+    /**
+     * @swagger
+     * /bookings:
+     *   post:
+     *     summary: Creates a new booking
+     *     tags:
+     *     - bookings
+     *     responses:
+     *       201:
+     *         description: OK, booking created
+     *       400:
+     *        description: Bad request. Booking body is invalid.
+     *       401:
+     *        description: Authorization information is missing or invalid.
+     */
+    const safe = schemaBookingCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.booking.create({ data: { ...safe.data, userId } });

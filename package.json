@@ -26,6 +26,7 @@
   "dependencies": {
     "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.3",
+    "modify-response-middleware": "^1.1.0",
     "next": "^12.1.4",
     "next-api-middleware": "^1.0.1",
     "next-swagger-doc": "^0.2.1",

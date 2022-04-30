@@ -11,8 +11,6 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  * /payments:
  *   get:
  *     summary: Find all payments
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - payments
  *     responses:
@@ -23,9 +21,7 @@ import { schemaPaymentPublic } from "@lib/validations/payment";
  *       404:
  *         description: No payments were found
  */
-async function allPayments(req: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
-  const userId = req.userId;
-
+async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
   const userWithBookings = await prisma.user.findUnique({
     where: { id: userId },
     include: { bookings: true },
