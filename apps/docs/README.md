@@ -5,7 +5,7 @@
   </a>
   <a href="https://cal.com">Website</a>
   ·
-  <a href="https://github.com/calcom/docs/issues">Community Support</a>
+  <a href="https://github.com/calcom/cal.com/issues">Community Support</a>
 </div>
 
 # Cal.com Documentation
