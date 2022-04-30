@@ -7,8 +7,8 @@
   "author": "Cal.com Inc.",
   "private": true,
   "scripts": {
-    "dev": "PORT=3002 next",
-    "start": "next start",
+    "dev": "next build && PORT=3002 next start",
+    "start": "PORT=3002 next start",
     "build": "next build",
     "lint": "next lint",
     "lint-fix": "next lint --fix && prettier --write .",
