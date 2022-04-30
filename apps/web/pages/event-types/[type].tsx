@@ -2,6 +2,7 @@ import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
+  DocumentDuplicateIcon,
   DocumentIcon,
   ExternalLinkIcon,
   LinkIcon,
@@ -52,6 +53,7 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
+import { Tooltip } from "@components/Tooltip";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
@@ -151,28 +153,11 @@ const AvailabilitySelect = ({
   onBlur: Noop;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const { t } = useLocale();
   const query = trpc.useQuery(["viewer.availability.list"]);
 
   return (
     <QueryCell
       query={query}
-      loading={() => {
-        return (
-          <Select
-            isDisabled
-            options={[]}
-            isSearchable={false}
-            onChange={props.onChange}
-            classNamePrefix="react-select"
-            className={classNames(
-              "react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm",
-              className
-            )}
-            placeholder={t("loading")}
-          />
-        );
-      }}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
@@ -279,6 +264,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -459,6 +445,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
+  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${
+    eventType.hashedLink ? eventType.hashedLink.link : "xxxxxxxxxxxxxxxxx"
+  }/${eventType.slug}`;
+
   const mapUserToValue = ({
     id,
     name,
@@ -488,6 +478,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
+    hashedLink: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
@@ -1134,7 +1125,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger
+                        type="button"
+                        data-testid="show-advanced-settings"
+                        className="flex w-full">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1144,7 +1138,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("show_advanced_settings")}
                         </span>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6">
+                      <CollapsibleContent data-testid="advanced-settings-content" className="mt-4 space-y-6">
                         {/**
                          * Only display calendar selector if user has connected calendars AND if it's not
                          * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -1347,6 +1341,65 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <Controller
+                          name="hashedLink"
+                          control={formMethods.control}
+                          defaultValue={eventType.hashedLink ? true : false}
+                          render={() => (
+                            <>
+                              <CheckboxField
+                                id="hashedLink"
+                                name="hashedLink"
+                                label={t("hashed_link")}
+                                description={t("hashed_link_description")}
+                                defaultChecked={eventType.hashedLink ? true : false}
+                                onChange={(e) => {
+                                  setHashedLinkVisible(e?.target.checked);
+                                  formMethods.setValue("hashedLink", e?.target.checked);
+                                }}
+                              />
+                              {hashedLinkVisible && (
+                                <div className="block items-center sm:flex">
+                                  <div className="min-w-48 mb-4 sm:mb-0"></div>
+                                  <div className="w-full">
+                                    <div className="relative mt-1 flex w-full">
+                                      <input
+                                        disabled
+                                        data-testid="generated-hash-url"
+                                        type="text"
+                                        className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
+                                        defaultValue={placeholderHashedLink}
+                                      />
+                                      <Tooltip
+                                        content={
+                                          eventType.hashedLink
+                                            ? t("copy_to_clipboard")
+                                            : t("enabled_after_update")
+                                        }>
+                                        <Button
+                                          color="minimal"
+                                          onClick={() => {
+                                            if (eventType.hashedLink) {
+                                              navigator.clipboard.writeText(placeholderHashedLink);
+                                              showToast("Link copied!", "success");
+                                            }
+                                          }}
+                                          type="button"
+                                          className="text-md flex items-center border border-gray-300 px-2 py-1 text-sm font-medium text-gray-700 ltr:rounded-r-sm ltr:border-l-0 rtl:rounded-l-sm rtl:border-r-0">
+                                          <DocumentDuplicateIcon className="w-6 p-1 text-neutral-500" />
+                                        </Button>
+                                      </Tooltip>
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                      The URL will regenerate after each use
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        />
+
                         <hr className="my-2 border-neutral-200" />
                         <Controller
                           name="minimumBookingNotice"
@@ -1441,7 +1494,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
@@ -1680,7 +1733,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <Button href="/event-types" color="secondary" tabIndex={-1}>
                       {t("cancel")}
                     </Button>
-                    <Button type="submit" disabled={updateMutation.isLoading}>
+                    <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
                       {t("update")}
                     </Button>
                   </div>
@@ -1958,6 +2011,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
+      hashedLink: true,
       successRedirectUrl: true,
       team: {
         select: {

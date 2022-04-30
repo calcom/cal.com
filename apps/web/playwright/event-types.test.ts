@@ -69,6 +69,25 @@ test.describe("Event Types tests", () => {
       await expect(formTitle).toBe(firstTitle);
       await expect(formSlug).toBe(firstSlug);
     });
+    test("edit first event", async ({ page }) => {
+      const $eventTypes = await page.locator("[data-testid=event-types] > *");
+      const firstEventTypeElement = await $eventTypes.first();
+      await firstEventTypeElement.click();
+      await page.waitForNavigation({
+        url: (url) => {
+          return !!url.pathname.match(/\/event-types\/.+/);
+        },
+      });
+      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
+      await page.locator("[data-testid=show-advanced-settings]").click();
+      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
+      await page.locator("[data-testid=update-eventtype]").click();
+      await page.waitForNavigation({
+        url: (url) => {
+          return url.pathname.endsWith("/event-types");
+        },
+      });
+    });
   });
 
   test.describe("free user", () => {
@@ -87,6 +106,26 @@ test.describe("Event Types tests", () => {
 
     test("can not add new event type", async ({ page }) => {
       await expect(page.locator("[data-testid=new-event-type]")).toBeDisabled();
+    });
+
+    test("edit first event", async ({ page }) => {
+      const $eventTypes = await page.locator("[data-testid=event-types] > *");
+      const firstEventTypeElement = await $eventTypes.first();
+      await firstEventTypeElement.click();
+      await page.waitForNavigation({
+        url: (url) => {
+          return !!url.pathname.match(/\/event-types\/.+/);
+        },
+      });
+      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
+      await page.locator("[data-testid=show-advanced-settings]").click();
+      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
+      await page.locator("[data-testid=update-eventtype]").click();
+      await page.waitForNavigation({
+        url: (url) => {
+          return url.pathname.endsWith("/event-types");
+        },
+      });
     });
   });
 });

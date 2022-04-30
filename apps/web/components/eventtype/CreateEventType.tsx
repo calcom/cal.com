@@ -56,23 +56,32 @@ export default function CreateEventTypeButton(props: Props) {
       : undefined;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
-  const title: string =
-    typeof router.query.title === "string" && router.query.title ? router.query.title : "";
-  const length: number =
-    typeof router.query.length === "string" && router.query.length ? parseInt(router.query.length) : 15;
-  const description: string =
-    typeof router.query.description === "string" && router.query.description ? router.query.description : "";
-  const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
   const type: string = typeof router.query.type == "string" && router.query.type ? router.query.type : "";
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
   });
   const { setValue, watch, register } = form;
-  setValue("title", title);
-  setValue("length", length);
-  setValue("description", description);
-  setValue("slug", slug);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const title: string =
+      typeof router.query.title === "string" && router.query.title ? router.query.title : "";
+    const length: number =
+      typeof router.query.length === "string" && router.query.length ? parseInt(router.query.length) : 15;
+    const description: string =
+      typeof router.query.description === "string" && router.query.description
+        ? router.query.description
+        : "";
+    const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
+
+    setValue("title", title);
+    setValue("length", length);
+    setValue("description", description);
+    setValue("slug", slug);
+    // If query params change, update the form
+  }, [router.isReady, router.query, setValue]);
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
@@ -86,7 +95,7 @@ export default function CreateEventTypeButton(props: Props) {
 
   const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
-      await router.push("/event-types/" + eventType.id);
+      await router.replace("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     onError: (err) => {

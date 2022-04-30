@@ -233,6 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dynamicUserList = Array.isArray(reqBody.user)
     ? getGroupName(req.body.user)
     : getUsernameList(reqBody.user as string);
+  const hasHashedBookingLink = reqBody.hasHashedBookingLink;
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -673,7 +674,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      await sendRescheduledEmails({ ...evt, additionInformation: metadata });
+      await sendRescheduledEmails({
+        ...evt,
+        additionInformation: metadata,
+        additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+      });
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -703,13 +708,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      await sendScheduledEmails({ ...evt, additionInformation: metadata });
+      await sendScheduledEmails({
+        ...evt,
+        additionInformation: metadata,
+        additionalNotes,
+      });
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid) {
-    await sendOrganizerRequestEmail(evt);
-    await sendAttendeeRequestEmail(evt, attendeesList[0]);
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
@@ -772,6 +781,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+  // refresh hashed link if used
+  const urlSeed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
+
+  if (hasHashedBookingLink) {
+    await prisma.hashedLink.update({
+      where: {
+        link: reqBody.hashedLink as string,
+      },
+      data: {
+        link: hashedUid,
+      },
+    });
+  }
 
   // booking successful
   return res.status(201).json(booking);
