@@ -10,9 +10,10 @@ import { schemaUserReadPublic } from "@lib/validations/user";
  * @swagger
  * /users:
  *   get:
- *     summary: Find all users (admin only), returns your user if regular user.
+ *     summary: Find all users.
  *     tags:
  *     - users
+ *     operationId: listUsers
  *     responses:
  *       200:
  *         description: OK

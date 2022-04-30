@@ -1,6 +1,9 @@
-import jsonSchema from "@/json-schema/json-schema.json";
 import pjson from "@/package.json";
+// import cors from "cors";
+import modifyRes from "modify-response-middleware";
+import { use } from "next-api-middleware";
 import { withSwagger } from "next-swagger-doc";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
 const swaggerHandler = withSwagger({
   definition: {
@@ -25,4 +28,13 @@ const swaggerHandler = withSwagger({
   },
   apiFolder: "pages/api",
 });
-export default swaggerHandler();
+
+export default use(
+  modifyRes((content: string, _req: NextApiRequest, _res: NextApiResponse) => {
+    if (content) {
+      const parsed = JSON.parse(content);
+      delete parsed.channels;
+      return Buffer.from(JSON.stringify(parsed));
+    }
+  })
+)(swaggerHandler());

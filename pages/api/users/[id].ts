@@ -15,6 +15,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  * /users/{id}:
  *   get:
  *     summary: Find a user, returns your user if regular user.
+ *     operationId: getUserById
  *     parameters:
  *       - in: path
  *         name: id
@@ -33,6 +34,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *         description: User was not found
  *   patch:
  *     summary: Edit an existing user
+ *     operationId: editUserById
  *     parameters:
  *      - in: path
  *        name: id
@@ -51,6 +53,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *        description: Authorization information is missing or invalid.
  *   delete:
  *     summary: Remove an existing user
+ *     operationId: deleteUserById
  *     parameters:
  *      - in: path
  *        name: id
