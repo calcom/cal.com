@@ -7,8 +7,6 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ee",
 ]);
 
-// use something like withPlugins([withTM], {}) if more plugins added later.
-
 module.exports = withTM({
   async rewrites() {
     return {
