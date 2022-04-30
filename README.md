@@ -172,3 +172,9 @@ DATABASE_URL=DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
 API*KEY_PREFIX=cal*# This can be changed per envirorment so cal*test* for staging for example.
 
 > If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any envirorment variable) or modify it
+
+**Ensure that while testing swagger, API project should be run in production mode**
+We make sure of this by not using next in dev, but next build && next start, if you want hot module reloading and such when developing, please use yarn run next directly on apps/api.
+
+See <https://github.com/vercel/next.js/blob/canary/packages/next/server/dev/hot-reloader.ts#L79>. Here in dev mode OPTIONS method is hardcoded to return only GET and OPTIONS as allowed method. Running in Production mode would cause this file to be not used. This is hot-reloading logic only.
+To remove this limitation, we need to ensure that on local endpoints are requested by swagger at /api/v1 and not /v1
