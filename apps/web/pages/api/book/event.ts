@@ -25,7 +25,12 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionInformation, CalendarEvent, EventBusyDate, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionInformation,
+  CalendarEvent,
+  EventBusyDate,
+  RecurringEvent,
+} from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -191,7 +196,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
 };
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  return await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     rejectOnNotFound: true,
     where: {
       id: eventTypeId,
@@ -224,14 +229,19 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: true,
     },
   });
+
+  return {
+    ...eventType,
+    recurringEvent: (eventType.recurringEvent || {}) as any,
+  };
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean };
+type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const reqBody = req.body as ExtendedBookingCreateBody;
+  const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -385,6 +395,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       members: users.map((user) => user.name || user.username || "Nameless"),
       name: eventType.team?.name || "Nameless",
     }; // used for invitee emails
+  }
+
+  if (reqBody.recurringEventId && eventType.recurringEvent && eventType.recurringEvent.count) {
+    // Overriding the recurring evnt configuration count to be the selected value chosen by the user
+    eventType.recurringEvent.count = recurringCount;
   }
 
   // Initialize EventManager with credentials
@@ -680,12 +695,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      if (reqBody.noEmail !== true) {
-        await sendRescheduledEmails({
-          ...evt,
-          additionInformation: metadata,
-          additionalNotes, // Resets back to the addtionalNote input and not the overriden value
-        });
+      if (noEmail !== true) {
+        await sendRescheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+          },
+          eventType.recurringEvent as RecurringEvent
+        );
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -716,19 +734,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      if (reqBody.noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionInformation: metadata,
-          additionalNotes,
-        });
+      if (noEmail !== true) {
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes,
+          },
+          eventType.recurringEvent as RecurringEvent
+        );
       }
     }
   }
 
-  if (eventType.requiresConfirmation && !rescheduleUid && reqBody.noEmail !== true) {
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.recurringEvent as RecurringEvent);
+    await sendAttendeeRequestEmail(
+      { ...evt, additionalNotes },
+      attendeesList[0],
+      eventType.recurringEvent as RecurringEvent
+    );
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {

@@ -5,12 +5,13 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 import nodemailer from "nodemailer";
+import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
   emailHead,
@@ -28,9 +29,11 @@ dayjs.extend(toArray);
 
 export default class OrganizerScheduledEmail {
   calEvent: CalendarEvent;
+  recurringEvent: RecurringEvent;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, recurringEvent: RecurringEvent) {
     this.calEvent = calEvent;
+    this.recurringEvent = recurringEvent;
   }
 
   public sendEmail() {

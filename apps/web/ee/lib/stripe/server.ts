@@ -69,16 +69,19 @@ export async function handlePayment(
     },
   });
 
-  await sendAwaitingPaymentEmail({
-    ...evt,
-    paymentInfo: {
-      link: createPaymentLink({
-        paymentUid: payment.uid,
-        name: booking.user?.name,
-        date: booking.startTime.toISOString(),
-      }),
+  await sendAwaitingPaymentEmail(
+    {
+      ...evt,
+      paymentInfo: {
+        link: createPaymentLink({
+          paymentUid: payment.uid,
+          name: booking.user?.name,
+          date: booking.startTime.toISOString(),
+        }),
+      },
     },
-  });
+    {}
+  );
 
   return payment;
 }
@@ -149,8 +152,11 @@ export async function refund(
 
 async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
   console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);
-  await sendOrganizerPaymentRefundFailedEmail({
-    ...opts.event,
-    paymentInfo: { reason: opts.reason, id: opts.paymentId },
-  });
+  await sendOrganizerPaymentRefundFailedEmail(
+    {
+      ...opts.event,
+      paymentInfo: { reason: opts.reason, id: opts.paymentId },
+    },
+    {}
+  );
 }

@@ -15,12 +15,7 @@ const processDate = (date: string | null | Dayjs, i18n: I18n) => {
   return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
 };
 
-export const parseDate = (
-  date: string | null | Dayjs,
-  i18n: I18n,
-  recurringEvent?: RecurringEvent,
-  recurringCount?: number
-) => {
+export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
   if (!date) return ["No date"];
   return processDate(date, i18n);
 };

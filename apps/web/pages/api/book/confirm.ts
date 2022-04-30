@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import EventManager from "@calcom/core/EventManager";
 import logger from "@calcom/lib/logger";
-import type { AdditionInformation } from "@calcom/types/Calendar";
+import type { AdditionInformation, RecurringEvent } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -94,6 +94,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmed: true,
         attendees: true,
         eventTypeId: true,
+        eventType: {
+          select: {
+            recurringEvent: true,
+          },
+        },
         location: true,
         userId: true,
         id: true,
@@ -144,8 +149,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       attendees: attendeesList,
       location: booking.location ?? "",
       uid: booking.uid,
+      ...(req.body.recurringEventId && { recurringEventId: req.body.recurringEventId }),
       destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
     };
+
+    const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
 
     if (reqBody.confirmed) {
       const eventManager = new EventManager(currentUser);
@@ -170,25 +178,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
         }
         try {
-          await sendScheduledEmails({ ...evt, additionInformation: metadata });
+          await sendScheduledEmails({ ...evt, additionInformation: metadata }, recurringEvent);
         } catch (error) {
           log.error(error);
         }
       }
 
-      // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
-      // Should perform update on booking (confirm) -> then trigger the rest handlers
-      await prisma.booking.update({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          confirmed: true,
-          references: {
-            create: scheduleResult.referencesToCreate,
+      if (req.body.recurringEventId) {
+        // The booking to confirm belongs to a recurring event, proceeding to mark all related bookings as confirmed
+        // Prisma updateMany does not support relations, so doing this in two steps for now
+        const unconfirmedRecurringBookings = await prisma.booking.findMany({
+          where: {
+            recurringEventId: req.body.recurringEventId,
+            confirmed: false,
           },
-        },
-      });
+        });
+        unconfirmedRecurringBookings.map(async (recurringBooking) => {
+          await prisma.booking.update({
+            where: {
+              id: recurringBooking.id,
+            },
+            data: {
+              confirmed: true,
+              references: {
+                create: scheduleResult.referencesToCreate,
+              },
+            },
+          });
+        });
+      } else {
+        // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
+        // Should perform update on booking (confirm) -> then trigger the rest handlers
+        await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            confirmed: true,
+            references: {
+              create: scheduleResult.referencesToCreate,
+            },
+          },
+        });
+      }
 
       res.status(204).end();
     } else {
@@ -206,7 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      await sendDeclinedEmails(evt);
+      await sendDeclinedEmails(evt, recurringEvent);
 
       res.status(204).end();
     }

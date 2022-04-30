@@ -11,7 +11,7 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Person } from "@calcom/types/Calendar";
+import { Person, RecurringEvent } from "@calcom/types/Calendar";
 
 import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
@@ -94,6 +94,7 @@ const handler = async (
           title: true,
           users: true,
           schedulingType: true,
+          recurringEvent: true,
         },
         rejectOnNotFound: true,
         where: {
@@ -175,9 +176,13 @@ const handler = async (
       });
 
       // Send emails
-      await sendRequestRescheduleEmail(builder.calendarEvent, {
-        rescheduleLink: builder.rescheduleLink,
-      });
+      await sendRequestRescheduleEmail(
+        builder.calendarEvent,
+        {
+          rescheduleLink: builder.rescheduleLink,
+        },
+        event.recurringEvent as RecurringEvent
+      );
     }
 
     return res.status(200).json(bookingToReschedule);

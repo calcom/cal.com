@@ -150,18 +150,7 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData: any[]) => {
-      const { attendees, paymentUid, recurringEventId } = responseData[0];
-      if (paymentUid) {
-        return await router.push(
-          createPaymentLink({
-            paymentUid,
-            date,
-            name: attendees[0].name,
-            absolute: false,
-          })
-        );
-      }
-
+      const { attendees, recurringEventId } = responseData[0];
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
@@ -296,7 +285,7 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
-  if (eventType.recurringEvent && recurringEventCount !== null) {
+  if (eventType.recurringEvent.freq && recurringEventCount !== null) {
     [recurringStrings, recurringDates] = parseRecurringDates(
       date,
       i18n,
@@ -336,10 +325,10 @@ const BookingPage = ({
       };
     }
 
-    if (recurringDates) {
+    if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
-      const recurringBookings: BookingCreateBody[] = recurringDates.map((recurringDate) => ({
+      const recurringBookings = recurringDates.map((recurringDate) => ({
         ...booking,
         web3Details,
         start: dayjs(recurringDate).format(),
@@ -347,6 +336,8 @@ const BookingPage = ({
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
+        // Added to track down the number of actual occurrences selected by the user
+        recurringCount: recurringDates.length,
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
@@ -466,7 +457,7 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                {eventType.recurringEvent && recurringEventCount && (
+                {eventType.recurringEvent && eventType.recurringEvent.freq && recurringEventCount && (
                   <div className="mb-3 text-gray-600 dark:text-white">
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
@@ -486,10 +477,10 @@ const BookingPage = ({
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {!eventType.recurringEvent && parseDate(date, i18n)}
-                    {eventType.recurringEvent &&
+                    {!eventType.recurringEvent.freq && parseDate(date, i18n)}
+                    {eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {eventType.recurringEvent && recurringStrings.length > 5 && (
+                    {eventType.recurringEvent.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (

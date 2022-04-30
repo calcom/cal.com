@@ -223,7 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
-  await sendCancelledEmails(evt);
+  await sendCancelledEmails(evt, {});
 
   res.status(204).end();
 }

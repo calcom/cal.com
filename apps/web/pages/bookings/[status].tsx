@@ -26,6 +26,7 @@ export default function Bookings() {
 
   const descriptionByStatus: Record<BookingListingStatus, string> = {
     upcoming: t("upcoming_bookings"),
+    recurring: t("recurring_bookings"),
     past: t("past_bookings"),
     cancelled: t("cancelled_bookings"),
   };
@@ -35,6 +36,18 @@ export default function Bookings() {
     enabled: !!status,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
+
+  /**
+   * {
+   *    groupedRecurringBookings: [
+   *      {
+   *        _count: 12,
+   *        recurringEventId: '5f95edba-a00c-46bb-a855-c622952f7512'
+   *      },
+   *      { _count: 4, recurringEventId: null }
+   *    ]
+   *  }
+   */
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
@@ -66,7 +79,16 @@ export default function Bookings() {
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
                             {page.bookings.map((booking) => (
-                              <BookingListItem key={booking.id} {...booking} />
+                              <BookingListItem
+                                key={booking.id}
+                                listingStatus={status}
+                                {...(booking.recurringEventId !== null && {
+                                  recurringCount: page.groupedRecurringBookings.filter(
+                                    (group) => group.recurringEventId === booking.recurringEventId
+                                  )[0],
+                                })}
+                                {...booking}
+                              />
                             ))}
                           </Fragment>
                         ))}

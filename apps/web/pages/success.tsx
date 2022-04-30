@@ -297,6 +297,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2">
                           {props.eventType.recurringEvent &&
+                            props.eventType.recurringEvent.count &&
                             props.recurringBookings &&
                             props.recurringBookings.slice(0, 4).map((dateStr, idx) => (
                               <div key={idx} className="mb-2">
@@ -320,6 +321,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               </CollapsibleTrigger>
                               <CollapsibleContent>
                                 {props.eventType.recurringEvent &&
+                                  props.eventType.recurringEvent.count &&
                                   props.recurringBookings &&
                                   props.recurringBookings.slice(4).map((dateStr, idx) => (
                                     <div key={idx} className="mb-2">
@@ -338,7 +340,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               </CollapsibleContent>
                             </Collapsible>
                           )}
-                          {!props.eventType.recurringEvent && (
+                          {!props.eventType.recurringEvent.freq && (
                             <>
                               {date.format("dddd, DD MMMM YYYY")}
                               <br />

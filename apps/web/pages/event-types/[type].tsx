@@ -38,6 +38,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -55,7 +56,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
@@ -264,11 +264,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
 
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
   const [recurringEventDefined, setRecurringEventDefined] = useState(
     eventType.recurringEvent && eventType.recurringEvent.count !== undefined
   );
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0 && !recurringEventDefined);
   const [recurringEventInterval, setRecurringEventInterval] = useState(
     (eventType.recurringEvent && eventType.recurringEvent.interval) || 1
   );
@@ -1760,7 +1760,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
-                        {hasPaymentIntegration && (
+                        {hasPaymentIntegration && !recurringEventDefined && (
                           <>
                             <hr className="border-neutral-200" />
                             <div className="block sm:flex">
