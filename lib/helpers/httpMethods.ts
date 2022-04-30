@@ -15,7 +15,7 @@ export const httpMethod = (allowedHttpMethod: "GET" | "POST" | "PATCH" | "DELETE
 // that checks if it's just a string or an array and apply the correct logic to both cases.
 export const httpMethods = (allowedHttpMethod: string[]): NextMiddleware => {
   return async function (req, res, next) {
-    if (allowedHttpMethod.map((method) => method === req.method)) {
+    if (allowedHttpMethod.some((method) => method === req.method || req.method == "OPTIONS")) {
       await next();
     } else {
       res.status(405).json({ message: `Only ${allowedHttpMethod} Method allowed` });

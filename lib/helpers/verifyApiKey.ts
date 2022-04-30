@@ -8,8 +8,6 @@ import prisma from "@calcom/prisma";
 declare module "next" {
   export interface NextApiRequest extends IncomingMessage {
     userId: number;
-    body: any;
-    query: { [key: string]: string | string[] };
   }
 }
 
@@ -22,21 +20,21 @@ export const dateNotInPast = function (date: Date) {
 };
 
 // This verifies the apiKey and sets the user if it is valid.
-export const verifyApiKey: NextMiddleware = async ({ query: { apiKey }, ...req }, res, next) => {
-  if (!apiKey) return res.status(401).json({ message: "No apiKey provided" });
+export const verifyApiKey: NextMiddleware = async (req, res, next) => {
+  if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
   // We remove the prefix from the user provided api_key. If no env set default to "cal_"
-  const strippedApiKey = `${apiKey}`.replace(process.env.API_KEY_PREFIX || " cal_", "");
+  const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
   // Hash the key again before matching against the database records.
   const hashedKey = hashAPIKey(strippedApiKey);
   // Check if the hashed api key exists in database.
-  const validApiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
+  const apiKey = await prisma.apiKey.findUnique({ where: { hashedKey } });
   // If we cannot find any api key. Throw a 401 Unauthorized.
-  if (!validApiKey) return res.status(401).json({ error: "Your apiKey is not valid" });
-  if (validApiKey.expiresAt && dateNotInPast(validApiKey.expiresAt)) {
+  if (!apiKey) return res.status(401).json({ error: "Your apiKey is not valid" });
+  if (apiKey.expiresAt && dateNotInPast(apiKey.expiresAt)) {
     return res.status(401).json({ error: "This apiKey is expired" });
   }
-  if (!validApiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
+  if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   /* We save the user id in the request for later use */
-  req.userId = validApiKey.userId;
+  req.userId = apiKey.userId;
   await next();
 };
