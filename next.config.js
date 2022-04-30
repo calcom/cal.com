@@ -1,5 +1,3 @@
-// https://www.npmjs.com/package/next-transpile-modules
-// This makes our @calcom/prisma package from the monorepo to be transpiled and usable by API
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/prisma",
@@ -7,13 +5,11 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ee",
 ]);
 
-// use something like withPlugins([withTM], {}) if more plugins added later.
-
 module.exports = withTM({
   async headers() {
     return [
       {
-        // matching all API routes
+        // @note: disabling CORS matching all API routes as this will be a our Public API
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
@@ -30,12 +26,12 @@ module.exports = withTM({
   },
   async rewrites() {
     return [
-      // This redirects requests recieved at / the root to the /api/ folder.
+      // @note: redirects requests from: "/:rest*" the root level to the "/api/:rest*" folder by default.
       {
         source: "/:rest*",
         destination: "/api/:rest*",
       },
-      // This redirects requests to api/v*/ to /api/ passing version as a query parameter.
+      // @note: redirects requests from api/v*/:rest to /api/:rest?version=* passing version as a query parameter.
       {
         source: "/api/v:version/:rest*",
         destination: "/api/:rest*?version=:version",
