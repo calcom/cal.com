@@ -2,6 +2,7 @@ import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
+  DocumentDuplicateIcon,
   DocumentIcon,
   ExternalLinkIcon,
   LinkIcon,
@@ -52,6 +53,7 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
+import { Tooltip } from "@components/Tooltip";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
@@ -262,6 +264,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -442,6 +445,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
+  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${
+    eventType.hashedLink ? eventType.hashedLink.link : "xxxxxxxxxxxxxxxxx"
+  }/${eventType.slug}`;
+
   const mapUserToValue = ({
     id,
     name,
@@ -471,6 +478,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
+    hashedLink: boolean;
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
@@ -1333,6 +1341,65 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <Controller
+                          name="hashedLink"
+                          control={formMethods.control}
+                          defaultValue={eventType.hashedLink ? true : false}
+                          render={() => (
+                            <>
+                              <CheckboxField
+                                id="hashedLink"
+                                name="hashedLink"
+                                label={t("hashed_link")}
+                                description={t("hashed_link_description")}
+                                defaultChecked={eventType.hashedLink ? true : false}
+                                onChange={(e) => {
+                                  setHashedLinkVisible(e?.target.checked);
+                                  formMethods.setValue("hashedLink", e?.target.checked);
+                                }}
+                              />
+                              {hashedLinkVisible && (
+                                <div className="block items-center sm:flex">
+                                  <div className="min-w-48 mb-4 sm:mb-0"></div>
+                                  <div className="w-full">
+                                    <div className="relative mt-1 flex w-full">
+                                      <input
+                                        disabled
+                                        data-testid="generated-hash-url"
+                                        type="text"
+                                        className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
+                                        defaultValue={placeholderHashedLink}
+                                      />
+                                      <Tooltip
+                                        content={
+                                          eventType.hashedLink
+                                            ? t("copy_to_clipboard")
+                                            : t("enabled_after_update")
+                                        }>
+                                        <Button
+                                          color="minimal"
+                                          onClick={() => {
+                                            if (eventType.hashedLink) {
+                                              navigator.clipboard.writeText(placeholderHashedLink);
+                                              showToast("Link copied!", "success");
+                                            }
+                                          }}
+                                          type="button"
+                                          className="text-md flex items-center border border-gray-300 px-2 py-1 text-sm font-medium text-gray-700 ltr:rounded-r-sm ltr:border-l-0 rtl:rounded-l-sm rtl:border-r-0">
+                                          <DocumentDuplicateIcon className="w-6 p-1 text-neutral-500" />
+                                        </Button>
+                                      </Tooltip>
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                      The URL will regenerate after each use
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        />
+
                         <hr className="my-2 border-neutral-200" />
                         <Controller
                           name="minimumBookingNotice"
@@ -1944,6 +2011,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
+      hashedLink: true,
       successRedirectUrl: true,
       team: {
         select: {
