@@ -768,6 +768,8 @@
   "edit_booking": "Edit booking",
   "reschedule_booking": "Reschedule booking",
   "former_time": "Former time",
+  "confirmation_page_gif": "Gif for confirmation page",
+  "search": "Search",
   "impersonate":"Impersonate",
   "impersonate_user_tip":"All uses of this feature is audited.",
   "impersonating_user_warning":"Impersonating username \"{{user}}\".",
