@@ -69,7 +69,7 @@ async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
-  await createApp("wipe-my-cal", "wipemycaltoher", ["other"]);
+  await createApp("wipe-my-cal", "wipemycalother", ["other"]);
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"]);
   // Messaging apps
