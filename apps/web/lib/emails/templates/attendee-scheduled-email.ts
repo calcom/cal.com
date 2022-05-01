@@ -264,12 +264,30 @@ ${getRichDescription(this.calEvent)}
     </div>`;
   }
 
+  protected getRecurringWhen(): string {
+    return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+      freq: this.calEvent.attendees[0].language.translate(
+        `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+      ),
+    })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+      `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+      { count: this.recurringEvent.count }
+    )}`;
+  }
+
   protected getWhen(): string {
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}${
+      this.recurringEvent && this.recurringEvent.count && this.getRecurringWhen()
+    }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
+      ${
+        this.recurringEvent &&
+        this.recurringEvent.count &&
+        `${this.calEvent.attendees[0].language.translate("starting")} `
+      }
       ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
       )}, ${this.calEvent.attendees[0].language.translate(

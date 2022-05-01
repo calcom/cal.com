@@ -105,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         uid: true,
         payment: true,
         destinationCalendar: true,
+        recurringEventId: true,
       },
     });
 
@@ -154,6 +155,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
+
+    if (recurringEvent) {
+      const groupedRecurringBookings = await prisma.booking.groupBy({
+        where: {
+          recurringEventId: booking.recurringEventId,
+        },
+        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
+        _count: true,
+      });
+      // Overriding the recurring event configuration count to be the actual number ofevents booked for
+      // the recurring event (equal or less than recurring event configuration count)
+      recurringEvent.count = groupedRecurringBookings[0]._count;
+    }
 
     if (reqBody.confirmed) {
       const eventManager = new EventManager(currentUser);

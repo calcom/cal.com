@@ -13,9 +13,9 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { boolean } from "zod";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
@@ -89,7 +89,7 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number): boolean {
+function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
   // Check for conflicts
   let t = true;
 
@@ -398,7 +398,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (reqBody.recurringEventId && eventType.recurringEvent && eventType.recurringEvent.count) {
-    // Overriding the recurring evnt configuration count to be the selected value chosen by the user
+    // Overriding the recurring event configuration count to be the actual number ofevents booked for
+    // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent.count = recurringCount;
   }
 
@@ -594,7 +595,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let isAvailableToBeBooked = true;
     try {
-      isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      if (eventType.recurringEvent && eventType.recurringEvent.count) {
+        const allBookingDates = new rrule({
+          dstart: new Date(reqBody.start),
+          ...eventType.recurringEvent,
+        }).all();
+        // Go through each date for the recurring event and check if each one's availability
+        isAvailableToBeBooked = allBookingDates
+          .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
+          .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
+      } else {
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      }
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",

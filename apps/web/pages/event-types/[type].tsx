@@ -1383,6 +1383,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   type="checkbox"
                                   className="text-primary-600  h-4 w-4 rounded border-gray-300"
                                   defaultChecked={recurringEventDefined}
+                                  data-testid="recurring-event-check"
                                 />
                               </div>
                               <div className="text-sm ltr:ml-3 rtl:mr-3">
@@ -1391,6 +1392,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                             <Collapsible
                               open={recurringEventDefined}
+                              data-testid="recurring-event-collapsible"
                               onOpenChange={() => setRecurringEventDefined(!recurringEventDefined)}>
                               <CollapsibleContent className="mt-4 text-sm">
                                 <div className="flex items-center">

@@ -124,7 +124,9 @@ export default class OrganizerScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.organizer.language.translate("new_event_scheduled")}
+${this.calEvent.organizer.language.translate(
+  this.recurringEvent && this.recurringEvent.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+)}
 ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
@@ -156,7 +158,11 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("new_event_scheduled"),
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent && this.recurringEvent.count
+              ? "new_event_scheduled_recurring"
+              : "new_event_scheduled"
+          ),
           this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
@@ -243,11 +249,24 @@ ${getRichDescription(this.calEvent)}
     </div>`;
   }
 
+  protected getRecurringWhen(): string {
+    return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+      freq: this.calEvent.attendees[0].language.translate(
+        `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+      ),
+    })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+      `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+      { count: this.recurringEvent.count }
+    )}`;
+  }
+
   protected getWhen(): string {
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}${
+      this.recurringEvent.count && this.getRecurringWhen()
+    }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
       ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
