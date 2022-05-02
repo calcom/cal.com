@@ -8,8 +8,8 @@ export const metadata = {
   installed: true,
   category: "web3",
   // If using static next public folder, can then be referenced from the base URL (/).
-  imageSrc: "/api/app-store/metamaskweb3/icon.svg",
-  logo: "/api/app-store/metamaskweb3/icon.svg",
+  imageSrc: "/api/app-store/metamask/icon.svg",
+  logo: "/api/app-store/metamask/icon.svg",
   publisher: "Cal.com",
   rating: 5,
   reviews: 69,

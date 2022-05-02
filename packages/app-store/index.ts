@@ -8,7 +8,7 @@ import * as googlevideo from "./googlevideo";
 import * as hubspotothercalendar from "./hubspotothercalendar";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
-import * as metamaskweb3 from "./metamaskweb3";
+import * as metamask from "./metamask";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
 import * as slackmessaging from "./slackmessaging";
@@ -34,7 +34,7 @@ const appStore = {
   tandemvideo,
   zoomvideo,
   wipemycalother,
-  metamaskweb3,
+  metamask,
   giphy,
 };
 
