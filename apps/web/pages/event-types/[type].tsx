@@ -2137,8 +2137,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-
-  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
