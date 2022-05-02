@@ -12,6 +12,7 @@ const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
   styles: {},
   namespace: null,
+  embedType: undefined,
   theme: null,
   // Store all React State setters here.
   reactStylesStateSetters: {},
@@ -21,6 +22,7 @@ const embedStore = {
   styles: UiConfig["styles"];
   namespace: string | null;
   theme: string | null;
+  embedType: undefined | null | string;
   reactStylesStateSetters: any;
   parentInformedAboutContentHeight: boolean;
   windowLoadEventFired: boolean;
@@ -84,7 +86,9 @@ interface EmbedStyles {
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
-interface EmbedStylesBranding {
+interface EmbedNonStylesConfig {
+  /** Default would be center */
+  align: "left";
   branding?: {
     brandColor?: string;
     lightColor?: string;
@@ -97,7 +101,7 @@ interface EmbedStylesBranding {
   };
 }
 
-type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedStylesBranding>>;
+type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedNonStylesConfig>>;
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
@@ -111,14 +115,14 @@ const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   }
 };
 
-const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding, setStyles: any) => {
+const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig, setStyles: any) => {
   embedStore.reactStylesStateSetters[elementName] = setStyles;
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
   setStyles(embedStore.styles);
 };
 
-const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedStylesBranding) => {
+const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig) => {
   delete embedStore.reactStylesStateSetters[elementName];
 };
 
@@ -128,6 +132,12 @@ function isValidNamespace(ns: string | null | undefined) {
 
 export const useEmbedTheme = () => {
   const router = useRouter();
+  useEffect(() => {
+    router.events.on("routeChangeComplete", () => {
+      sdkActionManager?.fire("__routeChanged", {});
+    });
+  }, [router.events]);
+
   if (embedStore.theme) {
     return embedStore.theme;
   }
@@ -151,8 +161,8 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   return styles[elementName] || {};
 };
 
-export const useEmbedBranding = (elementName: keyof EmbedStylesBranding) => {
-  const [styles, setStyles] = useState({} as EmbedStylesBranding);
+export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
+  const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
     registerNewSetter(elementName, setStyles);
@@ -171,7 +181,7 @@ export const useIsBackgroundTransparent = () => {
   // TODO: Background should be read as ui.background and not ui.body.background
   const bodyEmbedStyles = useEmbedStyles("body");
 
-  if (bodyEmbedStyles?.background === "transparent") {
+  if (bodyEmbedStyles.background === "transparent") {
     isBackgroundTransparent = true;
   }
   return isBackgroundTransparent;
@@ -179,8 +189,8 @@ export const useIsBackgroundTransparent = () => {
 
 export const useBrandColors = () => {
   // TODO: Branding shouldn't be part of ui.styles. It should exist as ui.branding.
-  const brandingColors = useEmbedBranding("branding");
-  return brandingColors;
+  const brandingColors = useEmbedNonStylesConfig("branding") as EmbedNonStylesConfig["branding"];
+  return brandingColors || {};
 };
 
 function getNamespace() {
@@ -193,6 +203,17 @@ function getNamespace() {
     const namespace = url.searchParams.get("embed");
     embedStore.namespace = namespace;
     return namespace;
+  }
+}
+
+function getEmbedType() {
+  if (embedStore.embedType) {
+    return embedStore.embedType;
+  }
+  if (isBrowser) {
+    const url = new URL(document.URL);
+    const embedType = (embedStore.embedType = url.searchParams.get("embedType"));
+    return embedType;
   }
 }
 
@@ -216,6 +237,14 @@ export const useIsEmbed = () => {
     setIsEmbed(isEmbed());
   }, []);
   return _isEmbed;
+};
+
+export const useEmbedType = () => {
+  const [state, setState] = useState<string | null | undefined>(null);
+  useEffect(() => {
+    setState(getEmbedType());
+  }, []);
+  return state;
 };
 
 function unhideBody() {
@@ -300,9 +329,13 @@ function keepParentInformedAboutDimensionChanges() {
     embedStore.windowLoadEventFired = true;
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
-    const mainElement = document.getElementsByTagName("main")[0] || document.documentElement;
+    const mainElement =
+      (document.getElementsByClassName("main")[0] as HTMLElement) ||
+      document.getElementsByTagName("main")[0] ||
+      document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
+
     const contentHeight = mainElement.offsetHeight;
     const contentWidth = mainElement.offsetWidth;
 
@@ -331,10 +364,6 @@ function keepParentInformedAboutDimensionChanges() {
     // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
     // It should stop ideally by reaching a hiddenHeight value of 0.
     // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
-    if (numDimensionChanges > 50) {
-      console.warn("Too many dimension changes detected.");
-      return;
-    }
     runAsap(informAboutScroll);
   });
 }
@@ -361,10 +390,16 @@ if (isBrowser) {
     // Because on cal-iframe we set explicty width to make it look inline and part of page, there is never space available for content to automatically expand
     // This is a HACK to quickly tell iframe to go full width and let iframe content adapt to that and set new width.
     sdkActionManager?.on("__refreshWidth", () => {
-      sdkActionManager?.fire("__dimensionChanged", {
-        iframeWidth: 100,
-        __unit: "%",
-      });
+      // sdkActionManager?.fire("__dimensionChanged", {
+      //   iframeWidth: 100,
+      //   __unit: "%",
+      // });
+      // runAsap(() => {
+      //   sdkActionManager?.fire("__dimensionChanged", {
+      //     iframeWidth: 100,
+      //     __unit: "%",
+      //   });
+      // });
     });
 
     window.addEventListener("message", (e) => {
@@ -375,6 +410,19 @@ if (isBrowser) {
       const method: keyof typeof methods = data.method;
       if (data.originator === "CAL" && typeof method === "string") {
         methods[method]?.(data.arg);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target) {
+        return;
+      }
+      const mainElement =
+        (document.getElementsByClassName("main")[0] as HTMLElement) ||
+        document.getElementsByTagName("main")[0] ||
+        document.documentElement;
+      if ((e.target as HTMLElement).contains(mainElement)) {
+        sdkActionManager?.fire("__closeIframe", {});
       }
     });
 

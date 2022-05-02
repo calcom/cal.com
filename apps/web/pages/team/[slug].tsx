@@ -86,7 +86,7 @@ function TeamPage({ team }: TeamPageProps) {
       <div>
         <Theme />
         <HeadSeo title={teamName} description={teamName} />
-        <div className="px-4 pt-24 pb-12">
+        <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-800 md:border">
           <div className="max-w-96 mx-auto mb-8 text-center">
             <Avatar
               alt={teamName}
