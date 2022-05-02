@@ -13,6 +13,7 @@ export const apiHandlers = {
   wipemycalother: import("./wipemycalother/api"),
   jitsivideo: import("./jitsivideo/api"),
   huddle01video: import("./huddle01video/api"),
+  metamask: import("./metamask/api"),
   giphy: import("./giphy/api"),
 };
 
