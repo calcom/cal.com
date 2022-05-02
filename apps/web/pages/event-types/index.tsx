@@ -530,7 +530,6 @@ const WithQuery = withQuery(["viewer.eventTypes"]);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
-  const router = useRouter();
   return (
     <div>
       <Head>
