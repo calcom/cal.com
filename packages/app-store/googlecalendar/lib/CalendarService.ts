@@ -76,6 +76,7 @@ export default class GoogleCalendarService implements Calendar {
     return new Promise((resolve, reject) =>
       this.auth.getToken().then((myGoogleAuth) => {
         const payload: calendar_v3.Schema$Event = {
+          id: calEventRaw.uid?.toLowerCase().replace(/[w-z]/gi, ""),
           summary: calEventRaw.title,
           description: getRichDescription(calEventRaw),
           start: {
