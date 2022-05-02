@@ -2,7 +2,7 @@ import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui/Button";
 import { TextField } from "@calcom/ui/form/fields";
@@ -21,11 +21,36 @@ import { HeadSeo } from "@components/seo/head-seo";
 import { ssrInit } from "@server/lib/ssr";
 
 export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
+  function detectHour() {
+    const bookingHour = dayjs(props.booking?.startTime).format(detectBrowserTimeFormat);
+    const hourAndMins = bookingHour.split(":");
+    const hourInMilliseconds = Number(hourAndMins[0]) * 3600000 + Number(hourAndMins[1]) * 60000;
+    return hourInMilliseconds;
+  }
+  function setDisabledButton() {
+    const today = new Date();
+    const hour = today.getHours() * 3600000;
+    const min = today.getMinutes() * 60000;
+    const todayInMilliseconds = hour + min;
+
+    if (detectHour() - todayInMilliseconds < 900000) {
+      alert("You cannot cancel the meeting with 15 minutes left before it starts");
+      setIsDisabled(true);
+    } else {
+      setIsDisabled(false);
+    }
+  }
+
+  useEffect(() => {
+    setDisabledButton();
+  }, []);
+
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
   const { uid } = router.query;
   const [loading, setLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const [error, setError] = useState<string | null>(props.booking ? null : t("booking_already_cancelled"));
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const telemetry = useTelemetry();
@@ -106,6 +131,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           </Button>
                           <Button
                             data-testid="cancel"
+                            disabled={isDisabled}
                             onClick={async () => {
                               setLoading(true);
 
