@@ -1,41 +1,39 @@
 import * as hubspot from "@hubspot/api-client";
 import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import { BatchInputSimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects";
 import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import { Credential } from "@prisma/client";
 
-import { getLocation, getAdditionalNotes } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
-  AdditionInformation,
   Calendar,
   CalendarEvent,
-  ConferenceData,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
 
-const client_id = process.env.HUBSPOT_CLIENT_ID;
-const client_secret = process.env.HUBSPOT_CLIENT_SECRET;
-
 export default class HubspotOtherCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
-  private auth: { getToken: () => Promise<any> };
+  private auth: Promise<{ getToken: () => Promise<any> }>;
   private log: typeof logger;
+  private client_id = "";
+  private client_secret = "";
 
   constructor(credential: Credential) {
     this.integrationName = "hubspot_other_calendar";
 
-    this.auth = this.hubspotAuth(credential);
+    this.auth = this.hubspotAuth(credential).then((r) => r);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
@@ -121,7 +119,13 @@ export default class HubspotOtherCalendarService implements Calendar {
     return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-  private hubspotAuth = (credential: Credential) => {
+  private hubspotAuth = async (credential: Credential) => {
+    const appKeys = await getAppKeysFromSlug("hubspot");
+    if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
+    if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;
+    if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Hubspot client_id missing." });
+    if (!this.client_secret)
+      throw new HttpError({ statusCode: 400, message: "Hubspot client_secret missing." });
     const credentialKey = credential.key as unknown as HubspotToken;
     const isTokenValid = (token: HubspotToken) =>
       token &&
@@ -136,8 +140,8 @@ export default class HubspotOtherCalendarService implements Calendar {
           "refresh_token",
           undefined,
           WEBAPP_URL + "/api/integrations/hubspotothercalendar/callback",
-          client_id,
-          client_secret,
+          this.client_id,
+          this.client_secret,
           refreshToken
         );
 
@@ -165,7 +169,8 @@ export default class HubspotOtherCalendarService implements Calendar {
   };
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    await this.auth.getToken();
+    const auth = await this.auth;
+    await auth.getToken();
     const contacts = await this.hubspotContactSearch(event);
     if (contacts) {
       const meetingEvent = await this.hubspotCreateMeeting(event);
@@ -189,12 +194,14 @@ export default class HubspotOtherCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
-    await this.auth.getToken();
+    const auth = await this.auth;
+    await auth.getToken();
     return await this.hubspotUpdateMeeting(uid, event);
   }
 
   async deleteEvent(uid: string): Promise<void> {
-    await this.auth.getToken();
+    const auth = await this.auth;
+    await auth.getToken();
     return await this.hubspotDeleteMeeting(uid);
   }
 
