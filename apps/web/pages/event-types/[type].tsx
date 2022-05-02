@@ -29,7 +29,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { SelectGifInput } from "@calcom/app-store/giphyother/components";
+import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -2104,6 +2104,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       type: true,
       key: true,
       userId: true,
+      appId: true,
     },
   });
 
