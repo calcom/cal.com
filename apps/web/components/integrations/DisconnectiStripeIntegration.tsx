@@ -53,8 +53,8 @@ export default function DisconnectiStripeIntegration(props: {
           onRemove={() => {
             mutation.mutate("remove");
           }}>
-          If you have unpaid and unconfirmed bookings, you must choose to cancel them or remove the required payment field.
-          
+          If you have unpaid and unconfirmed bookings, you must choose to cancel them or remove the required
+          payment field.
         </DeleteStripeDialogContent>
       </Dialog>
       {props.render({
