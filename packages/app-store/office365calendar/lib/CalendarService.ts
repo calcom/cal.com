@@ -1,5 +1,6 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { Credential } from "@prisma/client";
+import rrule from "rrule";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -230,6 +231,34 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private translateEvent = (event: CalendarEvent) => {
+    let recurrence;
+    if (event.recurrence) {
+      // Why Microsoft? why parting ways from standards? FTLOG!
+      const rruleConfig = rrule.fromString(event.recurrence);
+      const freq = rrule.FREQUENCIES[rruleConfig.options.freq].toLowerCase();
+      const type = rruleConfig.options.freq === 2 ? freq : `relative${freq[0].toUpperCase() + freq.slice(1)}`;
+      const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      // Based on documentation: https://docs.microsoft.com/en-us/graph/api/resources/patternedrecurrence?view=graph-rest-1.0#properties
+      recurrence = {
+        pattern: {
+          interval: rruleConfig.options.interval,
+          type,
+          ...(rruleConfig.options.freq === 0
+            ? {
+                daysOfWeek: daysOfWeek[new Date(event.startTime).getDay()],
+                month: new Date(event.startTime).getMonth() + 1,
+              }
+            : rruleConfig.options.freq === 1
+            ? { dayOfWeek: daysOfWeek[new Date(event.startTime).getDay()] }
+            : {}),
+        },
+        range: {
+          startDate: event.startTime,
+          numberOfOccurrences: rruleConfig.options.count,
+          type: "numbered",
+        },
+      };
+    }
     return {
       subject: event.title,
       body: {
@@ -251,6 +280,7 @@ export default class Office365CalendarService implements Calendar {
         },
         type: "required",
       })),
+      ...(event.recurrence && { recurrence }),
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
   };

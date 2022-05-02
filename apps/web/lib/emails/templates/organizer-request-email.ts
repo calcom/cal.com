@@ -91,11 +91,7 @@ ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
               ? "event_awaiting_approval_recurring"
               : "event_awaiting_approval"
           ),
-          this.calEvent.organizer.language.translate(
-            this.recurringEvent && this.recurringEvent.count
-              ? "someone_requested_an_event_recurring"
-              : "someone_requested_an_event"
-          )
+          this.calEvent.organizer.language.translate("someone_requested_an_event")
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->

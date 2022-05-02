@@ -42,7 +42,11 @@ export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.attendee.language.translate("event_request_declined")}
+${this.attendee.language.translate(
+  this.recurringEvent && this.recurringEvent.count
+    ? "event_request_declined_recurring"
+    : "event_request_declined"
+)}
 ${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
 ${this.getWhat()}
 ${this.getWhen()}
@@ -75,7 +79,11 @@ ${this.getRejectionReason()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("xCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.attendee.language.translate("event_request_declined"),
+          this.attendee.language.translate(
+            this.recurringEvent && this.recurringEvent.count
+              ? "event_request_declined_recurring"
+              : "event_request_declined"
+          ),
           this.attendee.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
