@@ -9,7 +9,7 @@ You can also see various example usages [here](https://github.com/calcom/cal.com
 
 ## Development
 
-Run the following command and then you can test the embed in the automatically opened page `http://localhost:3002`
+Run the following command and then you can test the embed in the automatically opened page `http://localhost:3100`
 
 ```bash
 yarn dev
@@ -38,22 +38,21 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 ## Known Bugs and Upcoming Improvements
 
 - Unsupported Browsers and versions. Documenting them and gracefully handling that.
+- Need to create a booking Shell so that common changes for embed can be applied there.
 
 - Accessibility and UI/UX Issues
   - let user choose the loader for ModalBox
   - If website owner links the booking page directly for an event, should the user be able to go to events-listing page using back button ?
   - Let user specify both dark and light theme colors. Right now the colors specified are for light theme.
-  - Embed doesn't adapt to screen size without page refresh.
-    - Try opening in portrait mode and then go to landscape mode.
-  - In inline mode, due to changing height of iframe, the content goes beyond the fold. Automatic scroll needs to be implemented.
-  - On Availability page, when selecting date, width doesn't increase. max-width is there but because of strict width restriction with iframe, it doesn't allow it to expand.
+  - Transparent support is not properly done for team links
+  - Maybe don't set border radius in inline mode or give option to configure border radius.
 
 - Branding
   - Powered by Cal.com and 'Try it for free'. Should they be shown only for FREE account.
   - Branding at the bottom has been removed for UI improvements, need to see where to add it.
 
 - API
-  - Allow loader color customization using UI command itself too.
+  - Allow loader color customization using UI command itself too. Right now it's possible using CSS only.
 
 - Automation Tests
   - Run automation tests in CI
@@ -71,8 +70,6 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Need to reduce the number of colors on booking page, so that UI configuration is simpler
 
 - Dev Experience/Ease of Installation
-  - Improved Demo
-    - Seeding might be done for team event so that such an example is also available readily in index.html
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
 
 - Might be better to pass all configuration using a single base64encoded query param to booking page.
@@ -81,7 +78,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Custom written Tailwind CSS is sent multiple times for different custom elements.
   
 - Embed Code Generator
-
+- Option to disable redirect banner and let parent handle redirect.
 - Release Issues
   - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
     - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js

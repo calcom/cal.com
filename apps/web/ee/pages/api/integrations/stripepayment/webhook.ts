@@ -32,7 +32,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       bookingId: true,
     },
   });
-
+  if (!payment?.bookingId) {
+    console.log(JSON.stringify(paymentIntent), JSON.stringify(payment));
+  }
   if (!payment?.bookingId) throw new Error("Payment not found");
 
   const booking = await prisma.booking.findUnique({
@@ -171,6 +173,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const payload = requestBuffer.toString();
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+
+    if (event.account) {
+      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    }
 
     const handler = webhookHandlers[event.type];
     if (handler) {

@@ -18,8 +18,8 @@ import { trpc } from "@lib/trpc";
 import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
+import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
@@ -256,7 +256,7 @@ function Web3Container() {
 
   return (
     <>
-      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
+      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
       <div className="lg:col-span-9 lg:pb-8">
         <List>
           <ListItem className={classNames("flex-col")}>
@@ -332,9 +332,13 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")} large>
+    <Shell
+      heading={t("installed_apps")}
+      subtitle={t("manage_your_connected_apps")}
+      large
+      customLoader={<SkeletonLoader />}>
       <AppsShell>
-        <ClientSuspense fallback={<Loader />}>
+        <ClientSuspense fallback={<SkeletonLoader />}>
           <IntegrationsContainer />
           <CalendarListContainer />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />

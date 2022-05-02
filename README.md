@@ -107,6 +107,8 @@ Here is what you need to be able to run Cal.
    ```sh
    yarn
    ```
+   
+1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
 
 #### Quick start with `yarn dx`
 
@@ -343,6 +345,7 @@ oauth_config:
     bot:
       - chat:write
       - commands
+      - chat:write.public 
 settings:
   interactivity:
     is_enabled: true

@@ -9,9 +9,8 @@ import nodemailer from "nodemailer";
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { serverConfig } from "@calcom/lib/serverConfig";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
-
-import { serverConfig } from "@lib/serverConfig";
 
 import {
   emailHead,
@@ -321,7 +320,8 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location && getAppName(this.calEvent.location);
+
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
       providerName = location[0].toUpperCase() + location.slice(1);
