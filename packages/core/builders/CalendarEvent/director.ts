@@ -11,7 +11,21 @@ export class CalendarEventDirector {
     this.builder = builder;
   }
 
-  public setExistingBooking(booking: Booking) {
+  public setExistingBooking(
+    booking: Pick<
+      Booking,
+      | "id"
+      | "uid"
+      | "title"
+      | "startTime"
+      | "endTime"
+      | "eventTypeId"
+      | "userId"
+      | "dynamicEventSlugRef"
+      | "dynamicGroupSlugRef"
+      | "location"
+    >
+  ) {
     this.existingBooking = booking;
   }
 
@@ -45,7 +59,7 @@ export class CalendarEventDirector {
       this.builder.setDescription(this.existingBooking.description);
       await this.builder.buildRescheduleLink(this.existingBooking);
     } else {
-      throw new Error("buildForRescheduleEmail.missing.params.required");
+      throw new Error("buildWithoutEventTypeForRescheduleEmail.missing.params.required");
     }
   }
 }

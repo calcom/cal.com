@@ -298,17 +298,17 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       if (!booking) {
         throw new Error("Parameter booking is required to build reschedule link");
       }
-      const isTeam = !!this.eventType && !!this.eventType.teamId;
+      const isTeam = !!eventType && !!eventType.teamId;
       const isDynamic = booking?.dynamicEventSlugRef && booking?.dynamicGroupSlugRef;
 
       let slug = "";
-      if (isTeam && eventType) {
+      if (isTeam && eventType?.team?.slug) {
         slug = `/team/${eventType.team?.slug}`;
       } else if (isDynamic) {
         const dynamicSlug = isDynamic ? `${booking.dynamicGroupSlugRef}/${booking.dynamicEventSlugRef}` : "";
         slug = dynamicSlug;
-      } else {
-        slug = `${this.users[0].username}/${this.eventType.slug}`;
+      } else if (eventType?.slug) {
+        slug = `${this.users[0].username}/${eventType.slug}`;
       }
 
       const queryParams = new URLSearchParams();
