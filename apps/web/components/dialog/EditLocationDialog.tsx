@@ -1,7 +1,7 @@
 import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -17,47 +17,43 @@ import Select from "@components/ui/form/Select";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
-interface ISetLocationDialog {
-  saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
-  selection?: OptionTypeBase;
-  booking?: BookingItem;
-  formMethods?: any;
-  setShowLocationModal: Function;
-  isOpenDialog: boolean;
-}
-
 type OptionTypeBase = {
   label: string;
   value: LocationType;
   disabled?: boolean;
 };
+interface ISetLocationDialog {
+  saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
+  selection?: OptionTypeBase;
+  booking?: BookingItem;
+  formMethods?: UseFormReturn<any, any>;
+  setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isOpenDialog: boolean;
+}
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
   const { saveLocation, selection, booking, setShowLocationModal, isOpenDialog, formMethods } = props;
   const { t } = useLocale();
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
-  const [locationOptions, setLocationOptions] = useState<Array<any>>([]);
+  const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
   const [currentLocation, setCurrentLocation] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(selection);
   const [incmoingFormMethods, setIncmoingFormMethods] = useState(formMethods);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (data) {
-        const integrations = getApps(data);
-        setLocationOptions(getLocationOptions(integrations, t));
+    if (data) {
+      const integrations = getApps(data);
+      setLocationOptions(getLocationOptions(integrations, t));
+      if (booking) {
+        setCurrentLocation(applyNamingFormat(booking.location || ""));
       }
-    };
-    fetchData();
-    if (booking) {
-      setCurrentLocation(applyNamingFormat(booking.location || ""));
-    }
-    setSelectedLocation(selection);
-    setIncmoingFormMethods(formMethods);
-    if (selection) {
-      locationFormMethods.setValue("locationType", selection?.value);
-      locationFormMethods.unregister("locationLink");
-      locationFormMethods.unregister("locationAddress");
+      if (selection) {
+        locationFormMethods.setValue("locationType", selection?.value);
+        locationFormMethods.unregister("locationLink");
+        locationFormMethods.unregister("locationAddress");
+      }
+      setSelectedLocation(selection);
+      setIncmoingFormMethods(formMethods);
     }
   }, [isSuccess, selection, formMethods]);
 
@@ -90,7 +86,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
       finalString = finalString.replace(":", " ");
     }
-
     return finalString;
   };
 
@@ -116,10 +111,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   incmoingFormMethods
                     ? incmoingFormMethods
                         .getValues("locations")
-                        .find((location) => location.type === LocationType.InPerson)?.address
+                        .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
+                        ?.address
                     : newFormMethods
                         .getValues("locations")
-                        .find((location) => location.type === LocationType.InPerson)?.address
+                        .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
+                        ?.address
                 }
               />
             </div>
@@ -142,10 +139,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   incmoingFormMethods
                     ? incmoingFormMethods
                         .getValues("locations")
-                        .find((location) => location.type === LocationType.Link)?.link
+                        .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
                     : newFormMethods
                         .getValues("locations")
-                        .find((location) => location.type === LocationType.Link)?.link
+                        .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
                 }
               />
               {locationFormMethods.formState.errors.locationLink && (
@@ -201,7 +198,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               </p>
             </>
           )}
-
           <Form
             form={locationFormMethods}
             handleSubmit={async (values) => {
