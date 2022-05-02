@@ -110,7 +110,7 @@ function BookingListItem(booking: BookingItem) {
         {
           id: "change_location",
           label: t("edit_location"),
-          onClick: () => setIsOpenSetLocationDialog(true),
+          onClick: () => setIsOpenLocationDialog(true),
           icon: LocationMarkerIcon,
         },
       ],
@@ -128,7 +128,7 @@ function BookingListItem(booking: BookingItem) {
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenSetLocationDialog] = useState(false);
+  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
 
   const newMutation = useMutation(async (newLocation: string) => {
     const result = await fetch("/api/book/setLocation", {
@@ -143,7 +143,7 @@ function BookingListItem(booking: BookingItem) {
     });
     if (result) {
       showToast(t("location_updated"), "success");
-      setIsOpenSetLocationDialog(false);
+      setIsOpenLocationDialog(false);
     }
   });
 
@@ -166,7 +166,7 @@ function BookingListItem(booking: BookingItem) {
         booking={booking}
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
-        setShowLocationModal={setIsOpenSetLocationDialog}
+        setShowLocationModal={setIsOpenLocationDialog}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
