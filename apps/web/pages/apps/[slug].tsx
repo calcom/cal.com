@@ -87,7 +87,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!app) return { notFound: true };
 
-  const singleApp = getAppWithMetadata(app);
+  const singleApp = await getAppWithMetadata(app);
 
   if (!singleApp) return { notFound: true };
 

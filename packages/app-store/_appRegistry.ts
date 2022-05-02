@@ -1,10 +1,16 @@
 import prisma from "@calcom/prisma";
 import { App } from "@calcom/types/App";
 
-import appStoreMetadata from "./metadata";
-
-export function getAppWithMetadata(app: { dirName: string }) {
-  const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
+export async function getAppWithMetadata(app: { dirName: string }) {
+  let appMetadata: App | null = null;
+  try {
+    appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
+    }
+    return null;
+  }
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
   const { key, ...metadata } = appMetadata;
@@ -14,12 +20,14 @@ export function getAppWithMetadata(app: { dirName: string }) {
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
 export async function getAppRegistry() {
   const dbApps = await prisma.app.findMany({ select: { dirName: true, slug: true, categories: true } });
-  return dbApps.reduce((apps, dbapp) => {
-    const app = getAppWithMetadata(dbapp);
-    if (!app) return apps;
+  const apps = [] as Omit<App, "key">[];
+  for await (const dbapp of dbApps) {
+    const app = await getAppWithMetadata(dbapp);
+    if (!app) continue;
     // Skip if app isn't installed
-    if (!app.installed) return apps;
+    /* This is now handled from the DB */
+    // if (!app.installed) return apps;
     apps.push(app);
-    return apps;
-  }, [] as Omit<App, "key">[]);
+  }
+  return apps;
 }
