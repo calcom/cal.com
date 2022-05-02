@@ -303,7 +303,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2">
-                          {!reschedule &&
+                          {reschedule != "true" &&
                             props.eventType.recurringEvent &&
                             props.eventType.recurringEvent.count &&
                             props.recurringBookings &&
