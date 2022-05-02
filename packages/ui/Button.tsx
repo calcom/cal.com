@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 
 export type ButtonBaseProps = {
-  color?: "primary" | "secondary" | "minimal" | "warn";
+  color?: "primary" | "secondary" | "minimal" | "warn" | "alert" | "alert2";
   size?: "base" | "sm" | "lg" | "fab" | "icon";
   loading?: boolean;
   disabled?: boolean;
@@ -70,6 +70,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           (disabled
             ? "border border-gray-200 text-gray-400 bg-white"
             : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-800"),
+        color === "alert" &&
+          (disabled
+            ? "border border-transparent bg-gray-400 text-white"
+            : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-red-600 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+        color === "alert2" &&
+          (disabled
+            ? "border border-transparent bg-gray-400 text-white"
+            : "border border-transparent dark:text-darkmodebrandcontrast text-black bg-yellow-400 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
@@ -78,6 +86,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           (disabled
             ? "text-gray-400 bg-transparent"
             : "text-gray-700 bg-transparent hover:text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-50 focus:ring-red-500"),
+
         // set not-allowed cursor if disabled
         loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
         props.className
