@@ -17,8 +17,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const appName = _appName.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
 
   try {
-    const handler = (await import(`@calcom/app-store/${appName}/api/${apiEndpoint}`))
-      .default as NextApiHandler;
+    /* Absolute path didn't work */
+    const handlerMap = (await import("@calcom/app-store/apiHandlers")).default;
+    const handlers = await handlerMap[appName as keyof typeof handlerMap];
+    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
 
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
