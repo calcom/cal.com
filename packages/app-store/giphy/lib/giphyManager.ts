@@ -1,6 +1,15 @@
+import { HttpError } from "@calcom/lib/http-error";
+
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+
+let api_key = "";
+
 export const searchGiphy = async (locale: string, keyword: string, offset: number = 0) => {
+  const appKeys = await getAppKeysFromSlug("giphy");
+  if (typeof appKeys.api_key === "string") api_key = appKeys.api_key;
+  if (!api_key) throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
   const queryParams = new URLSearchParams({
-    api_key: String(process.env.GIPHY_API_KEY),
+    api_key,
     q: keyword,
     limit: "1",
     offset: String(offset),

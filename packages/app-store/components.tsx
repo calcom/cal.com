@@ -23,7 +23,7 @@ export const InstallAppButtonMap = {
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
-  giphyother: dynamic(() => import("./giphyother/components/InstallAppButton")),
+  giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
@@ -33,8 +33,14 @@ export const InstallAppButton = (
 ) => {
   const { status } = useSession();
   const { t } = useLocale();
-  const appName = props.type.replaceAll("_", "") as keyof typeof InstallAppButtonMap;
-  const InstallAppButtonComponent = InstallAppButtonMap[appName];
+  let appName = props.type.replace(/_/g, "");
+  let InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
+  /** So we can either call it by simple name (ex. `slack`, `giphy`) instead of
+   * `slackmessaging`, `giphyother` while maintaining retro-compatibility. */
+  if (!InstallAppButtonComponent) {
+    [appName] = props.type.split("_");
+    InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
+  }
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")
     return (
