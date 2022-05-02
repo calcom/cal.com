@@ -49,6 +49,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
+import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
@@ -56,7 +57,7 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps;
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {
   name: string;
@@ -76,6 +77,8 @@ const BookingPage = ({
   profile,
   isDynamicGroupBooking,
   locationLabels,
+  hasHashedBookingLink,
+  hashedLink,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -290,6 +293,8 @@ const BookingPage = ({
         label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
         value: booking.customInputs![inputId],
       })),
+      hasHashedBookingLink,
+      hashedLink,
     });
   };
 
@@ -446,7 +451,6 @@ const BookingPage = ({
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
-                            disabled={disableInput}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}
