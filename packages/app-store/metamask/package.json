@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "MetaMask",
+  "name": "@calcom/metamask",
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Only book and allow bookings from people who share the same tokens, DAOs, or NFTs.",
