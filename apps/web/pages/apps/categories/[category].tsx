@@ -50,7 +50,7 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
 }
 
 export const getStaticPaths = async () => {
-  const appStore = getAppRegistry();
+  const appStore = await getAppRegistry();
   const paths = appStore.reduce((categories, app) => {
     if (!categories.includes(app.category)) {
       categories.push(app.category);
@@ -67,7 +67,7 @@ export const getStaticPaths = async () => {
 export const getStaticProps = async () => {
   return {
     props: {
-      appStore: getAppRegistry(),
+      appStore: await getAppRegistry(),
     },
   };
 };
