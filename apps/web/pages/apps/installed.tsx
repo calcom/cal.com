@@ -22,6 +22,7 @@ import Loader from "@components/Loader";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
+import DisconnectiStripeIntegration from "@components/integrations/DisconnectiStripeIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
@@ -116,12 +117,27 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }) {
   const { t } = useLocale();
   const [credentialId] = props.credentialIds;
+  const type = props.type;
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.invalidateQueries(["viewer.integrations"]);
   };
 
   if (credentialId) {
+    
+    if(type === "stripe_payment"){
+      return (
+        <DisconnectiStripeIntegration
+          id={credentialId}
+          render={(btnProps) => (
+            <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+              {t("disconnect")}
+            </Button>
+          )}
+          onOpenChange={handleOpenChange}
+        />
+      );
+    }
     return (
       <DisconnectIntegration
         id={credentialId}

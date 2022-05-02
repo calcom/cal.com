@@ -44,25 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    
-    /** Get the id from the stripe_payment credential for this user */
-    const stripePaymentCredential = await prisma.credential.findFirst({
-      where: {
-        id: req.body.id,
-        userId: session?.user?.id,
-        type: "stripe_payment",
-      },
-      select: {
-        id: true,
-      },
-    });
 
-    /** If stripePaymentCredential was deleted successfully we need to delete the information from payment 
-    * and then update all the user's bookings that where unconfirmed and unpaid to a status = "rejected"
-    */
-    if (stripePaymentCredential?.id === credentialToDeleteId) {
+    if (req.body?.action === "cancel" || req.body?.action === "remove") {
       try {
-        const bookingWithPaymentIds = await prisma.booking
+        const bookingIdsWithPayments = await prisma.booking
           .findMany({
             where: {
               userId: session?.user?.id,
@@ -83,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const deletePayments = prisma.payment.deleteMany({
           where: {
             bookingId: {
-              in: bookingWithPaymentIds,
+              in: bookingIdsWithPayments,
             },
             success: false,
           },
@@ -92,12 +77,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const updateBookings = prisma.booking.updateMany({
           where: {
             id: {
-              in: bookingWithPaymentIds,
+              in: bookingIdsWithPayments,
             },
           },
           data: {
-            rejected: true,
-            status: "REJECTED",
+            status: "CANCELLED",
             rejectionReason: "Payment provider got removed",
           },
         });
@@ -121,8 +105,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
         });
-
-        await prisma.$transaction([deletePayments, updateBookings, deleteBookingReferences]);
+        if (req.body?.action === "cancel") {
+          await prisma.$transaction([deletePayments, updateBookings, deleteBookingReferences]);
+        } else {
+          const updateBookings = prisma.booking.updateMany({
+            where: {
+              id: {
+                in: bookingIdsWithPayments,
+              },
+            },
+            data: {
+              paid: true,
+            },
+          });  
+          await prisma.$transaction([deletePayments,updateBookings]);
+        }
       } catch (e) {
         console.error(e);
         res.status(500).json({ message: "Integration could not be deleted" });

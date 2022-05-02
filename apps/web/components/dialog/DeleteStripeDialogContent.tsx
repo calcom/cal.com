@@ -8,24 +8,28 @@ import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-export type ConfirmationDialogContentProps = {
+export type DeleteStripeDialogContentProps = {
   confirmBtn?: ReactNode;
-  confirmBtnText?: string;
+  cancelAllBookingsBtnText?: string;
+  removeBtnText?: string;
   cancelBtnText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onRemove?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
 };
 
-export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+export default function DeleteStripeDialogContent(props: PropsWithChildren<DeleteStripeDialogContentProps>) {
   const { t } = useLocale();
   const {
     title,
     variety,
     confirmBtn = null,
-    confirmBtnText = t("confirm"),
+    cancelAllBookingsBtnText,
+    removeBtnText,
     cancelBtnText = t("cancel"),
     onConfirm,
+    onRemove,
     children,
   } = props;
 
@@ -60,7 +64,10 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       </div>
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
         <DialogClose onClick={onConfirm} asChild>
-          {confirmBtn || <Button color="primary">{confirmBtnText}</Button>}
+          <Button color="alert">{cancelAllBookingsBtnText}</Button>
+        </DialogClose>
+        <DialogClose onClick={onRemove} asChild>
+            <Button color="alert2">{removeBtnText}</Button>
         </DialogClose>
         <DialogClose asChild>
           <Button color="secondary">{cancelBtnText}</Button>
