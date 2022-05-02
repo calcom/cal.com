@@ -80,7 +80,7 @@ export async function handlePayment(
         }),
       },
     },
-    {}
+    {} // Payment related emails don't need recurring event information for now. TODO: Payment support
   );
 
   return payment;
