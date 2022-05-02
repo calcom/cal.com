@@ -36,11 +36,7 @@ export class CalendarEventDirector {
   }
 
   public async buildWithoutEventTypeForRescheduleEmail() {
-    if (
-      this.existingBooking &&
-      this.existingBooking.userId &&
-      this.existingBooking.uid &&
-    ) {
+    if (this.existingBooking && this.existingBooking.userId && this.existingBooking.uid) {
       await this.builder.setUsersFromId(this.existingBooking.userId);
       this.builder.buildAttendeesList();
       this.builder.setLocation(this.existingBooking.location);
