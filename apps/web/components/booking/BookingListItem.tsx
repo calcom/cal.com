@@ -14,16 +14,18 @@ import { useMutation } from "react-query";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
+import { LocationType } from "@lib/location";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
-import { SetLocationDialog } from "@components/dialog/SetLocationDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
@@ -107,7 +109,7 @@ function BookingListItem(booking: BookingItem) {
         },
         {
           id: "change_location",
-          label: t("change_location"),
+          label: t("edit_location"),
           onClick: () => setIsOpenSetLocationDialog(true),
           icon: LocationMarkerIcon,
         },
@@ -124,6 +126,31 @@ function BookingListItem(booking: BookingItem) {
     );
   };
 
+  const newMutation = useMutation(async (newLocation: string) => {
+    const result = await fetch("/api/book/changeLocation", {
+      method: "POST",
+      body: JSON.stringify({
+        bookingId: booking.id,
+        newLocation,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (result) {
+      showToast(t("location_updated"), "success");
+      setIsOpenSetLocationDialog(false);
+    }
+  });
+
+  const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
+    let newLocation = newLocationType as string;
+    if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+      newLocation = details[Object.keys(details)[0]] as string;
+    }
+    newMutation.mutate(newLocation);
+  };
+
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenSetLocationDialog] = useState(false);
@@ -135,13 +162,11 @@ function BookingListItem(booking: BookingItem) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
-
-      <SetLocationDialog
-        isOpenDialog={isOpenSetLocationDialog}
-        setIsOpenDialog={setIsOpenSetLocationDialog}
+      <EditLocationDialog
         booking={booking}
-        userLocale={user?.locale}
-        userId={user?.id}
+        saveLocation={saveLocation}
+        isOpenDialog={isOpenSetLocationDialog}
+        setShowLocationModal={setIsOpenSetLocationDialog}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}

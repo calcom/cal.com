@@ -608,7 +608,6 @@
   "into_the_future": "into the future",
   "within_date_range": "Within a date range",
   "indefinitely_into_future": "Indefinitely into the future",
-  "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
   "add_new_custom_input_field": "Add new custom input field",
   "quick_chat": "Quick Chat",
   "add_new_team_event_type": "Add a new team event type",
@@ -772,13 +771,14 @@
   "impersonate_user_tip":"All uses of this feature is audited.",
   "impersonating_user_warning":"Impersonating username \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
-  "event_location_changed": "Updated - Your event updated the location",
+  "event_location_changed": "Updated - Your event changed the location",
   "location_changed_event_type_subject": "Location Changed: {{eventType}} with {{name}} at {{date}}",
   "current_location": "Current Location",
   "new_location": "New Location",
   "no_location": "No location defined",
   "set_location": "Set Location",
-  "change_location": "Change Location",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
-  "update_location": "Update Location"
+  "update_location": "Update Location",
+  "location_updated": "Location updated"
+
 }
