@@ -164,11 +164,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         by: [Prisma.BookingScalarFieldEnum.recurringEventId],
         _count: true,
       });
-      // Overriding the recurring event configuration count to be the actual number ofevents booked for
+      // Overriding the recurring event configuration count to be the actual number of events booked for
       // the recurring event (equal or less than recurring event configuration count)
       recurringEvent.count = groupedRecurringBookings[0]._count;
-      // Passing down the RRULE string representation to be used from calendar apps
-      evt.recurrence = new rrule(recurringEvent).toString();
     }
 
     if (reqBody.confirmed) {
@@ -280,7 +278,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      await sendDeclinedEmails(evt, req.body.recurringEventId ? recurringEvent : {}); // Send email with recurring event info only on recurring event context);
+      await sendDeclinedEmails(evt, req.body.recurringEventId ? recurringEvent : {}); // Send email with recurring event info only on recurring event context
 
       res.status(204).end();
     }

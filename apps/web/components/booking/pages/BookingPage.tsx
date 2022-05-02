@@ -457,30 +457,36 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                {eventType.recurringEvent && eventType.recurringEvent.freq && recurringEventCount && (
-                  <div className="mb-3 text-gray-600 dark:text-white">
-                    <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                    <p className="mb-1 -ml-2 inline px-2 py-1">
-                      {`${t("every_for_freq", {
-                        freq: t(
+                {!rescheduleUid &&
+                  eventType.recurringEvent &&
+                  eventType.recurringEvent.freq &&
+                  recurringEventCount && (
+                    <div className="mb-3 text-gray-600 dark:text-white">
+                      <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <p className="mb-1 -ml-2 inline px-2 py-1">
+                        {`${t("every_for_freq", {
+                          freq: t(
+                            `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
+                              .toString()
+                              .toLowerCase()}`
+                          ),
+                        })} ${recurringEventCount} ${t(
                           `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
                             .toString()
-                            .toLowerCase()}`
-                        ),
-                      })} ${recurringEventCount} ${t(
-                        `recurring_${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                        { count: parseInt(recurringEventCount.toString()) }
-                      )}`}
-                    </p>
-                  </div>
-                )}
+                            .toLowerCase()}`,
+                          { count: parseInt(recurringEventCount.toString()) }
+                        )}`}
+                      </p>
+                    </div>
+                  )}
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {!eventType.recurringEvent.freq && parseDate(date, i18n)}
-                    {eventType.recurringEvent.freq &&
+                    {(rescheduleUid || !eventType.recurringEvent.freq) && parseDate(date, i18n)}
+                    {!rescheduleUid &&
+                      eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
-                    {eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
                           content={recurringStrings.slice(5).map((aDate, key) => (

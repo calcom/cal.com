@@ -303,7 +303,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <div className="col-span-2 mb-6">{eventName}</div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2">
-                          {props.eventType.recurringEvent &&
+                          {!reschedule &&
+                            props.eventType.recurringEvent &&
                             props.eventType.recurringEvent.count &&
                             props.recurringBookings &&
                             props.recurringBookings.slice(0, 4).map((dateStr, idx) => (
@@ -317,37 +318,39 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                                 </span>
                               </div>
                             ))}
-                          {props.recurringBookings && props.recurringBookings.length > 4 && (
-                            <Collapsible
-                              open={moreEventsVisible}
-                              onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-                              <CollapsibleTrigger
-                                type="button"
-                                className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-                                {t("plus_more", { count: props.recurringBookings.length - 4 })}
-                              </CollapsibleTrigger>
-                              <CollapsibleContent>
-                                {props.eventType.recurringEvent &&
-                                  props.eventType.recurringEvent.count &&
-                                  props.recurringBookings &&
-                                  props.recurringBookings.slice(4).map((dateStr, idx) => (
-                                    <div key={idx} className="mb-2">
-                                      {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
-                                      <br />
-                                      {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} -{" "}
-                                      {props.eventType.length} mins{" "}
-                                      <span className="text-bookinglight">
-                                        (
-                                        {localStorage.getItem("timeOption.preferredTimeZone") ||
-                                          dayjs.tz.guess()}
-                                        )
-                                      </span>
-                                    </div>
-                                  ))}
-                              </CollapsibleContent>
-                            </Collapsible>
-                          )}
-                          {!props.eventType.recurringEvent.freq && (
+                          {reschedule != "true" &&
+                            props.recurringBookings &&
+                            props.recurringBookings.length > 4 && (
+                              <Collapsible
+                                open={moreEventsVisible}
+                                onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+                                <CollapsibleTrigger
+                                  type="button"
+                                  className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+                                  {t("plus_more", { count: props.recurringBookings.length - 4 })}
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  {props.eventType.recurringEvent &&
+                                    props.eventType.recurringEvent.count &&
+                                    props.recurringBookings &&
+                                    props.recurringBookings.slice(4).map((dateStr, idx) => (
+                                      <div key={idx} className="mb-2">
+                                        {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+                                        <br />
+                                        {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} -{" "}
+                                        {props.eventType.length} mins{" "}
+                                        <span className="text-bookinglight">
+                                          (
+                                          {localStorage.getItem("timeOption.preferredTimeZone") ||
+                                            dayjs.tz.guess()}
+                                          )
+                                        </span>
+                                      </div>
+                                    ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          {(reschedule == "true" || !props.eventType.recurringEvent.freq) && (
                             <>
                               {date.format("dddd, DD MMMM YYYY")}
                               <br />

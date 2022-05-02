@@ -376,7 +376,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     additionalNotes,
     startTime: reqBody.start,
     endTime: reqBody.end,
-    recurringEventId: reqBody.recurringEventId,
     organizer: {
       name: users[0].name || "Nameless",
       email: users[0].email || "Email-less",
@@ -398,7 +397,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (reqBody.recurringEventId && eventType.recurringEvent && eventType.recurringEvent.count) {
-    // Overriding the recurring event configuration count to be the actual number ofevents booked for
+    // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent.count = recurringCount;
   }
@@ -474,7 +473,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
-      recurringEventId: evt.recurringEventId,
+      ...(reqBody.recurringEventId && { recurringEventId: reqBody.recurringEventId }),
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -714,7 +713,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             additionInformation: metadata,
             additionalNotes, // Resets back to the addtionalNote input and not the overriden value
           },
-          eventType.recurringEvent as RecurringEvent
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );
       }
     }
@@ -753,18 +752,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             additionInformation: metadata,
             additionalNotes,
           },
-          eventType.recurringEvent as RecurringEvent
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );
       }
     }
   }
 
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.recurringEvent as RecurringEvent);
+    await sendOrganizerRequestEmail(
+      { ...evt, additionalNotes },
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+    );
     await sendAttendeeRequestEmail(
       { ...evt, additionalNotes },
       attendeesList[0],
-      eventType.recurringEvent as RecurringEvent
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
     );
   }
 

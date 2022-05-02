@@ -280,13 +280,13 @@ ${getRichDescription(this.calEvent)}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}${
-      this.recurringEvent && this.recurringEvent.count && this.getRecurringWhen()
+      this.recurringEvent && this.recurringEvent.count ? this.getRecurringWhen() : ""
     }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
       ${
-        this.recurringEvent &&
-        this.recurringEvent.count &&
-        `${this.calEvent.attendees[0].language.translate("starting")} `
+        this.recurringEvent && this.recurringEvent.count
+          ? `${this.calEvent.attendees[0].language.translate("starting")} `
+          : ""
       }
       ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()

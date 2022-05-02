@@ -69,6 +69,8 @@ export default class OrganizerScheduledEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+      ...(this.recurringEvent &&
+        this.recurringEvent.count && { recurrenceRule: new rrule(this.recurringEvent).toString() }),
       attendees: this.calEvent.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
@@ -265,13 +267,13 @@ ${getRichDescription(this.calEvent)}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}${
-      this.recurringEvent && this.recurringEvent.count && this.getRecurringWhen()
+      this.recurringEvent && this.recurringEvent.count ? this.getRecurringWhen() : ""
     }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
       ${
-        this.recurringEvent &&
-        this.recurringEvent.count &&
-        `${this.calEvent.attendees[0].language.translate("starting")} `
+        this.recurringEvent && this.recurringEvent.count
+          ? `${this.calEvent.attendees[0].language.translate("starting")} `
+          : ""
       }
       ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()

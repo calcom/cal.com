@@ -181,7 +181,7 @@ const handler = async (
         {
           rescheduleLink: builder.rescheduleLink,
         },
-        event.recurringEvent as RecurringEvent
+        {} // We don't support rescheduling a recurring event so skipping defining it to just deal with a single booking
       );
     }
 

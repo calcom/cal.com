@@ -90,9 +90,6 @@ export default class GoogleCalendarService implements Calendar {
             ...attendee,
             responseStatus: "accepted",
           })),
-          // See Outlook implementation to appreciate this at its fullest!
-          // >> packages/app-store/office365calendar/lib/CalendarService.ts:236
-          ...(calEventRaw.recurrence && { recurrence: [calEventRaw.recurrence] }),
           reminders: {
             useDefault: true,
           },

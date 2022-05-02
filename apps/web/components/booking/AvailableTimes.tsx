@@ -91,7 +91,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 date: slot.time.format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
-                ...(recurringCount && { count: recurringCount }),
+                ...(recurringCount && !rescheduleUid && { count: recurringCount }),
               },
             };
 
