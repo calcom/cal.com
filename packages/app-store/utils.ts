@@ -66,7 +66,7 @@ function getApps(userCredentials: CredentialData[]) {
         type: appMeta.type,
         key: appMeta.key!,
         userId: +new Date().getTime(),
-        appId: credentials[0].appId,
+        appId: appMeta.slug,
       });
     }
 
