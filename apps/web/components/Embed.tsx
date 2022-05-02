@@ -383,7 +383,6 @@ Cal("inline", {
   elementOrSelector:"#my-cal-inline",
   calLink: "${calLink}"
 });
-
 ${getEmbedUIInstructionString().trim()}`;
     } else if (embedType === "floating-popup") {
       let floatingButtonArg = {
@@ -770,7 +769,7 @@ ${getEmbedUIInstructionString().trim()}`;
                   (embedType === "inline"
                     ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                         previewState.inline.height
-                      )}" id="my-cal-inline"></div>`
+                      )}" id="my-cal-inline"></div>\n`
                     : "") +
                   `<script type="text/javascript">
 ${getEmbedSnippetString().trim()}
@@ -845,7 +844,7 @@ export const EmbedButton = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
-  className = classNames(className, "hidden md:flex");
+  className = classNames(className, "hidden lg:flex");
   const openEmbedModal = () => {
     const query = {
       ...router.query,
