@@ -367,32 +367,35 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     eventType.slug
   }`;
 
-  const getEmbedUIInstructionString = () => {
-    return `
-Cal("ui", {
+  // TODO: Not sure how to make these template strings look better formatted.
+  // This exact formatting is required to make the code look nicely formatted together.
+  const getEmbedUIInstructionString = () =>
+    `Cal("ui", {
   ${getThemeForSnippet() ? 'theme: "' + previewState.theme + '",\n  ' : ""}styles: {
     branding: ${JSON.stringify(previewState.palette)}
   }
 })`;
-  };
+
   const getEmbedTypeSpecificString = () => {
     if (embedType === "inline") {
       return `
 Cal("inline", {
-	  elementOrSelector:"#my-cal-inline",
-	  calLink: "${calLink}"
+  elementOrSelector:"#my-cal-inline",
+  calLink: "${calLink}"
 });
+
 ${getEmbedUIInstructionString().trim()}`;
     } else if (embedType === "floating-popup") {
       let floatingButtonArg = {
         calLink,
         ...previewState.floatingPopup,
       };
-      return `Cal("floatingButton", ${JSON.stringify(floatingButtonArg)});
-		${getEmbedUIInstructionString()}`;
+      return `
+Cal("floatingButton", ${JSON.stringify(floatingButtonArg)});
+${getEmbedUIInstructionString().trim()}`;
     } else if (embedType === "element-click") {
       return `//Important: Also, add data-cal-link="${calLink}" attribute to the element you want to open Cal on click
-		${getEmbedUIInstructionString().trim()}`;
+${getEmbedUIInstructionString().trim()}`;
     }
     return "";
   };
@@ -763,15 +766,13 @@ ${getEmbedUIInstructionString().trim()}`;
                 className="h-[36rem]"
                 readOnly
                 value={
-                  `
-<!-- Cal ${embedType} embed code begins -->\n` +
+                  `<!-- Cal ${embedType} embed code begins -->\n` +
                   (embedType === "inline"
                     ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                         previewState.inline.height
                       )}" id="my-cal-inline"></div>`
                     : "") +
-                  `
-<script type="text/javascript">
+                  `<script type="text/javascript">
 ${getEmbedSnippetString().trim()}
 ${getEmbedTypeSpecificString().trim()}
 </script>

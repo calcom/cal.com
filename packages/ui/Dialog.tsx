@@ -52,7 +52,7 @@ export function Dialog(props: DialogProps) {
 
   return (
     <DialogPrimitive.Root {...dialogProps}>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
       {children}
     </DialogPrimitive.Root>
   );
@@ -64,12 +64,12 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
       {/*zIndex one less than Toast */}
       <DialogPrimitive.Content
         {...props}
         className={classNames(
-          "fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
+          "fadeIn fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
           props.size == "xl"
             ? "p-0.5 sm:max-w-[98vw]"
             : props.size == "lg"
