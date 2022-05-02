@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import path from "path";
 
-import { getAppDirFromSlug, getAppFromSlug } from "@calcom/app-store/_appRegistry";
+import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
 
 import useMediaQuery from "@lib/hooks/useMediaQuery";
@@ -87,11 +87,11 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!app) return { notFound: true };
 
-  const singleApp = getAppFromSlug(app.slug);
+  const singleApp = getAppWithMetadata(app);
 
   if (!singleApp) return { notFound: true };
 
-  const appDirname = getAppDirFromSlug(singleApp.slug);
+  const appDirname = app.dirName;
   const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
   const postFilePath = path.join(README_PATH);
   let source = "";
