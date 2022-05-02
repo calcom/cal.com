@@ -157,6 +157,6 @@ async function handleRefundError(opts: { event: CalendarEvent; reason: string; p
       ...opts.event,
       paymentInfo: { reason: opts.reason, id: opts.paymentId },
     },
-    {}
+    {} // Payment related emails don't need recurring event information for now. TODO: Payment support
   );
 }
