@@ -1,13 +1,14 @@
-import { MembershipRole, Prisma, PrismaClient, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
-require("dotenv").config({ path: "../../.env" });
+import prisma from ".";
+import "./seed-app-store";
 
-const prisma = new PrismaClient();
+require("dotenv").config({ path: "../../.env" });
 
 async function createUserAndEventType(opts: {
   user: {
