@@ -8,8 +8,8 @@ export const metadata = {
   installed: !!process.env.GIPHY_API_KEY,
   category: "other",
   // If using static next public folder, can then be referenced from the base URL (/).
-  imageSrc: "/api/app-store/giphyother/icon.svg",
-  logo: "/api/app-store/giphyother/icon.svg",
+  imageSrc: "/api/app-store/giphy/icon.svg",
+  logo: "/api/app-store/giphy/icon.svg",
   publisher: "Cal.com",
   rating: 0,
   reviews: 0,

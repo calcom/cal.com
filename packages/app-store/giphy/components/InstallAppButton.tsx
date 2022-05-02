@@ -2,7 +2,8 @@ import useAddAppMutation from "../../_utils/useAddAppMutation";
 import { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const mutation = useAddAppMutation("giphy_other");
+  // @ts-ignore TODO: deprecate App types in favor of DB slugs
+  const mutation = useAddAppMutation("giphy");
 
   return (
     <>
