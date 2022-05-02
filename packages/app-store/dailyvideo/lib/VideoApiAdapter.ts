@@ -57,6 +57,7 @@ export const FAKE_DAILY_CREDENTIAL: Credential = {
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: +new Date().getTime(),
+  appId: "daily-video",
 };
 
 const DailyVideoApiAdapter = (credential: Credential): VideoApiAdapter => {

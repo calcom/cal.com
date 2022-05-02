@@ -30,7 +30,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 }
 
 export const getStaticProps = async () => {
-  const appStore = getAppRegistry();
+  const appStore = await getAppRegistry();
   const categories = appStore.reduce((c, app) => {
     c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
     return c;

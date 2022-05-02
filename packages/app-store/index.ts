@@ -2,7 +2,7 @@
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
-import * as giphyother from "./giphyother";
+import * as giphy from "./giphy";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
 import * as hubspotothercalendar from "./hubspotothercalendar";
@@ -33,7 +33,7 @@ const appStore = {
   tandemvideo,
   zoomvideo,
   wipemycalother,
-  giphyother,
+  giphy,
 };
 
 export default appStore;
