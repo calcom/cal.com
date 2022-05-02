@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import EventManager from "@calcom/core/EventManager";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -49,16 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    if (location) {
-      await prisma.booking.updateMany({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          location,
-        },
-      });
-    }
+    await prisma.booking.updateMany({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        location,
+      },
+    });
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -87,6 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         destinationCalendar: true,
       },
     });
+
     if (booking) {
       const organizer = await prisma.user.findFirst({
         where: {
@@ -140,7 +140,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const results = scheduleResult.results;
       if (results.length > 0 && results.every((res) => !res.success)) {
-        console.log("failed");
+        const error = {
+          errorCode: "BookingUpdateLocationFailed",
+          message: "Updating location failed",
+        };
+        logger.error(`Booking ${currentUser.username} failed`, error, results);
       } else {
         const metadata: AdditionInformation = {};
         if (results.length) {

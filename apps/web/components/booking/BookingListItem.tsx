@@ -126,8 +126,12 @@ function BookingListItem(booking: BookingItem) {
     );
   };
 
+  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenSetLocationDialog, setIsOpenSetLocationDialog] = useState(false);
+
   const newMutation = useMutation(async (newLocation: string) => {
-    const result = await fetch("/api/book/changeLocation", {
+    const result = await fetch("/api/book/setLocation", {
       method: "POST",
       body: JSON.stringify({
         bookingId: booking.id,
@@ -146,14 +150,10 @@ function BookingListItem(booking: BookingItem) {
   const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
     let newLocation = newLocationType as string;
     if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
-      newLocation = details[Object.keys(details)[0]] as string;
+      newLocation = details[Object.keys(details)[0]];
     }
     newMutation.mutate(newLocation);
   };
-
-  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
-  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenSetLocationDialog] = useState(false);
 
   return (
     <>

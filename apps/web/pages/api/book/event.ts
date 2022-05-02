@@ -707,6 +707,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
+
       await sendScheduledEmails({
         ...evt,
         additionInformation: metadata,
