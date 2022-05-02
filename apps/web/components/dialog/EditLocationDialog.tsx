@@ -38,7 +38,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
   const [currentLocation, setCurrentLocation] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(selection);
-  const [incmoingFormMethods, setIncmoingFormMethods] = useState(formMethods);
+  const [incomingFormMethods, setIncomingFormMethods] = useState(formMethods);
 
   useEffect(() => {
     if (data) {
@@ -53,7 +53,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         locationFormMethods.unregister("locationAddress");
       }
       setSelectedLocation(selection);
-      setIncmoingFormMethods(formMethods);
+      setIncomingFormMethods(formMethods);
     }
   }, [isSuccess, selection, formMethods]);
 
@@ -108,8 +108,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 required
                 className="border-grays-300 block w-full rounded-sm text-sm shadow-sm "
                 defaultValue={
-                  incmoingFormMethods
-                    ? incmoingFormMethods
+                  incomingFormMethods
+                    ? incomingFormMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
                         ?.address
@@ -136,8 +136,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 required
                 className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                 defaultValue={
-                  incmoingFormMethods
-                    ? incmoingFormMethods
+                  incomingFormMethods
+                    ? incomingFormMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
                     : newFormMethods
