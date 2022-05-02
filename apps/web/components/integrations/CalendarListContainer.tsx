@@ -139,7 +139,7 @@ function ConnectedCalendarsList(props: Props) {
                 ) : (
                   <Alert
                     severity="warning"
-                    title="Something went wrong"
+                    title={t("calendar_error")}
                     message={item.error?.message}
                     actions={
                       <DisconnectIntegration
