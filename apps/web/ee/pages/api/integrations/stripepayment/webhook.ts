@@ -174,6 +174,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
+    if (event.account) {
+      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    }
+
     const handler = webhookHandlers[event.type];
     if (handler) {
       await handler(event);

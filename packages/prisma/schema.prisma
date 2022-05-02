@@ -45,6 +45,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
+  hashedLink              HashedLink?
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -76,11 +77,13 @@ model EventType {
 }
 
 model Credential {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
+  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId  String?
 }
 
 enum UserPlan {
@@ -164,6 +167,8 @@ model User {
   impersonatedUsers   Impersonations[]     @relation("impersonated_user")
   impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
   apiKeys             ApiKey[]
+  accounts            Account[]
+  sessions            Session[]
 
   @@map(name: "users")
 }
@@ -402,4 +407,61 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HashedLink {
+  id          Int       @id @default(autoincrement())
+  link        String    @unique()
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int       @unique
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AppCategories {
+  calendar
+  messaging
+  other
+  payment
+  video
+  web3
+}
+
+model App {
+  // The slug for the app store public page inside `/apps/[slug]`
+  slug        String          @id @unique
+  // The directory name for `/packages/app-store/[dirName]`
+  dirName     String          @unique
+  // Needed API Keys
+  keys        Json?
+  // One or multiple categories to which this app belongs
+  categories  AppCategories[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  credentials Credential[]
 }

@@ -172,7 +172,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
-                <div className="block items-center sm:flex sm:space-x-4">
+                <div>
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
                     items={
@@ -190,9 +190,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={9}
                     truncateAfter={5}
                   />
-                  <div className="mt-4 sm:-mt-2">
+                  <div className="mt-4">
                     <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
-                    <div className="mt-2  gap-2 dark:text-gray-100">
+                    <div className="mt-2 gap-2 dark:text-gray-100">
                       <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                         {eventType.title}
                       </h1>
@@ -203,7 +203,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
