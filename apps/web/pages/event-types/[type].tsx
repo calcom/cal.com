@@ -2061,6 +2061,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       type: true,
       key: true,
       userId: true,
+      appId: true,
     },
   });
 
