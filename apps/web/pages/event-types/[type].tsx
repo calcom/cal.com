@@ -29,6 +29,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import { SelectGifInput } from "@calcom/app-store/giphyother/components";
 import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -200,7 +201,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
+  const {
+    eventType,
+    locationOptions,
+    team,
+    teamMembers,
+    hasPaymentIntegration,
+    currency,
+    hasGiphyIntegration,
+  } = props;
 
   const router = useRouter();
 
@@ -423,6 +432,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       externalId: string;
     };
     successRedirectUrl: string;
+    giphyThankYouPage: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -841,6 +851,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodDates,
                       periodCountCalendarDays,
                       smartContractAddress,
+                      giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
                       locations,
@@ -858,11 +869,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      metadata: smartContractAddress
-                        ? {
-                            smartContractAddress,
-                          }
-                        : "",
+                      metadata: {
+                        ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+                      },
                     });
                   }}
                   className="space-y-6">
@@ -1652,6 +1662,39 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </>
                         )}
+                        {hasGiphyIntegration && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="gif"
+                                  className="mt-2 flex text-sm font-medium text-neutral-700">
+                                  {t("confirmation_page_gif")}
+                                </label>
+                              </div>
+
+                              <div className="flex flex-col">
+                                <div className="w-full">
+                                  <div className="block items-center sm:flex">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex items-center">
+                                          <SelectGifInput
+                                            defaultValue={eventType?.metadata?.giphyThankYouPage as string}
+                                            onChange={(url) => {
+                                              formMethods.setValue("giphyThankYouPage", url);
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </CollapsibleContent>
                     </>
                     {/* )} */}
@@ -1947,6 +1990,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         : false,
   };
 
+  const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
@@ -2004,6 +2049,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       hasPaymentIntegration,
+      hasGiphyIntegration,
       currency,
     },
   };

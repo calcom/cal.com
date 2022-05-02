@@ -75,6 +75,7 @@ export default function Bookings() {
                   </div>
                   <div className="p-4 text-center" ref={buttonInView.ref}>
                     <Button
+                      color="minimal"
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}
                       onClick={() => query.fetchNextPage()}>
