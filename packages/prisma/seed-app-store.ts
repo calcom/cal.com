@@ -30,7 +30,7 @@ async function main() {
       client_secret,
       redirect_uris,
     });
-    await createApp("google-meet", "googlemeet", ["video"], { client_id, client_secret, redirect_uris });
+    await createApp("google-meet", "googlevideo", ["video"], { client_id, client_secret, redirect_uris });
   } catch (e) {
     if (e instanceof Error) console.error("Error adding google credentials to DB:", e.message);
   }

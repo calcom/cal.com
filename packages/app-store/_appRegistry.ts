@@ -5,6 +5,7 @@ import appStoreMetadata from "./metadata";
 
 export function getAppWithMetadata(app: { dirName: string }) {
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
+  if (!appMetadata) return null;
   // Let's not leak api keys to the front end
   const { key, ...metadata } = appMetadata;
   return metadata;
