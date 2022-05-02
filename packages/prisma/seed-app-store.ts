@@ -70,6 +70,11 @@ async function main() {
     });
   }
   await createApp("wipe-my-cal", "wipemycalother", ["other"]);
+  if (process.env.GIPHY_API_KEY) {
+    await createApp("giphy", "giphy", ["other"], {
+      api_key: process.env.GIPHY_API_KEY,
+    });
+  }
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"]);
   // Messaging apps
