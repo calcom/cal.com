@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 
 import Shell from "@components/Shell";
 import AppStoreCategories from "@components/apps/Categories";
@@ -31,11 +30,6 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 }
 
 export const getStaticProps = async () => {
-  //   AppCategories.calendar;
-  const r = await prisma.app.groupBy({
-    by: ["categories"],
-  });
-  console.log("r", r);
   const appStore = await getAppRegistry();
   const categories = appStore.reduce((c, app) => {
     c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
