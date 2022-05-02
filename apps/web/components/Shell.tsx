@@ -11,15 +11,15 @@ import {
   MoonIcon,
   ViewGridIcon,
 } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,

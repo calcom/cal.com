@@ -1,12 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
+
+let client_id = "";
+let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -16,18 +20,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  const appKeys = await getAppKeysFromSlug("office365-calendar");
+  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  if (!client_id) return res.status(400).json({ message: "Office 365 client_id missing." });
+  if (!client_secret) return res.status(400).json({ message: "Office 365 client_secret missing." });
+
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
       .map((key) => key + "=" + encodeURIComponent(payload[key]))
       .join("&");
 
   const body = toUrlEncoded({
-    client_id: process.env.MS_GRAPH_CLIENT_ID!,
+    client_id,
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: BASE_URL + "/api/integrations/office365calendar/callback",
-    client_secret: process.env.MS_GRAPH_CLIENT_SECRET!,
+    redirect_uri: WEBAPP_URL + "/api/integrations/office365calendar/callback",
+    client_secret,
   });
 
   const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
@@ -59,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: "office365_calendar",
       key: responseBody,
       userId: req.session?.user.id,
+      appId: "office365-calendar",
     },
   });
 
