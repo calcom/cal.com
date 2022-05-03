@@ -9,7 +9,7 @@ enum InteractionEvents {
 
 export default async function interactiveHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    slackVerify(req, res);
+    await slackVerify(req, res);
     const payload = JSON.parse(req.body.payload);
     const actions = payload.view.callback_id;
 

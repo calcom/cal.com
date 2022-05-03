@@ -13,7 +13,7 @@ export enum SlackAppCommands {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const command = req.body.command.split("/").pop();
-    slackVerify(req, res);
+    await slackVerify(req, res);
     switch (command) {
       case SlackAppCommands.CREATE_EVENT:
         return await showCreateEventMessage(req, res);
