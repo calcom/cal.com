@@ -97,11 +97,6 @@ function getApps(userCredentials: CredentialData[]) {
 
 export type AppMeta = ReturnType<typeof getApps>;
 
-/** @deprecated use `getApps`  */
-export function hasIntegration(apps: AppMeta, type: string): boolean {
-  return !!apps.find((app) => app.type === type && !!app.installed && app.credentials.length > 0);
-}
-
 export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
 }

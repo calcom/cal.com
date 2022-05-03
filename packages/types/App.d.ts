@@ -8,10 +8,11 @@ import type { LocationType } from "@calcom/app-store/locations";
  */
 export interface App {
   /**
+   * @deprecated
    * Wheter if the app is installed or not. Usually we check for api keys in env
    * variables to determine if this is true or not.
    * */
-  installed: boolean;
+  installed?: boolean;
   /** The app type */
   type:
     | `${string}_calendar`

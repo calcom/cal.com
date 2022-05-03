@@ -3,39 +3,40 @@ import { Credential } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
   CalendarEvent,
-  IntegrationCalendar,
-  BatchResponse,
   EventBusyDate,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { O365AuthCredentials } from "../types/Office365Calendar";
 
-const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
-const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
+let client_id = "";
+let client_secret = "";
 
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
-  auth: { getToken: () => Promise<string> };
+  auth: Promise<{ getToken: () => Promise<string> }>;
 
   constructor(credential: Credential) {
     this.integrationName = "office365_calendar";
-    this.auth = this.o365Auth(credential);
+    this.auth = this.o365Auth(credential).then((t) => t);
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const accessToken = await this.auth.getToken();
+      const accessToken = await (await this.auth).getToken();
 
       const calendarId = event.destinationCalendar?.externalId
         ? `${event.destinationCalendar.externalId}/`
@@ -60,7 +61,7 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     try {
-      const accessToken = await this.auth.getToken();
+      const accessToken = await (await this.auth).getToken();
 
       const response = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
         method: "PATCH",
@@ -81,7 +82,7 @@ export default class Office365CalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      const accessToken = await this.auth.getToken();
+      const accessToken = await (await this.auth).getToken();
 
       const response = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events/" + uid, {
         method: "DELETE",
@@ -109,9 +110,9 @@ export default class Office365CalendarService implements Calendar {
     const filter = `?startdatetime=${encodeURIComponent(
       dateFromParsed.toISOString()
     )}&enddatetime=${encodeURIComponent(dateToParsed.toISOString())}`;
-    return this.auth
+    return (await this.auth)
       .getToken()
-      .then((accessToken) => {
+      .then(async (accessToken) => {
         const selectedCalendarIds = selectedCalendars
           .filter((e) => e.integration === this.integrationName)
           .map((e) => e.externalId)
@@ -121,50 +122,44 @@ export default class Office365CalendarService implements Calendar {
           return Promise.resolve([]);
         }
 
-        return (
-          selectedCalendarIds.length === 0
-            ? this.listCalendars().then((cals) => cals.map((e) => e.externalId).filter(Boolean) || [])
-            : Promise.resolve(selectedCalendarIds)
-        ).then((ids) => {
-          const requests = ids.map((calendarId, id) => ({
-            id,
-            method: "GET",
-            url: `/me/calendars/${calendarId}/calendarView${filter}`,
-          }));
-
-          return fetch("https://graph.microsoft.com/v1.0/$batch", {
-            method: "POST",
-            headers: {
-              Authorization: "Bearer " + accessToken,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ requests }),
-          })
-            .then(handleErrorsJson)
-            .then((responseBody: BatchResponse) =>
-              responseBody.responses.reduce(
-                (acc: BufferedBusyTime[], subResponse) =>
-                  acc.concat(
-                    subResponse.body.value.map((evt) => {
-                      return {
-                        start: evt.start.dateTime + "Z",
-                        end: evt.end.dateTime + "Z",
-                      };
-                    })
-                  ),
-                []
-              )
-            );
+        const ids = await (selectedCalendarIds.length === 0
+          ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
+          : Promise.resolve(selectedCalendarIds));
+        const requests = ids.map((calendarId, id) => ({
+          id,
+          method: "GET",
+          url: `/me/calendars/${calendarId}/calendarView${filter}`,
+        }));
+        const response = await fetch("https://graph.microsoft.com/v1.0/$batch", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ requests }),
         });
+        const responseBody = await handleErrorsJson(response);
+        return responseBody.responses.reduce(
+          (acc: BufferedBusyTime[], subResponse: { body: { value: any[] } }) =>
+            acc.concat(
+              subResponse.body.value.map((evt) => {
+                return {
+                  start: evt.start.dateTime + "Z",
+                  end: evt.end.dateTime + "Z",
+                };
+              })
+            ),
+          []
+        );
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.log(err);
         return Promise.reject([]);
       });
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    return this.auth.getToken().then((accessToken) =>
+    return (await this.auth).getToken().then((accessToken) =>
       fetch("https://graph.microsoft.com/v1.0/me/calendars", {
         method: "get",
         headers: {
@@ -187,38 +182,41 @@ export default class Office365CalendarService implements Calendar {
     );
   }
 
-  private o365Auth = (credential: Credential) => {
+  private o365Auth = async (credential: Credential) => {
+    const appKeys = await getAppKeysFromSlug("office365-calendar");
+    if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+    if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+    if (!client_id) throw new HttpError({ statusCode: 400, message: "office365 client_id missing." });
+    if (!client_secret) throw new HttpError({ statusCode: 400, message: "office365 client_secret missing." });
+
     const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
 
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 
-    const refreshAccessToken = (refreshToken: string) => {
-      return fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+    const refreshAccessToken = async (refreshToken: string) => {
+      const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           scope: "User.Read Calendars.Read Calendars.ReadWrite",
-          client_id: MS_GRAPH_CLIENT_ID,
+          client_id,
           refresh_token: refreshToken,
           grant_type: "refresh_token",
-          client_secret: MS_GRAPH_CLIENT_SECRET,
+          client_secret,
         }),
-      })
-        .then(handleErrorsJson)
-        .then((responseBody) => {
-          o365AuthCredentials.access_token = responseBody.access_token;
-          o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
-          return prisma.credential
-            .update({
-              where: {
-                id: credential.id,
-              },
-              data: {
-                key: o365AuthCredentials,
-              },
-            })
-            .then(() => o365AuthCredentials.access_token);
-        });
+      });
+      const responseBody = await handleErrorsJson(response);
+      o365AuthCredentials.access_token = responseBody.access_token;
+      o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+      await prisma.credential.update({
+        where: {
+          id: credential.id,
+        },
+        data: {
+          key: o365AuthCredentials,
+        },
+      });
+      return o365AuthCredentials.access_token;
     };
 
     return {
