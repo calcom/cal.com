@@ -53,6 +53,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           appId: "zapier",
         },
       };
+      /* We also delete all user's zapier wehbooks */
+      data.webhooks = {
+        deleteMany: {
+          userId,
+          appId: "zapier",
+        },
+      };
     }
 
     await prisma.user.update({
