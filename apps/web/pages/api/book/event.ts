@@ -535,22 +535,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const calendarBusyTimes: EventBusyDate[] = await prisma.booking
       .findMany({
         where: {
-          AND: [
-            {
-              userId: currentUser.id,
-              eventTypeId: eventTypeId,
-            },
-            {
-              OR: [
-                {
-                  status: "ACCEPTED",
-                },
-                {
-                  status: "PENDING",
-                },
-              ],
-            },
-          ],
+          userId: currentUser.id,
+          eventTypeId: eventTypeId,
+          status: "ACCEPTED",
+          confirmed: true,
         },
       })
       .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
