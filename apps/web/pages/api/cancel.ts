@@ -1,5 +1,4 @@
 import { BookingStatus, Credential, WebhookTriggerEvents } from "@prisma/client";
-import { SubscriptionType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -15,7 +14,7 @@ import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
-import getSubscribers from "@lib/webhooks/subscriptions";
+import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -147,39 +146,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { type: "zapier_other" },
       ],
     },
+    include: {
+      app: true,
+    },
   });
 
-  const subscriberPromises = [
-    getSubscribers({
-      ...subscriberOptions,
-      subscriptionType: SubscriptionType.WEBHOOK,
-    }),
-  ];
-
-  if (zapierAppInstalled) {
-    subscriberPromises.push(
-      getSubscribers({
-        ...subscriberOptions,
-        subscriptionType: SubscriptionType.ZAPIER,
-      })
-    );
-  }
-
-  const allSubscribers = await Promise.all(subscriberPromises);
-
-  const promises = allSubscribers.map((subArray) =>
-    subArray.map((sub) =>
-      sendPayload(
-        eventTrigger,
-        new Date().toISOString(),
-        sub.subscriberUrl,
-        evt,
-        sub.subscriptionType,
-        sub.payloadTemplate
-      ).catch((e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      })
-    )
+  const webhooks = await getWebhooks(subscriberOptions);
+  const promises = webhooks.map((webhook) =>
+    sendPayload(eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+    })
   );
 
   await Promise.all(promises);

@@ -6,7 +6,6 @@ import {
   SchedulingType,
   WebhookTriggerEvents,
 } from "@prisma/client";
-import { SubscriptionType } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -759,46 +758,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscriberPromises = [
-    getSubscribers({
-      ...subscriberOptions,
-      subscriptionType: SubscriptionType.WEBHOOK,
-    }),
-  ];
-
-  if (zapierAppInstalled) {
-    subscriberPromises.push(
-      getSubscribers({
-        ...subscriberOptions,
-        subscriptionType: SubscriptionType.ZAPIER,
-      })
-    );
-  }
-
-  const allSubscribers = await Promise.all(subscriberPromises);
-
+  const subscribers = await getSubscribers(subscriberOptions);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
   });
-
-  const promises = allSubscribers.map((subArray) =>
-    subArray.map((sub) =>
-      sendPayload(
-        eventTrigger,
-        new Date().toISOString(),
-        sub.subscriberUrl,
-        {
-          ...evt,
-          rescheduleUid,
-          metadata: reqBody.metadata,
-        },
-        sub.subscriptionType,
-        sub.payloadTemplate
-      ).catch((e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      })
-    )
+  const promises = subscribers.map((sub) =>
+    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+      ...evt,
+      rescheduleUid,
+      metadata: reqBody.metadata,
+    }).catch((e) => {
+      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+    })
   );
   await Promise.all(promises);
   // Avoid passing referencesToCreate with id unique constrain values

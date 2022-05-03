@@ -1,5 +1,3 @@
-import { SubscriptionType } from "@prisma/client";
-import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 } from "uuid";
 
@@ -13,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "No API key provided" });
   }
 
-  const validKey = await findValidApiKey(apiKey, ApiKeyType.ZAPIER);
+  const validKey = await findValidApiKey(apiKey, "zapier");
 
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });
@@ -30,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           eventTriggers: [triggerEvent],
           subscriberUrl,
           active: true,
-          subscriptionType: SubscriptionType.ZAPIER,
+          appId: "zapier",
         },
       });
       res.status(200).json(createSubscription);

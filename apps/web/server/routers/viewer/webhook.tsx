@@ -1,4 +1,4 @@
-import { SubscriptionType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
@@ -18,23 +18,16 @@ export const webhookRouter = createProtectedRouter()
       })
       .optional(),
     async resolve({ ctx, input }) {
+      let where: Prisma.WebhookWhereInput = {
+        NOT: { appId: "zapier" /* Don't mixup zapier webhooks with normal ones */ },
+      };
       if (input?.eventTypeId) {
-        return await ctx.prisma.webhook.findMany({
-          where: {
-            eventTypeId: input.eventTypeId,
-            NOT: {
-              subscriptionType: SubscriptionType.ZAPIER,
-            },
-          },
-        });
+        where.eventTypeId = input.eventTypeId;
+      } else {
+        where.userId = ctx.user.id;
       }
       return await ctx.prisma.webhook.findMany({
-        where: {
-          userId: ctx.user.id,
-          NOT: {
-            subscriptionType: SubscriptionType.ZAPIER,
-          },
-        },
+        where,
       });
     },
   })
@@ -45,15 +38,13 @@ export const webhookRouter = createProtectedRouter()
       active: z.boolean(),
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
-      subscriptionType: z.nativeEnum(SubscriptionType).optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
-      const subscriptionType = input.subscriptionType || SubscriptionType.WEBHOOK;
       if (input.eventTypeId) {
         return await ctx.prisma.webhook.create({
           data: {
             id: v4(),
-            subscriptionType,
             ...input,
           },
         });
@@ -61,7 +52,6 @@ export const webhookRouter = createProtectedRouter()
       return await ctx.prisma.webhook.create({
         data: {
           id: v4(),
-          subscriptionType,
           userId: ctx.user.id,
           ...input,
         },
@@ -76,7 +66,7 @@ export const webhookRouter = createProtectedRouter()
       active: z.boolean().optional(),
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
-      subscriptionType: z.nativeEnum(SubscriptionType).optional(),
+      appId: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
@@ -151,7 +141,7 @@ export const webhookRouter = createProtectedRouter()
       payloadTemplate: z.string().optional().nullable(),
     }),
     async resolve({ input }) {
-      const { url, type, payloadTemplate } = input;
+      const { url, type, payloadTemplate = null } = input;
       const translation = await getTranslation("en", "common");
       const language = {
         locale: "en",
@@ -182,14 +172,8 @@ export const webhookRouter = createProtectedRouter()
       };
 
       try {
-        return await sendPayload(
-          type,
-          new Date().toISOString(),
-          url,
-          data,
-          SubscriptionType.WEBHOOK,
-          payloadTemplate
-        );
+        const webhook = { subscriberUrl: url, payloadTemplate, appId: null };
+        return await sendPayload(type, new Date().toISOString(), webhook, data);
       } catch (_err) {
         const error = getErrorFromUnknown(_err);
         return {

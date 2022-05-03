@@ -1,4 +1,3 @@
-import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import _metadataZapier from "@calcom/app-store/zapier/_metadata";
@@ -58,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const apiKeyToDelete = await prisma.apiKey.findFirst({
         where: {
           userId: session?.user?.id,
-          apiKeyType: ApiKeyType.ZAPIER,
+          appId: "zapier",
         },
       });
 

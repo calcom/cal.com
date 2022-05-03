@@ -1,5 +1,4 @@
 import { ClipboardCopyIcon } from "@heroicons/react/solid";
-import { ApiKeyType } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -16,13 +15,15 @@ interface IZapierSetupProps {
   trpc: any;
 }
 
+const ZAPIER = "zapier";
+
 export default function ZapierSetup(props: IZapierSetupProps) {
   const { trpc } = props;
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
   const integrations = trpc.useQuery(["viewer.integrations"]);
-  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { apiKeyType: ApiKeyType.ZAPIER }]);
+  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
@@ -31,7 +32,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const showContent = integrations.data && integrations.isSuccess && credentialId;
 
   async function createApiKey() {
-    const event = { note: "Zapier", expiresAt: null, apiKeyType: ApiKeyType.ZAPIER };
+    const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
     const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
