@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-import { Prisma } from "@calcom/prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 async function getBooking(prisma: PrismaClient, uid: string) {
   const booking = await prisma.booking.findFirst({

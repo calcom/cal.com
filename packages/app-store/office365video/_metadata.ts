@@ -6,7 +6,6 @@ import _package from "./package.json";
 export const metadata = {
   name: "Microsoft 365/Teams",
   description: _package.description,
-  installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
   type: "office365_video",
   imageSrc: "/api/app-store/office365video/icon.svg",
   variant: "conferencing",

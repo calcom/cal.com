@@ -1,15 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-const client_id = process.env.ZOOM_CLIENT_ID;
-const client_secret = process.env.ZOOM_CLIENT_SECRET;
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+
+let client_id = "";
+let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
 
-  const redirectUri = encodeURI(BASE_URL + "/api/integrations/zoomvideo/callback");
+  const appKeys = await getAppKeysFromSlug("zoom");
+  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  if (!client_id) return res.status(400).json({ message: "Zoom client_id missing." });
+  if (!client_secret) return res.status(400).json({ message: "Zoom client_secret missing." });
+
+  const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/zoomvideo/callback");
   const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
   const result = await fetch(
     "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
