@@ -15,6 +15,7 @@ import * as slackmessaging from "./slackmessaging";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as wipemycalother from "./wipemycalother";
+import * as zapier from "./zapier";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
@@ -36,6 +37,7 @@ const appStore = {
   wipemycalother,
   metamask,
   giphy,
+  zapier,
 };
 
 export default appStore;
