@@ -31,7 +31,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
@@ -2271,8 +2271,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-
-  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";

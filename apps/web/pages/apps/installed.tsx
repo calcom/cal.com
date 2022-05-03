@@ -112,7 +112,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
-  installed: boolean;
+  installed?: boolean;
 }) {
   const { t } = useLocale();
   const [credentialId] = props.credentialIds;
