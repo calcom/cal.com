@@ -6,7 +6,6 @@ import _package from "./package.json";
 export const metadata = {
   name: "Zoom Video",
   description: _package.description,
-  installed: !!(process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET),
   type: "zoom_video",
   imageSrc: "/api/app-store/zoomvideo/icon.svg",
   variant: "conferencing",
