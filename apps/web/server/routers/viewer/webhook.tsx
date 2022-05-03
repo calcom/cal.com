@@ -19,12 +19,14 @@ export const webhookRouter = createProtectedRouter()
       .optional(),
     async resolve({ ctx, input }) {
       let where: Prisma.WebhookWhereInput = {
-        NOT: { appId: "zapier" /* Don't mixup zapier webhooks with normal ones */ },
+        AND: [{ appId: null /* Don't mixup zapier webhooks with normal ones */ }],
       };
-      if (input?.eventTypeId) {
-        where.eventTypeId = input.eventTypeId;
-      } else {
-        where.userId = ctx.user.id;
+      if (Array.isArray(where.AND)) {
+        if (input?.eventTypeId) {
+          where.AND?.push({ eventTypeId: input.eventTypeId });
+        } else {
+          where.AND?.push({ userId: ctx.user.id });
+        }
       }
       return await ctx.prisma.webhook.findMany({
         where,
@@ -66,7 +68,7 @@ export const webhookRouter = createProtectedRouter()
       active: z.boolean().optional(),
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
-      appId: z.string().optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;

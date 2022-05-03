@@ -21,7 +21,7 @@ export const apiKeysRouter = createProtectedRouter()
   })
   .query("findKeyOfType", {
     input: z.object({
-      appId: z.string().optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       return await ctx.prisma.apiKey.findFirst({
