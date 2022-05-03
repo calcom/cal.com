@@ -30,7 +30,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
