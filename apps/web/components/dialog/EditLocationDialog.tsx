@@ -1,7 +1,7 @@
 import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { Controller, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useForm, UseFormReturn, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -37,7 +37,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
   const [currentLocation, setCurrentLocation] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState(selection);
   const [incomingFormMethods, setIncomingFormMethods] = useState(formMethods);
 
   useEffect(() => {
@@ -52,7 +51,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         locationFormMethods.unregister("locationLink");
         locationFormMethods.unregister("locationAddress");
       }
-      setSelectedLocation(selection);
       setIncomingFormMethods(formMethods);
     }
   }, [isSuccess, selection, formMethods]);
@@ -79,6 +77,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     resolver: zodResolver(locationFormSchema),
   });
 
+  const selectedLocation = useWatch({
+    control: locationFormMethods.control,
+    name: "locationType",
+    defaultValue: selection ? selection.value : undefined,
+  });
+
   const applyNamingFormat = (location: string) => {
     let finalString = location;
     if (location.substring(0, 13) === "integrations:") {
@@ -93,7 +97,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     if (!selectedLocation) {
       return null;
     }
-    switch (selectedLocation.value) {
+    switch (selectedLocation) {
       case LocationType.InPerson:
         return (
           <div>
@@ -227,7 +231,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <Select
                   maxMenuHeight={150}
                   name="location"
-                  defaultValue={selectedLocation}
+                  defaultValue={selection}
                   options={locationOptions}
                   isSearchable={false}
                   className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
@@ -236,7 +240,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       locationFormMethods.setValue("locationType", val.value);
                       locationFormMethods.unregister("locationLink");
                       locationFormMethods.unregister("locationAddress");
-                      setSelectedLocation(val);
                     }
                   }}
                 />
