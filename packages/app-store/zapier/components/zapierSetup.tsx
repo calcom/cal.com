@@ -1,7 +1,7 @@
 import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { ApiKeyType } from "@prisma/client";
+import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,7 +18,6 @@ interface IZapierSetupProps {
 
 export default function ZapierSetup(props: IZapierSetupProps) {
   const { trpc } = props;
-  const router = useRouter();
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -91,13 +90,15 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 </>
               )}
 
-              <ul className="mt-5 mb-5 mr-5">
-                <li>{t("log_into_zapier_account")}</li>
-                <li>{t("select_cal_trigger_app")}</li>
-                <li>{t("choose_account_enter_key")}</li>
-                <li>{t("test_your_trigger")}</li>
-                <li>{t("you_are_set")}</li>
-              </ul>
+              <ol className="mt-5 mb-5 mr-5 list-decimal">
+                <Trans i18nKey="zapier_setup_instructions">
+                  <li>Log into your Zapier account and create a new Zap.</li>
+                  <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
+                  <li>Choose your account and then enter your Unique API Key.</li>
+                  <li>Test your Trigger.</li>
+                  <li>You&apos;re set!</li>
+                </Trans>
+              </ol>
               <Link href={"/apps/installed"} passHref={true}>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
