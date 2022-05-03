@@ -1,8 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import { ZapierSetup } from "@calcom/app-store/zapierother/components";
-import _packageZapier from "@calcom/app-store/zapierother/package.json";
+import { ZapierSetup } from "@calcom/app-store/zapier/components";
+import _packageZapier from "@calcom/app-store/zapier/package.json";
 
 import { trpc } from "@lib/trpc";
 

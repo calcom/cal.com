@@ -1,7 +1,7 @@
 import { ApiKeyType } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import _metadataZapier from "@calcom/app-store/zapierother/_metadata";
+import _metadataZapier from "@calcom/app-store/zapier/_metadata";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";

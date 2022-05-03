@@ -7,7 +7,7 @@
 
 # Setting up Zapier Integration
 
-If you run it on localhost, check out the [additional information](https://github.com/CarinaWolli/cal.com/edit/feat/zapier-app/packages/app-store/zapierother/README.md#localhost) below.
+If you run it on localhost, check out the [additional information](https://github.com/CarinaWolli/cal.com/edit/feat/zapier-app/packages/app-store/zapier/README.md#localhost) below.
 
 1. Create [Zapier Account](https://zapier.com/sign-up?next=https%3A%2F%2Fdeveloper.zapier.com%2F)
 2. If not redirected to developer account, go to: [Zapier Developer Account](https://developer.zapier.com)
@@ -26,7 +26,7 @@ If you run it on localhost, check out the [additional information](https://githu
     - Key: apiKey
     - Check the box ‘is this field required?’
 3. Configure a Test
-    - Test: GET ```<baseUrl>```/api/integrations/zapierother/listBookings
+    - Test: GET ```<baseUrl>```/api/integrations/zapier/listBookings
     - URL Params
         - apiKey: {{bundle.authData.apiKey}}
 4. Test your authentication —> First you have to install Zapier in the Cal.com App Store and generate an API key, use this API key to test your authentication (only zapier Api key works)
@@ -44,14 +44,14 @@ Booking created, Booking rescheduled, Booking cancelled
     - Description: Triggers when a new booking is created
 2. API Configuration (apiKey is set automatically, leave it like it is):
     - Trigger Type: REST Hook
-    - Subscribe: POST ```<baseUrl>```/api/integrations/zapierother/addSubscription
+    - Subscribe: POST ```<baseUrl>```/api/integrations/zapier/addSubscription
         - Request Body
             - subscriberUrl: {{bundle.targetUrl}}
             - triggerEvent: BOOKING_CREATED
-    - Unsubscribe: DELETE ```<baseUrl>```/api/integrations/zapierother/deleteSubscription
+    - Unsubscribe: DELETE ```<baseUrl>```/api/integrations/zapier/deleteSubscription
         - URL Params (in addition to apiKey)
             - id: {{bundle.subscribeData.id}}
-    - PerformList: GET ```<baseUrl>```/api/integrations/zapierother/listBookings
+    - PerformList: GET ```<baseUrl>```/api/integrations/zapier/listBookings
 3. Test your API request
 
 Create the other two triggers (booking rescheduled, booking cancelled) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
