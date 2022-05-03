@@ -84,6 +84,7 @@ async function main() {
       api_key: process.env.GIPHY_API_KEY,
     });
   }
+  await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");
