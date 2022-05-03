@@ -1,8 +1,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+import _zapierMetadata from "@calcom/app-store/zapier/_metadata";
 import { ZapierSetup } from "@calcom/app-store/zapier/components";
-import _packageZapier from "@calcom/app-store/zapier/package.json";
 
 import { trpc } from "@lib/trpc";
 
@@ -30,7 +30,7 @@ export default function SetupInformation() {
     });
   }
 
-  if (appName === _packageZapier.name.toLowerCase() && status === "authenticated") {
+  if (appName === _zapierMetadata.name.toLowerCase() && status === "authenticated") {
     return <ZapierSetup trpc={trpc}></ZapierSetup>;
   }
 
