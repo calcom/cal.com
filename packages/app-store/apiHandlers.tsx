@@ -15,6 +15,7 @@ export const apiHandlers = {
   huddle01video: import("./huddle01video/api"),
   metamask: import("./metamask/api"),
   giphy: import("./giphy/api"),
+  zapier: import("./zapier/api"),
 };
 
 export default apiHandlers;
