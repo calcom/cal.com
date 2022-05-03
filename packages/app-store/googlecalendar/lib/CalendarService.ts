@@ -163,7 +163,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async updateEvent(uid: string, externalCalendarId: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -213,11 +213,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, externalCalendarId: string, event: CalendarEvent): Promise<void> {
-    console.log(
-      "🚀 ~ file: CalendarService.ts ~ line 217 ~ GoogleCalendarService ~ deleteEvent ~ externalCalendarId",
-      externalCalendarId
-    );
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();

@@ -137,7 +137,7 @@ export const updateEvent = async (
 
   const updatedResult =
     calendar && bookingRefUid
-      ? await calendar.updateEvent(bookingRefUid, externalCalendarId, calEvent).catch((e) => {
+      ? await calendar.updateEvent(bookingRefUid, calEvent, externalCalendarId).catch((e) => {
           log.error("updateEvent failed", e, calEvent);
           success = false;
           return undefined;

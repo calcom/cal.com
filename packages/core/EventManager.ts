@@ -351,11 +351,11 @@ export default class EventManager {
         ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
         : null;
 
-      const bookingExternalCalendarId = booking
-        ? booking.references.filter((ref) => ref.type === credential.type)[0]?.externalCalendarId
+      const bookingExternalCalendarId = booking.references
+        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
         : null;
 
-      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId);
+      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
     });
   }
 

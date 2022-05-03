@@ -173,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (credential.type.endsWith("_calendar")) {
         const calendar = getCalendar(credential);
 
-        return calendar?.deleteEvent(bookingRefUid, bookingExternalCalendarId, evt);
+        return calendar?.deleteEvent(bookingRefUid, evt, bookingExternalCalendarId);
       } else if (credential.type.endsWith("_video")) {
         return deleteMeeting(credential, bookingRefUid);
       }
