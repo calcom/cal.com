@@ -388,6 +388,8 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId           String?
 }
 
 model Impersonations {
@@ -408,6 +410,8 @@ model ApiKey {
   lastUsedAt DateTime?
   hashedKey  String    @unique()
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
 }
 
 model HashedLink {
@@ -465,4 +469,6 @@ model App {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   credentials Credential[]
+  Webhook     Webhook[]
+  ApiKey      ApiKey[]
 }

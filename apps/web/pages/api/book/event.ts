@@ -753,17 +753,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     metadata: reqBody.metadata,
   });
   const promises = subscribers.map((sub) =>
-    sendPayload(
-      eventTrigger,
-      new Date().toISOString(),
-      sub.subscriberUrl,
-      {
-        ...evt,
-        rescheduleUid,
-        metadata: reqBody.metadata,
-      },
-      sub.payloadTemplate
-    ).catch((e) => {
+    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+      ...evt,
+      rescheduleUid,
+      metadata: reqBody.metadata,
+    }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
   );
