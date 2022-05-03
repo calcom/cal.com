@@ -10,13 +10,13 @@ import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
 import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
 import OrganizerCancelledEmail from "@lib/emails/templates/organizer-cancelled-email";
+import OrganizerLocationChangeEmail from "@lib/emails/templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "@lib/emails/templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "@lib/emails/templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "@lib/emails/templates/organizer-request-reminder-email";
 import OrganizerRequestRescheduleEmail from "@lib/emails/templates/organizer-request-reschedule-email";
 import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
-import OrganizerLocationChangeEmail from "@lib/emails/templates/orgranizer-location-change-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
