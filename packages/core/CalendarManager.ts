@@ -128,7 +128,8 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
 export const updateEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  bookingRefUid: string | null
+  bookingRefUid: string | null,
+  externalCalendarId: string | null
 ): Promise<EventResult> => {
   const uid = getUid(calEvent);
   const calendar = getCalendar(credential);
@@ -136,7 +137,7 @@ export const updateEvent = async (
 
   const updatedResult =
     calendar && bookingRefUid
-      ? await calendar.updateEvent(bookingRefUid, calEvent).catch((e) => {
+      ? await calendar.updateEvent(bookingRefUid, externalCalendarId, calEvent).catch((e) => {
           log.error("updateEvent failed", e, calEvent);
           success = false;
           return undefined;
