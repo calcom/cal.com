@@ -746,17 +746,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     triggerEvent: eventTrigger,
   };
 
-  const zapierAppInstalled = await prisma.credential.findFirst({
-    where: {
-      AND: [
-        {
-          userId: user.id,
-        },
-        { type: "zapier_other" },
-      ],
-    },
-  });
-
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getSubscribers(subscriberOptions);
   console.log("evt:", {
