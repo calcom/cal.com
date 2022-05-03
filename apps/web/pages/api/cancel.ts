@@ -136,14 +136,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
     triggerEvent: eventTrigger,
   };
-
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
     })
   );
-
   await Promise.all(promises);
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel

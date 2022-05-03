@@ -1,6 +1,5 @@
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import _metadataZapier from "@calcom/app-store/zapier/_metadata";
 
 import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
@@ -12,8 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Check that user is authenticated
   const session = await getSession({ req });
+  const userId = session?.user?.id;
 
-  if (!session) {
+  if (!userId) {
     res.status(401).json({ message: "You must be logged in to do this" });
     return;
   }
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const credentials = await prisma.credential.findMany({
       where: {
-        userId: session.user?.id,
+        userId,
       },
       select: {
         type: true,
@@ -33,40 +33,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method == "DELETE") {
     const id = req.body.id;
-
-    const integration = await prisma.credential.findFirst({
+    const data: Prisma.UserUpdateInput = {
+      credentials: {
+        delete: {
+          id,
+        },
+      },
+    };
+    const integration = await prisma.credential.findUnique({
       where: {
         id,
       },
     });
+    /* If the user deletes a zapier integration, we delete all his api keys as well. */
+    if (integration?.appId === "zapier") {
+      data.apiKeys = {
+        deleteMany: {
+          userId,
+          appId: "zapier",
+        },
+      };
+    }
 
     await prisma.user.update({
       where: {
-        id: session?.user?.id,
+        id: userId,
       },
-      data: {
-        credentials: {
-          delete: {
-            id,
-          },
-        },
-      },
+      data,
     });
-
-    if (integration?.type === _metadataZapier.type) {
-      const apiKeyToDelete = await prisma.apiKey.findFirst({
-        where: {
-          userId: session?.user?.id,
-          appId: "zapier",
-        },
-      });
-
-      await prisma.apiKey.delete({
-        where: {
-          id: apiKeyToDelete?.id,
-        },
-      });
-    }
 
     res.status(200).json({ message: "Integration deleted successfully" });
   }
