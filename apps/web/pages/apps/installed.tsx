@@ -190,7 +190,7 @@ function IntegrationsContainer() {
                     credentialIds={item.credentialIds}
                     type={item.type}
                     isGlobal={item.isGlobal}
-                    installed={item.installed}
+                    installed
                   />
                 }
               />
