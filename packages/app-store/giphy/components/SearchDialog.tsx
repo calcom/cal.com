@@ -30,7 +30,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     }
     setIsLoading(true);
     setErrorMessage("");
-    const res = await fetch("/api/integrations/giphyother/search", {
+    const res = await fetch("/api/integrations/giphy/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
