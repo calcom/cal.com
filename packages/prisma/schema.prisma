@@ -376,28 +376,19 @@ enum WebhookTriggerEvents {
   BOOKING_CANCELLED
 }
 
-enum SubscriptionType {
-  WEBHOOK
-  ZAPIER
-}
-
 model Webhook {
-  id               String                 @id @unique
-  userId           Int?
-  eventTypeId      Int?
-  subscriberUrl    String
-  payloadTemplate  String?
-  createdAt        DateTime               @default(now())
-  active           Boolean                @default(true)
-  eventTriggers    WebhookTriggerEvents[]
-  user             User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventType        EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  subscriptionType SubscriptionType       @default(WEBHOOK)
-}
-
-enum ApiKeyType {
-  OTHER
-  ZAPIER
+  id              String                 @id @unique
+  userId          Int?
+  eventTypeId     Int?
+  subscriberUrl   String
+  payloadTemplate String?
+  createdAt       DateTime               @default(now())
+  active          Boolean                @default(true)
+  eventTriggers   WebhookTriggerEvents[]
+  user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId           String?
 }
 
 model Impersonations {
@@ -410,15 +401,16 @@ model Impersonations {
 }
 
 model ApiKey {
-  id         String     @id @unique @default(cuid())
+  id         String    @id @unique @default(cuid())
   userId     Int
   note       String?
-  createdAt  DateTime   @default(now())
+  createdAt  DateTime  @default(now())
   expiresAt  DateTime?
   lastUsedAt DateTime?
-  hashedKey  String     @unique()
-  apiKeyType ApiKeyType @default(OTHER)
-  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashedKey  String    @unique()
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
 }
 
 model HashedLink {
@@ -476,4 +468,6 @@ model App {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   credentials Credential[]
+  Webhook     Webhook[]
+  ApiKey      ApiKey[]
 }
