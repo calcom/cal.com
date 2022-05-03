@@ -225,7 +225,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               control={locationFormMethods.control}
               render={() => (
                 <Select
-                  maxMenuHeight={200}
+                  maxMenuHeight={150}
                   name="location"
                   defaultValue={selectedLocation}
                   options={locationOptions}
