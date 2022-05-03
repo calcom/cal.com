@@ -11,9 +11,11 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
+import { parseRecurringDates } from "@lib/parseDate";
 import { inferQueryOutput, trpc, inferQueryInput } from "@lib/trpc";
 
 import { useMeQuery } from "@components/Shell";
@@ -128,6 +130,17 @@ function BookingListItem(booking: BookingItemProps) {
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [];
+  if (booking.eventType.recurringEvent && booking.eventType.recurringEvent.freq !== null) {
+    [recurringStrings] = parseRecurringDates(
+      booking.startTime,
+      i18n,
+      booking.eventType.recurringEvent,
+      booking.recurringCount._count
+    );
+  }
   return (
     <>
       <RescheduleDialog
@@ -181,23 +194,30 @@ function BookingListItem(booking: BookingItemProps) {
               booking.eventType.recurringEvent &&
               booking.eventType.recurringEvent.freq &&
               booking.listingStatus === "upcoming" && (
-                <>
-                  <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                  {t("every_for_freq", {
-                    freq: t(
-                      `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                        .toString()
-                        .toLowerCase()}`
-                    ),
-                  })}{" "}
-                  {booking.recurringCount._count}{" "}
-                  {t(
-                    `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                      .toString()
-                      .toLowerCase()}`,
-                    { count: booking.recurringCount._count }
-                  )}
-                </>
+                <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
+                  <div className="flex">
+                    <Tooltip
+                      content={recurringStrings.map((aDate, key) => (
+                        <p key={key}>{aDate}</p>
+                      ))}>
+                      <p className="text-gray-600 dark:text-white">
+                        <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        {`${t("every_for_freq", {
+                          freq: t(
+                            `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                              .toString()
+                              .toLowerCase()}`
+                          ),
+                        })} ${booking.recurringCount._count} ${t(
+                          `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                            .toString()
+                            .toLowerCase()}`,
+                          { count: booking.recurringCount._count }
+                        )}`}
+                      </p>
+                    </Tooltip>
+                  </div>
+                </div>
               )}
           </div>
         </td>
