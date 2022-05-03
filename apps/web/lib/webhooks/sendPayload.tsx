@@ -1,4 +1,4 @@
-import { SubscriptionType } from "@prisma/client";
+import { Webhook } from "@prisma/client";
 import { compile } from "handlebars";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -25,14 +25,13 @@ function jsonParse(jsonString: string) {
 const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
-  subscriberUrl: string,
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   data: CalendarEvent & {
     metadata?: { [key: string]: string };
     rescheduleUid?: string;
-  },
-  subscriptionType: SubscriptionType,
-  template?: string | null
+  }
 ) => {
+  const { subscriberUrl, appId, payloadTemplate: template } = webhook;
   if (!subscriberUrl || !data) {
     throw new Error("Missing required elements to send webhook payload.");
   }
@@ -44,7 +43,8 @@ const sendPayload = async (
 
   let body;
 
-  if (subscriptionType === SubscriptionType.ZAPIER) {
+  /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
+  if (appId === "zapier") {
     body = JSON.stringify(data);
   } else if (template) {
     body = applyTemplate(template, data, contentType);
