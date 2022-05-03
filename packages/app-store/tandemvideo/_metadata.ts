@@ -6,7 +6,6 @@ import _package from "./package.json";
 export const metadata = {
   name: "Tandem Video",
   description: _package.description,
-  installed: !!(process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET),
   type: "tandem_video",
   title: "Tandem Video",
   imageSrc: "/api/app-store/tandemvideo/icon.svg",
