@@ -137,20 +137,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     triggerEvent: eventTrigger,
   };
 
-  const zapierAppInstalled = await prisma.credential.findFirst({
-    where: {
-      AND: [
-        {
-          userId: bookingToDelete.userId,
-        },
-        { type: "zapier_other" },
-      ],
-    },
-    include: {
-      app: true,
-    },
-  });
-
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
