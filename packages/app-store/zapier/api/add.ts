@@ -2,11 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-/**
- * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
- * @param req
- * @param res
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
