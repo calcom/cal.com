@@ -157,8 +157,8 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   };
 
   return {
-    getAvailability: () => {
-      return auth
+    getAvailability: async () => {
+      return (await auth)
         .getToken()
         .then(
           // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
@@ -186,7 +186,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         });
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       const result = await fetch("https://api.zoom.us/v2/users/me/meetings", {
         method: "POST",
@@ -205,7 +205,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       });
     },
     deleteMeeting: async (uid: string): Promise<void> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       await fetch("https://api.zoom.us/v2/meetings/" + uid, {
         method: "DELETE",
@@ -217,7 +217,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       return Promise.resolve();
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       await fetch("https://api.zoom.us/v2/meetings/" + bookingRef.uid, {
         method: "PATCH",
