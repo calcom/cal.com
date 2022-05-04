@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: appType,
         key: {},
         userId: req.session.user.id,
+        appId: "wipe-my-cal",
       },
     });
     if (!installation) {
