@@ -87,7 +87,13 @@ async function main() {
     });
   }
   await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
-  await createApp("vital-automation", "vital", ["other"], "vital_other");
+  await createApp("vital-automation", "vital", ["other"], "vital_other", {
+    mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+    region: process.env.VITAL_REGION || "us",
+    client_id: process.env.VITAL_CLIENT_ID,
+    client_secret: process.env.VITAL_CLIENT_SECRET,
+    webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+  });
   await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");

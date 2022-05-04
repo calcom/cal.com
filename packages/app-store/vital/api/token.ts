@@ -1,17 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { VitalClient } from "@tryvital/vital-node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { VITAL_ENV as vitalEnv } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-const client = new VitalClient({
-  client_id: vitalEnv.client_id || "",
-  client_secret: vitalEnv.client_secret || "",
-  // @ts-ignore
-  environment: vitalEnv.mode || "sandbox",
-});
+import vitalClient, { initVitalClient, vitalEnv } from "../lib/client";
 
 /**
  * This is will generate a user token for a client_user_id`
@@ -22,28 +15,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Get user id
   const calcomUserId = req.session?.user?.id;
   if (!calcomUserId) {
-    res.status(400).json({ error: "No user id" });
+    return res.status(401).json({ message: "You must be logged in to do this" });
   }
+
+  await initVitalClient();
+
+  if (!vitalClient || !vitalEnv)
+    return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });
 
   // Create a user on vital
   let userVital;
   try {
-    userVital = await client.User.create(`cal_${calcomUserId}`);
+    userVital = await vitalClient.User.create(`cal_${calcomUserId}`);
   } catch (e) {
-    userVital = await client.User.resolve(`cal_${calcomUserId}`);
+    userVital = await vitalClient.User.resolve(`cal_${calcomUserId}`);
   }
 
   try {
-    if (userVital && userVital?.user_id) {
+    if (userVital?.user_id) {
       await prisma.credential.create({
         data: {
           type: "vital_other",
-          key: { userVitalId: userVital?.user_id } as unknown as Prisma.InputJsonObject,
-          userId: req.session?.user.id,
+          key: { userVitalId: userVital.user_id } as unknown as Prisma.InputJsonObject,
+          userId: calcomUserId,
+          appId: "vital-automation",
         },
       });
     }
-    const token = await client.Link.create(
+    const token = await vitalClient.Link.create(
       userVital?.user_id,
       undefined,
       WEBAPP_URL + "/api/integrations/vital/callback"

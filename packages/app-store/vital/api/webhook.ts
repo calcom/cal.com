@@ -1,11 +1,8 @@
-import { Prisma } from "@prisma/client";
-import { BookingStatus } from "@prisma/client";
-import { VitalClient } from "@tryvital/vital-node";
+import { BookingStatus, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 
-import { VITAL_ENV as vitalEnv } from "@calcom/lib/constants";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -13,17 +10,12 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import { Reschedule } from "../lib";
-
-const client = new VitalClient({
-  client_id: vitalEnv.client_id || "",
-  client_secret: vitalEnv.client_secret || "",
-  // @ts-ignore
-  environment: vitalEnv.mode || "sandbox",
-});
+import vitalClient, { initVitalClient, vitalEnv } from "../lib/client";
 
 // @Note: not being used anymore but left as example
 const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
-  const sleep_data = await client.Sleep.get_raw(user_id, bedtime_start, undefined, "oura");
+  if (!vitalClient) throw Error("Missing vital client");
+  const sleep_data = await vitalClient.Sleep.get_raw(user_id, bedtime_start, undefined, "oura");
   if (sleep_data.sleep.length === 0) {
     throw Error("No sleep score found");
   }
@@ -45,9 +37,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 400, message: "Missing svix-signature" });
     }
 
+    await initVitalClient();
+
+    if (!vitalClient || !vitalEnv)
+      return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });
+
     const payload = JSON.stringify(req.body);
 
-    const event: any = client.Webhooks.constructWebhookEvent(
+    const event: any = vitalClient.Webhooks.constructWebhookEvent(
       payload,
       req.headers as Record<string, string>,
       vitalEnv.webhook_secret as string
@@ -69,11 +66,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           });
           if (!credential) {
-            return res.status(404);
+            return res.status(404).json({ message: "Missing vital credential" });
           }
 
           // Getting total hours of sleep seconds/60/60 = hours
-          const userWithMetadata = await prisma?.user.findFirst({
+          const userWithMetadata = await prisma.user.findFirst({
             select: {
               metadata: true,
             },

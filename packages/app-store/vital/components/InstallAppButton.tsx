@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import { VITAL_ENV as vitalEnv } from "@calcom/lib/constants";
-
 import { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
@@ -19,7 +17,6 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
     return await res.json();
   };
   const [loading, setLoading] = useState(false);
-  console.log({ vitalEnv }, process.env);
   return (
     <>
       {props.render({
