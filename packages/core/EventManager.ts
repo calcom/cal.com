@@ -304,6 +304,7 @@ export default class EventManager {
       return undefined;
     }
 
+    /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
 
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));

@@ -113,7 +113,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
-  installed: boolean;
+  installed?: boolean;
 }) {
   const { t } = useLocale();
   const [credentialId] = props.credentialIds;
@@ -191,7 +191,7 @@ function IntegrationsContainer() {
                     credentialIds={item.credentialIds}
                     type={item.type}
                     isGlobal={item.isGlobal}
-                    installed={item.installed}
+                    installed
                   />
                 }></IntegrationListItem>
             ))}
@@ -257,7 +257,7 @@ function Web3Container() {
 
   return (
     <>
-      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} />
+      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
       <div className="lg:col-span-9 lg:pb-8">
         <List>
           <ListItem className={classNames("flex-col")}>
