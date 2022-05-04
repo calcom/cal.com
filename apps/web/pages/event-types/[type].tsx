@@ -950,11 +950,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
                       seatsPerTimeSlot,
-                      metadata: smartContractAddress
-                        ? {
-                            smartContractAddress,
-                          }
-                        : "",
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
