@@ -27,7 +27,7 @@ export const InstallAppButtonMap = {
   metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
   spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
-  vitalother: dynamic(() => import("./vitalother/components/InstallAppButton")),
+  vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (

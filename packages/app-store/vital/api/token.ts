@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = await client.Link.create(
       userVital?.user_id,
       undefined,
-      WEBAPP_URL + "/api/integrations/vitalother/callback"
+      WEBAPP_URL + "/api/integrations/vital/callback"
     );
     return res.status(200).json({
       token: token.link_token,

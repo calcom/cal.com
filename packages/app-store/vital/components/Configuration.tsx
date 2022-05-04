@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button } from "@calcom/ui";
-
-import Select from "@components/ui/form/Select";
+import { Button, Select } from "@calcom/ui";
 
 interface IVitalsConfigurationProps {
   trpc: any;
@@ -19,7 +17,7 @@ const saveSettings = async ({
   sleepValue: number;
 }) => {
   try {
-    const response = await fetch("/api/integrations/vitalother/save", {
+    const response = await fetch("/api/integrations/vital/save", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -65,7 +63,7 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
   const [saveLoading, setSaveLoading] = useState(false);
   useEffect(() => {
     async function getVitalsConfig() {
-      const response = await fetch("/api/integrations/vitalother/settings", {
+      const response = await fetch("/api/integrations/vital/settings", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

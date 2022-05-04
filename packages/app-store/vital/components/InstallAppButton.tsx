@@ -6,7 +6,7 @@ import { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const getLinkToken = async () => {
-    const res = await fetch("/api/integrations/vitalother/token", {
+    const res = await fetch("/api/integrations/vital/token", {
       method: "POST",
       body: JSON.stringify({}),
       headers: {

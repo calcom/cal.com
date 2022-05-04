@@ -781,16 +781,5 @@
   "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "go_to_app_store": "Go to App Store",
-  "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
-  "connected_vital_app": "Connected with",
-  "vital_app_sleep_automation": "Sleeping reschedule automation",
-  "vital_app_automation_description": "You can select different parameters to trigger the reschedule based on your sleeping metrics.",
-  "vital_app_parameter": "Parameter",
-  "vital_app_trigger": "Trigger at below or equal than",
-  "vital_app_save_button": "Save configuration",
-  "vital_app_total_label": "Total (total = rem + light sleep + deep sleep)",
-  "vital_app_duration_label": "Duration (duration = bedtime end - bedtime start)",
-  "vital_app_hours": "hours",
-  "vital_app_save_success": "Success saving your Vital Configurations",
-  "vital_app_save_error": "An error ocurred saving your Vital Configurations"
+  "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions"
 }
