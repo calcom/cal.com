@@ -24,6 +24,7 @@ export const InstallAppButtonMap = {
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
   giphyother: dynamic(() => import("./giphyother/components/InstallAppButton")),
+  spacebookingother: dynamic(() => import("./spacebookingother/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
