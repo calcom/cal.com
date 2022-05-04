@@ -13,7 +13,7 @@ export const metadata = {
   publisher: "Cal.com",
   rating: 0,
   reviews: 0,
-  slug: "spacebooking",
+  slug: "space-booking",
   title: "SpaceBooking",
   trending: true,
   type: "spacebooking_other",
