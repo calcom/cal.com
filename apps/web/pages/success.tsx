@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
 
-import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebookingother/components/SpaceBookingSuccessPage";
+import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components/SpaceBookingSuccessPage";
 import {
   useIsEmbed,
   useEmbedStyles,
