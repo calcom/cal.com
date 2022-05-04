@@ -274,7 +274,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
-  const [periodTypeLimitsVisible, setPeriodTypeLimitsVisible] = useState(periodType?.type !== "UNLIMITED");
+  const [periodTypeLimitsVisible, setPeriodTypeLimitsVisible] = useState<boolean>(
+    periodType?.type !== "UNLIMITED"
+  );
+  const [limitBookingFrequencyVisible, setLimitBookingFrequencyVisible] = useState<boolea>(
+    eventType.bookingPeriodLimit.length > 0
+  );
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -507,6 +512,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     };
     successRedirectUrl: string;
     giphyThankYouPage: string;
+    bookingFrequency: {
+      day: number;
+      week: number;
+      month: number;
+      year: number;
+    };
   }>({
     defaultValues: {
       locations: eventType.locations || [],
@@ -1654,20 +1665,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             }}
                           />
                         </div>
-                        <hr className="my-2 border-neutral-200" />
-
-                        <div className="block sm:flex">
-                          <div className="min-w-48 mb-4 sm:mb-0">
-                            <label
-                              htmlFor="inviteesCanSchedule"
-                              className="mt-2.5 flex text-sm font-medium text-neutral-700">
-                              {t("invitees_can_schedule")}
-                            </label>
-                          </div>
-                          <div className="w-full"></div>
-                        </div>
-                        <hr className="border-neutral-200" />
-
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
