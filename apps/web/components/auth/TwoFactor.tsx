@@ -29,8 +29,15 @@ export default function TwoFactor() {
     <div className="mx-auto !mt-0 max-w-sm">
       <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
       <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
-      <div className="flex flex-row space-x-1">
-        <Input className={className} name="2fa1" inputMode="decimal" {...digits[0]} autoFocus />
+      <div className="flex flex-row justify-between">
+        <Input
+          className={className}
+          name="2fa1"
+          inputMode="decimal"
+          {...digits[0]}
+          autoFocus
+          autoComplete="one-time-code"
+        />
         <Input className={className} name="2fa2" inputMode="decimal" {...digits[1]} />
         <Input className={className} name="2fa3" inputMode="decimal" {...digits[2]} />
         <Input className={className} name="2fa4" inputMode="decimal" {...digits[3]} />

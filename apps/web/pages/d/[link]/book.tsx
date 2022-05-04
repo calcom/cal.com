@@ -137,26 +137,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
-    return prisma.booking.findFirst({
-      where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
-      },
-      select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
-  let booking: Booking | null = null;
-
   const profile = {
     name: user.name || user.username,
     image: user.avatar,
@@ -174,7 +154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
-      booking,
+      booking: null,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking: false,
       hasHashedBookingLink: true,

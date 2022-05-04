@@ -1,7 +1,6 @@
+import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
-
-import { UserPlan } from "@calcom/prisma/client";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";

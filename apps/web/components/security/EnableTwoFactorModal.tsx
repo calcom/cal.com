@@ -173,6 +173,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   inputMode="numeric"
                   onInput={(e) => setTotpCode(e.currentTarget.value)}
                   className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                  autoComplete="one-time-code"
                 />
               </div>
 
