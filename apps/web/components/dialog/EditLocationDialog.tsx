@@ -26,18 +26,17 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
   selection?: OptionTypeBase;
   booking?: BookingItem;
-  formMethods?: UseFormReturn<any, any>;
+  defaultValues?: any;
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
 }
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
-  const { saveLocation, selection, booking, setShowLocationModal, isOpenDialog, formMethods } = props;
+  const { saveLocation, selection, booking, setShowLocationModal, isOpenDialog, defaultValues } = props;
   const { t } = useLocale();
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
   const [currentLocation, setCurrentLocation] = useState("");
-  const [incomingFormMethods, setIncomingFormMethods] = useState(formMethods);
 
   useEffect(() => {
     if (data) {
@@ -51,9 +50,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         locationFormMethods.unregister("locationLink");
         locationFormMethods.unregister("locationAddress");
       }
-      setIncomingFormMethods(formMethods);
     }
-  }, [isSuccess, selection, formMethods]);
+  }, [isSuccess, selection]);
 
   const newFormMethods = useForm<{
     locations: { type: LocationType; address?: string; link?: string }[];
@@ -112,11 +110,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 required
                 className="border-grays-300 block w-full rounded-sm text-sm shadow-sm "
                 defaultValue={
-                  incomingFormMethods
-                    ? incomingFormMethods
-                        .getValues("locations")
-                        .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
-                        ?.address
+                  defaultValues
+                    ? defaultValues.find(
+                        (location: { type: LocationType }) => location.type === LocationType.InPerson
+                      )?.address
                     : newFormMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
@@ -140,10 +137,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 required
                 className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                 defaultValue={
-                  incomingFormMethods
-                    ? incomingFormMethods
-                        .getValues("locations")
-                        .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
+                  defaultValues
+                    ? defaultValues.find(
+                        (location: { type: LocationType }) => location.type === LocationType.Link
+                      )?.link
                     : newFormMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link

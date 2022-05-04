@@ -1769,7 +1769,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             isOpenDialog={showLocationModal}
             setShowLocationModal={setShowLocationModal}
             saveLocation={addLocation}
-            formMethods={formMethods}
+            defaultValues={formMethods.getValues("locations")}
             selection={
               selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
             }
