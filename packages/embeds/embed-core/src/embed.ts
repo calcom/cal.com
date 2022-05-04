@@ -23,6 +23,11 @@ const globalCal = (window as CalWindow).Cal;
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }
+
+// Store Commit Hash to know exactly what version of the code is running
+// TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
+// But because it is built on local machine right now, it is much more reliable to have the commit hash.
+globalCal.fingerPrint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
@@ -472,8 +477,16 @@ export class Cal {
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
+
     this.actionManager.on("linkFailed", (e) => {
-      this.iframe?.remove();
+      const iframe = this.iframe;
+      if (!iframe) {
+        return;
+      }
+      this.inlineEl?.setAttribute("data-error-code", e.detail.data.code);
+      this.modalBox?.setAttribute("data-error-code", e.detail.data.code);
+      this.inlineEl?.setAttribute("loading", "failed");
+      this.modalBox?.setAttribute("state", "failed");
     });
   }
 }
