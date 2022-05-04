@@ -1,13 +1,14 @@
 import fs from "fs";
 import matter from "gray-matter";
-import { GetStaticPaths, GetStaticPathsResult, GetStaticPropsContext } from "next";
+import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
 import Image from "next/image";
 import Link from "next/link";
 import path from "path";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import prisma from "@calcom/prisma";
 
 import useMediaQuery from "@lib/hooks/useMediaQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -68,11 +69,8 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
 }
 
 export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = getAppRegistry();
-  const paths = appStore.reduce((paths, app) => {
-    paths.push({ params: { slug: app.slug } });
-    return paths;
-  }, [] as GetStaticPathsResult<{ slug: string }>["paths"]);
+  const appStore = await prisma.app.findMany({ select: { slug: true } });
+  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
 
   return {
     paths,
@@ -81,23 +79,19 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
-  const appStore = getAppRegistry();
+  if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
-  if (typeof ctx.params?.slug !== "string") {
-    return {
-      notFound: true,
-    };
-  }
+  const app = await prisma.app.findUnique({
+    where: { slug: ctx.params.slug },
+  });
 
-  const singleApp = appStore.find((app) => app.slug === ctx.params?.slug);
+  if (!app) return { notFound: true };
 
-  if (!singleApp) {
-    return {
-      notFound: true,
-    };
-  }
+  const singleApp = await getAppWithMetadata(app);
 
-  const appDirname = singleApp.type.replace("_", "");
+  if (!singleApp) return { notFound: true };
+
+  const appDirname = app.dirName;
   const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
   const postFilePath = path.join(README_PATH);
   let source = "";

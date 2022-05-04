@@ -8,10 +8,11 @@ import type { LocationType } from "@calcom/app-store/locations";
  */
 export interface App {
   /**
+   * @deprecated
    * Wheter if the app is installed or not. Usually we check for api keys in env
    * variables to determine if this is true or not.
    * */
-  installed: boolean;
+  installed?: boolean;
   /** The app type */
   type:
     | `${string}_calendar`
@@ -19,7 +20,8 @@ export interface App {
     | `${string}_payment`
     | `${string}_video`
     | `${string}_web3`
-    | `${string}_other`;
+    | `${string}_other`
+    | `${string}_other_calendar`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */
@@ -29,7 +31,7 @@ export interface App {
   /** The icon to display in /apps/installed */
   imageSrc: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing";
+  variant: "calendar" | "payment" | "conferencing" | "other" | "other_calendar";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */

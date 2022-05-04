@@ -6,7 +6,6 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
 import { getCancelLink } from "@calcom/lib/CalEventParser";
-import { Attendee } from "@calcom/prisma/client";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import {
@@ -50,7 +49,6 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
 
   // @OVERRIDE
   protected getiCalEventAsString(): string | undefined {
-    console.log("overriding");
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()

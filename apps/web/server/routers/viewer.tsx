@@ -20,6 +20,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
@@ -132,11 +133,11 @@ const loggedInViewerRouter = createProtectedRouter()
         currency: true,
         position: true,
         successRedirectUrl: true,
+        hashedLink: true,
         users: {
           select: {
             id: true,
             username: true,
-            avatar: true,
             name: true,
           },
         },
@@ -153,7 +154,6 @@ const loggedInViewerRouter = createProtectedRouter()
           startTime: true,
           endTime: true,
           bufferTime: true,
-          avatar: true,
           plan: true,
           teams: {
             where: {
@@ -229,7 +229,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: typeof user["username"];
           name: typeof user["name"];
-          image: typeof user["avatar"];
         };
         metadata: {
           membershipCount: number;
@@ -254,7 +253,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: user.username,
           name: user.name,
-          image: user.avatar,
         },
         eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
@@ -344,8 +342,8 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
-        past: { startTime: "asc" },
-        cancelled: { startTime: "asc" },
+        past: { startTime: "desc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -534,14 +532,9 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.update({
+        return ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
-          },
-          data: {
-            key: {
-              isWeb3Active: !(web3Credential.key as JSONObject).isWeb3Active,
-            },
           },
         });
       } else {
@@ -574,8 +567,8 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-
       return {
         conferencing: {
           items: conferencing,
@@ -588,6 +581,10 @@ const loggedInViewerRouter = createProtectedRouter()
         payment: {
           items: payment,
           numActive: countActive(payment),
+        },
+        other: {
+          items: other,
+          numActive: countActive(other),
         },
       };
     },
@@ -847,4 +844,5 @@ export const viewerRouter = createRouter()
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
-  .merge("webhook.", webhookRouter);
+  .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter);
