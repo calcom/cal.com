@@ -7,9 +7,10 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
-const client_id = process.env.HUBSPOT_CLIENT_ID;
-const client_secret = process.env.HUBSPOT_CLIENT_SECRET;
+let client_id = "";
+let client_secret = "";
 const hubspotClient = new hubspot.Client();
 
 export type HubspotToken = TokenResponseIF & {
@@ -24,15 +25,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  if (!client_id) {
-    res.status(400).json({ message: "HubSpot client id missing." });
-    return;
+  if (!req.session?.user?.id) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  if (!client_secret) {
-    res.status(400).json({ message: "HubSpot client secret missing." });
-    return;
-  }
+  const appKeys = await getAppKeysFromSlug("hubspot");
+  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
+  if (!client_secret) return res.status(400).json({ message: "HubSpot client secret missing." });
 
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
@@ -48,7 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       type: "hubspot_other_calendar",
       key: hubspotToken as any,
-      userId: req.session?.user.id,
+      userId: req.session.user.id,
+      appId: "hubspot",
     },
   });
 

@@ -1,7 +1,5 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
-import appStore from "@calcom/app-store";
-
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 
@@ -19,13 +17,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const appName = _appName.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
 
   try {
-    // TODO: Find a way to dynamically import these modules
-    // const app = (await import(`@calcom/${appName}`)).default;
-    const app = appStore[appName as keyof typeof appStore];
-    if (!(app && "api" in app && apiEndpoint in app.api))
-      throw new HttpError({ statusCode: 404, message: `API handler not found` });
-
-    const handler = app.api[apiEndpoint as keyof typeof app.api] as NextApiHandler;
+    /* Absolute path didn't work */
+    const handlerMap = (await import("@calcom/app-store/apiHandlers")).default;
+    const handlers = await handlerMap[appName as keyof typeof handlerMap];
+    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
 
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
