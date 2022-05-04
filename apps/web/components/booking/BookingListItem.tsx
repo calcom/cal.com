@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
+import { string } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,7 +27,10 @@ type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
-type BookingItemProps = BookingItem & { listingStatus: BookingListingStatus; recurringCount?: any };
+type BookingItemProps = BookingItem & {
+  listingStatus: BookingListingStatus;
+  recurringCount?: { _count: number; recurringEventId: string };
+};
 
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
@@ -133,7 +137,11 @@ function BookingListItem(booking: BookingItemProps) {
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [];
-  if (booking.eventType.recurringEvent && booking.eventType.recurringEvent.freq !== null) {
+  if (
+    booking.eventType.recurringEvent &&
+    booking.recurringCount &&
+    booking.eventType.recurringEvent.freq !== null
+  ) {
     [recurringStrings] = parseRecurringDates(
       booking.startTime,
       i18n,
@@ -191,6 +199,7 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="text-sm text-gray-400">
             {booking.eventType &&
+              booking.recurringCount &&
               booking.eventType.recurringEvent &&
               booking.eventType.recurringEvent.freq &&
               booking.listingStatus === "upcoming" && (
