@@ -36,15 +36,26 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const { t } = useLocale();
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
-  const [currentLocation, setCurrentLocation] = useState("");
+
+  const applyNamingFormat = (location: string | null | undefined): string => {
+    if (!location) return "";
+
+    let finalString = location;
+
+    if (location.substring(0, 13) === "integrations:") {
+      finalString = location.substring(13);
+      finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
+      finalString = finalString.replace(":", " ");
+    }
+    return finalString;
+  };
+
+  const [currentLocation, setCurrentLocation] = useState(applyNamingFormat(booking?.location) || "");
 
   useEffect(() => {
     if (data) {
       const integrations = getApps(data);
       setLocationOptions(getLocationOptions(integrations, t));
-      if (booking) {
-        setCurrentLocation(applyNamingFormat(booking.location || ""));
-      }
       if (selection) {
         locationFormMethods.setValue("locationType", selection?.value);
         locationFormMethods.unregister("locationLink");
@@ -80,16 +91,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationType",
     defaultValue: selection ? selection.value : undefined,
   });
-
-  const applyNamingFormat = (location: string) => {
-    let finalString = location;
-    if (location.substring(0, 13) === "integrations:") {
-      finalString = location.substring(13);
-      finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
-      finalString = finalString.replace(":", " ");
-    }
-    return finalString;
-  };
 
   const LocationOptions = () => {
     if (!selectedLocation) {
