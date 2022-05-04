@@ -2,9 +2,10 @@ import { Prisma } from "@prisma/client";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env" });
+require("dotenv").config({ path: "../../.env.appStore" });
 
 async function createApp(
+  /** The App identifier in the DB also used for public page in `/apps/[slug]` */
   slug: Prisma.AppCreateInput["slug"],
   /** The directory name for `/packages/app-store/[dirName]` */
   dirName: Prisma.AppCreateInput["dirName"],
@@ -86,6 +87,7 @@ async function main() {
     });
   }
   await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
+  await createApp("vital-automation", "vital", ["other"], "vital_other");
   await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
