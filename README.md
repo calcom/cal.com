@@ -409,7 +409,7 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Click on API keys and you'll find your sandbox Client ID and Client Secret.
 5. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
 6. Select all events for the webhook you interested, e.g. `sleep_created`
-7. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env file.
+7. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
 
 <!-- LICENSE -->
 
