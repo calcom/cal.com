@@ -2111,6 +2111,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       currency: true,
       destinationCalendar: true,
+      bookingPeriodLimit: {
+        select: {
+          id: true,
+          period: true,
+        },
+      },
     },
   });
 
