@@ -327,7 +327,7 @@ async function main() {
             uid: uuid(),
             title: "Yoga class",
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
-            startTime: dayjs().add(1, "day").add(4, "week").toDate(),
+            startTime: dayjs().add(1, "day").add(5, "week").toDate(),
             endTime: dayjs().add(1, "day").add(5, "week").add(30, "minutes").toDate(),
             confirmed: false,
           },
