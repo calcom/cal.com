@@ -1,4 +1,4 @@
-import { BookingStatus, User, Booking, Attendee, BookingReference, EventType } from "@prisma/client";
+import { BookingStatus, User, Booking, Attendee, BookingReference } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
@@ -76,7 +76,6 @@ const handler = async (
         location: true,
         attendees: true,
         references: true,
-        userId: true,
       },
       rejectOnNotFound: true,
       where: {
@@ -89,21 +88,18 @@ const handler = async (
       },
     });
 
-    if (bookingToReschedule && userOwner) {
-      let event: Partial<EventType> = {};
-      if (bookingToReschedule.eventTypeId) {
-        event = await prisma.eventType.findFirst({
-          select: {
-            title: true,
-            users: true,
-            schedulingType: true,
-          },
-          rejectOnNotFound: true,
-          where: {
-            id: bookingToReschedule.eventTypeId,
-          },
-        });
-      }
+    if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
+      const event = await prisma.eventType.findFirst({
+        select: {
+          title: true,
+          users: true,
+          schedulingType: true,
+        },
+        rejectOnNotFound: true,
+        where: {
+          id: bookingToReschedule.eventTypeId,
+        },
+      });
       await prisma.booking.update({
         where: {
           id: bookingToReschedule.id,
@@ -140,7 +136,7 @@ const handler = async (
       const builder = new CalendarEventBuilder();
       builder.init({
         title: bookingToReschedule.title,
-        type: event && event.title ? event.title : bookingToReschedule.title,
+        type: event.title,
         startTime: bookingToReschedule.startTime.toISOString(),
         endTime: bookingToReschedule.endTime.toISOString(),
         attendees: usersToPeopleType(
@@ -155,11 +151,7 @@ const handler = async (
       director.setBuilder(builder);
       director.setExistingBooking(bookingToReschedule as unknown as Booking);
       director.setCancellationReason(cancellationReason);
-      if (!!event) {
-        await director.buildWithoutEventTypeForRescheduleEmail();
-      } else {
-        await director.buildForRescheduleEmail();
-      }
+      await director.buildForRescheduleEmail();
 
       // Handling calendar and videos cancellation
       // This can set previous time as available, until virtual calendar is done

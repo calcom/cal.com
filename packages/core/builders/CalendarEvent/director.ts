@@ -29,21 +29,7 @@ export class CalendarEventDirector {
       this.builder.setCancellationReason(this.cancellationReason);
       this.builder.setDescription(this.builder.eventType.description);
       this.builder.setNotes(this.existingBooking.description);
-      this.builder.buildRescheduleLink(this.existingBooking, this.builder.eventType);
-    } else {
-      throw new Error("buildForRescheduleEmail.missing.params.required");
-    }
-  }
-
-  public async buildWithoutEventTypeForRescheduleEmail() {
-    if (this.existingBooking && this.existingBooking.userId && this.existingBooking.uid) {
-      await this.builder.setUsersFromId(this.existingBooking.userId);
-      this.builder.buildAttendeesList();
-      this.builder.setLocation(this.existingBooking.location);
-      this.builder.setUId(this.existingBooking.uid);
-      this.builder.setCancellationReason(this.cancellationReason);
-      this.builder.setDescription(this.existingBooking.description);
-      await this.builder.buildRescheduleLink(this.existingBooking);
+      this.builder.buildRescheduleLink(this.existingBooking.uid);
     } else {
       throw new Error("buildForRescheduleEmail.missing.params.required");
     }
