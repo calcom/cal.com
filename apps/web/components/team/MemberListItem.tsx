@@ -1,8 +1,8 @@
-import { UserRemoveIcon, PencilIcon } from "@heroicons/react/outline";
-import { ClockIcon, ExternalLinkIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
+import { PencilIcon, UserRemoveIcon } from "@heroicons/react/outline";
+import { ClockIcon, DotsHorizontalIcon, ExternalLinkIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -17,11 +17,11 @@ import Dropdown, {
 import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import useCurrentUserId from "@lib/hooks/useCurrentUserId";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
-import { useCurrentUser } from "@components/team/currentUser";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
 
@@ -56,7 +56,7 @@ export default function MemberListItem(props: Props) {
     return owners.length;
   };
 
-  const currentUser = useCurrentUser();
+  const currentUserId = useCurrentUserId();
 
   const name =
     props.member.name ||
@@ -133,7 +133,7 @@ export default function MemberListItem(props: Props) {
               {((props.team.membership.role === MembershipRole.OWNER &&
                 (props.member.role !== MembershipRole.OWNER ||
                   ownersInTeam() > 1 ||
-                  props.member.id !== currentUser)) ||
+                  props.member.id !== currentUserId)) ||
                 (props.team.membership.role === MembershipRole.ADMIN &&
                   props.member.role !== MembershipRole.OWNER)) && (
                 <>
@@ -195,7 +195,7 @@ export default function MemberListItem(props: Props) {
           <div className="space-x-2 border-t py-5 rtl:space-x-reverse">
             <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
             {props.team.membership.role !== MembershipRole.MEMBER && (
-              <Link href={`/settings/teams/${props.team.id}/availability`}>
+              <Link href={`/settings/teams/${props.team.id}/availability`} passHref>
                 <Button color="secondary">{t("Open Team Availability")}</Button>
               </Link>
             )}
