@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env" });
+require("dotenv").config({ path: "../../.env.appStore" });
 
 async function createApp(
   slug: Prisma.AppCreateInput["slug"],
