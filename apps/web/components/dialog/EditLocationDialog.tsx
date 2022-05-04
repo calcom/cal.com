@@ -41,7 +41,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     if (!location) return "";
 
     let finalString = location;
-
     if (location.substring(0, 13) === "integrations:") {
       finalString = location.substring(13);
       finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
@@ -58,13 +57,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       setLocationOptions(getLocationOptions(integrations, t));
       if (selection) {
         locationFormMethods.setValue("locationType", selection?.value);
-        locationFormMethods.unregister("locationLink");
-        locationFormMethods.unregister("locationAddress");
       }
     }
   }, [isSuccess, selection]);
 
-  const newFormMethods = useForm<{
+  const formMethods = useForm<{
     locations: { type: LocationType; address?: string; link?: string }[];
   }>({
     defaultValues: {
@@ -89,7 +86,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const selectedLocation = useWatch({
     control: locationFormMethods.control,
     name: "locationType",
-    defaultValue: selection ? selection.value : undefined,
   });
 
   const LocationOptions = () => {
@@ -115,7 +111,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     ? defaultValues.find(
                         (location: { type: LocationType }) => location.type === LocationType.InPerson
                       )?.address
-                    : newFormMethods
+                    : formMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
                         ?.address
@@ -142,7 +138,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     ? defaultValues.find(
                         (location: { type: LocationType }) => location.type === LocationType.Link
                       )?.link
-                    : newFormMethods
+                    : formMethods
                         .getValues("locations")
                         .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
                 }
@@ -221,6 +217,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 setCurrentLocation(applyNamingFormat(locationString));
               }
               setShowLocationModal(false);
+              locationFormMethods.unregister("locationType");
+              locationFormMethods.unregister("locationLink");
+              locationFormMethods.unregister("locationAddress");
             }}>
             <Controller
               name="locationType"
