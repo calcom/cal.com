@@ -1,24 +1,16 @@
-// @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { FullScreenDialog } from "./FullScreenDialog";
 
-interface SpaceBookingPageProps {
-  what: string;
-  where: string;
-  when: string;
-  open: boolean;
-}
-
-const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
+const SpaceBookingSuccessPage = (props: { what: string; where: string; when: string; open: boolean }) => {
   const { what, where, when, open } = props;
 
   useEffect(() => {
-    const canvas = document.getElementById("canvas");
-    const c = canvas?.getContext("2d");
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const c = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    let w;
-    let h;
+    let w: number;
+    let h: number;
 
     const setCanvasExtents = () => {
       w = document.body.clientWidth;
@@ -29,14 +21,14 @@ const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
 
     setCanvasExtents();
 
-    const crawl = document.getElementById("crawl");
-    const crawlContent = document.getElementById("crawl-content");
+    const crawl = document.getElementById("crawl") as HTMLDivElement;
+    const crawlContent = document.getElementById("crawl-content") as HTMLDivElement;
     const crawlContentStyle = crawlContent.style;
 
     // start crawl at bottom of 3d plane
     let crawlPos = crawl.clientHeight;
 
-    const makeStars = (count) => {
+    const makeStars = (count: number) => {
       const out = [];
       for (let i = 0; i < count; i++) {
         const s = {
@@ -60,14 +52,14 @@ const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
       c.fillRect(0, 0, canvas.width, canvas.height);
     };
 
-    const putPixel = (x, y, brightness) => {
+    const putPixel = (x: number, y: number, brightness: number) => {
       const intensity = brightness * 255;
       const rgb = "rgb(" + intensity + "," + intensity + "," + intensity + ")";
       c.fillStyle = rgb;
       c.fillRect(x, y, 1, 1);
     };
 
-    const moveStars = (distance) => {
+    const moveStars = (distance: number) => {
       const count = stars.length;
       for (var i = 0; i < count; i++) {
         const s = stars[i];
@@ -78,7 +70,7 @@ const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
       }
     };
 
-    const moveCrawl = (distance) => {
+    const moveCrawl = (distance: number) => {
       crawlPos -= distance;
       crawlContentStyle.top = crawlPos + "px";
 
@@ -111,13 +103,13 @@ const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
       }
     };
 
-    let prevTime;
-    const init = (time) => {
+    let prevTime: number;
+    const init = (time: number) => {
       prevTime = time;
       requestAnimationFrame(tick);
     };
 
-    const tick = (time) => {
+    const tick = (time: number) => {
       let elapsed = time - prevTime;
       prevTime = time;
 
@@ -235,4 +227,4 @@ const SpaceBookingSuccessPage = (props: SpaceBookingPageProps) => {
   );
 };
 
-export { SpaceBookingSuccessPage };
+export default SpaceBookingSuccessPage;

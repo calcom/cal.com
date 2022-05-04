@@ -10,22 +10,21 @@ import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components/SpaceBookingSuccessPage";
+import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
 import {
-  useIsEmbed,
-  useEmbedStyles,
-  useIsBackgroundTransparent,
+  sdkActionManager,
   useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
 } from "@calcom/embed-core";
-import { sdkActionManager } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";

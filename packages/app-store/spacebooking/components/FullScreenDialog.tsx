@@ -1,7 +1,7 @@
 import { XIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
-import { DialogTrigger, Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
 const FullScreenDialog = (props: React.PropsWithChildren<{ open: boolean }>) => {
   const [open, setOpen] = useState(props.open);
