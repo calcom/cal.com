@@ -235,7 +235,7 @@
   "emailed_you_and_any_other_attendees": "You and any other attendees have been emailed with this information.",
   "needs_to_be_confirmed_or_rejected": "Your booking still needs to be confirmed or rejected.",
   "user_needs_to_confirm_or_reject_booking": "{{user}} still needs to confirm or reject the booking.",
-  "meeting_is_scheduled": "This meeting is scheduled",
+  "meeting_is_scheduled": "This event is scheduled",
   "submitted": "Your booking has been submitted",
   "booking_submitted": "Your booking has been submitted",
   "booking_confirmed": "Your booking has been confirmed",

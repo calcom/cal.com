@@ -101,7 +101,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { attendees, paymentUid } = responseData;
+      const { id, attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -135,6 +135,7 @@ const BookingPage = ({
           email: attendees[0].email,
           location,
           eventName: profile.eventName || "",
+          bookingId: id,
         },
       });
     },

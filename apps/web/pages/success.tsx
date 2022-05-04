@@ -143,7 +143,8 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
-  const { eventType } = props;
+  const { eventType, bookingInfo } = props;
+  console.log("🚀 ~ file: success.tsx ~ line 147 ~ Success ~ bookingInfo", bookingInfo);
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
@@ -279,13 +280,31 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          <div className="col-span-2">
-                            {date.format("dddd, DD MMMM YYYY")}
+                          <div className="col-span-2 mb-6">
+                            {date.format("MMMM DD, YYYY")}
                             <br />
-                            {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                            {date.format(is24h ? "H:mm" : "h:mma")} -{" "}
+                            {date.add(props.eventType.length, "m").format(is24h ? "H:mm" : "h:mma")}{" "}
                             <span className="text-bookinglight">
                               ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                             </span>
+                          </div>
+                          <div className="font-medium">{t("who")}</div>
+                          <div className="col-span-2">
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div
+                                key={attendee.name}
+                                className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </div>
                           {location && (
                             <>
@@ -298,6 +317,14 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                                 ) : (
                                   location
                                 )}
+                              </div>
+                            </>
+                          )}
+                          {bookingInfo?.description && (
+                            <>
+                              <div className="mt-6 font-medium">{t("additional_notes")}</div>
+                              <div className="col-span-2 mt-6 mb-6">
+                                <p>{bookingInfo.description}</p>
                               </div>
                             </>
                           )}
@@ -459,9 +486,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
             where={`${t("where")}: ${
               location ? (location?.startsWith("http") ? { location } : location) : "Far far a way galaxy"
             }`}
-            when={`${t("when")}: ${date.format("dddd, DD MMMM YYYY")} ${date.format(
+            when={`${t("when")}: ${date.format("MMMM DD, YYYY")} ${date.format(
               is24h ? "H:mm" : "h:mma"
-            )} - ${props.eventType.length} mins (${
+            )} - ${date.add(props.eventType.length, "m").format(is24h ? "H:mm" : "h:mma")} (${
               localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
             })`}
           />
@@ -515,6 +542,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
+  const bookingId = parseInt(context.query.bookingId as string);
+  console.log("🚀 ~ file: success.tsx ~ line 522 ~ getServerSideProps ~ query", context.query);
 
   if (isNaN(typeId)) {
     return {
@@ -583,6 +612,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
+  const bookingInfo = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      description: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
@@ -591,6 +641,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       dynamicEventName,
       userHasSpaceBooking,
+      bookingInfo,
     },
   };
 }
