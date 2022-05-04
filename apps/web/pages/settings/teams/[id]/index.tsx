@@ -145,6 +145,7 @@ export function TeamSettingsPage() {
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
               team={team}
+              currentMember={team.membership.role}
               onExit={() => setShowMemberInvitationModal(false)}
             />
           )}

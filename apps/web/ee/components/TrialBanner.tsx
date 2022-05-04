@@ -4,8 +4,7 @@ import Button from "@calcom/ui/Button";
 
 import { TRIAL_LIMIT_DAYS } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { useMeQuery } from "@components/Shell";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 const TrialBanner = () => {
   const { t } = useLocale();
