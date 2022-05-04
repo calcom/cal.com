@@ -144,7 +144,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType, bookingInfo } = props;
-  console.log("🚀 ~ file: success.tsx ~ line 147 ~ Success ~ bookingInfo", bookingInfo);
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
@@ -543,7 +542,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
   const bookingId = parseInt(context.query.bookingId as string);
-  console.log("🚀 ~ file: success.tsx ~ line 522 ~ getServerSideProps ~ query", context.query);
 
   if (isNaN(typeId)) {
     return {
