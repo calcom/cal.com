@@ -3278,10 +3278,10 @@
   resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.22.0.tgz#5c6442666efd774069af938016a7ab6def32f746"
   integrity sha512-MwMVLjXXeTFKdGtFQokI6odGZifMBvMpfaddqg3RJp2wcERzTm1A33MB5mmCxH9opjmPjqMMkT/3tRunRFaitw==
 
-"@tryvital/vital-node@^1.3.3":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@tryvital/vital-node/-/vital-node-1.3.3.tgz#e5e27f69c1b9647f9447fa88173b3c3af223976d"
-  integrity sha512-RJAfQCeei2wFl4Y1A87TLTZ8JknkLXMS4UzR9oKV7xtFamgIWZRhD9z975SOj7ixeUXyQ79Uuk8vMfogy7CgBw==
+"@tryvital/vital-node@^1.3.6":
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/@tryvital/vital-node/-/vital-node-1.3.6.tgz#8919c02c24969edddcd41be8c253788f76b769d9"
+  integrity sha512-RcUsiS/+DiQkv3jDU54ECorLKEmxi0FmVLa0scPnehO/sZgzc9356oAdKF7cglAie3+yxUAYrHlIfaebHU8yNA==
   dependencies:
     auth0 "^2.35.1"
     axios ">=0.21.2"

@@ -16,8 +16,7 @@ export async function initVitalClient() {
   const appKeys = (await getAppKeysFromSlug("vital-automation")) as unknown as VitalEnv;
   if (
     typeof appKeys !== "object" ||
-    typeof appKeys.client_id !== "string" ||
-    typeof appKeys.client_secret !== "string" ||
+    typeof appKeys.api_key !== "string" ||
     typeof appKeys.webhook_secret !== "string" ||
     typeof appKeys.region !== "string" ||
     typeof appKeys.mode !== "string"
@@ -26,8 +25,7 @@ export async function initVitalClient() {
   vitalEnv = appKeys;
   vitalClient = new VitalClient({
     region: appKeys.region,
-    client_id: appKeys.client_id || "",
-    client_secret: appKeys.client_secret || "",
+    api_key: appKeys.api_key || "",
     environment: (appKeys.mode as ClientConfig["environment"]) || "sandbox",
   });
 }
