@@ -25,6 +25,7 @@ export const InstallAppButtonMap = {
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
   metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
+  spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
