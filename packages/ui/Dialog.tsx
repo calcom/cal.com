@@ -2,6 +2,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
 import React, { ReactNode, useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
+
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
@@ -63,7 +65,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
       <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
       <DialogPrimitive.Content
         {...props}
-        className="fadeIn fixed left-1/2 top-1/2 z-[9999999999] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl focus-visible:outline-none sm:w-full sm:max-w-[35rem] sm:align-middle"
+        className={classNames(
+          "fadeIn fixed left-1/2 top-1/2 z-[9999999999] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-left shadow-xl focus-visible:outline-none sm:w-full sm:max-w-[35rem] sm:align-middle",
+          `${props.className}`
+        )}
         ref={forwardedRef}>
         {children}
       </DialogPrimitive.Content>
