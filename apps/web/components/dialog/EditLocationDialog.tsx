@@ -47,6 +47,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       locationRawString = locationRawString.replace(":", " ");
     }
     locationRawString = locationRawString.charAt(0).toUpperCase() + locationRawString.slice(1);
+    locationRawString = locationRawString === "Daily" ? "Cal Video" : locationRawString;
+
     return locationRawString;
   };
 
