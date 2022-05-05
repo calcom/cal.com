@@ -5,8 +5,8 @@ import {
   XIcon,
   PencilAltIcon,
   LocationMarkerIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/outline";
-import { PaperAirplaneIcon } from "@heroicons/react/outline";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -93,17 +93,17 @@ function BookingListItem(booking: BookingItem) {
     {
       id: "edit_booking",
       label: t("edit_booking"),
-      icon: ClockIcon,
+      icon: PencilAltIcon,
       actions: [
         {
           id: "reschedule",
-          icon: PencilAltIcon,
+          icon: ClockIcon,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: ClockIcon,
+          icon: PaperAirplaneIcon,
           label: t("send_reschedule_request"),
           onClick: () => setIsOpenRescheduleDialog(true),
         },

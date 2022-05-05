@@ -595,7 +595,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const { user } = ctx;
       const credentials = await ctx.prisma.credential.findMany({
         where: {
-          userId: ctx.user.id,
+          userId: user.id,
         },
         select: {
           id: true,
