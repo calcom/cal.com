@@ -47,6 +47,7 @@ if (isBrowser) {
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
+  window.CalEmbed = window.CalEmbed || {};
   //TODO: Send postMessage to parent to get all log messages in the same queue.
   window.CalEmbed.embedStore = embedStore;
 }

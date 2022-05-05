@@ -510,7 +510,7 @@ window.addEventListener("message", (e) => {
 
   const actionManager = Cal.actionsManagers[parsedAction.ns];
   globalCal.__logQueue = globalCal.__logQueue || [];
-  globalCal.__logQueue.push(parsedAction);
+  globalCal.__logQueue.push({ ...parsedAction, data: detail.data });
 
   if (!actionManager) {
     throw new Error("Unhandled Action" + parsedAction);
