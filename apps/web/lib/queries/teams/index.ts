@@ -44,6 +44,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
         length: true,
         slug: true,
         schedulingType: true,
+        recurringEvent: true,
         price: true,
         currency: true,
         users: {

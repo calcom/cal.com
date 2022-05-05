@@ -12,8 +12,9 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -69,6 +70,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));
   const eventTypeSlug = context.query.slug as string;
+  const recurringEventCountQuery = asStringOrNull(context.query.count);
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -111,6 +113,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             periodDays: true,
             periodStartDate: true,
             periodEndDate: true,
+            recurringEvent: true,
             metadata: true,
             periodCountCalendarDays: true,
             price: true,
@@ -150,6 +153,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
+    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -204,6 +208,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const t = await getTranslation(context.locale ?? "en", "common");
 
+  // Checking if number of recurring event ocurrances is valid against event type configuration
+  const recurringEventCount =
+    (eventType.recurringEvent?.count &&
+      recurringEventCountQuery &&
+      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
+        ? recurringEventCountQuery
+        : eventType.recurringEvent.count)) ||
+    null;
+
   return {
     props: {
       away: user.away,
@@ -211,6 +224,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType: eventTypeObject,
       booking,
+      recurringEventCount,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
