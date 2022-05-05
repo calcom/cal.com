@@ -194,7 +194,7 @@ export const sendAwaitingPaymentEmail = async (
 
 export const sendOrganizerPaymentRefundFailedEmail = async (
   calEvent: CalendarEvent,
-  recurringEvent: RecurringEvent
+  recurringEvent: RecurringEvent = {}
 ) => {
   await new Promise((resolve, reject) => {
     try {

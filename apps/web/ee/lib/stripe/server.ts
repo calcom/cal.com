@@ -149,11 +149,8 @@ export async function refund(
 
 async function handleRefundError(opts: { event: CalendarEvent; reason: string; paymentId: string }) {
   console.error(`refund failed: ${opts.reason} for booking '${opts.event.uid}'`);
-  await sendOrganizerPaymentRefundFailedEmail(
-    {
-      ...opts.event,
-      paymentInfo: { reason: opts.reason, id: opts.paymentId },
-    },
-    {} // Payment related emails don't need recurring event information for now. TODO: Payment support
-  );
+  await sendOrganizerPaymentRefundFailedEmail({
+    ...opts.event,
+    paymentInfo: { reason: opts.reason, id: opts.paymentId },
+  });
 }
