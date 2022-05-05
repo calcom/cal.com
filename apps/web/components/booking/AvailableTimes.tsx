@@ -1,6 +1,6 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import React, { FC, useEffect, useState } from "react";
 import { nameOfDay } from "@calcom/lib/weekday";
 
 import classNames from "@lib/classNames";
+import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
@@ -109,7 +110,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">
-                    {slot.time.format(timeFormat)}
+                    {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
                   </a>
                 </Link>
               </div>
