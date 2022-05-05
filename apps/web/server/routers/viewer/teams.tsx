@@ -65,7 +65,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       return memberships.map((membership) => ({
         role: membership.role,
-        accepted: membership.role === "OWNER" ? true : membership.accepted,
+        accepted: membership.accepted,
         ...teams.find((team) => team.id === membership.teamId),
       }));
     },

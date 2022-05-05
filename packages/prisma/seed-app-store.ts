@@ -2,13 +2,14 @@ import { Prisma } from "@prisma/client";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env" });
+require("dotenv").config({ path: "../../.env.appStore" });
 
 async function createApp(
   slug: Prisma.AppCreateInput["slug"],
   /** The directory name for `/packages/app-store/[dirName]` */
   dirName: Prisma.AppCreateInput["dirName"],
   categories: Prisma.AppCreateInput["categories"],
+  /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
   keys?: Prisma.AppCreateInput["keys"]
 ) {
@@ -84,6 +85,8 @@ async function main() {
       api_key: process.env.GIPHY_API_KEY,
     });
   }
+  await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
+  await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");

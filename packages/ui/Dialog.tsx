@@ -74,7 +74,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             ? "p-0.5 sm:max-w-[98vw]"
             : props.size == "lg"
             ? "p-6 sm:max-w-[70rem]"
-            : "p-6 sm:max-w-[35rem]"
+            : "p-6 sm:max-w-[35rem]",
+          `${props.className}`
         )}
         ref={forwardedRef}>
         {children}
