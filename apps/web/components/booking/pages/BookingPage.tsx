@@ -108,7 +108,7 @@ const BookingPage = ({
   }, [contracts, eventType.metadata.smartContractAddress, router]);
 
   const mutation = useMutation(createBooking, {
-    onSuccess: async (responseData: any) => {
+    onSuccess: async (responseData) => {
       const { attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
@@ -149,8 +149,8 @@ const BookingPage = ({
   });
 
   const recurringMutation = useMutation(createRecurringBooking, {
-    onSuccess: async (responseData: any[]) => {
-      const { attendees, recurringEventId } = responseData[0];
+    onSuccess: async (responseData = []) => {
+      const { attendees = [], recurringEventId } = responseData[0] || {};
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
