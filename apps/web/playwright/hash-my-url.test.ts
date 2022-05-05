@@ -29,7 +29,9 @@ test.describe("hash my url", () => {
     await page.click('//*[@data-testid="show-advanced-settings"]');
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@id="hashedLinkCheck"]');
-    await page.click('//*[@id="hashedLinkCheck"]');
+    // ignore if it is already checked, and click if unchecked
+    const isChecked = await page.isChecked('//*[@id="hashedLinkCheck"]');
+    !isChecked && (await page.click('//*[@id="hashedLinkCheck"]'));
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
     $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
