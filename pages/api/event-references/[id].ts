@@ -43,7 +43,7 @@ export async function dailyEventReferenceById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the event reference to get
+       *         description: ID of the event reference to get
        *     tags:
        *     - event-references
        *     responses:
@@ -78,7 +78,7 @@ export async function dailyEventReferenceById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the event reference to edit
+       *        description: ID of the event reference to edit
        *     tags:
        *     - event-references
        *     responses:
@@ -116,7 +116,7 @@ export async function dailyEventReferenceById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the event reference to delete
+       *        description: ID of the event reference to delete
        *     tags:
        *     - event-references
        *     responses:

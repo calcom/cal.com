@@ -38,7 +38,7 @@ export async function destionationCalendarById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the destination calendar to get
+       *         description: ID of the destination calendar to get
        *     tags:
        *     - destination-calendars
        *     responses:
@@ -56,7 +56,7 @@ export async function destionationCalendarById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the destination calendar to edit
+       *        description: ID of the destination calendar to edit
        *     tags:
        *     - destination-calendars
        *     responses:
@@ -74,7 +74,7 @@ export async function destionationCalendarById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the destination calendar to delete
+       *        description: ID of the destination calendar to delete
        *     tags:
        *     - destination-calendars
        *     responses:
@@ -108,7 +108,7 @@ export async function destionationCalendarById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the destination calendar to edit
+       *        description: ID of the destination calendar to edit
        *     tags:
        *     - destination-calendars
        *     responses:
@@ -145,7 +145,7 @@ export async function destionationCalendarById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the destination calendar to delete
+       *        description: ID of the destination calendar to delete
        *     tags:
        *     - destination-calendars
        *     responses:

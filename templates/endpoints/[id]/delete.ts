@@ -20,7 +20,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the resource to delete
+ *        description: ID of the resource to delete
  
  *     tags:
  *     - resources

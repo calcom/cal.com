@@ -24,6 +24,7 @@ async function createOrlistAllBookingReferences(
      * @swagger
      * /booking-references:
      *   get:
+     *     operationId: listBookingReferences
      *     summary: Find all booking references
      *     tags:
      *     - booking-references
@@ -51,7 +52,37 @@ async function createOrlistAllBookingReferences(
      * @swagger
      * /booking-references:
      *   post:
+     *     operationId: addBookingReference
      *     summary: Creates a new  booking reference
+     *     requestBody:
+     *       description: Create a new booking reference related to one of your bookings
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *              - type
+     *              - uid
+     *              - meetindId
+     *              - bookingId
+     *              - deleted
+     *             properties:
+     *               deleted:
+     *                 type: boolean
+     *                 example: false
+     *               uid:
+     *                 type: string
+     *                 example: '123456789'
+     *               type:
+     *                 type: string
+     *                 example: email@example.com
+     *               bookingId:
+     *                 type: number
+     *                 example: 1
+     *               meetingId:
+     *                 type: string
+     *                 example: 'meeting-id'
      *     tags:
      *     - booking-references
      *     responses:
@@ -64,7 +95,9 @@ async function createOrlistAllBookingReferences(
      */
     const safe = schemaBookingCreateBodyParams.safeParse(body);
     if (!safe.success) {
-      throw new Error("Invalid request body");
+      res.status(400).json({ message: "Bad request. BookingReference body is invalid", error: safe.error });
+      return;
+      // throw new Error("Invalid request body");
     }
 
     const userWithBookings = await prisma.user.findUnique({

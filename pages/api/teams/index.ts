@@ -16,6 +16,7 @@ async function createOrlistAllTeams(
      * @swagger
      * /teams:
      *   get:
+     *     operationId: listTeams
      *     summary: Find all teams
      *     tags:
      *     - teams
@@ -44,6 +45,7 @@ async function createOrlistAllTeams(
      * @swagger
      * /teams:
      *   post:
+     *     operationId: addTeam
      *     summary: Creates a new team
      *     tags:
      *     - teams

@@ -36,7 +36,7 @@ export async function bookingById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the booking to get
+       *         description: ID of the booking to get
        *     tags:
        *     - bookings
        *     responses:
@@ -70,7 +70,7 @@ export async function bookingById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the booking to edit
+       *        description: ID of the booking to edit
        *     tags:
        *     - bookings
        *     responses:
@@ -111,7 +111,7 @@ export async function bookingById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the booking to delete
+       *        description: ID of the booking to delete
        *     tags:
        *     - bookings
        *     responses:

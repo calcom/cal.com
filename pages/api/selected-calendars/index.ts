@@ -18,6 +18,7 @@ async function createOrlistAllSelectedCalendars(
      * @swagger
      * /selected-calendars:
      *   get:
+     *     operationId: listSelectedCalendars
      *     summary: Find all selected calendars
      *     tags:
      *     - selected-calendars
@@ -45,6 +46,7 @@ async function createOrlistAllSelectedCalendars(
      * @swagger
      * /selected-calendars:
      *   get:
+     *     operationId: addSelectedCalendars
      *     summary: Find all selected calendars
      *     tags:
      *     - selected-calendars

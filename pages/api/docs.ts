@@ -6,11 +6,11 @@ import { NextApiRequest, NextApiResponse } from "next/types";
 
 const swaggerHandler = withSwagger({
   definition: {
-    openapi: "3.0.0",
+    openapi: "3.0.3",
     servers: [
-      { url: "https://api.cal.com/v1" },
-      { url: "https://api.cal.dev/v1" },
       { url: "http://localhost:3002/v1" },
+      { url: "https://api.cal.dev/v1" },
+      { url: "https://api.cal.com/v1" },
     ],
     externalDocs: {
       url: "https://docs.cal.com",
@@ -24,6 +24,22 @@ const swaggerHandler = withSwagger({
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
     },
     security: [{ ApiKeyAuth: [] }],
+    tags: [
+      { name: "users" },
+      { name: "event-types" },
+      { name: "bookings" },
+      { name: "attendees" },
+      { name: "payments" },
+      { name: "schedules" },
+      { name: "teams" },
+      { name: "memberships" },
+      { name: "availabilities" },
+      { name: "custom-inputs" },
+      { name: "event-references" },
+      { name: "booking-references" },
+      { name: "destination-calendars" },
+      { name: "selected-calendars" },
+    ],
   },
   apiFolder: "pages/api",
 });
@@ -41,6 +57,7 @@ export default use(
     );
     if (content) {
       const parsed = JSON.parse(content);
+      // HACK: This is a hack to fix the swagger-ui issue with the extra channels property.
       delete parsed.channels;
       return Buffer.from(JSON.stringify(parsed));
     }

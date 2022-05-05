@@ -25,14 +25,16 @@ export async function eventTypeById(
        * @swagger
        * /event-types/{id}:
        *   get:
+       *     operationId: getEventTypeById
        *     summary: Find a eventType
        *     parameters:
        *       - in: path
        *         name: id
+       *         example: 4
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the eventType to get
+       *         description: ID of the eventType to get
        *     security:
        *       - ApiKeyAuth: []
        *     tags:
@@ -63,6 +65,7 @@ export async function eventTypeById(
        * @swagger
        * /event-types/{id}:
        *   patch:
+       *     operationId: editEventTypeById
        *     summary: Edit an existing eventType
        *     parameters:
        *      - in: path
@@ -70,7 +73,7 @@ export async function eventTypeById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the eventType to edit
+       *        description: ID of the eventType to edit
        *     security:
        *       - ApiKeyAuth: []
        *     tags:
@@ -105,6 +108,7 @@ export async function eventTypeById(
        * @swagger
        * /event-types/{id}:
        *   delete:
+       *     operationId: removeEventTypeById
        *     summary: Remove an existing eventType
        *     parameters:
        *      - in: path
@@ -112,7 +116,7 @@ export async function eventTypeById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the eventType to delete
+       *        description: ID of the eventType to delete
        *     security:
        *       - ApiKeyAuth: []
        *     tags:

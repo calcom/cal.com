@@ -1,4 +1,4 @@
-{
+    {
   "name": "@calcom/api",
   "version": "1.0.0",
   "description": "Public API for Cal.com",
@@ -19,21 +19,21 @@
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
-    "@typescript-eslint/eslint-plugin": "^5.16.0",
-    "babel-jest": "^27.5.1",
-    "jest": "^27.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "babel-jest": "^28.0.3",
+    "jest": "^28.0.3",
     "node-mocks-http": "^1.11.0"
   },
   "dependencies": {
     "@calcom/prisma": "*",
-    "@sentry/nextjs": "^6.19.3",
+    "@sentry/nextjs": "^6.19.7",
     "modify-response-middleware": "^1.1.0",
-    "next": "^12.1.4",
+    "next": "^12.1.6",
     "next-api-middleware": "^1.0.1",
-    "next-swagger-doc": "^0.2.1",
+    "next-swagger-doc": "^0.3.4",
     "next-transpile-modules": "^9.0.0",
-    "next-validations": "^0.1.11",
-    "typescript": "^4.6.3",
+    "next-validations": "^0.2.0",
+    "typescript": "^4.6.4",
     "tzdata": "^1.0.30"
   }
 }

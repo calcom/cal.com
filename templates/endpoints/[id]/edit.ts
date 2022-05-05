@@ -21,7 +21,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the resource to edit
+ *        description: ID of the resource to edit
  
  *     tags:
  *     - resources

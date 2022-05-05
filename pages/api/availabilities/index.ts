@@ -18,6 +18,7 @@ async function createOrlistAllAvailabilities(
      * @swagger
      * /availabilities:
      *   get:
+     *     operationId: listAvailabilities
      *     summary: Find all availabilities
      *     tags:
      *     - availabilities
@@ -45,7 +46,28 @@ async function createOrlistAllAvailabilities(
      * @swagger
      * /availabilities:
      *   post:
+     *     operationId: addAvailability
      *     summary: Creates a new availability
+     *     requestBody:
+     *       description: Edit an existing availability related to one of your bookings
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *              - startTime
+     *              - endTime
+     *             properties:
+     *               days:
+     *                 type: array
+     *                 example: email@example.com
+     *               startTime:
+     *                 type: string
+     *                 example: 1970-01-01T17:00:00.000Z
+     *               endTime:
+     *                 type: string
+     *                 example: 1970-01-01T17:00:00.000Z
      *     tags:
      *     - availabilities
      *     externalDocs:
@@ -59,7 +81,11 @@ async function createOrlistAllAvailabilities(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaAvailabilityCreateBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Your request is invalid", error: safe.error });
+      return;
+    }
+    // FIXME: check for eventTypeId ad scheduleId ownership if passed
 
     const data = await prisma.availability.create({ data: { ...safe.data, userId } });
     const availability = schemaAvailabilityReadPublic.parse(data);

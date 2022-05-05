@@ -26,6 +26,7 @@ export async function scheduleById(
        * @swagger
        * /schedules/{id}:
        *   get:
+       *     operationId: getScheduleById
        *     summary: Find a schedule
        *     parameters:
        *       - in: path
@@ -33,7 +34,7 @@ export async function scheduleById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the schedule to get
+       *         description: ID of the schedule to get
        *     tags:
        *     - schedules
        *     responses:
@@ -61,6 +62,7 @@ export async function scheduleById(
        * @swagger
        * /schedules/{id}:
        *   patch:
+       *     operationId: editScheduleById
        *     summary: Edit an existing schedule
        *     parameters:
        *      - in: path
@@ -68,7 +70,7 @@ export async function scheduleById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the schedule to edit
+       *        description: ID of the schedule to edit
        *     tags:
        *     - schedules
        *     responses:
@@ -99,6 +101,7 @@ export async function scheduleById(
        * @swagger
        * /schedules/{id}:
        *   delete:
+       *     operationId: removeScheduleById
        *     summary: Remove an existing schedule
        *     parameters:
        *      - in: path
@@ -106,7 +109,7 @@ export async function scheduleById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the schedule to delete
+       *        description: ID of the schedule to delete
        *     tags:
        *     - schedules
        *     responses:
