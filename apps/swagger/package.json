@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "PORT=4200 next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "PORT=4200 next start"
   },
   "dependencies": {
     "highlight.js": "^11.5.1",
