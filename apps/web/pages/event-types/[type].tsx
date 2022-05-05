@@ -1388,6 +1388,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     <div className="relative mt-1 flex w-full">
                                       <input
                                         disabled
+                                        id="hashedLink"
                                         name="hashedLink"
                                         data-testid="generated-hash-url"
                                         type="text"
