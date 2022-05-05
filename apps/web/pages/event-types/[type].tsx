@@ -37,7 +37,7 @@ import { StripeData } from "@calcom/stripe/server";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
-import { Form } from "@calcom/ui/form/fields";
+import { Form, Input } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -45,7 +45,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { LocationType } from "@lib/location";
-import prisma from "@lib/prisma";
+import prisma, { BookingPeriodFrequency } from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -91,6 +91,8 @@ type OptionTypeBase = {
   value: LocationType;
   disabled?: boolean;
 };
+
+type BookingLimitType = Record<BookingPeriodFrequency, number> | null;
 
 const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
   eventType,
@@ -277,8 +279,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [periodTypeLimitsVisible, setPeriodTypeLimitsVisible] = useState<boolean>(
     periodType?.type !== "UNLIMITED"
   );
-  const [limitBookingFrequencyVisible, setLimitBookingFrequencyVisible] = useState<boolea>(
-    eventType.bookingPeriodLimit.length > 0
+  const [limitBookingFrequencyVisible, setLimitBookingFrequencyVisible] = useState<boolean>(
+    !!eventType.bookingPeriodLimit
   );
 
   useEffect(() => {
@@ -513,10 +515,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     successRedirectUrl: string;
     giphyThankYouPage: string;
     bookingFrequency: {
-      day: number;
-      week: number;
-      month: number;
-      year: number;
+      DAY: number;
+      WEEK: number;
+      MONTH: number;
+      YEAR: number;
     };
   }>({
     defaultValues: {
@@ -526,6 +528,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      bookingFrequency: eventType.bookingPeriodLimit as BookingPeriodFrequency,
     },
   });
 
@@ -1621,7 +1624,74 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             )}
                           />
                         </div>
-
+                        <div className="block sm:flex">
+                          <div className="min-w-48 mb-4 sm:mb-0"></div>{" "}
+                          <Controller
+                            name="bookingFrequency"
+                            control={formMethods.control}
+                            render={() => (
+                              <div className="block w-full">
+                                <CheckboxField
+                                  id="bookingFrequncyToggle"
+                                  name="bookingFrequncyToggle"
+                                  description={t("limit_booking_frequency")}
+                                  descriptionAsLabel
+                                  defaultChecked={limitBookingFrequencyVisible}
+                                  onChange={(e) => {
+                                    setLimitBookingFrequencyVisible(e?.target.checked);
+                                  }}
+                                />
+                                {limitBookingFrequencyVisible && (
+                                  <div className="mt-3 flex flex-col space-y-3 bg-gray-100 p-4">
+                                    {Object.entries(formMethods.getValues("bookingFrequency")).map(
+                                      ([key, value], index) => (
+                                        <div className="flex items-center " key={key}>
+                                          <input
+                                            type="number"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            placeholder="30"
+                                            defaultValue={value || 0}
+                                          />
+                                          <p className="text-sm text-gray-700">per</p>
+                                          <select
+                                            id={`periodBookingSelect-${index}`}
+                                            className="ml-2 block w-24 rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+                                            defaultValue={key}>
+                                            <option value="YEAR">{t("period_label_year")}</option>
+                                            <option value="MONTH">{t("period_label_month")}</option>
+                                            <option value="WEEK">{t("period_label_week")}</option>
+                                            <option value="DAY">{t("period_label_day")}</option>
+                                          </select>
+                                          <Button color="secondary" className="ml-2 ">
+                                            -
+                                          </Button>
+                                        </div>
+                                      )
+                                    )}
+                                    <Button
+                                      color="minimal"
+                                      className="w-32"
+                                      type="button"
+                                      StartIcon={PlusIcon}
+                                      onClick={() => {
+                                        const values = formMethods.getValues("bookingFrequency");
+                                        let notInUse: BookingPeriodFrequency;
+                                        ["DAY", "WEEK", "MONTH", "YEAR"].forEach((period) => {
+                                          if (!(period in values)) {
+                                            notInUse = period;
+                                            return;
+                                          }
+                                        });
+                                        if (!notInUse) showToast("Cannot add more frequencies", "error");
+                                      }}>
+                                      Add Limit
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          />
+                        </div>
                         <hr className="my-2 border-neutral-200" />
 
                         <div className="block items-center sm:flex">
@@ -2116,6 +2186,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bookingPeriodLimit: {
         select: {
           id: true,
+          limit: true,
           period: true,
         },
       },
@@ -2189,10 +2260,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const availability = getAvailability(eventType.availability) || [];
   availability.sort((a, b) => a.startTime - b.startTime);
 
+  // Format from array of limits to an object that looks like e.g. {'DAY':1,'WEEK':3}
+  // Makes it easier to parse for the UI
+  const bookingPeriodLimit =
+    eventType.bookingPeriodLimit.length > 0
+      ? eventType.bookingPeriodLimit.reduce(
+          (obj, item) => Object.assign(obj, { [item.period]: item.limit }),
+          {}
+        )
+      : null;
+
+  console.log(bookingPeriodLimit);
+
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     availability,
+    bookingPeriodLimit: bookingPeriodLimit as BookingLimitType,
   });
 
   const teamMembers = eventTypeObject.team

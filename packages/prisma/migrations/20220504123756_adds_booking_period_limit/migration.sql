@@ -18,3 +18,5 @@ CREATE UNIQUE INDEX "BookingPeriodLimit_eventTypeId_period_key" ON "BookingPerio
 
 -- AddForeignKey
 ALTER TABLE "BookingPeriodLimit" ADD CONSTRAINT "BookingPeriodLimit_eventTypeId_fkey" FOREIGN KEY ("eventTypeId") REFERENCES "EventType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "BookingPeriodLimit" ADD COLUMN     "limit" INTEGER NOT NULL;

@@ -71,7 +71,7 @@ model EventType {
   slotInterval            Int?
   metadata                Json?
   successRedirectUrl      String?
-  bookingPeriodLimit BookingPeriodLimit[]
+  bookingPeriodLimit      BookingPeriodLimit[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -485,6 +485,7 @@ model BookingPeriodLimit {
   period      BookingPeriodFrequency
   eventType   EventType              @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int
+  limit       Int
 
-  @@unique([eventTypeId,period])
+  @@unique([eventTypeId, period])
 }

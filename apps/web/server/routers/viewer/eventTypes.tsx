@@ -88,6 +88,14 @@ const EventTypeUpdateInput = _EventTypeModel
     users: z.array(stringOrNumber).optional(),
     schedule: z.number().optional(),
     hashedLink: z.boolean(),
+    bookingFrequency: z
+      .object({
+        DAY: z.number().optional(),
+        WEEK: z.number().optional(),
+        MONTH: z.number().optional(),
+        YEAR: z.number().optional(),
+      })
+      .optional(),
   })
   .partial()
   .merge(

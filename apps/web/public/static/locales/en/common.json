@@ -783,5 +783,10 @@
   "go_to_app_store": "Go to App Store",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
   "buffers_and_limts" : "Buffers & Limits",
-  "limit_future_booking_checkbox":"Limit how far in the future people can book a time"
+  "limit_future_booking_checkbox":"Limit how far in the future people can book a time",
+  "limit_booking_frequency":"Limit booking frequency",
+  "period_label_day":"day",
+  "period_label_week":"week",
+  "period_label_month":"month",
+  "period_label_year":"year"
 }
