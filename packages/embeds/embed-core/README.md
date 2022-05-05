@@ -56,6 +56,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Automation Tests
   - Run automation tests in CI
+  - Automation Tests are using snapshots of Booking Page which has current month which requires us to regenerate snapshots every month.
 
 - Bundling Related
   - Comments in CSS aren't stripped off
@@ -72,13 +73,8 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 - Dev Experience/Ease of Installation
   - Do we need a one liner(like `window.dataLayer.push`) to inform SDK of something even if snippet is not yet on the page but would be there e.g. through GTM it would come late on the page ?
 
-- Might be better to pass all configuration using a single base64encoded query param to booking page.
-
-- Performance Improvements
-  - Custom written Tailwind CSS is sent multiple times for different custom elements.
-  
-- Embed Code Generator
 - Option to disable redirect banner and let parent handle redirect.
+
 - Release Issues
   - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
     - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js
@@ -87,8 +83,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
     - Quick Solution: Serve embed.js also from app, so that they go live together and there is only a slight chance of compatibility issues on going live. Note, that they can still occur as 2 different requests are sent at different times to fetch the libraries and deployments can go live in between,
 
 - UI Config Features
-  - Theme switch dynamically - If user switches the theme on website, he should be able to do it on embed. Add a demo for the API. Also, test system theme handling.
-    - How would the user add on hover styles just using style attribute ?
+  - How would the user add on hover styles just using style attribute ?
 
 - If just iframe refreshes due to some reason, embed script can't replay the applied instructions.
 
