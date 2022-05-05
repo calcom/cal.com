@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { LocationType } from "@lib/location";
+import { LocationOptionsToString } from "@lib/locationOptions";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Select from "@components/ui/form/Select";
@@ -151,25 +152,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             </div>
           </div>
         );
-      case LocationType.Phone:
-        return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
-      /* TODO: Render this dynamically from App Store */
-      case LocationType.GoogleMeet:
-        return <p className="text-sm">{t("cal_provide_google_meet_location")}</p>;
-      case LocationType.Zoom:
-        return <p className="text-sm">{t("cal_provide_zoom_meeting_url")}</p>;
-      case LocationType.Daily:
-        return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
-      case LocationType.Jitsi:
-        return <p className="text-sm">{t("cal_provide_jitsi_meeting_url")}</p>;
-      case LocationType.Huddle01:
-        return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
-      case LocationType.Tandem:
-        return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
-      case LocationType.Teams:
-        return <p className="text-sm">{t("cal_provide_teams_meeting_url")}</p>;
       default:
-        return null;
+        return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
     }
   };
 
@@ -244,7 +228,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             />
             <LocationOptions />
             <div className="mt-4 flex justify-end space-x-2">
-              <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
+              <Button
+                onClick={() => {
+                  setShowLocationModal(false);
+                  locationFormMethods.unregister("locationType");
+                }}
+                type="button"
+                color="secondary">
                 {t("cancel")}
               </Button>
               <Button type="submit">{t("update")}</Button>
