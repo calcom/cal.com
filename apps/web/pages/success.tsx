@@ -296,13 +296,15 @@ export default function Success(props: SuccessProps) {
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          <RecurringBookings
-                            isReschedule={reschedule === "true"}
-                            eventType={props.eventType}
-                            recurringBookings={props.recurringBookings}
-                            date={date}
-                            is24h={is24h}
-                          />
+                          <div className="col-span-2">
+                            <RecurringBookings
+                              isReschedule={reschedule === "true"}
+                              eventType={props.eventType}
+                              recurringBookings={props.recurringBookings}
+                              date={date}
+                              is24h={is24h}
+                            />
+                          </div>
                           {location && (
                             <>
                               <div className="mt-6 font-medium">{t("where")}</div>
@@ -503,11 +505,9 @@ function RecurringBookings({
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return (
-    <div className="col-span-2">
-      {!isReschedule &&
-        eventType.recurringEvent?.count &&
-        recurringBookings &&
+  return !isReschedule && recurringBookings ? (
+    <>
+      {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">
             {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
@@ -518,7 +518,7 @@ function RecurringBookings({
             </span>
           </div>
         ))}
-      {!isReschedule && recurringBookings && recurringBookings.length > 4 && (
+      {recurringBookings.length > 4 && (
         <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
           <CollapsibleTrigger
             type="button"
@@ -527,7 +527,6 @@ function RecurringBookings({
           </CollapsibleTrigger>
           <CollapsibleContent>
             {eventType.recurringEvent?.count &&
-              recurringBookings &&
               recurringBookings.slice(4).map((dateStr, idx) => (
                 <div key={idx} className="mb-2">
                   {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
@@ -541,18 +540,17 @@ function RecurringBookings({
           </CollapsibleContent>
         </Collapsible>
       )}
-      {(isReschedule || !eventType.recurringEvent.freq) && (
-        <>
-          {date.format("dddd, DD MMMM YYYY")}
-          <br />
-          {date.format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
-          <span className="text-bookinglight">
-            ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-          </span>
-        </>
-      )}
-    </div>
-  );
+    </>
+  ) : !eventType.recurringEvent.freq ? (
+    <>
+      {date.format("dddd, DD MMMM YYYY")}
+      <br />
+      {date.format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+      <span className="text-bookinglight">
+        ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+      </span>
+    </>
+  ) : null;
 }
 
 const getEventTypesFromDB = async (typeId: number) => {
