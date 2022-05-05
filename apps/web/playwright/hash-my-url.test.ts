@@ -30,23 +30,15 @@ test.describe("hash my url", () => {
     // we wait for the hashedLink setting to load
     await page.waitForSelector('//*[@id="hashedLinkCheck"]');
     await page.click('//*[@id="hashedLinkCheck"]');
+    // we wait for the hashedLink setting to load
+    await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
+    $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     // click update
     await page.focus('//button[@type="submit"]');
     await page.keyboard.press("Enter");
   });
 
   test("book using generated url hash", async ({ page }) => {
-    // await page.pause();
-    await page.goto("/event-types");
-    // We wait until loading is finished
-    await page.waitForSelector('[data-testid="event-types"]');
-    await page.click('//ul[@data-testid="event-types"]/li[1]');
-    // We wait for the page to load
-    await page.waitForSelector('//*[@data-testid="show-advanced-settings"]');
-    await page.click('//*[@data-testid="show-advanced-settings"]');
-    // we wait for the hashedLink setting to load
-    await page.waitForSelector('//*[@data-testid="generated-hash-url"]');
-    $url = await page.locator('//*[@data-testid="generated-hash-url"]').inputValue();
     await page.goto($url);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
