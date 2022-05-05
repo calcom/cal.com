@@ -53,7 +53,7 @@ async function main() {
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
-    await createApp("dailyvideo", "dailyvideo", ["video"], "daily_video", {
+    await createApp("daily-video", "dailyvideo", ["video"], "daily_video", {
       api_key: process.env.DAILY_API_KEY,
       scale_plan: process.env.DAILY_SCALE_PLAN,
     });
