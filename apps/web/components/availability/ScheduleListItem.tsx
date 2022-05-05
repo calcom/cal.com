@@ -56,8 +56,8 @@ export function ScheduleListItem({ schedule, deleteFunction }: { schedule: any; 
                 type="button"
                 color="warn"
                 className="w-full font-normal"
-                StartIcon={deleting ? undefined : TrashIcon}>
-                {deleting ? <Loader style={{ margin: 0, marginRight: "10px" }} /> : null}
+                StartIcon={deleting ? undefined : TrashIcon}
+                loading={deleting}>
                 {deleting ? t("deleting") : t("delete_schedule")}
               </Button>
             </DropdownMenuItem>

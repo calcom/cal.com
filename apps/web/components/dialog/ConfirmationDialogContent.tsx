@@ -8,8 +8,6 @@ import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-import LightLoader from "@components/LightLoader";
-
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;
   confirmBtnText?: string;
@@ -65,8 +63,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
         <DialogClose disabled={loadingAction} onClick={onConfirm} asChild>
           {confirmBtn || (
-            <Button color="primary">
-              {loadingAction ? <LightLoader style={{ margin: 0, marginRight: "10px" }} /> : null}
+            <Button color="primary" loading={loadingAction}>
               {loadingAction ? t("loading") : confirmBtnText}
             </Button>
           )}
