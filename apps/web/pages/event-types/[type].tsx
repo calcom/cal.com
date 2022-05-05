@@ -1634,12 +1634,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             />
                           </div>
                           <div className="block sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <PeriodBookingLimit
-                                visible={limitBookingFrequencyVisible}
-                                setVisible={setLimitBookingFrequencyVisible}
-                              />
-                            </div>
+                            <div className="min-w-48 mb-4 sm:mb-0" />
+                            <PeriodBookingLimit
+                              visible={limitBookingFrequencyVisible}
+                              setVisible={setLimitBookingFrequencyVisible}
+                            />
                           </div>
                           <hr className="my-2 border-neutral-200" />
 

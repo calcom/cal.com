@@ -1,3 +1,4 @@
+import { TrashIcon } from "@heroicons/react/outline";
 import { PlusIcon } from "@heroicons/react/solid";
 import { EventTypeFormType } from "pages/event-types/[type]";
 import React from "react";
@@ -54,7 +55,7 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                     <option value="DAY">{t("period_label_day")}</option>
                   </select>
                   <Button
-                    color="secondary"
+                    color="minimal"
                     className="ml-2 "
                     type="button"
                     onClick={() => {
@@ -63,40 +64,41 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                       delete values[key];
                       formMethods.setValue("bookingFrequency", { ...values });
                     }}>
-                    -
+                    <TrashIcon className="h-4 w-4"></TrashIcon>
                   </Button>
                 </div>
               ))}
 
-              <Button
-                color="minimal"
-                className="w-32"
-                type="button"
-                StartIcon={PlusIcon}
-                onClick={() => {
-                  const values = formMethods.getValues("bookingFrequency");
-                  const frequency = ["YEAR", "MONTH", "WEEK", "DAY"]; // Array in reverse so they get added in the right order
-                  if (!values) {
-                    // If not values already add day as a default
-                    formMethods.setValue("bookingFrequency", {
-                      DAY: 0,
-                    });
-                    return;
-                  }
-                  frequency.forEach((period) => {
-                    // Finding a value that hasnt been used already and creating a new input with that period
-                    if (!(period in values)) {
+              {Object.keys(formMethods.getValues("bookingFrequency")).length !== 4 && (
+                <Button
+                  color="minimal"
+                  className="w-32"
+                  type="button"
+                  StartIcon={PlusIcon}
+                  onClick={() => {
+                    const values = formMethods.getValues("bookingFrequency");
+                    const frequency = ["YEAR", "MONTH", "WEEK", "DAY"]; // Array in reverse so they get added in the right order
+                    if (!values) {
+                      // If not values already add day as a default
                       formMethods.setValue("bookingFrequency", {
-                        ...values,
-                        [period]: 0,
+                        DAY: 0,
                       });
                       return;
                     }
-                  });
-                  if (Object.keys(values).length === 4) showToast("No more frequencies avaliable", "error");
-                }}>
-                Add Limit
-              </Button>
+                    frequency.forEach((period) => {
+                      // Finding a value that hasnt been used already and creating a new input with that period
+                      if (!(period in values)) {
+                        formMethods.setValue("bookingFrequency", {
+                          ...values,
+                          [period]: 0,
+                        });
+                        return;
+                      }
+                    });
+                  }}>
+                  Add Limit
+                </Button>
+              )}
             </div>
           )}
         </div>
