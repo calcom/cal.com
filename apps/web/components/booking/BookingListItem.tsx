@@ -1,26 +1,37 @@
 import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/outline";
+import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
+import { Frequency as RRuleFrequency } from "rrule";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { inferQueryOutput, trpc } from "@lib/trpc";
+import { parseRecurringDates } from "@lib/parseDate";
+import { inferQueryOutput, trpc, inferQueryInput } from "@lib/trpc";
 
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
+type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
-function BookingListItem(booking: BookingItem) {
+type BookingItemProps = BookingItem & {
+  listingStatus: BookingListingStatus;
+  recurringCount?: number;
+};
+
+function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
@@ -30,14 +41,22 @@ function BookingListItem(booking: BookingItem) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const mutation = useMutation(
     async (confirm: boolean) => {
+      let body = {
+        id: booking.id,
+        confirmed: confirm,
+        language: i18n.language,
+        reason: rejectionReason,
+      };
+      /**
+       * Only pass down the recurring event id when we need to confirm the entire series, which happens in
+       * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
+       */
+      if (booking.listingStatus === "upcoming" && booking.recurringEventId !== null) {
+        body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
+      }
       const res = await fetch("/api/book/confirm", {
         method: "PATCH",
-        body: JSON.stringify({
-          id: booking.id,
-          confirmed: confirm,
-          language: i18n.language,
-          reason: rejectionReason,
-        }),
+        body: JSON.stringify(body),
         headers: {
           "Content-Type": "application/json",
         },
@@ -58,14 +77,20 @@ function BookingListItem(booking: BookingItem) {
   const pendingActions: ActionType[] = [
     {
       id: "reject",
-      label: t("reject"),
+      label:
+        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+          ? t("reject_all")
+          : t("reject"),
       onClick: () => setRejectionDialogIsOpen(true),
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
     {
       id: "confirm",
-      label: t("confirm"),
+      label:
+        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+          ? t("confirm_all")
+          : t("confirm"),
       onClick: () => mutation.mutate(true),
       icon: CheckIcon,
       disabled: mutation.isLoading,
@@ -112,6 +137,19 @@ function BookingListItem(booking: BookingItem) {
 
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [];
+  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
+    [recurringStrings] = parseRecurringDates(
+      {
+        startDate: booking.startTime,
+        recurringEvent: booking.eventType.recurringEvent,
+        recurringCount: booking.recurringCount,
+      },
+      i18n
+    );
+  }
   return (
     <>
       <RescheduleDialog
@@ -154,11 +192,39 @@ function BookingListItem(booking: BookingItem) {
       </Dialog>
 
       <tr className="flex">
-        <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell">
+        <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
           <div className="text-sm leading-6 text-gray-900">{startTime}</div>
           <div className="text-sm text-gray-500">
             {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
             {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+          </div>
+          <div className="text-sm text-gray-400">
+            {booking.recurringCount &&
+              booking.eventType?.recurringEvent?.freq &&
+              booking.listingStatus === "upcoming" && (
+                <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
+                  <div className="flex">
+                    <Tooltip
+                      content={recurringStrings.map((aDate, key) => (
+                        <p key={key}>{aDate}</p>
+                      ))}>
+                      <p className="text-gray-600 dark:text-white">
+                        <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        {`${t("every_for_freq", {
+                          freq: t(
+                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                              .toString()
+                              .toLowerCase()}`
+                          ),
+                        })} ${booking.recurringCount} ${t(
+                          `${RRuleFrequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                          { count: booking.recurringCount }
+                        )}`}
+                      </p>
+                    </Tooltip>
+                  </div>
+                </div>
+              )}
           </div>
         </td>
         <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>

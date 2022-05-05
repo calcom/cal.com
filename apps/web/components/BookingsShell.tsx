@@ -8,6 +8,10 @@ const tabs = [
     href: "/bookings/upcoming",
   },
   {
+    name: "recurring",
+    href: "/bookings/recurring",
+  },
+  {
     name: "past",
     href: "/bookings/past",
   },

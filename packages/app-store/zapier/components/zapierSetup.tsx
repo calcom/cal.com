@@ -6,8 +6,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import Loader from "@calcom/web/components/Loader";
-import { Tooltip } from "@calcom/web/components/Tooltip";
 
 import Icon from "./icon";
 

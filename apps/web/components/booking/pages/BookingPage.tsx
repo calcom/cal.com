@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  RefreshIcon,
 } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
@@ -18,6 +19,8 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { Frequency as RRuleFrequency } from "rrule";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import {
@@ -31,7 +34,9 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -40,9 +45,11 @@ import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
-import { parseDate } from "@lib/parseDate";
+import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
+import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { BookingCreateBody } from "@lib/types/booking";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -76,6 +83,7 @@ const BookingPage = ({
   booking,
   profile,
   isDynamicGroupBooking,
+  recurringEventCount,
   locationLabels,
   hasHashedBookingLink,
   hashedLink,
@@ -129,6 +137,37 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
+          user: profile.slug,
+          reschedule: !!rescheduleUid,
+          name: attendees[0].name,
+          email: attendees[0].email,
+          location,
+          eventName: profile.eventName || "",
+        },
+      });
+    },
+  });
+
+  const recurringMutation = useMutation(createRecurringBooking, {
+    onSuccess: async (responseData = []) => {
+      const { attendees = [], recurringEventId } = responseData[0] || {};
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData[0].location);
+
+      return router.push({
+        pathname: "/success",
+        query: {
+          date,
+          type: eventType.id,
+          eventSlug: eventType.slug,
+          recur: recurringEventId,
           user: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
@@ -243,6 +282,20 @@ const BookingPage = ({
     }
   };
 
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [],
+    recurringDates: Date[] = [];
+  if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
+    [recurringStrings, recurringDates] = parseRecurringDates(
+      {
+        startDate: date,
+        recurringEvent: eventType.recurringEvent,
+        recurringCount: parseInt(recurringEventCount.toString()),
+      },
+      i18n
+    );
+  }
+
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
@@ -265,7 +318,7 @@ const BookingPage = ({
         {}
       );
 
-    let web3Details;
+    let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
         // @ts-ignore
@@ -274,28 +327,59 @@ const BookingPage = ({
       };
     }
 
-    mutation.mutate({
-      ...booking,
-      web3Details,
-      start: dayjs(date).format(),
-      end: dayjs(date).add(eventType.length, "minute").format(),
-      eventTypeId: eventType.id,
-      eventTypeSlug: eventType.slug,
-      timeZone: timeZone(),
-      language: i18n.language,
-      rescheduleUid,
-      user: router.query.user,
-      location: getLocationValue(
-        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
-      ),
-      metadata,
-      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        value: booking.customInputs![inputId],
-      })),
-      hasHashedBookingLink,
-      hashedLink,
-    });
+    if (recurringDates.length) {
+      // Identify set of bookings to one intance of recurring event to support batch changes
+      const recurringEventId = uuidv4();
+      const recurringBookings = recurringDates.map((recurringDate) => ({
+        ...booking,
+        web3Details,
+        start: dayjs(recurringDate).format(),
+        end: dayjs(recurringDate).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        recurringEventId,
+        // Added to track down the number of actual occurrences selected by the user
+        recurringCount: recurringDates.length,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+        hasHashedBookingLink,
+        hashedLink,
+      }));
+      recurringMutation.mutate(recurringBookings);
+    } else {
+      mutation.mutate({
+        ...booking,
+        web3Details,
+        start: dayjs(date).format(),
+        end: dayjs(date).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+        hasHashedBookingLink,
+        hashedLink,
+      });
+    }
   };
 
   const disableInput = !!rescheduleUid;
@@ -375,10 +459,40 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                <p className="text-bookinghighlight mb-4">
-                  <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                  {parseDate(date, i18n)}
-                </p>
+                {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
+                  <div className="mb-3 text-gray-600 dark:text-white">
+                    <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <p className="mb-1 -ml-2 inline px-2 py-1">
+                      {`${t("every_for_freq", {
+                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
+                      })} ${recurringEventCount} ${t(
+                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        { count: parseInt(recurringEventCount.toString()) }
+                      )}`}
+                    </p>
+                  </div>
+                )}
+                <div className="text-bookinghighlight mb-4 flex">
+                  <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                  <div className="-mt-1">
+                    {(rescheduleUid || !eventType.recurringEvent.freq) && parseDate(date, i18n)}
+                    {!rescheduleUid &&
+                      eventType.recurringEvent.freq &&
+                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                      <div className="flex">
+                        <Tooltip
+                          content={recurringStrings.slice(5).map((aDate, key) => (
+                            <p key={key}>{aDate}</p>
+                          ))}>
+                          <p className="text-gray-600 dark:text-white">
+                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}

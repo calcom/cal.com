@@ -6,7 +6,6 @@ import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
 import { getCalendar } from "@calcom/core/CalendarManager";
-import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -100,6 +99,7 @@ const handler = async (
             title: true,
             users: true,
             schedulingType: true,
+            recurringEvent: true,
           },
           rejectOnNotFound: true,
           where: {

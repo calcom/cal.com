@@ -14,13 +14,13 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import ModalContainer from "@components/ui/ModalContainer";
