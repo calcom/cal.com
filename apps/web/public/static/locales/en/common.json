@@ -776,6 +776,7 @@
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
   "place_where_cal_widget_appear": "Place this code in your HTML where you want your Cal widget to appear.",
   "copy_code": "Copy Code",
+  "code_copied": "Code copied!",
   "how_you_want_add_cal_site":"How do you want to add Cal to your site?",
   "choose_ways_put_cal_site":"Choose one of the following ways to put Cal on your site.",
   "setting_up_zapier": "Setting up your Zapier integration",

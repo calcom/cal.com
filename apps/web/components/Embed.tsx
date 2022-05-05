@@ -801,7 +801,7 @@ ${getEmbedTypeSpecificString().trim()}
                   return;
                 }
                 navigator.clipboard.writeText(embedCode.current.value);
-                showToast(t("link_copied"), "success");
+                showToast(t("code_copied"), "success");
               }}>
               {t("copy_code")}
             </Button>

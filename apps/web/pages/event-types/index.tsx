@@ -301,6 +301,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             {t("duplicate")}
                           </Button>
                         </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <EmbedButton
+                            dark
+                            className="w-full rounded-none"
+                            eventTypeId={type.id}></EmbedButton>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
                           <Dialog>
@@ -327,12 +333,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               {t("delete_event_type_description")}
                             </ConfirmationDialogContent>
                           </Dialog>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <EmbedButton
-                            dark
-                            className="w-full rounded-none"
-                            eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
