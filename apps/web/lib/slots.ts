@@ -3,6 +3,8 @@ import isBetween from "dayjs/plugin/isBetween";
 import isToday from "dayjs/plugin/isToday";
 import utc from "dayjs/plugin/utc";
 
+import { timeZone } from "@lib/clock";
+
 import { getWorkingHours } from "./availability";
 import { WorkingHours } from "./types/schedule";
 
@@ -32,7 +34,7 @@ const splitAvailableTime = (
     const periodTime = initialTime + frequency;
     const slotEndTime = initialTime + eventLength;
     /*
-    check if the slot end time surpasses availability end time of the user 
+    check if the slot end time surpasses availability end time of the user
     1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
     eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
     */
@@ -51,9 +53,11 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   if (inviteeDate.isBefore(startDate, "day")) {
     return [];
   }
+  // re-instantiation to get the correct offset
+  const reCalUtcOffsetDate = dayjs.tz(inviteeDate, timeZone());
 
   const localWorkingHours = getWorkingHours(
-    { utcOffset: -inviteeDate.utcOffset() },
+    { utcOffset: -reCalUtcOffsetDate.utcOffset() },
     workingHours.map((schedule) => ({
       days: schedule.days,
       startTime: startOfDay.add(schedule.startTime, "minute"),
