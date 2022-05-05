@@ -404,6 +404,13 @@ ${getEmbedUIInstructionString().trim()}`;
     return previewState.theme !== "auto" ? previewState.theme : null;
   };
 
+  const getDimension = (dimension: string) => {
+    if (dimension.match(/^\d+$/)) {
+      dimension = `${dimension}%`;
+    }
+    return dimension;
+  };
+
   const addToPalette = (update: typeof previewState["palette"]) => {
     setPreviewState((previewState) => {
       return {
@@ -426,6 +433,21 @@ ${getEmbedUIInstructionString().trim()}`;
       "*"
     );
   };
+
+  const inlineEmbedDimensionUpdate = ({ width, height }: { width: string; height: string }) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      {
+        mode: "cal:preview",
+        type: "inlineEmbedDimensionUpdate",
+        data: {
+          width: getDimension(width),
+          height: getDimension(height),
+        },
+      },
+      "*"
+    );
+  };
+
   previewInstruction({
     name: "ui",
     arg: {
@@ -450,6 +472,13 @@ ${getEmbedUIInstructionString().trim()}`;
     });
   }
 
+  if (embedType === "inline") {
+    inlineEmbedDimensionUpdate({
+      width: previewState.inline.width,
+      height: previewState.inline.height,
+    });
+  }
+
   const ThemeOptions = [
     { value: "auto", label: "Auto Theme" },
     { value: "dark", label: "Dark Theme" },
@@ -467,12 +496,6 @@ ${getEmbedUIInstructionString().trim()}`;
     },
   ];
 
-  const getDimension = (dimension: string) => {
-    if (dimension.match(/^\d+$/)) {
-      dimension = `${dimension}%`;
-    }
-    return dimension;
-  };
   return (
     <DialogContent size="xl">
       <div className="flex">
@@ -771,7 +794,7 @@ ${getEmbedUIInstructionString().trim()}`;
                   (embedType === "inline"
                     ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                         previewState.inline.height
-                      )}" id="my-cal-inline"></div>\n`
+                      )};overflow:scroll" id="my-cal-inline"></div>\n`
                     : "") +
                   `<script type="text/javascript">
 ${getEmbedSnippetString().trim()}

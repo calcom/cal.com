@@ -13,4 +13,11 @@ window.addEventListener("message", (e) => {
   if (data.type == "instruction") {
     globalCal(data.instruction.name, data.instruction.arg);
   }
+  if (data.type == "inlineEmbedDimensionUpdate") {
+    const inlineEl = document.querySelector("#my-embed") as HTMLElement;
+    if (inlineEl) {
+      inlineEl.style.width = data.data.width;
+      inlineEl.style.height = data.data.height;
+    }
+  }
 });
