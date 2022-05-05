@@ -58,7 +58,7 @@ export default class AttendeeScheduledEmail {
 
   protected getiCalEventAsString(): string | undefined {
     // Taking care of recurrence rule beforehand
-    let recurrenceRule = undefined;
+    let recurrenceRule: string | undefined = undefined;
     if (this.recurringEvent?.count) {
       recurrenceRule = new rrule(this.recurringEvent).toString();
     }
