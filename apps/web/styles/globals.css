@@ -9,9 +9,9 @@
   --brand-text-color-dark-mode: #292929;
 }
 
-/* 
+/*
  * Override the default tailwindcss-forms styling (default is: 'colors.blue.600')
- * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006 
+ * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006
  */
 [type="text"]:focus,
 [type="email"]:focus,
