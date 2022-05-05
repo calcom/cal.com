@@ -15,7 +15,7 @@ import * as slackmessaging from "./slackmessaging";
 import * as spacebooking from "./spacebooking";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
-import * as vital from "./vital";
+import * as vitalother from "./vitalother";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
 import * as zoomvideo from "./zoomvideo";
@@ -25,23 +25,23 @@ const appStore = {
   applecalendar,
   caldavcalendar,
   dailyvideo,
-  giphy,
   googlecalendar,
   googlevideo,
   hubspotothercalendar,
   huddle01video,
   jitsivideo,
-  metamask,
   office365calendar,
   office365video,
   slackmessaging,
-  spacebooking,
   stripepayment,
+  spacebooking,
   tandemvideo,
-  vital,
+  vitalother,
   wipemycalother,
-  zapier,
   zoomvideo,
+  metamask,
+  giphy,
+  zapier,
 };
 
 export default appStore;
