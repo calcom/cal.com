@@ -69,19 +69,16 @@ export async function handlePayment(
     },
   });
 
-  await sendAwaitingPaymentEmail(
-    {
-      ...evt,
-      paymentInfo: {
-        link: createPaymentLink({
-          paymentUid: payment.uid,
-          name: booking.user?.name,
-          date: booking.startTime.toISOString(),
-        }),
-      },
+  await sendAwaitingPaymentEmail({
+    ...evt,
+    paymentInfo: {
+      link: createPaymentLink({
+        paymentUid: payment.uid,
+        name: booking.user?.name,
+        date: booking.startTime.toISOString(),
+      }),
     },
-    {} // Payment related emails don't need recurring event information for now. TODO: Payment support
-  );
+  });
 
   return payment;
 }

@@ -6,12 +6,11 @@ import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
 import { getCalendar } from "@calcom/core/CalendarManager";
-import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Person, RecurringEvent } from "@calcom/types/Calendar";
+import { Person } from "@calcom/types/Calendar";
 
 import { sendRequestRescheduleEmail } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
@@ -176,13 +175,9 @@ const handler = async (
       });
 
       // Send emails
-      await sendRequestRescheduleEmail(
-        builder.calendarEvent,
-        {
-          rescheduleLink: builder.rescheduleLink,
-        },
-        {} // We don't support rescheduling a recurring event so skipping defining it to just deal with a single booking
-      );
+      await sendRequestRescheduleEmail(builder.calendarEvent, {
+        rescheduleLink: builder.rescheduleLink,
+      });
     }
 
     return res.status(200).json(bookingToReschedule);

@@ -87,9 +87,7 @@ ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
           this.calEvent.organizer.language.translate(
-            this.recurringEvent && this.recurringEvent.count
-              ? "event_awaiting_approval_recurring"
-              : "event_awaiting_approval"
+            this.recurringEvent?.count ? "event_awaiting_approval_recurring" : "event_awaiting_approval"
           ),
           this.calEvent.organizer.language.translate("someone_requested_an_event")
         )}

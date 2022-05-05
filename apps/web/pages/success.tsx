@@ -315,8 +315,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           <div className="font-medium">{t("when")}</div>
                           <div className="col-span-2">
                             {reschedule != "true" &&
-                              props.eventType.recurringEvent &&
-                              props.eventType.recurringEvent.count &&
+                              props.eventType.recurringEvent?.count &&
                               props.recurringBookings &&
                               props.recurringBookings.slice(0, 4).map((dateStr, idx) => (
                                 <div key={idx} className="mb-2">
@@ -343,8 +342,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                                     {t("plus_more", { count: props.recurringBookings.length - 4 })}
                                   </CollapsibleTrigger>
                                   <CollapsibleContent>
-                                    {props.eventType.recurringEvent &&
-                                      props.eventType.recurringEvent.count &&
+                                    {props.eventType.recurringEvent?.count &&
                                       props.recurringBookings &&
                                       props.recurringBookings.slice(4).map((dateStr, idx) => (
                                         <div key={idx} className="mb-2">
@@ -538,7 +536,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         {props.userHasSpaceBooking && (
           <SpaceBookingSuccessPage
             open={props.userHasSpaceBooking}
-            what={` 
+            what={`
             ${needsConfirmation ? t("submitted") : `${t("meeting_is_scheduled")}.`}
                ${
                  props.recurringBookings

@@ -285,12 +285,14 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
-  if (eventType.recurringEvent.freq && recurringEventCount !== null) {
+  if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
     [recurringStrings, recurringDates] = parseRecurringDates(
-      date,
-      i18n,
-      eventType.recurringEvent,
-      parseInt(recurringEventCount.toString())
+      {
+        startDate: date,
+        recurringEvent: eventType.recurringEvent,
+        recurringCount: parseInt(recurringEventCount.toString()),
+      },
+      i18n
     );
   }
 
@@ -457,28 +459,23 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                {!rescheduleUid &&
-                  eventType.recurringEvent &&
-                  eventType.recurringEvent.freq &&
-                  recurringEventCount && (
-                    <div className="mb-3 text-gray-600 dark:text-white">
-                      <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <p className="mb-1 -ml-2 inline px-2 py-1">
-                        {`${t("every_for_freq", {
-                          freq: t(
-                            `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`
-                          ),
-                        })} ${recurringEventCount} ${t(
+                {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
+                  <div className="mb-3 text-gray-600 dark:text-white">
+                    <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <p className="mb-1 -ml-2 inline px-2 py-1">
+                      {`${t("every_for_freq", {
+                        freq: t(
                           `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
                             .toString()
-                            .toLowerCase()}`,
-                          { count: parseInt(recurringEventCount.toString()) }
-                        )}`}
-                      </p>
-                    </div>
-                  )}
+                            .toLowerCase()}`
+                        ),
+                      })} ${recurringEventCount} ${t(
+                        `recurring_${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        { count: parseInt(recurringEventCount.toString()) }
+                      )}`}
+                    </p>
+                  </div>
+                )}
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">

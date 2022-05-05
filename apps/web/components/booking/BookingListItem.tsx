@@ -6,7 +6,6 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
-import { string } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,7 +28,7 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringCount?: { _count: number; recurringEventId: string };
+  recurringCount?: number;
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -42,18 +41,22 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const mutation = useMutation(
     async (confirm: boolean) => {
+      let body = {
+        id: booking.id,
+        confirmed: confirm,
+        language: i18n.language,
+        reason: rejectionReason,
+      };
+      /**
+       * Only pass down the recurring event id when we need to confirm the entire series, which happens in
+       * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
+       */
+      if (booking.listingStatus === "upcoming" && booking.recurringEventId !== null) {
+        body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
+      }
       const res = await fetch("/api/book/confirm", {
         method: "PATCH",
-        body: JSON.stringify({
-          id: booking.id,
-          confirmed: confirm,
-          // Only pass down the recurring event id when we need to confirm the entire series, which happens in the "Upcoming" tab,
-          // to support confirming discretionally in the "Recurring" tab
-          ...(booking.listingStatus === "upcoming" &&
-            booking.recurringEventId !== null && { recurringEventId: booking.recurringEventId }),
-          language: i18n.language,
-          reason: rejectionReason,
-        }),
+        body: JSON.stringify(body),
         headers: {
           "Content-Type": "application/json",
         },
@@ -137,16 +140,14 @@ function BookingListItem(booking: BookingItemProps) {
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [];
-  if (
-    booking.eventType.recurringEvent &&
-    booking.recurringCount &&
-    booking.eventType.recurringEvent.freq !== null
-  ) {
+  if (booking.recurringCount && booking.eventType.recurringEvent?.freq !== null) {
     [recurringStrings] = parseRecurringDates(
-      booking.startTime,
-      i18n,
-      booking.eventType.recurringEvent,
-      booking.recurringCount._count
+      {
+        startDate: booking.startTime,
+        recurringEvent: booking.eventType.recurringEvent,
+        recurringCount: booking.recurringCount,
+      },
+      i18n
     );
   }
   return (
@@ -198,10 +199,8 @@ function BookingListItem(booking: BookingItemProps) {
             {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
           </div>
           <div className="text-sm text-gray-400">
-            {booking.eventType &&
-              booking.recurringCount &&
-              booking.eventType.recurringEvent &&
-              booking.eventType.recurringEvent.freq &&
+            {booking.recurringCount &&
+              booking.eventType?.recurringEvent?.freq &&
               booking.listingStatus === "upcoming" && (
                 <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
                   <div className="flex">
@@ -217,11 +216,11 @@ function BookingListItem(booking: BookingItemProps) {
                               .toString()
                               .toLowerCase()}`
                           ),
-                        })} ${booking.recurringCount._count} ${t(
+                        })} ${booking.recurringCount} ${t(
                           `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
                             .toString()
                             .toLowerCase()}`,
-                          { count: booking.recurringCount._count }
+                          { count: booking.recurringCount }
                         )}`}
                       </p>
                     </Tooltip>

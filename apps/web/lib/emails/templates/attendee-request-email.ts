@@ -88,9 +88,7 @@ ${this.getAdditionalNotes()}
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
           this.calEvent.organizer.language.translate(
-            this.recurringEvent && this.recurringEvent.count
-              ? "booking_submitted_recurring"
-              : "booking_submitted"
+            this.recurringEvent?.count ? "booking_submitted_recurring" : "booking_submitted"
           ),
           this.calEvent.organizer.language.translate(
             this.recurringEvent.count

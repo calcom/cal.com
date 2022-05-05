@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
+import { recurringEvent } from "@calcom/prisma/zod-utils";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
@@ -21,13 +22,19 @@ export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
 };
 
 export const parseRecurringDates = (
-  date: string | null | Dayjs,
-  i18n: I18n,
-  recurringEvent: RecurringEvent,
-  recurringCount: number
+  {
+    startDate,
+    recurringEvent,
+    recurringCount,
+  }: { startDate: string | null | Dayjs; recurringEvent: RecurringEvent; recurringCount: number },
+  i18n: I18n
 ): [string[], Date[]] => {
   const { count, ...restRecurringEvent } = recurringEvent;
-  const rule = new RRule({ ...restRecurringEvent, count: recurringCount, dtstart: dayjs(date).toDate() });
+  const rule = new RRule({
+    ...restRecurringEvent,
+    count: recurringCount,
+    dtstart: dayjs(startDate).toDate(),
+  });
   const dateStrings = rule.all().map((r) => {
     return processDate(dayjs(r), i18n);
   });

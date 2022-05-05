@@ -57,6 +57,11 @@ export default class AttendeeScheduledEmail {
   }
 
   protected getiCalEventAsString(): string | undefined {
+    // Taking care of recurrence rule beforehand
+    let recurrenceRule = undefined;
+    if (this.recurringEvent?.count) {
+      recurrenceRule = new rrule(this.recurringEvent).toString();
+    }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
@@ -76,8 +81,7 @@ export default class AttendeeScheduledEmail {
         name: attendee.name,
         email: attendee.email,
       })),
-      ...(this.recurringEvent &&
-        this.recurringEvent.count && { recurrenceRule: new rrule(this.recurringEvent).toString() }),
+      ...{ recurrenceRule },
       status: "CONFIRMED",
     });
     if (icsEvent.error) {
@@ -132,9 +136,7 @@ export default class AttendeeScheduledEmail {
   protected getTextBody(): string {
     return `
 ${this.calEvent.attendees[0].language.translate(
-  this.recurringEvent && this.recurringEvent.count
-    ? "your_event_has_been_scheduled_recurring"
-    : "your_event_has_been_scheduled"
+  this.recurringEvent?.count ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled"
 )}
 ${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")}
 
@@ -168,7 +170,7 @@ ${getRichDescription(this.calEvent)}
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
           this.calEvent.attendees[0].language.translate(
-            this.recurringEvent && this.recurringEvent.count
+            this.recurringEvent?.count
               ? "your_event_has_been_scheduled_recurring"
               : "your_event_has_been_scheduled"
           ),
@@ -280,14 +282,10 @@ ${getRichDescription(this.calEvent)}
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}${
-      this.recurringEvent && this.recurringEvent.count ? this.getRecurringWhen() : ""
+      this.recurringEvent?.count ? this.getRecurringWhen() : ""
     }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
-      ${
-        this.recurringEvent && this.recurringEvent.count
-          ? `${this.calEvent.attendees[0].language.translate("starting")} `
-          : ""
-      }
+      ${this.recurringEvent?.count ? `${this.calEvent.attendees[0].language.translate("starting")} ` : ""}
       ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
       )}, ${this.calEvent.attendees[0].language.translate(

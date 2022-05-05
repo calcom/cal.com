@@ -8,7 +8,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
-import { inferQueryInput, trpc } from "@lib/trpc";
+import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
@@ -17,6 +17,8 @@ import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+type BookingPage = inferQueryOutput<"viewer.bookings">;
 
 export default function Bookings() {
   const router = useRouter();
@@ -45,6 +47,18 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
+  // Get the recurrentCount value from the grouped recurring bookings
+  // created with the same recurringEventId
+  const defineRecurrentCount = (booking: BookingOutput, page: BookingPage) => {
+    let recurringCount = undefined;
+    if (booking.recurringEventId !== null) {
+      recurringCount = page.groupedRecurringBookings.filter(
+        (group) => group.recurringEventId === booking.recurringEventId
+      )[0]._count; // If found, only one object exists, just assing the needed _count value
+    }
+    return { recurringCount };
+  };
+
   return (
     <Shell
       heading={t("bookings")}
@@ -70,11 +84,7 @@ export default function Bookings() {
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
-                                {...(booking.recurringEventId !== null && {
-                                  recurringCount: page.groupedRecurringBookings.filter(
-                                    (group) => group.recurringEventId === booking.recurringEventId
-                                  )[0],
-                                })}
+                                {...defineRecurrentCount(booking, page)}
                                 {...booking}
                               />
                             ))}

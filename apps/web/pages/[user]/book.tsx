@@ -210,8 +210,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
   const recurringEventCount =
-    (eventType.recurringEvent &&
-      eventType.recurringEvent.count &&
+    (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
       (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
         ? recurringEventCountQuery

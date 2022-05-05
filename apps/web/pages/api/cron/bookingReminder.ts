@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         destinationCalendar: booking.destinationCalendar || user.destinationCalendar,
       };
 
-      await sendOrganizerRequestReminderEmail(evt, {});
+      await sendOrganizerRequestReminderEmail(evt);
 
       await prisma.reminderMail.create({
         data: {

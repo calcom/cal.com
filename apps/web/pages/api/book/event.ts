@@ -396,7 +396,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
-  if (reqBody.recurringEventId && eventType.recurringEvent && eventType.recurringEvent.count) {
+  if (reqBody.recurringEventId && eventType.recurringEvent?.count) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent.count = recurringCount;
@@ -473,7 +473,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
-      ...(reqBody.recurringEventId && { recurringEventId: reqBody.recurringEventId }),
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -502,6 +501,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         : undefined,
     };
+    if (reqBody.recurringEventId) {
+      newBookingData.recurringEventId = reqBody.recurringEventId;
+    }
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
@@ -594,7 +596,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let isAvailableToBeBooked = true;
     try {
-      if (eventType.recurringEvent && eventType.recurringEvent.count) {
+      if (eventType.recurringEvent?.count) {
         const allBookingDates = new rrule({
           dstart: new Date(reqBody.start),
           ...eventType.recurringEvent,

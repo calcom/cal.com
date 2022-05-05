@@ -221,7 +221,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes]);
 
-  await sendCancelledEmails(evt, {}); // We don't support canceling a recurring event so skipping defining it to just deal with a single booking
+  await sendCancelledEmails(evt);
 
   res.status(204).end();
 }

@@ -18,7 +18,7 @@ import OrganizerRescheduledEmail from "@lib/emails/templates/organizer-reschedul
 import OrganizerScheduledEmail from "@lib/emails/templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "@lib/emails/templates/team-invite-email";
 
-export const sendScheduledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendScheduledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent = {}) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -48,7 +48,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent, recurringEven
   await Promise.all(emailsToSend);
 };
 
-export const sendRescheduledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendRescheduledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent = {}) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -78,7 +78,10 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent, recurringEv
   await Promise.all(emailsToSend);
 };
 
-export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendOrganizerRequestEmail = async (
+  calEvent: CalendarEvent,
+  recurringEvent: RecurringEvent = {}
+) => {
   await new Promise((resolve, reject) => {
     try {
       const organizerRequestEmail = new OrganizerRequestEmail(calEvent, recurringEvent);
@@ -92,7 +95,7 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent, recurri
 export const sendAttendeeRequestEmail = async (
   calEvent: CalendarEvent,
   attendee: Person,
-  recurringEvent: RecurringEvent
+  recurringEvent: RecurringEvent = {}
 ) => {
   await new Promise((resolve, reject) => {
     try {
@@ -104,7 +107,7 @@ export const sendAttendeeRequestEmail = async (
   });
 };
 
-export const sendDeclinedEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendDeclinedEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent = {}) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -123,7 +126,7 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent, recurringEvent
   await Promise.all(emailsToSend);
 };
 
-export const sendCancelledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendCancelledEmails = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent = {}) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -155,7 +158,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent, recurringEven
 
 export const sendOrganizerRequestReminderEmail = async (
   calEvent: CalendarEvent,
-  recurringEvent: RecurringEvent
+  recurringEvent: RecurringEvent = {}
 ) => {
   await new Promise((resolve, reject) => {
     try {
@@ -167,7 +170,10 @@ export const sendOrganizerRequestReminderEmail = async (
   });
 };
 
-export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent, recurringEvent: RecurringEvent) => {
+export const sendAwaitingPaymentEmail = async (
+  calEvent: CalendarEvent,
+  recurringEvent: RecurringEvent = {}
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -225,7 +231,7 @@ export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
 export const sendRequestRescheduleEmail = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string },
-  recurringEvent: RecurringEvent
+  recurringEvent: RecurringEvent = {}
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
 
