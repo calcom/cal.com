@@ -2,6 +2,7 @@ import { CheckIcon } from "@heroicons/react/outline";
 import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
@@ -41,6 +42,7 @@ import { ssrInit } from "@server/lib/ssr";
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -282,8 +284,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           <div className="col-span-2 mb-6">
                             {date.format("MMMM DD, YYYY")}
                             <br />
-                            {date.format(is24h ? "H:mm" : "h:mma")} -{" "}
-                            {date.add(props.eventType.length, "m").format(is24h ? "H:mm" : "h:mma")}{" "}
+                            {date.format("LT")} - {date.add(props.eventType.length, "m").format("LT")}{" "}
                             <span className="text-bookinglight">
                               ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                             </span>
