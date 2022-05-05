@@ -15,10 +15,10 @@ import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { parseRecurringDates } from "@lib/parseDate";
 import { inferQueryOutput, trpc, inferQueryInput } from "@lib/trpc";
 
-import { useMeQuery } from "@components/Shell";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
