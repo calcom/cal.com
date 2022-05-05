@@ -615,7 +615,7 @@
   "add_new_event_type": "Add a new event type",
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
-  "minimum_booking_notice": "Minimum booking notice",
+  "minimum_booking_notice": "Minimum notice",
   "slot_interval": "Time-slot intervals",
   "slot_interval_default": "Use event length (default)",
   "delete_event_type_description": "Are you sure you want to delete this event type? Anyone who you've shared this link with will no longer be able to book using it.",
@@ -786,5 +786,12 @@
   "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "go_to_app_store": "Go to App Store",
-  "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions"
+  "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
+  "buffers_and_limts" : "Buffers & Limits",
+  "limit_future_booking_checkbox":"Limit how far in the future people can book a time",
+  "limit_booking_frequency":"Limit booking frequency",
+  "period_label_day":"day",
+  "period_label_week":"week",
+  "period_label_month":"month",
+  "period_label_year":"year"
 }
