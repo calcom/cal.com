@@ -34,12 +34,6 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-/* ensures the increment/decrement arrows always display */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-  opacity: 1;
-}
-
 button[role="switch"][data-state="checked"] {
   @apply bg-gray-900;
 }
