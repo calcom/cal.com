@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import vitalClient, { initVitalClient, vitalEnv } from "../lib/client";
+import { initVitalClient, vitalEnv } from "../lib/client";
 
 /**
  * This is will generate a user token for a client_user_id`
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  await initVitalClient();
+  const vitalClient = await initVitalClient();
 
   if (!vitalClient || !vitalEnv)
     return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });

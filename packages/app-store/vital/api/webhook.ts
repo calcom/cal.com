@@ -10,10 +10,11 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import { Reschedule } from "../lib";
-import vitalClient, { initVitalClient, vitalEnv } from "../lib/client";
+import { initVitalClient, vitalEnv } from "../lib/client";
 
 // @Note: not being used anymore but left as example
 const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
+  const vitalClient = await initVitalClient();
   if (!vitalClient) throw Error("Missing vital client");
   const sleep_data = await vitalClient.Sleep.get_raw(user_id, bedtime_start, undefined, "oura");
   if (sleep_data.sleep.length === 0) {
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 400, message: "Missing svix-signature" });
     }
 
-    await initVitalClient();
+    const vitalClient = await initVitalClient();
 
     if (!vitalClient || !vitalEnv)
       return res.status(400).json({ message: "Missing vital client, try calling `initVitalClient`" });

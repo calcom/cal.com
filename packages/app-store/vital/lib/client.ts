@@ -11,8 +11,8 @@ type VitalEnv = ClientConfig & {
 export let vitalClient: VitalClient | null = null;
 export let vitalEnv: VitalEnv | null = null;
 
-export async function initVitalClient() {
-  if (vitalClient) return;
+export async function initVitalClient(): Promise<VitalClient> {
+  if (vitalClient) return vitalClient;
   const appKeys = (await getAppKeysFromSlug("vital-automation")) as unknown as VitalEnv;
   if (
     typeof appKeys !== "object" ||
@@ -28,6 +28,7 @@ export async function initVitalClient() {
     api_key: appKeys.api_key || "",
     environment: (appKeys.mode as ClientConfig["environment"]) || "sandbox",
   });
+  return vitalClient;
 }
 
 export default vitalClient;
