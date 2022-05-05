@@ -3,6 +3,7 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
+import type { Frequency as RRuleFrequency } from "rrule";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
@@ -72,6 +73,15 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+export interface RecurringEvent {
+  dtstart?: Date | undefined;
+  interval?: number;
+  count?: number;
+  freq?: RRuleFrequency;
+  until?: Date | undefined;
+  tzid?: string | undefined;
+}
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
@@ -96,6 +106,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  recurrence?: string;
 }
 
 export interface EntryPoint {

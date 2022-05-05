@@ -34,9 +34,11 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -55,9 +57,9 @@ import DestinationCalendarSelector from "@components/DestinationCalendarSelector
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -65,7 +67,7 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
-import Select, { SelectProps } from "@components/ui/form/Select";
+import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
@@ -272,8 +274,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
 
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  const [requirePayment, setRequirePayment] = useState(
+    eventType.price > 0 && eventType.recurringEvent?.count !== undefined
+  );
+
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
 
   useEffect(() => {
@@ -483,6 +489,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
+    recurringEvent: RecurringEvent;
     schedulingType: SchedulingType | null;
     price: number;
     currency: string;
@@ -510,6 +517,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || {},
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -928,15 +936,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
+                      recurringEvent,
                       locations,
                       ...input
                     } = values;
 
-                    if (requirePayment) input.currency = currency;
-
                     updateMutation.mutate({
                       ...input,
                       locations,
+                      recurringEvent,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -1334,6 +1342,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <RecurringEventController
+                          recurringEvent={eventType.recurringEvent}
+                          formMethods={formMethods}
+                        />
+
                         <Controller
                           name="disableGuests"
                           control={formMethods.control}
@@ -1641,7 +1654,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
-                        {hasPaymentIntegration && (
+                        {hasPaymentIntegration && eventType.recurringEvent?.count !== undefined && (
                           <>
                             <hr className="border-neutral-200" />
                             <div className="block sm:flex">
@@ -2054,6 +2067,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
@@ -2118,6 +2132,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
     locations: locations as unknown as Location[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

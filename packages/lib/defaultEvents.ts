@@ -55,6 +55,7 @@ const commons = {
   },
   isWeb3Active: false,
   hideCalendarNotes: false,
+  recurringEvent: {},
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
