@@ -7,6 +7,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -229,9 +230,19 @@ export const eventTypesRouter = createProtectedRouter()
       assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
-      data.recurringEvent = recurringEvent as any;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
+      }
+
+      if (recurringEvent) {
+        data.recurringEvent = {
+          dstart: recurringEvent.dtstart as unknown as Prisma.InputJsonObject,
+          interval: recurringEvent.interval,
+          count: recurringEvent.count,
+          freq: recurringEvent.freq,
+          until: recurringEvent.until as unknown as Prisma.InputJsonObject,
+          tzid: recurringEvent.tzid,
+        };
       }
 
       if (destinationCalendar) {

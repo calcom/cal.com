@@ -464,13 +464,9 @@ const BookingPage = ({
                     <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     <p className="mb-1 -ml-2 inline px-2 py-1">
                       {`${t("every_for_freq", {
-                        freq: t(
-                          `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
-                            .toString()
-                            .toLowerCase()}`
-                        ),
+                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
                       })} ${recurringEventCount} ${t(
-                        `recurring_${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
                         { count: parseInt(recurringEventCount.toString()) }
                       )}`}
                     </p>

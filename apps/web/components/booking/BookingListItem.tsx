@@ -212,14 +212,12 @@ function BookingListItem(booking: BookingItemProps) {
                         <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
                         {`${t("every_for_freq", {
                           freq: t(
-                            `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
                               .toString()
                               .toLowerCase()}`
                           ),
                         })} ${booking.recurringCount} ${t(
-                          `recurring_${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                            .toString()
-                            .toLowerCase()}`,
+                          `${RRuleFrequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`,
                           { count: booking.recurringCount }
                         )}`}
                       </p>

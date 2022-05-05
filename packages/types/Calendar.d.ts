@@ -3,6 +3,7 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
+import type { Frequency as RRuleFrequency } from "rrule";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";

@@ -28,7 +28,7 @@ export default function RecurringEventController({
   const recurringEventFreqOptions = Object.entries(RRuleFrequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
     .map(([key, value]) => ({
-      label: t(`recurring_${key.toString().toLowerCase()}`, { count: recurringEventInterval }),
+      label: t(`${key.toString().toLowerCase()}`, { count: recurringEventInterval }),
       value: value.toString(),
     }));
 
@@ -119,7 +119,7 @@ export default function RecurringEventController({
                 }}
               />
               <p className="mr-2 text-neutral-900">
-                {t(`recurring_${RRuleFrequency[recurringEventFrequency].toString().toLowerCase()}`, {
+                {t(`${RRuleFrequency[recurringEventFrequency].toString().toLowerCase()}`, {
                   count: recurringEventCount,
                 })}
               </p>

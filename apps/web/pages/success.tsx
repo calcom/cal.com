@@ -217,6 +217,20 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
+
+  function getTitle(): string {
+    if (needsConfirmation) {
+      if (props.profile.name !== null) {
+        return t("user_needs_to_confirm_or_reject_booking" + (props.recurringBookings ?? "_recurring"), {
+          user: props.profile.name,
+        });
+      } else {
+        return t("needs_to_be_confirmed_or_rejected" + (props.recurringBookings ?? "_recurring"));
+      }
+    } else {
+      return t("emailed_you_and_attendees" + (props.recurringBookings ?? "_recurring"));
+    }
+  }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   return (
     (isReady && (
@@ -293,21 +307,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                             : t("meeting_is_scheduled")}
                         </h3>
                         <div className="mt-3">
-                          <p className="text-sm text-neutral-600 dark:text-gray-300">
-                            {props.recurringBookings
-                              ? needsConfirmation
-                                ? props.profile.name !== null
-                                  ? t("user_needs_to_confirm_or_reject_booking_recurring", {
-                                      user: props.profile.name,
-                                    })
-                                  : t("needs_to_be_confirmed_or_rejected_recurring")
-                                : t("emailed_you_and_attendees_recurring")
-                              : needsConfirmation
-                              ? props.profile.name !== null
-                                ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
-                                : t("needs_to_be_confirmed_or_rejected")
-                              : t("emailed_you_and_attendees")}
-                          </p>
+                          <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                         </div>
                         <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                           <div className="font-medium">{t("what")}</div>
@@ -538,21 +538,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
             open={props.userHasSpaceBooking}
             what={`
             ${needsConfirmation ? t("submitted") : `${t("meeting_is_scheduled")}.`}
-               ${
-                 props.recurringBookings
-                   ? needsConfirmation
-                     ? props.profile.name !== null
-                       ? t("user_needs_to_confirm_or_reject_booking_recurring", {
-                           user: props.profile.name,
-                         })
-                       : t("needs_to_be_confirmed_or_rejected_recurring")
-                     : t("emailed_you_and_attendees_recurring")
-                   : needsConfirmation
-                   ? props.profile.name !== null
-                     ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
-                     : t("needs_to_be_confirmed_or_rejected")
-                   : t("emailed_you_and_attendees")
-               } ${t("what")}: ${eventName}`}
+               ${getTitle()} ${t("what")}: ${eventName}`}
             where={`${t("where")}: ${
               location ? (location?.startsWith("http") ? { location } : location) : "Far far a way galaxy"
             }`}

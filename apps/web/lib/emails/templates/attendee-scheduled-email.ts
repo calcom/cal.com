@@ -267,14 +267,18 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getRecurringWhen(): string {
-    return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
-      freq: this.calEvent.attendees[0].language.translate(
-        `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
-      ),
-    })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
-      `recurring_${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
-      { count: this.recurringEvent.count }
-    )}`;
+    if (this.recurringEvent?.freq) {
+      return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+        freq: this.calEvent.attendees[0].language.translate(
+          `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+        ),
+      })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+        `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+        { count: this.recurringEvent.count }
+      )}`;
+    } else {
+      return "";
+    }
   }
 
   protected getWhen(): string {

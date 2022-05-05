@@ -287,15 +287,13 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
-                  {!rescheduleUid && eventType.recurringEvent?.count && (
+                  {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
                     <div className="mb-3 text-gray-600 dark:text-white">
                       <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                       <p className="mb-1 -ml-2 inline px-2 py-1">
                         {t("every_for_freq", {
                           freq: t(
-                            `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`
+                            `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
                           ),
                         })}
                       </p>
@@ -310,14 +308,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         }}
                       />
                       <p className="inline text-gray-600 dark:text-white">
-                        {t(
-                          `recurring_${RRuleFrequency[eventType.recurringEvent.freq]
-                            .toString()
-                            .toLowerCase()}`,
-                          {
-                            count: recurringEventCount,
-                          }
-                        )}
+                        {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                          count: recurringEventCount,
+                        })}
                       </p>
                     </div>
                   )}

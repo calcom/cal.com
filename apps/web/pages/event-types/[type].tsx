@@ -940,8 +940,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       ...input
                     } = values;
 
-                    if (requirePayment) input.currency = currency;
-
                     updateMutation.mutate({
                       ...input,
                       locations,
