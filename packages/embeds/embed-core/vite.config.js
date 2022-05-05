@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../../.env" });
 
 const path = require("path");
-const { defineConfig, loadEnv } = require("vite");
+const { defineConfig } = require("vite");
 
 module.exports = defineConfig((configEnv) => {
   const config = {
