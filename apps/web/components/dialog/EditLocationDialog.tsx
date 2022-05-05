@@ -40,13 +40,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const applyNamingFormat = (location: string | null | undefined): string => {
     if (!location) return "";
 
-    let finalString = location;
-    if (location.substring(0, 13) === "integrations:") {
-      finalString = location.substring(13);
-      finalString = finalString.charAt(0).toUpperCase() + finalString.slice(1);
-      finalString = finalString.replace(":", " ");
+    let locationRawString = location;
+    if (location.includes("integrations:")) {
+      locationRawString = location.replace("integrations:", "");
+      locationRawString = locationRawString.replace(":", " ");
     }
-    return finalString;
+    locationRawString = locationRawString.charAt(0).toUpperCase() + locationRawString.slice(1);
+    return locationRawString;
   };
 
   const [currentLocation, setCurrentLocation] = useState(applyNamingFormat(booking?.location) || "");

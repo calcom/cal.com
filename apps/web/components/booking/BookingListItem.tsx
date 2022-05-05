@@ -130,7 +130,7 @@ function BookingListItem(booking: BookingItem) {
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
 
-  const newMutation = useMutation(async (newLocation: string) => {
+  const setLocationMutation = useMutation(async (newLocation: string) => {
     const result = await fetch("/api/book/setLocation", {
       method: "POST",
       body: JSON.stringify({
@@ -152,7 +152,7 @@ function BookingListItem(booking: BookingItem) {
     if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
       newLocation = details[Object.keys(details)[0]];
     }
-    newMutation.mutate(newLocation);
+    setLocationMutation.mutate(newLocation);
   };
 
   return (
