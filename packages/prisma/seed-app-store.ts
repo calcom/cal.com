@@ -87,12 +87,14 @@ async function main() {
     });
   }
   await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
-  await createApp("vital-automation", "vital", ["other"], "vital_other", {
-    mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
-    region: process.env.VITAL_REGION || "us",
-    api_key: process.env.VITAL_API_KEY,
-    webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
-  });
+  if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
+    await createApp("vital-automation", "vital", ["other"], "vital_other", {
+      mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+      region: process.env.VITAL_REGION || "us",
+      api_key: process.env.VITAL_API_KEY,
+      webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+    });
+  }
   await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");

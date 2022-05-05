@@ -5,8 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button, Select } from "@calcom/ui";
 
-interface IVitalsConfigurationProps {
-  trpc: any;
+export interface IAppConfigurationProps {
+  credentialIds: number[];
 }
 
 const saveSettings = async ({
@@ -35,15 +35,9 @@ const saveSettings = async ({
   }
 };
 
-const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
-  const { trpc } = props;
-  const { t } = useLocale();
-  const { data } = trpc.useQuery(["viewer.integrations"]);
-  const vitalCredentials: { credentialIds: number[] } = data?.other?.items.find(
-    (item: { type: string }) => item.type === "vital_other"
-  );
-
-  const [credentialId] = vitalCredentials?.credentialIds || [false];
+const AppConfiguration = (props: IAppConfigurationProps) => {
+  const { t } = useLocale("vital");
+  const [credentialId] = props.credentialIds;
 
   const options = [
     {
@@ -183,4 +177,4 @@ const VitalsConfiguration = (props: IVitalsConfigurationProps) => {
   );
 };
 
-export { VitalsConfiguration };
+export default AppConfiguration;

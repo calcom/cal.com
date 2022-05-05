@@ -62,3 +62,5 @@ export const InstallAppButton = (
     );
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 };
+
+export { AppConfiguration } from "./_components/AppConfiguration";

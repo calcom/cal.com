@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
-import { InstallAppButton } from "@calcom/app-store/components";
+import { AppConfiguration, InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
 import { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
@@ -24,7 +24,6 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import { VitalsConfiguration } from "@components/integrations/Vitals/Configuration";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 function IframeEmbedContainer() {
@@ -193,7 +192,8 @@ function IntegrationsContainer() {
                     isGlobal={item.isGlobal}
                     installed
                   />
-                }></IntegrationListItem>
+                }
+              />
             ))}
           </List>
 
@@ -243,7 +243,7 @@ function IntegrationsContainer() {
                     installed={item.installed}
                   />
                 }>
-                {item.type === "vital_other" && <VitalsConfiguration trpc={trpc} />}
+                <AppConfiguration type={item.type} credentialIds={item.credentialIds} />
               </IntegrationListItem>
             ))}
           </List>
