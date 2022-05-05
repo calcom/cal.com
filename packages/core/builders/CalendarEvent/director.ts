@@ -11,7 +11,21 @@ export class CalendarEventDirector {
     this.builder = builder;
   }
 
-  public setExistingBooking(booking: Booking) {
+  public setExistingBooking(
+    booking: Pick<
+      Booking,
+      | "id"
+      | "uid"
+      | "title"
+      | "startTime"
+      | "endTime"
+      | "eventTypeId"
+      | "userId"
+      | "dynamicEventSlugRef"
+      | "dynamicGroupSlugRef"
+      | "location"
+    >
+  ) {
     this.existingBooking = booking;
   }
 
@@ -29,9 +43,23 @@ export class CalendarEventDirector {
       this.builder.setCancellationReason(this.cancellationReason);
       this.builder.setDescription(this.builder.eventType.description);
       this.builder.setNotes(this.existingBooking.description);
-      this.builder.buildRescheduleLink(this.existingBooking.uid);
+      this.builder.buildRescheduleLink(this.existingBooking, this.builder.eventType);
     } else {
       throw new Error("buildForRescheduleEmail.missing.params.required");
+    }
+  }
+
+  public async buildWithoutEventTypeForRescheduleEmail() {
+    if (this.existingBooking && this.existingBooking.userId && this.existingBooking.uid) {
+      await this.builder.setUsersFromId(this.existingBooking.userId);
+      this.builder.buildAttendeesList();
+      this.builder.setLocation(this.existingBooking.location);
+      this.builder.setUId(this.existingBooking.uid);
+      this.builder.setCancellationReason(this.cancellationReason);
+      this.builder.setDescription(this.existingBooking.description);
+      await this.builder.buildRescheduleLink(this.existingBooking);
+    } else {
+      throw new Error("buildWithoutEventTypeForRescheduleEmail.missing.params.required");
     }
   }
 }
