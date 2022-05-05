@@ -585,6 +585,7 @@
   "disable_guests": "Disable Guests",
   "disable_guests_description": "Disable adding additional guests while booking.",
   "private_link": "Generate private URL",
+  "copy_private_link": "Copy private link",
   "private_link_description": "Generate a private URL to share without exposing your Cal username",
   "invitees_can_schedule": "Invitees can schedule",
   "date_range": "Date Range",

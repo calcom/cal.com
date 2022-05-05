@@ -1838,6 +1838,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
+                {hashedLinkVisible && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(placeholderHashedLink);
+                      showToast("Private link copied!", "success");
+                    }}
+                    type="button"
+                    className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                    <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                    {t("copy_private_link")}
+                  </button>
+                )}
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
                     <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
