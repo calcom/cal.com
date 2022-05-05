@@ -17,13 +17,13 @@ export function Tooltip({
 }) {
   return (
     <TooltipPrimitive.Root
-      delayDuration={150}
+      delayDuration={50}
       open={open}
       defaultOpen={defaultOpen}
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="-mt-2 rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
+        className="slideInBottom -mt-2 rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
         side="top"
         align="center"
         {...props}>

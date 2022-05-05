@@ -398,3 +398,52 @@ hr {
 .react-date-picker__wrapper {
   border: none !important;
 }
+
+/* animations */
+.slideInBottom { 
+  animation-duration: .3s;
+  animation-fill-mode: both;
+  animation-name: slideInBottom 
+}
+
+@keyframes slideInBottom {
+    from {
+        opacity: 0;
+        transform: translateY(30%);
+    }
+    to { opacity: 1 }
+}
+
+/* animations */
+.slideInTop { 
+  animation-duration: .3s;
+  animation-fill-mode: both;
+  animation-name: slideInTop 
+}
+
+@keyframes slideInTop {
+    from {
+        opacity: 0;
+      transform: translateY(-20%);
+
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0%);
+
+    }
+}
+
+.fadeIn { 
+  animation-duration: .3s;
+  animation-fill-mode: both;
+  animation-name: fadeIn;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to { opacity: 1 }
+}

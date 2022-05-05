@@ -72,7 +72,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
       ...obj.user,
       isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: membership?.role,
-      accepted: membership?.role === "OWNER" ? true : membership?.accepted,
+      accepted: membership?.accepted,
     };
   });
 

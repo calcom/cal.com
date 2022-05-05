@@ -1,6 +1,4 @@
-import { useEffect } from "react";
-
-import { UserPlan } from "@calcom/prisma/client";
+import { UserPlan } from "@prisma/client";
 
 /**
  * TODO: It should be exposed at a single place.
