@@ -14,6 +14,7 @@ export interface GlobalCal {
   ns?: Record<string, GlobalCal>;
   instance?: CalClass;
   __css?: string;
+  fingerprint?: string;
 }
 
 export interface CalWindow extends Window {
@@ -21,7 +22,6 @@ export interface CalWindow extends Window {
 }
 
 export default function EmbedSnippet(url = "https://cal.com/embed.js") {
-  /*!  Copy the code below and paste it in script tag of your website */
   (function (C: CalWindow, A, L) {
     let p = function (a: any, ar: any) {
       a.q.push(ar);
@@ -60,3 +60,5 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
 
   return (window as CalWindow).Cal;
 }
+
+export const EmbedSnippetString = EmbedSnippet.toString();
