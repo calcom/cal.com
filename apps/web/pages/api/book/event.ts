@@ -1,11 +1,4 @@
-import {
-  BookingStatus,
-  Credential,
-  Payment,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -20,7 +13,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
-import { getDefaultEvent, getUsernameList, getGroupName } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -232,7 +225,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    recurringEvent: (eventType.recurringEvent || {}) as any,
+    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
   };
 };
 
