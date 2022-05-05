@@ -14,6 +14,7 @@ export interface GlobalCal {
   ns?: Record<string, GlobalCal>;
   instance?: CalClass;
   __css?: string;
+  fingerprint?: string;
 }
 
 export interface CalWindow extends Window {

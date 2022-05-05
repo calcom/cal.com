@@ -27,7 +27,7 @@ if (!globalCal || !globalCal.q) {
 // Store Commit Hash to know exactly what version of the code is running
 // TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
 // But because it is built on local machine right now, it is much more reliable to have the commit hash.
-globalCal.fingerPrint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT;
+globalCal.fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
