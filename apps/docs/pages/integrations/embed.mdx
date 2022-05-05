@@ -2,13 +2,16 @@
 title: Embed
 ---
 
+import Anchor from "../../components/Anchor"
+
 # Embed
 
 The Embed allows your website visitors to book a meeting with you directly from your website.
 
 ## Install on any website
 
-- _Step-1._ Install the Vanilla JS Snippet
+Install the following Vanilla JS Snippet to get embed to work on any website. After that you can <a href="#popular-ways-in-which-you-can-embed-on-your-website">choose any of the ways</a> to show your Cal Link embedded on your website.
+
 ```html
 <script>
   (function (C, A, L) {
@@ -57,7 +60,7 @@ yarn add @calcom/embed-react
 
 You can use Vanilla JS Snippet to install
 
-## Popular ways in which you can embed on your website
+<Anchor as="H2">Popular ways in which you can embed on your website</Anchor>
 
 Assuming that you have followed the steps of installing and initializing the snippet, you can show the embed in following ways:
 
@@ -82,8 +85,15 @@ Show the embed inline inside a container element. It would take the width and he
     },
   });
 </script>
-```
 
+*Sample sandbox*
+```
+<iframe src="https://codesandbox.io/embed/vanilla-js-inline-embed-r27n67?fontsize=14&hidenavigation=1&theme=dark"
+     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
+     title="Cal Component - Embed Inline Demo[React][TypeScript]"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 </details>
 
 ####
@@ -108,6 +118,14 @@ const MyComponent = () => (
 );
 ```
 
+*Sample sandbox*
+
+<iframe src="https://codesandbox.io/embed/cal-component-embed-inline-demo-react-typescript-d1zlcn?fontsize=14&hidenavigation=1&theme=dark"
+     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
+     title="Cal Component - Embed Inline Demo[React][TypeScript]"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 </details>
 
 ### Popup on any existing element
@@ -120,9 +138,16 @@ To show the embed as a popup on clicking an element, add `data-cal-link` attribu
 
 To show the embed as a popup on clicking an element, simply add `data-cal-link` attribute to the element.
 
+*Sample sandbox*
+<iframe src="https://codesandbox.io/embed/popup-on-click-of-an-existing-element-y9lcuo?fontsize=14&hidenavigation=1&theme=dark"
+     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
+     title="Cal Component - Embed Inline Demo[React][TypeScript]"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+
   <button data-cal-link="jane" data-cal-config="A valid config JSON"></button>
 </details>
-
 <details>
   <summary>React</summary>
   ```jsx
@@ -131,10 +156,36 @@ To show the embed as a popup on clicking an element, simply add `data-cal-link` 
     const MyComponent = ()=> {
       return <button data-cal-link="jane" data-cal-config='A valid config JSON'></button>
     }
+```
 
-````
+*Sample sandbox*
+<iframe src="https://codesandbox.io/embed/embed-popup-on-click-of-an-existing-element-demo-react-sc967e?fontsize=14&hidenavigation=1&theme=dark"
+     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
+     title="Cal Component - Embed Inline Demo[React][TypeScript]"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
 </details>
+
+### Floating pop-up button
+
+```html
+<script>
+  Cal("floatingButton", {
+    // The link that you want to embed. It would open https://cal.com/jane in embed
+    calLink: "jane",
+  });
+</script>
+```
+
+*Sample sandbox*
+<iframe src="https://codesandbox.io/embed/embed-floating-button-popup-all-websites-cg7pru?fontsize=14&hidenavigation=1&theme=dark"
+     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
+     title="Cal Component - Embed Inline Demo[React][TypeScript]"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
 ## Supported Instructions
 

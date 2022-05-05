@@ -758,14 +758,6 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-6.0.0.tgz#fe364f025ba74f6de6c837a84ef44bdb1d61e68f"
   integrity sha512-mgmE7XBYY/21erpzhexk4Cj1cyTQ9LzvnTxtzM17BJ7ERMNE6W72mQRo0I1Ud8eFJ+RVVIcBNhLFZ3GX4XFz5w==
 
-"@calcom/embed-react@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@calcom/embed-react/-/embed-react-1.0.2.tgz#b27230f333893573c02cb2aa35a162b5ca976705"
-  integrity sha512-6E8m9A6XW9nY7V0Ey54IAqbr5mABx0f5y9GYHXwBdLu8Pqq0f1H/JFmiVvlvs+DIgdMRMFa0qwQF7iM8QNkNxQ==
-  dependencies:
-    playwright "^1.21.1"
-    typescript "^4.6.3"
-
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"
