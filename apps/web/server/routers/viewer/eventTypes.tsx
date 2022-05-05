@@ -125,7 +125,7 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      const appKeys = await getAppKeysFromSlug("dailyvideo");
+      const appKeys = await getAppKeysFromSlug("daily-video");
       if (typeof appKeys.api_key === "string") {
         data.locations = [{ type: "integrations:daily" }];
       }
