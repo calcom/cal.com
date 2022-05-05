@@ -1,12 +1,8 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import {
-  _AvailabilityModel,
-  _DestinationCalendarModel,
-  _EventTypeCustomInputModel,
-  _EventTypeModel,
-} from "@calcom/prisma/zod";
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -126,7 +122,8 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      if (process.env.DAILY_API_KEY) {
+      const appKeys = await getAppKeysFromSlug("dailyvideo");
+      if (typeof appKeys.api_key === "string") {
         data.locations = [{ type: "integrations:daily" }];
       }
 
