@@ -1,6 +1,7 @@
 import { CalWindow } from "@calcom/embed-snippet";
 
 import loaderCss from "../loader.css";
+import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
 
 export class ModalBox extends HTMLElement {
@@ -28,11 +29,16 @@ export class ModalBox extends HTMLElement {
     }
 
     if (newValue == "loaded") {
-      (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
+      (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
     } else if (newValue === "started") {
       this.show(true);
     } else if (newValue == "closed") {
       this.show(false);
+    } else if (newValue === "failed") {
+      (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
+      (this.shadowRoot!.querySelector("#error")! as HTMLElement).style.display = "inline-block";
+      const errorString = getErrorString(this.dataset.errorCode);
+      (this.shadowRoot!.querySelector("#error")! as HTMLElement).innerText = errorString;
     }
   }
 
