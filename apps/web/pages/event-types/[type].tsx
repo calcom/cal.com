@@ -1661,7 +1661,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             <option value="WEEK">{t("period_label_week")}</option>
                                             <option value="DAY">{t("period_label_day")}</option>
                                           </select>
-                                          <Button color="secondary" className="ml-2 " type="button">
+                                          <Button
+                                            color="secondary"
+                                            className="ml-2 "
+                                            type="button"
+                                            onClick={() => {
+                                              const values = formMethods.getValues("bookingFrequency");
+                                              // @ts-ignore This key can only be the right type.
+                                              delete values[key];
+                                              formMethods.setValue("bookingFrequency", { ...values });
+                                            }}>
                                             -
                                           </Button>
                                         </div>
