@@ -113,7 +113,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
-  installed: boolean;
+  installed?: boolean;
 }) {
   const { t } = useLocale();
   const [credentialId] = props.credentialIds;
@@ -205,7 +205,7 @@ function IntegrationsContainer() {
                     credentialIds={item.credentialIds}
                     type={item.type}
                     isGlobal={item.isGlobal}
-                    installed={item.installed}
+                    installed
                   />
                 }
               />

@@ -4,9 +4,8 @@ import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
-  name: "Microsoft 365/Teams",
+  name: "Microsoft 365/Teams (Requires work/school account)",
   description: _package.description,
-  installed: !!(process.env.MS_GRAPH_CLIENT_ID && process.env.MS_GRAPH_CLIENT_SECRET),
   type: "office365_video",
   imageSrc: "/api/app-store/office365video/icon.svg",
   variant: "conferencing",
@@ -18,7 +17,7 @@ export const metadata = {
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
   slug: "msteams",
-  title: "MS Teams",
+  title: "MS Teams (Requires work/school account)",
   trending: true,
   email: "help@cal.com",
   locationType: LocationType.Teams,
