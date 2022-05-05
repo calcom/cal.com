@@ -232,6 +232,9 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     }
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const title = t(
+    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
+  );
   return (
     (isReady && (
       <>
@@ -239,26 +242,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
           className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
           data-testid="success-page">
           <Theme />
-          <HeadSeo
-            title={
-              needsConfirmation
-                ? props.recurringBookings
-                  ? t("booking_submitted_recurring")
-                  : t("booking_submitted")
-                : props.recurringBookings
-                ? t("booking_confirmed_recurring")
-                : t("booking_confirmed")
-            }
-            description={
-              needsConfirmation
-                ? props.recurringBookings
-                  ? t("booking_submitted_recurring")
-                  : t("booking_submitted")
-                : props.recurringBookings
-                ? t("booking_confirmed_recurring")
-                : t("booking_confirmed")
-            }
-          />
+          <HeadSeo title={title} description={title} />
           <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
           <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
             <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
