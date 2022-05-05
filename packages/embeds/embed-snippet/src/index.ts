@@ -15,6 +15,7 @@ export interface GlobalCal {
   instance?: CalClass;
   __css?: string;
   fingerprint?: string;
+  __logQueue?: any[];
 }
 
 export interface CalWindow extends Window {

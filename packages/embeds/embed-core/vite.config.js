@@ -2,13 +2,10 @@ require("dotenv").config({ path: "../../../.env" });
 
 const path = require("path");
 const { defineConfig } = require("vite");
-module.exports = defineConfig({
+const config = {
   envPrefix: "NEXT_PUBLIC_",
   build: {
     minify: "terser",
-    watch: {
-      include: ["src/**"],
-    },
     terserOptions: {
       format: {
         comments: false,
@@ -20,4 +17,11 @@ module.exports = defineConfig({
       fileName: (format) => `embed.${format}.js`,
     },
   },
-});
+};
+if (process.env.NODE_ENV !== "production") {
+  config.build.watch = {
+    include: ["src/**"],
+  };
+}
+
+module.exports = defineConfig(config);
