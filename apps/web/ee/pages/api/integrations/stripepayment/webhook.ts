@@ -71,15 +71,16 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!booking) throw new Error("No booking found");
 
-  let eventTypeRaw;
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({ recurringEvent: true });
+  const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
+  type EventTypeRaw = Prisma.EventTypeGetPayload<typeof eventTypeData>;
+  let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
     eventTypeRaw = await prisma.eventType.findUnique({
       where: {
         id: booking.eventTypeId,
       },
-      select: {
-        recurringEvent: true,
-      },
+      select: eventTypeSelect,
     });
   }
 
