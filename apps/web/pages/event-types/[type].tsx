@@ -93,7 +93,6 @@ type OptionTypeBase = {
 };
 
 type BookingLimitType = Record<BookingPeriodFrequency, number> | null;
-
 const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
   eventType,
   formMethods,
@@ -515,10 +514,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     successRedirectUrl: string;
     giphyThankYouPage: string;
     bookingFrequency: {
-      DAY: number;
-      WEEK: number;
-      MONTH: number;
-      YEAR: number;
+      DAY?: number;
+      WEEK?: number;
+      MONTH?: number;
+      YEAR?: number;
     };
   }>({
     defaultValues: {
@@ -1643,7 +1642,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 />
                                 {limitBookingFrequencyVisible && (
                                   <div className="mt-3 flex flex-col space-y-3 bg-gray-100 p-4">
-                                    {Object.entries(formMethods.getValues("bookingFrequency")).map(
+                                    {Object.entries(formMethods.getValues("bookingFrequency") ?? {}).map(
                                       ([key, value], index) => (
                                         <div className="flex items-center " key={key}>
                                           <input
@@ -1662,12 +1661,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                             <option value="WEEK">{t("period_label_week")}</option>
                                             <option value="DAY">{t("period_label_day")}</option>
                                           </select>
-                                          <Button color="secondary" className="ml-2 ">
+                                          <Button color="secondary" className="ml-2 " type="button">
                                             -
                                           </Button>
                                         </div>
                                       )
                                     )}
+
                                     <Button
                                       color="minimal"
                                       className="w-32"
@@ -1675,14 +1675,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                       StartIcon={PlusIcon}
                                       onClick={() => {
                                         const values = formMethods.getValues("bookingFrequency");
-                                        let notInUse: BookingPeriodFrequency;
-                                        ["DAY", "WEEK", "MONTH", "YEAR"].forEach((period) => {
+                                        const frequency = ["YEAR", "MONTH", "WEEK", "DAY"]; // Array in reverse so they get added in the right order
+                                        if (!values) {
+                                          // If not values already add day as a default
+                                          formMethods.setValue("bookingFrequency", {
+                                            DAY: 0,
+                                          });
+                                          return;
+                                        }
+                                        frequency.forEach((period) => {
+                                          // Finding a value that hasnt been used already and creating a new input with that period
                                           if (!(period in values)) {
-                                            notInUse = period;
+                                            formMethods.setValue("bookingFrequency", {
+                                              ...values,
+                                              [period]: 0,
+                                            });
                                             return;
                                           }
                                         });
-                                        if (!notInUse) showToast("Cannot add more frequencies", "error");
+                                        if (Object.keys(values).length === 4)
+                                          showToast("No more frequencies avaliable", "error");
                                       }}>
                                       Add Limit
                                     </Button>
