@@ -136,7 +136,9 @@ function RedirectionToast({ url }: { url: string }) {
   );
 }
 
-export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
+type SuccessProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
@@ -147,8 +149,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType } = props;
-
-  const [moreEventsVisible, setMoreEventsVisible] = useState(false);
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
@@ -296,65 +296,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          <div className="col-span-2">
-                            {reschedule != "true" &&
-                              props.eventType.recurringEvent?.count &&
-                              props.recurringBookings &&
-                              props.recurringBookings.slice(0, 4).map((dateStr, idx) => (
-                                <div key={idx} className="mb-2">
-                                  {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
-                                  <br />
-                                  {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length}{" "}
-                                  mins{" "}
-                                  <span className="text-bookinglight">
-                                    (
-                                    {localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()}
-                                    )
-                                  </span>
-                                </div>
-                              ))}
-                            {reschedule != "true" &&
-                              props.recurringBookings &&
-                              props.recurringBookings.length > 4 && (
-                                <Collapsible
-                                  open={moreEventsVisible}
-                                  onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-                                  <CollapsibleTrigger
-                                    type="button"
-                                    className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-                                    {t("plus_more", { count: props.recurringBookings.length - 4 })}
-                                  </CollapsibleTrigger>
-                                  <CollapsibleContent>
-                                    {props.eventType.recurringEvent?.count &&
-                                      props.recurringBookings &&
-                                      props.recurringBookings.slice(4).map((dateStr, idx) => (
-                                        <div key={idx} className="mb-2">
-                                          {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
-                                          <br />
-                                          {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} -{" "}
-                                          {props.eventType.length} mins{" "}
-                                          <span className="text-bookinglight">
-                                            (
-                                            {localStorage.getItem("timeOption.preferredTimeZone") ||
-                                              dayjs.tz.guess()}
-                                            )
-                                          </span>
-                                        </div>
-                                      ))}
-                                  </CollapsibleContent>
-                                </Collapsible>
-                              )}
-                            {(reschedule == "true" || !props.eventType.recurringEvent.freq) && (
-                              <>
-                                {date.format("dddd, DD MMMM YYYY")}
-                                <br />
-                                {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                                <span className="text-bookinglight">
-                                  ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                                </span>
-                              </>
-                            )}
-                          </div>
+                          <RecurringBookings
+                            isReschedule={reschedule === "true"}
+                            eventType={props.eventType}
+                            recurringBookings={props.recurringBookings}
+                            date={date}
+                            is24h={is24h}
+                          />
                           {location && (
                             <>
                               <div className="mt-6 font-medium">{t("where")}</div>
@@ -535,6 +483,75 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
       </>
     )) ||
     null
+  );
+}
+
+type RecurringBookingsProps = {
+  isReschedule: boolean;
+  eventType: SuccessProps["eventType"];
+  recurringBookings: SuccessProps["recurringBookings"];
+  date: dayjs.Dayjs;
+  is24h: boolean;
+};
+
+function RecurringBookings({
+  isReschedule = false,
+  eventType,
+  recurringBookings,
+  date,
+  is24h,
+}: RecurringBookingsProps) {
+  const [moreEventsVisible, setMoreEventsVisible] = useState(false);
+  const { t } = useLocale();
+  return (
+    <div className="col-span-2">
+      {!isReschedule &&
+        eventType.recurringEvent?.count &&
+        recurringBookings &&
+        recurringBookings.slice(0, 4).map((dateStr, idx) => (
+          <div key={idx} className="mb-2">
+            {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+            <br />
+            {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+            <span className="text-bookinglight">
+              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+            </span>
+          </div>
+        ))}
+      {!isReschedule && recurringBookings && recurringBookings.length > 4 && (
+        <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+          <CollapsibleTrigger
+            type="button"
+            className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+            {t("plus_more", { count: recurringBookings.length - 4 })}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {eventType.recurringEvent?.count &&
+              recurringBookings &&
+              recurringBookings.slice(4).map((dateStr, idx) => (
+                <div key={idx} className="mb-2">
+                  {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+                  <br />
+                  {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+                  <span className="text-bookinglight">
+                    ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                  </span>
+                </div>
+              ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+      {(isReschedule || !eventType.recurringEvent.freq) && (
+        <>
+          {date.format("dddd, DD MMMM YYYY")}
+          <br />
+          {date.format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+          <span className="text-bookinglight">
+            ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+          </span>
+        </>
+      )}
+    </div>
   );
 }
 
