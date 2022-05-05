@@ -69,7 +69,7 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                 </div>
               ))}
 
-              {Object.keys(formMethods.getValues("bookingFrequency")).length !== 4 && (
+              {Object.keys(formMethods.getValues("bookingFrequency") ?? {}).length !== 4 && (
                 <Button
                   color="minimal"
                   className="w-32"
