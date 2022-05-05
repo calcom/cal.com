@@ -219,17 +219,16 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   }
 
   function getTitle(): string {
+    const titleSuffix = props.recurringBookings ? "_recurring" : "";
     if (needsConfirmation) {
       if (props.profile.name !== null) {
-        return t("user_needs_to_confirm_or_reject_booking" + (props.recurringBookings ?? "_recurring"), {
+        return t("user_needs_to_confirm_or_reject_booking" + titleSuffix, {
           user: props.profile.name,
         });
-      } else {
-        return t("needs_to_be_confirmed_or_rejected" + (props.recurringBookings ?? "_recurring"));
       }
-    } else {
-      return t("emailed_you_and_attendees" + (props.recurringBookings ?? "_recurring"));
+      return t("needs_to_be_confirmed_or_rejected" + titleSuffix);
     }
+    return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
   const title = t(
