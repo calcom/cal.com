@@ -244,7 +244,7 @@ const EmbedNavBar = () => {
     },
   ];
 
-  return <NavTabs tabs={tabs} linkProps={{ shallow: true }} />;
+  return <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />;
 };
 const ThemeSelectControl = ({ children, ...props }: ControlProps<any, false>) => {
   return (
@@ -273,6 +273,7 @@ const ChooseEmbedTypesDialogContent = () => {
           <button
             className="mr-2 w-1/3 p-3 text-left hover:rounded-md hover:border hover:bg-neutral-100"
             key={index}
+            data-testid={embed.type}
             onClick={() => {
               router.push({
                 query: {
@@ -760,6 +761,7 @@ ${getEmbedUIInstructionString().trim()}`;
               className={classNames(router.query.tabName === "embed-code" ? "block" : "hidden", "h-[75vh]")}>
               <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
               <TextArea
+                data-testid="embed-code"
                 ref={embedCode}
                 name="embed-code"
                 className="h-[36rem]"
@@ -786,6 +788,7 @@ ${getEmbedTypeSpecificString().trim()}
             <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"}>
               <iframe
                 ref={iframeRef}
+                data-testid="embed-preview"
                 className="border-1 h-[75vh] border"
                 width="100%"
                 height="100%"
@@ -868,7 +871,8 @@ export const EmbedButton = ({
       size="sm"
       className={className}
       {...props}
-      data-testid={"event-type-embed-" + eventTypeId}
+      data-test-eventtype-id={eventTypeId}
+      data-testid={"event-type-embed"}
       onClick={() => openEmbedModal()}>
       <CodeIcon
         className={classNames("h-4 w-4 ltr:mr-2 rtl:ml-2", dark ? "" : "text-neutral-500")}></CodeIcon>

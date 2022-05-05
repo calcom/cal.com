@@ -18,11 +18,14 @@ export interface NavTabProps {
   linkProps?: Omit<LinkProps, "href">;
 }
 
-const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
+const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
   const router = useRouter();
   return (
     <>
-      <nav className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
+      <nav
+        className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
+        aria-label="Tabs"
+        {...props}>
         {tabs.map((tab) => {
           let href: string;
           let isCurrent;
