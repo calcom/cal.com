@@ -372,6 +372,7 @@ function keepParentInformedAboutDimensionChanges() {
 
 if (isBrowser) {
   const url = new URL(document.URL);
+  embedStore.theme = (url.searchParams.get("theme") || "auto") as UiConfig["theme"];
   if (url.searchParams.get("prerender") !== "true" && isEmbed()) {
     log("Initializing embed-iframe");
     // HACK
