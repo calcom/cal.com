@@ -6,10 +6,11 @@ import LicenseRequired from "@ee/components/LicenseRequired";
 import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
-import Shell, { useMeQuery } from "@components/Shell";
+import Shell from "@components/Shell";
 import Avatar from "@components/ui/Avatar";
 
 export function TeamAvailabilityPage() {

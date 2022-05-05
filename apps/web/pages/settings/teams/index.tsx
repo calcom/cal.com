@@ -4,16 +4,16 @@ import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
 import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
-import { useMeQuery } from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 

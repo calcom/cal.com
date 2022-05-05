@@ -1,9 +1,8 @@
 import { expect, it } from "@jest/globals";
+import { Availability } from "@prisma/client";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import MockDate from "mockdate";
-
-import { Availability } from "@calcom/prisma/client";
 
 import { getAvailabilityFromSchedule } from "@lib/availability";
 
