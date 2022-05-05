@@ -225,7 +225,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
-    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
   };
 };
 
@@ -389,10 +389,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
-  if (reqBody.recurringEventId && eventType.recurringEvent?.count) {
+  if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
-    eventType.recurringEvent.count = recurringCount;
+    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
   }
 
   // Initialize EventManager with credentials
@@ -589,9 +589,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let isAvailableToBeBooked = true;
     try {
-      if (eventType.recurringEvent?.count) {
+      if (eventType.recurringEvent) {
         const allBookingDates = new rrule({
-          dstart: new Date(reqBody.start),
+          dtstart: new Date(reqBody.start),
           ...eventType.recurringEvent,
         }).all();
         // Go through each date for the recurring event and check if each one's availability
