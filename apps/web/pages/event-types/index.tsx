@@ -10,13 +10,14 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
+  CodeIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,6 +37,7 @@ import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
@@ -299,6 +301,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             {t("duplicate")}
                           </Button>
                         </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <EmbedButton
+                            dark
+                            className="w-full rounded-none"
+                            eventTypeId={type.id}></EmbedButton>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
                           <Dialog>
@@ -519,9 +527,9 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
+
 const EventTypesPage = () => {
   const { t } = useLocale();
-
   return (
     <div>
       <Head>
@@ -574,6 +582,7 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
+              <EmbedDialog></EmbedDialog>
             </>
           )}
         />

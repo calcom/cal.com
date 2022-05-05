@@ -52,6 +52,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import { Tooltip } from "@components/Tooltip";
@@ -1822,6 +1823,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
+                <EmbedButton
+                  className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                  eventTypeId={eventType.id}
+                />
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
                     <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
@@ -1969,6 +1974,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           )}
         </ClientSuspense>
+        <EmbedDialog />
       </Shell>
     </div>
   );

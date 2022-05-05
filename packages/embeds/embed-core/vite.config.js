@@ -6,6 +6,9 @@ module.exports = defineConfig({
   envPrefix: "NEXT_PUBLIC_",
   build: {
     minify: "terser",
+    watch: {
+      include: ["src/**"],
+    },
     terserOptions: {
       format: {
         comments: false,

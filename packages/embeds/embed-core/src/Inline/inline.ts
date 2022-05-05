@@ -1,6 +1,7 @@
 import { CalWindow } from "@calcom/embed-snippet";
 
 import loaderCss from "../loader.css";
+import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
 export class Inline extends HTMLElement {
@@ -9,8 +10,16 @@ export class Inline extends HTMLElement {
     return ["loading"];
   }
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === "loading" && newValue == "done") {
-      (this.shadowRoot!.querySelector("#loader")! as HTMLElement).style.display = "none";
+    if (name === "loading") {
+      if (newValue == "done") {
+        (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
+      } else if (newValue === "failed") {
+        (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
+        (this.shadowRoot!.querySelector("#error")! as HTMLElement).style.display = "block";
+        (this.shadowRoot!.querySelector("slot")! as HTMLElement).style.visibility = "hidden";
+        const errorString = getErrorString(this.dataset.errorCode);
+        (this.shadowRoot!.querySelector("#error")! as HTMLElement).innerText = errorString;
+      }
     }
   }
   constructor() {
