@@ -28,8 +28,8 @@ test.describe("hash my url", () => {
     await page.waitForSelector('//*[@data-testid="show-advanced-settings"]');
     await page.click('//*[@data-testid="show-advanced-settings"]');
     // we wait for the hashedLink setting to load
-    await page.waitForSelector('//*[@id="hashedLink"]');
-    await page.click('//*[@id="hashedLink"]');
+    await page.waitForSelector('//*[@id="hashedLinkCheck"]');
+    await page.click('//*[@id="hashedLinkCheck"]');
     // click update
     await page.focus('//button[@type="submit"]');
     await page.keyboard.press("Enter");
