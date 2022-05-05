@@ -31,6 +31,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -40,7 +41,6 @@ import { inferQueryOutput, trpc } from "@lib/trpc";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";

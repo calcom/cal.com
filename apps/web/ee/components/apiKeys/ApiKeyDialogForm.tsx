@@ -8,11 +8,11 @@ import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { trpc } from "@lib/trpc";
 
-import { Tooltip } from "@components/Tooltip";
 import { DatePicker } from "@components/ui/form/DatePicker";
 
 import { TApiKeys } from "./ApiKeyListItem";

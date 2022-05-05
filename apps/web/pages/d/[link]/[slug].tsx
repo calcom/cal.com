@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { RecurringEvent } from "@calcom/types/Calendar";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
@@ -37,6 +39,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: true,
     periodDays: true,
     periodCountCalendarDays: true,
+    recurringEvent: true,
     schedulingType: true,
     userId: true,
     schedule: {
@@ -131,6 +134,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
+    recurringEvent: (eventTypeSelect.recurringEvent || {}) as RecurringEvent,
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
