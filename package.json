@@ -17,7 +17,7 @@
     "deploy": "turbo run deploy",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "dev:website": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
-    "dev:api": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
+    "dev:api": "yarn predev && turbo run dev --scope=\"@calcom/api\"",
     "dev:swagger": "yarn predev && turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:console": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "docs-dev": "yarn predev && turbo run dev --scope=\"@calcom/docs\"",
