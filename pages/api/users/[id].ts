@@ -10,68 +10,10 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations/user";
 
-/**
- * @swagger
- * /users/{id}:
- *   get:
- *     summary: Find a user, returns your user if regular user.
- *     operationId: getUserById
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Numeric ID of the user to get
- *     tags:
- *     - users
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: User was not found
- *   patch:
- *     summary: Edit an existing user
- *     operationId: editUserById
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the user to edit
- *     tags:
- *     - users
- *     responses:
- *       201:
- *         description: OK, user edited successfuly
- *       400:
- *        description: Bad request. User body is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- *   delete:
- *     summary: Remove an existing user
- *     operationId: deleteUserById
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: Numeric ID of the user to delete
- *     tags:
- *     - users
- *     responses:
- *       201:
- *         description: OK, user removed successfuly
- *       400:
- *        description: Bad request. User id is invalid.
- *       401:
- *        description: Authorization information is missing or invalid.
- */
-export async function userById({ method, query, body, userId }: NextApiRequest, res: NextApiResponse<any>) {
+export async function userById(
+  { method, query, body, userId }: NextApiRequest,
+  res: NextApiResponse<UserResponse>
+) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   console.log(body);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
@@ -79,6 +21,31 @@ export async function userById({ method, query, body, userId }: NextApiRequest, 
   else {
     switch (method) {
       case "GET":
+        /**
+         * @swagger
+         * /users/{id}:
+         *   get:
+         *     summary: Find a user, returns your user if regular user.
+         *     operationId: getUserById
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         example: 4
+         *         schema:
+         *           type: integer
+         *         required: true
+         *         description: ID of the user to get
+         *     tags:
+         *     - users
+         *     responses:
+         *       200:
+         *         description: OK
+         *       401:
+         *        description: Authorization information is missing or invalid.
+         *       404:
+         *         description: User was not found
+         */
+
         await prisma.user
           .findUnique({ where: { id: safeQuery.data.id } })
           .then((data) => schemaUserReadPublic.parse(data))
@@ -87,24 +54,72 @@ export async function userById({ method, query, body, userId }: NextApiRequest, 
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })
           );
         break;
-
       case "PATCH":
+        /**
+         * @swagger
+         * /users/{id}:
+         *   patch:
+         *     summary: Edit an existing user
+         *     operationId: editUserById
+         *     requestBody:
+         *       description: Edit an existing attendee related to one of your bookings
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             type: object
+         *             properties:
+         *               weekStart:
+         *                 type: string
+         *                 enum: [Monday, Sunday, Saturday]
+         *                 example: Monday
+         *               brandColor:
+         *                 type: string
+         *                 example: "#FF000F"
+         *               darkBrandColor:
+         *                 type: string
+         *                 example: "#000000"
+         *               timeZone:
+         *                 type: string
+         *                 example: Europe/London
+         *     parameters:
+         *      - in: path
+         *        name: id
+         *        example: 4
+         *        schema:
+         *          type: integer
+         *        required: true
+         *        description: ID of the user to edit
+         *     tags:
+         *     - users
+         *     responses:
+         *       201:
+         *         description: OK, user edited successfuly
+         *       400:
+         *        description: Bad request. User body is invalid.
+         *       401:
+         *        description: Authorization information is missing or invalid.
+         */
+
         const safeBody = schemaUserEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
-          throw new Error("Invalid request body");
+          // throw new Error("Invalid request body");
+          return;
         }
         const userSchedules = await prisma.schedule.findMany({
           where: { userId },
         });
         const userSchedulesIds = userSchedules.map((schedule) => schedule.id);
         // @note: here we make sure user can only make as default his own scheudles
-        if (!userSchedulesIds.includes(Number(safeBody?.data?.defaultScheduleId))) {
+        if (
+          safeBody?.data?.defaultScheduleId &&
+          !userSchedulesIds.includes(Number(safeBody?.data?.defaultScheduleId))
+        ) {
           res.status(400).json({
-            message: "Bad request",
-            error: "Invalid default schedule id",
+            message: "Bad request: Invalid default schedule id",
           });
-          throw new Error("Invalid request body value: defaultScheduleId");
+          return;
         }
         await prisma.user
           .update({
@@ -117,6 +132,31 @@ export async function userById({ method, query, body, userId }: NextApiRequest, 
             res.status(404).json({ message: `User with id: ${safeQuery.data.id} not found`, error })
           );
         break;
+
+      /**
+       * @swagger
+       * /users/{id}:
+       *   delete:
+       *     summary: Remove an existing user
+       *     operationId: removeUserById
+       *     parameters:
+       *      - in: path
+       *        name: id
+       *        example: 1
+       *        schema:
+       *          type: integer
+       *        required: true
+       *        description: ID of the user to delete
+       *     tags:
+       *     - users
+       *     responses:
+       *       201:
+       *         description: OK, user removed successfuly
+       *       400:
+       *        description: Bad request. User id is invalid.
+       *       401:
+       *        description: Authorization information is missing or invalid.
+       */
 
       case "DELETE":
         await prisma.user
