@@ -318,7 +318,7 @@ const BookingPage = ({
         {}
       );
 
-    let web3Details: any;
+    let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
         // @ts-ignore
