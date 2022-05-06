@@ -8,6 +8,7 @@ export const apiHandlers = {
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
+  vital: import("./vital/api"),
   zoomvideo: import("@calcom/zoomvideo/api"),
   office365video: import("@calcom/office365video/api"),
   wipemycalother: import("./wipemycalother/api"),
