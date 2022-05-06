@@ -195,6 +195,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
       <form
         ref={ref}
         onSubmit={(event) => {
+          event.preventDefault();
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
