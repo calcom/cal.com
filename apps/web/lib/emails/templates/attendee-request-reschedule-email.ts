@@ -6,7 +6,7 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
 import { getCancelLink } from "@calcom/lib/CalEventParser";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
   emailHead,
@@ -24,8 +24,8 @@ dayjs.extend(toArray);
 
 export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
-  constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
-    super(calEvent);
+  constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }, recurringEvent: RecurringEvent) {
+    super(calEvent, recurringEvent);
     this.metadata = metadata;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
