@@ -476,7 +476,8 @@ const BookingPage = ({
                 <div className="text-bookinghighlight mb-4 flex">
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
-                    {(rescheduleUid || !eventType.recurringEvent.freq) && parseDate(date, i18n)}
+                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                      parseDate(dayjs.tz(date, timeZone()), i18n)}
                     {!rescheduleUid &&
                       eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
