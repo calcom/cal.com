@@ -1,6 +1,6 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import React, { FC, useEffect, useState } from "react";
 import { nameOfDay } from "@calcom/lib/weekday";
 
 import classNames from "@lib/classNames";
+import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
@@ -20,6 +21,7 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
+  recurringCount: number | undefined;
   eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;
@@ -36,6 +38,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeSlug,
   slotInterval,
   minimumBookingNotice,
+  recurringCount,
   timeFormat,
   users,
   schedulingType,
@@ -89,6 +92,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 date: slot.time.format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
+                /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
+                count: recurringCount && !rescheduleUid ? recurringCount : undefined,
               },
             };
 
@@ -109,7 +114,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">
-                    {slot.time.format(timeFormat)}
+                    {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
                   </a>
                 </Link>
               </div>

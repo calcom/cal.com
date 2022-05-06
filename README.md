@@ -190,8 +190,10 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 ### E2E-Testing
 
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
+
 ```sh
-# In a terminal. Just run:
+# In a terminal just run:
 yarn test-e2e
 
 # To open last HTML report run:

@@ -104,6 +104,7 @@
     "react-use-intercom": "1.4.0",
     "react-virtualized-auto-sizer": "^1.0.6",
     "react-window": "^1.8.6",
+    "rrule": "^2.6.9",
     "short-uuid": "^4.2.0",
     "stripe": "^8.191.0",
     "superjson": "1.8.1",

@@ -23,7 +23,7 @@ export function Tooltip({
       onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Content
-        className="slideInBottom -mt-2 rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
+        className="-mt-2 rounded-sm bg-black px-1 py-0.5 text-xs text-white shadow-lg"
         side="top"
         align="center"
         {...props}>

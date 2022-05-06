@@ -1,6 +1,6 @@
 import { InformationCircleIcon } from "@heroicons/react/solid";
 
-import { Tooltip } from "@components/Tooltip";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 export default function InfoBadge({ content }: { content: string }) {
   return (

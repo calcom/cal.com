@@ -19,12 +19,12 @@ import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { trpc, inferQueryOutput } from "@lib/trpc";
 
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 
