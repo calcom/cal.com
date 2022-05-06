@@ -4,6 +4,10 @@
  */
 import type { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/src/embed";
 
+const WEBAPP_URL = import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+
+const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+
 export interface GlobalCal {
   (methodName: string, arg?: any): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
@@ -15,13 +19,14 @@ export interface GlobalCal {
   instance?: CalClass;
   __css?: string;
   fingerprint?: string;
+  __logQueue?: any[];
 }
 
 export interface CalWindow extends Window {
   Cal?: GlobalCal;
 }
 
-export default function EmbedSnippet(url = "https://cal.com/embed.js") {
+export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C: CalWindow, A, L) {
     let p = function (a: any, ar: any) {
       a.q.push(ar);
@@ -35,6 +40,7 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
         if (!cal.loaded) {
           cal.ns = {};
           cal.q = cal.q || [];
+          //@ts-ignore
           d.head.appendChild(d.createElement("script")).src = A;
           cal.loaded = true;
         }
