@@ -32,3 +32,5 @@ export function Tooltip({
     </TooltipPrimitive.Root>
   );
 }
+
+export default Tooltip;
