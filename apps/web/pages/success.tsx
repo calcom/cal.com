@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
@@ -44,6 +45,7 @@ import { ssrInit } from "@server/lib/ssr";
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -148,7 +150,7 @@ export default function Success(props: SuccessProps) {
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
   const { isReady, Theme } = useTheme(props.profile.theme);
-  const { eventType } = props;
+  const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
@@ -296,6 +298,14 @@ export default function Success(props: SuccessProps) {
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
+                          <div className="col-span-2 mb-6">
+                            {date.format("MMMM DD, YYYY")}
+                            <br />
+                            {date.format("LT")} - {date.add(props.eventType.length, "m").format("LT")}{" "}
+                            <span className="text-bookinglight">
+                              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                            </span>
+                          </div>
                           <div className="col-span-2">
                             <RecurringBookings
                               isReschedule={reschedule === "true"}
@@ -304,6 +314,23 @@ export default function Success(props: SuccessProps) {
                               date={date}
                               is24h={is24h}
                             />
+                          </div>
+                          <div className="font-medium">{t("who")}</div>
+                          <div className="col-span-2">
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div
+                                key={attendee.name}
+                                className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </div>
                           {location && (
                             <>
@@ -316,6 +343,14 @@ export default function Success(props: SuccessProps) {
                                 ) : (
                                   location
                                 )}
+                              </div>
+                            </>
+                          )}
+                          {bookingInfo?.description && (
+                            <>
+                              <div className="mt-6 font-medium">{t("additional_notes")}</div>
+                              <div className="col-span-2 mt-6 mb-6">
+                                <p>{bookingInfo.description}</p>
                               </div>
                             </>
                           )}
@@ -598,6 +633,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const recurringEventIdQuery = asStringOrNull(context.query.recur);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
+  const bookingId = parseInt(context.query.bookingId as string);
 
   if (isNaN(typeId)) {
     return {
@@ -669,6 +705,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
   };
 
+  const bookingInfo = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      description: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
   let recurringBookings = null;
   if (recurringEventIdQuery) {
     // We need to get the dates for the bookings to be able to show them in the UI
@@ -691,6 +747,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       dynamicEventName,
       userHasSpaceBooking,
+      bookingInfo,
     },
   };
 }
