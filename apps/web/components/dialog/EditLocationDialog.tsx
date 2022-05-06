@@ -1,7 +1,9 @@
 import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Controller, useForm, UseFormReturn, useWatch } from "react-hook-form";
+import { isUndefined } from "util";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -14,7 +16,12 @@ import { LocationType } from "@lib/location";
 import { LocationOptionsToString } from "@lib/locationOptions";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import type PhoneInputType from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
+
+const PhoneInput = dynamic(
+  () => import("@components/ui/form/PhoneInput")
+) as unknown as typeof PhoneInputType;
 
 type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
@@ -22,6 +29,13 @@ type OptionTypeBase = {
   label: string;
   value: LocationType;
   disabled?: boolean;
+};
+
+type LocationFormValues = {
+  locationType: LocationType;
+  locationAddress?: string;
+  locationLink?: string;
+  locationPhone?: string;
 };
 interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
@@ -64,25 +78,14 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     }
   }, [isSuccess, selection]);
 
-  const formMethods = useForm<{
-    locations: { type: LocationType; address?: string; link?: string }[];
-  }>({
-    defaultValues: {
-      locations: [],
-    },
-  });
-
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationPhone: z.string().optional(),
   });
 
-  const locationFormMethods = useForm<{
-    locationType: LocationType;
-    locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
-    locationLink?: string; // Currently this only accepts links that are HTTPS://
-  }>({
+  const locationFormMethods = useForm<LocationFormValues>({
     resolver: zodResolver(locationFormSchema),
   });
 
@@ -114,10 +117,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     ? defaultValues.find(
                         (location: { type: LocationType }) => location.type === LocationType.InPerson
                       )?.address
-                    : formMethods
-                        .getValues("locations")
-                        .find((location: { type: LocationType }) => location.type === LocationType.InPerson)
-                        ?.address
+                    : undefined
                 }
               />
             </div>
@@ -141,16 +141,33 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     ? defaultValues.find(
                         (location: { type: LocationType }) => location.type === LocationType.Link
                       )?.link
-                    : formMethods
-                        .getValues("locations")
-                        .find((location: { type: LocationType }) => location.type === LocationType.Link)?.link
+                    : undefined
                 }
               />
               {locationFormMethods.formState.errors.locationLink && (
-                <p className="mt-1 text-red-500">
+                <p className="mt-1 text-sm text-red-500">
                   {locationFormMethods.formState.errors.locationLink.message}
                 </p>
               )}
+            </div>
+          </div>
+        );
+      case LocationType.Phone:
+        return (
+          <div className="mb-4">
+            <label
+              htmlFor="locationPhone"
+              className="block text-sm font-medium text-gray-700 dark:text-white">
+              {t("set_your_phone_number")}
+            </label>
+            <div className="mt-1">
+              <PhoneInput<LocationFormValues>
+                control={locationFormMethods.control}
+                name="locationPhone"
+                placeholder={t("enter_phone_number")}
+                id="locationPhone"
+                required
+              />
             </div>
           </div>
         );
@@ -197,6 +214,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 details = { link: values.locationLink };
                 locationString = values.locationLink || "";
               }
+              if (newLocation === LocationType.Phone) {
+                details = { number: values.locationPhone };
+                locationString = values.locationPhone || "";
+              }
 
               saveLocation(newLocation, details);
               if (booking) {
@@ -206,6 +227,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               locationFormMethods.unregister("locationType");
               locationFormMethods.unregister("locationLink");
               locationFormMethods.unregister("locationAddress");
+              locationFormMethods.unregister("locationPhone");
             }}>
             <Controller
               name="locationType"
@@ -223,6 +245,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       locationFormMethods.setValue("locationType", val.value);
                       locationFormMethods.unregister("locationLink");
                       locationFormMethods.unregister("locationAddress");
+                      locationFormMethods.unregister("locationPhone");
                     }
                   }}
                 />
