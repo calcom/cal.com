@@ -1396,7 +1396,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 }}
                               />
                               {hashedLinkVisible && (
-                                <div className="block items-center sm:flex">
+                                <div className="block items-center sm:flex !mt-1">
                                   <div className="min-w-48 mb-4 sm:mb-0"></div>
                                   <div className="w-full">
                                     <div className="relative mt-1 flex w-full">
