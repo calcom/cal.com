@@ -1,80 +1,29 @@
 <html>
   <head>
+    <style>
+      .row {
+        display: flex;
+      }
+      .cell-1 {
+        border-right: 1px solid #ded9d9;
+        padding-right: 10px;
+      }
+
+      .cell-2 {
+        margin: 10px;
+      }
+    </style>
     <script>
-      (function (C, A, L) {
-        let p = function (a, ar) {
-          a.q.push(ar);
-        };
-        let d = C.document;
-        C.Cal =
-          C.Cal ||
-          function () {
-            let cal = C.Cal;
-            let ar = arguments;
-            if (!cal.loaded) {
-              cal.ns = {};
-              cal.q = cal.q || [];
-              d.head.appendChild(d.createElement("script")).src = A;
-              cal.loaded = true;
-            }
-            if (ar[0] === L) {
-              const api = function () {
-                p(api, arguments);
-              };
-              const namespace = ar[1];
-              api.q = api.q || [];
-              typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
-              return;
-            }
-            p(cal, ar);
-          };
-      })(window, "//localhost:3100/dist/embed.umd.js", "init");
-      Cal("init", {
-        origin: "http://localhost:3000",
-      });
+      const searchParams = new URL(document.URL).searchParams;
+      const embedType = searchParams.get("embedType");
+      const calLink = searchParams.get("calLink");
     </script>
-	<style>
-		.row {
-			display:flex;
-		}
-		.cell-1 {
-			border-right:1px solid #ded9d9;
-			padding-right:10px;
-		}
-
-		.cell-2 {
-			margin:10px;
-		}
-
-	</style>
-  <script>
-    const searchParams= new URL(document.URL).searchParams;
-    const embedType = searchParams.get("embedType");
-    const calLink = searchParams.get("calLink");
-  </script>
   </head>
   <script type="module" src="./src/preview.ts"></script>
   <body>
-	  <div id="my-embed" style="width:100%;height:100%;overflow:scroll"></div>
-    <script>
-      if (embedType === "inline") {
-        Cal("inline", {
-          elementOrSelector: "#my-embed",
-          calLink,
-        });
-      } else if (embedType === "floating-popup") {
-       Cal("floatingButton", {
-          calLink,
-          attributes: {
-            id: "my-floating-button"
-          }
-        });
-      } else if (embedType === "element-click") {
-        const button = document.createElement('button')
-        button.setAttribute("data-cal-link", calLink)
-        button.innerHTML = 'I am a button that exists on your website'
-        document.body.appendChild(button);
-      }
+    <div id="my-embed" style="width: 100%; height: 100%; overflow: scroll"></div>
+    <script type="module">
+      
     </script>
   </body>
 </html>
