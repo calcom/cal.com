@@ -11,9 +11,16 @@ export const apiKeysRouter = createProtectedRouter()
       return await ctx.prisma.apiKey.findMany({
         where: {
           userId: ctx.user.id,
-          NOT: {
-            appId: "zapier",
-          },
+          OR: [
+            {
+              NOT: {
+                appId: "zapier",
+              },
+            },
+            {
+              appId: null,
+            },
+          ],
         },
         orderBy: { createdAt: "desc" },
       });
