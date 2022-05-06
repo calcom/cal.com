@@ -7,6 +7,16 @@ export interface UiConfig {
   theme?: "dark" | "light" | "auto";
   styles?: EmbedStyles;
 }
+declare global {
+  interface Window {
+    CalEmbed: {
+      __logQueue?: any[];
+      embedStore: any;
+    };
+    CalComPageStatus: string;
+    CalComPlan: string;
+  }
+}
 
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
@@ -37,6 +47,9 @@ if (isBrowser) {
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
+  window.CalEmbed = window.CalEmbed || {};
+  //TODO: Send postMessage to parent to get all log messages in the same queue.
+  window.CalEmbed.embedStore = embedStore;
 }
 
 function runAsap(fn: (...arg: any) => void) {
@@ -47,23 +60,11 @@ function runAsap(fn: (...arg: any) => void) {
   return requestAnimationFrame(fn);
 }
 
-declare global {
-  interface Window {
-    CalEmbed: {
-      __logQueue?: any[];
-    };
-    CalComPageStatus: string;
-    CalComPlan: string;
-  }
-}
-
 function log(...args: any[]) {
   if (isBrowser) {
     const namespace = getNamespace();
 
     const searchParams = new URL(document.URL).searchParams;
-    //TODO: Send postMessage to parent to get all log messages in the same queue.
-    window.CalEmbed = window.CalEmbed || {};
     const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
     args.push({
       ns: namespace,
