@@ -6,7 +6,7 @@
   "scripts": {
     "__build": "yarn tailwind && vite build",
     "__dev": "yarn __build --mode development",
-    "clean-copy-to-web": "rm -rf ../../../apps/web/public/embed && mkdir -p ../../../apps/web/public/embed && cp -r dist ../../../apps/web/public/embed",
+    "clean-copy-to-web": "rm -rf ../../../apps/web/public/embed && mkdir -p ../../../apps/web/public/embed && cp -r dist/* ../../../apps/web/public/embed/",
     "build": "NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build && yarn clean-copy-to-web",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "build:cal": "NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build && cp dist/embed.js ../../../apps/website/public/embed.js && echo 'You need to commit the newly generated embed.js in apps/website'",

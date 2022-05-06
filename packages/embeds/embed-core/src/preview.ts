@@ -1,6 +1,7 @@
 import { CalWindow } from "@calcom/embed-snippet";
 
-const WEBAPP_URL = import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.VERCEL_URL}`;
+const WEBAPP_URL =
+  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
 const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
 // Install Cal Embed Code Snippet

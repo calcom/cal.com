@@ -11,7 +11,8 @@ import allCss from "./tailwind.generated.css";
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL =
-  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL as string) || `https://${import.meta.env.VERCEL_URL}`;
+  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL_TYPO as string) ||
+  `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);

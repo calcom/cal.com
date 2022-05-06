@@ -1,5 +1,7 @@
 require("dotenv").config({ path: "../../../.env" });
 
+process.env.NEXT_PUBLIC_VERCEL_URL = process.env.VERCEL_URL;
+
 const path = require("path");
 const { defineConfig } = require("vite");
 module.exports = defineConfig((configEnv) => {
