@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Controller, useForm, UseFormReturn, useWatch } from "react-hook-form";
-import { isUndefined } from "util";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -153,24 +152,28 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           </div>
         );
       case LocationType.Phone:
-        return (
-          <div className="mb-4">
-            <label
-              htmlFor="locationPhone"
-              className="block text-sm font-medium text-gray-700 dark:text-white">
-              {t("set_your_phone_number")}
-            </label>
-            <div className="mt-1">
-              <PhoneInput<LocationFormValues>
-                control={locationFormMethods.control}
-                name="locationPhone"
-                placeholder={t("enter_phone_number")}
-                id="locationPhone"
-                required
-              />
+        if (booking) {
+          return (
+            <div className="mb-4">
+              <label
+                htmlFor="locationPhone"
+                className="block text-sm font-medium text-gray-700 dark:text-white">
+                {t("set_your_phone_number")}
+              </label>
+              <div className="mt-1">
+                <PhoneInput<LocationFormValues>
+                  control={locationFormMethods.control}
+                  name="locationPhone"
+                  placeholder={t("enter_phone_number")}
+                  id="locationPhone"
+                  required
+                />
+              </div>
             </div>
-          </div>
-        );
+          );
+        } else {
+          return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
+        }
       default:
         return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
     }
