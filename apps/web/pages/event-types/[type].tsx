@@ -1888,28 +1888,30 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
-                  <Controller
-                    name="locationType"
-                    control={locationFormMethods.control}
-                    render={() => (
-                      <Select
-                        maxMenuHeight={100}
-                        name="location"
-                        defaultValue={selectedLocation}
-                        options={locationOptions}
-                        isSearchable={false}
-                        className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                        onChange={(val) => {
-                          if (val) {
-                            locationFormMethods.setValue("locationType", val.value);
-                            locationFormMethods.unregister("locationLink");
-                            locationFormMethods.unregister("locationAddress");
-                            setSelectedLocation(val);
-                          }
-                        }}
-                      />
-                    )}
-                  />
+                  <div>
+                    <Controller
+                      name="locationType"
+                      control={locationFormMethods.control}
+                      render={() => (
+                        <Select
+                          maxMenuHeight={100}
+                          name="location"
+                          defaultValue={selectedLocation}
+                          options={locationOptions}
+                          isSearchable={false}
+                          className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                          onChange={(val) => {
+                            if (val) {
+                              locationFormMethods.setValue("locationType", val.value);
+                              locationFormMethods.unregister("locationLink");
+                              locationFormMethods.unregister("locationAddress");
+                              setSelectedLocation(val);
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
                   <LocationOptions />
                   <div className="mt-4 flex justify-end space-x-2">
                     <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
