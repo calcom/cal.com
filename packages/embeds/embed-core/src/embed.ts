@@ -8,6 +8,12 @@ import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css";
 
+// HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
+// This is happening because we are not able to generate an App and a lib using single Vite Config.
+const WEBAPP_URL =
+  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL_TYPO as string) ||
+  `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
 customElements.define("cal-inline", Inline);
@@ -414,8 +420,8 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
-      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://app.cal.com",
+      // Use WEBAPP_URL till full page reload problem with website URL is solved
+      origin: WEBAPP_URL,
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
@@ -507,7 +513,11 @@ window.addEventListener("message", (e) => {
   if (!parsedAction) {
     return;
   }
+
   const actionManager = Cal.actionsManagers[parsedAction.ns];
+  globalCal.__logQueue = globalCal.__logQueue || [];
+  globalCal.__logQueue.push({ ...parsedAction, data: detail.data });
+
   if (!actionManager) {
     throw new Error("Unhandled Action" + parsedAction);
   }
