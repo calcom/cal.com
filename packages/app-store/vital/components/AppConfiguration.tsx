@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button, Select } from "@calcom/ui";
 
@@ -36,16 +36,16 @@ const saveSettings = async ({
 };
 
 const AppConfiguration = (props: IAppConfigurationProps) => {
-  const { t } = useLocale("vital");
+  const { t } = useTranslation();
   const [credentialId] = props.credentialIds;
 
   const options = [
     {
-      label: t("vital_app_total_label"),
+      label: t("vital_app_total_label", { ns: "vital" }),
       value: "total",
     },
     {
-      label: t("vital_app_duration_label"),
+      label: t("vital_app_duration_label", { ns: "vital" }),
       value: "duration",
     },
   ];
@@ -94,20 +94,20 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
     <div className="flex-col items-start p-3 text-sm">
       <p>
         <strong>
-          {t("connected_vital_app")} Vital App: {connected ? "Yes" : "No"}
+          {t("connected_vital_app", { ns: "vital" })} Vital App: {connected ? "Yes" : "No"}
         </strong>
       </p>
       <br />
       <p>
-        <strong>{t("vital_app_sleep_automation")}</strong>
+        <strong>{t("vital_app_sleep_automation", { ns: "vital" })}</strong>
       </p>
-      <p className="mt-1">{t("vital_app_automation_description")}</p>
+      <p className="mt-1">{t("vital_app_automation_description", { ns: "vital" })}</p>
 
       <div className="w-100 mt-2">
         <div className="block sm:flex">
           <div className="min-w-24 mb-4 mt-5 sm:mb-0">
             <label htmlFor="description" className="text-sm font-bold">
-              {t("vital_app_parameter")}
+              {t("vital_app_parameter", { ns: "vital" })}
             </label>
           </div>
           <div className="w-120 mt-2.5">
@@ -126,16 +126,10 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
       <div className="w-full">
         <div className="min-w-24 mb-4 mt-3">
           <label htmlFor="value" className="text-sm font-bold">
-            {t("vital_app_trigger")}
+            {t("vital_app_trigger", { ns: "vital" })}
           </label>
         </div>
-        <div
-          className={classNames(
-            "mx-2 mt-0 w-24",
-            "relative",
-            "after:absolute after:right-2 after:top-[12px] sm:after:top-[9px]",
-            `after:content-['hours']`
-          )}>
+        <div className={"mx-2 mt-0 inline-flex w-24 items-baseline"}>
           <input
             id="value"
             type="text"
@@ -150,6 +144,9 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
               "pr-12shadow-sm mt-1 block w-full rounded-sm border border-gray-300 py-2 pl-6 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             }
           />
+          <p className="ml-2">
+            <strong>{t("vital_app_hours", { ns: "vital" })}</strong>
+          </p>
         </div>
       </div>
 
@@ -170,7 +167,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
           }}
           loading={saveLoading}
           disabled={disabledSaveButton}>
-          {t("vital_app_save_button")}
+          {t("vital_app_save_button", { ns: "vital" })}
         </Button>
       </div>
     </div>
