@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
-import { InstallAppButton } from "@calcom/app-store/components";
+import { AppConfiguration, InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
 import { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
@@ -161,8 +161,9 @@ function IntegrationsContainer() {
                     isGlobal={item.isGlobal}
                     installed={item.installed}
                   />
-                }
-              />
+                }>
+                <AppConfiguration type={item.type} credentialIds={item.credentialIds} />
+              </IntegrationListItem>
             ))}
           </List>
         </>
