@@ -15,6 +15,7 @@ import * as slackmessaging from "./slackmessaging";
 import * as spacebooking from "./spacebooking";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
+import * as vital from "./vital";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
 import * as zoomvideo from "./zoomvideo";
@@ -35,6 +36,7 @@ const appStore = {
   stripepayment,
   spacebooking,
   tandemvideo,
+  vital,
   zoomvideo,
   wipemycalother,
   metamask,
