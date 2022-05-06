@@ -23,6 +23,11 @@ const globalCal = (window as CalWindow).Cal;
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }
+
+// Store Commit Hash to know exactly what version of the code is running
+// TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
+// But because it is built on local machine right now, it is much more reliable to have the commit hash.
+globalCal.fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
@@ -30,6 +35,7 @@ function log(...args: any[]) {
   console.log(...args);
 }
 /**
+ * //TODO: Warn about extra properties not part of schema. Helps in fixing wrong expectations
  * A very simple data validator written with intention of keeping payload size low.
  * Extend the functionality of it as required by the embed.
  * @param data
@@ -258,19 +264,53 @@ export class Cal {
     element.appendChild(template.content);
   }
 
-  floatingButton({ calLink }: { calLink: string }) {
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          required: true,
-          type: "string",
-        },
-      },
-    });
-    const template = document.createElement("template");
-    template.innerHTML = `<cal-floating-button data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
-    document.body.appendChild(template.content);
+  floatingButton({
+    calLink,
+    buttonText = "Book my Cal",
+    hideButtonIcon = false,
+    attributes,
+    buttonPosition = "bottom-right",
+    buttonColor = "rgb(255, 202, 0)",
+    buttonTextColor = "rgb(20, 30, 47)",
+  }: {
+    calLink: string;
+    buttonText?: string;
+    attributes?: Record<string, string>;
+    hideButtonIcon?: boolean;
+    buttonPosition?: "bottom-left" | "bottom-right";
+    buttonColor: string;
+    buttonTextColor: string;
+  }) {
+    // validate(arguments[0], {
+    //   required: true,
+    //   props: {
+    //     calLink: {
+    //       required: true,
+    //       type: "string",
+    //     },
+    //   },
+    // });
+    let attributesString = "";
+    let existingEl = null;
+    if (attributes?.id) {
+      attributesString += ` id="${attributes.id}"`;
+      existingEl = document.getElementById(attributes.id);
+    }
+    let el = existingEl;
+    if (!existingEl) {
+      const template = document.createElement("template");
+      template.innerHTML = `<cal-floating-button ${attributesString}  data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
+      el = template.content.children[0] as HTMLElement;
+      document.body.appendChild(template.content);
+    }
+
+    if (buttonText) {
+      el!.setAttribute("data-button-text", buttonText);
+    }
+    el!.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
+    el!.setAttribute("data-button-position", "" + buttonPosition);
+    el!.setAttribute("data-button-color", "" + buttonColor);
+    el!.setAttribute("data-button-text-color", "" + buttonTextColor);
   }
 
   modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {
@@ -437,8 +477,16 @@ export class Cal {
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
+
     this.actionManager.on("linkFailed", (e) => {
-      this.iframe?.remove();
+      const iframe = this.iframe;
+      if (!iframe) {
+        return;
+      }
+      this.inlineEl?.setAttribute("data-error-code", e.detail.data.code);
+      this.modalBox?.setAttribute("data-error-code", e.detail.data.code);
+      this.inlineEl?.setAttribute("loading", "failed");
+      this.modalBox?.setAttribute("state", "failed");
     });
   }
 }
