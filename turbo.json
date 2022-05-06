@@ -75,6 +75,9 @@
     "@calcom/web#start": {
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
+    "@calcom/embed-core#build": {
+      "cache": false
+    },
     "@calcom/website#build": {
       "dependsOn": [
         "$NEXT_PUBLIC_INTERCOM_APP_ID",
@@ -100,7 +103,7 @@
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build"],
+      "dependsOn": ["@calcom/web#build", "@calcom/embed-core#build"],
       "outputs": []
     },
     "clean": {
