@@ -12,6 +12,7 @@ import { Button, Switch } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose } from "@calcom/ui/Dialog";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 
+import { WEBAPP_URL, EMBED_LIB_URL } from "@lib/config/constants";
 import { trpc } from "@lib/trpc";
 
 import NavTabs from "@components/NavTabs";
@@ -216,16 +217,10 @@ const embeds: {
 ];
 
 function getEmbedSnippetString() {
-  let embedJsUrl = "https://cal.com/embed.js";
-  let isLocal = false;
-  if (location.hostname === "localhost") {
-    embedJsUrl = "http://localhost:3100/dist/embed.umd.js";
-    isLocal = true;
-  }
   // TODO: Import this string from @calcom/embed-snippet
   return `
-(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${embedJsUrl}", "init");
-Cal("init"${isLocal ? ', {origin:"http://localhost:3000/"}' : ""});
+(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${EMBED_LIB_URL}", "init");
+Cal("init", {origin:"${WEBAPP_URL}"});
 `;
 }
 
@@ -815,7 +810,7 @@ ${getEmbedTypeSpecificString().trim()}
                 className="border-1 h-[75vh] border"
                 width="100%"
                 height="100%"
-                src={`http://localhost:3100/preview.html?embedType=${embedType}&calLink=${calLink}`}
+                src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
               />
             </div>
           </div>
