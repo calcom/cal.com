@@ -1,0 +1,23 @@
+https://docs.tryvital.io/summary-data#sleep-stream
+{
+   event: {
+     event_type: 'daily.data.sleep.created',
+     data: {
+       id: 'a27b89dc-4a43-4f59-b72a-267fa9a93c8c',
+       date: '1974-12-15T18:28:10+00:00',
+       bedtime_start: '1980-07-11T22:10:32+00:00',
+       bedtime_stop: '1993-03-03T04:21:02+00:00',
+       duration: 7225, // seconds
+       total: 6909, // seconds
+       awake: 7763,
+       light: 2011, // Total amount of light sleep registered during the sleep period
+       rem: 8106, // Total amount of REM sleep registered during the sleep period, minutes
+       deep: 6553,
+       hr_lowest: 9085,
+       efficiency: 1780,
+       latency: 8519,
+       source: [Object],
+       user_id: 'a1dfefe0-ccdb-46b8-adac-35e9ba597496'
+     }
+   }
+ }

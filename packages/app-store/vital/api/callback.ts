@@ -1,0 +1,41 @@
+import { Prisma } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@calcom/prisma";
+
+/**
+ * This is will generate a user token for a client_user_id`
+ * @param req
+ * @param res
+ */
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const userWithMetadata = await prisma.user.findFirst({
+      where: {
+        id: req?.session?.user.id,
+      },
+      select: {
+        id: true,
+        metadata: true,
+      },
+    });
+
+    await prisma.user.update({
+      where: {
+        id: req?.session?.user.id,
+      },
+      data: {
+        metadata: {
+          ...(userWithMetadata?.metadata as Prisma.JsonObject),
+          vitalSettings: {
+            ...((userWithMetadata?.metadata as Prisma.JsonObject)?.vitalSettings as Prisma.JsonObject),
+            connected: true,
+          },
+        },
+      },
+    });
+    return res.redirect("/apps/installed");
+  } catch (e) {
+    return res.status(500);
+  }
+}
