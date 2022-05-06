@@ -149,7 +149,11 @@ function BookingListItem(booking: BookingItem) {
 
   const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
     let newLocation = newLocationType as string;
-    if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+    if (
+      newLocationType === LocationType.InPerson ||
+      newLocationType === LocationType.Link ||
+      newLocationType === LocationType.Phone
+    ) {
       newLocation = details[Object.keys(details)[0]];
     }
     setLocationMutation.mutate(newLocation);
