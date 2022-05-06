@@ -23,7 +23,8 @@ module.exports = defineConfig((configEnv) => {
         output: {
           entryFileNames: "[name].js",
           //FIXME: Can't specify UMD as import because preview is an app which doesn't support `format` and this setting apply to both input
-          //format: "umd"
+          //format: "umd",
+          dir: "../../../apps/web/public/embed",
         },
       },
     },
