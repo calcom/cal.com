@@ -69,14 +69,13 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
       <DialogPrimitive.Content
         {...props}
         className={classNames(
-          "fadeIn fixed left-1/2 top-1/2 z-[9998]  min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
+          "fadeIn fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
           props.size == "xl"
             ? "p-0.5 sm:max-w-[98vw]"
             : props.size == "lg"
             ? "p-6 sm:max-w-[70rem]"
             : "p-6 sm:max-w-[35rem]",
-          "h-[80vh] max-h-[560px] overflow-scroll overscroll-auto md:h-auto md:max-h-[inherit]",
-          `${props.className || ""}`
+          `${props.className}`
         )}
         ref={forwardedRef}>
         {children}
