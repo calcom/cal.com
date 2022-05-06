@@ -8,6 +8,11 @@ import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css";
 
+// HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
+// This is happening because we are not able to generate an App and a lib using single Vite Config.
+const WEBAPP_URL =
+  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL as string) || `https://${import.meta.env.VERCEL_URL}`;
+
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
 customElements.define("cal-inline", Inline);
@@ -415,7 +420,7 @@ export class Cal {
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
-      origin: import.meta.env.NEXT_PUBLIC_WEBAPP_URL as string,
+      origin: WEBAPP_URL,
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
