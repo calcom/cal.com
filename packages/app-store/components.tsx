@@ -27,6 +27,7 @@ export const InstallAppButtonMap = {
   metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
   spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
+  vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
@@ -61,3 +62,5 @@ export const InstallAppButton = (
     );
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 };
+
+export { AppConfiguration } from "./_components/AppConfiguration";
