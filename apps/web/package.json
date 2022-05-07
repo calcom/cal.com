@@ -35,6 +35,7 @@
     "@calcom/stripe": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
+    "@calcom/embed-core": "*",
     "@daily-co/daily-js": "^0.21.0",
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
