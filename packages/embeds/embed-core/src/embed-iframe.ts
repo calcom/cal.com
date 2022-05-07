@@ -42,14 +42,13 @@ let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
+  window.CalEmbed = window.CalEmbed || {};
+  window.CalEmbed.embedStore = embedStore;
   const ua = navigator.userAgent.toLowerCase();
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
-  window.CalEmbed = window.CalEmbed || {};
-  //TODO: Send postMessage to parent to get all log messages in the same queue.
-  window.CalEmbed.embedStore = embedStore;
 }
 
 function runAsap(fn: (...arg: any) => void) {
