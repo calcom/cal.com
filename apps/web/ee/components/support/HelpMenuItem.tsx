@@ -27,7 +27,7 @@ export default function HelpMenuItem() {
       </Popover.Trigger>
       <Popover.Content side="right">
         <div className="border-gray-300 bg-white p-5 shadow-sm ">
-          <p className="mb-1 text-neutral-500">RESOURCES</p>
+          <p className="mb-1 text-neutral-500">{t("resources").toUpperCase()}</p>
           <a
             href="https://docs.cal.com/"
             target="_blank"
@@ -39,7 +39,7 @@ export default function HelpMenuItem() {
                 "h-5 w-5 flex-shrink-0 ltr:mr-3"
               )}
             />
-            Support documentation
+            {t("support_documentation")}
           </a>
           <a
             href="https://developer.cal.com/"
@@ -52,11 +52,13 @@ export default function HelpMenuItem() {
                 "h-5 w-5 flex-shrink-0 ltr:mr-3"
               )}
             />
-            Developer documentation
+            {t("developer_documentation")}
           </a>
           {process.env.NEXT_PUBLIC_INTERCOM_APP_ID ||
             process.env.NEXT_PUBLIC_ZENDESK_KEY ||
-            (process.env.NEXT_PUBLIC_HELPSCOUT_KEY && <p className="mb-1 text-neutral-500">GET IN TOUCH</p>)}
+            (process.env.NEXT_PUBLIC_HELPSCOUT_KEY && (
+              <p className="mb-1 text-neutral-500">{t("get_in_touch").toUpperCase()}</p>
+            ))}
           <ContactMenuItem />
         </div>
       </Popover.Content>
