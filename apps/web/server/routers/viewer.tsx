@@ -6,6 +6,7 @@ import { z } from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -127,6 +128,7 @@ const loggedInViewerRouter = createProtectedRouter()
         description: true,
         length: true,
         schedulingType: true,
+        recurringEvent: true,
         slug: true,
         hidden: true,
         price: true,
@@ -298,7 +300,7 @@ const loggedInViewerRouter = createProtectedRouter()
   })
   .query("bookings", {
     input: z.object({
-      status: z.enum(["upcoming", "past", "cancelled"]),
+      status: z.enum(["upcoming", "recurring", "past", "cancelled"]),
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
     }),
@@ -313,7 +315,28 @@ const loggedInViewerRouter = createProtectedRouter()
         upcoming: [
           {
             endTime: { gte: new Date() },
+            // These changes are needed to not show confirmed recurring events,
+            // as rescheduling or cancel for recurring event bookings should be
+            // handled separately for each occurrence
+            OR: [
+              {
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+              },
+              {
+                AND: [
+                  { recurringEventId: { equals: null } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
+              },
+            ],
+          },
+        ],
+        recurring: [
+          {
+            endTime: { gte: new Date() },
             AND: [
+              { NOT: { recurringEventId: { equals: null } } },
               { NOT: { status: { equals: BookingStatus.CANCELLED } } },
               { NOT: { status: { equals: BookingStatus.REJECTED } } },
             ],
@@ -342,6 +365,7 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
+        recurring: { startTime: "asc" },
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
       };
@@ -373,10 +397,12 @@ const loggedInViewerRouter = createProtectedRouter()
           rejected: true,
           id: true,
           startTime: true,
+          recurringEventId: true,
           endTime: true,
           eventType: {
             select: {
               price: true,
+              recurringEvent: true,
               team: {
                 select: {
                   name: true,
@@ -398,13 +424,41 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const bookings = bookingsQuery.map((booking) => {
+      const groupedRecurringBookings = await prisma.booking.groupBy({
+        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
+        _count: true,
+      });
+
+      let bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
+          eventType: {
+            ...booking.eventType,
+            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+          },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
         };
       });
+
+      const seenBookings: Record<string, boolean> = {};
+
+      // Remove duplicate recurring bookings for upcoming status.
+      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
+      // We might be actually sending less then the limit, due to this filter
+      // TODO: Figure out a way to fix it.
+      if (bookingListingByStatus === "upcoming") {
+        bookings = bookings.filter((booking) => {
+          if (!booking.recurringEventId) {
+            return true;
+          }
+          if (seenBookings[booking.recurringEventId]) {
+            return false;
+          }
+          seenBookings[booking.recurringEventId] = true;
+          return true;
+        });
+      }
 
       let nextCursor: typeof skip | null = skip;
       if (bookings.length > take) {
@@ -416,6 +470,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
+        groupedRecurringBookings,
         nextCursor,
       };
     },
