@@ -10,3 +10,6 @@
 	path = apps/website
 	url = https://github.com/calcom/website.git
 	branch = main
+[submodule "packages/closed"]
+	path = packages/closed
+	url = https://github.com/calcom/closed.git
