@@ -68,7 +68,7 @@ function TeamPage({ team }: TeamPageProps) {
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
-                    image: user.avatar || "",
+                    image: process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -147,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: user.avatar || defaultAvatarSrc({ email: user.email || "" }),
+      avatar: process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user.username + "/avatar.png",
     })),
   }));
 
