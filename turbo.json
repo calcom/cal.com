@@ -3,10 +3,6 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/prisma#build": {
-      "dependsOn": ["$DATABASE_URL"],
-      "outputs": ["zod/**"]
-    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]
@@ -103,7 +99,7 @@
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build", "@calcom/embed-core#build"],
+      "dependsOn": ["@calcom/web#build"],
       "outputs": []
     },
     "clean": {
@@ -123,7 +119,7 @@
       "cache": false,
       "outputs": ["lint-results"]
     },
-    "postinstall": {},
+    "post-install": {},
     "start": {},
     "embed-tests": {
       "cache": false
