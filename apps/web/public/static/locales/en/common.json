@@ -804,6 +804,7 @@
   "impersonate_user_tip":"All uses of this feature is audited.",
   "impersonating_user_warning":"Impersonating username \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
+  "email_validation_error":"That doesn't look like an email address",
   "place_where_cal_widget_appear": "Place this code in your HTML where you want your Cal widget to appear.",
   "copy_code": "Copy Code",
   "code_copied": "Code copied!",
