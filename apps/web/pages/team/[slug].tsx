@@ -6,6 +6,7 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -13,7 +14,6 @@ import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import { defaultAvatarSrc } from "@lib/profile";
 import { getTeamWithMembers } from "@lib/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -68,7 +68,7 @@ function TeamPage({ team }: TeamPageProps) {
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
-                    image: user.avatar || "",
+                    image: WEBSITE_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -147,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: user.avatar || defaultAvatarSrc({ email: user.email || "" }),
+      avatar: WEBSITE_URL + "/" + user.username + "/avatar.png",
     })),
   }));
 
