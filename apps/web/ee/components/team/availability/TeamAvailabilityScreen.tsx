@@ -4,7 +4,8 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
+import { WEBSITE_URL } from "@calcom/lib/constants";
+
 import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
@@ -45,7 +46,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           HeaderComponent={
             <div className="mb-6 flex items-center">
               <Avatar
-                imageSrc={getPlaceholderAvatar(member?.avatar, member?.name as string)}
+                imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
