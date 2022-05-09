@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "BookingPeriodFrequency" AS ENUM ('DAY', 'WEEK', 'MONTH', 'YEAR');
+CREATE TYPE "BookingPeriodFrequency" AS ENUM ('DAY', 'WEEK', 'MONTH');
 
 -- CreateTable
 CREATE TABLE "BookingPeriodLimit" (
