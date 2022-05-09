@@ -26,13 +26,14 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const integrations = trpc.useQuery(["viewer.integrations"]);
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
+  const appKeys = trpc.useQuery(["viewer.appKeys", { slug: "zapier" }]);
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
 
-  const inviteLink = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com" ? "https://zapier.com/developer/public-invite/160956/1329696c62afce146bdca204a3c2ee5e/" : "https://zapier.com/developer/public-invite/160959/b80f6a62609a295ac9262d722a3ffb79/"
+  const inviteLink =  appKeys.data?.invite_link || "";
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
@@ -97,7 +98,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
                 <Trans i18nKey="zapier_setup_instructions">
                   <li>Go to:
-                    <a href={inviteLink} className="text-orange-600 underline ">
+                    <a href={inviteLink} className="text-orange-600 underline">
                       Zapier Invite Link
                     </a>
                   </li>

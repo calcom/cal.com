@@ -654,6 +654,16 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("appKeys", {
+    input: z.object({
+      slug: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { slug } = input;
+      const app = await ctx.prisma.app.findUnique({ where: { slug } });
+      return (app?.keys || {}) as Prisma.JsonObject;
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
