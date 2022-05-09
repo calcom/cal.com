@@ -2,6 +2,7 @@ import {
   CalendarIcon,
   ClockIcon,
   CreditCardIcon,
+  ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
   RefreshIcon,
@@ -545,13 +546,22 @@ const BookingPage = ({
                         {...bookingForm.register("email")}
                         required
                         className={classNames(
-                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                          "focus:border-brand block w-full rounded-sm shadow-sm focus:ring-black dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                          disableInput ? "bg-gray-200 dark:text-gray-500" : "",
+                          bookingForm.formState.errors.email
+                            ? "border-red-700 focus:ring-red-700"
+                            : " border-gray-300  dark:border-gray-900"
                         )}
                         placeholder="you@example.com"
                         type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                         disabled={disableInput}
                       />
+                      {bookingForm.formState.errors.email && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("email_validation_error")}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {locations.length > 1 && (
