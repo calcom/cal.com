@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import LicenseRequired from "@ee/components/LicenseRequired";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -39,7 +39,7 @@ export default function TeamAvailabilityModal(props: Props) {
         <div className="min-w-64 w-64 space-y-5 p-5 pr-0">
           <div className="flex">
             <Avatar
-              imageSrc={getPlaceholderAvatar(props.member?.avatar, props.member?.name as string)}
+              imageSrc={WEBSITE_URL + "/" + props.member?.username + "/avatar.png"}
               alt={props.member?.name || ""}
               className="h-14 w-14 rounded-full"
             />

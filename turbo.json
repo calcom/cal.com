@@ -12,10 +12,6 @@
         "$STRIPE_PRIVATE_KEY"
       ]
     },
-    "@calcom/prisma#build": {
-      "dependsOn": ["$DATABASE_URL"],
-      "outputs": ["zod/**"]
-    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]
@@ -84,6 +80,9 @@
     "@calcom/web#start": {
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
+    "@calcom/embed-core#build": {
+      "cache": false
+    },
     "@calcom/website#build": {
       "dependsOn": [
         "$NEXT_PUBLIC_INTERCOM_APP_ID",
@@ -129,7 +128,7 @@
       "cache": false,
       "outputs": ["lint-results"]
     },
-    "postinstall": {},
+    "post-install": {},
     "start": {},
     "embed-tests": {
       "cache": false
