@@ -84,7 +84,7 @@ export default function App({
   }, []);
   return (
     <>
-      <Shell large>
+      <Shell large isPublic>
         <div className="-mx-4 md:-mx-8">
           <div className="bg-gray-50 px-4">
             <Link href="/apps">
