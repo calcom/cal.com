@@ -1419,7 +1419,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           onClick={() => {
                                             navigator.clipboard.writeText(placeholderHashedLink);
                                             if (eventType.hashedLink) {
-                                              showToast(t("link_copied"), "success");
+                                              showToast(t("private_link_copied"), "success");
                                             } else {
                                               showToast(t("enabled_after_update_description"), "warning");
                                             }
@@ -1856,7 +1856,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(placeholderHashedLink);
-                      showToast("Private link copied!", "success");
+                      if (eventType.hashedLink) {
+                        showToast(t("private_link_copied"), "success"); 
+                      } else {
+                        showToast(t("enabled_after_update_description"), "warning");
+                      }
                     }}
                     type="button"
                     className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
