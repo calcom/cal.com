@@ -58,7 +58,9 @@ export default function WebhookDialogForm(props: {
         props.handleClose();
       }}
       className="space-y-4">
-      <input type="hidden" {...form.register("id")} />
+      <div>
+        <input type="hidden" {...form.register("id")} />
+      </div>
       <fieldset className="space-y-2">
         <InputGroupBox className="border-0 bg-gray-50">
           <Controller
@@ -76,20 +78,21 @@ export default function WebhookDialogForm(props: {
           />
         </InputGroupBox>
       </fieldset>
-      <TextField
-        label={t("subscriber_url")}
-        {...form.register("subscriberUrl")}
-        required
-        type="url"
-        onChange={(e) => {
-          form.setValue("subscriberUrl", e.target.value);
-          if (hasTemplateIntegration({ url: e.target.value })) {
-            setUseCustomPayloadTemplate(true);
-            form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
-          }
-        }}
-      />
-
+      <div>
+        <TextField
+          label={t("subscriber_url")}
+          {...form.register("subscriberUrl")}
+          required
+          type="url"
+          onChange={(e) => {
+            form.setValue("subscriberUrl", e.target.value);
+            if (hasTemplateIntegration({ url: e.target.value })) {
+              setUseCustomPayloadTemplate(true);
+              form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+            }
+          }}
+        />
+      </div>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
         <InputGroupBox className="border-0 bg-gray-50">
