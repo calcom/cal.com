@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import RRule from "rrule";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
 import {
@@ -378,7 +379,7 @@ export default function Success(props: SuccessProps) {
                                 : "") +
                               (props.eventType.recurringEvent
                                 ? "&recur=" +
-                                  encodeURIComponent(new rrule(props.eventType.recurringEvent).toString())
+                                  encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }>
                             <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
