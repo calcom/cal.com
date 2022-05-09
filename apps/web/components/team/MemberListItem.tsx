@@ -17,7 +17,6 @@ import Dropdown, {
 import { Tooltip } from "@calcom/ui/Tooltip";
 import TeamAvailabilityModal from "@ee/components/team/availability/TeamAvailabilityModal";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import useCurrentUserId from "@lib/hooks/useCurrentUserId";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
@@ -74,7 +73,7 @@ export default function MemberListItem(props: Props) {
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
             <Avatar
-              imageSrc={getPlaceholderAvatar(props.member?.avatar, name)}
+              imageSrc={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
               className="h-9 w-9 rounded-full"
             />

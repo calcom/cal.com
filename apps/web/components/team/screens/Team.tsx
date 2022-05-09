@@ -7,7 +7,6 @@ import React from "react";
 
 import Button from "@calcom/ui/Button";
 
-import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
@@ -52,7 +51,7 @@ const Team = ({ team }: TeamPageProps) => {
           <div>
             <Avatar
               alt={member.name || ""}
-              imageSrc={getPlaceholderAvatar(member.avatar, member.username)}
+              imageSrc={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + member.username + "/avatar.png"}
               className="-mt-4 h-12 w-12"
             />
             <section className="mt-2 w-full space-y-1">
