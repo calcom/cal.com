@@ -13,21 +13,22 @@
     "db-setup": "run-s db-up db-deploy db-seed",
     "db-studio": "yarn prisma studio",
     "db-up": "docker-compose up -d",
-    "deploy": "yarn prisma migrate deploy",
+    "deploy": "yarn prisma migrate deploy && yarn seed-app-store",
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
-    "postinstall": "yarn generate-schemas"
+    "postinstall": "yarn generate-schemas",
+    "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
-    "prisma": "3.10.0",
+    "prisma": "^3.13.0",
     "ts-node": "^10.6.0",
     "zod": "^3.14.4",
     "zod-prisma": "^0.5.4"
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^3.12.0"
+    "@prisma/client": "^3.13.0"
   },
   "main": "index.ts",
   "types": "index.d.ts",
@@ -37,6 +38,6 @@
     "zod-utils.ts"
   ],
   "prisma": {
-    "seed": "ts-node ./seed.ts"
+    "seed": "ts-node --transpile-only ./seed.ts"
   }
 }

@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { App } from "@calcom/types/App";
 
 function useAddAppMutation(type: App["type"], options?: Parameters<typeof useMutation>[2]) {
-  const appName = type.replaceAll("_", "");
+  const appName = type.replace(/_/g, "");
   const mutation = useMutation(async () => {
     const state: IntegrationOAuthCallbackState = {
       returnTo: WEBAPP_URL + "/apps/installed" + location.search,

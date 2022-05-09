@@ -660,5 +660,6 @@
   "availability_updated_successfully": "Disponibilidad actualizada correctamente",
   "requires_ownership_of_a_token": "Requiere la propiedad de un token perteneciente a la siguiente dirección:",
   "example_name": "Juan Pérez",
-  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} })."
+  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} }).",
+  "zapier_setup_instructions": "<0>Inicia sesión en tu cuenta de Zapier y crea un nuevo Zap.</0><1>Selecciona Cal.com cómo tu aplicación disparadora. Tambien elige tu evento disparador.</1><2>Elige tu cuenta e ingresa tu Clave API única.</2><3>Prueba tu disparador.</3><4>¡Listo!</4>"
 }

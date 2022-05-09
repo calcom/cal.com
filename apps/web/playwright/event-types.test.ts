@@ -49,6 +49,45 @@ test.describe("Event Types tests", () => {
       isCreated = await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
 
+    test("enabling recurring event comes with default options", async ({ page }) => {
+      await page.click("[data-testid=new-event-type]");
+      const nonce = randomString(3);
+      eventTitle = `my recurring event ${nonce}`;
+
+      await page.fill("[name=title]", eventTitle);
+      await page.fill("[name=length]", "15");
+      await page.click("[type=submit]");
+
+      await page.waitForNavigation({
+        url(url) {
+          return url.pathname !== "/event-types";
+        },
+      });
+
+      await page.click("[data-testid=show-advanced-settings]");
+      await expect(await page.locator("[data-testid=recurring-event-collapsible] > *")).not.toBeVisible();
+      await page.click("[data-testid=recurring-event-check]");
+      isCreated = await expect(
+        await page.locator("[data-testid=recurring-event-collapsible] > *")
+      ).toBeVisible();
+
+      await expect(
+        await page
+          .locator("[data-testid=recurring-event-collapsible] input[type=number]")
+          .nth(0)
+          .getAttribute("value")
+      ).toBe("1");
+      await expect(
+        await page.locator("[data-testid=recurring-event-collapsible] div[class$=singleValue]").textContent()
+      ).toBe("week");
+      await expect(
+        await page
+          .locator("[data-testid=recurring-event-collapsible] input[type=number]")
+          .nth(1)
+          .getAttribute("value")
+      ).toBe("12");
+    });
+
     test("can duplicate an existing event type", async ({ page }) => {
       const firstTitle = await page.locator("[data-testid=event-type-title-3]").innerText();
       const firstFullSlug = await page.locator("[data-testid=event-type-slug-3]").innerText();

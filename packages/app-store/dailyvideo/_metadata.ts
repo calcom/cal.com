@@ -18,7 +18,7 @@ export const metadata = {
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
-  slug: "dailyvideo",
+  slug: "daily-video",
   title: "Cal Video",
   isGlobal: true,
   email: "help@cal.com",

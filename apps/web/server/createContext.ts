@@ -55,6 +55,7 @@ async function getUserFromSession({
           type: true,
           key: true,
           userId: true,
+          appId: true,
         },
         orderBy: {
           id: "asc",
@@ -104,7 +105,7 @@ export const createContext = async ({ req }: CreateContextOptions) => {
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
-  const i18n = await serverSideTranslations(locale, ["common"]);
+  const i18n = await serverSideTranslations(locale, ["common", "vital"]);
   return {
     i18n,
     prisma,

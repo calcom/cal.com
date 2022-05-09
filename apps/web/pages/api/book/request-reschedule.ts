@@ -1,4 +1,4 @@
-import { BookingStatus, User, Booking, Attendee, BookingReference } from "@prisma/client";
+import { BookingStatus, User, Booking, Attendee, BookingReference, EventType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
@@ -6,7 +6,6 @@ import type { TFunction } from "next-i18next";
 import { z, ZodError } from "zod";
 
 import { getCalendar } from "@calcom/core/CalendarManager";
-import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
@@ -29,7 +28,7 @@ const rescheduleSchema = z.object({
   rescheduleReason: z.string().optional(),
 });
 
-const findUserOwnerByUserId = async (userId: number) => {
+const findUserDataByUserId = async (userId: number) => {
   return await prisma.user.findUnique({
     rejectOnNotFound: true,
     where: {
@@ -57,10 +56,10 @@ const handler = async (
     bookingId,
     rescheduleReason: cancellationReason,
   }: { bookingId: string; rescheduleReason: string; cancellationReason: string } = req.body;
-  let userOwner: Awaited<ReturnType<typeof findUserOwnerByUserId>>;
+  let userOwner: Awaited<ReturnType<typeof findUserDataByUserId>>;
   try {
     if (session?.user?.id) {
-      userOwner = await findUserOwnerByUserId(session?.user.id);
+      userOwner = await findUserDataByUserId(session?.user.id);
     } else {
       return res.status(501);
     }
@@ -76,6 +75,10 @@ const handler = async (
         location: true,
         attendees: true,
         references: true,
+        userId: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        destinationCalendar: true,
       },
       rejectOnNotFound: true,
       where: {
@@ -88,18 +91,22 @@ const handler = async (
       },
     });
 
-    if (bookingToReschedule && bookingToReschedule.eventTypeId && userOwner) {
-      const event = await prisma.eventType.findFirst({
-        select: {
-          title: true,
-          users: true,
-          schedulingType: true,
-        },
-        rejectOnNotFound: true,
-        where: {
-          id: bookingToReschedule.eventTypeId,
-        },
-      });
+    if (bookingToReschedule && userOwner) {
+      let event: Partial<EventType> = {};
+      if (bookingToReschedule.eventTypeId) {
+        event = await prisma.eventType.findFirst({
+          select: {
+            title: true,
+            users: true,
+            schedulingType: true,
+            recurringEvent: true,
+          },
+          rejectOnNotFound: true,
+          where: {
+            id: bookingToReschedule.eventTypeId,
+          },
+        });
+      }
       await prisma.booking.update({
         where: {
           id: bookingToReschedule.id,
@@ -136,7 +143,7 @@ const handler = async (
       const builder = new CalendarEventBuilder();
       builder.init({
         title: bookingToReschedule.title,
-        type: event.title,
+        type: event && event.title ? event.title : bookingToReschedule.title,
         startTime: bookingToReschedule.startTime.toISOString(),
         endTime: bookingToReschedule.endTime.toISOString(),
         attendees: usersToPeopleType(
@@ -149,9 +156,13 @@ const handler = async (
 
       const director = new CalendarEventDirector();
       director.setBuilder(builder);
-      director.setExistingBooking(bookingToReschedule as unknown as Booking);
+      director.setExistingBooking(bookingToReschedule);
       director.setCancellationReason(cancellationReason);
-      await director.buildForRescheduleEmail();
+      if (!!event) {
+        await director.buildWithoutEventTypeForRescheduleEmail();
+      } else {
+        await director.buildForRescheduleEmail();
+      }
 
       // Handling calendar and videos cancellation
       // This can set previous time as available, until virtual calendar is done
@@ -173,6 +184,31 @@ const handler = async (
           }
         }
       });
+
+      // Updating attendee destinationCalendar if required
+      if (
+        bookingToReschedule.destinationCalendar &&
+        bookingToReschedule.destinationCalendar.userId &&
+        bookingToReschedule.destinationCalendar.integration.endsWith("_calendar")
+      ) {
+        const { destinationCalendar } = bookingToReschedule;
+        if (destinationCalendar.userId) {
+          const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter(
+            (ref) => !!credentialsMap.get(ref.type)
+          );
+          const attendeeData = await findUserDataByUserId(destinationCalendar.userId);
+          const attendeeCredentialsMap = new Map();
+          attendeeData.credentials.forEach((credential) => {
+            attendeeCredentialsMap.set(credential.type, credential);
+          });
+          bookingRefsFiltered.forEach((bookingRef) => {
+            if (bookingRef.uid) {
+              const calendar = getCalendar(attendeeCredentialsMap.get(destinationCalendar.integration));
+              calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
+            }
+          });
+        }
+      }
 
       // Send emails
       await sendRequestRescheduleEmail(builder.calendarEvent, {
