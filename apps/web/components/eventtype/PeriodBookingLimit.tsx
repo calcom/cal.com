@@ -1,8 +1,9 @@
 import { TrashIcon } from "@heroicons/react/outline";
 import { PlusIcon, XIcon } from "@heroicons/react/solid";
+import { registerDecorator } from "handlebars";
 import { EventTypeFormType } from "pages/event-types/[type]";
 import React, { useMemo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { TFunction } from "react-i18next";
 import { CrossIcon } from "react-select/dist/declarations/src/components/indicators";
 
@@ -35,15 +36,6 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
   const formMethods = useFormContext<EventTypeFormType>();
   const { t } = useLocale();
   console.log(formMethods.getValues("bookingFrequency"));
-  const OPTIONS = useMemo(() => {
-    const BASE_OPTIONS: Option[] = [
-      // TODO: Filter these so we can't create duplicate entries
-      { value: "DAY", label: t("period_label_day") },
-      { value: "WEEK", label: t("period_label_week") },
-      { value: "MONTH", label: t("period_label_month") },
-    ];
-    return BASE_OPTIONS;
-  }, [t]);
 
   return (
     <Controller
@@ -76,7 +68,7 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                             className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                             placeholder="0"
                             defaultValue={value || 0}
-                            onChange={onChange}
+                            onChange={() => onChange(Number(value))}
                           />
                         )}></Controller>
                       <p className="text-sm text-gray-700">per</p>
@@ -113,8 +105,8 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                   onClick={() => {
                     const values = formMethods.getValues("bookingFrequency");
                     const frequency = ["MONTH", "WEEK", "DAY"];
-                    frequency.forEach((period) => {
-                      // Finding a value that hasnt been used already and creating a new input with that period
+                    // Finding a value that hasnt been used already and creating a new input with that period
+                    frequency.forEach((period, index) => {
                       // @ts-ignore
                       if (values[period] === 0) {
                         formMethods.setValue("bookingFrequency", {
