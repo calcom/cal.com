@@ -33,7 +33,7 @@
     <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
     <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=social"></a>
     <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
-
+    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->
@@ -433,7 +433,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-
-[<img src="https://jitsu.com/img/powered-by-jitsu.png?gh=true">](https://jitsu.com/?utm_source=cal.com-gihub)
+  
+ <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
 Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.
