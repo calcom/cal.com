@@ -98,7 +98,7 @@ const ChangePasswordSection = () => {
             </div>
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-          <div className="flex justify-end py-8">
+          <div className="flex py-8 sm:justify-end">
             <Button color="secondary" type="submit">
               {t("save")}
             </Button>
