@@ -13,7 +13,6 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import rrule from "rrule";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
 import {
