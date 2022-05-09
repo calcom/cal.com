@@ -26,7 +26,9 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import short, { generate } from "short-uuid";
 import { JSONObject } from "superjson/dist/types";
+import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
@@ -281,6 +283,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
+  const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+
+  const generateHashedLink = (id: number) => {
+    const translator = short();
+    const seed = `${id}:${new Date().getTime()}`;
+    const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+    return uid;
+  };
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -315,6 +325,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
     fetchTokens();
+
+    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -461,9 +473,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
-  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${
-    eventType.hashedLink ? eventType.hashedLink.link : "xxxxxxxxxxxxxxxxx"
-  }/${eventType.slug}`;
+  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const mapUserToValue = ({
     id,
@@ -495,7 +505,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
-    hashedLink: boolean;
+    hashedLink: string | undefined;
     locations: { type: LocationType; address?: string; link?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
@@ -1368,27 +1378,31 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <Controller
                           name="hashedLink"
                           control={formMethods.control}
-                          defaultValue={eventType.hashedLink ? true : false}
+                          defaultValue={hashedUrl}
                           render={() => (
                             <>
                               <CheckboxField
-                                id="hashedLink"
-                                name="hashedLink"
-                                label={t("hashed_link")}
-                                description={t("hashed_link_description")}
+                                id="hashedLinkCheck"
+                                name="hashedLinkCheck"
+                                label={t("private_link")}
+                                description={t("private_link_description")}
                                 defaultChecked={eventType.hashedLink ? true : false}
                                 onChange={(e) => {
                                   setHashedLinkVisible(e?.target.checked);
-                                  formMethods.setValue("hashedLink", e?.target.checked);
+                                  formMethods.setValue(
+                                    "hashedLink",
+                                    e?.target.checked ? hashedUrl : undefined
+                                  );
                                 }}
                               />
                               {hashedLinkVisible && (
-                                <div className="block items-center sm:flex">
+                                <div className="!mt-1 block items-center sm:flex">
                                   <div className="min-w-48 mb-4 sm:mb-0"></div>
                                   <div className="w-full">
                                     <div className="relative mt-1 flex w-full">
                                       <input
                                         disabled
+                                        name="hashedLink"
                                         data-testid="generated-hash-url"
                                         type="text"
                                         className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
@@ -1403,9 +1417,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <Button
                                           color="minimal"
                                           onClick={() => {
+                                            navigator.clipboard.writeText(placeholderHashedLink);
                                             if (eventType.hashedLink) {
-                                              navigator.clipboard.writeText(placeholderHashedLink);
-                                              showToast("Link copied!", "success");
+                                              showToast(t("private_link_copied"), "success");
+                                            } else {
+                                              showToast(t("enabled_after_update_description"), "warning");
                                             }
                                           }}
                                           type="button"
@@ -1836,6 +1852,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
+                {hashedLinkVisible && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(placeholderHashedLink);
+                      if (eventType.hashedLink) {
+                        showToast(t("private_link_copied"), "success");
+                      } else {
+                        showToast(t("enabled_after_update_description"), "warning");
+                      }
+                    }}
+                    type="button"
+                    className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                    <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                    {t("copy_private_link")}
+                  </button>
+                )}
                 <EmbedButton
                   className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
                   eventTypeId={eventType.id}
