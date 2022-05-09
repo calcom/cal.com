@@ -24,7 +24,7 @@ export default function ApiKeyListContainer() {
       query={query}
       success={({ data }) => (
         <>
-          <div className=" flex flex-col justify-between truncate pl-2 pr-1 sm:flex-row">
+          <div className="flex flex-col justify-between truncate pl-2 pr-1 sm:flex-row">
             <div className="mt-9">
               <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("api_keys")}</h2>
               <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_keys_subtitle")}</p>
