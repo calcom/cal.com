@@ -1,4 +1,10 @@
-import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import {
+  EventTypeCustomInput,
+  MembershipRole,
+  PeriodType,
+  Prisma,
+  BookingPeriodFrequency,
+} from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -89,9 +95,9 @@ const EventTypeUpdateInput = _EventTypeModel
     schedule: z.number().optional(),
     hashedLink: z.boolean(),
     bookingFrequency: z.object({
-      DAY: z.number().optional(),
-      WEEK: z.number().optional(),
-      MONTH: z.number().optional(),
+      DAY: z.number(),
+      WEEK: z.number(),
+      MONTH: z.number(),
     }),
   })
   .partial()
@@ -228,6 +234,7 @@ export const eventTypesRouter = createProtectedRouter()
         users,
         id,
         hashedLink,
+        bookingFrequency,
         ...rest
       } = input;
       assertValidUrl(input.successRedirectUrl);
@@ -255,6 +262,27 @@ export const eventTypesRouter = createProtectedRouter()
             id: schedule,
           },
         };
+      }
+
+      if (bookingFrequency) {
+        Object.keys(bookingFrequency).forEach(async (frequency) => {
+          await ctx.prisma.bookingPeriodLimit.upsert({
+            where: {
+              eventTypeId_period: {
+                eventTypeId: input.id,
+                period: frequency as BookingPeriodFrequency,
+              },
+            },
+            update: {
+              limit: bookingFrequency[frequency] as number,
+            },
+            create: {
+              eventTypeId: input.id,
+              period: frequency as BookingPeriodFrequency,
+              limit: bookingFrequency[frequency] as number,
+            },
+          });
+        });
       }
 
       if (users) {
