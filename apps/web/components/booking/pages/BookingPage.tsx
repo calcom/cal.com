@@ -24,18 +24,11 @@ import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import {
-  useIsEmbed,
-  useEmbedStyles,
-  useIsBackgroundTransparent,
-  useEmbedType,
-  useEmbedNonStylesConfig,
-} from "@calcom/embed-core";
+import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
-import { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
@@ -50,7 +43,6 @@ import createRecurringBooking from "@lib/mutations/bookings/create-recurring-boo
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
-import { BookingCreateBody } from "@lib/types/booking";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
