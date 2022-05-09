@@ -369,18 +369,8 @@ const loggedInViewerRouter = createProtectedRouter()
         past: { startTime: "desc" },
         cancelled: { startTime: "desc" },
       };
-      const bookingListingDistinct: Record<
-        typeof bookingListingByStatus,
-        Prisma.Enumerable<Prisma.BookingScalarFieldEnum> | undefined
-      > = {
-        upcoming: Prisma.BookingScalarFieldEnum.recurringEventId,
-        recurring: undefined,
-        past: undefined,
-        cancelled: undefined,
-      };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
-      const distinct = bookingListingDistinct[bookingListingByStatus];
 
       const bookingsQuery = await prisma.booking.findMany({
         where: {
@@ -430,7 +420,6 @@ const loggedInViewerRouter = createProtectedRouter()
           rescheduled: true,
         },
         orderBy,
-        distinct,
         take: take + 1,
         skip,
       });
@@ -440,7 +429,7 @@ const loggedInViewerRouter = createProtectedRouter()
         _count: true,
       });
 
-      const bookings = bookingsQuery.map((booking) => {
+      let bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           eventType: {
@@ -451,6 +440,25 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: booking.endTime.toISOString(),
         };
       });
+
+      const seenBookings: Record<string, boolean> = {};
+
+      // Remove duplicate recurring bookings for upcoming status.
+      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
+      // We might be actually sending less then the limit, due to this filter
+      // TODO: Figure out a way to fix it.
+      if (bookingListingByStatus === "upcoming") {
+        bookings = bookings.filter((booking) => {
+          if (!booking.recurringEventId) {
+            return true;
+          }
+          if (seenBookings[booking.recurringEventId]) {
+            return false;
+          }
+          seenBookings[booking.recurringEventId] = true;
+          return true;
+        });
+      }
 
       let nextCursor: typeof skip | null = skip;
       if (bookings.length > take) {
