@@ -477,7 +477,6 @@ enum BookingPeriodFrequency {
   DAY
   WEEK
   MONTH
-  YEAR
 }
 
 model BookingPeriodLimit {

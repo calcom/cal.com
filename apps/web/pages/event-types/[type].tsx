@@ -221,10 +221,9 @@ export type EventTypeFormType = {
   successRedirectUrl: string;
   giphyThankYouPage: string;
   bookingFrequency: {
-    DAY?: number;
-    WEEK?: number;
-    MONTH?: number;
-    YEAR?: number;
+    DAY: number;
+    WEEK: number;
+    MONTH: number;
   };
 };
 
@@ -2222,9 +2221,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           (obj, item) => Object.assign(obj, { [item.period]: item.limit }),
           {}
         )
-      : null;
-
-  console.log(bookingPeriodLimit);
+      : { DAY: 0, WEEK: 0, MONTH: 0 };
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

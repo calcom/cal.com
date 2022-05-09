@@ -93,7 +93,6 @@ const EventTypeUpdateInput = _EventTypeModel
         DAY: z.number().optional(),
         WEEK: z.number().optional(),
         MONTH: z.number().optional(),
-        YEAR: z.number().optional(),
       })
       .optional(),
   })
