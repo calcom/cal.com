@@ -11,7 +11,6 @@ export type TeamWithMembers = AsyncReturnType<typeof getTeamWithMembers>;
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
-    avatar: true,
     email: true,
     name: true,
     id: true,
