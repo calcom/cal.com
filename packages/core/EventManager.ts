@@ -4,7 +4,6 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import getApps from "@calcom/app-store/utils";
-import { LocationType } from "@calcom/lib/location";
 import prisma from "@calcom/prisma";
 import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -16,6 +15,7 @@ import type {
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { createEvent, updateEvent } from "./CalendarManager";
+import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
@@ -161,7 +161,11 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+  public async update(
+    event: CalendarEvent,
+    rescheduleUid: string,
+    newBookingId?: number
+  ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -187,6 +191,7 @@ export default class EventManager {
           },
         },
         destinationCalendar: true,
+        payment: true,
       },
     });
 
@@ -209,6 +214,23 @@ export default class EventManager {
 
     // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+    const bookingPayment = booking?.payment;
+
+    // Updating all payment to new
+    if (bookingPayment && newBookingId) {
+      const paymentIds = bookingPayment.map((payment) => payment.id);
+      await prisma.payment.updateMany({
+        where: {
+          id: {
+            in: paymentIds,
+          },
+        },
+        data: {
+          bookingId: newBookingId,
+        },
+      });
+    }
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -282,6 +304,7 @@ export default class EventManager {
       return undefined;
     }
 
+    /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
 
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
@@ -301,7 +324,9 @@ export default class EventManager {
     if (credential) {
       return createMeeting(credential, event);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
   }
 
@@ -342,7 +367,21 @@ export default class EventManager {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
       return updateMeeting(credential, event, bookingRef);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
+  }
+
+  /**
+   * Update event to set a cancelled event placeholder on users calendar
+   * remove if virtual calendar is already done and user availability its read from there
+   * and not only in their calendars
+   * @param event
+   * @param booking
+   * @public
+   */
+  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
+    await this.updateAllCalendarEvents(event, booking);
   }
 }

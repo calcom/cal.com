@@ -45,7 +45,6 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       text: this.getTextBody(),
     };
   }
-
   protected getTextBody(): string {
     // Only the original attendee can make changes to the event
     // Guests cannot
@@ -54,8 +53,9 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
   ${this.attendee.language.translate("event_has_been_rescheduled")}
   ${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
   ${this.getWhat()}
-  ${this.getWhen()}
+  ${this.getWhen()} 
   ${this.getLocation()}
+  ${this.getDescription()}
   ${this.getAdditionalNotes()}
   ${this.attendee.language.translate("need_to_reschedule_or_cancel")}
   ${getCancelLink(this.calEvent)}
@@ -114,6 +114,7 @@ ${this.getAdditionalNotes()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>

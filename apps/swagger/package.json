@@ -1,0 +1,25 @@
+{
+  "name": "@calcom/swagger",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "PORT=4200 next dev",
+    "build": "next build",
+    "start": "PORT=4200 next start"
+  },
+  "dependencies": {
+    "highlight.js": "^11.5.1",
+    "isarray": "2.0.5",
+    "next": "12.1.5",
+    "openapi-snippet": "^0.13.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "swagger-ui-react": "4.10.3"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.27",
+    "@types/react": "17.0.43",
+    "@types/react-dom": "17.0.14",
+    "typescript": "4.6.3"
+  }
+}

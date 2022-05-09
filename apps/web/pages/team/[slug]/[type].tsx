@@ -1,8 +1,12 @@
+import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { RecurringEvent } from "@calcom/types/Calendar";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -18,6 +22,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const slugParam = asStringOrNull(context.query.slug);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
+  const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
 
   if (!slugParam || !typeParam) {
     throw new Error(`File is not named [idOrSlug]/[user]`);
@@ -38,6 +43,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          slug: true,
           users: {
             select: {
               id: true,
@@ -64,6 +70,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           minimumBookingNotice: true,
           beforeEventBuffer: true,
           afterEventBuffer: true,
+          recurringEvent: true,
           price: true,
           currency: true,
           timeZone: true,
@@ -103,12 +110,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
   });
 
   eventTypeObject.availability = [];
 
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, rescheduleUid);
+  }
+
   return {
     props: {
+      // Team is always pro
+      plan: "PRO" as UserPlan,
       profile: {
         name: team.name || team.slug,
         slug: team.slug,
@@ -122,6 +137,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventType: eventTypeObject,
       workingHours,
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };

@@ -268,7 +268,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   // Should update username on user when being redirected from sign up and doing google/saml
   useEffect(() => {
-    async function validateAndSave(username) {
+    async function validateAndSave(username: string) {
       const { data } = await fetchUsername(username);
 
       // Only persist username if its available and not premium
@@ -708,6 +708,7 @@ export async function getServerSideProps(context: NextPageContext) {
       type: true,
       key: true,
       userId: true,
+      appId: true,
     },
   });
 

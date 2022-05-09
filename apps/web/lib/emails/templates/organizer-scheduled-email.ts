@@ -5,13 +5,13 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 import nodemailer from "nodemailer";
+import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { serverConfig } from "@lib/serverConfig";
+import { serverConfig } from "@calcom/lib/serverConfig";
+import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
   emailHead,
@@ -29,9 +29,11 @@ dayjs.extend(toArray);
 
 export default class OrganizerScheduledEmail {
   calEvent: CalendarEvent;
+  recurringEvent: RecurringEvent;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, recurringEvent: RecurringEvent) {
     this.calEvent = calEvent;
+    this.recurringEvent = recurringEvent;
   }
 
   public sendEmail() {
@@ -52,6 +54,11 @@ export default class OrganizerScheduledEmail {
   }
 
   protected getiCalEventAsString(): string | undefined {
+    // Taking care of recurrence rule beforehand
+    let recurrenceRule: string | undefined = undefined;
+    if (this.recurringEvent?.count) {
+      recurrenceRule = new rrule(this.recurringEvent).toString();
+    }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
@@ -67,6 +74,7 @@ export default class OrganizerScheduledEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+      ...{ recurrenceRule },
       attendees: this.calEvent.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
@@ -122,7 +130,9 @@ export default class OrganizerScheduledEmail {
 
   protected getTextBody(): string {
     return `
-${this.calEvent.organizer.language.translate("new_event_scheduled")}
+${this.calEvent.organizer.language.translate(
+  this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+)}
 ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
@@ -154,7 +164,9 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("new_event_scheduled"),
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+          ),
           this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
@@ -175,6 +187,7 @@ ${getRichDescription(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                             </div>
                           </td>
@@ -240,12 +253,30 @@ ${getRichDescription(this.calEvent)}
     </div>`;
   }
 
+  protected getRecurringWhen(): string {
+    if (this.recurringEvent?.freq) {
+      return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+        freq: this.calEvent.attendees[0].language.translate(
+          `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+        ),
+      })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+        `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+        { count: this.recurringEvent.count }
+      )}`;
+    } else {
+      return "";
+    }
+  }
+
   protected getWhen(): string {
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}${
+      this.recurringEvent?.count ? this.getRecurringWhen() : ""
+    }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
+      ${this.recurringEvent?.count ? `${this.calEvent.attendees[0].language.translate("starting")} ` : ""}
       ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
       )}, ${this.calEvent.organizer.language.translate(
@@ -287,11 +318,24 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getAdditionalNotes(): string {
-    if (!this.calEvent.description) return "";
+    if (!this.calEvent.additionalNotes) return "";
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
       <p style="color: #494949;">${this.calEvent.organizer.language.translate("additional_notes")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
+        this.calEvent.additionalNotes
+      }</p>
+    </div>
+    `;
+  }
+
+  protected getDescription(): string {
+    if (!this.calEvent.description) return "";
+    return `
+    <p style="height: 6px"></p>
+    <div style="line-height: 6px;">
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("description")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px; white-space: pre-wrap;">${
         this.calEvent.description
       }</p>
@@ -300,11 +344,16 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location && getAppName(this.calEvent.location); // This returns null if nothing is found
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];
       providerName = location[0].toUpperCase() + location.slice(1);
+    }
+
+    // If location its a url, probably we should be validating it with a custom library
+    if (this.calEvent.location && /^https?:\/\//.test(this.calEvent.location)) {
+      providerName = this.calEvent.location;
     }
 
     if (this.calEvent.videoCallData) {

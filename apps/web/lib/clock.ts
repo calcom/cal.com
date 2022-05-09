@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
+import { localStorage } from "@calcom/lib/webstorage";
+
 import { isBrowserLocale24h } from "./timeFormat";
 
 dayjs.extend(utc);
@@ -21,11 +23,11 @@ const timeOptions: TimeOptions = {
 const isInitialized = false;
 
 const initClock = () => {
-  if (typeof localStorage === "undefined" || isInitialized) {
+  if (isInitialized) {
     return;
   }
   // This only sets browser locale if there's no preference on localStorage.
-  if (!localStorage || !localStorage.getItem("timeOption.is24hClock")) set24hClock(isBrowserLocale24h());
+  if (!localStorage.getItem("timeOption.is24hClock")) set24hClock(isBrowserLocale24h());
   timeOptions.is24hClock = localStorage.getItem("timeOption.is24hClock") === "true";
   timeOptions.inviteeTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
 };

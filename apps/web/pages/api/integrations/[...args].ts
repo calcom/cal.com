@@ -1,6 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
-
-import appStore from "@calcom/app-store";
+import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -8,11 +6,6 @@ import { HttpError } from "@lib/core/http/error";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
   req.session = await getSession({ req });
-
-  if (!req.session?.user?.id) {
-    res.status(401).json({ message: "You must be logged in to do this" });
-    return;
-  }
 
   const { args } = req.query;
 
@@ -24,16 +17,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const appName = _appName.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
 
   try {
-    // TODO: Find a way to dynamically import these modules
-    // const app = (await import(`@calcom/${appName}`)).default;
-    const handler = appStore[appName].api[apiEndpoint];
+    /* Absolute path didn't work */
+    const handlerMap = (await import("@calcom/app-store/apiHandlers")).default;
+    const handlers = await handlerMap[appName as keyof typeof handlerMap];
+    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
+
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 
     const response = await handler(req, res);
-    console.log("response", response);
 
-    res.status(200);
+    return res.status(200);
   } catch (error) {
     console.error(error);
     if (error instanceof HttpError) {

@@ -1,6 +1,6 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import React, { FC, useEffect, useState } from "react";
 import { nameOfDay } from "@calcom/lib/weekday";
 
 import classNames from "@lib/classNames";
+import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
@@ -20,6 +21,8 @@ type AvailableTimesProps = {
   afterBufferTime: number;
   eventTypeId: number;
   eventLength: number;
+  recurringCount: number | undefined;
+  eventTypeSlug: string;
   slotInterval: number | null;
   date: Dayjs;
   users: {
@@ -32,8 +35,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventLength,
   eventTypeId,
+  eventTypeSlug,
   slotInterval,
   minimumBookingNotice,
+  recurringCount,
   timeFormat,
   users,
   schedulingType,
@@ -64,9 +69,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   return (
     <div className="mt-8 flex flex-col text-center sm:mt-0 sm:w-1/3 sm:pl-4 md:-mb-5">
       <div className="mb-4 text-left text-lg font-light text-gray-600">
-        <span className="w-1/2 text-gray-600 dark:text-white">
+        <span className="text-bookingdarker w-1/2 dark:text-white">
           <strong>{nameOfDay(i18n.language, Number(date.format("d")))}</strong>
-          <span className="text-gray-500">
+          <span className="text-bookinglight">
             {date.format(", D ")}
             {date.toDate().toLocaleString(i18n.language, { month: "long" })}
           </span>
@@ -86,6 +91,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 ...router.query,
                 date: slot.time.format(),
                 type: eventTypeId,
+                slug: eventTypeSlug,
+                /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
+                count: recurringCount && !rescheduleUid ? recurringCount : undefined,
               },
             };
 
@@ -102,11 +110,11 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 <Link href={bookingUrl}>
                   <a
                     className={classNames(
-                      "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                      "text-bookingdarker hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
                     )}
                     data-testid="time">
-                    {slot.time.format(timeFormat)}
+                    {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
                   </a>
                 </Link>
               </div>

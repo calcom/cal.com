@@ -6,6 +6,7 @@ import { z } from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import jackson from "@lib/jackson";
@@ -20,6 +21,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
@@ -126,16 +128,18 @@ const loggedInViewerRouter = createProtectedRouter()
         description: true,
         length: true,
         schedulingType: true,
+        recurringEvent: true,
         slug: true,
         hidden: true,
         price: true,
         currency: true,
         position: true,
+        successRedirectUrl: true,
+        hashedLink: true,
         users: {
           select: {
             id: true,
             username: true,
-            avatar: true,
             name: true,
           },
         },
@@ -152,7 +156,6 @@ const loggedInViewerRouter = createProtectedRouter()
           startTime: true,
           endTime: true,
           bufferTime: true,
-          avatar: true,
           plan: true,
           teams: {
             where: {
@@ -228,7 +231,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: typeof user["username"];
           name: typeof user["name"];
-          image: typeof user["avatar"];
         };
         metadata: {
           membershipCount: number;
@@ -253,7 +255,6 @@ const loggedInViewerRouter = createProtectedRouter()
         profile: {
           slug: user.username,
           name: user.name,
-          image: user.avatar,
         },
         eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
@@ -299,7 +300,7 @@ const loggedInViewerRouter = createProtectedRouter()
   })
   .query("bookings", {
     input: z.object({
-      status: z.enum(["upcoming", "past", "cancelled"]),
+      status: z.enum(["upcoming", "recurring", "past", "cancelled"]),
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
     }),
@@ -314,7 +315,28 @@ const loggedInViewerRouter = createProtectedRouter()
         upcoming: [
           {
             endTime: { gte: new Date() },
+            // These changes are needed to not show confirmed recurring events,
+            // as rescheduling or cancel for recurring event bookings should be
+            // handled separately for each occurrence
+            OR: [
+              {
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: false }],
+              },
+              {
+                AND: [
+                  { recurringEventId: { equals: null } },
+                  { NOT: { status: { equals: BookingStatus.CANCELLED } } },
+                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
+                ],
+              },
+            ],
+          },
+        ],
+        recurring: [
+          {
+            endTime: { gte: new Date() },
             AND: [
+              { NOT: { recurringEventId: { equals: null } } },
               { NOT: { status: { equals: BookingStatus.CANCELLED } } },
               { NOT: { status: { equals: BookingStatus.REJECTED } } },
             ],
@@ -343,8 +365,9 @@ const loggedInViewerRouter = createProtectedRouter()
         Prisma.BookingOrderByWithAggregationInput
       > = {
         upcoming: { startTime: "asc" },
+        recurring: { startTime: "asc" },
         past: { startTime: "desc" },
-        cancelled: { startTime: "asc" },
+        cancelled: { startTime: "desc" },
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
@@ -374,10 +397,12 @@ const loggedInViewerRouter = createProtectedRouter()
           rejected: true,
           id: true,
           startTime: true,
+          recurringEventId: true,
           endTime: true,
           eventType: {
             select: {
               price: true,
+              recurringEvent: true,
               team: {
                 select: {
                   name: true,
@@ -392,19 +417,48 @@ const loggedInViewerRouter = createProtectedRouter()
               id: true,
             },
           },
+          rescheduled: true,
         },
         orderBy,
         take: take + 1,
         skip,
       });
 
-      const bookings = bookingsQuery.map((booking) => {
+      const groupedRecurringBookings = await prisma.booking.groupBy({
+        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
+        _count: true,
+      });
+
+      let bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
+          eventType: {
+            ...booking.eventType,
+            recurringEvent: ((booking.eventType && booking.eventType.recurringEvent) || {}) as RecurringEvent,
+          },
           startTime: booking.startTime.toISOString(),
           endTime: booking.endTime.toISOString(),
         };
       });
+
+      const seenBookings: Record<string, boolean> = {};
+
+      // Remove duplicate recurring bookings for upcoming status.
+      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
+      // We might be actually sending less then the limit, due to this filter
+      // TODO: Figure out a way to fix it.
+      if (bookingListingByStatus === "upcoming") {
+        bookings = bookings.filter((booking) => {
+          if (!booking.recurringEventId) {
+            return true;
+          }
+          if (seenBookings[booking.recurringEventId]) {
+            return false;
+          }
+          seenBookings[booking.recurringEventId] = true;
+          return true;
+        });
+      }
 
       let nextCursor: typeof skip | null = skip;
       if (bookings.length > take) {
@@ -416,6 +470,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
+        groupedRecurringBookings,
         nextCursor,
       };
     },
@@ -428,6 +483,50 @@ const loggedInViewerRouter = createProtectedRouter()
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+
+      if (connectedCalendars.length === 0) {
+        /* As there are no connected calendars, delete the destination calendar if it exists */
+        if (user.destinationCalendar) {
+          await ctx.prisma.destinationCalendar.delete({
+            where: { userId: user.id },
+          });
+          user.destinationCalendar = null;
+        }
+      } else if (!user.destinationCalendar) {
+        /*
+        There are connected calendars, but no destination calendar
+        So create a default destination calendar with the first primary connected calendar
+        */
+        const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+        user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
+          data: {
+            userId: user.id,
+            integration,
+            externalId,
+          },
+        });
+      } else {
+        /* There are connected calendars and a destination calendar */
+
+        // Check if destinationCalendar exists in connectedCalendars
+        const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+        const destinationCal = allCals.find(
+          (cal) =>
+            cal.externalId === user.destinationCalendar?.externalId &&
+            cal.integration === user.destinationCalendar?.integration
+        );
+        if (!destinationCal) {
+          // If destinationCalendar is out of date, update it with the first primary connected calendar
+          const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
+          user.destinationCalendar = await ctx.prisma.destinationCalendar.update({
+            where: { userId: user.id },
+            data: {
+              integration,
+              externalId,
+            },
+          });
+        }
+      }
 
       return {
         connectedCalendars,
@@ -488,14 +587,9 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (web3Credential) {
-        return ctx.prisma.credential.update({
+        return ctx.prisma.credential.delete({
           where: {
             id: web3Credential.id,
-          },
-          data: {
-            key: {
-              isWeb3Active: !(web3Credential.key as JSONObject).isWeb3Active,
-            },
           },
         });
       } else {
@@ -528,8 +622,8 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
       const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
+      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
       const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
-
       return {
         conferencing: {
           items: conferencing,
@@ -542,6 +636,10 @@ const loggedInViewerRouter = createProtectedRouter()
         payment: {
           items: payment,
           numActive: countActive(payment),
+        },
+        other: {
+          items: other,
+          numActive: countActive(other),
         },
       };
     },
@@ -574,6 +672,7 @@ const loggedInViewerRouter = createProtectedRouter()
       timeZone: z.string().optional(),
       weekStart: z.string().optional(),
       hideBranding: z.boolean().optional(),
+      allowDynamicBooking: z.boolean().optional(),
       brandColor: z.string().optional(),
       darkBrandColor: z.string().optional(),
       theme: z.string().optional().nullable(),
@@ -800,4 +899,5 @@ export const viewerRouter = createRouter()
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
-  .merge("webhook.", webhookRouter);
+  .merge("webhook.", webhookRouter)
+  .merge("apiKeys.", apiKeysRouter);

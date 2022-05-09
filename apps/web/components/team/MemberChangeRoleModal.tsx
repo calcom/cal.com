@@ -1,6 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import { useState } from "react";
-import React, { SyntheticEvent } from "react";
+import React, { SyntheticEvent, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -8,15 +8,33 @@ import Button from "@calcom/ui/Button";
 import { trpc } from "@lib/trpc";
 
 import ModalContainer from "@components/ui/ModalContainer";
+import Select from "@components/ui/form/Select";
+
+type MembershipRoleOption = {
+  value: MembershipRole;
+  label?: string;
+};
+
+const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
+  currentMember: MembershipRole;
   memberId: number;
   teamId: number;
   initialRole: MembershipRole;
   onExit: () => void;
 }) {
-  const [role, setRole] = useState(props.initialRole || MembershipRole.MEMBER);
+  useEffect(() => {
+    options.forEach((option, i) => {
+      options[i].label = t(option.value.toLowerCase());
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [role, setRole] = useState(
+    options.find((option) => option.value === props.initialRole || MembershipRole.MEMBER)!
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -37,10 +55,9 @@ export default function MemberChangeRoleModal(props: {
     changeRoleMutation.mutate({
       teamId: props.teamId,
       memberId: props.memberId,
-      role,
+      role: role.value,
     });
   }
-
   return (
     <ModalContainer isOpen={props.isOpen} onExit={props.onExit}>
       <>
@@ -56,17 +73,16 @@ export default function MemberChangeRoleModal(props: {
             <label className="mb-2 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
               {t("role")}
             </label>
-            <select
+            {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
+            <Select
+              isSearchable={false}
+              options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
               value={role}
-              onChange={(e) => setRole(e.target.value as MembershipRole)}
+              onChange={(option) => option && setRole(option)}
               id="role"
-              className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-black sm:text-sm">
-              <option value="MEMBER">{t("member")}</option>
-              <option value="ADMIN">{t("admin")}</option>
-              {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
-            </select>
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+            />
           </div>
-
           {errorMessage && (
             <p className="text-sm text-red-700">
               <span className="font-bold">Error: </span>

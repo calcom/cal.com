@@ -1,0 +1,427 @@
+<html>
+  <head>
+    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
+    <!-- <script src="./src/embed.ts" type="module"></script> -->
+    <script>
+      if (!location.search.includes("nonResponsive")) {
+        document.write('<meta name="viewport" content="width=device-width"/>');
+      }
+      (()=> {
+        const url = new URL(document.URL);
+        // Only run the example specified by only=, avoids distraction and faster to test.
+        const only = url.searchParams.get("only");
+        const namespace = only ? only.replace("ns:",""): null
+        if (namespace) {
+          location.hash="#cal-booking-place-" + namespace + "-iframe"
+        }
+      })()
+    </script>
+    <script>
+      (function (C, A, L) {
+        let p = function (a, ar) {
+          a.q.push(ar);
+        };
+        let d = C.document;
+        C.Cal =
+          C.Cal ||
+          function () {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function () {
+                p(api, arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+              return;
+            }
+            p(cal, ar);
+          };
+      })(window, "//localhost:3000/embed/embed.js", "init");
+    </script>
+
+    <style>
+      body {
+        background: linear-gradient(
+          90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%
+        );
+      }
+      .debug {
+        /* border: 1px solid black; */
+        margin-bottom: 5px;
+      }
+
+      .loader {
+        color: green;
+      }
+      * {
+        --cal-brand-color: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
+    <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
+    <div>
+      <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+      <div>
+        <i
+          >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
+          as you are reading this text, it would open up super fast[If you are running a production build on
+          local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
+          slow</i
+        >
+      </div>
+      <h2>Other Popup Examples</h2>
+      <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
+      <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
+      <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
+      <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
+      <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
+      <div>
+        <h2>Embed for Pages behind authentication</h2>
+        <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
+      </div>
+    </div>
+    <div id="namespaces-test">
+      <div class="debug" id="cal-booking-place-default">
+        <h2>
+          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@example.com and test@example.com)]</i>
+        </h2>
+        <div>
+          <i><a href="?only=ns:default">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action"> You would see last Booking page action in my place </i>
+        <div >
+          <div class="place" style="width:50%;"></div>
+          <div class="loader" id="cal-booking-loader-">Loading .....</div>
+        </div>
+      </div>
+      <div class="debug" id="cal-booking-place-second">
+        <h2>Namespace "second"(Cal.ns.second)[Custom Styling][inline]</h2>
+        <div>
+          <i><a href="?only=ns:second">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div class="place">
+          <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
+          <button
+            onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
+            Change <code>eventTypeListItem</code> bg color
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
+            Change <code>body</code> bg color
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
+            Align left
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'center'}})})()">
+            Align Center
+          </button>
+          <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
+            backgroundColor: '#D3D3D3',
+          },
+          disabledDateButton: {
+            backgroundColor: 'lightslategray',
+          },}})})()">
+            Change Date Button Color
+          </button>
+          
+          <div class="loader" id="cal-booking-loader-second">Loading .....</div>
+        </div>
+      </div>
+
+      <div class="debug" id="cal-booking-place-third">
+        <h2>Namespace "third"(Cal.ns.third)[inline][Custom Styling - Transparent Background]</h2>
+        <div>
+          <i><a href="?only=ns:third">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div style="width: 30%" class="place">
+          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+
+      <div class="debug" id="cal-booking-place-fourth">
+        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline taking entire width]</h2>
+        <div>
+          <i><a href="?only=ns:fourth">Test in Zen Mode</a></i>
+        </div>
+        <i class="last-action">
+          <i>You would see last Booking page action in my place</i>
+        </i>
+        <div style="width: 30%" class="place">
+          <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
+          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="debug" id="cal-booking-place-fifth">
+      <h2>Namespace "fifth"(Cal.ns.fifth)[Team Event Test][inline along with some content]</h2>
+      <div>
+        <i><a href="?only=ns:fifth">Test in Zen Mode</a></i>
+      </div>
+      <i class="last-action">
+        <i>You would see last Booking page action in my place</i>
+      </i>
+      <div style="display:flex;align-items: center;">
+        <h2 style="width: 30%">
+          On the right side you can book a team meeting =>
+        </h2>
+        <div style="width: 70%" class="place">
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const callback = function (e) {
+        const detail = e.detail;
+        const namespace = detail.namespace || "default";
+
+        if (detail.type === "linkReady") {
+          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
+        } else if (detail.type === "linkFailed") {
+          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
+        }
+        document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(
+          e.detail
+        );
+      };
+      const searchParams = new URL(document.URL).searchParams;
+      const only = searchParams.get("only");
+      if (!only || only === "ns:default") {
+        Cal("init", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+
+        Cal("inline", {
+          elementOrSelector: "#cal-booking-place-default .place",
+          calLink: "pro?case=1",
+          config: {
+            __autoScroll:true,
+            iframeAttrs: {
+              id: "cal-booking-place-default-iframe"
+            },
+            name: "John",
+            email: "johndoe@gmail.com",
+            notes: "Test Meeting",
+            guests: ["janedoe@example.com", "test@example.com"],
+            theme: "dark",
+          },
+        });
+        Cal("on", {
+          action: "*",
+          callback,
+        });
+      }
+      if (!only || only === "ns:second") {
+        // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
+        Cal("init", "second", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+
+        // Bulk API is supported - Keep all configuration at one place.
+        Cal.ns.second(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-second .place",
+              calLink: "pro?case=2",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-second-iframe"
+                },
+              }
+            },
+          ]
+        );
+        Cal.ns.second("on", {
+          action: "*",
+          callback,
+        });
+      }
+
+      if (!only || only === "ns:third") {
+        // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
+        Cal("init", "third", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+
+        Cal.ns.third(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-third .place",
+              calLink: "pro/30min",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-third-iframe"
+                },
+              }
+            },
+          ],
+          [
+            "ui",
+            {
+              styles: {
+                body: {
+                  background: "transparent",
+                },
+                branding: {
+                  brandColor: "#81e61c",
+                  lightColor: "#494545",
+                  lighterColor: "#4c4848",
+                  lightestColor: "#7c7777",
+                  highlightColor: "#9b0e0e",
+                  medianColor: "black",
+                },
+              },
+            },
+          ]
+        );
+        Cal.ns.third("on", {
+          action: "*",
+          callback,
+        });
+      }
+
+      if (!only || only === "ns:fourth") {
+        Cal("init", "fourth", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.fourth(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-fourth .place",
+              calLink: "team/seeded-team",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fourth-iframe"
+                },
+              }
+            },
+          ],
+          [
+            "ui",
+            {
+              styles: {
+                body: {
+                  background: "transparent",
+                },
+                branding: {
+                  brandColor: "#81e61c",
+                  lightColor: "#494545",
+                  lighterColor: "#4c4848",
+                  lightestColor: "#7c7777",
+                  highlightColor: "#9b0e0e",
+                  medianColor: "black",
+                },
+              },
+            },
+          ]
+        );
+        Cal.ns.fourth("on", {
+          action: "*",
+          callback,
+        });
+      }
+      if (!only || only === "ns:fifth") {
+        Cal("init", "fifth", {
+          debug: 1,
+          origin: "http://localhost:3000",
+        });
+        Cal.ns.fifth(
+          [
+            "inline",
+            {
+              elementOrSelector: "#cal-booking-place-fifth .place",
+              calLink: "team/seeded-team/collective-seeded-team-event",
+              config: {
+                iframeAttrs: {
+                  id: "cal-booking-place-fifth-iframe"
+                },
+              }
+            },
+          ],
+        );
+        Cal.ns.fifth("on", {
+          action: "*",
+          callback,
+        });
+      }
+      if (!only || only === "prerender-test") {
+        Cal('init', 'prerendertestLightTheme', {
+          debug: 1,
+          origin: "http://localhost:3000",
+        })
+        Cal.ns.prerendertestLightTheme("preload", {
+          calLink: "free",
+        });
+      }
+      Cal('init', 'popupDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupAutoTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkLightTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal('init', 'popupTeamLinkDarkTheme', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal('init', 'popupTeamLinksList', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+      
+      Cal('init', 'popupPaidEvent', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
+      Cal("init", "floatingButton", {
+        debug: 1,
+        origin: "http://localhost:3000",
+      });
+      if (!only  || only == "ns:floatingButton") {
+      Cal.ns.floatingButton("floatingButton", {
+        calLink: "pro"
+      })
+    }
+    </script>
+    <script></script>
+  </body>
+</html>

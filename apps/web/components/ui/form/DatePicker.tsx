@@ -10,9 +10,11 @@ type Props = {
   date: Date;
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
+  disabled?: boolean;
+  minDate?: Date;
 };
 
-export const DatePicker = ({ date, onDatesChange, className }: Props) => {
+export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
   return (
     <PrimitiveDatePicker
       className={classNames(
@@ -22,6 +24,8 @@ export const DatePicker = ({ date, onDatesChange, className }: Props) => {
       clearIcon={null}
       calendarIcon={<CalendarIcon className="h-5 w-5 text-gray-500" />}
       value={date}
+      minDate={minDate}
+      disabled={disabled}
       onChange={onDatesChange}
     />
   );

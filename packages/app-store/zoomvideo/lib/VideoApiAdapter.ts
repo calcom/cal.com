@@ -1,10 +1,13 @@
 import { Credential } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 export interface ZoomEventResult {
@@ -67,13 +70,20 @@ interface ZoomToken {
   refresh_token: string;
 }
 
-const zoomAuth = (credential: Credential) => {
+let client_id = "";
+let client_secret = "";
+
+const zoomAuth = async (credential: Credential) => {
+  const appKeys = await getAppKeysFromSlug("zoom");
+  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+  if (!client_id) throw new HttpError({ statusCode: 400, message: "Zoom client_id missing." });
+  if (!client_secret) throw new HttpError({ statusCode: 400, message: "Zoom client_secret missing." });
+
   const credentialKey = credential.key as unknown as ZoomToken;
   const isTokenValid = (token: ZoomToken) =>
     token && token.token_type && token.access_token && (token.expires_in || token.expiry_date) < Date.now();
-  const authHeader =
-    "Basic " +
-    Buffer.from(process.env.ZOOM_CLIENT_ID + ":" + process.env.ZOOM_CLIENT_SECRET).toString("base64");
+  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
 
   const refreshAccessToken = (refreshToken: string) =>
     fetch("https://zoom.us/oauth/token", {
@@ -147,8 +157,8 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   };
 
   return {
-    getAvailability: () => {
-      return auth
+    getAvailability: async () => {
+      return (await auth)
         .getToken()
         .then(
           // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
@@ -176,7 +186,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         });
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       const result = await fetch("https://api.zoom.us/v2/users/me/meetings", {
         method: "POST",
@@ -195,7 +205,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       });
     },
     deleteMeeting: async (uid: string): Promise<void> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       await fetch("https://api.zoom.us/v2/meetings/" + uid, {
         method: "DELETE",
@@ -207,7 +217,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       return Promise.resolve();
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      const accessToken = await auth.getToken();
+      const accessToken = await (await auth).getToken();
 
       await fetch("https://api.zoom.us/v2/meetings/" + bookingRef.uid, {
         method: "PATCH",

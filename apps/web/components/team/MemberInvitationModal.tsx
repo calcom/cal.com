@@ -1,8 +1,7 @@
 import { UserIcon } from "@heroicons/react/outline";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import { useState } from "react";
-import React, { SyntheticEvent } from "react";
+import React, { useState, useEffect, SyntheticEvent, useMemo } from "react";
 
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
@@ -12,16 +11,33 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { TeamWithMembers } from "@lib/queries/teams";
 import { trpc } from "@lib/trpc";
 
+import Select from "@components/ui/form/Select";
+
 type MemberInvitationModalProps = {
   isOpen: boolean;
   team: TeamWithMembers | null;
+  currentMember: MembershipRole;
   onExit: () => void;
 };
+
+type MembershipRoleOption = {
+  value: MembershipRole;
+  label?: string;
+};
+
+const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
+  const options = useMemo(() => {
+    _options.forEach((option, i) => {
+      _options[i].label = t(option.value.toLowerCase());
+    });
+    return _options;
+  }, [t]);
 
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
@@ -83,12 +99,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               <label className="mb-1 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
                 {t("role")}
               </label>
-              <select
+              <Select
+                defaultValue={options[0]}
+                options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
                 id="role"
-                className="focus:border-brand mt-1 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black sm:text-sm">
-                <option value="MEMBER">{t("member")}</option>
-                <option value="ADMIN">{t("admin")}</option>
-              </select>
+                name="role"
+                className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+              />
             </div>
             <div className="relative flex items-start">
               <div className="flex h-5 items-center">
@@ -97,7 +114,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="sendInviteEmail"
                   defaultChecked
                   id="sendInviteEmail"
-                  className="focus:border-brand rounded-sm border-gray-300 text-black shadow-sm focus:ring-black sm:text-sm"
+                  className="rounded-sm border-gray-300 text-black shadow-sm sm:text-sm"
                 />
               </div>
               <div className="text-sm ltr:ml-2 rtl:mr-2">

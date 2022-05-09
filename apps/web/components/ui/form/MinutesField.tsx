@@ -22,7 +22,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
             ref={ref}
             type="number"
             className={classNames(
-              "focus:border-primary-500 focus:ring-primary-500 block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm",
+              "block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm",
               rest.className
             )}
           />

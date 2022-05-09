@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
@@ -16,7 +15,7 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
 
   return (
     <>
-      <Shell large>
+      <Shell isPublic large>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 bg-gray-50 px-4 pb-2">
             <Link href="/apps">
@@ -51,7 +50,7 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
 }
 
 export const getStaticPaths = async () => {
-  const appStore = getAppRegistry();
+  const appStore = await getAppRegistry();
   const paths = appStore.reduce((categories, app) => {
     if (!categories.includes(app.category)) {
       categories.push(app.category);
@@ -68,7 +67,7 @@ export const getStaticPaths = async () => {
 export const getStaticProps = async () => {
   return {
     props: {
-      appStore: getAppRegistry(),
+      appStore: await getAppRegistry(),
     },
   };
 };

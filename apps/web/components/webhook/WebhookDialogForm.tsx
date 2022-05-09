@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 import { WEBHOOK_TRIGGER_EVENTS } from "@lib/webhooks/constants";
 import customTemplate, { hasTemplateIntegration } from "@lib/webhooks/integrationTemplate";
@@ -22,13 +22,6 @@ export default function WebhookDialogForm(props: {
 }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const handleSubscriberUrlChange = (e) => {
-    form.setValue("subscriberUrl", e.target.value);
-    if (hasTemplateIntegration({ url: e.target.value })) {
-      setUseCustomPayloadTemplate(true);
-      form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
-    }
-  };
   const {
     defaultValues = {
       id: "",
@@ -36,7 +29,7 @@ export default function WebhookDialogForm(props: {
       subscriberUrl: "",
       active: true,
       payloadTemplate: null,
-    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId">,
+    } as Omit<TWebhook, "userId" | "createdAt" | "eventTypeId" | "appId">,
   } = props;
 
   const [useCustomPayloadTemplate, setUseCustomPayloadTemplate] = useState(!!defaultValues.payloadTemplate);
@@ -65,7 +58,9 @@ export default function WebhookDialogForm(props: {
         props.handleClose();
       }}
       className="space-y-4">
-      <input type="hidden" {...form.register("id")} />
+      <div>
+        <input type="hidden" {...form.register("id")} />
+      </div>
       <fieldset className="space-y-2">
         <InputGroupBox className="border-0 bg-gray-50">
           <Controller
@@ -83,14 +78,21 @@ export default function WebhookDialogForm(props: {
           />
         </InputGroupBox>
       </fieldset>
-      <TextField
-        label={t("subscriber_url")}
-        {...form.register("subscriberUrl")}
-        required
-        type="url"
-        onChange={handleSubscriberUrlChange}
-      />
-
+      <div>
+        <TextField
+          label={t("subscriber_url")}
+          {...form.register("subscriberUrl")}
+          required
+          type="url"
+          onChange={(e) => {
+            form.setValue("subscriberUrl", e.target.value);
+            if (hasTemplateIntegration({ url: e.target.value })) {
+              setUseCustomPayloadTemplate(true);
+              form.setValue("payloadTemplate", customTemplate({ url: e.target.value }));
+            }
+          }}
+        />
+      </div>
       <fieldset className="space-y-2">
         <FieldsetLegend>{t("event_triggers")}</FieldsetLegend>
         <InputGroupBox className="border-0 bg-gray-50">

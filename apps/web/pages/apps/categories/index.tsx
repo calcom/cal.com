@@ -12,7 +12,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
   const { t } = useLocale();
 
   return (
-    <Shell large>
+    <Shell isPublic large>
       <div className="-mx-4 md:-mx-8">
         <div className="mb-10 bg-gray-50 px-4 pb-2">
           <Link href="/apps">
@@ -30,7 +30,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 }
 
 export const getStaticProps = async () => {
-  const appStore = getAppRegistry();
+  const appStore = await getAppRegistry();
   const categories = appStore.reduce((c, app) => {
     c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
     return c;
