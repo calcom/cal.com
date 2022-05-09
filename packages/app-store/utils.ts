@@ -14,7 +14,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, App>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true },
+  select: { id: true, type: true, key: true, userId: true, appId: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -66,6 +66,7 @@ function getApps(userCredentials: CredentialData[]) {
         type: appMeta.type,
         key: appMeta.key!,
         userId: +new Date().getTime(),
+        appId: appMeta.slug,
       });
     }
 
@@ -96,11 +97,6 @@ function getApps(userCredentials: CredentialData[]) {
 
 export type AppMeta = ReturnType<typeof getApps>;
 
-/** @deprecated use `getApps`  */
-export function hasIntegration(apps: AppMeta, type: string): boolean {
-  return !!apps.find((app) => app.type === type && !!app.installed && app.credentials.length > 0);
-}
-
 export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);
 }
@@ -128,8 +124,8 @@ export function getLocationLabels(t: TFunction) {
   }, defaultLocationLabels);
 }
 
-export function getAppName(name: string) {
-  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name || "No App Name";
+export function getAppName(name: string): string | null {
+  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;
 }
 
 export function getAppType(name: string): string {

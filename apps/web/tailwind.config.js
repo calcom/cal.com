@@ -1,5 +1,9 @@
 const base = require("@calcom/config/tailwind-preset");
 module.exports = {
   ...base,
-  content: [...base.content, "../../packages/ui/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    ...base.content,
+    "../../packages/ui/**/*.{js,ts,jsx,tsx}",
+    "../../packages/app-store/**/components/*.{js,ts,jsx,tsx}",
+  ],
 };

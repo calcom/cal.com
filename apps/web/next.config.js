@@ -9,6 +9,7 @@ const withTM = require("next-transpile-modules")([
   "@calcom/stripe",
   "@calcom/ui",
   "@calcom/embed-core",
+  "@calcom/embed-snippet",
 ]);
 const { i18n } = require("./next-i18next.config");
 
@@ -80,10 +81,14 @@ const nextConfig = {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
       },
+      {
+        source: "/team/:teamname/avatar.png",
+        destination: "/api/user/avatar?teamname=:teamname",
+      },
     ];
   },
   async redirects() {
-    return [
+    const redirects = [
       {
         source: "/settings",
         destination: "/settings/profile",
@@ -100,6 +105,28 @@ const nextConfig = {
         permanent: false,
       },
     ];
+
+    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
+      redirects.push(
+        {
+          source: "/apps/dailyvideo",
+          destination: "/apps/daily-video",
+          permanent: true,
+        },
+        {
+          source: "/apps/huddle01_video",
+          destination: "/apps/huddle01",
+          permanent: true,
+        },
+        {
+          source: "/apps/jitsi_video",
+          destination: "/apps/jitsi",
+          permanent: true,
+        }
+      );
+    }
+
+    return redirects;
   },
 };
 

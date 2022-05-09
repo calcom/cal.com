@@ -1,9 +1,10 @@
 import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 
 import EventManager from "@calcom/core/EventManager";
 import logger from "@calcom/lib/logger";
-import type { AdditionInformation } from "@calcom/types/Calendar";
+import type { AdditionInformation, RecurringEvent } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
@@ -94,12 +95,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         confirmed: true,
         attendees: true,
         eventTypeId: true,
+        eventType: {
+          select: {
+            recurringEvent: true,
+          },
+        },
         location: true,
         userId: true,
         id: true,
         uid: true,
         payment: true,
         destinationCalendar: true,
+        recurringEventId: true,
       },
     });
 
@@ -147,6 +154,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       destinationCalendar: booking?.destinationCalendar || currentUser.destinationCalendar,
     };
 
+    const recurringEvent = booking.eventType?.recurringEvent as RecurringEvent;
+
+    if (req.body.recurringEventId && recurringEvent) {
+      const groupedRecurringBookings = await prisma.booking.groupBy({
+        where: {
+          recurringEventId: booking.recurringEventId,
+        },
+        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
+        _count: true,
+      });
+      // Overriding the recurring event configuration count to be the actual number of events booked for
+      // the recurring event (equal or less than recurring event configuration count)
+      recurringEvent.count = groupedRecurringBookings[0]._count;
+    }
+
     if (reqBody.confirmed) {
       const eventManager = new EventManager(currentUser);
       const scheduleResult = await eventManager.create(evt);
@@ -170,43 +192,93 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
         }
         try {
-          await sendScheduledEmails({ ...evt, additionInformation: metadata });
+          await sendScheduledEmails(
+            { ...evt, additionInformation: metadata },
+            req.body.recurringEventId ? recurringEvent : {} // Send email with recurring event info only on recurring event context
+          );
         } catch (error) {
           log.error(error);
         }
       }
 
-      // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
-      // Should perform update on booking (confirm) -> then trigger the rest handlers
-      await prisma.booking.update({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          confirmed: true,
-          references: {
-            create: scheduleResult.referencesToCreate,
+      if (req.body.recurringEventId) {
+        // The booking to confirm is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+        // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
+        const unconfirmedRecurringBookings = await prisma.booking.findMany({
+          where: {
+            recurringEventId: req.body.recurringEventId,
+            confirmed: false,
           },
-        },
-      });
+        });
+        unconfirmedRecurringBookings.map(async (recurringBooking) => {
+          await prisma.booking.update({
+            where: {
+              id: recurringBooking.id,
+            },
+            data: {
+              confirmed: true,
+              references: {
+                create: scheduleResult.referencesToCreate,
+              },
+            },
+          });
+        });
+      } else {
+        // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
+        // Should perform update on booking (confirm) -> then trigger the rest handlers
+        await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            confirmed: true,
+            references: {
+              create: scheduleResult.referencesToCreate,
+            },
+          },
+        });
+      }
 
       res.status(204).end();
     } else {
-      await refund(booking, evt);
       const rejectionReason = asStringOrNull(req.body.reason) || "";
       evt.rejectionReason = rejectionReason;
-      await prisma.booking.update({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          rejected: true,
-          status: BookingStatus.REJECTED,
-          rejectionReason: rejectionReason,
-        },
-      });
+      if (req.body.recurringEventId) {
+        // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+        // bookings as rejected. Prisma updateMany does not support relations, so doing this in two steps for now.
+        const unconfirmedRecurringBookings = await prisma.booking.findMany({
+          where: {
+            recurringEventId: req.body.recurringEventId,
+            confirmed: false,
+          },
+        });
+        unconfirmedRecurringBookings.map(async (recurringBooking) => {
+          await prisma.booking.update({
+            where: {
+              id: recurringBooking.id,
+            },
+            data: {
+              rejected: true,
+              status: BookingStatus.REJECTED,
+              rejectionReason: rejectionReason,
+            },
+          });
+        });
+      } else {
+        await refund(booking, evt); // No payment integration for recurring events for v1
+        await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            rejected: true,
+            status: BookingStatus.REJECTED,
+            rejectionReason: rejectionReason,
+          },
+        });
+      }
 
-      await sendDeclinedEmails(evt);
+      await sendDeclinedEmails(evt, req.body.recurringEventId ? recurringEvent : {}); // Send email with recurring event info only on recurring event context
 
       res.status(204).end();
     }

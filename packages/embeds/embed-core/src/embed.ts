@@ -1,32 +1,47 @@
 import type { CalWindow } from "@calcom/embed-snippet";
 
-import { FloatingButton } from "./FloatingButton";
-import { ModalBox } from "./ModalBox";
+import { FloatingButton } from "./FloatingButton/FloatingButton";
+import { Inline } from "./Inline/inline";
+import { ModalBox } from "./ModalBox/ModalBox";
 import { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
-import { Inline } from "./inline";
 import { SdkActionManager } from "./sdk-action-manager";
+import allCss from "./tailwind.generated.css";
+
+// HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
+// This is happening because we are not able to generate an App and a lib using single Vite Config.
+const WEBAPP_URL =
+  (import.meta.env.NEXT_PUBLIC_WEBAPP_URL_TYPO as string) ||
+  `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+
+customElements.define("cal-modal-box", ModalBox);
+customElements.define("cal-floating-button", FloatingButton);
+customElements.define("cal-inline", Inline);
 
 declare module "*.css";
-
 type Namespace = string;
 type Config = {
   origin: string;
-  debug: 1;
+  debug?: boolean;
 };
 
 const globalCal = (window as CalWindow).Cal;
-
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }
 
+// Store Commit Hash to know exactly what version of the code is running
+// TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
+// But because it is built on local machine right now, it is much more reliable to have the commit hash.
+globalCal.fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
+globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
 function log(...args: any[]) {
   console.log(...args);
 }
 /**
+ * //TODO: Warn about extra properties not part of schema. Helps in fixing wrong expectations
  * A very simple data validator written with intention of keeping payload size low.
  * Extend the functionality of it as required by the embed.
  * @param data
@@ -75,7 +90,7 @@ export type InstructionQueue = Instruction[];
 export class Cal {
   iframe?: HTMLIFrameElement;
 
-  __config: any;
+  __config: Config;
 
   modalBox!: Element;
 
@@ -96,7 +111,7 @@ export class Cal {
     return {
       ...config,
       // guests is better for API but Booking Page accepts guest. So do the mapping
-      guest: config.guests ?? "",
+      guest: config.guests ?? undefined,
     };
   }
 
@@ -141,27 +156,35 @@ export class Cal {
     queryObject = {},
   }: {
     calLink: string;
-    queryObject?: Record<string, string | string[]>;
+    queryObject?: Record<string, string | string[] | Record<string, string>>;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
     iframe.name = "cal-embed";
     const config = this.getConfig();
+    const { iframeAttrs, ...restQueryObject } = queryObject;
+
+    if (iframeAttrs && typeof iframeAttrs !== "string" && !(iframeAttrs instanceof Array)) {
+      iframe.setAttribute("id", iframeAttrs.id);
+    }
 
     // Prepare searchParams from config
     const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(queryObject)) {
+    for (const [key, value] of Object.entries(restQueryObject)) {
+      if (value === undefined) {
+        continue;
+      }
       if (value instanceof Array) {
         value.forEach((val) => searchParams.append(key, val));
       } else {
-        searchParams.set(key, value);
+        searchParams.set(key, value as string);
       }
     }
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
-      urlInstance.searchParams.set("debug", config.debug);
+      urlInstance.searchParams.set("debug", "" + config.debug);
     }
 
     // Merge searchParams from config onto the URL which might have query params already
@@ -219,6 +242,16 @@ export class Cal {
         },
       },
     });
+    config = config || {};
+
+    // Keeping auto-scroll disabled for two reasons:
+    // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
+    // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
+    // Best solution might be to autoscroll only if the iframe is not fully visible, detection of full visibility might be tough
+
+    // We need to keep in mind that autoscroll is meant to solve the problem when on a certain view(which is availability page right now), the height goes too high and then suddenly it becomes normal
+    (config as unknown as any).__autoScroll = !!(config as unknown as any).__autoScroll;
+    config.embedType = "inline";
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
@@ -230,25 +263,60 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:block;position:relative"></cal-inline>`;
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap"></cal-inline>`;
     this.inlineEl = template.content.children[0];
+    (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
     this.inlineEl.appendChild(iframe);
     element.appendChild(template.content);
   }
 
-  floatingButton({ calLink }: { calLink: string }) {
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          required: true,
-          type: "string",
-        },
-      },
-    });
-    const template = document.createElement("template");
-    template.innerHTML = `<cal-floating-button data-cal-namespace=${this.namespace} data-cal-link=${calLink}></cal-floating-button>`;
-    document.body.appendChild(template.content);
+  floatingButton({
+    calLink,
+    buttonText = "Book my Cal",
+    hideButtonIcon = false,
+    attributes,
+    buttonPosition = "bottom-right",
+    buttonColor = "rgb(255, 202, 0)",
+    buttonTextColor = "rgb(20, 30, 47)",
+  }: {
+    calLink: string;
+    buttonText?: string;
+    attributes?: Record<string, string>;
+    hideButtonIcon?: boolean;
+    buttonPosition?: "bottom-left" | "bottom-right";
+    buttonColor: string;
+    buttonTextColor: string;
+  }) {
+    // validate(arguments[0], {
+    //   required: true,
+    //   props: {
+    //     calLink: {
+    //       required: true,
+    //       type: "string",
+    //     },
+    //   },
+    // });
+    let attributesString = "";
+    let existingEl = null;
+    if (attributes?.id) {
+      attributesString += ` id="${attributes.id}"`;
+      existingEl = document.getElementById(attributes.id);
+    }
+    let el = existingEl;
+    if (!existingEl) {
+      const template = document.createElement("template");
+      template.innerHTML = `<cal-floating-button ${attributesString}  data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
+      el = template.content.children[0] as HTMLElement;
+      document.body.appendChild(template.content);
+    }
+
+    if (buttonText) {
+      el!.setAttribute("data-button-text", buttonText);
+    }
+    el!.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
+    el!.setAttribute("data-button-position", "" + buttonPosition);
+    el!.setAttribute("data-button-color", "" + buttonColor);
+    el!.setAttribute("data-button-text-color", "" + buttonTextColor);
   }
 
   modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {
@@ -257,6 +325,7 @@ export class Cal {
       existingModalEl.setAttribute("state", "started");
       return;
     }
+    config.embedType = "modal";
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.borderRadius = "8px";
 
@@ -264,8 +333,12 @@ export class Cal {
     iframe.style.width = "100%";
     const template = document.createElement("template");
     template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+
     this.modalBox = template.content.children[0];
     this.modalBox.appendChild(iframe);
+    this.actionManager.on("__closeIframe", () => {
+      this.modalBox.setAttribute("state", "closed");
+    });
     document.body.appendChild(template.content);
   }
 
@@ -347,8 +420,8 @@ export class Cal {
 
   constructor(namespace: string, q: InstructionQueue) {
     this.__config = {
-      // Keep cal.com hardcoded till the time embed.js deployment to cal.com/embed.js is automated. This is to prevent accidentally pushing of localhost domain to production
-      origin: /*import.meta.env.NEXT_PUBLIC_WEBSITE_URL || */ "https://cal.com",
+      // Use WEBAPP_URL till full page reload problem with website URL is solved
+      origin: WEBAPP_URL,
     };
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
@@ -377,9 +450,9 @@ export class Cal {
         iframe.style.height = data.iframeHeight + unit;
       }
 
-      if (data.iframeWidth) {
-        iframe.style.width = data.iframeWidth + unit;
-      }
+      // if (data.iframeWidth) {
+      //   iframe.style.width = data.iframeWidth + unit;
+      // }
 
       if (this.modalBox) {
         // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
@@ -399,12 +472,27 @@ export class Cal {
         this.doInIframe({ method, arg });
       });
     });
+
+    this.actionManager.on("__routeChanged", () => {
+      if (this.inlineEl && (this.inlineEl as unknown as any).__CalAutoScroll) {
+        this.inlineEl.scrollIntoView();
+      }
+    });
+
     this.actionManager.on("linkReady", (e) => {
       this.modalBox?.setAttribute("state", "loaded");
       this.inlineEl?.setAttribute("loading", "done");
     });
+
     this.actionManager.on("linkFailed", (e) => {
-      this.iframe?.remove();
+      const iframe = this.iframe;
+      if (!iframe) {
+        return;
+      }
+      this.inlineEl?.setAttribute("data-error-code", e.detail.data.code);
+      this.modalBox?.setAttribute("data-error-code", e.detail.data.code);
+      this.inlineEl?.setAttribute("loading", "failed");
+      this.modalBox?.setAttribute("state", "failed");
     });
   }
 }
@@ -425,7 +513,11 @@ window.addEventListener("message", (e) => {
   if (!parsedAction) {
     return;
   }
+
   const actionManager = Cal.actionsManagers[parsedAction.ns];
+  globalCal.__logQueue = globalCal.__logQueue || [];
+  globalCal.__logQueue.push({ ...parsedAction, data: detail.data });
+
   if (!actionManager) {
     throw new Error("Unhandled Action" + parsedAction);
   }
@@ -455,13 +547,12 @@ document.addEventListener("click", (e) => {
   if (namespace) {
     api = globalCal.ns![namespace];
   }
+  if (!api) {
+    throw new Error(`Namespace ${namespace} isn't defined`);
+  }
   api("modal", {
     calLink: path,
     config,
     uid: modalUniqueId,
   });
 });
-
-customElements.define("cal-modal-box", ModalBox);
-customElements.define("cal-floating-button", FloatingButton);
-customElements.define("cal-inline", Inline);

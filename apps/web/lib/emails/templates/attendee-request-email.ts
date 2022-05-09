@@ -87,10 +87,17 @@ ${this.getAdditionalNotes()}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("booking_submitted"),
-          this.calEvent.organizer.language.translate("user_needs_to_confirm_or_reject_booking", {
-            user: this.calEvent.organizer.name,
-          })
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent?.count ? "booking_submitted_recurring" : "booking_submitted"
+          ),
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent.count
+              ? "user_needs_to_confirm_or_reject_booking_recurring"
+              : "user_needs_to_confirm_or_reject_booking",
+            {
+              user: this.calEvent.organizer.name,
+            }
+          )
         )}
         ${emailSchedulingBodyDivider()}
         <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->

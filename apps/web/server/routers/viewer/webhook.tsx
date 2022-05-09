@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
@@ -17,17 +18,18 @@ export const webhookRouter = createProtectedRouter()
       })
       .optional(),
     async resolve({ ctx, input }) {
-      if (input?.eventTypeId) {
-        return await ctx.prisma.webhook.findMany({
-          where: {
-            eventTypeId: input.eventTypeId,
-          },
-        });
+      let where: Prisma.WebhookWhereInput = {
+        AND: [{ appId: null /* Don't mixup zapier webhooks with normal ones */ }],
+      };
+      if (Array.isArray(where.AND)) {
+        if (input?.eventTypeId) {
+          where.AND?.push({ eventTypeId: input.eventTypeId });
+        } else {
+          where.AND?.push({ userId: ctx.user.id });
+        }
       }
       return await ctx.prisma.webhook.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
+        where,
       });
     },
   })
@@ -38,6 +40,7 @@ export const webhookRouter = createProtectedRouter()
       active: z.boolean(),
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       if (input.eventTypeId) {
@@ -65,6 +68,7 @@ export const webhookRouter = createProtectedRouter()
       active: z.boolean().optional(),
       payloadTemplate: z.string().nullable(),
       eventTypeId: z.number().optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       const { id, ...data } = input;
@@ -139,7 +143,7 @@ export const webhookRouter = createProtectedRouter()
       payloadTemplate: z.string().optional().nullable(),
     }),
     async resolve({ input }) {
-      const { url, type, payloadTemplate } = input;
+      const { url, type, payloadTemplate = null } = input;
       const translation = await getTranslation("en", "common");
       const language = {
         locale: "en",
@@ -170,7 +174,8 @@ export const webhookRouter = createProtectedRouter()
       };
 
       try {
-        return await sendPayload(type, new Date().toISOString(), url, data, payloadTemplate);
+        const webhook = { subscriberUrl: url, payloadTemplate, appId: null };
+        return await sendPayload(type, new Date().toISOString(), webhook, data);
       } catch (_err) {
         const error = getErrorFromUnknown(_err);
         return {

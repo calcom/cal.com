@@ -3,10 +3,10 @@ import * as path from "path";
 
 const outputDir = path.join("../results");
 const testDir = path.join("../tests");
-
+const quickMode = process.env.QUICK === "true";
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 1,
+  retries: quickMode ? 0 : 1,
   workers: 1,
   timeout: 60_000,
   reporter: [
@@ -19,15 +19,21 @@ const config: PlaywrightTestConfig = {
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,
+  expect: {
+    toMatchSnapshot: {
+      // Opacity transitions can cause small differences
+      maxDiffPixels: 50,
+    },
+  },
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
     command: "yarn workspace @calcom/embed-core dev",
-    port: 3002,
+    port: 3100,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
   },
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: "http://localhost:3100",
     locale: "en-US",
     trace: "retain-on-failure",
     headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
@@ -38,16 +44,20 @@ const config: PlaywrightTestConfig = {
       testDir,
       use: { ...devices["Desktop Chrome"] },
     },
-    {
-      name: "firefox",
-      testDir,
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      testDir,
-      use: { ...devices["Desktop Safari"] },
-    },
+    quickMode
+      ? {}
+      : {
+          name: "firefox",
+          testDir,
+          use: { ...devices["Desktop Firefox"] },
+        },
+    quickMode
+      ? {}
+      : {
+          name: "webkit",
+          testDir,
+          use: { ...devices["Desktop Safari"] },
+        },
   ],
 };
 export type ExpectedUrlDetails = {
@@ -123,9 +133,16 @@ expect.extend({
       }
     }
 
-    const iframeReadyEventDetail = await getActionFiredDetails({
-      calNamespace,
-      actionType: "__iframeReady",
+    const iframeReadyEventDetail = await new Promise(async (resolve) => {
+      setInterval(async () => {
+        const iframeReadyEventDetail = await getActionFiredDetails({
+          calNamespace,
+          actionType: "linkReady",
+        });
+        if (iframeReadyEventDetail) {
+          resolve(iframeReadyEventDetail);
+        }
+      }, 500);
     });
 
     if (!iframeReadyEventDetail) {

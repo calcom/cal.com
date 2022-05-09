@@ -5,11 +5,6 @@ import _package from "./package.json";
 export const metadata = {
   name: "Slack App",
   description: _package.description,
-  installed: !!(
-    process.env.SLACK_CLIENT_ID &&
-    process.env.SLACK_CLIENT_SECRET &&
-    process.env.SLACK_SIGNING_SECRET
-  ),
   category: "messaging",
   imageSrc: "/apps/slack.svg",
   logo: "/apps/slack.svg",
