@@ -285,6 +285,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
+  const generateHashedLink = (id: number) => {
+    const translator = short();
+    const seed = `${id}:${new Date().getTime()}`;
+    const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+    return uid;
+  };
+
   useEffect(() => {
     const fetchTokens = async () => {
       // Get a list of most popular ERC20s and ERC777s, combine them into a single list, set as tokensList
@@ -318,13 +325,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
     fetchTokens();
-
-    const generateHashedLink = (id: number) => {
-      const translator = short();
-      const seed = `${id}:${new Date().getTime()}`;
-      const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-      return uid;
-    };
 
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
   }, []);
@@ -1857,7 +1857,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     onClick={() => {
                       navigator.clipboard.writeText(placeholderHashedLink);
                       if (eventType.hashedLink) {
-                        showToast(t("private_link_copied"), "success"); 
+                        showToast(t("private_link_copied"), "success");
                       } else {
                         showToast(t("enabled_after_update_description"), "warning");
                       }
