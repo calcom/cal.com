@@ -28,7 +28,7 @@
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
     "lint:report": "turbo run lint:report",
-    "postinstall": "turbo run postinstall",
+    "postinstall": "turbo run post-install",
     "pre-commit": "lint-staged",
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
