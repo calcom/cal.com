@@ -2,9 +2,11 @@ import { InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import _zapierMetadata from "@calcom/app-store/zapier/_metadata";
 import { ZapierSetup } from "@calcom/app-store/zapier/components";
+import prisma from "@calcom/prisma";
 
 import { trpc } from "@lib/trpc";
 
@@ -40,6 +42,18 @@ export default function SetupInformation({
 
   return null;
 }
+
+export const getStaticPaths = async () => {
+  const appStore = await prisma.app.findMany({ select: { dirName: true } });
+  const paths = appStore.map((app) => {
+    return app["dirName"];
+  }) as string[];
+
+  return {
+    paths: paths.map((appName) => ({ params: { appName } })),
+    fallback: false,
+  };
+};
 
 export const getStaticProps = async () => {
   const zapierAppKey = await getAppKeysFromSlug(_zapierMetadata.name.toLowerCase());
