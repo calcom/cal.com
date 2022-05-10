@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import Image from "next/image";
 import React from "react";
 
 import Loader from "@components/Loader";
@@ -20,13 +19,8 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
       <HeadSeo title={props.title} description={props.description} />
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
         {props.showLogo && (
-          <Image
-            width={110}
-            height={24}
-            src="/calendso-logo-white-word.svg"
-            alt="Cal.com Logo"
-            layout="fixed"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mx-auto h-6" src="/calendso-logo-white-word.svg" alt="Cal.com Logo" />
         )}
         {props.heading && (
           <h2 className="font-cal mt-6 text-center text-3xl text-neutral-900">{props.heading}</h2>

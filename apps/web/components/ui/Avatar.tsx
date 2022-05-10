@@ -1,6 +1,5 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import Image from "next/image";
 
 import classNames from "@lib/classNames";
 import { defaultAvatarSrc } from "@lib/profile";
@@ -30,14 +29,8 @@ export default function Avatar(props: AvatarProps) {
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
-          <Image
-            src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })}
-            alt={alt}
-            width={width}
-            height={height}
-            className={className}
-            layout="fixed"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={className} />
         )}
       </AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>

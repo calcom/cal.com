@@ -64,8 +64,6 @@ function TeamPage({ team }: TeamPageProps) {
                 <AvatarGroup
                   border="border-2 border-white dark:border-neutral-800"
                   truncateAfter={4}
-                  width={40}
-                  height={40}
                   className="flex flex-shrink-0"
                   size={10}
                   items={type.users.map((user) => ({
@@ -93,8 +91,6 @@ function TeamPage({ team }: TeamPageProps) {
             <Avatar
               alt={teamName}
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
-              width={80}
-              height={80}
               className="mx-auto mb-4 h-20 w-20 rounded-full"
             />
             <Text variant="largetitle" className="text-gray-900 dark:text-white">

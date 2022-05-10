@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Router from "next/router";
 import { useCallback, useMemo, useState } from "react";
 import React from "react";
@@ -95,14 +94,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const verifyButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
-        <Image
-          className="mr-1"
-          width={20}
-          height={20}
-          src="/apps/metamask.svg"
-          alt="Metamask"
-          layout="fixed"
-        />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("verify_wallet")}
       </Button>
     );
@@ -111,14 +106,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const connectButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={connectMetamask} type="button">
-        <Image
-          className="mr-1"
-          width={20}
-          height={20}
-          src="/apps/metamask.svg"
-          alt="Metamask"
-          layout="fixed"
-        />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("connect_metamask")}
       </Button>
     );
@@ -133,14 +124,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
           await connectMetamask();
           await verifyWallet();
         }}>
-        <Image
-          className="mr-1"
-          width={20}
-          height={20}
-          src="/apps/metamask.svg"
-          alt="Metamask"
-          layout="fixed"
-        />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("verify_wallet")}
       </Button>
     );

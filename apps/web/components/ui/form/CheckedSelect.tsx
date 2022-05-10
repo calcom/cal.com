@@ -63,13 +63,7 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
         isSearchable={false}
         formatOptionLabel={({ label, avatar, disabled }) => (
           <div className="flex">
-            <Avatar
-              className="mr-3 h-6 w-6 rounded-full"
-              width={24}
-              height={24}
-              alt={label}
-              imageSrc={avatar}
-            />
+            <Avatar className="mr-3 h-6 w-6 rounded-full" alt={label} imageSrc={avatar} />
             {label}
             {disabled && (
               <div className="flex-grow">
@@ -87,8 +81,6 @@ export const CheckedSelect = (props: CheckedSelectProps) => {
         <div key={option.value} className="border-1 border p-2 font-medium">
           <Avatar
             className="inline h-6 w-6 rounded-full ltr:mr-2 rtl:ml-2"
-            width={24}
-            height={24}
             imageSrc={option.avatar}
             alt={option.label}
           />

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ReactNode } from "react";
 
 import classNames from "@lib/classNames";
@@ -15,11 +14,10 @@ function IntegrationListItem(props: {
   return (
     <ListItem expanded={!!props.children} className={classNames("flex-col")}>
       <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-        {props.imageSrc && (
-          <div className="h-10 w-10">
-            <Image width={40} height={40} src={props.imageSrc} alt={props.title} layout="fixed" />
-          </div>
-        )}
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          props.imageSrc && <img className="h-10 w-10" src={props.imageSrc} alt={props.title} />
+        }
         <div className="flex-grow truncate pl-2">
           <ListItemTitle component="h3">{props.title}</ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>

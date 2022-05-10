@@ -239,8 +239,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <AvatarGroup
                         border="border-2 border-white"
                         className="relative top-1 right-3"
-                        width={32}
-                        height={32}
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -473,8 +471,6 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
             alt={profile?.name || ""}
             imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
             size={8}
-            width={32}
-            height={32}
             className="mt-1 inline ltr:mr-2 rtl:ml-2"
           />
         </a>

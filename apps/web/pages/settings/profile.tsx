@@ -269,8 +269,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
               <div className="mt-1 flex">
                 <Avatar
                   alt={props.user.name || ""}
-                  width={40}
-                  height={40}
                   className="relative h-10 w-10 rounded-full"
                   gravatarFallbackMd5={props.user.emailMd5}
                   imageSrc={imageSrc}

@@ -93,8 +93,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                   border="border-2 border-white"
                   truncateAfter={4}
                   className="flex flex-shrink-0"
-                  width={40}
-                  height={40}
                   size={10}
                   items={props.users.map((user) => ({
                     alt: user.name || "",
@@ -149,12 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR
-                user={user}
-                className="mx-auto mb-4 h-24 w-24"
-                width={96}
-                height={96}
-                alt={nameOrUsername}></AvatarSSR>
+              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername}></AvatarSSR>
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (

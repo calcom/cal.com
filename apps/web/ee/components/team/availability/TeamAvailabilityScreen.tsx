@@ -48,8 +48,6 @@ export default function TeamAvailabilityScreen(props: Props) {
               <Avatar
                 imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
                 alt={member?.name || ""}
-                width={40}
-                height={40}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
               <div className="ml-3 inline-block overflow-hidden pt-1">

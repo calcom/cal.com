@@ -45,8 +45,6 @@ export function TeamAvailabilityPage() {
             size={12}
             imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
             alt="Team Logo"
-            width={48}
-            height={48}
             className="mt-1"
           />
         )

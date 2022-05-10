@@ -53,8 +53,6 @@ const Team = ({ team }: TeamPageProps) => {
             <Avatar
               alt={member.name || ""}
               imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
-              width={48}
-              height={48}
               className="-mt-4 h-12 w-12"
             />
             <section className="mt-2 w-full space-y-1">

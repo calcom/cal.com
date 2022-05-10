@@ -76,8 +76,6 @@ export default function MemberListItem(props: Props) {
             <Avatar
               imageSrc={WEBSITE_URL + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
-              width={36}
-              height={36}
               className="h-9 w-9 rounded-full"
             />
             <div className="ml-3 inline-block">
