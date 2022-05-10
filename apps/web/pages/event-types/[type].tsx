@@ -185,6 +185,13 @@ const AvailabilitySelect = ({
     />
   );
 };
+
+export type BookingPeriodFrequencyType = {
+  DAY: number;
+  WEEK: number;
+  MONTH: number;
+};
+
 // Extract into type to we can use it across components - when using formprovider
 export type EventTypeFormType = {
   title: string;
@@ -220,11 +227,7 @@ export type EventTypeFormType = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
-  bookingFrequency: {
-    DAY: number;
-    WEEK: number;
-    MONTH: number;
-  };
+  bookingFrequency: BookingPeriodFrequencyType;
 };
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {

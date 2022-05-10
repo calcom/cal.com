@@ -274,12 +274,12 @@ export const eventTypesRouter = createProtectedRouter()
               },
             },
             update: {
-              limit: bookingFrequency[frequency] as number,
+              limit: bookingFrequency[frequency as keyof typeof bookingFrequency],
             },
             create: {
               eventTypeId: input.id,
               period: frequency as BookingPeriodFrequency,
-              limit: bookingFrequency[frequency] as number,
+              limit: bookingFrequency[frequency as keyof typeof bookingFrequency],
             },
           });
         });

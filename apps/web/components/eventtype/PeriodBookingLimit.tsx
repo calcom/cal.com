@@ -1,11 +1,8 @@
-import { TrashIcon } from "@heroicons/react/outline";
 import { PlusIcon, XIcon } from "@heroicons/react/solid";
-import { registerDecorator } from "handlebars";
-import { EventTypeFormType } from "pages/event-types/[type]";
-import React, { useMemo } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { BookingPeriodFrequencyType, EventTypeFormType } from "pages/event-types/[type]";
+import React from "react";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { TFunction } from "react-i18next";
-import { CrossIcon } from "react-select/dist/declarations/src/components/indicators";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
@@ -21,22 +18,66 @@ type Option = {
   readonly label: string;
   readonly value: string;
 };
-function PeriodSelectionInput({
-  key,
-  index,
-  t,
-}: {
-  key: string;
-  index: number;
-  t: TFunction<"common", undefined>;
-}) {
-  return <></>;
+
+function calculateMinMaxValue(periodType: string, bookingFrequency: BookingPeriodFrequencyType) {
+  if (periodType === "DAY") return 1;
+  if (periodType === "WEEK") return bookingFrequency.DAY + 1;
+  if (periodType === "MONTH") return bookingFrequency.WEEK + 1;
+  return 1; // Imposible case
 }
+
+function PeriodBookingLimitInputs({
+  periodType,
+  index,
+}: {
+  periodType: "DAY" | "MONTH" | "WEEK";
+  index: number;
+}) {
+  const formMethods = useFormContext<EventTypeFormType>();
+  const { t } = useLocale();
+  formMethods.watch(`bookingFrequency.${periodType}`);
+
+  return (
+    <div className="flex items-center ">
+      <Controller
+        name={`bookingFrequency.${periodType}`}
+        render={({ field: { onChange, value } }) => (
+          <input
+            type="number"
+            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+            placeholder="0"
+            min={calculateMinMaxValue(periodType, formMethods.getValues("bookingFrequency"))}
+            defaultValue={value}
+            onChange={(e) => onChange(parseInt(e.target.value))}
+          />
+        )}
+      />
+      <p className="text-sm text-gray-700">per</p>
+      <select
+        id={`periodBookingSelect-${index}`}
+        className="ml-2 block w-24 rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+        defaultValue={periodType}>
+        <option value="DAY">{t("period_label_day")}</option>
+        <option value="WEEK">{t("period_label_week")}</option>
+        <option value="MONTH">{t("period_label_month")}</option>
+      </select>
+      <Button
+        color="minimal"
+        className="ml-2 "
+        type="button"
+        onClick={() => {
+          // @ts-ignore This periodType can only be the right type.
+          formMethods.setValue(`bookingFrequency.${periodType}`, 0);
+        }}>
+        <XIcon className="h-4 w-4"></XIcon>
+      </Button>
+    </div>
+  );
+}
+
 function PeriodBookingLimit({ visible, setVisible }: Props) {
   const formMethods = useFormContext<EventTypeFormType>();
   const { t } = useLocale();
-  console.log(formMethods.getValues("bookingFrequency"));
-
   return (
     <Controller
       name="bookingFrequency"
@@ -56,44 +97,8 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
           {visible && (
             <div className="mt-3 flex flex-col space-y-3 bg-gray-100 p-4">
               {Object.entries(formMethods.getValues("bookingFrequency") ?? {}).map(([key, value], index) => {
-                if (value > 0)
-                  return (
-                    <div className="flex items-center " key={index}>
-                      {/* <PeriodSelectionInput key={key} index={index} t={t} /> */}
-                      <Controller
-                        name={`bookingFrequency.${key}`}
-                        render={({ field: { onChange, value } }) => (
-                          <input
-                            type="number"
-                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                            placeholder="0"
-                            defaultValue={value || 0}
-                            onChange={() => onChange(Number(value))}
-                          />
-                        )}></Controller>
-                      <p className="text-sm text-gray-700">per</p>
-                      <select
-                        id={`periodBookingSelect-${index}`}
-                        className="ml-2 block w-24 rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
-                        defaultValue={key}>
-                        <option value="DAY">{t("period_label_day")}</option>
-                        <option value="WEEK">{t("period_label_week")}</option>
-                        <option value="MONTH">{t("period_label_month")}</option>
-                      </select>
-                      <Button
-                        color="minimal"
-                        className="ml-2 "
-                        type="button"
-                        onClick={() => {
-                          const values = formMethods.getValues("bookingFrequency");
-                          // @ts-ignore This key can only be the right type.
-                          delete values[key];
-                          formMethods.setValue("bookingFrequency", { ...values });
-                        }}>
-                        <XIcon className="h-4 w-4"></XIcon>
-                      </Button>
-                    </div>
-                  );
+                // @ts-ignore Key is only these types - Object.entries loosing infered types
+                if (value > 0) return <PeriodBookingLimitInputs index={index} periodType={key} key={index} />;
               })}
 
               {Object.keys(formMethods.getValues("bookingFrequency")) && (
@@ -111,7 +116,7 @@ function PeriodBookingLimit({ visible, setVisible }: Props) {
                       if (values[period] === 0) {
                         formMethods.setValue("bookingFrequency", {
                           ...values,
-                          [period]: 1,
+                          [period]: calculateMinMaxValue(period, formMethods.getValues("bookingFrequency")),
                         });
                         return;
                       }
