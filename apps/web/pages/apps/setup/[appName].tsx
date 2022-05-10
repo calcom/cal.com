@@ -2,7 +2,6 @@ import { InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import _zapierMetadata from "@calcom/app-store/zapier/_metadata";
 import { ZapierSetup } from "@calcom/app-store/zapier/components";
