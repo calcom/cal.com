@@ -14,7 +14,7 @@ export const telemetryEventTypes = {
   samlLogin: "saml_login",
   samlConfig: "saml_config",
   embedView: "embed_view",
-  bookingConfirmedFromEmbed: "booking_confirmed_embed",
+  embedBookingConfirmed: "embed_booking_confirmed",
 };
 
 /**
