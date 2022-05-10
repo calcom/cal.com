@@ -1,4 +1,4 @@
-import { InferGetStaticPropsType } from "next";
+import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
@@ -15,7 +15,7 @@ export default function SetupInformation({
   zapierInviteLink,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
-  const appName = router.query.appName;
+  const slug = router.query.slug;
   const { status } = useSession();
 
   if (status === "loading") {
@@ -30,13 +30,13 @@ export default function SetupInformation({
     router.replace({
       pathname: "/auth/login",
       query: {
-        callbackUrl: `/apps/setup/${appName}`,
+        callbackUrl: `/apps/${slug}/setup`,
       },
     });
   }
 
-  if (appName === _zapierMetadata.name.toLowerCase() && status === "authenticated") {
-    return <ZapierSetup trpc={trpc} inviteLink={zapierInviteLink}></ZapierSetup>;
+  if (slug === _zapierMetadata.name.toLowerCase() && status === "authenticated") {
+    return <ZapierSetup trpc={trpc} inviteLink={zapierInviteLink} />;
   }
 
   return null;
@@ -49,12 +49,14 @@ export const getStaticPaths = async () => {
   }) as string[];
 
   return {
-    paths: paths.map((appName) => ({ params: { appName } })),
+    paths: paths.map((slug) => ({ params: { slug } })),
     fallback: false,
   };
 };
 
-export const getStaticProps = async () => {
+export const getStaticProps = async (ctx: GetStaticPropsContext) => {
+  if (typeof ctx.params?.slug !== "string") return { notFound: true };
+
   const zapierAppKey = await getAppKeysFromSlug(_zapierMetadata.name.toLowerCase());
 
   return {
