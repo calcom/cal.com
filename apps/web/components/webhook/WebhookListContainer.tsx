@@ -1,104 +1,30 @@
-import classNames from "classnames";
-import Image from "next/image";
-import { useState } from "react";
+import Head from "next/head";
 
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
-import { QueryCell } from "@lib/QueryCell";
-import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
-
-import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
-import { ShellSubHeading } from "@components/Shell";
-import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
-import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
-
-export type WebhookListContainerType = {
-  title: string;
-  subtitle: string;
-  eventTypeId?: number;
-};
-
-export default function WebhookListContainer(props: WebhookListContainerType) {
-  const { t } = useLocale();
-  const query = props.eventTypeId
-    ? trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
-        suspense: true,
-      })
-    : trpc.useQuery(["viewer.webhook.list"], {
-        suspense: true,
-      });
-
-  const [newWebhookModal, setNewWebhookModal] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editing, setEditing] = useState<TWebhook | null>(null);
+export default function Error500() {
+  /* eslint-disable @next/next/no-img-element */
   return (
-    <QueryCell
-      query={query}
-      success={({ data }) => (
-        <>
-          <ShellSubHeading className="mt-10" title={props.title} subtitle={props.subtitle} />
-          <List>
-            <ListItem className={classNames("flex-col")}>
-              <div
-                className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-                <Image width={40} height={40} src="/apps/webhooks.svg" alt="Webhooks" />
-                <div className="flex-grow truncate pl-2">
-                  <ListItemTitle component="h3">Webhooks</ListItemTitle>
-                  <ListItemText component="p">{t("automation")}</ListItemText>
-                </div>
-                <div>
-                  <Button
-                    color="secondary"
-                    onClick={() => setNewWebhookModal(true)}
-                    data-testid="new_webhook">
-                    {t("new_webhook")}
-                  </Button>
-                </div>
-              </div>
-            </ListItem>
-          </List>
-
-          {data.length ? (
-            <List>
-              {data.map((item) => (
-                <WebhookListItem
-                  key={item.id}
-                  webhook={item}
-                  onEditWebhook={() => {
-                    setEditing(item);
-                    setEditModalOpen(true);
-                  }}
-                />
-              ))}
-            </List>
-          ) : null}
-
-          {/* New webhook dialog */}
-          <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
-            <DialogContent>
-              <WebhookDialogForm
-                eventTypeId={props.eventTypeId}
-                handleClose={() => setNewWebhookModal(false)}
-              />
-            </DialogContent>
-          </Dialog>
-          {/* Edit webhook dialog */}
-          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent>
-              {editing && (
-                <WebhookDialogForm
-                  key={editing.id}
-                  eventTypeId={props.eventTypeId || undefined}
-                  handleClose={() => setEditModalOpen(false)}
-                  defaultValues={editing}
-                />
-              )}
-            </DialogContent>
-          </Dialog>
-        </>
-      )}
-    />
+    <div className="flex h-screen">
+      <Head>
+        <title>Something unexpected occurred | Cal.com</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <div className="m-auto text-center">
+        <h1 className="font-cal text-[250px] text-gray-900">
+          5<img src="/error.svg" className="-mt-10 inline w-60" alt="0" />0
+        </h1>
+        <h2 className="mb-2 -mt-16 text-3xl text-gray-600">It&apos;s not you, it&apos;s us.</h2>
+        <p className="mb-4 max-w-2xl text-gray-500">
+          Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
+          away for you.
+        </p>
+        <Button href="https://cal.com/support">Contact support</Button>
+        <Button color="secondary" href="javascript:history.back()" className="ml-2">
+          Go back
+        </Button>
+      </div>
+    </div>
   );
+  /* eslint-enable @next/next/no-img-element */
 }

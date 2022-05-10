@@ -2,7 +2,6 @@ import DailyIframe from "@daily-co/daily-js";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
@@ -97,15 +96,8 @@ export default function JoinCall(props: JoinCallPageProps) {
         token: props.booking.dailyRef?.dailytoken,
       });
     }
-  }, [
-    emptyBooking,
-    meetingUnavailable,
-    props.booking?.dailyRef?.dailytoken,
-    props.booking?.dailyRef?.dailyurl,
-    props.booking?.user?.id,
-    session?.userid,
-  ]);
-
+  }, []);
+  /* eslint-disable @next/next/no-img-element */
   return (
     <>
       <Head>
@@ -125,14 +117,21 @@ export default function JoinCall(props: JoinCallPageProps) {
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
         <Link href="/" passHref>
-          <div className="h-5·w-auto fixed z-10 mt-[46px] ml-6 hidden sm:inline-block">
-            <Image src="/cal-logo-word-dark.svg" alt="Cal.com Logo" width={101} height={22} layout="fixed" />
-          </div>
+          <img
+            className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+            src="https://cal.com/logo-white.svg"
+            alt="Cal.com Logo"
+            style={{
+              top: 46,
+              left: 24,
+            }}
+          />
         </Link>
         {JoinCall}
       </div>
     </>
   );
+  /* eslint-enable @next/next/no-img-element */
 }
 
 export async function getServerSideProps(context: NextPageContext) {

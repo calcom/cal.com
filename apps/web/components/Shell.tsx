@@ -13,7 +13,6 @@ import {
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
@@ -461,7 +460,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     },
   });
   const utils = trpc.useContext();
-
+  /* eslint-disable @next/next/no-img-element */
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
@@ -471,11 +470,10 @@ function UserDropdown({ small }: { small?: boolean }) {
               small ? "h-8 w-8" : "h-10 w-10",
               "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
-            <Image
+            <img
               className="rounded-full"
               src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
               alt={user?.username || "Nameless User"}
-              layout="fill"
             />
             {!user?.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
@@ -596,4 +594,5 @@ function UserDropdown({ small }: { small?: boolean }) {
       </DropdownMenuContent>
     </Dropdown>
   );
+  /* eslint-enable @next/next/no-img-element */
 }

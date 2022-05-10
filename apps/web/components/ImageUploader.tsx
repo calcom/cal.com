@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
@@ -106,6 +105,7 @@ export default function ImageUploader({
     [result, handleAvatarChange]
   );
 
+  /* eslint-disable @next/next/no-img-element */
   return (
     <Dialog
       onOpenChange={
@@ -135,18 +135,7 @@ export default function ImageUploader({
                     {t("no_target", { target })}
                   </p>
                 )}
-                {imageSrc && (
-                  <div className="h-20 w-20 rounded-full">
-                    <Image
-                      className="rounded-full"
-                      width={80}
-                      height={80}
-                      src={imageSrc}
-                      alt={target}
-                      layout="fixed"
-                    />
-                  </div>
-                )}
+                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
@@ -174,4 +163,5 @@ export default function ImageUploader({
       </DialogContent>
     </Dialog>
   );
+  /* eslint-enable @next/next/no-img-element */
 }

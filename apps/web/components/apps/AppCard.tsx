@@ -15,18 +15,12 @@ interface AppCardProps {
 }
 
 export default function AppCard(props: AppCardProps) {
+  /* eslint-disable @next/next/no-img-element */
   return (
     <Link href={"/apps/" + props.slug}>
       <a className="block h-full rounded-sm border border-gray-300 p-5 hover:bg-neutral-50">
         <div className="flex">
-          <Image
-            src={props.logo}
-            alt={props.name + " Logo"}
-            className="mb-4 rounded-sm"
-            width={48}
-            height={48}
-            layout="fixed"
-          />
+          <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
           <Button
             data-testid={`app-store-app-card-${props.slug}`}
             color="secondary"
@@ -46,4 +40,5 @@ export default function AppCard(props: AppCardProps) {
       </a>
     </Link>
   );
+  /* eslint-enable @next/next/no-img-element */
 }
