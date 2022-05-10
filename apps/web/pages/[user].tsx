@@ -18,6 +18,7 @@ import defaultEvents, {
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
@@ -272,6 +273,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       description: true,
       hidden: true,
       schedulingType: true,
+      recurringEvent: true,
       price: true,
       currency: true,
       metadata: true,

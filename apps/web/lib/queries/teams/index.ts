@@ -11,7 +11,6 @@ export type TeamWithMembers = AsyncReturnType<typeof getTeamWithMembers>;
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
-    avatar: true,
     email: true,
     name: true,
     id: true,
@@ -44,6 +43,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
         length: true,
         slug: true,
         schedulingType: true,
+        recurringEvent: true,
         price: true,
         currency: true,
         users: {
@@ -72,7 +72,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
       ...obj.user,
       isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: membership?.role,
-      accepted: membership?.role === "OWNER" ? true : membership?.accepted,
+      accepted: membership?.accepted,
     };
   });
 

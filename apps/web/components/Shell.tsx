@@ -34,6 +34,7 @@ import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -45,16 +46,6 @@ import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-
-export function useMeQuery() {
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    retry(failureCount) {
-      return failureCount > 3;
-    },
-  });
-
-  return meQuery;
-}
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();

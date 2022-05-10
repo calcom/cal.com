@@ -27,7 +27,11 @@ export async function getAppRegistry() {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    apps.push(app);
+    apps.push({
+      ...app,
+      installed:
+        true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
+    });
   }
   return apps;
 }

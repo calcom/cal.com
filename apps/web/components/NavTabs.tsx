@@ -1,32 +1,62 @@
 import { AdminRequired } from "components/ui/AdminRequired";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
-import React, { ElementType, FC, Fragment } from "react";
+import React, { ElementType, FC, Fragment, MouseEventHandler } from "react";
 
 import classNames from "@lib/classNames";
 
 export interface NavTabProps {
   tabs: {
     name: string;
-    href: string;
+    /** If you want to change the path as per current tab */
+    href?: string;
+    /** If you want to change query param tabName as per current tab */
+    tabName?: string;
     icon?: ElementType;
     adminRequired?: boolean;
   }[];
   linkProps?: Omit<LinkProps, "href">;
 }
 
-const NavTabs: FC<NavTabProps> = ({ tabs, linkProps }) => {
+const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
   const router = useRouter();
   return (
     <>
-      <nav className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse" aria-label="Tabs">
+      <nav
+        className="-mb-px flex space-x-5 rtl:space-x-reverse sm:rtl:space-x-reverse"
+        aria-label="Tabs"
+        {...props}>
         {tabs.map((tab) => {
-          const isCurrent = router.asPath === tab.href;
+          let href: string;
+          let isCurrent;
+          if ((tab.tabName && tab.href) || (!tab.tabName && !tab.href)) {
+            throw new Error("Use either tabName or href");
+          }
+          if (tab.href) {
+            href = tab.href;
+            isCurrent = router.asPath === tab.href;
+          } else if (tab.tabName) {
+            href = "";
+            isCurrent = router.query.tabName === tab.tabName;
+          }
+          const onClick: MouseEventHandler = tab.tabName
+            ? (e) => {
+                e.preventDefault();
+                router.push({
+                  query: {
+                    ...router.query,
+                    tabName: tab.tabName,
+                  },
+                });
+              }
+            : () => {};
+
           const Component = tab.adminRequired ? AdminRequired : Fragment;
           return (
             <Component key={tab.name}>
-              <Link href={tab.href} {...linkProps}>
+              <Link key={tab.name} href={href!} {...linkProps}>
                 <a
+                  onClick={onClick}
                   className={classNames(
                     isCurrent
                       ? "border-neutral-900 text-neutral-900"

@@ -8,11 +8,11 @@ import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";
 
 import { trpc } from "@lib/trpc";
 
-import { Tooltip } from "@components/Tooltip";
 import { DatePicker } from "@components/ui/form/DatePicker";
 
 import { TApiKeys } from "./ApiKeyListItem";
@@ -102,17 +102,18 @@ export default function ApiKeyDialogForm(props: {
             setSuccessfulNewApiKeyModal(true);
           }}
           className="space-y-4">
-          <div className=" mb-10 mt-1">
+          <div className="mb-10 mt-1">
             <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">{props.title}</h2>
             <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_key_modal_subtitle")}</p>
           </div>
-          <TextField
-            label={t("personal_note")}
-            placeholder={t("personal_note_placeholder")}
-            {...form.register("note")}
-            type="text"
-          />
-
+          <div>
+            <TextField
+              label={t("personal_note")}
+              placeholder={t("personal_note_placeholder")}
+              {...form.register("note")}
+              type="text"
+            />
+          </div>
           <div className="flex flex-col">
             <div className="flex justify-between py-2">
               <span className="block text-sm font-medium text-gray-700">{t("expire_date")}</span>
