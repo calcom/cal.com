@@ -1931,7 +1931,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.UserPhone) {
                       details = { phoneNumber: values.locationPhoneNumber };
                     }
-                    console.log({ newLocation, details });
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
