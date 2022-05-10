@@ -18,7 +18,7 @@ function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between px-2 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
-        <div className="flex space-x-12">
+        <div className="flex">
           <div className="flex flex-col space-y-2">
             <SkeletonText width="16" height="5" />
             <SkeletonText width="32" height="4" />
