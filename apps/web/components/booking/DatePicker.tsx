@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-import { EventType, PeriodType } from "@prisma/client";
+import { EventType, PeriodType, BookingPeriodFrequency } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
 import timezone from "dayjs/plugin/timezone";
@@ -35,6 +35,10 @@ type DatePickerProps = {
   periodDays: number | null;
   periodCountCalendarDays: boolean | null;
   minimumBookingNotice: number;
+  bookingPeriodLimit: {
+    period: BookingPeriodFrequency;
+    limit: number;
+  }[];
 };
 
 function isOutOfBounds(

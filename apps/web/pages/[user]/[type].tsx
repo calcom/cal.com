@@ -92,6 +92,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     hidden: true,
     slug: true,
+    bookingPeriodLimit: {
+      select: {
+        period: true,
+        limit: true,
+      },
+      where: {
+        limit: {
+          gt: 0, // No point selecting where there is no limit set
+        },
+      },
+    },
     minimumBookingNotice: true,
     beforeEventBuffer: true,
     afterEventBuffer: true,

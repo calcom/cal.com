@@ -326,6 +326,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   weekStart={profile.weekStart || "Sunday"}
                   eventLength={eventType.length}
                   minimumBookingNotice={eventType.minimumBookingNotice}
+                  bookingPeriodLimit={eventType.bookingPeriodLimit}
                 />
 
                 <div className="mt-4 ml-1 block sm:hidden">

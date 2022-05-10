@@ -14,11 +14,6 @@ type Props = {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-type Option = {
-  readonly label: string;
-  readonly value: string;
-};
-
 function calculateMinMaxValue(periodType: string, bookingFrequency: BookingPeriodFrequencyType) {
   if (periodType === "DAY") return 1;
   if (periodType === "WEEK") return bookingFrequency.DAY + 1;
@@ -53,6 +48,7 @@ function PeriodBookingLimitInputs({
         )}
       />
       <p className="text-sm text-gray-700">per</p>
+      {/* TODO: Fix this selection - I can't figure out how to do this */}
       <select
         id={`periodBookingSelect-${index}`}
         className="ml-2 block w-24 rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"

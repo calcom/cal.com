@@ -79,6 +79,7 @@ const commons = {
       darkBrandColor: "#fafafa",
     },
   ],
+  bookingPeriodLimit: [],
 };
 
 const min15Event = {

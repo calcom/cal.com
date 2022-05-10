@@ -73,6 +73,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           timeZone: true,
           slotInterval: true,
           metadata: true,
+          bookingPeriodLimit: {
+            select: {
+              period: true,
+              limit: true,
+            },
+            where: {
+              limit: {
+                gt: 0, // No point selecting where there is no limit set
+              },
+            },
+          },
           schedule: {
             select: {
               timeZone: true,
