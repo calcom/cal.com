@@ -11,9 +11,9 @@ import Loader from "@calcom/web/components/Loader";
 import { Toaster } from "react-hot-toast";
 
 import Icon from "./icon";
-
 interface IZapierSetupProps {
   trpc: any;
+  inviteLink: string;
 }
 
 const ZAPIER = "zapier";
@@ -26,14 +26,11 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const integrations = trpc.useQuery(["viewer.integrations"]);
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
-  const appKeys = trpc.useQuery(["viewer.appKeys", { slug: "zapier" }]);
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
-
-  const inviteLink =  appKeys.data?.invite_link || "";
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
@@ -98,7 +95,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
                 <Trans i18nKey="zapier_setup_instructions">
                   <li>Go to:
-                    <a href={inviteLink} className="text-orange-600 underline">
+                    <a href={props.inviteLink} className="text-orange-600 underline">
                       Zapier Invite Link
                     </a>
                   </li>
