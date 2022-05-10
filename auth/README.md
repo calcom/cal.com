@@ -2,7 +2,7 @@
 
 In order to open the signup, please replace the contents of the file in
 
-`calcom/apps/web/pages/auth/signup.tsx`
+`cal.com/apps/web/pages/auth/signup.tsx`
 
 with the contents of the new file provided here in the @calcom/api repo at the folder:
 `/auth/signup.tsx`
