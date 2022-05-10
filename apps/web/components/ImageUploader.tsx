@@ -105,7 +105,6 @@ export default function ImageUploader({
     [result, handleAvatarChange]
   );
 
-  /* eslint-disable @next/next/no-img-element */
   return (
     <Dialog
       onOpenChange={
@@ -135,7 +134,10 @@ export default function ImageUploader({
                     {t("no_target", { target })}
                   </p>
                 )}
-                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
+                {imageSrc && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
+                )}
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
@@ -163,5 +165,4 @@ export default function ImageUploader({
       </DialogContent>
     </Dialog>
   );
-  /* eslint-enable @next/next/no-img-element */
 }
