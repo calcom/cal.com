@@ -8,6 +8,7 @@ export const apiHandlers = {
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
+  vital: import("./vital/api"),
   zoomvideo: import("@calcom/zoomvideo/api"),
   office365video: import("@calcom/office365video/api"),
   wipemycalother: import("./wipemycalother/api"),
@@ -15,6 +16,9 @@ export const apiHandlers = {
   huddle01video: import("./huddle01video/api"),
   metamask: import("./metamask/api"),
   giphy: import("./giphy/api"),
+  spacebookingother: import("./spacebooking/api"),
+  // @todo Until we use DB slugs everywhere
+  zapierother: import("./zapier/api"),
 };
 
 export default apiHandlers;

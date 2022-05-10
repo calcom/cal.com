@@ -33,7 +33,7 @@
     <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
     <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=social"></a>
     <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
-
+    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->
@@ -107,7 +107,7 @@ Here is what you need to be able to run Cal.
    ```sh
    yarn
    ```
-   
+
 1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
 
 #### Quick start with `yarn dx`
@@ -190,8 +190,10 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 ### E2E-Testing
 
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
+
 ```sh
-# In a terminal. Just run:
+# In a terminal just run:
 yarn test-e2e
 
 # To open last HTML report run:
@@ -230,9 +232,9 @@ yarn workspace @calcom/web playwright-report
 
 1. Check for `.env` variables changes
 
-    ```sh
-    yarn predev
-    ```
+   ```sh
+   yarn predev
+   ```
 
 1. Start the server. In a development environment, just do:
 
@@ -401,6 +403,17 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
+### Obtaining Vital API Keys
+
+1. Open [Vital](https://tryvital.io/) and click Get API Keys.
+1. Create a team with the team name you desire
+1. Head to the configuration section on the sidebar of the dashboard
+1. Click on API keys and you'll find your sandbox `api_key`.
+1. Copy your `api_key` to `VITAL_API_KEY` in the .env.appStore file.
+1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
+1. Select all events for the webhook you interested, e.g. `sleep_created`
+1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
+
 <!-- LICENSE -->
 
 ## License
@@ -420,7 +433,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-
-[<img src="https://jitsu.com/img/powered-by-jitsu.png?gh=true">](https://jitsu.com/?utm_source=cal.com-gihub)
+  
+ <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
 Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.

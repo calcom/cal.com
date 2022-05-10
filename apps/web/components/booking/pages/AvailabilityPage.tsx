@@ -8,6 +8,7 @@ import {
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
+  RefreshIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -17,6 +18,7 @@ import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { Frequency as RRuleFrequency } from "rrule";
 
 import {
   useEmbedStyles,
@@ -27,11 +29,12 @@ import {
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { BASE_URL, WEBAPP_URL } from "@lib/config/constants";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -101,6 +104,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   }
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+  const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
 
@@ -142,6 +146,15 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     setTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
+  // Recurring event sidebar requires more space
+  const maxWidth = selectedDate
+    ? recurringEventCount
+      ? "max-w-6xl"
+      : "max-w-5xl"
+    : recurringEventCount
+    ? "max-w-4xl"
+    : "max-w-3xl";
+
   return (
     <>
       <Theme />
@@ -158,9 +171,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? classNames(selectedDate ? "max-w-5xl" : "max-w-3xl")
-              : "transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24 " +
-                  (selectedDate ? "max-w-5xl" : "max-w-3xl")
+              ? classNames(maxWidth)
+              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
           )}>
           {isReady && (
             <div
@@ -168,7 +180,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               className={classNames(
                 isBackgroundTransparent ? "" : "bg-white dark:bg-gray-800 sm:dark:border-gray-600",
                 "border-bookinglightest rounded-md md:border",
-                isEmbed ? "mx-auto" : selectedDate ? "max-w-5xl" : "max-w-3xl"
+                isEmbed ? "mx-auto" : maxWidth
               )}>
               {/* mobile: details */}
               <div className="block p-4 sm:p-8 md:hidden">
@@ -243,7 +255,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                 <div
                   className={
                     "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
-                    (selectedDate ? "sm:w-1/3" : "sm:w-1/2")
+                    (selectedDate ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
                     border="border-2 dark:border-gray-800 border-white"
@@ -267,15 +279,42 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     {eventType.title}
                   </h1>
                   {eventType?.description && (
-                    <p className="text-bookinglight mb-2 dark:text-white">
+                    <p className="text-bookinglight mb-3 dark:text-white">
                       <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {eventType.description}
                     </p>
                   )}
-                  <p className="text-bookinglight mb-2 dark:text-white">
+                  <p className="text-bookinglight mb-3 dark:text-white">
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
                   </p>
+                  {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
+                    <div className="mb-3 text-gray-600 dark:text-white">
+                      <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                      <p className="mb-1 -ml-2 inline px-2 py-1">
+                        {t("every_for_freq", {
+                          freq: t(
+                            `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
+                          ),
+                        })}
+                      </p>
+                      <input
+                        type="number"
+                        min="1"
+                        max={eventType.recurringEvent.count}
+                        className="w-16 rounded-sm border-gray-300 bg-white text-gray-600 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600 dark:text-white sm:text-sm"
+                        defaultValue={eventType.recurringEvent.count}
+                        onChange={(event) => {
+                          setRecurringEventCount(parseInt(event?.target.value));
+                        }}
+                      />
+                      <p className="inline text-gray-600 dark:text-white">
+                        {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
+                          count: recurringEventCount,
+                        })}
+                      </p>
+                    </div>
+                  )}
                   {eventType.price > 0 && (
                     <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
                       <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
@@ -302,7 +341,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {booking?.startTime && rescheduleUid && (
                     <div>
                       <p
-                        className="mt-4 mb-2 text-gray-600 dark:text-white"
+                        className="mt-4 mb-3 text-gray-600 dark:text-white"
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
@@ -340,6 +379,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     eventTypeSlug={eventType.slug}
                     slotInterval={eventType.slotInterval}
                     eventLength={eventType.length}
+                    recurringCount={recurringEventCount}
                     date={selectedDate}
                     users={eventType.users}
                     schedulingType={eventType.schedulingType ?? null}

@@ -2,13 +2,15 @@ import { Prisma } from "@prisma/client";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env" });
+require("dotenv").config({ path: "../../.env.appStore" });
 
 async function createApp(
+  /** The App identifier in the DB also used for public page in `/apps/[slug]` */
   slug: Prisma.AppCreateInput["slug"],
   /** The directory name for `/packages/app-store/[dirName]` */
   dirName: Prisma.AppCreateInput["dirName"],
   categories: Prisma.AppCreateInput["categories"],
+  /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
   keys?: Prisma.AppCreateInput["keys"]
 ) {
@@ -52,7 +54,7 @@ async function main() {
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
-    await createApp("dailyvideo", "dailyvideo", ["video"], "daily_video", {
+    await createApp("daily-video", "dailyvideo", ["video"], "daily_video", {
       api_key: process.env.DAILY_API_KEY,
       scale_plan: process.env.DAILY_SCALE_PLAN,
     });
@@ -84,6 +86,16 @@ async function main() {
       api_key: process.env.GIPHY_API_KEY,
     });
   }
+  await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
+  if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
+    await createApp("vital-automation", "vital", ["other"], "vital_other", {
+      mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+      region: process.env.VITAL_REGION || "us",
+      api_key: process.env.VITAL_API_KEY,
+      webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+    });
+  }
+  await createApp("zapier", "zapier", ["other"], "zapier_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");

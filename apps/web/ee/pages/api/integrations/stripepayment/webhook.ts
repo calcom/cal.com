@@ -7,7 +7,7 @@ import EventManager from "@calcom/core/EventManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { IS_PRODUCTION } from "@lib/config/constants";
 import { HttpError as HttpCode } from "@lib/core/http/error";
@@ -49,6 +49,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       confirmed: true,
       attendees: true,
       location: true,
+      eventTypeId: true,
       userId: true,
       id: true,
       uid: true,
@@ -69,6 +70,23 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 
   if (!booking) throw new Error("No booking found");
+
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({ recurringEvent: true });
+  const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
+  type EventTypeRaw = Prisma.EventTypeGetPayload<typeof eventTypeData>;
+  let eventTypeRaw: EventTypeRaw | null = null;
+  if (booking.eventTypeId) {
+    eventTypeRaw = await prisma.eventType.findUnique({
+      where: {
+        id: booking.eventTypeId,
+      },
+      select: eventTypeSelect,
+    });
+  }
+
+  const eventType = {
+    recurringEvent: (eventTypeRaw?.recurringEvent || {}) as RecurringEvent,
+  };
 
   const { user } = booking;
 
@@ -137,7 +155,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt });
+  await sendScheduledEmails({ ...evt }, eventType.recurringEvent);
 
   throw new HttpCode({
     statusCode: 200,

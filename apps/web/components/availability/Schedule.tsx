@@ -14,9 +14,9 @@ import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/D
 
 import { defaultDayRange } from "@lib/availability";
 import { weekdayNames } from "@lib/core/i18n/weekday";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { TimeRange } from "@lib/types/schedule";
 
-import { useMeQuery } from "@components/Shell";
 import Select from "@components/ui/form/Select";
 
 dayjs.extend(utc);

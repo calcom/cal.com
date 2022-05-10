@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Booking } from "@prisma/client";
 import dayjs from "dayjs";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -80,7 +80,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       }
       users.push(eventTypeUser);
     }
-    this.users = users;
+    this.setUsers(users);
   }
 
   public buildAttendeesList() {
@@ -273,17 +273,54 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     this.calendarEvent.cancellationReason = cancellationReason;
   }
 
-  public buildRescheduleLink(originalBookingUId: string) {
-    if (!this.eventType) {
-      throw new Error("Run buildEventObjectFromInnerClass before this function");
-    }
-    const isTeam = !!this.eventType.teamId;
+  public setUsers(users: User[]) {
+    this.users = users;
+  }
 
-    const queryParams = new URLSearchParams();
-    queryParams.set("rescheduleUid", `${originalBookingUId}`);
-    const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${
-      isTeam ? `/team/${this.eventType.team?.slug}` : this.users[0].username
-    }/${this.eventType.slug}?${queryParams.toString()}`;
-    this.rescheduleLink = rescheduleLink;
+  public async setUsersFromId(userId: User["id"]) {
+    let resultUser: User | null;
+    try {
+      resultUser = await prisma.user.findUnique({
+        rejectOnNotFound: true,
+        where: {
+          id: userId,
+        },
+        ...userSelect,
+      });
+      this.setUsers([resultUser]);
+    } catch (error) {
+      throw new Error("getUsersById.users.notFound");
+    }
+  }
+
+  public buildRescheduleLink(booking: Partial<Booking>, eventType?: CalendarEventBuilder["eventType"]) {
+    try {
+      if (!booking) {
+        throw new Error("Parameter booking is required to build reschedule link");
+      }
+      const isTeam = !!eventType && !!eventType.teamId;
+      const isDynamic = booking?.dynamicEventSlugRef && booking?.dynamicGroupSlugRef;
+
+      let slug = "";
+      if (isTeam && eventType?.team?.slug) {
+        slug = `/team/${eventType.team?.slug}`;
+      } else if (isDynamic) {
+        const dynamicSlug = isDynamic ? `${booking.dynamicGroupSlugRef}/${booking.dynamicEventSlugRef}` : "";
+        slug = dynamicSlug;
+      } else if (eventType?.slug) {
+        slug = `${this.users[0].username}/${eventType.slug}`;
+      }
+
+      const queryParams = new URLSearchParams();
+      queryParams.set("rescheduleUid", `${booking.uid}`);
+      slug = `${slug}?${queryParams.toString()}`;
+
+      const rescheduleLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/${slug}`;
+      this.rescheduleLink = rescheduleLink;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`buildRescheduleLink.error: ${error.message}`);
+      }
+    }
   }
 }

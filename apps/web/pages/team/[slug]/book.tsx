@@ -3,8 +3,9 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -21,13 +22,14 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
+  const recurringEventCountQuery = asStringOrNull(context.query.count);
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
       notFound: true,
     } as const;
   }
 
-  const eventType = await prisma.eventType.findUnique({
+  const eventTypeRaw = await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
     },
@@ -44,6 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      recurringEvent: true,
       disableGuests: true,
       price: true,
       currency: true,
@@ -65,7 +68,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!eventType) return { notFound: true };
+  if (!eventTypeRaw) return { notFound: true };
+
+  const eventType = {
+    ...eventTypeRaw,
+    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+  };
 
   const eventTypeObject = [eventType].map((e) => {
     return {
@@ -83,6 +91,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const t = await getTranslation(context.locale ?? "en", "common");
 
+  // Checking if number of recurring event ocurrances is valid against event type configuration
+  const recurringEventCount =
+    (eventType.recurringEvent?.count &&
+      recurringEventCountQuery &&
+      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
+        ? recurringEventCountQuery
+        : eventType.recurringEvent.count)) ||
+    null;
+
   return {
     props: {
       locationLabels: getLocationLabels(t),
@@ -96,6 +113,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventName: null,
       },
       eventType: eventTypeObject,
+      recurringEventCount,
       booking,
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,

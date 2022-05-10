@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
 import createEvent from "../lib/actions/createEvent";
+import slackVerify from "../lib/slackVerify";
 
 enum InteractionEvents {
   CREATE_EVENT = "cal.event.create",
@@ -8,6 +9,7 @@ enum InteractionEvents {
 
 export default async function interactiveHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
+    await slackVerify(req, res);
     const payload = JSON.parse(req.body.payload);
     const actions = payload.view.callback_id;
 

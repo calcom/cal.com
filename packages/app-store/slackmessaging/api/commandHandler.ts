@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { showCreateEventMessage, showTodayMessage } from "../lib";
 import showLinksMessage from "../lib/showLinksMessage";
+import slackVerify from "../lib/slackVerify";
 
 export enum SlackAppCommands {
   CREATE_EVENT = "create-event",
@@ -12,7 +13,7 @@ export enum SlackAppCommands {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const command = req.body.command.split("/").pop();
-
+    await slackVerify(req, res);
     switch (command) {
       case SlackAppCommands.CREATE_EVENT:
         return await showCreateEventMessage(req, res);
