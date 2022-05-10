@@ -73,3 +73,9 @@ lint-results
 
 # Yarn
 yarn-error.log
+
+.turbo
+.next
+.husky
+.vscode
+.env

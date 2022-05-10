@@ -64,11 +64,11 @@ export async function bookingReferenceById(
        *       404:
        *         description: BookingReference was not found
        */
-      console.log(safeQuery.data.id);
+      // console.log(safeQuery.data.id);
       const bookingReference = await prisma.bookingReference.findFirst().catch((error: Error) => {
         console.log("hoerr:", error);
       });
-      console.log(bookingReference);
+      // console.log(bookingReference);
       if (!bookingReference) res.status(404).json({ message: "Booking reference not found" });
       else res.status(200).json({ booking_reference: bookingReference });
 
@@ -92,6 +92,23 @@ export async function bookingReferenceById(
        *   patch:
        *     operationId: editBookingReferenceById
        *     summary: Edit an existing booking reference
+       *     requestBody:
+       *       description: Edit an existing booking reference related to one of your bookings
+       *       required: true
+       *       content:
+       *         application/json:
+       *           schema:
+       *             type: object
+       *             properties:
+       *               days:
+       *                 type: array
+       *                 example: email@example.com
+       *               startTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
+       *               endTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
        *     parameters:
        *      - in: path
        *        name: id
@@ -112,7 +129,8 @@ export async function bookingReferenceById(
 
       const safeBody = schemaBookingEditBodyParams.safeParse(body);
       if (!safeBody.success) {
-        res.status(401).json({ message: "Invalid request body", error: safeBody.error });
+        console.log(safeBody.error);
+        res.status(400).json({ message: "Invalid request body", error: safeBody.error });
         return;
         // throw new Error("Invalid request body");
       }
