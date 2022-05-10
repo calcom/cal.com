@@ -293,7 +293,7 @@ const BookingPage = ({
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.bookingConfirmed,
+        top !== window ? telemetryEventTypes.bookingConfirmedFromEmbed : telemetryEventTypes.bookingConfirmed,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );

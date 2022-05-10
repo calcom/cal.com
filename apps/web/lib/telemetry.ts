@@ -13,6 +13,8 @@ export const telemetryEventTypes = {
   googleLogin: "google_login",
   samlLogin: "saml_login",
   samlConfig: "saml_config",
+  embedView: "embed_view",
+  bookingConfirmedFromEmbed: "booking_confirmed_embed",
 };
 
 /**

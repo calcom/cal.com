@@ -113,7 +113,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
 
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.pageView,
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
         collectPageParameters("availability", { isTeamBooking: document.URL.includes("team/") })
       )
     );
