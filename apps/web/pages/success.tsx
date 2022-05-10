@@ -299,15 +299,15 @@ export default function Success(props: SuccessProps) {
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          <div className="col-span-2 mb-6">
+                          {/* <div className="col-span-2 mb-6">
                             {date.format("MMMM DD, YYYY")}
                             <br />
                             {date.format("LT")} - {date.add(props.eventType.length, "m").format("LT")}{" "}
                             <span className="text-bookinglight">
                               ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                             </span>
-                          </div>
-                          <div className="col-span-2">
+                          </div> */}
+                          <div className="col-span-2 mb-6">
                             <RecurringBookings
                               isReschedule={reschedule === "true"}
                               eventType={props.eventType}
