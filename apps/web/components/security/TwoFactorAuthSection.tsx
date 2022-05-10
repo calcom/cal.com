@@ -17,7 +17,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
 
   return (
     <>
-      <div className="flex flex-row justify-between truncate pt-9 pl-2">
+      <div className="flex flex-col justify-between pt-9 pl-2 sm:flex-row">
         <div>
           <div className="flex flex-row items-center">
             <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("2fa")}</h2>
@@ -27,7 +27,7 @@ const TwoFactorAuthSection = ({ twoFactorEnabled }: { twoFactorEnabled: boolean 
           </div>
           <p className="mt-1 text-sm text-gray-500">{t("add_an_extra_layer_of_security")}</p>
         </div>
-        <div className="self-center">
+        <div className="mt-5 sm:mt-0 sm:self-center">
           <Button
             type="submit"
             color="secondary"
