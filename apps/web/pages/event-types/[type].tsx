@@ -21,6 +21,7 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -67,6 +68,7 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
+import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
@@ -414,16 +416,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               {t("set_your_phone_number")}
             </label>
             <div className="mt-1">
-              <input
-                type="text"
-                {...locationFormMethods.register("locationPhoneNumber")}
-                id="phonenumber"
+              <PhoneInput
+                control={locationFormMethods.control}
+                name="locationPhoneNumber"
                 required
-                className="  block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                id="locationPhoneNumber"
+                placeholder={t("host_phone_number")}
+                rules={{}}
                 defaultValue={
                   formMethods
                     .getValues("locations")
-                    .find((location) => location.type === LocationType.UserPhone)?.phoneNumber
+                    .find((location) => location.type === LocationType.UserPhone)?.hostPhoneNumber
                 }
               />
               {locationFormMethods.formState.errors.locationPhoneNumber && (
@@ -523,7 +526,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hidden: boolean;
     hideCalendarNotes: boolean;
     hashedLink: boolean;
-    locations: { type: LocationType; address?: string; link?: string; phoneNumber?: string }[];
+    locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -556,7 +559,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationPhoneNumber: z.string().optional(),
+    locationPhoneNumber: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
@@ -628,7 +634,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <input
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.phoneNumber}
+                        value={location.hostPhoneNumber}
                       />
                     </div>
                   )}
@@ -1929,7 +1935,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       details = { link: values.locationLink };
                     }
                     if (newLocation === LocationType.UserPhone) {
-                      details = { phoneNumber: values.locationPhoneNumber };
+                      details = { hostPhoneNumber: values.locationPhoneNumber };
                     }
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
