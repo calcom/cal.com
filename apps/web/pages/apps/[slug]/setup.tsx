@@ -1,21 +1,15 @@
-import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
+import { InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import _zapierMetadata from "@calcom/app-store/zapier/_metadata";
-import { ZapierSetup } from "@calcom/app-store/zapier/components";
+import { AppSetupPage } from "@calcom/app-store/_pages/setup";
+import { AppSetupPageMap, getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import prisma from "@calcom/prisma";
+import Loader from "@calcom/ui/Loader";
 
-import { trpc } from "@lib/trpc";
-
-import Loader from "@components/Loader";
-
-export default function SetupInformation({
-  zapierInviteLink,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
-  const slug = router.query.slug;
+  const slug = router.query.slug as string;
   const { status } = useSession();
 
   if (status === "loading") {
@@ -35,18 +29,12 @@ export default function SetupInformation({
     });
   }
 
-  if (slug === _zapierMetadata.name.toLowerCase() && status === "authenticated") {
-    return <ZapierSetup trpc={trpc} inviteLink={zapierInviteLink} />;
-  }
-
-  return null;
+  return <AppSetupPage slug={slug} {...props} />;
 }
 
 export const getStaticPaths = async () => {
-  const appStore = await prisma.app.findMany({ select: { dirName: true } });
-  const paths = appStore.map((app) => {
-    return app["dirName"];
-  }) as string[];
+  const appStore = await prisma.app.findMany({ select: { slug: true } });
+  const paths = appStore.filter((a) => a.slug in AppSetupPageMap).map((app) => app.slug);
 
   return {
     paths: paths.map((slug) => ({ params: { slug } })),
@@ -54,14 +42,4 @@ export const getStaticPaths = async () => {
   };
 };
 
-export const getStaticProps = async (ctx: GetStaticPropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true };
-
-  const zapierAppKey = await getAppKeysFromSlug(_zapierMetadata.name.toLowerCase());
-
-  return {
-    props: {
-      zapierInviteLink: (zapierAppKey["invite_link"] as string) || "",
-    },
-  };
-};
+export { getStaticProps };
