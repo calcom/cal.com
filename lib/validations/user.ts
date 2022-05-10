@@ -77,6 +77,7 @@ export const schemaUserBaseBodyParams = User.pick({
 const schemaUserEditParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   timeZone: timeZone.optional(),
   bufferTime: z.number().min(0).max(86400).optional(),
   startTime: z.number().min(0).max(86400).optional(),
@@ -87,7 +88,7 @@ const schemaUserEditParams = z.object({
     .number()
     .refine((id: number) => id > 0)
     .optional(),
-  locale: z.nativeEnum(locales),
+  locale: z.nativeEnum(locales).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,

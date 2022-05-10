@@ -15,6 +15,7 @@ async function createOrlistAllSchedules(
      * @swagger
      * /schedules:
      *   get:
+     *     operationId: listSchedules
      *     summary: Find all schedules
      *     tags:
      *     - schedules
@@ -40,6 +41,7 @@ async function createOrlistAllSchedules(
      * @swagger
      * /schedules:
      *   post:
+     *     operationId: addSchedule
      *     summary: Creates a new schedule
      *     tags:
      *     - schedules

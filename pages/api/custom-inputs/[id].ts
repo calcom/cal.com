@@ -24,7 +24,7 @@ import {
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the eventTypeCustomInput to get
+ *         description: ID of the eventTypeCustomInput to get
  *     tags:
  *     - custom-inputs
  *     responses:
@@ -42,7 +42,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the eventTypeCustomInput to edit
+ *        description: ID of the eventTypeCustomInput to edit
  *     tags:
  *     - custom-inputs
  *     responses:
@@ -60,7 +60,7 @@ import {
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the eventTypeCustomInput to delete
+ *        description: ID of the eventTypeCustomInput to delete
  *     tags:
  *     - custom-inputs
  *     responses:

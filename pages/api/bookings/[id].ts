@@ -30,13 +30,14 @@ export async function bookingById(
        * /bookings/{id}:
        *   get:
        *     summary: Find a booking
+       *     operationId: getBookingById
        *     parameters:
        *       - in: path
        *         name: id
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the booking to get
+       *         description: ID of the booking to get
        *     tags:
        *     - bookings
        *     responses:
@@ -64,13 +65,31 @@ export async function bookingById(
        * /bookings/{id}:
        *   patch:
        *     summary: Edit an existing booking
+       *     operationId: editBookingById
+       *     requestBody:
+       *       description: Edit an existing booking related to one of your event-types
+       *       required: true
+       *       content:
+       *         application/json:
+       *           schema:
+       *             type: object
+       *             properties:
+       *               title:
+       *                 type: string
+       *                 example: 15min
+       *               startTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
+       *               endTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
        *     parameters:
        *      - in: path
        *        name: id
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the booking to edit
+       *        description: ID of the booking to edit
        *     tags:
        *     - bookings
        *     responses:
@@ -84,14 +103,17 @@ export async function bookingById(
       case "PATCH":
         const safeBody = schemaBookingEditBodyParams.safeParse(body);
         if (!safeBody.success) {
-          throw new Error("Invalid request body");
+          console.log(safeBody.error);
+          res.status(400).json({ message: "Bad request", error: safeBody.error });
+          return;
+          // throw new Error("Invalid request body");
         }
         await prisma.booking
           .update({
             where: { id: safeQuery.data.id },
             data: safeBody.data,
           })
-          .then((data) => schemaBookingReadPublic.parse(data))
+          // .then((data) => schemaBookingReadPublic.parse(data))
           .then((booking) => res.status(200).json({ booking }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -105,13 +127,14 @@ export async function bookingById(
        * /bookings/{id}:
        *   delete:
        *     summary: Remove an existing booking
+       *     operationId: removeBookingById
        *     parameters:
        *      - in: path
        *        name: id
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the booking to delete
+       *        description: ID of the booking to delete
        *     tags:
        *     - bookings
        *     responses:

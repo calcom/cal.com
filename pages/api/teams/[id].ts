@@ -14,6 +14,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  * @swagger
  * /teams/{id}:
  *   get:
+ *     operationId: getTeamById
  *     summary: Find a team
  *     parameters:
  *       - in: path
@@ -21,7 +22,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the team to get
+ *         description: ID of the team to get
  *     tags:
  *     - teams
  *     responses:
@@ -32,6 +33,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *       404:
  *         description: Team was not found
  *   patch:
+ *     operationId: editTeamById
  *     summary: Edit an existing team
  *     parameters:
  *      - in: path
@@ -39,7 +41,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to edit
+ *        description: ID of the team to edit
  *     tags:
  *     - teams
  *     responses:
@@ -50,6 +52,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *       401:
  *        description: Authorization information is missing or invalid.
  *   delete:
+ *     operationId: removeTeamById
  *     summary: Remove an existing team
  *     parameters:
  *      - in: path
@@ -57,7 +60,7 @@ import { schemaTeamBodyParams, schemaTeamPublic } from "@lib/validations/team";
  *        schema:
  *          type: integer
  *        required: true
- *        description: Numeric ID of the team to delete
+ *        description: ID of the team to delete
  *     tags:
  *     - teams
  *     responses:

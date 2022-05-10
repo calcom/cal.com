@@ -17,7 +17,7 @@ export async function attendeeById(
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ error: safeQuery.error });
-    throw new Error("Invalid request query", safeQuery.error);
+    return;
   }
   const userBookingsAttendeeIds = await prisma.booking
     // Find all user bookings, including attendees
@@ -41,6 +41,7 @@ export async function attendeeById(
        * @swagger
        * /attendees/{id}:
        *   get:
+       *     operationId: getAttendeeById
        *     summary: Find an attendee
        *     parameters:
        *       - in: path
@@ -48,7 +49,7 @@ export async function attendeeById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the attendee to get
+       *         description: ID of the attendee to get
        *         example: 3
        *     tags:
        *     - attendees
@@ -77,6 +78,7 @@ export async function attendeeById(
        * /attendees/{id}:
        *   patch:
        *     summary: Edit an existing attendee
+       *     operationId: editAttendeeById
        *     requestBody:
        *       description: Edit an existing attendee related to one of your bookings
        *       required: true
@@ -84,11 +86,6 @@ export async function attendeeById(
        *         application/json:
        *           schema:
        *             type: object
-       *             required:
-       *               - bookingId
-       *               - name
-       *               - email
-       *               - timeZone
        *             properties:
        *               email:
        *                 type: string
@@ -106,7 +103,7 @@ export async function attendeeById(
        *          type: integer
        *          example: 3
        *        required: true
-       *        description: Numeric ID of the attendee to edit
+       *        description: ID of the attendee to edit
        *     tags:
        *     - attendees
        *     responses:
@@ -121,7 +118,7 @@ export async function attendeeById(
         const safeBody = schemaAttendeeEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
-          throw new Error("Invalid request body");
+          return;
         }
         await prisma.attendee
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
@@ -138,6 +135,7 @@ export async function attendeeById(
        * @swagger
        * /attendees/{id}:
        *   delete:
+       *     operationId: removeAttendeeById
        *     summary: Remove an existing attendee
        *     parameters:
        *      - in: path
@@ -145,7 +143,7 @@ export async function attendeeById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the attendee to delete
+       *        description: ID of the attendee to delete
        *     tags:
        *     - attendees
        *     responses:

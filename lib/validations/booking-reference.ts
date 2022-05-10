@@ -28,8 +28,8 @@ const schemaBookingReferenceCreateParams = z
     type: z.string(),
     uid: z.string(),
     meetingId: z.string(),
-    meetingPassword: z.string(),
-    meetingUrl: z.string(),
+    meetingPassword: z.string().optional(),
+    meetingUrl: z.string().optional(),
     deleted: z.boolean(),
   })
   .strict();

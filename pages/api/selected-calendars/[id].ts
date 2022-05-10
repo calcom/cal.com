@@ -26,7 +26,8 @@ export async function selectedCalendarById(
        * @swagger
        * /selected-calendars/{userId}_{integration}_{externalId}:
        *   get:
-       *     summary: Find a selected calendar
+       *     operationId: getSelectedCalendarById
+       *     summary: Find a selected calendar by providing the compoundId(userId_integration_externalId) separated by `_`
        *     parameters:
        *      - in: path
        *        name: userId
@@ -81,6 +82,7 @@ export async function selectedCalendarById(
        * @swagger
        * /selected-calendars/{userId}_{integration}_{externalId}:
        *   patch:
+       *     operationId: editSelectedCalendarById
        *     summary: Edit a selected calendar
        *     parameters:
        *      - in: path
@@ -139,6 +141,7 @@ export async function selectedCalendarById(
        * @swagger
        * /selected-calendars/{userId}_{integration}_{externalId}:
        *   delete:
+       *     operationId: removeSelectedCalendarById
        *     summary: Remove a selected calendar
        *     parameters:
        *      - in: path

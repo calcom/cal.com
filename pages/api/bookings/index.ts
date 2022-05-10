@@ -16,6 +16,7 @@ async function createOrlistAllBookings(
      * /bookings:
      *   get:
      *     summary: Find all bookings
+     *     operationId: listBookings
      *     tags:
      *     - bookings
      *     responses:
@@ -41,6 +42,24 @@ async function createOrlistAllBookings(
      * /bookings:
      *   post:
      *     summary: Creates a new booking
+     *     operationId: addBooking
+     *     requestBody:
+     *       description: Edit an existing booking related to one of your event-types
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               title:
+     *                 type: string
+     *                 example: 15min
+     *               startTime:
+     *                 type: string
+     *                 example: 1970-01-01T17:00:00.000Z
+     *               endTime:
+     *                 type: string
+     *                 example: 1970-01-01T17:00:00.000Z
      *     tags:
      *     - bookings
      *     responses:
@@ -52,18 +71,25 @@ async function createOrlistAllBookings(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaBookingCreateBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      console.log(safe.error);
+      res.status(400).json({ message: "Bad request. Booking body is invalid." });
+      return;
+      // throw new Error("Invalid request body");
+    }
 
     const data = await prisma.booking.create({ data: { ...safe.data, userId } });
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
     else
-      (error: Error) =>
+      (error: Error) => {
+        console.log(error);
         res.status(400).json({
           message: "Could not create new booking",
           error,
         });
+      };
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import prisma from "@calcom/prisma";
+import db from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { AttendeeResponse, AttendeesResponse } from "@lib/types";
@@ -10,7 +10,7 @@ async function createOrlistAllAttendees(
   { method, userId, body }: NextApiRequest,
   res: NextApiResponse<AttendeesResponse | AttendeeResponse>
 ) {
-  const userBookings = await prisma.booking.findMany({
+  const userBookings = await db.booking.findMany({
     where: {
       userId,
     },
@@ -24,6 +24,7 @@ async function createOrlistAllAttendees(
      * @swagger
      * /attendees:
      *   get:
+     *     operationId: listAttendees
      *     summary: Find all attendees
      *     tags:
      *     - attendees
@@ -47,6 +48,7 @@ async function createOrlistAllAttendees(
      * @swagger
      * /attendees:
      *   post:
+     *     operationId: addAttendee
      *     summary: Creates a new attendee
      *     requestBody:
      *       description: Create a new attendee related to one of your bookings
@@ -85,21 +87,19 @@ async function createOrlistAllAttendees(
      */
     const safePost = schemaAttendeeCreateBodyParams.safeParse(body);
     if (!safePost.success) {
-      res.status(400).json({ error: safePost.error });
-      throw new Error("Invalid request body", safePost.error);
+      res.status(400).json({ message: "Invalid request body", error: safePost.error });
+      return;
     }
-    const userWithBookings = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { bookings: true },
-    });
+    const userWithBookings = await db.user.findUnique({ where: { id: userId }, include: { bookings: true } });
     if (!userWithBookings) {
-      throw new Error("User not found");
+      res.status(404).json({ message: "User not found" });
+      return;
     }
     const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
     // Here we make sure to only return attendee's of the user's own bookings.
     if (!userBookingIds.includes(safePost.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
-      const data = await prisma.attendee.create({
+      const data = await db.attendee.create({
         data: {
           email: safePost.data.email,
           name: safePost.data.name,

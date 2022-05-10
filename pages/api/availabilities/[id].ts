@@ -18,7 +18,10 @@ export async function availabilityById(
   res: NextApiResponse<AvailabilityResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query is invalid", error: safeQuery.error });
+    return;
+  }
   const data = await prisma.availability.findMany({ where: { userId } });
   const availabiltiesIds = data.map((availability) => availability.id);
   if (!availabiltiesIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
@@ -28,6 +31,7 @@ export async function availabilityById(
        * @swagger
        * /availabilities/{id}:
        *   get:
+       *     operationId: getAvailabilityById
        *     summary: Find an availability
        *     parameters:
        *       - in: path
@@ -35,7 +39,7 @@ export async function availabilityById(
        *         schema:
        *           type: integer
        *         required: true
-       *         description: Numeric ID of the availability to get
+       *         description: ID of the availability to get
        *     tags:
        *     - availabilities
        *     externalDocs:
@@ -44,9 +48,7 @@ export async function availabilityById(
        *       200:
        *         description: OK
        *       401:
-       *        description: Authorization information is missing or invalid.
-       *       404:
-       *         description: Availability was not found
+       *        description: Unathorized
        */
       case "GET":
         await prisma.availability
@@ -61,14 +63,32 @@ export async function availabilityById(
        * @swagger
        * /availabilities/{id}:
        *   patch:
+       *     operationId: editAvailabilityById
        *     summary: Edit an existing availability
+       *     requestBody:
+       *       description: Edit an existing availability related to one of your bookings
+       *       required: true
+       *       content:
+       *         application/json:
+       *           schema:
+       *             type: object
+       *             properties:
+       *               days:
+       *                 type: array
+       *                 example: email@example.com
+       *               startTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
+       *               endTime:
+       *                 type: string
+       *                 example: 1970-01-01T17:00:00.000Z
        *     parameters:
        *      - in: path
        *        name: id
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the availability to edit
+       *        description: ID of the availability to edit
        *     tags:
        *     - availabilities
        *     externalDocs:
@@ -82,8 +102,13 @@ export async function availabilityById(
        *        description: Authorization information is missing or invalid.
        */
       case "PATCH":
+        console.log(body);
         const safeBody = schemaAvailabilityEditBodyParams.safeParse(body);
-        if (!safeBody.success) throw new Error("Invalid request body");
+        if (!safeBody.success) {
+          console.log(safeBody.error);
+          res.status(400).json({ message: "Bad request" + safeBody.error, error: safeBody.error });
+          return;
+        }
         const userEventTypes = await prisma.eventType.findMany({ where: { userId } });
         const userEventTypesIds = userEventTypes.map((event) => event.id);
         if (safeBody.data.eventTypeId && !userEventTypesIds.includes(safeBody.data.eventTypeId)) {
@@ -109,6 +134,7 @@ export async function availabilityById(
        * @swagger
        * /availabilities/{id}:
        *   delete:
+       *     operationId: removeAvailabilityById
        *     summary: Remove an existing availability
        *     parameters:
        *      - in: path
@@ -116,7 +142,7 @@ export async function availabilityById(
        *        schema:
        *          type: integer
        *        required: true
-       *        description: Numeric ID of the availability to delete
+       *        description: ID of the availability to delete
        *     tags:
        *     - availabilities
        *     externalDocs:
