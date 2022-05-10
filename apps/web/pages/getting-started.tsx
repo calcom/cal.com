@@ -288,7 +288,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     if (username) {
       validateAndSave(username);
     }
-  }, []);
+  }, [updateUser]);
 
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [

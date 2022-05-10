@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
+import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
@@ -81,7 +82,7 @@ export default function App({
       }
     }
     getInstalledApp(type);
-  }, []);
+  }, [type]);
   return (
     <>
       <Shell large isPublic>
@@ -94,7 +95,7 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt={name} />
+                <Image width={64} height={64} src={logo} alt={name} layout="fixed" />
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">

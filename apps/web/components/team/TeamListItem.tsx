@@ -65,6 +65,8 @@ export default function TeamListItem(props: Props) {
     <div className="flex px-5 py-5">
       <Avatar
         size={9}
+        width={36}
+        height={36}
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"

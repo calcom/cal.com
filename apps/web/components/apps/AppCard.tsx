@@ -1,4 +1,5 @@
 import { StarIcon } from "@heroicons/react/solid";
+import Image from "next/image";
 import Link from "next/link";
 
 import Button from "@calcom/ui/Button";
@@ -18,7 +19,14 @@ export default function AppCard(props: AppCardProps) {
     <Link href={"/apps/" + props.slug}>
       <a className="block h-full rounded-sm border border-gray-300 p-5 hover:bg-neutral-50">
         <div className="flex">
-          <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
+          <Image
+            src={props.logo}
+            alt={props.name + " Logo"}
+            className="mb-4 rounded-sm"
+            width={48}
+            height={48}
+            layout="fixed"
+          />
           <Button
             data-testid={`app-store-app-card-${props.slug}`}
             color="secondary"

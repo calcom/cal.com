@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { SyntheticEvent, useState } from "react";
 
 import Button from "@calcom/ui/Button";
@@ -150,7 +151,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
           <>
             <div className="flex justify-center">
-              <img src={dataUri} />
+              <Image src={dataUri} alt="" layout="fixed" width={212} height={212} />
             </div>
             <p className="text-center font-mono text-xs">{secret}</p>
           </>

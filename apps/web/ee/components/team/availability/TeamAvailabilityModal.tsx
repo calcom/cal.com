@@ -40,6 +40,8 @@ export default function TeamAvailabilityModal(props: Props) {
             imageSrc={WEBSITE_URL + "/" + props.member?.username + "/avatar.png"}
             alt={props.member?.name || ""}
             className="h-14 w-14 rounded-full"
+            width={56}
+            height={56}
           />
           <div className="ml-3 inline-block pt-1">
             <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>

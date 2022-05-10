@@ -76,7 +76,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -200,6 +200,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
                     size={9}
+                    width={36}
+                    height={36}
                     truncateAfter={5}
                   />
                   <div className="mt-4">
@@ -272,6 +274,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
                     size={10}
+                    width={40}
+                    height={40}
                     truncateAfter={3}
                   />
                   <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>

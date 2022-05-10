@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
@@ -134,7 +135,18 @@ export default function ImageUploader({
                     {t("no_target", { target })}
                   </p>
                 )}
-                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
+                {imageSrc && (
+                  <div className="h-20 w-20 rounded-full">
+                    <Image
+                      className="rounded-full"
+                      width={80}
+                      height={80}
+                      src={imageSrc}
+                      alt={target}
+                      layout="fixed"
+                    />
+                  </div>
+                )}
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}

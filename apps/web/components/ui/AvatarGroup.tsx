@@ -7,6 +7,8 @@ import Avatar from "@components/ui/Avatar";
 export type AvatarGroupProps = {
   border?: string; // this needs to be the color of the parent container background, i.e.: border-white dark:border-gray-900
   size: number;
+  width?: number;
+  height?: number;
   truncateAfter?: number;
   items: {
     image: string;
@@ -17,6 +19,7 @@ export type AvatarGroupProps = {
 };
 
 export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
+  const { width = 36, height = 36 } = props;
   return (
     <ul className={classNames(props.className)}>
       {props.items.slice(0, props.truncateAfter).map((item, idx) => {
@@ -26,6 +29,8 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
               <Avatar
                 className={props.border}
                 imageSrc={item.image}
+                width={width}
+                height={height}
                 title={item.title}
                 alt={item.alt || ""}
                 size={props.size}

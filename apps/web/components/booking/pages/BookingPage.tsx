@@ -98,7 +98,7 @@ const BookingPage = ({
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -416,6 +416,8 @@ const BookingPage = ({
                 <AvatarGroup
                   border="border-2 border-white dark:border-gray-800"
                   size={14}
+                  width={56}
+                  height={56}
                   items={[{ image: profile.image || "", alt: profile.name || "" }].concat(
                     eventType.users
                       .filter((user) => user.name !== profile.name)

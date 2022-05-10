@@ -1,5 +1,6 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import Image from "next/image";
 
 import classNames from "@lib/classNames";
 import { defaultAvatarSrc } from "@lib/profile";
@@ -8,6 +9,8 @@ import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {
   className?: string;
+  width?: number;
+  height?: number;
   size?: number;
   imageSrc?: Maybe<string>;
   title?: string;
@@ -16,7 +19,7 @@ export type AvatarProps = {
 };
 
 export default function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
+  const { imageSrc, gravatarFallbackMd5, size, alt, title, width = 24, height = 24 } = props;
   const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
   const avatar = (
     <AvatarPrimitive.Root>
@@ -27,7 +30,14 @@ export default function Avatar(props: AvatarProps) {
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
-          <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={className} />
+          <Image
+            src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })}
+            alt={alt}
+            width={width}
+            height={height}
+            className={className}
+            layout="fixed"
+          />
         )}
       </AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>

@@ -161,6 +161,8 @@ export default function CreateEventTypeButton(props: Props) {
                   alt={option.name || ""}
                   imageSrc={option.image}
                   size={6}
+                  width={24}
+                  height={24}
                   className="inline ltr:mr-2 rtl:ml-2"
                 />
                 {option.name ? option.name : option.slug}

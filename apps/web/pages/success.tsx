@@ -10,6 +10,7 @@ import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
@@ -168,7 +169,8 @@ export default function Success(props: SuccessProps) {
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
-  const giphyImage = metadata?.giphyThankYouPage;
+  const giphyImage =
+    "https://media3.giphy.com/media/fom5yQFVbYDmA1NZ0I/giphy.gif?cid=790b7611c6261bf6de7649d3cc1c49d045bb0308167cf270&rid=giphy.gif&ct=g";
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -190,7 +192,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, [eventType, needsConfirmation]);
+  }, [date, eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -274,6 +276,9 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
+                        {
+                          // eslint-disable-next-line prettier/prettier, @next/next/no-img-element
+                        }
                         {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />

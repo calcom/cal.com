@@ -327,7 +327,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     fetchTokens();
 
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
-  }, []);
+  }, [eventType.users, hashedUrl, tokensList]);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();

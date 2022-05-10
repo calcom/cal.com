@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
@@ -197,7 +198,7 @@ const Layout = ({
                   </Link>
                   {/* logo icon for tablet */}
                   <Link href="/event-types">
-                    <a className="md:inline lg:hidden">
+                    <a className="text-center md:inline lg:hidden">
                       <Logo small icon />
                     </a>
                   </Link>
@@ -470,10 +471,11 @@ function UserDropdown({ small }: { small?: boolean }) {
               small ? "h-8 w-8" : "h-10 w-10",
               "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
-            <img
+            <Image
               className="rounded-full"
               src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
               alt={user?.username || "Nameless User"}
+              layout="fill"
             />
             {!user?.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
