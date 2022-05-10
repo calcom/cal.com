@@ -8,13 +8,13 @@ export interface IZapierSetupProps {
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
-  let zapierInviteLink = "";
+  let inviteLink = "";
   const appKeys = await getAppKeysFromSlug("zapier");
-  if (typeof appKeys.invite_link === "string") zapierInviteLink = appKeys.invite_link;
+  if (typeof appKeys.invite_link === "string") inviteLink = appKeys.invite_link;
 
   return {
     props: {
-      zapierInviteLink,
+      inviteLink,
     },
   };
 };
