@@ -169,8 +169,7 @@ export default function Success(props: SuccessProps) {
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
-  const giphyImage =
-    "https://media3.giphy.com/media/fom5yQFVbYDmA1NZ0I/giphy.gif?cid=790b7611c6261bf6de7649d3cc1c49d045bb0308167cf270&rid=giphy.gif&ct=g";
+  const giphyImage = metadata?.giphyThankYouPage;
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -276,10 +275,10 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {
-                          // eslint-disable-next-line prettier/prettier, @next/next/no-img-element
-                        }
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
