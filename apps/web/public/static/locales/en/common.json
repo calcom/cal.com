@@ -817,7 +817,7 @@
   "generate_api_key": "Generate Api Key",
   "your_unique_api_key": "Your unique API key",
   "copy_safe_api_key": "Copy this API key and save it somewhere safe. If you lose this key you have to generate a new one.",
-  "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
+  "zapier_setup_instructions": "<0>Go to: <1>Zapier Invite Link</1></0><1>Log into your Zapier account and create a new Zap.</1><2>Select Cal.com as your Trigger app. Also choose a Trigger event.</2><3>Choose your account and then enter your Unique API Key.</3><4>Test your Trigger.</4><5>You're set!</5>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "go_to_app_store": "Go to App Store",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
