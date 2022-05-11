@@ -212,8 +212,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
             key={type.id}
             className={classNames(type.$disabled && "select-none")}
             data-disabled={type.$disabled ? 1 : 0}>
-            <div className="flex items-center justify-between hover:bg-neutral-50 ">
-              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
+            <div
+              className={classNames(
+                "flex items-center justify-between hover:bg-neutral-50 ",
+                type.$disabled && "hover:bg-white"
+              )}>
+              <div
+                className={classNames(
+                  "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                  type.$disabled && "hover:bg-white"
+                )}>
                 {types.length > 1 && !type.$disabled && (
                   <>
                     <button
@@ -255,7 +263,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           target="_blank"
                           rel="noreferrer"
                           className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
-                          <ExternalLinkIcon className="h-5 w-5 group-hover:text-black" />
+                          <ExternalLinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
                         </a>
                       </Tooltip>
 
@@ -268,7 +278,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             );
                           }}
                           className={classNames("btn-icon", type.$disabled && " opacity-30")}>
-                          <LinkIcon className="h-5 w-5 group-hover:text-black" />
+                          <LinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
                         </button>
                       </Tooltip>
                     </div>
