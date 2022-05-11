@@ -636,7 +636,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const recurringEventIdQuery = asStringOrNull(context.query.recur);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
-  const bookingId = parseInt(context.query.bookingId as string);
+  if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
+  const bookingId = parseInt(context.query.bookingId);
+  //http://localhost:3000/success?date=2022-06-02T02%3A00%3A00-06%3A00&type=5&user=pro&name=Stripe%20Stripeson
 
   if (isNaN(typeId)) {
     return {
