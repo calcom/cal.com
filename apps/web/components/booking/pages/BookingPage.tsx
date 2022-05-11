@@ -153,7 +153,7 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], recurringEventId } = responseData[0] || {};
+      const { attendees = [], id, recurringEventId } = responseData[0] || {};
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
@@ -177,6 +177,7 @@ const BookingPage = ({
           email: attendees[0].email,
           location,
           eventName: profile.eventName || "",
+          bookingId: id,
         },
       });
     },
