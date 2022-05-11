@@ -2,28 +2,31 @@ import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { Button } from "@calcom/ui";
-import { Tooltip } from "@calcom/ui/Tooltip";
-import Loader from "@calcom/web/components/Loader";
+import { Button, Loader, Tooltip } from "@calcom/ui";
 
-import Icon from "./icon";
+/** TODO: Maybe extract this into a package to prevent circular dependencies */
+import { trpc } from "@calcom/web/lib/trpc";
 
-interface IZapierSetupProps {
-  trpc: any;
+import Icon from "../../components/icon";
+
+export interface IZapierSetupProps {
+  inviteLink: string;
 }
 
 const ZAPIER = "zapier";
 
 export default function ZapierSetup(props: IZapierSetupProps) {
-  const { trpc } = props;
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
   const integrations = trpc.useQuery(["viewer.integrations"]);
+  // @ts-ignore
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
+
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.other?.items.find(
     (item: { type: string }) => item.type === "zapier_other"
@@ -33,6 +36,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
+    // @ts-ignore
     const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
@@ -91,8 +95,14 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 </>
               )}
 
-              <ol className="mt-5 mb-5 mr-5 list-decimal">
+              <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
                 <Trans i18nKey="zapier_setup_instructions">
+                  <li>
+                    Go to:
+                    <a href={props.inviteLink} className="text-orange-600 underline">
+                      Zapier Invite Link
+                    </a>
+                  </li>
                   <li>Log into your Zapier account and create a new Zap.</li>
                   <li>Select Cal.com as your Trigger app. Also choose a Trigger event.</li>
                   <li>Choose your account and then enter your Unique API Key.</li>
@@ -116,6 +126,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
           </div>
         </div>
       )}
+      <Toaster position="bottom-right" />
     </div>
   );
 }
