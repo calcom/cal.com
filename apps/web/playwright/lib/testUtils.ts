@@ -96,6 +96,11 @@ export async function bookFirstEvent(page: Page) {
   await bookTimeSlot(page);
 
   // Make sure we're navigated to the success page
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/success");
+    },
+  });
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 }
 
