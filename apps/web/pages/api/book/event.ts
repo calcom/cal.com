@@ -355,18 +355,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t: tOrganizer,
   };
 
-  const additionalNotes =
-    reqBody.notes +
-    reqBody.customInputs.reduce(
-      (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
-      ""
-    );
+  const additionalNotes = reqBody.notes;
+
+  let customInputs: { [key: string]: any } = {};
+
+  if (reqBody.customInputs.length > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputs[label] = value;
+    });
+  }
 
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
+    customInputs,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
@@ -463,6 +467,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: dayjs(evt.startTime).toDate(),
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
+      customInputs: evt.customInputs,
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
