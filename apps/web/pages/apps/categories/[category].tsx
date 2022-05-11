@@ -1,5 +1,5 @@
 import { ChevronLeftIcon } from "@heroicons/react/solid";
-import { InferGetStaticPropsType } from "next";
+import { InferGetStaticPropsType, GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -9,6 +9,8 @@ import prisma from "@calcom/prisma";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
+
+import { AppCategories } from ".prisma/client";
 
 export default function Apps({ apps: apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
@@ -63,11 +65,13 @@ export const getStaticPaths = async () => {
   };
 };
 
-export const getStaticProps = async (context) => {
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const category = context.params?.category as AppCategories;
+
   const appQuery = await prisma.app.findMany({
     where: {
       categories: {
-        has: context.params.category,
+        has: category,
       },
     },
     select: {
