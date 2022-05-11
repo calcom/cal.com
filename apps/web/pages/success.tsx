@@ -351,17 +351,31 @@ export default function Success(props: SuccessProps) {
                           )}
                           {bookingInfo?.description && (
                             <>
-                              <div className="mt-6 font-medium">{t("additional_notes")}</div>
-                              <div className="col-span-2 mt-6 mb-6">
+                              <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
                                 <p>{bookingInfo.description}</p>
                               </div>
                             </>
                           )}
+                          {bookingInfo?.customInputs &&
+                            Object.keys(bookingInfo?.customInputs).length !== 0 &&
+                            Object.keys(bookingInfo?.customInputs).map((key) => {
+                              if (bookingInfo?.customInputs[key]) {
+                                return (
+                                  <>
+                                    <div className="mt-2 font-medium">{key}</div>
+                                    <div className="col-span-2 mt-2 mb-2">
+                                      <p>{bookingInfo?.customInputs[key]}</p>
+                                    </div>
+                                  </>
+                                );
+                              }
+                            })}
                         </div>
                       </div>
                     </div>
                     {!needsConfirmation && (
-                      <div className="border-bookinglightest mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                      <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
@@ -651,7 +665,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
-  let spaceBookingAvailable = false;
 
   let userHasSpaceBooking = false;
   if (eventTypeRaw.users[0] && eventTypeRaw.users[0].id) {
@@ -714,6 +727,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       description: true,
+      customInputs: true,
       user: {
         select: {
           name: true,
