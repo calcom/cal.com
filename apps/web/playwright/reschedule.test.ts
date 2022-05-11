@@ -153,11 +153,7 @@ test.describe("Reschedule Tests", async () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/success");
-        },
-      });
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
       await expect(page).toHaveURL(/.*success/);
 
