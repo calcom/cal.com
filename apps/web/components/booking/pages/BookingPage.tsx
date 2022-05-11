@@ -763,7 +763,11 @@ const BookingPage = ({
                     <Button
                       type="submit"
                       data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                      loading={mutation.isLoading}>
+                      loading={
+                        eventType.recurringEvent?.freq && recurringEventCount
+                          ? recurringMutation.isLoading
+                          : mutation.isLoading
+                      }>
                       {rescheduleUid ? t("reschedule") : t("confirm")}
                     </Button>
                     <Button color="secondary" type="button" onClick={() => router.back()}>
@@ -771,7 +775,7 @@ const BookingPage = ({
                     </Button>
                   </div>
                 </Form>
-                {mutation.isError && (
+                {(mutation.isError || recurringMutation.isError) && (
                   <div
                     data-testid="booking-fail"
                     className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
@@ -782,7 +786,9 @@ const BookingPage = ({
                       <div className="ltr:ml-3 rtl:mr-3">
                         <p className="text-sm text-yellow-700">
                           {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-                          {(mutation.error as HttpError)?.message}
+                          {eventType.recurringEvent?.freq && recurringEventCount
+                            ? (mutation.error as HttpError)?.message
+                            : (recurringMutation.error as HttpError)?.message}
                         </p>
                       </div>
                     </div>
