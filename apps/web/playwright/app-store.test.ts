@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 import { test } from "./lib/fixtures";
 
 test.describe("App Store - Authed", () => {
@@ -5,42 +7,19 @@ test.describe("App Store - Authed", () => {
   test("Browse apple-calendar and try to install", async ({ page }) => {
     await page.goto("/apps");
     await page.click('[data-testid="app-store-category-calendar"]');
-    if (!page.url().includes("apps/categories/calendar")) {
-      await page.waitForNavigation({
-        url: (url) => {
-          console.log(url, url.pathname);
-          return url.pathname.includes("apps/categories/calendar");
-        },
-      });
-    }
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
-    await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname.includes("apps/apple-calendar");
-      },
-    });
     await page.click('[data-testid="install-app-button"]');
+    await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
   });
 });
 
 test.describe("App Store - Unauthed", () => {
   test("Browse apple-calendar and try to install", async ({ page }) => {
     await page.goto("/apps");
-
+    await page.waitForSelector("[data-testid=dashboard-shell]");
     await page.click('[data-testid="app-store-category-calendar"]');
-    if (!page.url().includes("apps/categories/calendar")) {
-      await page.waitForNavigation({
-        url: (url) => {
-          console.log(url, url.pathname);
-          return url.pathname.includes("apps/categories/calendar");
-        },
-      });
-    }
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
-    await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname.includes("/auth/login");
-      },
-    });
+    await page.click('[data-testid="install-app-button"]');
+    await expect(page.locator(`[data-testid="login-form"]`)).toBeVisible();
   });
 });

@@ -21,8 +21,13 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
+  zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
+  metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
+  giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
+  spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
+  vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
@@ -32,8 +37,14 @@ export const InstallAppButton = (
 ) => {
   const { status } = useSession();
   const { t } = useLocale();
-  const appName = props.type.replaceAll("_", "") as keyof typeof InstallAppButtonMap;
-  const InstallAppButtonComponent = InstallAppButtonMap[appName];
+  let appName = props.type.replace(/_/g, "");
+  let InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
+  /** So we can either call it by simple name (ex. `slack`, `giphy`) instead of
+   * `slackmessaging`, `giphyother` while maintaining retro-compatibility. */
+  if (!InstallAppButtonComponent) {
+    [appName] = props.type.split("_");
+    InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
+  }
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")
     return (
@@ -51,3 +62,5 @@ export const InstallAppButton = (
     );
   return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 };
+
+export { AppConfiguration } from "./_components/AppConfiguration";

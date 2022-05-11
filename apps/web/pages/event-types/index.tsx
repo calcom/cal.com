@@ -10,14 +10,16 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
+  CodeIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
@@ -29,15 +31,16 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -231,7 +234,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 )}
                 <MemoizedItem type={type} group={group} readOnly={readOnly} />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                  <div className="flex justify-between rtl:space-x-reverse">
+                  <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
@@ -268,7 +271,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </Tooltip>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -297,6 +300,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             onClick={() => openModal(group, type)}>
                             {t("duplicate")}
                           </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <EmbedButton
+                            dark
+                            className="w-full rounded-none"
+                            eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
@@ -452,45 +461,48 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   );
 };
 
-const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
-  <div className="mb-4 flex">
-    <Link href="/settings/teams">
-      <a>
-        <Avatar
-          alt={profile?.name || ""}
-          imageSrc={profile?.image || undefined}
-          size={8}
-          className="mt-1 inline ltr:mr-2 rtl:ml-2"
-        />
-      </a>
-    </Link>
-    <div>
+const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
+  console.log(profile.slug);
+  return (
+    <div className="mb-4 flex">
       <Link href="/settings/teams">
-        <a className="font-bold">{profile?.name || ""}</a>
+        <a>
+          <Avatar
+            alt={profile?.name || ""}
+            imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+            size={8}
+            className="mt-1 inline ltr:mr-2 rtl:ml-2"
+          />
+        </a>
       </Link>
-      {membershipCount && (
-        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
-          <Link href="/settings/teams">
-            <a>
-              <Badge variant="gray">
-                <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
-                {membershipCount}
-              </Badge>
-            </a>
-          </Link>
-        </span>
-      )}
-      {profile?.slug && (
-        <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
-            "https://",
-            ""
-          )}/${profile.slug}`}</a>
+      <div>
+        <Link href="/settings/teams">
+          <a className="font-bold">{profile?.name || ""}</a>
         </Link>
-      )}
+        {membershipCount && (
+          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
+            <Link href="/settings/teams">
+              <a>
+                <Badge variant="gray">
+                  <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
+                  {membershipCount}
+                </Badge>
+              </a>
+            </Link>
+          </span>
+        )}
+        {profile?.slug && (
+          <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
+          </Link>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
   const { t } = useLocale();
@@ -515,9 +527,9 @@ const CTA = () => {
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
+
 const EventTypesPage = () => {
   const { t } = useLocale();
-
   return (
     <div>
       <Head>
@@ -570,6 +582,7 @@ const EventTypesPage = () => {
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
+              <EmbedDialog></EmbedDialog>
             </>
           )}
         />

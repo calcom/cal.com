@@ -19,6 +19,7 @@ export type BookingCreateBody = {
   name: string;
   notes?: string;
   rescheduleUid?: string;
+  recurringEventId?: string;
   start: string;
   timeZone: string;
   user?: string | string[];
@@ -27,6 +28,8 @@ export type BookingCreateBody = {
   metadata: {
     [key: string]: string;
   };
+  hasHashedBookingLink: boolean;
+  hashedLink?: string | null;
 };
 
 export type BookingResponse = Booking & {

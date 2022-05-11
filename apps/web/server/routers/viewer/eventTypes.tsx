@@ -1,14 +1,11 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import {
-  _AvailabilityModel,
-  _DestinationCalendarModel,
-  _EventTypeCustomInputModel,
-  _EventTypeModel,
-} from "@calcom/prisma/zod";
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
@@ -89,6 +86,7 @@ const EventTypeUpdateInput = _EventTypeModel
     }),
     users: z.array(stringOrNumber).optional(),
     schedule: z.number().optional(),
+    hashedLink: z.string(),
   })
   .partial()
   .merge(
@@ -117,6 +115,7 @@ export const eventTypesRouter = createProtectedRouter()
 
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
+        userId: teamId ? undefined : userId,
         users: {
           connect: {
             id: userId,
@@ -124,7 +123,8 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      if (process.env.DAILY_API_KEY) {
+      const appKeys = await getAppKeysFromSlug("daily-video");
+      if (typeof appKeys.api_key === "string") {
         data.locations = [{ type: "integrations:daily" }];
       }
 
@@ -210,16 +210,71 @@ export const eventTypesRouter = createProtectedRouter()
 
     return next();
   })
+  .query("get", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          startTime: true,
+          endTime: true,
+          bufferTime: true,
+          avatar: true,
+          plan: true,
+        },
+      });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+      return await ctx.prisma.eventType.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          team: true,
+          users: true,
+        },
+      });
+    },
+  })
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
-      const { schedule, periodType, locations, destinationCalendar, customInputs, users, id, ...rest } =
-        input;
+      const {
+        schedule,
+        periodType,
+        locations,
+        destinationCalendar,
+        customInputs,
+        recurringEvent,
+        users,
+        id,
+        hashedLink,
+        ...rest
+      } = input;
       assertValidUrl(input.successRedirectUrl);
       const data: Prisma.EventTypeUpdateInput = rest;
       data.locations = locations ?? undefined;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
+      }
+
+      if (recurringEvent) {
+        data.recurringEvent = {
+          dstart: recurringEvent.dtstart as unknown as Prisma.InputJsonObject,
+          interval: recurringEvent.interval,
+          count: recurringEvent.count,
+          freq: recurringEvent.freq,
+          until: recurringEvent.until as unknown as Prisma.InputJsonObject,
+          tzid: recurringEvent.tzid,
+        };
       }
 
       if (destinationCalendar) {
@@ -247,6 +302,45 @@ export const eventTypesRouter = createProtectedRouter()
           set: [],
           connect: users.map((userId: number) => ({ id: userId })),
         };
+      }
+
+      const connectedLink = await ctx.prisma.hashedLink.findFirst({
+        where: {
+          eventTypeId: input.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (hashedLink) {
+        // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
+        if (!connectedLink) {
+          // create a hashed link
+          await ctx.prisma.hashedLink.upsert({
+            where: {
+              eventTypeId: input.id,
+            },
+            update: {
+              link: hashedLink,
+            },
+            create: {
+              link: hashedLink,
+              eventType: {
+                connect: { id: input.id },
+              },
+            },
+          });
+        }
+      } else {
+        // check if hashed connection exists. If it does, disconnect
+        if (connectedLink) {
+          await ctx.prisma.hashedLink.delete({
+            where: {
+              eventTypeId: input.id,
+            },
+          });
+        }
       }
 
       const eventType = await ctx.prisma.eventType.update({

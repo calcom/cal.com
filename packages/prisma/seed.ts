@@ -1,13 +1,14 @@
-import { MembershipRole, Prisma, PrismaClient, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import dayjs from "dayjs";
 import { uuid } from "short-uuid";
 
 import { hashPassword } from "@calcom/lib/auth";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
-require("dotenv").config({ path: "../../.env" });
+import prisma from ".";
+import "./seed-app-store";
 
-const prisma = new PrismaClient();
+require("dotenv").config({ path: "../../.env" });
 
 async function createUserAndEventType(opts: {
   user: {
@@ -275,6 +276,111 @@ async function main() {
         slug: "google-meet",
         length: 60,
         locations: [{ type: "integrations:google:meet" }],
+      },
+      {
+        title: "Yoga class",
+        slug: "yoga-class",
+        length: 30,
+        recurringEvent: { freq: 2, count: 12, interval: 1 },
+        _bookings: [
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").toDate(),
+            endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").add(1, "week").toDate(),
+            endTime: dayjs().add(1, "day").add(1, "week").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").add(2, "week").toDate(),
+            endTime: dayjs().add(1, "day").add(2, "week").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").add(3, "week").toDate(),
+            endTime: dayjs().add(1, "day").add(3, "week").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").add(4, "week").toDate(),
+            endTime: dayjs().add(1, "day").add(4, "week").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().add(1, "day").add(5, "week").toDate(),
+            endTime: dayjs().add(1, "day").add(5, "week").add(30, "minutes").toDate(),
+            confirmed: false,
+          },
+        ],
+      },
+      {
+        title: "Tennis class",
+        slug: "tennis-class",
+        length: 60,
+        recurringEvent: { freq: 2, count: 10, interval: 2 },
+        requiresConfirmation: true,
+        _bookings: [
+          {
+            uid: uuid(),
+            title: "Tennis class",
+            recurringEventId: Buffer.from("tennis-class").toString("base64"),
+            startTime: dayjs().add(2, "day").toDate(),
+            endTime: dayjs().add(2, "day").add(60, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Tennis class",
+            recurringEventId: Buffer.from("tennis-class").toString("base64"),
+            startTime: dayjs().add(2, "day").add(2, "week").toDate(),
+            endTime: dayjs().add(2, "day").add(2, "week").add(60, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Tennis class",
+            recurringEventId: Buffer.from("tennis-class").toString("base64"),
+            startTime: dayjs().add(2, "day").add(4, "week").toDate(),
+            endTime: dayjs().add(2, "day").add(4, "week").add(60, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Tennis class",
+            recurringEventId: Buffer.from("tennis-class").toString("base64"),
+            startTime: dayjs().add(2, "day").add(8, "week").toDate(),
+            endTime: dayjs().add(2, "day").add(8, "week").add(60, "minutes").toDate(),
+            confirmed: false,
+          },
+          {
+            uid: uuid(),
+            title: "Tennis class",
+            recurringEventId: Buffer.from("tennis-class").toString("base64"),
+            startTime: dayjs().add(2, "day").add(10, "week").toDate(),
+            endTime: dayjs().add(2, "day").add(10, "week").add(60, "minutes").toDate(),
+            confirmed: false,
+          },
+        ],
       },
     ],
   });
