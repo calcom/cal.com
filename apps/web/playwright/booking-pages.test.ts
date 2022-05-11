@@ -45,11 +45,7 @@ test.describe("free user", () => {
     await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     expect(await page.screenshot()).toMatchSnapshot("booking-success-page.png");
     // Switch to dark mode for screenshot
@@ -106,11 +102,7 @@ test.describe("pro user", () => {
     await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
   test("can reschedule a booking", async ({ page }) => {
     await bookFirstEvent(page);
