@@ -1,4 +1,4 @@
-import { Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import {
@@ -28,13 +28,7 @@ test.describe("dynamic booking", () => {
     await page.click('[data-testid="event-type-link"]');
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
-
-    // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("can reschedule a booking", async ({ page }) => {
@@ -58,6 +52,7 @@ test.describe("dynamic booking", () => {
         return url.pathname === "/success" && url.searchParams.get("reschedule") === "true";
       },
     });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("Can cancel the recently created booking", async ({ page }) => {
