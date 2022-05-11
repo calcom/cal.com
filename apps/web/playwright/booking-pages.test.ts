@@ -9,6 +9,8 @@ import {
   todo,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/free");
