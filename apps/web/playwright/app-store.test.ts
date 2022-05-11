@@ -2,6 +2,8 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("App Store - Authed", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
   test("Browse apple-calendar and try to install", async ({ page }) => {
