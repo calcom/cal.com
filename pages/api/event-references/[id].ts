@@ -7,7 +7,7 @@ import type { DailyEventReferenceResponse } from "@lib/types";
 import {
   schemaDailyEventReferenceEditBodyParams,
   schemaDailyEventReferenceReadPublic,
-} from "@lib/validations/daily-event-reference";
+} from "@lib/validations/event-reference";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -37,6 +37,7 @@ export async function dailyEventReferenceById(
        * /event-references/{id}:
        *   get:
        *     summary: Find a event reference
+       *     operationId: getEventReferenceById
        *     parameters:
        *       - in: path
        *         name: id
@@ -72,6 +73,7 @@ export async function dailyEventReferenceById(
        * /event-references/{id}:
        *   patch:
        *     summary: Edit an existing event reference
+       *     operationId: editEventReferenceById
        *     parameters:
        *      - in: path
        *        name: id
@@ -110,6 +112,7 @@ export async function dailyEventReferenceById(
        * /event-references/{id}:
        *   delete:
        *     summary: Remove an existing event reference
+       *     operationId: removeEventReferenceById
        *     parameters:
        *      - in: path
        *        name: id

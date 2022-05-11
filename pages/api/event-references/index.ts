@@ -7,7 +7,7 @@ import { DailyEventReferenceResponse, DailyEventReferencesResponse } from "@lib/
 import {
   schemaDailyEventReferenceCreateBodyParams,
   schemaDailyEventReferenceReadPublic,
-} from "@lib/validations/daily-event-reference";
+} from "@lib/validations/event-reference";
 
 async function createOrlistAllDailyEventReferences(
   { method, body, userId }: NextApiRequest,
@@ -21,7 +21,8 @@ async function createOrlistAllDailyEventReferences(
      * @swagger
      * /event-references:
      *   get:
-     *     summary: Find all daily event reference
+     *     summary: Find all event reference
+     *     operationId: listEventReferences
      *     tags:
      *     - event-references
      *     responses:
@@ -30,7 +31,7 @@ async function createOrlistAllDailyEventReferences(
      *       401:
      *        description: Authorization information is missing or invalid.
      *       404:
-     *         description: No daily event references were found
+     *         description: No  event references were found
      */
     const data = await prisma.dailyEventReference.findMany({
       where: { bookingId: { in: userBookingIds } },
@@ -50,12 +51,13 @@ async function createOrlistAllDailyEventReferences(
      * @swagger
      * /event-references:
      *   post:
-     *     summary: Creates a new daily event reference
+     *     summary: Creates a new  event reference
+     *     operationId: addEventReference
      *     tags:
      *     - event-references
      *     responses:
      *       201:
-     *         description: OK, daily event reference created
+     *         description: OK,  event reference created
      *       400:
      *        description: Bad request. DailyEventReference body is invalid.
      *       401:
@@ -72,7 +74,7 @@ async function createOrlistAllDailyEventReferences(
     else
       (error: Error) =>
         res.status(400).json({
-          message: "Could not create new daily event reference",
+          message: "Could not create new  event reference",
           error,
         });
   } else res.status(405).json({ message: `Method ${method} not allowed` });

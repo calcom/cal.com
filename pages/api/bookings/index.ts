@@ -10,6 +10,7 @@ async function createOrlistAllBookings(
   { method, body, userId }: NextApiRequest,
   res: NextApiResponse<BookingsResponse | BookingResponse>
 ) {
+  console.log("userIduserId", userId);
   if (method === "GET") {
     /**
      * @swagger
@@ -77,8 +78,8 @@ async function createOrlistAllBookings(
       return;
       // throw new Error("Invalid request body");
     }
-
-    const data = await prisma.booking.create({ data: { ...safe.data, userId } });
+    safe.data.userId = userId;
+    const data = await prisma.booking.create({ data: { ...safe.data } });
     const booking = schemaBookingReadPublic.parse(data);
 
     if (booking) res.status(201).json({ booking, message: "Booking created successfully" });
