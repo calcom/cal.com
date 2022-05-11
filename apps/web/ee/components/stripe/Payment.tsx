@@ -35,6 +35,7 @@ type Props = {
   eventType: { id: number };
   user: { username: string | null };
   location?: string | null;
+  bookingId: number;
 };
 
 type States =
@@ -86,6 +87,7 @@ export default function PaymentComponent(props: Props) {
         type: props.eventType.id,
         user: props.user.username,
         name,
+        bookingId: props.bookingId,
       };
 
       if (props.location) {

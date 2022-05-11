@@ -8,6 +8,8 @@ import {
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("dynamic booking", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
@@ -17,7 +19,7 @@ test.describe("dynamic booking", () => {
     await page.goto("/pro+free");
   });
 
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     // delete test bookings
     await deleteAllBookingsByEmail("pro@example.com");
     await deleteAllBookingsByEmail("free@example.com");
@@ -36,7 +38,7 @@ test.describe("dynamic booking", () => {
 
     // Logged in
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').click();
+    await page.locator('[data-testid="reschedule"]').nth(0).click();
     await page.locator('[data-testid="edit"]').click();
     await page.waitForNavigation({
       url: (url) => {
