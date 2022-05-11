@@ -1,18 +1,20 @@
-import type { InstallAppButtonProps } from "@calcom/app-store/types";
+import { useState } from "react";
 
-import useAddAppMutation from "../../_utils/useAddAppMutation";
+import { InstallAppButtonProps } from "../../types";
+import AddIntegration from "./AccountDialog";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const mutation = useAddAppMutation("office365_video");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
       {props.render({
         onClick() {
-          mutation.mutate("");
+          setIsModalOpen(true);
         },
-        loading: mutation.isLoading,
+        disabled: isModalOpen,
       })}
+      <AddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Page, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
 export function todo(title: string) {
@@ -99,11 +99,7 @@ export async function bookFirstEvent(page: Page) {
   await page.press('[name="email"]', "Enter");
 
   // Make sure we're navigated to the success page
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.endsWith("/success");
-    },
-  });
+  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 }
 
 export const bookTimeSlot = async (page: Page) => {

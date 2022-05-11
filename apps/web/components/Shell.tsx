@@ -11,15 +11,15 @@ import {
   MoonIcon,
   ViewGridIcon,
 } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -34,6 +34,7 @@ import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -45,16 +46,6 @@ import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-
-export function useMeQuery() {
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    retry(failureCount) {
-      return failureCount > 3;
-    },
-  });
-
-  return meQuery;
-}
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
