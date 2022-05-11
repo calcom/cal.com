@@ -85,7 +85,7 @@ test.describe("pro user", () => {
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
     // await page.pause();
-    const $eventTypes = await page.locator("[data-testid=event-types] > *");
+    const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
 
@@ -102,7 +102,7 @@ test.describe("pro user", () => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').click();
+    await page.locator('[data-testid="reschedule"]').nth(0).click();
     await page.locator('[data-testid="edit"]').click();
     await page.waitForNavigation({
       url: (url) => {
