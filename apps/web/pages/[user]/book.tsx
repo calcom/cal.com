@@ -94,6 +94,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!users.length) return { notFound: true };
   const [user] = users;
+  const isDynamicGroupBooking = users.length > 1;
+
+  // Dynamic Group link doesn't need a type but it must have a slug
+  if ((!isDynamicGroupBooking && !context.query.type) || (isDynamicGroupBooking && !eventTypeSlug)) {
+    return { notFound: true };
+  }
+
   const eventTypeRaw =
     usernameList.length > 1
       ? getDefaultEvent(eventTypeSlug)
@@ -172,8 +179,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (context.query.rescheduleUid) {
     booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
-
-  const isDynamicGroupBooking = users.length > 1;
 
   const dynamicNames = isDynamicGroupBooking
     ? users.map((user) => {
