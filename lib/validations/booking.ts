@@ -14,11 +14,10 @@ const schemaBookingBaseBodyParams = Booking.pick({
 const schemaBookingCreateParams = z
   .object({
     uid: z.string(),
-    userId: z.number(),
     eventTypeId: z.number(),
     title: z.string(),
-    startTime: z.date(),
-    endTime: z.date(),
+    startTime: z.date().or(z.string()),
+    endTime: z.date().or(z.string()),
   })
   .strict();
 

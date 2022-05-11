@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { WebhookResponse, WebhooksResponse } from "@lib/types";
-import { schemaWebhookBodyParams, schemaWebhookPublic } from "@lib/validations/webhook";
+import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "@lib/validations/webhook";
 
 async function createOrlistAllWebhooks(
   { method, body, userId }: NextApiRequest,
@@ -28,8 +28,8 @@ async function createOrlistAllWebhooks(
      *       404:
      *         description: No webhooks were found
      */
-    const data = await prisma.webhooks.findMany({ where: { userId } });
-    const webhooks = data.map((webhook) => schemaWebhookPublic.parse(webhook));
+    const data = await prisma.webhook.findMany({ where: { userId } });
+    const webhooks = data.map((webhook) => schemaWebhookReadPublic.parse(webhook));
     if (webhooks) res.status(200).json({ webhooks });
     else
       (error: Error) =>
@@ -55,11 +55,11 @@ async function createOrlistAllWebhooks(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaWebhookBodyParams.safeParse(body);
+    const safe = schemaWebhookCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
-    const webhook = schemaWebhookPublic.parse(data);
+    const webhook = schemaWebhookReadPublic.parse(data);
 
     if (data) res.status(201).json({ webhook, message: "Webhook created successfully" });
     else

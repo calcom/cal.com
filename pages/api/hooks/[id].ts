@@ -4,17 +4,14 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { WebhookResponse } from "@lib/types";
-import { schemaWebhookBodyParams, schemaWebhookPublic } from "@lib/validations/webhook";
-import {
-  schemaQueryIdParseInt,
-  withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdAsString } from "@lib/validations/shared/queryIdString";
+import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "@lib/validations/webhook";
 
 export async function WebhookById(
   { method, query, body, userId }: NextApiRequest,
   res: NextApiResponse<WebhookResponse>
 ) {
-  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeQuery = schemaQueryIdAsString.safeParse(query);
   if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
   const data = await prisma.webhook.findMany({ where: { userId } });
   const userWebhooks = data.map((webhook) => webhook.id);
@@ -50,8 +47,8 @@ export async function WebhookById(
       case "GET":
         await prisma.webhook
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaWebhookPublic.parse(data))
-          .then((hook) => res.status(200).json({ hook }))
+          .then((data) => schemaWebhookReadPublic.parse(data))
+          .then((webhook) => res.status(200).json({ webhook }))
           .catch((error: Error) =>
             res.status(404).json({
               message: `Webhook with id: ${safeQuery.data.id} not found`,
@@ -86,14 +83,14 @@ export async function WebhookById(
        *        description: Authorization information is missing or invalid.
        */
       case "PATCH":
-        const safeBody = schemaWebhookBodyParams.safeParse(body);
+        const safeBody = schemaWebhookEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
         await prisma.webhook
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaWebhookPublic.parse(data))
-          .then((hook) => res.status(200).json({ hook }))
+          .then((data) => schemaWebhookReadPublic.parse(data))
+          .then((webhook) => res.status(200).json({ webhook }))
           .catch((error: Error) =>
             res.status(404).json({
               message: `Webhook with id: ${safeQuery.data.id} not found`,
@@ -150,4 +147,4 @@ export async function WebhookById(
   }
 }
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(withValidQueryIdTransformParseInt(WebhookById));
+export default withMiddleware("HTTP_GET_DELETE_PATCH")(WebhookById);
