@@ -5,9 +5,10 @@ import { useIntercom } from "react-use-intercom";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 import SettingsShell from "@components/SettingsShell";
-import Shell, { useMeQuery } from "@components/Shell";
+import Shell from "@components/Shell";
 
 type CardProps = { title: string; description: string; className?: string; children: ReactNode };
 const Card = ({ title, description, className = "", children }: CardProps): JSX.Element => (

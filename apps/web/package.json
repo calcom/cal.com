@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -22,7 +22,7 @@
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
-    "node": ">=14.x",
+    "node": ">=14.x < 15",
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
@@ -35,6 +35,7 @@
     "@calcom/stripe": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
+    "@calcom/embed-core": "*",
     "@daily-co/daily-js": "^0.21.0",
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
@@ -104,6 +105,7 @@
     "react-use-intercom": "1.4.0",
     "react-virtualized-auto-sizer": "^1.0.6",
     "react-window": "^1.8.6",
+    "rrule": "^2.6.9",
     "short-uuid": "^4.2.0",
     "stripe": "^8.191.0",
     "superjson": "1.8.1",

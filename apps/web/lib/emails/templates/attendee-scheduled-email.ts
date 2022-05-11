@@ -4,13 +4,15 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
+import { DatasetJsonLdProps } from "next-seo";
 import nodemailer from "nodemailer";
+import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
-import type { Person, CalendarEvent } from "@calcom/types/Calendar";
+import type { Person, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
   emailHead,
@@ -29,10 +31,12 @@ dayjs.extend(toArray);
 export default class AttendeeScheduledEmail {
   calEvent: CalendarEvent;
   attendee: Person;
+  recurringEvent: RecurringEvent;
 
-  constructor(calEvent: CalendarEvent, attendee: Person) {
+  constructor(calEvent: CalendarEvent, attendee: Person, recurringEvent: RecurringEvent) {
     this.calEvent = calEvent;
     this.attendee = attendee;
+    this.recurringEvent = recurringEvent;
   }
 
   public sendEmail() {
@@ -53,6 +57,11 @@ export default class AttendeeScheduledEmail {
   }
 
   protected getiCalEventAsString(): string | undefined {
+    // Taking care of recurrence rule beforehand
+    let recurrenceRule: string | undefined = undefined;
+    if (this.recurringEvent?.count) {
+      recurrenceRule = new rrule(this.recurringEvent).toString();
+    }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
@@ -72,6 +81,7 @@ export default class AttendeeScheduledEmail {
         name: attendee.name,
         email: attendee.email,
       })),
+      ...{ recurrenceRule },
       status: "CONFIRMED",
     });
     if (icsEvent.error) {
@@ -125,7 +135,9 @@ export default class AttendeeScheduledEmail {
   }
   protected getTextBody(): string {
     return `
-${this.calEvent.attendees[0].language.translate("your_event_has_been_scheduled")}
+${this.calEvent.attendees[0].language.translate(
+  this.recurringEvent?.count ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled"
+)}
 ${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
@@ -157,7 +169,11 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.attendees[0].language.translate("your_event_has_been_scheduled"),
+          this.calEvent.attendees[0].language.translate(
+            this.recurringEvent?.count
+              ? "your_event_has_been_scheduled_recurring"
+              : "your_event_has_been_scheduled"
+          ),
           this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
@@ -250,12 +266,30 @@ ${getRichDescription(this.calEvent)}
     </div>`;
   }
 
+  protected getRecurringWhen(): string {
+    if (this.recurringEvent?.freq) {
+      return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+        freq: this.calEvent.attendees[0].language.translate(
+          `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+        ),
+      })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+        `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+        { count: this.recurringEvent.count }
+      )}`;
+    } else {
+      return "";
+    }
+  }
+
   protected getWhen(): string {
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}</p>
+      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("when")}${
+      this.recurringEvent?.count ? this.getRecurringWhen() : ""
+    }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
+      ${this.recurringEvent?.count ? `${this.calEvent.attendees[0].language.translate("starting")} ` : ""}
       ${this.calEvent.attendees[0].language.translate(
         this.getInviteeStart().format("dddd").toLowerCase()
       )}, ${this.calEvent.attendees[0].language.translate(

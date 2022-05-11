@@ -14,7 +14,9 @@ import { metadata as slackmessaging } from "./slackmessaging/_metadata";
 import { metadata as spacebooking } from "./spacebooking/_metadata";
 import { metadata as stripepayment } from "./stripepayment/_metadata";
 import { metadata as tandemvideo } from "./tandemvideo/_metadata";
+import { metadata as vital } from "./vital/_metadata";
 import { metadata as wipemycalother } from "./wipemycalother/_metadata";
+import { metadata as zapier } from "./zapier/_metadata";
 import { metadata as zoomvideo } from "./zoomvideo/_metadata";
 
 export const appStoreMetadata = {
@@ -32,10 +34,12 @@ export const appStoreMetadata = {
   stripepayment,
   spacebooking,
   tandemvideo,
+  vital,
   zoomvideo,
   wipemycalother,
   metamask,
   giphy,
+  zapier,
 };
 
 export default appStoreMetadata;

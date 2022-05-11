@@ -8,7 +8,7 @@ export type GetSubscriberOptions = {
   triggerEvent: WebhookTriggerEvents;
 };
 
-const getSubscribers = async (options: GetSubscriberOptions) => {
+const getWebhooks = async (options: GetSubscriberOptions) => {
   const { userId, eventTypeId } = options;
   const allWebhooks = await prisma.webhook.findMany({
     where: {
@@ -32,10 +32,11 @@ const getSubscribers = async (options: GetSubscriberOptions) => {
     select: {
       subscriberUrl: true,
       payloadTemplate: true,
+      appId: true,
     },
   });
 
   return allWebhooks;
 };
 
-export default getSubscribers;
+export default getWebhooks;

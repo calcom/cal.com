@@ -22,6 +22,7 @@ class CalendarEventClass implements CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   additionalNotes?: string | null | undefined;
+  recurrence?: string;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this

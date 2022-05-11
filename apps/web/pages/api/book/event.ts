@@ -1,11 +1,4 @@
-import {
-  BookingStatus,
-  Credential,
-  Payment,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -13,18 +6,24 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
 import { getBusyVideoTimes } from "@calcom/core/videoClient";
-import { getDefaultEvent, getUsernameList, getGroupName } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionInformation, CalendarEvent, EventBusyDate, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionInformation,
+  CalendarEvent,
+  EventBusyDate,
+  RecurringEvent,
+} from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -83,7 +82,7 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number): boolean {
+function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
   // Check for conflicts
   let t = true;
 
@@ -190,7 +189,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
 };
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  return await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     rejectOnNotFound: true,
     where: {
       id: eventTypeId,
@@ -220,14 +219,22 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      recurringEvent: true,
     },
   });
+
+  return {
+    ...eventType,
+    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
+  };
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
+type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const reqBody = req.body as BookingCreateBody;
+  const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -382,6 +389,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
+  if (reqBody.recurringEventId && eventType.recurringEvent) {
+    // Overriding the recurring event configuration count to be the actual number of events booked for
+    // the recurring event (equal or less than recurring event configuration count)
+    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+  }
+
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
@@ -481,6 +494,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         : undefined,
     };
+    if (reqBody.recurringEventId) {
+      newBookingData.recurringEventId = reqBody.recurringEventId;
+    }
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
@@ -573,7 +589,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let isAvailableToBeBooked = true;
     try {
-      isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      if (eventType.recurringEvent) {
+        const allBookingDates = new rrule({
+          dtstart: new Date(reqBody.start),
+          ...eventType.recurringEvent,
+        }).all();
+        // Go through each date for the recurring event and check if each one's availability
+        isAvailableToBeBooked = allBookingDates
+          .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
+          .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
+      } else {
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      }
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
@@ -674,11 +701,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      await sendRescheduledEmails({
-        ...evt,
-        additionInformation: metadata,
-        additionalNotes, // Resets back to the addtionalNote input and not the overriden value
-      });
+      if (noEmail !== true) {
+        await sendRescheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+          },
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+        );
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -708,17 +740,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      await sendScheduledEmails({
-        ...evt,
-        additionInformation: metadata,
-        additionalNotes,
-      });
+      if (noEmail !== true) {
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes,
+          },
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+        );
+      }
     }
   }
 
-  if (eventType.requiresConfirmation && !rescheduleUid) {
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
+    await sendOrganizerRequestEmail(
+      { ...evt, additionalNotes },
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+    );
+    await sendAttendeeRequestEmail(
+      { ...evt, additionalNotes },
+      attendeesList[0],
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+    );
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
@@ -753,17 +797,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     metadata: reqBody.metadata,
   });
   const promises = subscribers.map((sub) =>
-    sendPayload(
-      eventTrigger,
-      new Date().toISOString(),
-      sub.subscriberUrl,
-      {
-        ...evt,
-        rescheduleUid,
-        metadata: reqBody.metadata,
-      },
-      sub.payloadTemplate
-    ).catch((e) => {
+    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+      ...evt,
+      rescheduleUid,
+      metadata: reqBody.metadata,
+    }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
   );
