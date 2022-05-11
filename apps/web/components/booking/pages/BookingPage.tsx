@@ -89,6 +89,7 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
@@ -97,7 +98,7 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
-  }, []);
+  }, [telemetry]);
 
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -203,8 +204,6 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
-
-  const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
