@@ -769,6 +769,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
 
+      if (!firstStripeCredential) return res.status(500).json({ message: "Missing payment credentials" });
+
       if (!booking.user) booking.user = user;
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
