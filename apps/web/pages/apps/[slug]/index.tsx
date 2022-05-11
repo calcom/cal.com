@@ -54,7 +54,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       type={data.type}
       logo={data.logo}
       categories={[data.category]}
-      author="Cal.com"
+      author={data.publisher}
       feeType={data.feeType || "usage-based"}
       price={data.price || 0}
       commission={data.commission || 0}
