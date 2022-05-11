@@ -66,7 +66,7 @@ plugins.push(withTM);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   images: {
-    domains: [`${new URL(process.env.NEXT_PUBLIC_WEBSITE_URL).hostname}`, "www.gravatar.com"],
+    domains: [`${new URL(process.env.NEXT_PUBLIC_WEBSITE_URL).hostname}`],
   },
   i18n,
   webpack: (config) => {

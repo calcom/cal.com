@@ -98,7 +98,8 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
-  }, [telemetry]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {

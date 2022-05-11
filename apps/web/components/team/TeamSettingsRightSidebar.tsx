@@ -118,7 +118,8 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
         )}
       </div>
       {props.team?.id && props.role !== MembershipRole.MEMBER && (
-        <Link href={`/settings/teams/${props.team.id}/availability`} passHref>
+        // eslint-disable-next-line @next/next/link-passhref
+        <Link href={`/settings/teams/${props.team.id}/availability`}>
           <div className="mt-5 hidden space-y-1 sm:block">
             <LinkIconButton Icon={ClockIcon}>{"View Availability"}</LinkIconButton>
             <p className="mt-2 text-sm text-gray-500">See your team members availability at a glance.</p>

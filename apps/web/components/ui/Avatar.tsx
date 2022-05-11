@@ -8,8 +8,6 @@ import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {
   className?: string;
-  width?: number;
-  height?: number;
   size?: number;
   imageSrc?: Maybe<string>;
   title?: string;
@@ -18,7 +16,7 @@ export type AvatarProps = {
 };
 
 export default function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, width = 24, height = 24 } = props;
+  const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
   const className = classNames("rounded-full", props.className, size && `h-${size} w-${size}`);
   const avatar = (
     <AvatarPrimitive.Root>

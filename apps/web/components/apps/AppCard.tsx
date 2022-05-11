@@ -1,5 +1,4 @@
 import { StarIcon } from "@heroicons/react/solid";
-import Image from "next/image";
 import Link from "next/link";
 
 import Button from "@calcom/ui/Button";

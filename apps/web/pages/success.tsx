@@ -10,7 +10,6 @@ import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
