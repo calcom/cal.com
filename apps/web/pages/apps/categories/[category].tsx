@@ -79,7 +79,6 @@ export const getStaticProps = async (context) => {
   const appStore = await getAppRegistry();
 
   const apps = appStore.filter((app) => appSlugs.includes(app.slug));
-  console.log("🚀 ~ file: [category].tsx ~ line 84 ~ getStaticProps ~ apps", apps);
 
   return {
     props: {
