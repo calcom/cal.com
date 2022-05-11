@@ -310,14 +310,6 @@ export default function Success(props: SuccessProps) {
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
                           <div className="col-span-2 mb-6">
-                            {date.format("MMMM DD, YYYY")}
-                            <br />
-                            {date.format("LT")} - {date.add(props.eventType.length, "m").format("LT")}{" "}
-                            <span className="text-bookinglight">
-                              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                            </span>
-                          </div>
-                          <div className="col-span-2">
                             <RecurringBookings
                               isReschedule={reschedule === "true"}
                               eventType={props.eventType}
@@ -327,7 +319,7 @@ export default function Success(props: SuccessProps) {
                             />
                           </div>
                           <div className="font-medium">{t("who")}</div>
-                          <div className="col-span-2">
+                          <div className="col-span-2 mb-6">
                             {bookingInfo?.user && (
                               <div className="mb-3">
                                 <p>{bookingInfo.user.name}</p>
@@ -556,9 +548,9 @@ function RecurringBookings({
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">
-            {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+            {dayjs(dateStr).format("MMMM DD, YYYY")}
             <br />
-            {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+            {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
             <span className="text-bookinglight">
               ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
             </span>
@@ -575,9 +567,9 @@ function RecurringBookings({
             {eventType.recurringEvent?.count &&
               recurringBookings.slice(4).map((dateStr, idx) => (
                 <div key={idx} className="mb-2">
-                  {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+                  {dayjs(dateStr).format("MMMM DD, YYYY")}
                   <br />
-                  {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+                  {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
                   <span className="text-bookinglight">
                     ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                   </span>
@@ -589,9 +581,9 @@ function RecurringBookings({
     </>
   ) : !eventType.recurringEvent.freq ? (
     <>
-      {date.format("dddd, DD MMMM YYYY")}
+      {date.format("MMMM DD, YYYY")}
       <br />
-      {date.format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
       <span className="text-bookinglight">
         ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
       </span>
