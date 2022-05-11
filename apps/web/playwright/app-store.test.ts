@@ -37,6 +37,12 @@ test.describe("App Store - Unauthed", () => {
     await page.click('[data-testid="app-store-app-card-apple-calendar"]');
     await page.waitForNavigation({
       url: (url) => {
+        return url.pathname.includes("apps/apple-calendar");
+      },
+    });
+    await page.click('[data-testid="install-app-button"]');
+    await page.waitForNavigation({
+      url: (url) => {
         return url.pathname.includes("/auth/login");
       },
     });

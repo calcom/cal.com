@@ -1,3 +1,5 @@
+import { ButtonBaseProps } from "@calcom/ui/Button";
+
 export type IntegrationOAuthCallbackState = {
   returnTo: string;
 };
