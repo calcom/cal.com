@@ -1,4 +1,4 @@
-import { PlaywrightTestConfig, devices } from "@playwright/test";
+import { devices, PlaywrightTestConfig } from "@playwright/test";
 import { addAliases } from "module-alias";
 import * as path from "path";
 
@@ -16,6 +16,8 @@ addAliases({
 
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
+
+const DEFAULT_NAVIGATION_TIMEOUT = 5000;
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
@@ -45,7 +47,11 @@ const config: PlaywrightTestConfig = {
     {
       name: "chromium",
       testDir,
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        /** If navigation takes more than this, then something's wrong, let's fail fast. */
+        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+      },
     },
     /*  {
       name: "firefox",
