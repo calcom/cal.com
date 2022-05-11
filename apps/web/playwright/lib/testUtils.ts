@@ -75,7 +75,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-  await page.click('[data-testid="time"]');
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -93,10 +93,7 @@ export async function bookFirstEvent(page: Page) {
   // Click first event type
   await page.click('[data-testid="event-type-link"]');
   await selectFirstAvailableTimeSlotNextMonth(page);
-  // --- fill form
-  await page.fill('[name="name"]', "Test Testson");
-  await page.fill('[name="email"]', "test@example.com");
-  await page.press('[name="email"]', "Enter");
+  await bookTimeSlot(page);
 
   // Make sure we're navigated to the success page
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();
