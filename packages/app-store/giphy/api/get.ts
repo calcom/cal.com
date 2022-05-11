@@ -5,10 +5,11 @@ import prisma from "@calcom/prisma";
 
 import { GiphyManager } from "../lib";
 
-const searchSchema = z.object({
-  keyword: z.string(),
-  offset: z.number().min(0),
+const getSchema = z.object({
+  url: z.string().url(),
 });
+
+const giphyUrlRegexp = /^https:\/\/media.giphy.com\/media\/(.*)\/giphy.gif/g;
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
@@ -21,23 +22,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   try {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        locale: true,
-      },
-    });
-    const locale = user?.locale || "en";
-    const { keyword, offset } = req.body;
-    const { gifImageUrl, total } = await GiphyManager.searchGiphy(locale, keyword, offset);
-    return res.status(200).json({
-      image: gifImageUrl,
-      // rotate results to 0 offset when no more gifs
-      nextOffset: total === offset + 1 ? 0 : offset + 1,
-    });
+    const { url } = req.body;
+    var matches = giphyUrlRegexp.exec(url);
+    if (!matches || matches.length < 2) {
+      return res.status(422).json({ message: "Giphy URL is invalid" });
+    }
+    const giphyId = matches[1];
+    const gifImageUrl = await GiphyManager.getGiphyById(giphyId);
+    return res.status(200).json({ image: gifImageUrl });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });
@@ -50,7 +42,7 @@ function validate(handler: (req: NextApiRequest, res: NextApiResponse) => Promis
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === "POST") {
       try {
-        searchSchema.parse(req.body);
+        getSchema.parse(req.body);
       } catch (error) {
         if (error instanceof ZodError && error?.name === "ZodError") {
           return res.status(400).json(error?.issues);

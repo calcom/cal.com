@@ -827,5 +827,10 @@
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "go_to_app_store": "Go to App Store",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
-  "calendar_no_busy_slots": "There are no busy slots"
+  "calendar_no_busy_slots": "There are no busy slots",
+  "add_gif": "Add GIF",
+  "search_giphy": "Search Giphy",
+  "add_link_from_giphy": "Add link from Giphy",
+  "add_gif_to_confirmation": "Adding a GIF to confirmation page",
+  "find_gif_spice_confirmation": "Find GIF to spice up your confirmation page"
 }
