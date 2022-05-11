@@ -99,7 +99,7 @@
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build"],
+      "dependsOn": ["@calcom/web#build", "@calcom/embed-core#build"],
       "outputs": []
     },
     "clean": {
