@@ -11,7 +11,7 @@ import {
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export function AccountDialog(props: DialogProps) {
-  const mutation = useAddAppMutation("office365_calendar");
+  const mutation = useAddAppMutation("office365_video");
   return (
     <Dialog name="Account check" {...props}>
       <DialogContent>
