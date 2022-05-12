@@ -23,6 +23,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
+import { BooleanArraySupportOption } from "prettier";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -372,6 +373,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     if (!selectedLocation) {
       return null;
     }
+
     switch (selectedLocation.value) {
       case LocationType.InPerson:
         return (
@@ -382,9 +384,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-1">
               <input
                 type="text"
-                {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
+                {...locationFormMethods.register("locationAddress")}
                 className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
                 defaultValue={
                   formMethods
@@ -396,11 +398,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-3">
               <CheckboxField
                 description={t("display_location_label")}
-                id="hiddenFromPublic"
+                id="displayLocationPublicly"
+                onChange={(e) => {
+                  locationFormMethods.setValue("displayLocationPublicly", e?.target.checked);
+                }}
                 defaultChecked={
                   formMethods
                     .getValues("locations")
-                    .find((location) => location.type === LocationType.InPerson)?.hiddenFromPublic ?? true // If the location doesnt have this set - force it to be true this should be an opt out feature
+                    .find((location) => location.type === LocationType.InPerson)?.displayLocationPublicly
                 }
                 infomationIconText={t("display_location_info_badge")}
               />
@@ -434,11 +439,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <div className="mt-3">
               <CheckboxField
                 description={t("display_location_label")}
-                id="hiddenFromPublic"
+                id="displayLocationPublicly"
+                onChange={(e) => {
+                  locationFormMethods.setValue("displayLocationPublicly", e?.target.checked);
+                }}
                 defaultChecked={
                   formMethods
                     .getValues("locations")
-                    .find((location) => location.type === LocationType.InPerson)?.hiddenFromPublic ?? true // If the location doesnt have this set - force it to be true this should be an opt out feature
+                    .find((location) => location.type === LocationType.InPerson)?.displayLocationPublicly
                 }
                 infomationIconText={t("display_location_info_badge")}
               />
@@ -532,7 +540,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hidden: boolean;
     hideCalendarNotes: boolean;
     hashedLink: string | undefined;
-    locations: { type: LocationType; address?: string; link?: string; hiddenFromPublic?: boolean }[];
+    locations: { type: LocationType; address?: string; link?: string; displayLocationPublicly?: boolean }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -565,6 +573,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    displayLocationPublicly: z.boolean().optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
@@ -572,6 +581,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationType: LocationType;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
+    displayLocationPublicly?: boolean;
   }>({
     resolver: zodResolver(locationFormSchema),
   });
@@ -1933,16 +1943,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <Form
                   form={locationFormMethods}
                   handleSubmit={async (values) => {
-                    const newLocation = values.locationType;
-
+                    const { locationType: newLocation, displayLocationPublicly } = values;
                     let details = {};
                     if (newLocation === LocationType.InPerson) {
-                      details = { address: values.locationAddress };
+                      details = {
+                        address: values.locationAddress,
+                        displayLocationPublicly,
+                      };
                     }
                     if (newLocation === LocationType.Link) {
-                      details = { link: values.locationLink };
+                      details = { link: values.locationLink, displayLocationPublicly };
                     }
-
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
@@ -2173,6 +2184,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   type Location = {
     type: LocationType;
     address?: string;
+    link?: string;
+    displayLocationPublicly?: boolean;
   };
 
   const credentials = await prisma.credential.findMany({

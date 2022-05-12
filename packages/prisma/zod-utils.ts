@@ -9,7 +9,7 @@ export const eventTypeLocations = z.array(
     type: z.nativeEnum(LocationType),
     address: z.string().optional(),
     link: z.string().url().optional(),
-    hiddenFromPublic: z.boolean().optional(),
+    displayLocationPublicly: z.boolean().optional(),
   })
 );
 
