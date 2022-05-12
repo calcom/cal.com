@@ -79,6 +79,8 @@ async function expectToContainValidPreviewIframe(
   );
 }
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Embed Code Generator Tests", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 

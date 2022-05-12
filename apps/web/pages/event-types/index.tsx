@@ -78,7 +78,10 @@ const Item = ({ type, group, readOnly }: any) => {
   return (
     <Link href={"/event-types/" + type.id}>
       <a
-        className="flex-grow truncate text-sm"
+        className={classNames(
+          "flex-grow truncate text-sm ",
+          type.$disabled && "pointer-events-none cursor-not-allowed opacity-30"
+        )}
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
@@ -207,17 +210,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         {types.map((type, index) => (
           <li
             key={type.id}
-            className={classNames(
-              type.$disabled && "pointer-events-none cursor-not-allowed select-none opacity-30"
-            )}
+            className={classNames(type.$disabled && "select-none")}
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
                 "flex items-center justify-between hover:bg-neutral-50 ",
-                type.$disabled && "pointer-events-none"
+                type.$disabled && "hover:bg-white"
               )}>
-              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
-                {types.length > 1 && (
+              <div
+                className={classNames(
+                  "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                  type.$disabled && "hover:bg-white"
+                )}>
+                {types.length > 1 && !type.$disabled && (
                   <>
                     <button
                       className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
@@ -238,7 +243,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
-                        className="relative top-1 right-3"
+                        className={classNames("relative top-1 right-3", type.$disabled && " opacity-30")}
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -247,28 +252,38 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         }))}
                       />
                     )}
-                    <Tooltip content={t("preview")}>
-                      <a
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-icon appearance-none">
-                        <ExternalLinkIcon className="h-5 w-5 group-hover:text-black" />
-                      </a>
-                    </Tooltip>
+                    <div
+                      className={classNames(
+                        "flex justify-between space-x-2 rtl:space-x-reverse ",
+                        type.$disabled && "pointer-events-none cursor-not-allowed"
+                      )}>
+                      <Tooltip content={t("preview")}>
+                        <a
+                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
+                          <ExternalLinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
+                        </a>
+                      </Tooltip>
 
-                    <Tooltip content={t("copy_link")}>
-                      <button
-                        onClick={() => {
-                          showToast(t("link_copied"), "success");
-                          navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
-                          );
-                        }}
-                        className="btn-icon">
-                        <LinkIcon className="h-5 w-5 group-hover:text-black" />
-                      </button>
-                    </Tooltip>
+                      <Tooltip content={t("copy_link")}>
+                        <button
+                          onClick={() => {
+                            showToast(t("link_copied"), "success");
+                            navigator.clipboard.writeText(
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
+                            );
+                          }}
+                          className={classNames("btn-icon", type.$disabled && " opacity-30")}>
+                          <LinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
+                        </button>
+                      </Tooltip>
+                    </div>
                     <Dropdown>
                       <DropdownMenuTrigger
                         className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
@@ -282,7 +297,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               type="button"
                               size="sm"
                               color="minimal"
-                              className="w-full rounded-none"
+                              className={classNames(
+                                "w-full rounded-none",
+                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                              )}
                               StartIcon={PencilIcon}>
                               {" "}
                               {t("edit")}
@@ -294,7 +312,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             type="button"
                             color="minimal"
                             size="sm"
-                            className="w-full rounded-none"
+                            className={classNames(
+                              "w-full rounded-none",
+                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                            )}
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
@@ -304,7 +325,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DropdownMenuItem>
                           <EmbedButton
                             dark
-                            className="w-full rounded-none"
+                            className={classNames(
+                              "w-full rounded-none",
+                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                            )}
                             eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
