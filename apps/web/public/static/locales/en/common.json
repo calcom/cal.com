@@ -791,5 +791,7 @@
   "resources": "Resources",
   "support_documentation": "Support documentation",
   "developer_documentation": "Developer Documentation",
-  "get_in_touch": "Get in touch"
+  "get_in_touch": "Get in touch",
+  "contact_support": "Contact Support",
+  "feedback": "Feedback"
 }
