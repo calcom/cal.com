@@ -18,31 +18,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "GET") {
     try {
-      const bookings = await prisma.booking.findMany({
-        take: 3,
+      const user = await prisma.user.findFirst({
         where: {
-          userId: validKey.userId,
+          id: validKey.userId,
         },
         select: {
-          description: true,
-          startTime: true,
-          endTime: true,
-          title: true,
-          location: true,
-          attendees: {
-            select: {
-              name: true,
-              email: true,
-              timeZone: true,
-            },
-          },
+          username: true,
         },
       });
-
-      res.status(201).json(bookings);
+      res.status(201).json(user);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ message: "Unable to get bookings." });
+      return res.status(500).json({ message: "Unable to get User." });
     }
   }
 }

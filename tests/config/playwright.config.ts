@@ -18,7 +18,7 @@ addAliases({
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
-const DEFAULT_NAVIGATION_TIMEOUT = 5000;
+const DEFAULT_NAVIGATION_TIMEOUT = 15000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
@@ -27,7 +27,7 @@ const config: PlaywrightTestConfig = {
   retries: 1,
   workers: os.cpus().length,
   timeout: 60_000,
-  maxFailures: headless ? 3 : undefined,
+  maxFailures: headless ? 10 : undefined,
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],

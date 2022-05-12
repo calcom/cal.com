@@ -646,8 +646,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-
-    if (results.length > 0 && results.every((res) => !res.success)) {
+    if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {
         errorCode: "BookingReschedulingMeetingFailed",
         message: "Booking Rescheduling failed",
