@@ -99,7 +99,7 @@
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build"],
+      "dependsOn": ["@calcom/web#build", "@calcom/embed-core#build"],
       "outputs": []
     },
     "clean": {
@@ -132,7 +132,7 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/web#test", "@calcom/web#build", "@calcom/prisma#db-reset"]
+      "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
       "outputs": []

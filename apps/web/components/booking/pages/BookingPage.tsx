@@ -91,6 +91,15 @@ const BookingPage = ({
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
+  }, []);
+
+  useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
       const eventOwner = eventType.users[0];
 
@@ -144,7 +153,7 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], recurringEventId } = responseData[0] || {};
+      const { attendees = [], id, recurringEventId } = responseData[0] || {};
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
@@ -168,6 +177,7 @@ const BookingPage = ({
           email: attendees[0].email,
           location,
           eventName: profile.eventName || "",
+          bookingId: id,
         },
       });
     },
@@ -293,7 +303,7 @@ const BookingPage = ({
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.bookingConfirmed,
+        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
