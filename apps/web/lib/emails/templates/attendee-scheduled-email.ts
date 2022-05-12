@@ -8,8 +8,7 @@ import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
 import BaseEmail from "@lib/emails/templates/_base-email";
 
@@ -34,6 +33,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
 
   constructor(calEvent: CalendarEvent, attendee: Person, recurringEvent: RecurringEvent) {
     super();
+    this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
     this.recurringEvent = recurringEvent;

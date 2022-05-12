@@ -1,10 +1,11 @@
 import nodemailer from "nodemailer";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-
-import { serverConfig } from "@lib/serverConfig";
+import { serverConfig } from "@calcom/lib/serverConfig";
 
 export default class BaseEmail {
+  name: string = "";
+
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
   }
@@ -35,6 +36,6 @@ export default class BaseEmail {
   protected printNodeMailerError(error: Error): void {
     /** Don't clog the logs with unsent emails in E2E */
     if (process.env.NEXT_PUBLIC_IS_E2E) return;
-    console.error("SEND_BOOKING_CONFIRMATION_ERROR", error);
+    console.error(`${this.name}_ERROR`, error);
   }
 }
