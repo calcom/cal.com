@@ -1,5 +1,6 @@
 import { ChevronLeftIcon } from "@heroicons/react/solid";
-import { InferGetStaticPropsType, GetStaticPropsContext } from "next";
+import { AppCategories } from "@prisma/client";
+import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -9,8 +10,6 @@ import prisma from "@calcom/prisma";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
-
-import { AppCategories } from ".prisma/client";
 
 export default function Apps({ apps: apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
