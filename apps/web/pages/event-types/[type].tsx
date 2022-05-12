@@ -397,6 +397,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               <CheckboxField
                 description={t("display_location_label")}
                 id="hiddenFromPublic"
+                defaultChecked={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.InPerson)?.hiddenFromPublic ?? true // If the location doesnt have this set - force it to be true this should be an opt out feature
+                }
                 infomationIconText={t("display_location_info_badge")}
               />
             </div>
@@ -425,6 +430,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {locationFormMethods.formState.errors.locationLink.message}
                 </p>
               )}
+            </div>
+            <div className="mt-3">
+              <CheckboxField
+                description={t("display_location_label")}
+                id="hiddenFromPublic"
+                defaultChecked={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.InPerson)?.hiddenFromPublic ?? true // If the location doesnt have this set - force it to be true this should be an opt out feature
+                }
+                infomationIconText={t("display_location_info_badge")}
+              />
             </div>
           </div>
         );
@@ -515,7 +532,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hidden: boolean;
     hideCalendarNotes: boolean;
     hashedLink: string | undefined;
-    locations: { type: LocationType; address?: string; link?: string }[];
+    locations: { type: LocationType; address?: string; link?: string; hiddenFromPublic?: boolean }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
