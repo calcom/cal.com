@@ -393,6 +393,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 }
               />
             </div>
+            <div className="mt-3">
+              <CheckboxField
+                description={t("display_location_label")}
+                id="hiddenFromPublic"
+                infomationIconText={t("display_location_info_badge")}
+              />
+            </div>
           </div>
         );
       case LocationType.Link:
