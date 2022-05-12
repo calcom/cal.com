@@ -84,9 +84,10 @@ type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
 
 interface IntegrationsContainerProps {
   variant: App["variant"];
+  className?: string;
 }
 
-const IntegrationsContainer = ({ variant }: IntegrationsContainerProps): JSX.Element => {
+const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant }], { suspense: true });
   const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
@@ -98,7 +99,7 @@ const IntegrationsContainer = ({ variant }: IntegrationsContainerProps): JSX.Ele
         return (
           <>
             {installedApps.length > 0 && (
-              <>
+              <div className={className}>
                 <ShellSubHeading
                   title={
                     <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.numActive} />
@@ -122,7 +123,7 @@ const IntegrationsContainer = ({ variant }: IntegrationsContainerProps): JSX.Ele
                     />
                   ))}
                 </List>
-              </>
+              </div>
             )}
           </>
         );
@@ -229,8 +230,8 @@ export default function IntegrationsPage() {
         <ClientSuspense fallback={<SkeletonLoader />}>
           <IntegrationsContainer variant="conferencing" />
           <CalendarListContainer />
-          <IntegrationsContainer variant="payment" />
-          <IntegrationsContainer variant="other" />
+          <IntegrationsContainer variant="payment" className="mt-8" />
+          <IntegrationsContainer variant="other" className="mt-8" />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
           <Web3Container />
         </ClientSuspense>

@@ -38,7 +38,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
       query={query}
       success={({ data }) => (
         <>
-          <ShellSubHeading className="mt-10" title={props.title} subtitle={props.subtitle} />
+          <ShellSubHeading className="mt-8" title={props.title} subtitle={props.subtitle} />
           <List>
             <ListItem className={classNames("flex-col")}>
               <div
