@@ -33,7 +33,7 @@
     <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
     <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=social"></a>
     <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
-
+    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->
@@ -80,7 +80,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js
+- Node.js (Version: >=14.x <15)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -102,18 +102,13 @@ Here is what you need to be able to run Cal.
    cd cal.com
    ```
 
-1. Copy `apps/web/.env.example` to `apps/web/.env`
-
-   ```sh
-   cp apps/web/.env.example apps/web/.env
-   cp packages/prisma/.env.example packages/prisma/.env
-   ```
-
 1. Install packages with yarn
 
    ```sh
    yarn
    ```
+
+1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
 
 #### Quick start with `yarn dx`
 
@@ -126,10 +121,10 @@ yarn dx
 
 #### Development tip
 
-> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `apps/web/.env` to get logging information for all the queries and mutations driven by **trpc**.
+> Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **trpc**.
 
 ```sh
-echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
+echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 ```
 
 #### Manual setup
@@ -195,11 +190,11 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> apps/web/.env
 
 ### E2E-Testing
 
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
+
 ```sh
-# In first terminal. Must run on port 3000.
-yarn dx
-# In second terminal
-yarn workspace @calcom/web test-e2e
+# In a terminal just run:
+yarn test-e2e
 
 # To open last HTML report run:
 yarn workspace @calcom/web playwright-report
@@ -213,7 +208,13 @@ yarn workspace @calcom/web playwright-report
    git pull
    ```
 
-2. Apply database migrations by running <b>one of</b> the following commands:
+1. Check if dependencies got added/updated/removed
+
+   ```sh
+   yarn
+   ```
+
+1. Apply database migrations by running <b>one of</b> the following commands:
 
    In a development environment, run:
 
@@ -229,16 +230,13 @@ yarn workspace @calcom/web playwright-report
    yarn workspace @calcom/prisma db-deploy
    ```
 
-3. Check the `.env.example` and compare it to your current `.env` file. In case there are any fields not present
-   in your current `.env`, add them there.
+1. Check for `.env` variables changes
 
-   For the current version, especially check if the variable `BASE_URL` is present and properly set in your environment, for example:
-
-   ```
-   BASE_URL='https://yourdomain.com'
+   ```sh
+   yarn predev
    ```
 
-4. Start the server. In a development environment, just do:
+1. Start the server. In a development environment, just do:
 
    ```sh
    yarn dev
@@ -251,7 +249,7 @@ yarn workspace @calcom/web playwright-report
    yarn start
    ```
 
-5. Enjoy the new version.
+1. Enjoy the new version.
 <!-- DEPLOYMENT -->
 
 ## Deployment
@@ -349,6 +347,7 @@ oauth_config:
     bot:
       - chat:write
       - commands
+      - chat:write.public 
 settings:
   interactivity:
     is_enabled: true
@@ -391,6 +390,30 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
 5. If you have the [Daily Scale Plan](https://www.daily.co/pricing) set the `DAILY_SCALE_PLAN` variable to `true` in order to use features like video recording.
 
+### Obtaining HubSpot Client ID and Secret
+
+1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
+2. From within the home of the Developer account page, go to "Manage apps".
+3. Click "Create app" button top right.
+4. Fill in any information you want in the "App info" tab
+5. Go to tab "Auth"
+6. Now copy the Client ID and Client Secret to your .env file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot othercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
+9. Click the "Save" button at the bottom footer.
+10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
+
+### Obtaining Vital API Keys
+
+1. Open [Vital](https://tryvital.io/) and click Get API Keys.
+1. Create a team with the team name you desire
+1. Head to the configuration section on the sidebar of the dashboard
+1. Click on API keys and you'll find your sandbox `api_key`.
+1. Copy your `api_key` to `VITAL_API_KEY` in the .env.appStore file.
+1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
+1. Select all events for the webhook you interested, e.g. `sleep_created`
+1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
+
 <!-- LICENSE -->
 
 ## License
@@ -410,7 +433,7 @@ Special thanks to these amazing projects which help power Cal.com:
 - [Day.js](https://day.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Prisma](https://prisma.io/)
-
-[<img src="https://jitsu.com/img/powered-by-jitsu.png?gh=true">](https://jitsu.com/?utm_source=cal.com-gihub)
+  
+ <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
 Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.

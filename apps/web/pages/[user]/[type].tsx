@@ -5,9 +5,11 @@ import { JSONObject } from "superjson/dist/types";
 
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -19,7 +21,22 @@ export type AvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
-  return props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
+  return props.away ? (
+    <div className="h-screen dark:bg-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
+              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                😴{" " + t("user_away")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_away_description")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : props.isDynamicGroup && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -48,6 +65,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const userParam = asStringOrNull(context.query.user);
   const typeParam = asStringOrNull(context.query.type);
   const dateParam = asStringOrNull(context.query.date);
+  const rescheduleUid = asStringOrNull(context.query.rescheduleUid);
 
   if (!userParam || !typeParam) {
     throw new Error(`File is not named [type]/[user]`);
@@ -67,6 +85,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodDays: true,
     periodCountCalendarDays: true,
     schedulingType: true,
+    recurringEvent: true,
     schedule: {
       select: {
         availability: true,
@@ -116,6 +135,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       defaultScheduleId: true,
       allowDynamicBooking: true,
+      away: true,
       schedules: {
         select: {
           availability: true,
@@ -238,6 +258,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
   });
 
   const schedule = eventType.schedule
@@ -260,6 +281,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   );
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
+
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, rescheduleUid);
+  }
 
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {
@@ -294,6 +320,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      away: user.away,
       isDynamicGroup,
       profile,
       plan: user.plan,
@@ -302,6 +329,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       workingHours,
       trpcState: ssr.dehydrate(),
       previousPage: context.req.headers.referer ?? null,
+      booking,
     },
   };
 };

@@ -1,7 +1,7 @@
 import { UserIcon } from "@heroicons/react/outline";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import React, { useState, useEffect, SyntheticEvent } from "react";
+import React, { useState, useEffect, SyntheticEvent, useMemo } from "react";
 
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
@@ -16,6 +16,7 @@ import Select from "@components/ui/form/Select";
 type MemberInvitationModalProps = {
   isOpen: boolean;
   team: TeamWithMembers | null;
+  currentMember: MembershipRole;
   onExit: () => void;
 };
 
@@ -24,19 +25,19 @@ type MembershipRoleOption = {
   label?: string;
 };
 
-const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }];
+const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
 
-  useEffect(() => {
-    options.forEach((option, i) => {
-      options[i].label = t(option.value.toLowerCase());
+  const options = useMemo(() => {
+    _options.forEach((option, i) => {
+      _options[i].label = t(option.value.toLowerCase());
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return _options;
+  }, [t]);
 
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
@@ -99,7 +100,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 {t("role")}
               </label>
               <Select
-                options={options}
+                defaultValue={options[0]}
+                options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
                 id="role"
                 name="role"
                 className="mt-1 block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"

@@ -1,19 +1,39 @@
 {
   "name": "@calcom/embed-core",
-  "version": "0.1.0",
-  "description": "The core script adds the booking embed",
+  "version": "1.0.0",
+  "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./index.ts",
   "scripts": {
-    "build": "vite build",
-    "build:cal": "NEXT_PUBLIC_WEBSITE_URL='https://cal.com' yarn build",
+    "__build": "yarn tailwind && vite build",
+    "__dev": "yarn __build --mode development",
+    "build": "NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) yarn __build",
+    "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
-    "dev": "run-p 'build --watch' 'vite --port 3002 --strict-port --open'",
+    "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css",
+    "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --open'",
+    "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
+    "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
-    "test-playwright": "yarn playwright test --config=playwright/config/playwright.config.ts"
+    "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
+    "embed-tests-quick": "QUICK=true yarn embed-tests"
+  },
+  "postcss": {
+    "map": false,
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
   },
   "devDependencies": {
-    "vite": "^2.8.6",
-    "eslint": "^8.10.0"
+    "autoprefixer": "^10.4.4",
+    "eslint": "^8.10.0",
+    "postcss": "^8.4.12",
+    "vite": "^2.8.6"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.0.24",
+    "tsc": "^2.0.4",
+    "typescript": "^4.6.3"
   }
 }

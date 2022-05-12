@@ -9,13 +9,14 @@ import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
-import { QueryCell } from "@lib/QueryCell";
+import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
+import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t, i18n } = useLocale();
@@ -99,13 +100,18 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   );
 }
 
+const WithQuery = withQuery(["viewer.availability.list"]);
+
 export default function AvailabilityPage() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.availability.list"]);
   return (
     <div>
-      <Shell heading={t("availability")} subtitle={t("configure_availability")} CTA={<NewScheduleButton />}>
-        <QueryCell query={query} success={({ data }) => <AvailabilityList {...data} />} />
+      <Shell
+        heading={t("availability")}
+        subtitle={t("configure_availability")}
+        CTA={<NewScheduleButton />}
+        customLoader={<SkeletonLoader />}>
+        <WithQuery success={({ data }) => <AvailabilityList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
     </div>
   );

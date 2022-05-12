@@ -1,4 +1,4 @@
-import { Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import {
@@ -7,6 +7,8 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
+
+test.describe.configure({ mode: "parallel" });
 
 test.describe("dynamic booking", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
@@ -17,7 +19,7 @@ test.describe("dynamic booking", () => {
     await page.goto("/pro+free");
   });
 
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     // delete test bookings
     await deleteAllBookingsByEmail("pro@example.com");
     await deleteAllBookingsByEmail("free@example.com");
@@ -28,13 +30,7 @@ test.describe("dynamic booking", () => {
     await page.click('[data-testid="event-type-link"]');
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
-
-    // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("can reschedule a booking", async ({ page }) => {
@@ -42,7 +38,8 @@ test.describe("dynamic booking", () => {
 
     // Logged in
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').click();
+    await page.locator('[data-testid="reschedule"]').nth(0).click();
+    await page.locator('[data-testid="edit"]').click();
     await page.waitForNavigation({
       url: (url) => {
         const bookingId = url.searchParams.get("rescheduleUid");
@@ -57,6 +54,7 @@ test.describe("dynamic booking", () => {
         return url.pathname === "/success" && url.searchParams.get("reschedule") === "true";
       },
     });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("Can cancel the recently created booking", async ({ page }) => {

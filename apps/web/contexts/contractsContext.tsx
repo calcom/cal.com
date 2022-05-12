@@ -1,5 +1,7 @@
 import { createContext, ReactNode, useContext } from "react";
 
+import { localStorage } from "@calcom/lib/webstorage";
+
 type contractsContextType = Record<string, string>;
 
 const contractsContextDefaultValue: contractsContextType = {};
@@ -21,18 +23,17 @@ interface addContractsPayload {
 
 export function ContractsProvider({ children }: Props) {
   const addContract = (payload: addContractsPayload) => {
-    window.localStorage.setItem(
+    localStorage.setItem(
       "contracts",
       JSON.stringify({
-        ...JSON.parse(window.localStorage.getItem("contracts") || "{}"),
+        ...JSON.parse(localStorage.getItem("contracts") || "{}"),
         [payload.address]: payload.signature,
       })
     );
   };
 
   const value = {
-    contracts:
-      typeof window !== "undefined" ? JSON.parse(window.localStorage.getItem("contracts") || "{}") : {},
+    contracts: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("contracts") || "{}") : {},
     addContract,
   };
 

@@ -2,20 +2,23 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
-import { useLocale } from "@lib/hooks/useLocale";
-import { inferQueryInput, trpc } from "@lib/trpc";
+import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
-import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
+import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+type BookingPage = inferQueryOutput<"viewer.bookings">;
 
 export default function Bookings() {
   const router = useRouter();
@@ -25,6 +28,7 @@ export default function Bookings() {
 
   const descriptionByStatus: Record<BookingListingStatus, string> = {
     upcoming: t("upcoming_bookings"),
+    recurring: t("recurring_bookings"),
     past: t("past_bookings"),
     cancelled: t("cancelled_bookings"),
   };
@@ -43,8 +47,21 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
+  // Get the recurrentCount value from the grouped recurring bookings
+  // created with the same recurringEventId
+  const defineRecurrentCount = (booking: BookingOutput, page: BookingPage) => {
+    let recurringCount = undefined;
+    if (booking.recurringEventId !== null) {
+      recurringCount = page.groupedRecurringBookings.filter(
+        (group) => group.recurringEventId === booking.recurringEventId
+      )[0]._count; // If found, only one object exists, just assing the needed _count value
+    }
+    return { recurringCount };
+  };
+
   return (
-    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
+    <Shell heading={t("bookings")} subtitle={t("bookings_description")} customLoader={<SkeletonLoader />}>
+      <WipeMyCalActionButton trpc={trpc} bookingStatus={status} bookingsEmpty={isEmpty} />
       <BookingsShell>
         <div className="-mx-4 flex flex-col sm:mx-auto">
           <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -52,7 +69,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {(query.status === "loading" || query.status === "idle") && <Loader />}
+              {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
               {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">
@@ -61,7 +78,12 @@ export default function Bookings() {
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
                             {page.bookings.map((booking) => (
-                              <BookingListItem key={booking.id} {...booking} />
+                              <BookingListItem
+                                key={booking.id}
+                                listingStatus={status}
+                                {...defineRecurrentCount(booking, page)}
+                                {...booking}
+                              />
                             ))}
                           </Fragment>
                         ))}
@@ -70,6 +92,7 @@ export default function Bookings() {
                   </div>
                   <div className="p-4 text-center" ref={buttonInView.ref}>
                     <Button
+                      color="minimal"
                       loading={query.isFetchingNextPage}
                       disabled={!query.hasNextPage}
                       onClick={() => query.fetchNextPage()}>

@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -13,8 +12,10 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
+import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -30,7 +31,22 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
-  return props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
+  return props.away ? (
+    <div className="h-screen dark:bg-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-24">
+        <div className="space-y-6" data-testid="event-types">
+          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+            <div className="p-8 text-center text-gray-400 dark:text-white">
+              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                😴{" " + t("user_away")}
+              </h2>
+              <p className="mx-auto max-w-md">{t("user_away_description")}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  ) : props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
     <div className="h-screen dark:bg-neutral-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -54,6 +70,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));
   const eventTypeSlug = context.query.slug as string;
+  const recurringEventCountQuery = asStringOrNull(context.query.count);
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -71,11 +88,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       brandColor: true,
       darkBrandColor: true,
       allowDynamicBooking: true,
+      away: true,
     },
   });
 
   if (!users.length) return { notFound: true };
   const [user] = users;
+  const isDynamicGroupBooking = users.length > 1;
+
+  // Dynamic Group link doesn't need a type but it must have a slug
+  if ((!isDynamicGroupBooking && !context.query.type) || (isDynamicGroupBooking && !eventTypeSlug)) {
+    return { notFound: true };
+  }
+
   const eventTypeRaw =
     usernameList.length > 1
       ? getDefaultEvent(eventTypeSlug)
@@ -95,6 +120,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             periodDays: true,
             periodStartDate: true,
             periodEndDate: true,
+            recurringEvent: true,
             metadata: true,
             periodCountCalendarDays: true,
             price: true,
@@ -102,6 +128,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             disableGuests: true,
             users: {
               select: {
+                id: true,
                 username: true,
                 name: true,
                 email: true,
@@ -133,6 +160,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     metadata: (eventTypeRaw.metadata || {}) as JSONObject,
+    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
     isWeb3Active:
       web3Credentials && web3Credentials.key
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
@@ -147,31 +175,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
-  async function getBooking() {
-    return prisma.booking.findFirst({
-      where: {
-        uid: asStringOrThrow(context.query.rescheduleUid),
-      },
-      select: {
-        description: true,
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
-  type Booking = Prisma.PromiseReturnType<typeof getBooking>;
-  let booking: Booking | null = null;
-
+  let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking();
+    booking = await getBooking(prisma, context.query.rescheduleUid as string);
   }
-
-  const isDynamicGroupBooking = users.length > 1;
 
   const dynamicNames = isDynamicGroupBooking
     ? users.map((user) => {
@@ -206,14 +213,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const t = await getTranslation(context.locale ?? "en", "common");
 
+  // Checking if number of recurring event ocurrances is valid against event type configuration
+  const recurringEventCount =
+    (eventType.recurringEvent?.count &&
+      recurringEventCountQuery &&
+      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
+        ? recurringEventCountQuery
+        : eventType.recurringEvent.count)) ||
+    null;
+
   return {
     props: {
+      away: user.away,
       locationLabels: getLocationLabels(t),
       profile,
       eventType: eventTypeObject,
       booking,
+      recurringEventCount,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
+      hasHashedBookingLink: false,
+      hashedLink: null,
     },
   };
 }

@@ -10,14 +10,16 @@ import {
   ClipboardCopyIcon,
   TrashIcon,
   PencilIcon,
+  CodeIcon,
 } from "@heroicons/react/solid";
 import { UsersIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
@@ -29,18 +31,20 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calcom/ui/Dropdown";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
-import { QueryCell } from "@lib/QueryCell";
+import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import CreateEventTypeButton from "@components/eventtype/CreateEventType";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
+import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
@@ -63,38 +67,86 @@ type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][n
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
   group: EventTypeGroup;
+  groupIndex: number;
   readOnly: boolean;
   types: EventType[];
 }
 
-export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): JSX.Element => {
+const Item = ({ type, group, readOnly }: any) => {
+  const { t } = useLocale();
+
+  return (
+    <Link href={"/event-types/" + type.id}>
+      <a
+        className={classNames(
+          "flex-grow truncate text-sm ",
+          type.$disabled && "pointer-events-none cursor-not-allowed opacity-30"
+        )}
+        title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
+        <div>
+          <span
+            className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
+            data-testid={"event-type-title-" + type.id}>
+            {type.title}
+          </span>
+          <small
+            className="hidden text-neutral-500 sm:inline"
+            data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+          {type.hidden && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
+              {t("hidden")}
+            </span>
+          )}
+          {readOnly && (
+            <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
+              {t("readonly")}
+            </span>
+          )}
+        </div>
+        <EventTypeDescription eventType={type} />
+      </a>
+    </Link>
+  );
+};
+
+const MemoizedItem = React.memo(Item);
+
+export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
 
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
-    onError: (err) => {
+    onError: async (err) => {
       console.error(err.message);
-    },
-    async onSettled() {
       await utils.cancelQuery(["viewer.eventTypes"]);
       await utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
-  const [sortableTypes, setSortableTypes] = useState(types);
-  useEffect(() => {
-    setSortableTypes(types);
-  }, [types]);
-  function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...sortableTypes];
 
-    const type = sortableTypes[index];
-    const tmp = sortableTypes[index + increment];
+  function moveEventType(index: number, increment: 1 | -1) {
+    const newList = [...types];
+
+    const type = types[index];
+    const tmp = types[index + increment];
     if (tmp) {
       newList[index] = tmp;
       newList[index + increment] = type;
     }
-    setSortableTypes(newList);
+
+    utils.cancelQuery(["viewer.eventTypes"]);
+    utils.setQueryData(["viewer.eventTypes"], (data) =>
+      Object.assign(data, {
+        eventTypesGroups: [
+          data?.eventTypeGroups.slice(0, groupIndex),
+          Object.assign(group, {
+            eventTypes: newList,
+          }),
+          data?.eventTypeGroups.slice(groupIndex + 1),
+        ],
+      })
+    );
+
     mutation.mutate({
       ids: newList.map((type) => type.id),
     });
@@ -155,20 +207,22 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
       <ul className="divide-y divide-neutral-200" data-testid="event-types">
-        {sortableTypes.map((type, index) => (
+        {types.map((type, index) => (
           <li
             key={type.id}
-            className={classNames(
-              type.$disabled && "pointer-events-none cursor-not-allowed select-none opacity-30"
-            )}
+            className={classNames(type.$disabled && "select-none")}
             data-disabled={type.$disabled ? 1 : 0}>
             <div
               className={classNames(
                 "flex items-center justify-between hover:bg-neutral-50 ",
-                type.$disabled && "pointer-events-none"
+                type.$disabled && "hover:bg-white"
               )}>
-              <div className="group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
-                {sortableTypes.length > 1 && (
+              <div
+                className={classNames(
+                  "group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6",
+                  type.$disabled && "hover:bg-white"
+                )}>
+                {types.length > 1 && !type.$disabled && (
                   <>
                     <button
                       className="invisible absolute left-1/2 -mt-4 mb-4 -ml-4 hidden h-7 w-7 scale-0 rounded-full border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:left-[19px] sm:ml-0 sm:block"
@@ -183,42 +237,13 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                     </button>
                   </>
                 )}
-                <Link href={"/event-types/" + type.id}>
-                  <a
-                    className="flex-grow truncate text-sm"
-                    title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
-                    <div>
-                      <span
-                        className="truncate font-medium text-neutral-900 ltr:mr-1 rtl:ml-1"
-                        data-testid={"event-type-title-" + type.id}>
-                        {type.title}
-                      </span>
-                      <small
-                        className="hidden text-neutral-500 sm:inline"
-                        data-testid={
-                          "event-type-slug-" + type.id
-                        }>{`/${group.profile.slug}/${type.slug}`}</small>
-                      {type.hidden && (
-                        <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
-                          {t("hidden")}
-                        </span>
-                      )}
-                      {readOnly && (
-                        <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
-                          {t("readonly")}
-                        </span>
-                      )}
-                    </div>
-                    <EventTypeDescription eventType={type} />
-                  </a>
-                </Link>
-
+                <MemoizedItem type={type} group={group} readOnly={readOnly} />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
-                  <div className="flex justify-between rtl:space-x-reverse">
+                  <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
                       <AvatarGroup
                         border="border-2 border-white"
-                        className="relative top-1 right-3"
+                        className={classNames("relative top-1 right-3", type.$disabled && " opacity-30")}
                         size={8}
                         truncateAfter={4}
                         items={type.users.map((organizer) => ({
@@ -227,31 +252,41 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                         }))}
                       />
                     )}
-                    <Tooltip content={t("preview")}>
-                      <a
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-icon appearance-none">
-                        <ExternalLinkIcon className="h-5 w-5 group-hover:text-black" />
-                      </a>
-                    </Tooltip>
+                    <div
+                      className={classNames(
+                        "flex justify-between space-x-2 rtl:space-x-reverse ",
+                        type.$disabled && "pointer-events-none cursor-not-allowed"
+                      )}>
+                      <Tooltip content={t("preview")}>
+                        <a
+                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={classNames("btn-icon appearance-none", type.$disabled && " opacity-30")}>
+                          <ExternalLinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
+                        </a>
+                      </Tooltip>
 
-                    <Tooltip content={t("copy_link")}>
-                      <button
-                        onClick={() => {
-                          showToast(t("link_copied"), "success");
-                          navigator.clipboard.writeText(
-                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
-                          );
-                        }}
-                        className="btn-icon">
-                        <LinkIcon className="h-5 w-5 group-hover:text-black" />
-                      </button>
-                    </Tooltip>
+                      <Tooltip content={t("copy_link")}>
+                        <button
+                          onClick={() => {
+                            showToast(t("link_copied"), "success");
+                            navigator.clipboard.writeText(
+                              `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`
+                            );
+                          }}
+                          className={classNames("btn-icon", type.$disabled && " opacity-30")}>
+                          <LinkIcon
+                            className={classNames("h-5 w-5", !type.$disabled && "group-hover:text-black")}
+                          />
+                        </button>
+                      </Tooltip>
+                    </div>
                     <Dropdown>
                       <DropdownMenuTrigger
-                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900"
+                        className="h-10 w-10 cursor-pointer rounded-sm border border-transparent text-neutral-500 hover:border-gray-300 hover:text-neutral-900 focus:border-gray-300"
                         data-testid={"event-type-options-" + type.id}>
                         <DotsHorizontalIcon className="h-5 w-5 group-hover:text-gray-800" />
                       </DropdownMenuTrigger>
@@ -262,7 +297,10 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                               type="button"
                               size="sm"
                               color="minimal"
-                              className="w-full rounded-none"
+                              className={classNames(
+                                "w-full rounded-none",
+                                type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                              )}
                               StartIcon={PencilIcon}>
                               {" "}
                               {t("edit")}
@@ -274,12 +312,24 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
                             type="button"
                             color="minimal"
                             size="sm"
-                            className="w-full rounded-none"
+                            className={classNames(
+                              "w-full rounded-none",
+                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                            )}
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
                             {t("duplicate")}
                           </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <EmbedButton
+                            dark
+                            className={classNames(
+                              "w-full rounded-none",
+                              type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
+                            )}
+                            eventTypeId={type.id}></EmbedButton>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
@@ -435,45 +485,48 @@ export const EventTypeList = ({ group, readOnly, types }: EventTypeListProps): J
   );
 };
 
-const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => (
-  <div className="mb-4 flex">
-    <Link href="/settings/teams">
-      <a>
-        <Avatar
-          alt={profile?.name || ""}
-          imageSrc={profile?.image || undefined}
-          size={8}
-          className="mt-1 inline ltr:mr-2 rtl:ml-2"
-        />
-      </a>
-    </Link>
-    <div>
+const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
+  console.log(profile.slug);
+  return (
+    <div className="mb-4 flex">
       <Link href="/settings/teams">
-        <a className="font-bold">{profile?.name || ""}</a>
+        <a>
+          <Avatar
+            alt={profile?.name || ""}
+            imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+            size={8}
+            className="mt-1 inline ltr:mr-2 rtl:ml-2"
+          />
+        </a>
       </Link>
-      {membershipCount && (
-        <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
-          <Link href="/settings/teams">
-            <a>
-              <Badge variant="gray">
-                <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
-                {membershipCount}
-              </Badge>
-            </a>
-          </Link>
-        </span>
-      )}
-      {profile?.slug && (
-        <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
-          <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
-            "https://",
-            ""
-          )}/${profile.slug}`}</a>
+      <div>
+        <Link href="/settings/teams">
+          <a className="font-bold">{profile?.name || ""}</a>
         </Link>
-      )}
+        {membershipCount && (
+          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
+            <Link href="/settings/teams">
+              <a>
+                <Badge variant="gray">
+                  <UsersIcon className="mr-1 -mt-px inline h-3 w-3" />
+                  {membershipCount}
+                </Badge>
+              </a>
+            </Link>
+          </span>
+        )}
+        {profile?.slug && (
+          <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${profile.slug}`}>
+            <a className="block text-xs text-neutral-500">{`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
+              "https://",
+              ""
+            )}/${profile.slug}`}</a>
+          </Link>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
   const { t } = useLocale();
@@ -487,10 +540,20 @@ const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypePro
   );
 };
 
-const EventTypesPage = () => {
-  const { t } = useLocale();
+const CTA = () => {
   const query = trpc.useQuery(["viewer.eventTypes"]);
 
+  if (!query.data) return null;
+
+  return (
+    <CreateEventTypeButton canAddEvents={query.data.viewer.canAddEvents} options={query.data.profiles} />
+  );
+};
+
+const WithQuery = withQuery(["viewer.eventTypes"]);
+
+const EventTypesPage = () => {
+  const { t } = useLocale();
   return (
     <div>
       <Head>
@@ -500,16 +563,10 @@ const EventTypesPage = () => {
       <Shell
         heading={t("event_types_page_title")}
         subtitle={t("event_types_page_subtitle")}
-        CTA={
-          query.data && (
-            <CreateEventTypeButton
-              canAddEvents={query.data.viewer.canAddEvents}
-              options={query.data.profiles}
-            />
-          )
-        }>
-        <QueryCell
-          query={query}
+        CTA={<CTA />}
+        customLoader={<SkeletonLoader />}>
+        <WithQuery
+          customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
               {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
@@ -528,7 +585,7 @@ const EventTypesPage = () => {
                   className="mb-4"
                 />
               )}
-              {data.eventTypeGroups.map((group) => (
+              {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
                   {(data.eventTypeGroups.length !== 1 || group.teamId) && (
@@ -537,13 +594,19 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList types={group.eventTypes} group={group} readOnly={group.metadata.readOnly} />
+                  <EventTypeList
+                    types={group.eventTypes}
+                    group={group}
+                    groupIndex={index}
+                    readOnly={group.metadata.readOnly}
+                  />
                 </Fragment>
               ))}
 
               {data.eventTypeGroups.length === 0 && (
                 <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
               )}
+              <EmbedDialog></EmbedDialog>
             </>
           )}
         />

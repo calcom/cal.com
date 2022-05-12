@@ -45,6 +45,7 @@ model EventType {
   userId                  Int?
   team                    Team?                  @relation(fields: [teamId], references: [id])
   teamId                  Int?
+  hashedLink              HashedLink?
   bookings                Booking[]
   availability            Availability[]
   webhooks                Webhook[]
@@ -58,6 +59,8 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
+  /// @zod.custom(imports.recurringEvent)
+  recurringEvent          Json?
   disableGuests           Boolean                @default(false)
   hideCalendarNotes       Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
@@ -72,14 +75,17 @@ model EventType {
   successRedirectUrl      String?
 
   @@unique([userId, slug])
+  @@unique([teamId, slug])
 }
 
 model Credential {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
+  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId  String?
 }
 
 enum UserPlan {
@@ -104,6 +110,11 @@ model DestinationCalendar {
   bookingId   Int?       @unique
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?       @unique
+}
+
+enum UserPermissionRole {
+  USER
+  ADMIN
 }
 
 model User {
@@ -154,6 +165,12 @@ model User {
   allowDynamicBooking Boolean?             @default(true)
   metadata            Json?
   verified            Boolean?             @default(false)
+  role                UserPermissionRole   @default(USER)
+  impersonatedUsers   Impersonations[]     @relation("impersonated_user")
+  impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
+  apiKeys             ApiKey[]
+  accounts            Account[]
+  sessions            Session[]
 
   @@map(name: "users")
 }
@@ -186,7 +203,7 @@ model Membership {
   @@id([userId, teamId])
 }
 
-model VerificationRequest {
+model VerificationToken {
   id         Int      @id @default(autoincrement())
   identifier String
   token      String   @unique
@@ -204,8 +221,9 @@ model BookingReference {
   meetingId       String?
   meetingPassword String?
   meetingUrl      String?
-  booking         Booking? @relation(fields: [bookingId], references: [id])
+  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId       Int?
+  deleted         Boolean?
 }
 
 model Attendee {
@@ -260,6 +278,9 @@ model Booking {
   rejectionReason     String?
   dynamicEventSlugRef String?
   dynamicGroupSlugRef String?
+  rescheduled         Boolean?
+  fromReschedule      String?
+  recurringEventId    String?
 }
 
 model Schedule {
@@ -342,7 +363,7 @@ model Payment {
   uid        String      @unique
   type       PaymentType
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount     Int
   fee        Int
   currency   String
@@ -369,4 +390,87 @@ model Webhook {
   eventTriggers   WebhookTriggerEvents[]
   user            User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventType       EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  app             App?                   @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId           String?
+}
+
+model Impersonations {
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUserId Int
+  impersonatedById   Int
+}
+
+model ApiKey {
+  id         String    @id @unique @default(cuid())
+  userId     Int
+  note       String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  hashedKey  String    @unique()
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app        App?      @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
+}
+
+model HashedLink {
+  id          Int       @id @default(autoincrement())
+  link        String    @unique()
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int       @unique
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AppCategories {
+  calendar
+  messaging
+  other
+  payment
+  video
+  web3
+}
+
+model App {
+  // The slug for the app store public page inside `/apps/[slug]`
+  slug        String          @id @unique
+  // The directory name for `/packages/app-store/[dirName]`
+  dirName     String          @unique
+  // Needed API Keys
+  keys        Json?
+  // One or multiple categories to which this app belongs
+  categories  AppCategories[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  credentials Credential[]
+  Webhook     Webhook[]
+  ApiKey      ApiKey[]
 }

@@ -1,0 +1,102 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .swagger-ui .opblock-tag {
+    font-size: 90% !important;
+  }
+  .swagger-ui .opblock .opblock-summary {
+    display: grid;
+  flex-direction: column;
+  }
+  .opblock-summary-path {
+    flex-shrink: 0;
+    max-width: 100% !important;
+    padding: 10px 5px !important;
+  }
+  .opblock-summary-description {
+    font-size: 16px !important;
+    padding: 0px 5px;
+  }
+  .swagger-ui .scheme-container .schemes {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+  }
+  .swagger-ui .info .title {
+    color: #3b4151;
+    font-family: sans-serif;
+    font-size: 22px;
+  }
+  .swagger-ui .scheme-container {
+  padding: 14px 0;
+  }
+  .swagger-ui .info {
+      margin: 10px 0;
+  }
+  .swagger-ui .auth-wrapper {
+    margin: 10px 0;
+  }
+  .swagger-ui .authorization__btn {
+  display: none;
+  }
+  .swagger-ui .opblock {
+    margin: 0 0 5px;
+  }
+  button.opblock-summary-control > svg {
+    display: none;  
+  }
+  .swagger-ui .filter .operation-filter-input {
+    border: 2px solid #d8dde7;
+    margin: 5px 5px;
+    padding: 5px;
+    width: 100vw;
+  }
+  .swagger-ui .wrapper {
+    padding: 0 4px;
+    width: 100%;
+  }
+  .swagger-ui .info .title small {
+    top: 5px;
+  }
+  .swagger-ui a.nostyle, .swagger-ui a.nostyle:visited {
+    width: 100%;
+  }
+  div.request-snippets > div.curl-command > div:nth-child(1) {
+    overscroll-behavior: contain;
+    overflow-x: scroll;
+  }
+  .swagger-ui .opblock-body pre.microlight {  
+    font-size: 9px; 
+  }
+  .swagger-ui table tbody tr td {
+    padding: 0px 0 0;
+    vertical-align: none;
+  }
+  td.response-col_description > div > div > p {
+    font-size: 12px;
+  }
+  div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > tbody > tr {
+        display: flex;
+    width: 100vw;
+    flex-direction: column;
+    font-size: 60%;
+  }
+  div.no-margin > div > div.responses-wrapper > div.responses-inner > div > div > table > thead > tr {
+    display: none;
+  }
+}
