@@ -1,15 +1,18 @@
 import { ChevronLeftIcon } from "@heroicons/react/solid";
-import { InferGetStaticPropsType } from "next";
+import { InferGetStaticPropsType, GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma from "@calcom/prisma";
 
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 
-export default function Apps({ appStore }: InferGetStaticPropsType<typeof getStaticProps>) {
+import { AppCategories } from ".prisma/client";
+
+export default function Apps({ apps: apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -28,18 +31,16 @@ export default function Apps({ appStore }: InferGetStaticPropsType<typeof getSta
         <div className="mb-16">
           <h2 className="mb-2 text-lg font-semibold text-gray-900">All {router.query.category} apps</h2>
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
-            {appStore.map((app) => {
+            {apps.map((app) => {
               return (
-                app.category === router.query.category && (
-                  <AppCard
-                    key={app.name}
-                    slug={app.slug}
-                    name={app.name}
-                    description={app.description}
-                    logo={app.logo}
-                    rating={app.rating}
-                  />
-                )
+                <AppCard
+                  key={app.name}
+                  slug={app.slug}
+                  name={app.name}
+                  description={app.description}
+                  logo={app.logo}
+                  rating={app.rating}
+                />
               );
             })}
           </div>
@@ -64,10 +65,28 @@ export const getStaticPaths = async () => {
   };
 };
 
-export const getStaticProps = async () => {
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const category = context.params?.category as AppCategories;
+
+  const appQuery = await prisma.app.findMany({
+    where: {
+      categories: {
+        has: category,
+      },
+    },
+    select: {
+      slug: true,
+    },
+  });
+  const appSlugs = appQuery.map((category) => category.slug);
+
+  const appStore = await getAppRegistry();
+
+  const apps = appStore.filter((app) => appSlugs.includes(app.slug));
+
   return {
     props: {
-      appStore: await getAppRegistry(),
+      apps: apps,
     },
   };
 };
