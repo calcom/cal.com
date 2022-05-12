@@ -31,16 +31,16 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             </div>
             <div className="text-sm ltr:ml-3 rtl:mr-3">
               {!label ? (
-                <label htmlFor={rest.id} className="text-neutral-900">
+                <label htmlFor={rest.id} className="text-neutral-700">
                   {description}
                 </label>
               ) : (
                 <p className="text-neutral-900">{description}</p>
               )}
             </div>
+            {infomationIconText && <InfoBadge content={infomationIconText}></InfoBadge>}
           </div>
         </div>
-        {infomationIconText && <InfoBadge content={infomationIconText}></InfoBadge>}
       </div>
     );
   }
