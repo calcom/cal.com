@@ -1,5 +1,6 @@
 import { devices, PlaywrightTestConfig } from "@playwright/test";
 import { addAliases } from "module-alias";
+import * as os from "os";
 import * as path from "path";
 
 // Add aliases for the paths specified in the tsconfig.json file.
@@ -19,11 +20,14 @@ const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
 const DEFAULT_NAVIGATION_TIMEOUT = 5000;
 
+const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
+
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: 1,
+  workers: os.cpus().length,
   timeout: 60_000,
+  maxFailures: headless ? 3 : undefined,
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
@@ -38,10 +42,10 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI,
   },
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3000/",
     locale: "en-US",
     trace: "retain-on-failure",
-    headless: !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
+    headless,
   },
   projects: [
     {
