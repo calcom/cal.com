@@ -16,7 +16,7 @@ export function AccountDialog(props: DialogProps) {
     <Dialog name="Account check" {...props}>
       <DialogContent>
         <DialogHeader
-          title="Connecting with MS Teams requires a work/school account."
+          title="Connecting with MS Teams requires a work/school Microsoft account."
           subtitle="If you continue with a personal account you will receive an error"
         />
 
