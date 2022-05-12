@@ -14,7 +14,7 @@ export default function HelpMenuItem() {
   const { t } = useLocale();
 
   return (
-    <div className="w-full border-gray-300 bg-white shadow-sm lg:w-[150%]">
+    <div className="w-full border-gray-300 bg-white shadow-sm md:w-[150%]">
       <div className=" w-full p-5">
         <p className="mb-1 text-neutral-500">{t("resources").toUpperCase()}</p>
         <a
@@ -60,9 +60,10 @@ export default function HelpMenuItem() {
 
         <div className="flex items-center">
           <button
-            className={`m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100 ${
-              rating === 4 ? "bg-grey-300" : ""
-            }`}
+            className={classNames(
+              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 4 ? "bg-gray-300" : ""
+            )}
             onClick={() => setRating(4)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
@@ -81,7 +82,10 @@ export default function HelpMenuItem() {
             </svg>
           </button>
           <button
-            className="m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100"
+            className={classNames(
+              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 3 ? "bg-gray-300" : ""
+            )}
             onClick={() => setRating(3)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
@@ -96,7 +100,10 @@ export default function HelpMenuItem() {
             </svg>
           </button>
           <button
-            className="m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100"
+            className={classNames(
+              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 2 ? "bg-gray-300" : ""
+            )}
             onClick={() => setRating(2)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
@@ -112,7 +119,10 @@ export default function HelpMenuItem() {
             </svg>
           </button>
           <button
-            className="m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100"
+            className={classNames(
+              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 1 ? "bg-gray-300" : ""
+            )}
             onClick={() => setRating(1)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
@@ -133,6 +143,7 @@ export default function HelpMenuItem() {
             </svg>
           </button>
         </div>
+        <button className="mt-5">Submit</button>
       </div>
     </div>
   );
