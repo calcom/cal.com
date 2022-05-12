@@ -235,11 +235,20 @@ const BookingPage = ({
     if (!primaryAttendee) {
       return {};
     }
+
+    const customInputType = booking.customInputs;
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      customInputs: eventType.customInputs.reduce(
+        (customInputs, input) => ({
+          ...customInputs,
+          [input.id]: booking.customInputs![input.label as keyof typeof customInputType] || "",
+        }),
+        {}
+      ),
     };
   };
 
@@ -639,7 +648,10 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={classNames(
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                            )}
                             placeholder={input.placeholder}
                             disabled={disableInput}
                           />
