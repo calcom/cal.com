@@ -432,7 +432,7 @@ const loggedInViewerRouter = createProtectedRouter()
         _count: true,
       });
 
-      let bookings = bookingsQuery.map((booking) => {
+      const bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           eventType: {
@@ -444,24 +444,6 @@ const loggedInViewerRouter = createProtectedRouter()
         };
       });
       const bookingsFetched = bookings.length;
-      const seenBookings: Record<string, boolean> = {};
-
-      // Remove duplicate recurring bookings for upcoming status.
-      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
-      // We might be actually sending less then the limit, due to this filter
-      // TODO: Figure out a way to fix it.
-      if (bookingListingByStatus === "upcoming") {
-        bookings = bookings.filter((booking) => {
-          if (!booking.recurringEventId) {
-            return true;
-          }
-          if (seenBookings[booking.recurringEventId]) {
-            return false;
-          }
-          seenBookings[booking.recurringEventId] = true;
-          return true;
-        });
-      }
 
       let nextCursor: typeof skip | null = skip;
 

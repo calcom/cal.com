@@ -4,6 +4,7 @@ import { Fragment } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Booking } from "@calcom/prisma/client";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
@@ -58,7 +59,17 @@ export default function Bookings() {
     }
     return { recurringCount };
   };
-
+  const shownBookings: Record<string, boolean> = {};
+  const filterBookings = (booking: BookingOutput) => {
+    if (!booking.recurringEventId) {
+      return true;
+    }
+    if (shownBookings[booking.recurringEventId]) {
+      return false;
+    }
+    shownBookings[booking.recurringEventId] = true;
+    return true;
+  };
   return (
     <Shell heading={t("bookings")} subtitle={t("bookings_description")} customLoader={<SkeletonLoader />}>
       <WipeMyCalActionButton trpc={trpc} bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -77,7 +88,7 @@ export default function Bookings() {
                       <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                         {query.data.pages.map((page, index) => (
                           <Fragment key={index}>
-                            {page.bookings.map((booking) => (
+                            {page.bookings.filter(filterBookings).map((booking) => (
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
