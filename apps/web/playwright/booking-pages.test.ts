@@ -74,12 +74,15 @@ test.describe("free user", () => {
 test.describe("pro user", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeAll(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
+  });
+
+  test.beforeEach(async ({ page }) => {
     await page.goto("/pro");
   });
 
-  test.afterEach(async () => {
+  test.afterAll(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
   });
 
@@ -90,14 +93,9 @@ test.describe("pro user", () => {
   });
 
   test("book an event first day in next month", async ({ page }) => {
-    // Click first event type
-    await page.click('[data-testid="event-type-link"]');
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    // Make sure we're navigated to the success page
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await bookFirstEvent(page);
   });
+
   test("can reschedule a booking", async ({ page }) => {
     await bookFirstEvent(page);
 
@@ -120,7 +118,7 @@ test.describe("pro user", () => {
     });
   });
 
-  test.fixme("Can cancel the recently created booking and rebook the same timeslot", async ({ page }) => {
+  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page }) => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
