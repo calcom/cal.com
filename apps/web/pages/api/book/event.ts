@@ -751,6 +751,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...evt,
             additionInformation: metadata,
             additionalNotes,
+            customInputs,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );

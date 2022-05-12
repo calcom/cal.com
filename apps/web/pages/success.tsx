@@ -360,13 +360,13 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.customInputs &&
                             Object.keys(bookingInfo?.customInputs).length !== 0 &&
                             Object.keys(bookingInfo?.customInputs).map((key) => {
-                              const bookingInput = bookingInfo?.customInputs;
-                              if (bookingInfo?.customInputs![key as keyof typeof bookingInput]) {
+                              const customInputs = bookingInfo?.customInputs;
+                              if (bookingInfo?.customInputs![key as keyof typeof customInputs]) {
                                 return (
                                   <>
-                                    <div className="mt-2 font-medium">{key}</div>
+                                    <div className="mt-2 pr-3 font-medium">{key}</div>
                                     <div className="col-span-2 mt-2 mb-2">
-                                      <p>{bookingInfo?.customInputs[key as keyof typeof bookingInput]}</p>
+                                      <p>{bookingInfo?.customInputs[key as keyof typeof customInputs]}</p>
                                     </div>
                                   </>
                                 );

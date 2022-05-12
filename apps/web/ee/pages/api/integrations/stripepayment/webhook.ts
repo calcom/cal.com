@@ -44,6 +44,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     select: {
       title: true,
       description: true,
+      customInputs: true,
       startTime: true,
       endTime: true,
       confirmed: true,
@@ -113,6 +114,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
+    customInputs: booking.customInputs,
     organizer: {
       email: user.email!,
       name: user.name!,
