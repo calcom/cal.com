@@ -3,17 +3,17 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
-import { AppConfiguration, InstallAppButton } from "@calcom/app-store/components";
+import { InstallAppButton } from "@calcom/app-store/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { App } from "@calcom/types/App";
+import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import AppsShell from "@components/AppsShell";
 import { ClientSuspense } from "@components/ClientSuspense";
@@ -27,7 +27,6 @@ import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingT
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 function ConnectOrDisconnectIntegrationButton(props: {
-  //
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
@@ -81,122 +80,91 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-function IntegrationsContainer() {
+type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
+
+interface IntegrationsContainerProps {
+  variant: App["variant"];
+}
+
+const IntegrationsContainer = ({ variant }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations"], { suspense: true });
+  const query = trpc.useQuery(["viewer.integrations", { variant }], { suspense: true });
+  const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
   return (
     <QueryCell
       query={query}
-      success={({ data }) => (
-        <>
-          <ShellSubHeading
-            title={
-              <SubHeadingTitleWithConnections
-                title={t("conferencing")}
-                numConnections={data.conferencing.numActive}
-              />
-            }
-          />
-          <List>
-            {data.conferencing.items.map((item) => (
-              <IntegrationListItem
-                key={item.title}
-                title={item.title}
-                imageSrc={item.imageSrc}
-                description={item.description}
-                actions={
-                  <ConnectOrDisconnectIntegrationButton
-                    credentialIds={item.credentialIds}
-                    type={item.type}
-                    isGlobal={item.isGlobal}
-                    installed
-                  />
-                }
-              />
-            ))}
-          </List>
-
-          <ShellSubHeading
-            className="mt-10"
-            title={
-              <SubHeadingTitleWithConnections title={t("payment")} numConnections={data.payment.numActive} />
-            }
-          />
-          <List>
-            {data.payment.items.map((item) => (
-              <IntegrationListItem
-                key={item.title}
-                imageSrc={item.imageSrc}
-                title={item.title}
-                description={item.description}
-                actions={
-                  <ConnectOrDisconnectIntegrationButton
-                    credentialIds={item.credentialIds}
-                    type={item.type}
-                    isGlobal={item.isGlobal}
-                    installed={item.installed}
-                  />
-                }
-              />
-            ))}
-          </List>
-
-          <ShellSubHeading
-            className="mt-10"
-            title={
-              <SubHeadingTitleWithConnections title={"Others"} numConnections={data?.other?.numActive || 0} />
-            }
-          />
-          <List>
-            {data.other.items.map((item) => (
-              <IntegrationListItem
-                key={item.title}
-                imageSrc={item.imageSrc}
-                title={item.title}
-                description={item.description}
-                actions={
-                  <ConnectOrDisconnectIntegrationButton
-                    credentialIds={item.credentialIds}
-                    type={item.type}
-                    isGlobal={item.isGlobal}
-                    installed={item.installed}
-                  />
-                }>
-                <AppConfiguration type={item.type} credentialIds={item.credentialIds} />
-              </IntegrationListItem>
-            ))}
-          </List>
-        </>
-      )}></QueryCell>
+      success={({ data }) => {
+        const installedApps = data.items.filter(installedFilter);
+        return (
+          <>
+            {installedApps.length > 0 && (
+              <>
+                <ShellSubHeading
+                  title={
+                    <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.numActive} />
+                  }
+                />
+                <List>
+                  {installedApps.map((item) => (
+                    <IntegrationListItem
+                      key={item.title}
+                      title={item.title}
+                      imageSrc={item.imageSrc}
+                      description={item.description}
+                      actions={
+                        <ConnectOrDisconnectIntegrationButton
+                          credentialIds={item.credentialIds}
+                          type={item.type}
+                          isGlobal={item.isGlobal}
+                          installed
+                        />
+                      }
+                    />
+                  ))}
+                </List>
+              </>
+            )}
+          </>
+        );
+      }}></QueryCell>
   );
-}
+};
 
 function Web3Container() {
   const { t } = useLocale();
-
+  const result = trpc.useQuery(["viewer.web3Integration"]);
+  const isWeb3Active = result.data?.isWeb3Active as boolean;
   return (
     <>
-      <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
-      <div className="lg:col-span-9 lg:pb-8">
-        <List>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
-              <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">
-                  MetaMask (
-                  <a className="text-blue-500" target="_blank" href="https://cal.com/web3" rel="noreferrer">
-                    Read more
-                  </a>
-                  )
-                </ListItemTitle>
-                <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
-              </div>
-              <Web3ConnectBtn />
-            </div>
-          </ListItem>
-        </List>
-      </div>
+      {isWeb3Active && (
+        <>
+          <ShellSubHeading title="Web3" subtitle={t("meet_people_with_the_same_tokens")} className="mt-10" />
+          <div className="lg:col-span-9 lg:pb-8">
+            <List>
+              <ListItem className={classNames("flex-col")}>
+                <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3")}>
+                  <Image width={40} height={40} src="/apps/metamask.svg" alt="Embed" />
+                  <div className="flex-grow truncate pl-2">
+                    <ListItemTitle component="h3">
+                      MetaMask (
+                      <a
+                        className="text-blue-500"
+                        target="_blank"
+                        href="https://cal.com/web3"
+                        rel="noreferrer">
+                        Read more
+                      </a>
+                      )
+                    </ListItemTitle>
+                    <ListItemText component="p">{t("only_book_people_and_allow")}</ListItemText>
+                  </div>
+                  <Web3ConnectBtn />
+                </div>
+              </ListItem>
+            </List>
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -259,8 +227,10 @@ export default function IntegrationsPage() {
       customLoader={<SkeletonLoader />}>
       <AppsShell>
         <ClientSuspense fallback={<SkeletonLoader />}>
-          <IntegrationsContainer />
+          <IntegrationsContainer variant="conferencing" />
           <CalendarListContainer />
+          <IntegrationsContainer variant="payment" />
+          <IntegrationsContainer variant="other" />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
           <Web3Container />
         </ClientSuspense>

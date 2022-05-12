@@ -606,8 +606,12 @@ const loggedInViewerRouter = createProtectedRouter()
     },
   })
   .query("integrations", {
-    async resolve({ ctx }) {
+    input: z.object({
+      variant: z.string(),
+    }),
+    async resolve({ ctx, input }) {
       const { user } = ctx;
+      const { variant } = input;
       const { credentials } = user;
 
       function countActive(items: { credentialIds: unknown[] }[]) {
@@ -620,27 +624,10 @@ const loggedInViewerRouter = createProtectedRouter()
         })
       );
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const conferencing = apps.flatMap((item) => (item.variant === "conferencing" ? [item] : []));
-      const payment = apps.flatMap((item) => (item.variant === "payment" ? [item] : []));
-      const other = apps.flatMap((item) => (item.variant.startsWith("other") ? [item] : []));
-      const calendar = apps.flatMap((item) => (item.variant === "calendar" ? [item] : []));
+      const flapApps = apps.flatMap((item) => (item.variant === variant ? [item] : []));
       return {
-        conferencing: {
-          items: conferencing,
-          numActive: countActive(conferencing),
-        },
-        calendar: {
-          items: calendar,
-          numActive: countActive(calendar),
-        },
-        payment: {
-          items: payment,
-          numActive: countActive(payment),
-        },
-        other: {
-          items: other,
-          numActive: countActive(other),
-        },
+        items: flapApps,
+        numActive: countActive(flapApps),
       };
     },
   })

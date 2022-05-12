@@ -2,14 +2,14 @@ import { Fragment } from "react";
 import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
-import { useLocale } from "@lib/hooks/useLocale";
-import { trpc } from "@lib/trpc";
+import { trpc, inferQueryOutput } from "@lib/trpc";
 
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
@@ -163,16 +163,18 @@ function ConnectedCalendarsList(props: Props) {
   );
 }
 
+type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
+const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
+
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations"]);
-
+  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
   return (
     <QueryCell
       query={query}
       success={({ data }) => (
         <List>
-          {data.calendar.items.map((item) => (
+          {data.items.filter(installedFilter).map((item) => (
             <IntegrationListItem
               key={item.title}
               title={item.title}
@@ -207,39 +209,44 @@ export function CalendarListContainer(props: { heading?: false }) {
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  const installedCalendars = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
-
   return (
     <>
-      {heading && (
-        <ShellSubHeading
-          className="mt-10 mb-0"
-          title={
-            <SubHeadingTitleWithConnections
-              title="Calendars"
-              numConnections={query.data?.connectedCalendars.length}
+      {(!!query.data?.connectedCalendars.length ||
+        !!installedCalendars.data?.items.filter(installedFilter).length) && (
+        <>
+          {heading && (
+            <ShellSubHeading
+              className="mt-10 mb-0"
+              title={
+                <SubHeadingTitleWithConnections
+                  title="Calendars"
+                  numConnections={query.data?.connectedCalendars.length}
+                />
+              }
+              subtitle={t("configure_how_your_event_types_interact")}
+              actions={
+                <div className="sm:min-w-80 block max-w-full">
+                  <DestinationCalendarSelector
+                    onChange={mutation.mutate}
+                    isLoading={mutation.isLoading}
+                    value={query.data?.destinationCalendar?.externalId}
+                  />
+                </div>
+              }
             />
-          }
-          subtitle={t("configure_how_your_event_types_interact")}
-          actions={
-            <div className="sm:min-w-80 block max-w-full">
-              <DestinationCalendarSelector
-                onChange={mutation.mutate}
-                isLoading={mutation.isLoading}
-                value={query.data?.destinationCalendar?.externalId}
-              />
-            </div>
-          }
-        />
+          )}
+          <ConnectedCalendarsList onChanged={onChanged} />
+          {!!query.data?.connectedCalendars.length && (
+            <ShellSubHeading
+              className="mt-6"
+              title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
+            />
+          )}
+          <CalendarList onChanged={onChanged} />
+        </>
       )}
-      <ConnectedCalendarsList onChanged={onChanged} />
-      {!!query.data?.connectedCalendars.length && (
-        <ShellSubHeading
-          className="mt-6"
-          title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
-        />
-      )}
-      <CalendarList onChanged={onChanged} />
     </>
   );
 }
