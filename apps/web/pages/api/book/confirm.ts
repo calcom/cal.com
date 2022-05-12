@@ -90,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         title: true,
         description: true,
+        customInputs: true,
         startTime: true,
         endTime: true,
         confirmed: true,
@@ -140,6 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: booking.title,
       title: booking.title,
       description: booking.description,
+      customInputs: booking.customInputs,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {

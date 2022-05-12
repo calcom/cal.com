@@ -55,6 +55,21 @@ ${calEvent.additionalNotes}
   `;
 };
 
+export const getCustomInputs = (calEvent: CalendarEvent) => {
+  if (!calEvent.customInputs) {
+    return "";
+  }
+  const customInputsString = Object.keys(calEvent.customInputs).map((key) => {
+    const customInputs = calEvent.customInputs;
+    return `
+${key}:
+${calEvent.customInputs[key as keyof typeof customInputs]}
+  `;
+  }).join("");
+
+  return customInputsString;
+};
+
 export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
@@ -110,6 +125,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
   `.trim();
   }
 
@@ -121,6 +137,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
 ${getManageLink(calEvent)}
   `.trim();
 };

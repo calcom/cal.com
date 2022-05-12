@@ -346,7 +346,7 @@ ${getRichDescription(this.calEvent)}
 
   protected getCustomInputs(): string {
     if (!this.calEvent.customInputs) return "";
-    const customInputsText = Object.keys(this.calEvent.customInputs)
+    const customInputsString = Object.keys(this.calEvent.customInputs)
       .map((key) => {
         const customInputs = this.calEvent.customInputs;
         return `
@@ -361,7 +361,7 @@ ${getRichDescription(this.calEvent)}
       })
       .join("");
 
-    return customInputsText;
+    return customInputsString;
   }
 
   protected getRejectionReason(): string {
