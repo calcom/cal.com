@@ -10,20 +10,12 @@ import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
-import { getBusyVideoTimes } from "@calcom/core/videoClient";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type {
-  AdditionInformation,
-  CalendarEvent,
-  EventBusyDate,
-  RecurringEvent,
-} from "@calcom/types/Calendar";
+import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -35,6 +27,7 @@ import {
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
+import getBusyTimes from "@lib/getBusyTimes";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -546,43 +539,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const credentials = currentUser.credentials;
+    const busyTimes = await getBusyTimes({
+      credentials: currentUser.credentials,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      eventTypeId,
+      userId: currentUser.id,
+      selectedCalendars,
+    });
 
-    const calendarBusyTimes: EventBusyDate[] = await prisma.booking
-      .findMany({
-        where: {
-          AND: [
-            {
-              userId: currentUser.id,
-              eventTypeId: eventTypeId,
-            },
-            {
-              OR: [
-                {
-                  status: "ACCEPTED",
-                },
-                {
-                  status: "PENDING",
-                },
-              ],
-            },
-          ],
-        },
-      })
-      .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
+    console.log("calendarBusyTimes==>>>", busyTimes);
 
-    if (credentials) {
-      await getBusyCalendarTimes(credentials, reqBody.start, reqBody.end, selectedCalendars).then(
-        (busyTimes) => calendarBusyTimes.push(...busyTimes)
-      );
-
-      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
-      calendarBusyTimes.push(...videoBusyTimes);
-    }
-
-    console.log("calendarBusyTimes==>>>", calendarBusyTimes);
-
-    const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
+    const bufferedBusyTimes = busyTimes.map((a) => ({
       start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
       end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
     }));
