@@ -1,19 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-test("Can delete user account", async ({ page }) => {
-  //FIXME: This test depends on seed.
-  // Login to account to delete
-  await page.goto(`/auth/login`);
-  // Click input[name="email"]
-  await page.click('input[name="email"]');
-  // Fill input[name="email"]
-  await page.fill('input[name="email"]', `delete-me@example.com`);
-  // Press Tab
-  await page.press('input[name="email"]', "Tab");
-  // Fill input[name="password"]
-  await page.fill('input[name="password"]', "delete-me");
-  // Press Enter
-  await page.press('input[name="password"]', "Enter");
+import { test } from "../lib/fixtures";
+
+test("Can delete user account", async ({ page, users }) => {
+  const user = await users.create({
+    username: "delete-me",
+  });
+  await user.login();
+
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await page.goto(`/settings/profile`);

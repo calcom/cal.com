@@ -9,6 +9,8 @@ import {
   todo,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("free user", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/free");
@@ -72,35 +74,33 @@ test.describe("free user", () => {
 test.describe("pro user", () => {
   test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeAll(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
+  });
+
+  test.beforeEach(async ({ page }) => {
     await page.goto("/pro");
   });
 
-  test.afterEach(async () => {
+  test.afterAll(async () => {
     await deleteAllBookingsByEmail("pro@example.com");
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
     // await page.pause();
-    const $eventTypes = await page.locator("[data-testid=event-types] > *");
+    const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
 
   test("book an event first day in next month", async ({ page }) => {
-    // Click first event type
-    await page.click('[data-testid="event-type-link"]');
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    // Make sure we're navigated to the success page
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    await bookFirstEvent(page);
   });
+
   test("can reschedule a booking", async ({ page }) => {
     await bookFirstEvent(page);
 
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').click();
+    await page.locator('[data-testid="reschedule"]').nth(0).click();
     await page.locator('[data-testid="edit"]').click();
     await page.waitForNavigation({
       url: (url) => {
