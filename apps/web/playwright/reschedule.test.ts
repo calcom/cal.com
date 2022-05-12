@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 
+import prisma from "@lib/prisma";
+
 import { TestUtilCreateBookingOnUserId, TestUtilCreatePayment } from "./lib/dbSetup";
 import { deleteAllBookingsByEmail } from "./lib/teardown";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
@@ -12,7 +14,7 @@ const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 const findUserByEmail = async (email: string) => {
-  return await prisma?.user.findFirst({
+  return await prisma.user.findFirst({
     select: {
       id: true,
       email: true,
@@ -43,7 +45,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Should do a booking request reschedule from /bookings", async ({ page }) => {
     const user = currentUser;
-    const eventType = await prisma?.eventType.findFirst({
+    const eventType = await prisma.eventType.findFirst({
       where: {
         userId: user?.id,
         slug: "30min",
@@ -69,7 +71,7 @@ test.describe("Reschedule Tests", async () => {
     await page.goto("/bookings/cancelled");
 
     // Find booking that was recently cancelled
-    const booking = await prisma?.booking.findFirst({
+    const booking = await prisma.booking.findFirst({
       select: {
         id: true,
         uid: true,
@@ -87,7 +89,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Should display former time when rescheduling availability", async ({ page }) => {
     const user = currentUser;
-    const eventType = await prisma?.eventType.findFirst({
+    const eventType = await prisma.eventType.findFirst({
       where: {
         userId: user?.id,
         slug: "30min",
@@ -110,7 +112,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Should display request reschedule send on bookings/cancelled", async ({ page }) => {
     const user = currentUser;
-    const eventType = await prisma?.eventType.findFirst({
+    const eventType = await prisma.eventType.findFirst({
       where: {
         userId: user?.id,
         slug: "30min",
@@ -132,7 +134,7 @@ test.describe("Reschedule Tests", async () => {
   test("Should do a reschedule from user owner", async ({ page }) => {
     const user = currentUser;
 
-    const eventType = await prisma?.eventType.findFirst({
+    const eventType = await prisma.eventType.findFirst({
       where: {
         userId: user?.id,
       },
@@ -155,13 +157,11 @@ test.describe("Reschedule Tests", async () => {
 
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-      await expect(page).toHaveURL(/.*success/);
-
       // NOTE: remove if old booking should not be deleted
-      const oldBooking = await prisma?.booking.findFirst({ where: { id: booking?.id } });
+      const oldBooking = await prisma.booking.findFirst({ where: { id: booking?.id } });
       expect(oldBooking).toBeNull();
 
-      const newBooking = await prisma?.booking.findFirst({ where: { fromReschedule: booking?.uid } });
+      const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
       expect(newBooking).not.toBeNull();
     }
   });
@@ -174,7 +174,7 @@ test.describe("Reschedule Tests", async () => {
       "Skipped as stripe is not installed and user is missing credentials"
     );
 
-    const eventType = await prisma?.eventType.findFirst({
+    const eventType = await prisma.eventType.findFirst({
       where: {
         userId: user?.id,
         slug: "paid",
@@ -208,7 +208,7 @@ test.describe("Reschedule Tests", async () => {
   test("Paid rescheduling should go to success page", async ({ page }) => {
     let user = currentUser;
     try {
-      const eventType = await prisma?.eventType.findFirst({
+      const eventType = await prisma.eventType.findFirst({
         where: {
           userId: user?.id,
           slug: "paid",
@@ -232,7 +232,7 @@ test.describe("Reschedule Tests", async () => {
         }
       }
     } catch (error) {
-      await prisma?.payment.delete({
+      await prisma.payment.delete({
         where: {
           externalId: "DEMO_PAYMENT_FROM_DB",
         },
