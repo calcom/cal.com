@@ -11,12 +11,12 @@ import {
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export function AccountDialog(props: DialogProps) {
-  const mutation = useAddAppMutation("office365_calendar");
+  const mutation = useAddAppMutation("office365_video");
   return (
     <Dialog name="Account check" {...props}>
       <DialogContent>
         <DialogHeader
-          title="Connecting with MS Teams requires a work/school account."
+          title="Connecting with MS Teams requires a work/school Microsoft account."
           subtitle="If you continue with a personal account you will receive an error"
         />
 
