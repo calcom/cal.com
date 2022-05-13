@@ -358,28 +358,32 @@ export default function Success(props: SuccessProps) {
                             </>
                           )}
                           {bookingInfo?.customInputs &&
-                            Object.keys(bookingInfo?.customInputs).length !== 0 &&
                             Object.keys(bookingInfo?.customInputs).map((key) => {
                               const customInputs = bookingInfo?.customInputs;
-                              if (bookingInfo?.customInputs !== null) {
-                                return (
-                                  <>
-                                    <div className="mt-2 pr-3 font-medium">{key}</div>
-                                    <div className="col-span-2 mt-2 mb-2">
-                                      {typeof bookingInfo?.customInputs[key as keyof typeof customInputs] ===
-                                      "boolean" ? (
-                                        <p>
-                                          {bookingInfo?.customInputs[key as keyof typeof customInputs]
-                                            ? "true"
-                                            : "false"}
-                                        </p>
-                                      ) : (
-                                        <p>{bookingInfo?.customInputs[key as keyof typeof customInputs]}</p>
-                                      )}
-                                    </div>
-                                  </>
-                                );
-                              }
+                              return (
+                                <>
+                                  {bookingInfo?.customInputs![key as keyof typeof customInputs] !== "" && (
+                                    <>
+                                      <div className="mt-2 pr-3 font-medium">{key}</div>
+                                      <div className="col-span-2 mt-2 mb-2">
+                                        {typeof bookingInfo?.customInputs![
+                                          key as keyof typeof customInputs
+                                        ] === "boolean" ? (
+                                          <p>
+                                            {bookingInfo?.customInputs[key as keyof typeof customInputs]
+                                              ? "true"
+                                              : "false"}
+                                          </p>
+                                        ) : (
+                                          <p>
+                                            {bookingInfo?.customInputs![key as keyof typeof customInputs]}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              );
                             })}
                         </div>
                       </div>

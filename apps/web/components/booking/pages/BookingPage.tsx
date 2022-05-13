@@ -623,7 +623,6 @@ const BookingPage = ({
                       <div className="mb-4" key={input.id}>
                         {input.type !== EventTypeCustomInputType.BOOL && (
                           <label
-                            // {...bookingForm.register(`customInputs.${input.id}`)}
                             htmlFor={"custom_" + input.id}
                             className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {input.label}
