@@ -49,7 +49,7 @@ import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -2181,13 +2181,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!rawEventType) throw Error("Event type not found");
 
-  type Location = {
-    type: LocationType;
-    address?: string;
-    link?: string;
-    displayLocationPublicly?: boolean;
-  };
-
   const credentials = await prisma.credential.findMany({
     where: {
       userId: session.user.id,
@@ -2206,7 +2199,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = {
     ...restEventType,
     recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations as unknown as Location[],
+    locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key

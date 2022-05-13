@@ -15,5 +15,12 @@ export enum AppStoreLocationType {
   Teams = "integrations:office365_video",
 }
 
+export type LocationObject = {
+  type: LocationType;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+};
+
 export const LocationType = { ...DefaultLocationType, ...AppStoreLocationType };
 export type LocationType = DefaultLocationType | AppStoreLocationType;
