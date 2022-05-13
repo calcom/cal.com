@@ -1,10 +1,8 @@
 import { TFunction } from "next-i18next";
-import nodemailer from "nodemailer";
 
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { serverConfig } from "@calcom/lib/serverConfig";
+import BaseEmail from "@lib/emails/templates/_base-email";
 
-import { emailHead, linkIcon, emailBodyLogo } from "./common";
+import { emailBodyLogo, emailHead, linkIcon } from "./common";
 
 export type PasswordReset = {
   language: TFunction;
@@ -17,35 +15,13 @@ export type PasswordReset = {
 
 export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 
-export default class ForgotPasswordEmail {
+export default class ForgotPasswordEmail extends BaseEmail {
   passwordEvent: PasswordReset;
 
   constructor(passwordEvent: PasswordReset) {
+    super();
+    this.name = "SEND_PASSWORD_RESET_EMAIL";
     this.passwordEvent = passwordEvent;
-  }
-
-  public sendEmail() {
-    new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
-          if (_err) {
-            const err = getErrorFromUnknown(_err);
-            this.printNodeMailerError(err);
-            reject(err);
-          } else {
-            resolve(info);
-          }
-        })
-    ).catch((e) => console.error("sendEmail", e));
-    return new Promise((resolve) => resolve("send mail async"));
-  }
-
-  protected getMailerOptions() {
-    return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    };
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
@@ -56,10 +32,6 @@ export default class ForgotPasswordEmail {
       html: this.getHtmlBody(),
       text: this.getTextBody(),
     };
-  }
-
-  protected printNodeMailerError(error: Error): void {
-    console.error("SEND_PASSWORD_RESET_EMAIL_ERROR", this.passwordEvent.user.email, error);
   }
 
   protected getTextBody(): string {
