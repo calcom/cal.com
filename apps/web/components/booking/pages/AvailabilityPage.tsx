@@ -107,7 +107,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
-  console.log(eventType.locations);
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
