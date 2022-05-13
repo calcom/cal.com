@@ -10,6 +10,9 @@ interface Fixtures {
   payments: ReturnType<typeof createPaymentsFixture>;
 }
 
+/**
+ *  @see https://playwright.dev/docs/test-fixtures
+ */
 export const test = base.extend<Fixtures>({
   users: async ({ page }, use) => {
     const usersFixture = createUsersFixture(page);
