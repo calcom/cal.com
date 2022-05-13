@@ -35,11 +35,7 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
-
-    await page.goto("/bookings/cancelled");
-
-    // To prevent stale data
-    await page.waitForTimeout(1000);
+    await expect(page.locator('[id="modal-title"]')).not.toBeVisible();
 
     const updatedBooking = await booking.self();
 
