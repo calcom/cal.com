@@ -1,8 +1,8 @@
 import { ExternalLinkIcon, EmojiSadIcon } from "@heroicons/react/solid";
 import { useState } from "react";
-import Twemoji from "react-twemoji";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import Button from "@calcom/ui/Button";
 
 import classNames from "@lib/classNames";
 
@@ -10,7 +10,8 @@ import ContactMenuItem from "./ContactMenuItem";
 
 export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | number>(null);
-  console.log("🚀 ~ file: HelpMenuItem.tsx ~ line 13 ~ HelpMenuItem ~ rating", rating);
+  const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
   const { t } = useLocale();
 
   return (
@@ -56,6 +57,7 @@ export default function HelpMenuItem() {
           name="about"
           rows={3}
           // defaultValue={props.user.bio || undefined}
+          onChange={(event) => setComment(event.target.value)}
           className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"></textarea>
 
         <div className="flex items-center">
@@ -143,7 +145,28 @@ export default function HelpMenuItem() {
             </svg>
           </button>
         </div>
-        <button className="mt-5">Submit</button>
+        <div className="flex justify-end">
+          <Button
+            loading={loading}
+            onClick={async () => {
+              setLoading(true);
+
+              const body = {
+                rating: rating,
+                comment: comment,
+              };
+
+              const res = await fetch("api/send-feedback", {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+            }}>
+            Submit
+          </Button>
+        </div>
       </div>
     </div>
   );
