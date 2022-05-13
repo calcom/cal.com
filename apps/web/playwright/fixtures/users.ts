@@ -99,11 +99,9 @@ const createUser = async (
   opts?: CustomUserOpts
 ): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
-  const uname =
-    (opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()) +
-    "-" +
-    workerInfo.workerIndex +
-    Date.now();
+  const uname = `${opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()}-${
+    workerInfo.workerIndex
+  }-${Date.now()}`;
   return {
     username: uname,
     name: (opts?.username ?? opts?.plan ?? UserPlan.PRO).toUpperCase(),
