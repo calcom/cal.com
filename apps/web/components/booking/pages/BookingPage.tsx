@@ -67,7 +67,7 @@ type BookingFormValues = {
   guests?: string[];
   phone?: string;
   customInputs?: {
-    [key: string]: string;
+    [key: string]: string | boolean;
   };
 };
 
@@ -362,7 +362,7 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label as string,
           value: booking.customInputs![inputId],
         })),
         hasHashedBookingLink,
@@ -386,7 +386,7 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label as string,
           value: booking.customInputs![inputId],
         })),
         hasHashedBookingLink,
@@ -634,11 +634,9 @@ const BookingPage = ({
                             id={"custom_" + input.id}
                             rows={3}
                             className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             )}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -649,11 +647,9 @@ const BookingPage = ({
                             })}
                             id={"custom_" + input.id}
                             className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
                             )}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (

@@ -366,7 +366,16 @@ export default function Success(props: SuccessProps) {
                                   <>
                                     <div className="mt-2 pr-3 font-medium">{key}</div>
                                     <div className="col-span-2 mt-2 mb-2">
-                                      <p>{bookingInfo?.customInputs[key as keyof typeof customInputs]}</p>
+                                      {typeof bookingInfo?.customInputs[key as keyof typeof customInputs] ===
+                                      "boolean" ? (
+                                        <p>
+                                          {bookingInfo?.customInputs[key as keyof typeof customInputs]
+                                            ? "true"
+                                            : "false"}
+                                        </p>
+                                      ) : (
+                                        <p>{bookingInfo?.customInputs[key as keyof typeof customInputs]}</p>
+                                      )}
                                     </div>
                                   </>
                                 );

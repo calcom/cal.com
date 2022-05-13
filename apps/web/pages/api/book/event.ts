@@ -350,7 +350,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const additionalNotes = reqBody.notes;
 
-  let customInputs: { [key: string]: string } = {};
+  let customInputs: { [key: string]: string | boolean } = {};
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
