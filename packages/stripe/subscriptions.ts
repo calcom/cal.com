@@ -1,7 +1,16 @@
+import { UserPlan } from "@prisma/client";
 import Stripe from "stripe";
 
-import stripe from "./server";
-import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./utils";
+import stripe from "@calcom/stripe/server";
+
+import {
+  getFreePlanPrice,
+  getPremiumPlanPrice,
+  getProPlanPrice,
+  getFreePlanProductId,
+  getPremiumPlanProductId,
+  getProPlanProductId,
+} from "./utils";
 
 interface IRetrieveSubscriptionIdResponse {
   message?: string;
@@ -41,7 +50,7 @@ export async function updateSubscription({
   const subscription = await retrieveSubscriptionFromStripe(subscriptionId);
 
   let newPriceId;
-  const pricePlanResult = obtainUserPricePlan(subscription);
+  const pricePlanResult = obtainUserPlanDetails(subscription);
 
   await stripe.subscriptions.update(subscriptionId, {
     cancel_at_period_end: false,
@@ -69,7 +78,7 @@ export async function proratePreview({ subscriptionId }: IProratePreview): Promi
     console.log("4", subscriptionId);
     const subscription = await retrieveSubscriptionFromStripe(subscriptionId);
     console.log("4.5", { subscription });
-    const pricePlanResult = obtainUserPricePlan(subscription);
+    const pricePlanResult = obtainUserPlanDetails(subscription);
     // See what the next invoice would look like with a price switch
     // and proration set:
 
@@ -92,6 +101,7 @@ export async function proratePreview({ subscriptionId }: IProratePreview): Promi
     console.log(error);
     // throw new Error();
   }
+  return {} as Stripe.Invoice;
 }
 
 async function retrieveSubscriptionFromStripe(subscriptionId: string) {
@@ -99,19 +109,33 @@ async function retrieveSubscriptionFromStripe(subscriptionId: string) {
 }
 
 // @NOTE: REMOVE WHEN PLAN IS SAVED ON DB AND NOT ON STRIPE ONLY
-function obtainUserPricePlan(subscription: Stripe.Subscription) {
-  const proPlanProductId = getProPlanProduct();
-  const proPlanPriceId = getProPlanPrice();
-  const premiumPlanPriceId = getPremiumPlanPrice();
-  const hasProPlan = !!subscription.items.data.find(
-    (item) => item.plan.product === proPlanProductId || [proPlanPriceId].includes(item.plan.id)
-  );
-  const hasPremiumPlan = !!subscription.items.data.find((item) =>
-    [premiumPlanPriceId].includes(item.plan.id)
-  );
+export function obtainUserPlanDetails(subscription: Stripe.Subscription) {
+  const proPlanProductId = getProPlanProductId();
+  const premiumPlanProductId = getPremiumPlanProductId();
+  const freePlanProductId = getFreePlanProductId();
+  let priceId = "";
+  const hasProPlan = !!subscription.items.data.find((item) => item.plan.product === proPlanProductId);
+  const hasPremiumPlan = !!subscription.items.data.find((item) => item.plan.product === premiumPlanProductId);
+  const hasFreePlan = !!subscription.items.data.find((item) => item.plan.product === freePlanProductId);
+  let userPlan: UserPlan;
+  if (hasProPlan) {
+    priceId = getProPlanPrice();
+    userPlan = UserPlan.PRO;
+  } else if (hasPremiumPlan) {
+    priceId = getPremiumPlanPrice();
+    userPlan = UserPlan.PRO;
+  } else if (hasFreePlan) {
+    priceId = getFreePlanPrice();
+    userPlan = UserPlan.FREE;
+  } else {
+    userPlan = UserPlan.TRIAL;
+  }
+
   return {
+    userPlan,
+    priceId,
     isProPlan: hasProPlan,
     isPremiumPlan: hasPremiumPlan,
-    priceId: hasProPlan ? proPlanPriceId : premiumPlanPriceId,
+    isFreePlan: hasFreePlan,
   };
 }

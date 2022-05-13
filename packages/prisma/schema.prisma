@@ -171,8 +171,6 @@ model User {
   apiKeys             ApiKey[]
   accounts            Account[]
   sessions            Session[]
-  // remove premium username when userPlanId or userPlanName its on DB
-  premiumUsername     Boolean?             @default(false)
 
   @@map(name: "users")
 }
@@ -475,4 +473,12 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+}
+
+model DesiredUsername {
+  id                    String @id @default(cuid())
+  currentUsername       String
+  newUsername           String
+  isNewUsernamePremium  Boolean
+  createdAt             DateTime @default(now())
 }

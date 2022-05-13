@@ -3,6 +3,7 @@ import {
   ArrowNarrowRightIcon,
   CheckIcon,
   ClockIcon,
+  ExternalLinkIcon,
   LockClosedIcon,
   LockOpenIcon,
   PencilAltIcon,
@@ -368,15 +369,36 @@ const CustomUsernameTextfield = (props) => {
               <Button
                 type="button"
                 // loading={createMutation.isLoading}
-                onClick={() => {
-                  if (!subscriptionId && usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
+                onClick={async () => {
+                  let url = "";
+                  if (usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
                     // redirect to checkout
+                    url = "/api/integrations/stripepayment/subscription";
+                  } else if (usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) {
+                    url = "/api/integrations/stripepayment/subscription";
                   }
+                  const result = await fetch(url, {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ action: "downgrade", isPremiumUsername: userIsPremium }),
+                    method: "POST",
+                    mode: "cors",
+                  });
+                  console.log({ result });
+                  const body = await result.json();
+                  console.log({ body });
+                  window.location.href = body.url;
                 }}>
                 {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && "Go to billing"}
+                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
+                  <>
+                    Go to billing <ExternalLinkIcon className="ml-1 h-4 w-4" />
+                  </>
+                )}
                 {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && "Downgrade and save"}
               </Button>
+
               <DialogClose asChild>
                 <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
                   Cancel
@@ -882,23 +904,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   let subscriptionId = "";
 
-  const stripeCustomerId = (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
+  const stripeCustomerId = (user?.metadata as Prisma.JsonObject)?.stripeCustomerId as string;
 
   if (stripeCustomerId) {
     const retrieveResult = await retrieveSubscriptionIdFromStripeCustomerId(stripeCustomerId);
     subscriptionId = retrieveResult?.subscriptionId || "";
   }
-  const isPremiumUsername = (user?.metadata as Prisma.JsonObject).premiumUsername as boolean;
+  let isPremiumUsername = !!(user?.metadata as Prisma.JsonObject)?.premiumUsername as boolean;
+
   // if user is marked as no premiumUsername but its username could be due to length we check in remote
   if (!isPremiumUsername && user && user.username) {
     try {
       const checkUsernameResult = await checkPremiumUsername(user?.username);
       if (checkUsernameResult) {
+        isPremiumUsername = checkUsernameResult.premium;
       }
     } catch (error) {
       console.error(error);
-      // @TODO: report it to analytics?
-      // do nothing but dont crash ServerSide
+      // @TODO: report it to analytics
     }
   }
   return {
