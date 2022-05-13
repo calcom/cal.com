@@ -5,6 +5,7 @@ import prisma from ".";
 require("dotenv").config({ path: "../../.env.appStore" });
 
 async function createApp(
+  /** The App identifier in the DB also used for public page in `/apps/[slug]` */
   slug: Prisma.AppCreateInput["slug"],
   /** The directory name for `/packages/app-store/[dirName]` */
   dirName: Prisma.AppCreateInput["dirName"],
@@ -49,11 +50,14 @@ async function main() {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
     });
-    await createApp("msteams", "office365video", ["video"], "office365_video");
+    await createApp("msteams", "office365video", ["video"], "office365_video", {
+      client_id: process.env.MS_GRAPH_CLIENT_ID,
+      client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    });
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
-    await createApp("dailyvideo", "dailyvideo", ["video"], "daily_video", {
+    await createApp("daily-video", "dailyvideo", ["video"], "daily_video", {
       api_key: process.env.DAILY_API_KEY,
       scale_plan: process.env.DAILY_SCALE_PLAN,
     });
@@ -86,7 +90,20 @@ async function main() {
     });
   }
   await createApp("space-booking", "spacebooking", ["other"], "spacebooking_other");
-  await createApp("zapier", "zapier", ["other"], "zapier_other");
+  if (process.env.VITAL_API_KEY && process.env.VITAL_WEBHOOK_SECRET) {
+    await createApp("vital-automation", "vital", ["other"], "vital_other", {
+      mode: process.env.VITAL_DEVELOPMENT_MODE || "sandbox",
+      region: process.env.VITAL_REGION || "us",
+      api_key: process.env.VITAL_API_KEY,
+      webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
+    });
+  }
+
+  if (process.env.ZAPIER_INVITE_LINK) {
+    await createApp("zapier", "zapier", ["other"], "zapier_other", {
+      invite_link: process.env.ZAPIER_INVITE_LINK,
+    });
+  }
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");

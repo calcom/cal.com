@@ -7,7 +7,7 @@ import { ConfirmDialog } from "./confirmDialog";
 interface IWipeMyCalActionButtonProps {
   trpc: any;
   bookingsEmpty: boolean;
-  bookingStatus: "upcoming" | "past" | "cancelled";
+  bookingStatus: "upcoming" | "recurring" | "past" | "cancelled";
 }
 
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
