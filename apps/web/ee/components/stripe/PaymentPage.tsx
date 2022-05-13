@@ -137,6 +137,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         eventType={props.eventType}
                         user={props.user}
                         location={props.booking.location}
+                        bookingId={props.booking.id}
                       />
                     </Elements>
                   )}

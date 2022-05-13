@@ -3,6 +3,8 @@ import { expect, Locator, test } from "@playwright/test";
 import { randomString } from "../lib/random";
 import { deleteEventTypeByTitle } from "./lib/teardown";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Event Types tests", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/event-types");
