@@ -623,7 +623,7 @@ const BookingPage = ({
                       <div className="mb-4" key={input.id}>
                         {input.type !== EventTypeCustomInputType.BOOL && (
                           <label
-                            {...bookingForm.register(`customInputs.${input.id}`)}
+                            // {...bookingForm.register(`customInputs.${input.id}`)}
                             htmlFor={"custom_" + input.id}
                             className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                             {input.label}
@@ -637,9 +637,11 @@ const BookingPage = ({
                             id={"custom_" + input.id}
                             rows={3}
                             className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                              disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder={input.placeholder}
+                            disabled={disableInput && loggedInIsOwner ? true : false}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -650,9 +652,11 @@ const BookingPage = ({
                             })}
                             id={"custom_" + input.id}
                             className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                              disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder={input.placeholder}
+                            disabled={loggedInIsOwner ? true : false}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -662,8 +666,12 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={classNames(
+                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                              disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
+                            )}
                             placeholder=""
+                            disabled={disableInput && loggedInIsOwner ? true : false}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
@@ -674,8 +682,12 @@ const BookingPage = ({
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                              className={classNames(
+                                "h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2",
+                                disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
+                              )}
                               placeholder=""
+                              disabled={disableInput && loggedInIsOwner ? true : false}
                             />
                             <label
                               htmlFor={"custom_" + input.id}
@@ -764,10 +776,10 @@ const BookingPage = ({
                       rows={3}
                       className={classNames(
                         "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                        disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                        disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                       )}
                       placeholder={t("share_additional_notes")}
-                      disabled={disableInput}
+                      disabled={disableInput && loggedInIsOwner}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
