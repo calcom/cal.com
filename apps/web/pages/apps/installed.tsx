@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
-import { InstallAppButton } from "@calcom/app-store/components";
+import { AppConfiguration, InstallAppButton } from "@calcom/app-store/components";
 import showToast from "@calcom/lib/notification";
 import { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
@@ -25,87 +25,6 @@ import DisconnectIntegration from "@components/integrations/DisconnectIntegratio
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
-
-function IframeEmbedContainer() {
-  const { t } = useLocale();
-  // doesn't need suspense as it should already be loaded
-  const user = trpc.useQuery(["viewer.me"]).data;
-
-  const iframeTemplate = `<iframe src="${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user?.username}" frameborder="0" allowfullscreen></iframe>`;
-  const htmlTemplate = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${t(
-    "schedule_a_meeting"
-  )}</title><style>body {margin: 0;}iframe {height: calc(100vh - 4px);width: calc(100vw - 4px);box-sizing: border-box;}</style></head><body>${iframeTemplate}</body></html>`;
-
-  return (
-    <>
-      <ShellSubHeading title={t("iframe_embed")} subtitle={t("embed_calcom")} className="mt-10" />
-      <div className="lg:col-span-9 lg:pb-8">
-        <List>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">{t("standard_iframe")}</ListItemTitle>
-                <ListItemText component="p">{t("embed_your_calendar")}</ListItemText>
-              </div>
-              <div className="text-right">
-                <input
-                  id="iframe"
-                  className="px-2 py-1 text-sm text-gray-500 "
-                  placeholder={t("loading")}
-                  defaultValue={iframeTemplate}
-                  readOnly
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(iframeTemplate);
-                    showToast("Copied to clipboard", "success");
-                  }}>
-                  <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
-                </button>
-              </div>
-            </div>
-          </ListItem>
-          <ListItem className={classNames("flex-col")}>
-            <div className={classNames("flex w-full flex-1 items-center space-x-2 p-3 rtl:space-x-reverse")}>
-              <Image width={40} height={40} src="/apps/embed.svg" alt="Embed" />
-              <div className="flex-grow truncate pl-2">
-                <ListItemTitle component="h3">{t("responsive_fullscreen_iframe")}</ListItemTitle>
-                <ListItemText component="p">A fullscreen scheduling experience on your website</ListItemText>
-              </div>
-              <div>
-                <input
-                  id="fullscreen"
-                  className="px-2 py-1 text-sm text-gray-500 "
-                  placeholder={t("loading")}
-                  defaultValue={htmlTemplate}
-                  readOnly
-                />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(htmlTemplate);
-                    showToast("Copied to clipboard", "success");
-                  }}>
-                  <ClipboardIcon className="-mb-0.5 h-4 w-4 text-gray-800 ltr:mr-2 rtl:ml-2" />
-                </button>
-              </div>
-            </div>
-          </ListItem>
-        </List>
-        <div className="grid grid-cols-2 space-x-4 rtl:space-x-reverse">
-          <div>
-            <label htmlFor="iframe" className="block text-sm font-medium text-gray-700"></label>
-            <div className="mt-1"></div>
-          </div>
-          <div>
-            <label htmlFor="fullscreen" className="block text-sm font-medium text-gray-700"></label>
-            <div className="mt-1"></div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 function ConnectOrDisconnectIntegrationButton(props: {
   //
@@ -242,8 +161,9 @@ function IntegrationsContainer() {
                     isGlobal={item.isGlobal}
                     installed={item.installed}
                   />
-                }
-              />
+                }>
+                <AppConfiguration type={item.type} credentialIds={item.credentialIds} />
+              </IntegrationListItem>
             ))}
           </List>
         </>
@@ -342,7 +262,6 @@ export default function IntegrationsPage() {
           <IntegrationsContainer />
           <CalendarListContainer />
           <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
-          <IframeEmbedContainer />
           <Web3Container />
         </ClientSuspense>
       </AppsShell>

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Embed Cal Link as a React Component",
   "scripts": {
     "dev": "vite --port=3101 --open",
