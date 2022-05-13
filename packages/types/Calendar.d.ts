@@ -60,7 +60,13 @@ export type BatchResponse = {
 };
 
 export type SubResponse = {
-  body: { value: { start: { dateTime: string }; end: { dateTime: string } }[] };
+  body: {
+    value: {
+      showAs: "free" | "tentative" | "away" | "busy" | "workingElsewhere";
+      start: { dateTime: string };
+      end: { dateTime: string };
+    }[];
+  };
 };
 
 export interface ConferenceData {

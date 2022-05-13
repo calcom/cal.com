@@ -60,7 +60,7 @@ export default class AttendeeScheduledEmail {
     // Taking care of recurrence rule beforehand
     let recurrenceRule: string | undefined = undefined;
     if (this.recurringEvent?.count) {
-      recurrenceRule = new rrule(this.recurringEvent).toString();
+      recurrenceRule = new rrule(this.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
