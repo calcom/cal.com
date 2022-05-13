@@ -8,6 +8,7 @@ import {
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
+  LocationMarkerIcon,
   RefreshIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -15,11 +16,13 @@ import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
+import { LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
   useEmbedStyles,
   useIsEmbed,
@@ -57,6 +60,33 @@ dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
+
+export const locationKeyToString = (location: LocationObject, t: TFunction) => {
+  switch (location.type) {
+    case LocationType.InPerson:
+      return location.address;
+    case LocationType.Link:
+      return location.link;
+    case LocationType.Phone:
+      return t("phone_call");
+    case LocationType.GoogleMeet:
+      return "Google Meet";
+    case LocationType.Zoom:
+      return "Zoom";
+    case LocationType.Daily:
+      return "Cal Video";
+    case LocationType.Jitsi:
+      return "Jitsi";
+    case LocationType.Huddle01:
+      return "Huddle Video";
+    case LocationType.Tandem:
+      return "Tandem";
+    case LocationType.Teams:
+      return "Microsoft Teams";
+    default:
+      return null;
+  }
+};
 
 const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
@@ -214,6 +244,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           {eventType.description}
                         </p>
                       )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          {locationKeyToString(eventType.locations[0], t)}
+                        </p>
+                      )}
                       <p className="text-bookinglight mb-2 dark:text-white">
                         <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
@@ -282,6 +318,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     <p className="text-bookinglight mb-3 dark:text-white">
                       <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {eventType.description}
+                    </p>
+                  )}
+                  {eventType.locations.length === 1 && (
+                    <p className="text-bookinglight mb-2 dark:text-white">
+                      <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
                   <p className="text-bookinglight mb-3 dark:text-white">
