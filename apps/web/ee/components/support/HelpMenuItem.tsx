@@ -12,6 +12,7 @@ export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | number>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resMessage, setResMessage] = useState("");
   const { t } = useLocale();
 
   return (
@@ -163,10 +164,19 @@ export default function HelpMenuItem() {
                   "Content-Type": "application/json",
                 },
               });
+
+              if (res.ok) {
+                setResMessage("Thank you for your feedback!");
+              } else {
+                setResMessage("Error sending feedback, please try again");
+              }
+
+              setLoading(false);
             }}>
             Submit
           </Button>
         </div>
+        <p>{resMessage}</p>
       </div>
     </div>
   );
