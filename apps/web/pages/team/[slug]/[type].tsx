@@ -115,14 +115,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations.filter((el) => {
-      // Filter out locations that are not to be displayed publicly or confrencing apps
-      if (el && typeof el === "object") {
-        const values = Object.values(AppStoreLocationType);
-        return (
-          el["displayLocationPublicly"] === true ||
-          values.includes(el["type"] as unknown as AppStoreLocationType)
-        );
+    locations: locations.map((el) => {
+      // Filter out locations that are not to be displayed publicly
+      const values = Object.values(AppStoreLocationType);
+      // Display if the location can be set to public - and also display all locations like google meet etc
+      if (el.displayLocationPublicly || values.includes(el["type"] as unknown as AppStoreLocationType))
+        return el;
+      else {
+        delete el.address;
+        delete el.link;
+        return el;
       }
     }),
   });
