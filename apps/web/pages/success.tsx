@@ -361,7 +361,7 @@ export default function Success(props: SuccessProps) {
                             Object.keys(bookingInfo?.customInputs).length !== 0 &&
                             Object.keys(bookingInfo?.customInputs).map((key) => {
                               const customInputs = bookingInfo?.customInputs;
-                              if (bookingInfo?.customInputs![key as keyof typeof customInputs]) {
+                              if (bookingInfo?.customInputs !== null) {
                                 return (
                                   <>
                                     <div className="mt-2 pr-3 font-medium">{key}</div>
