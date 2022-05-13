@@ -181,7 +181,7 @@ test.describe("Embed Code Generator Tests", () => {
         embedType: "inline",
       });
 
-      gotToPreviewTab(page);
+      await gotToPreviewTab(page);
 
       await expectToContainValidPreviewIframe(page, {
         embedType: "inline",
