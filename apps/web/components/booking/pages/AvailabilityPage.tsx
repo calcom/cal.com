@@ -10,6 +10,7 @@ import {
   InformationCircleIcon,
   LocationMarkerIcon,
   RefreshIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
@@ -22,7 +23,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
-import { LocationObject, LocationType } from "@calcom/app-store/locations";
+import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
   useEmbedStyles,
   useIsEmbed,
@@ -249,22 +250,18 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           {locationKeyToString(eventType.locations[0], t)}
                         </p>
                       )}
-                      {eventType.locations.length > 1 && (
-                        <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
-                          <div className="mr-[10px] ml-[2px] -mt-1 ">
-                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
-                          </div>
-                          <p>
-                            {eventType.locations.map((el, i, arr) => {
-                              return (
-                                <span key={el.type}>
-                                  {locationKeyToString(el, t)}{" "}
-                                  {arr.length - 1 !== i && <span className="font-light"> or </span>}
-                                </span>
-                              );
-                            })}
-                          </p>
-                        </div>
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          {Object.values(AppStoreLocationType).includes(
+                            eventType.locations[0].type as unknown as AppStoreLocationType
+                          ) ? (
+                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          ) : (
+                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          )}
+
+                          {locationKeyToString(eventType.locations[0], t)}
+                        </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
                         <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
@@ -338,7 +335,14 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   )}
                   {eventType.locations.length === 1 && (
                     <p className="text-bookinglight mb-2 dark:text-white">
-                      <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      {Object.values(AppStoreLocationType).includes(
+                        eventType.locations[0].type as unknown as AppStoreLocationType
+                      ) ? (
+                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      )}
+
                       {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
