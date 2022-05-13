@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
 
@@ -21,12 +21,12 @@ const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page) => {
+export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   let store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (opts?: CustomUserOpts) => {
       const _user = await prisma.user.create({
-        data: await createUser(opts),
+        data: await createUser(workerInfo, opts),
       });
       await prisma.eventType.create({
         data: {
@@ -94,10 +94,16 @@ type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboardin
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
-const createUser = async (opts?: CustomUserOpts): Promise<PrismaType.UserCreateInput> => {
+const createUser = async (
+  workerInfo: WorkerInfo,
+  opts?: CustomUserOpts
+): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
   const uname =
-    (opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()) + "-" + Date.now();
+    (opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()) +
+    "-" +
+    workerInfo.workerIndex +
+    Date.now();
   return {
     username: uname,
     name: (opts?.username ?? opts?.plan ?? UserPlan.PRO).toUpperCase(),
