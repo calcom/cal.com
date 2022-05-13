@@ -57,7 +57,7 @@ export default function HelpMenuItem() {
       <hr className=" bg-gray-200" />
       <div className="w-full p-5">
         <p className="mb-1 text-neutral-500">{t("feedback").toUpperCase()}</p>
-        <p className="flex w-full py-2 text-sm font-medium text-gray-700">Comments</p>
+        <p className="flex w-full py-2 text-sm font-medium text-gray-700">{t("comments")}</p>
         <textarea
           // ref={descriptionRef}
           id="about"
@@ -173,15 +173,15 @@ export default function HelpMenuItem() {
               });
 
               if (res.ok) {
-                setResMessage("Thank you for your feedback!");
+                setResMessage(t("submitted_feedback"));
                 setDisableSubmit(true);
               } else {
-                setResMessage("Error sending feedback, please try again");
+                setResMessage(t("feedback_error"));
               }
 
               setLoading(false);
             }}>
-            Submit
+            {t("submit")}
           </Button>
         </div>
         <p>{resMessage}</p>
