@@ -15,6 +15,9 @@ const IS_STRIPE_ENABLED = !!(
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Reschedule Tests", async () => {
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
+  });
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
 
@@ -35,13 +38,15 @@ test.describe("Reschedule Tests", async () => {
 
     await page.goto("/bookings/cancelled");
 
+    // To prevent stale data
+    await page.waitForTimeout(1000);
+
     const updatedBooking = await booking.self();
 
     expect(updatedBooking.rescheduled).toBe(true);
     expect(updatedBooking.cancellationReason).toBe("I can't longer have it");
     expect(updatedBooking.status).toBe(BookingStatus.CANCELLED);
     await booking.delete();
-    await user.delete();
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
@@ -55,7 +60,6 @@ test.describe("Reschedule Tests", async () => {
     const formerTimeElement = page.locator('[data-testid="former_time_p_desktop"]');
     await expect(formerTimeElement).toBeVisible();
     await booking.delete();
-    await user.delete();
   });
 
   test("Should display request reschedule send on bookings/cancelled", async ({ page, users, bookings }) => {
@@ -71,7 +75,6 @@ test.describe("Reschedule Tests", async () => {
     const requestRescheduleSentElement = page.locator('[data-testid="request_reschedule_sent"]').nth(1);
     await expect(requestRescheduleSentElement).toBeVisible();
     await booking.delete();
-    await user.delete();
   });
 
   test("Should do a reschedule from user owner", async ({ page, users, bookings }) => {
@@ -129,7 +132,6 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page).toHaveURL(/.*payment/);
     await payment.delete();
-    await user.delete();
   });
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
@@ -151,6 +153,5 @@ test.describe("Reschedule Tests", async () => {
     await expect(page).toHaveURL(/.*success/);
 
     await payment.delete();
-    await user.delete();
   });
 });
