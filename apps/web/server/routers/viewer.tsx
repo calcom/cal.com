@@ -391,6 +391,7 @@ const loggedInViewerRouter = createProtectedRouter()
           uid: true,
           title: true,
           description: true,
+          customInputs: true,
           attendees: true,
           confirmed: true,
           rejected: true,

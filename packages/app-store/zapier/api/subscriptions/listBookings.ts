@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         select: {
           description: true,
+          customInputs: true,
           startTime: true,
           endTime: true,
           title: true,

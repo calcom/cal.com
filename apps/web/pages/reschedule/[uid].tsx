@@ -37,6 +37,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user: true,
       title: true,
       description: true,
+      customInputs: true,
       startTime: true,
       endTime: true,
       attendees: true,

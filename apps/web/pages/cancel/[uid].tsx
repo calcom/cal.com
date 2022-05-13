@@ -171,6 +171,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       id: true,
       title: true,
       description: true,
+      customInputs: true,
       startTime: true,
       endTime: true,
       attendees: true,

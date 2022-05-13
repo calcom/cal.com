@@ -94,6 +94,7 @@ export async function getServerSideProps(context: NextPageContext) {
       id: true,
       title: true,
       description: true,
+      customInputs: true,
       startTime: true,
       endTime: true,
       user: {

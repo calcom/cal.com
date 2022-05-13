@@ -62,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       description: true,
+      customInputs: true,
       startTime: true,
       endTime: true,
       uid: true,
@@ -114,6 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     title: bookingToDelete?.title,
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
+    customInputs: bookingToDelete.customInputs,
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
@@ -179,6 +181,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: bookingToDelete?.eventType?.title as string,
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
+      customInputs: bookingToDelete.customInputs,
       startTime: bookingToDelete.startTime.toISOString(),
       endTime: bookingToDelete.endTime.toISOString(),
       organizer: {
