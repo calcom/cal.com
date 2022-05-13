@@ -64,9 +64,9 @@ type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 export const locationKeyToString = (location: LocationObject, t: TFunction) => {
   switch (location.type) {
     case LocationType.InPerson:
-      return location.address;
+      return location.address || "In Person"; // If disabled address won't exist on the object
     case LocationType.Link:
-      return location.link;
+      return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
       return t("phone_call");
     case LocationType.GoogleMeet:
@@ -107,7 +107,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, router]);
-
+  console.log(eventType.locations);
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
     if (dateString) {
@@ -250,6 +250,23 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           {locationKeyToString(eventType.locations[0], t)}
                         </p>
                       )}
+                      {eventType.locations.length > 1 && (
+                        <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
+                          <div className="mr-[10px] ml-[2px] -mt-1 ">
+                            <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                          </div>
+                          <p>
+                            {eventType.locations.map((el, i, arr) => {
+                              return (
+                                <span key={el.type}>
+                                  {locationKeyToString(el, t)}{" "}
+                                  {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                                </span>
+                              );
+                            })}
+                          </p>
+                        </div>
+                      )}
                       <p className="text-bookinglight mb-2 dark:text-white">
                         <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
@@ -326,6 +343,23 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       {locationKeyToString(eventType.locations[0], t)}
                     </p>
                   )}
+                  {eventType.locations.length > 1 && (
+                    <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
+                      <div className="mr-[10px] ml-[2px] -mt-1 ">
+                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                      </div>
+                      <p>
+                        {eventType.locations.map((el, i, arr) => {
+                          return (
+                            <span key={el.type}>
+                              {locationKeyToString(el, t)}{" "}
+                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                            </span>
+                          );
+                        })}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-bookinglight mb-3 dark:text-white">
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                     {eventType.length} {t("minutes")}
@@ -369,7 +403,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       </IntlProvider>
                     </p>
                   )}
-
                   <TimezoneDropdown />
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
