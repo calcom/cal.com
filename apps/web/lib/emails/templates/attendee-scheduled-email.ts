@@ -348,16 +348,17 @@ ${getRichDescription(this.calEvent)}
     if (!this.calEvent.customInputs) return "";
     const customInputsString = Object.keys(this.calEvent.customInputs)
       .map((key) => {
-        const customInputs = this.calEvent.customInputs;
-        return `
-        <p style="height: 6px"></p>
-        <div style="line-height: 6px;">
-          <p style="color: #494949;">${key}</p>
-          <p style="color: #494949; font-weight: 400;">
-            ${this.calEvent.customInputs[key as keyof typeof customInputs]}
-          </p>
-        </div>
-      `;
+        if (this.calEvent.customInputs[key] !== "") {
+          return `
+          <p style="height: 6px"></p>
+          <div style="line-height: 6px;">
+            <p style="color: #494949;">${key}</p>
+            <p style="color: #494949; font-weight: 400;">
+              ${this.calEvent.customInputs[key]}
+            </p>
+          </div>
+        `;
+        }
       })
       .join("");
 

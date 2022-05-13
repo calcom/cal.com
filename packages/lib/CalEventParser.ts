@@ -60,11 +60,12 @@ export const getCustomInputs = (calEvent: CalendarEvent) => {
     return "";
   }
   const customInputsString = Object.keys(calEvent.customInputs).map((key) => {
-    const customInputs = calEvent.customInputs;
-    return `
+    if(calEvent.customInputs[key] !== "") {
+      return `
 ${key}:
-${calEvent.customInputs[key as keyof typeof customInputs]}
+${calEvent.customInputs[key]}
   `;
+    }
   }).join("");
 
   return customInputsString;
