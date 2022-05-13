@@ -474,3 +474,11 @@ model App {
   Webhook     Webhook[]
   ApiKey      ApiKey[]
 }
+
+model Feedback {
+  id      Int        @id @default(autoincrement())
+  date    DateTime
+  userId  Int
+  rating  Int
+  comment String?
+}
