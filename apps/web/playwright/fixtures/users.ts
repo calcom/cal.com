@@ -54,6 +54,11 @@ export const createUsersFixture = (page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
+    deleteAll: async () => {
+      const ids = store.users.map((u) => u.id);
+      await prisma.user.deleteMany({ where: { id: { in: ids } } });
+      store.users = [];
+    },
     delete: async (id: number) => {
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
