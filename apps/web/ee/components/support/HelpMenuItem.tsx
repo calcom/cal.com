@@ -13,7 +13,13 @@ export default function HelpMenuItem() {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [resMessage, setResMessage] = useState("");
+  const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
+
+  const onRatingClick = (value: number) => {
+    setRating(value);
+    setDisableSubmit(false);
+  };
 
   return (
     <div className="w-full border-gray-300 bg-white shadow-sm md:w-[150%]">
@@ -67,7 +73,7 @@ export default function HelpMenuItem() {
               "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
               rating === 4 ? "bg-gray-300" : ""
             )}
-            onClick={() => setRating(4)}>
+            onClick={() => onRatingClick(4)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
                 fill="#FFCC4D"
@@ -89,7 +95,7 @@ export default function HelpMenuItem() {
               "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
               rating === 3 ? "bg-gray-300" : ""
             )}
-            onClick={() => setRating(3)}>
+            onClick={() => onRatingClick(3)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
                 fill="#FFCC4D"
@@ -107,7 +113,7 @@ export default function HelpMenuItem() {
               "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
               rating === 2 ? "bg-gray-300" : ""
             )}
-            onClick={() => setRating(2)}>
+            onClick={() => onRatingClick(2)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
                 fill="#FFCC4D"
@@ -126,7 +132,7 @@ export default function HelpMenuItem() {
               "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
               rating === 1 ? "bg-gray-300" : ""
             )}
-            onClick={() => setRating(1)}>
+            onClick={() => onRatingClick(1)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
                 fill="#FFCC4D"
@@ -148,6 +154,7 @@ export default function HelpMenuItem() {
         </div>
         <div className="flex justify-end">
           <Button
+            disabled={disableSubmit}
             loading={loading}
             onClick={async () => {
               setLoading(true);
@@ -167,6 +174,7 @@ export default function HelpMenuItem() {
 
               if (res.ok) {
                 setResMessage("Thank you for your feedback!");
+                setDisableSubmit(true);
               } else {
                 setResMessage("Error sending feedback, please try again");
               }
