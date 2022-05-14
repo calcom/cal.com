@@ -1,22 +1,25 @@
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 
-import { ErrorCode } from "@lib/auth";
-
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Login and logout tests", () => {
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
+  });
   // Test login with all plans
   const plans = [UserPlan.PRO, UserPlan.FREE, UserPlan.TRIAL];
   plans.forEach((plan) => {
     test(`Should login with a ${plan} account`, async ({ page, users }) => {
       // Create user and login
-      const pro = await users.create({ plan });
-      await pro.login();
+      const user = await users.create({ plan });
+      await user.login();
 
-      const shellLocator = await page.locator(`[data-testid=dashboard-shell]`);
+      const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
 
       // expects the home page for an authorized user
       await page.goto("/");
@@ -25,7 +28,7 @@ test.describe("Login and logout tests", () => {
       // Asserts to read the tested plan
       const planLocator = shellLocator.locator(`[data-testid=plan-${plan.toLowerCase()}]`);
       await expect(planLocator).toBeVisible();
-      await await expect(planLocator).toHaveText;
+      await expect(planLocator).toHaveText(`-${plan}`);
 
       // When TRIAL check if the TRIAL banner is visible
       if (plan === UserPlan.TRIAL) {
@@ -34,7 +37,7 @@ test.describe("Login and logout tests", () => {
     });
   });
 
-  test("Should warn when user does not exist", async ({ page, users }) => {
+  test("Should warn when user does not exist", async ({ page }) => {
     const alertMessage = (await localize("en"))("no_account_exists");
 
     // Login with a non-existent user
@@ -51,7 +54,7 @@ test.describe("Login and logout tests", () => {
     const pro = await users.create({ username: "pro" });
 
     // login with a wrong password
-    await login({ username: "pro", password: "wrong" }, page);
+    await login({ username: pro.username, password: "wrong" }, page);
 
     // assert for the visibility of the localized  alert message
     await expect(page.locator(`text=${alertMessage}`)).toBeVisible();
@@ -59,8 +62,7 @@ test.describe("Login and logout tests", () => {
 
   test("Should logout", async ({ page, users }) => {
     const signOutLabel = (await localize("en"))("sign_out");
-    const userDropdownDisclose = async () =>
-      (await page.locator("[data-testid=user-dropdown-trigger]")).click();
+    const userDropdownDisclose = async () => page.locator("[data-testid=user-dropdown-trigger]").click();
 
     // creates a user and login
     const pro = await users.create();
@@ -68,7 +70,7 @@ test.describe("Login and logout tests", () => {
 
     // disclose and click the sign out button from the user dropdown
     await userDropdownDisclose();
-    const signOutBtn = await page.locator(`text=${signOutLabel}`);
+    const signOutBtn = page.locator(`text=${signOutLabel}`);
     await signOutBtn.click();
 
     // 2s of delay to assure the session is cleared
