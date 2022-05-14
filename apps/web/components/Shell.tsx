@@ -197,7 +197,7 @@ const Layout = ({
                   </Link>
                   {/* logo icon for tablet */}
                   <Link href="/event-types">
-                    <a className="md:inline lg:hidden">
+                    <a className="text-center md:inline lg:hidden">
                       <Logo small icon />
                     </a>
                   </Link>
@@ -460,7 +460,6 @@ function UserDropdown({ small }: { small?: boolean }) {
     },
   });
   const utils = trpc.useContext();
-
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
@@ -470,11 +469,14 @@ function UserDropdown({ small }: { small?: boolean }) {
               small ? "h-8 w-8" : "h-10 w-10",
               "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
-            <img
-              className="rounded-full"
-              src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
-              alt={user?.username || "Nameless User"}
-            />
+            {
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="rounded-full"
+                src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
+                alt={user?.username || "Nameless User"}
+              />
+            }
             {!user?.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
             )}
