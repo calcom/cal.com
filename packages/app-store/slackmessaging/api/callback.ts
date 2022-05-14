@@ -3,8 +3,10 @@ import { stringify } from "querystring";
 
 import prisma from "@calcom/prisma";
 
-const client_id = process.env.SLACK_CLIENT_ID;
-const client_secret = process.env.SLACK_CLIENT_SECRET;
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+
+let client_id = "";
+let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
@@ -18,6 +20,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!code) {
       res.redirect("/apps/installed"); // Redirect to where the user was if they cancel the signup or if the oauth fails
     }
+
+    const appKeys = await getAppKeysFromSlug("slack");
+    if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+    if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
+    if (!client_id) return res.status(400).json({ message: "Slack client_id missing" });
+    if (!client_secret) return res.status(400).json({ message: "Slack client_secret missing" });
 
     const query = {
       client_secret,

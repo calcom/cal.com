@@ -15,10 +15,11 @@ type MembershipRoleOption = {
   label?: string;
 };
 
-const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }];
+const options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberChangeRoleModal(props: {
   isOpen: boolean;
+  currentMember: MembershipRole;
   memberId: number;
   teamId: number;
   initialRole: MembershipRole;
@@ -57,7 +58,6 @@ export default function MemberChangeRoleModal(props: {
       role: role.value,
     });
   }
-
   return (
     <ModalContainer isOpen={props.isOpen} onExit={props.onExit}>
       <>
@@ -76,7 +76,7 @@ export default function MemberChangeRoleModal(props: {
             {/*<option value="OWNER">{t("owner")}</option> - needs dialog to confirm change of ownership */}
             <Select
               isSearchable={false}
-              options={options}
+              options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
               value={role}
               onChange={(option) => option && setRole(option)}
               id="role"

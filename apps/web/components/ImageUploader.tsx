@@ -134,7 +134,10 @@ export default function ImageUploader({
                     {t("no_target", { target })}
                   </p>
                 )}
-                {imageSrc && <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />}
+                {imageSrc && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
+                )}
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}

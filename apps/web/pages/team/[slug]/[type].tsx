@@ -2,6 +2,8 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { RecurringEvent } from "@calcom/types/Calendar";
+
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -68,6 +70,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           minimumBookingNotice: true,
           beforeEventBuffer: true,
           afterEventBuffer: true,
+          recurringEvent: true,
           price: true,
           currency: true,
           timeZone: true,
@@ -107,6 +110,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
   });
 
   eventTypeObject.availability = [];
