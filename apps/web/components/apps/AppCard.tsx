@@ -20,7 +20,10 @@ export default function AppCard(props: AppCardProps) {
         className="block h-full rounded-sm border border-gray-300 p-5 hover:bg-neutral-50"
         data-testid={`app-store-app-card-${props.slug}`}>
         <div className="flex">
-          <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
+          }
           <Button
             color="secondary"
             className="ml-auto flex self-start"
