@@ -200,7 +200,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, [eventType, needsConfirmation]);
+  }, [date, eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -284,7 +284,10 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
