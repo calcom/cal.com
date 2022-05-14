@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,11 +8,18 @@ import { Availability } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
-import Loader from "@components/Loader";
+import { inferQueryOutput } from "@lib/trpc";
 
-export function ScheduleListItem({ schedule, deleteFunction }: { schedule: any; deleteFunction: Function }) {
+export function ScheduleListItem({
+  schedule,
+  deleteFunction,
+  isDeleting = false,
+}: {
+  schedule: inferQueryOutput<"viewer.availability.list">["schedules"][number];
+  deleteFunction: Function;
+  isDeleting: boolean;
+}) {
   const { t, i18n } = useLocale();
-  const [deleting, setDeleting] = useState(false);
 
   return (
     <li key={schedule.id}>
@@ -46,9 +53,8 @@ export function ScheduleListItem({ schedule, deleteFunction }: { schedule: any; 
           <DropdownMenuContent>
             <DropdownMenuItem>
               <Button
-                disabled={deleting}
+                disabled={isDeleting}
                 onClick={() => {
-                  setDeleting(true);
                   deleteFunction({
                     scheduleId: schedule.id,
                   });
@@ -56,9 +62,9 @@ export function ScheduleListItem({ schedule, deleteFunction }: { schedule: any; 
                 type="button"
                 color="warn"
                 className="w-full font-normal"
-                StartIcon={deleting ? undefined : TrashIcon}
-                loading={deleting}>
-                {deleting ? t("deleting") : t("delete_schedule")}
+                StartIcon={isDeleting ? undefined : TrashIcon}
+                loading={isDeleting}>
+                {isDeleting ? t("deleting") : t("delete_schedule")}
               </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>

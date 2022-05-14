@@ -14,7 +14,7 @@ import { ScheduleListItem } from "@components/availability/ScheduleListItem";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
     onSuccess: async () => {
@@ -44,6 +44,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                 key={schedule.id}
                 schedule={schedule}
                 deleteFunction={deleteMutation.mutate}
+                isDeleting={deleteMutation.isLoading}
               />
             ))}
           </ul>
