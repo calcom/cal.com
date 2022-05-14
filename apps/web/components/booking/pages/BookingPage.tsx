@@ -89,6 +89,7 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
@@ -97,6 +98,7 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -107,7 +109,7 @@ const BookingPage = ({
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -203,8 +205,6 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
-
-  const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
