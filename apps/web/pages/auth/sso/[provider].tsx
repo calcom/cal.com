@@ -38,7 +38,7 @@ export default function Provider(props: SSOProviderPageProps) {
     } else {
       signIn(props.provider);
     }
-  }, []);
+  }, [props.isSAMLLoginEnabled, props.product, props.provider, props.tenant, router]);
   return null;
 }
 
