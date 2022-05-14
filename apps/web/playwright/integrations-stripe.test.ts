@@ -1,7 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import * as teardown from "./lib/teardown";
+import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+
+test.describe.configure({ mode: "parallel" });
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -9,45 +11,35 @@ const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 
-test.describe.serial("Stripe integration", () => {
-  test.afterAll(() => {
-    teardown.deleteAllPaymentsByEmail("pro@example.com");
-    teardown.deleteAllBookingsByEmail("pro@example.com");
-    teardown.deleteAllPaymentCredentialsByEmail("pro@example.com");
-  });
+test.describe("Stripe integration", () => {
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
-  test.describe.serial("Stripe integration dashboard", () => {
-    test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-
-    test("Can add Stripe integration", async ({ page }) => {
+  test.describe("Stripe integration dashboard", () => {
+    test("Can add Stripe integration", async ({ page, users }) => {
+      const user = await users.create();
+      await user.login();
       await page.goto("/apps/installed");
-      /** We should see the "Connect" button for Stripe */
-      await expect(
-        page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
-      ).toContainText("Connect");
 
-      /** We start the Stripe flow */
-      await Promise.all([
-        page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-        page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
-      ]);
-
-      await Promise.all([
-        page.waitForNavigation({ url: "/apps/installed" }),
-        /** We skip filling Stripe forms (testing mode only) */
-        page.click('[id="skip-account-app"]'),
-      ]);
+      await user.getPaymentCredential();
 
       /** If Stripe is added correctly we should see the "Disconnect" button */
       await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="integration-connection-button"]`)
       ).toContainText("Disconnect");
+
+      // Cleanup
+      await user.delete();
     });
   });
 
-  test("Can book a paid booking", async ({ page }) => {
-    await page.goto("/pro/paid");
+  test("Can book a paid booking", async ({ page, users }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
+    await user.login();
+    await page.goto("/apps/installed");
+    await user.getPaymentCredential();
+
+    await page.goto(`${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     // --- fill form
     await page.fill('[name="name"]', "Stripe Stripeson");
@@ -72,6 +64,9 @@ test.describe.serial("Stripe integration", () => {
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    // Cleanup
+    await user.delete();
   });
 
   todo("Pending payment booking should not be confirmed by default");
