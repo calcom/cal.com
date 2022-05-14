@@ -30,6 +30,11 @@ test.describe("Onboarding", () => {
 
   test.describe("Onboarding", () => {
     test("update onboarding username via localstorage", async ({ page }) => {
+      /**
+       * We need to come up with a better test since all test are run in an incognito window.
+       * Meaning that all localstorage access is null here.
+       */
+      test.fixme();
       await page.addInitScript(() => {
         window.localStorage.setItem("username", "alwaysavailable");
       }, {});

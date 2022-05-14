@@ -16,11 +16,12 @@ interface AppCardProps {
 export default function AppCard(props: AppCardProps) {
   return (
     <Link href={"/apps/" + props.slug}>
-      <a className="block h-full rounded-sm border border-gray-300 p-5 hover:bg-neutral-50">
+      <a
+        className="block h-full rounded-sm border border-gray-300 p-5 hover:bg-neutral-50"
+        data-testid={`app-store-app-card-${props.slug}`}>
         <div className="flex">
           <img src={props.logo} alt={props.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
           <Button
-            data-testid={`app-store-app-card-${props.slug}`}
             color="secondary"
             className="ml-auto flex self-start"
             onClick={() => {
