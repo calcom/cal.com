@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
-import { UseMutationResult } from "react-query";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -34,12 +34,13 @@ import { TeamRole } from "./TeamPill";
 interface Props {
   team: inferQueryOutput<"viewer.teams.list">[number];
   key: number;
-  deleteTeamMutation: UseMutationResult<any, any, any, any>;
+  onActionSelect: (text: string) => void;
 }
 
 export default function TeamListItem(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [deleting, setDeleting] = useState(false);
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
@@ -59,18 +60,6 @@ export default function TeamListItem(props: Props) {
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
   const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
-
-  function selectAction(action: string, teamId: number) {
-    switch (action) {
-      case "disband":
-        deleteTeam(teamId);
-        break;
-    }
-  }
-
-  function deleteTeam(teamId: number) {
-    props.deleteTeamMutation.mutate({ teamId });
-  }
 
   if (!team) return <></>;
 
@@ -188,9 +177,10 @@ export default function TeamListItem(props: Props) {
                           variety="danger"
                           title={t("disband_team")}
                           confirmBtnText={t("confirm_disband_team")}
-                          loadingAction={props.deleteTeamMutation.isLoading}
+                          loadingAction={deleting}
                           onConfirm={() => {
-                            selectAction("disband", team?.id as number);
+                            setDeleting(true);
+                            props.onActionSelect("disband");
                           }}>
                           {t("disband_team_confirmation_message")}
                         </ConfirmationDialogContent>

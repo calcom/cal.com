@@ -11,6 +11,14 @@ interface Props {
 export default function TeamList(props: Props) {
   const utils = trpc.useContext();
 
+  function selectAction(action: string, teamId: number) {
+    switch (action) {
+      case "disband":
+        deleteTeam(teamId);
+        break;
+    }
+  }
+
   const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.list"]);
@@ -20,6 +28,10 @@ export default function TeamList(props: Props) {
     },
   });
 
+  function deleteTeam(teamId: number) {
+    deleteTeamMutation.mutate({ teamId });
+  }
+
   return (
     <div>
       <ul className="mb-2 divide-y divide-neutral-200 rounded border bg-white">
@@ -27,7 +39,7 @@ export default function TeamList(props: Props) {
           <TeamListItem
             key={team?.id as number}
             team={team}
-            deleteTeamMutation={deleteTeamMutation}></TeamListItem>
+            onActionSelect={(action: string) => selectAction(action, team?.id as number)}></TeamListItem>
         ))}
       </ul>
     </div>
