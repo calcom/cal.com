@@ -1,14 +1,13 @@
 import { LogoutIcon } from "@heroicons/react/outline";
 import {
-  ExternalLinkIcon,
-  TrashIcon,
-  LinkIcon,
   DotsHorizontalIcon,
+  ExternalLinkIcon,
+  LinkIcon,
   PencilIcon,
+  TrashIcon,
 } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
-import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
@@ -17,14 +16,14 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
 import classNames from "@lib/classNames";
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
@@ -35,12 +34,12 @@ interface Props {
   team: inferQueryOutput<"viewer.teams.list">[number];
   key: number;
   onActionSelect: (text: string) => void;
+  isLoading?: boolean;
 }
 
 export default function TeamListItem(props: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const [deleting, setDeleting] = useState(false);
   const team = props.team;
 
   const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
@@ -177,9 +176,8 @@ export default function TeamListItem(props: Props) {
                           variety="danger"
                           title={t("disband_team")}
                           confirmBtnText={t("confirm_disband_team")}
-                          loadingAction={deleting}
+                          loadingAction={props.isLoading}
                           onConfirm={() => {
-                            setDeleting(true);
                             props.onActionSelect("disband");
                           }}>
                           {t("disband_team_confirmation_message")}
