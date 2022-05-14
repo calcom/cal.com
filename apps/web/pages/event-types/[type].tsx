@@ -329,6 +329,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     fetchTokens();
 
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {

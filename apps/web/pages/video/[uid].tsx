@@ -96,8 +96,14 @@ export default function JoinCall(props: JoinCallPageProps) {
         token: props.booking.dailyRef?.dailytoken,
       });
     }
-  }, []);
-
+  }, [
+    emptyBooking,
+    meetingUnavailable,
+    props.booking?.dailyRef?.dailytoken,
+    props.booking?.dailyRef?.dailyurl,
+    props.booking?.user?.id,
+    session?.userid,
+  ]);
   return (
     <>
       <Head>
@@ -116,16 +122,19 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <Link href="/">
-          <img
-            className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-            src="https://cal.com/logo-white.svg"
-            alt="Cal.com Logo"
-            style={{
-              top: 46,
-              left: 24,
-            }}
-          />
+        <Link href="/" passHref>
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+              src="https://cal.com/logo-white.svg"
+              alt="Cal.com Logo"
+              style={{
+                top: 46,
+                left: 24,
+              }}
+            />
+          }
         </Link>
         {JoinCall}
       </div>
