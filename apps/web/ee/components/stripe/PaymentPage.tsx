@@ -49,7 +49,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         embedIframeWidth = e.detail.data.iframeWidth as number;
       });
     }
-  }, [isEmbed]);
+  }, [date, isEmbed]);
 
   const eventName = props.booking.title;
 

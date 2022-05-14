@@ -15,6 +15,8 @@ addAliases({
   "@ee": __dirname + "/apps/web/ee",
 });
 
+require("dotenv").config({ path: "../../.env" });
+
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 

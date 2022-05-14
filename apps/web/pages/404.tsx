@@ -35,7 +35,7 @@ export default function Custom404() {
   const [url, setUrl] = useState("https://cal.com/signup?username=");
   useEffect(() => {
     setUrl(`https://cal.com/signup?username=${username.replace("/", "")}`);
-  }, [router.query]);
+  }, [username, router.query]);
 
   const isSubpage = router.asPath.includes("/", 2);
   const isSignup = router.asPath.includes("/signup");
