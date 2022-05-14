@@ -128,6 +128,17 @@ export const eventTypesRouter = createProtectedRouter()
         data.locations = [{ type: "integrations:daily" }];
       }
 
+      //Check if given user already has slug for their eventTypes
+      const userEventExists = await ctx.prisma.eventType.findFirst({
+        where: {
+          userId,
+          slug: data.slug,
+        },
+      });
+      if (userEventExists) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
+      }
+
       if (teamId && schedulingType) {
         const hasMembership = await ctx.prisma.membership.findFirst({
           where: {
