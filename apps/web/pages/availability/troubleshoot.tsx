@@ -48,7 +48,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         });
     };
     fetchAvailability(selectedDate);
-  }, [selectedDate]);
+  }, [user.username, selectedDate]);
 
   return (
     <div className="max-w-xl overflow-hidden rounded-sm bg-white shadow">

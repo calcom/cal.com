@@ -24,12 +24,13 @@ export type CheckedSelectProps = {
 };
 
 export const CheckedSelect = (props: CheckedSelectProps) => {
+  const { onChange } = props;
   const [selectedOptions, setSelectedOptions] = useState<CheckedSelectValue>(props.defaultValue || []);
   const { t } = useLocale();
 
   useEffect(() => {
-    props.onChange(selectedOptions);
-  }, [selectedOptions]);
+    onChange(selectedOptions);
+  }, [onChange, selectedOptions]);
 
   const options = props.options.map((option) => ({
     ...option,

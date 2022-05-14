@@ -150,7 +150,10 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
           <>
             <div className="flex justify-center">
-              <img src={dataUri} />
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={dataUri} alt="" />
+              }
             </div>
             <p className="text-center font-mono text-xs">{secret}</p>
           </>
