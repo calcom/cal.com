@@ -329,6 +329,7 @@
   "receive_cal_event_meeting_data": "Receba dados da reunião Cal num URL especificado, em tempo real, assim que o evento for agendado ou cancelado.",
   "responsive_fullscreen_iframe": "Iframe responsivo de ecrã inteiro",
   "loading": "A carregar...",
+  "deleting": "A remover...",
   "standard_iframe": "Iframe padrão",
   "iframe_embed": "Incorporar iframe",
   "embed_calcom": "A maneira mais fácil de incorporar o Cal.com no seu site.",

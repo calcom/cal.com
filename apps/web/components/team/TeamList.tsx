@@ -1,6 +1,6 @@
 import showToast from "@calcom/lib/notification";
 
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import TeamListItem from "./TeamListItem";
 
@@ -39,7 +39,9 @@ export default function TeamList(props: Props) {
           <TeamListItem
             key={team?.id as number}
             team={team}
-            onActionSelect={(action: string) => selectAction(action, team?.id as number)}></TeamListItem>
+            onActionSelect={(action: string) => selectAction(action, team?.id as number)}
+            isLoading={deleteTeamMutation.isLoading}
+          />
         ))}
       </ul>
     </div>
