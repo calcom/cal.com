@@ -176,7 +176,7 @@ export default function TeamListItem(props: Props) {
                           variety="danger"
                           title={t("disband_team")}
                           confirmBtnText={t("confirm_disband_team")}
-                          loadingAction={props.isLoading}
+                          isLoading={props.isLoading}
                           onConfirm={() => {
                             props.onActionSelect("disband");
                           }}>

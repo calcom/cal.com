@@ -3,16 +3,15 @@ import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/Button";
 import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;
   confirmBtnText?: string;
   cancelBtnText?: string;
-  loadingAction?: boolean;
+  isLoading?: boolean;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
@@ -26,7 +25,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     confirmBtn = null,
     confirmBtnText = t("confirm"),
     cancelBtnText = t("cancel"),
-    loadingAction,
+    isLoading = false,
     onConfirm,
     children,
   } = props;
@@ -61,14 +60,14 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         </div>
       </div>
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
-        <DialogClose disabled={loadingAction} onClick={onConfirm} asChild>
+        <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
           {confirmBtn || (
-            <Button color="primary" loading={loadingAction}>
-              {loadingAction ? t("loading") : confirmBtnText}
+            <Button color="primary" loading={isLoading}>
+              {isLoading ? t("loading") : confirmBtnText}
             </Button>
           )}
         </DialogClose>
-        <DialogClose disabled={loadingAction} asChild>
+        <DialogClose disabled={isLoading} asChild>
           <Button color="secondary">{cancelBtnText}</Button>
         </DialogClose>
       </div>
