@@ -12,7 +12,10 @@ export type ActionType = {
   label: string;
   disabled?: boolean;
   color?: "primary" | "secondary";
-} & ({ href?: never; onClick: () => any } | { href?: string; onClick?: never }) & {
+} & (
+  | { href?: string; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => any }
+  | { href?: never; onClick?: (e?: any) => any }
+) & {
     actions?: ActionType[];
   };
 

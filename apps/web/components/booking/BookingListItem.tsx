@@ -3,6 +3,7 @@ import { PaperAirplaneIcon } from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
@@ -37,6 +38,7 @@ function BookingListItem(booking: BookingItemProps) {
   const user = query.data;
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const mutation = useMutation(
@@ -81,7 +83,10 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
-      onClick: () => setRejectionDialogIsOpen(true),
+      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation();
+        setRejectionDialogIsOpen(true);
+      },
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
@@ -91,7 +96,10 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
-      onClick: () => mutation.mutate(true),
+      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation();
+        mutation.mutate(true);
+      },
       icon: CheckIcon,
       disabled: mutation.isLoading,
       color: "primary",
@@ -104,6 +112,9 @@ function BookingListItem(booking: BookingItemProps) {
       label: t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
+      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.stopPropagation();
+      },
     },
     {
       id: "reschedule",
@@ -115,12 +126,18 @@ function BookingListItem(booking: BookingItemProps) {
           icon: PencilAltIcon,
           label: t("edit_booking"),
           href: `/reschedule/${booking.uid}`,
+          onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.stopPropagation();
+          },
         },
         {
           id: "reschedule_request",
           icon: ClockIcon,
           label: t("send_reschedule_request"),
-          onClick: () => setIsOpenRescheduleDialog(true),
+          onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.stopPropagation();
+            setIsOpenRescheduleDialog(true);
+          },
         },
       ],
     },
@@ -191,7 +208,9 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex">
+      <tr
+        className="flex cursor-pointer hover:bg-neutral-50"
+        onClick={() => router.push("/bookings/details/" + booking.id)}>
         <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
           <div className="text-sm leading-6 text-gray-900">{startTime}</div>
           <div className="text-sm text-gray-500">
@@ -264,9 +283,12 @@ function BookingListItem(booking: BookingItemProps) {
           )}
 
           {booking.attendees.length !== 0 && (
-            <div className="text-sm text-gray-900 hover:text-blue-500">
-              <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
-            </div>
+            <a
+              className="text-sm text-gray-900 hover:text-blue-500"
+              href={"mailto:" + booking.attendees[0].email}
+              onClick={(e) => e.stopPropagation()}>
+              {booking.attendees[0].email}
+            </a>
           )}
           {isCancelled && booking.rescheduled && (
             <div className="mt-2 inline-block text-left text-sm md:hidden">
