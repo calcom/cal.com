@@ -122,6 +122,31 @@ export const useSlots = (props: UseSlotsProps) => {
     const dateTo = date.endOf("day").format();
     const query = stringify({ dateFrom, dateTo, eventTypeId });
 
+    const handleAvailableSlots = async (res: Response) => {
+      const responseBody: AvailabilityUserResponse = await res.json();
+      const times = getSlots({
+        frequency: slotInterval || eventLength,
+        inviteeDate: date,
+        workingHours: responseBody.workingHours,
+        minimumBookingNotice,
+        eventLength,
+      });
+      const filterTimeProps = {
+        times,
+        busy: responseBody.busy,
+        eventLength,
+        beforeBufferTime,
+        afterBufferTime,
+      };
+      const filteredTimes = getFilteredTimes(filterTimeProps);
+      // temporary
+      const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
+      return filteredTimes.map((time) => ({
+        time,
+        users: [user],
+      }));
+    };
+
     Promise.all<Slot[]>(
       users.map((user) => fetch(`/api/availability/${user.username}?${query}`).then(handleAvailableSlots))
     )
@@ -173,32 +198,17 @@ export const useSlots = (props: UseSlotsProps) => {
         console.error(e);
         setError(e);
       });
-  }, [date]);
-
-  const handleAvailableSlots = async (res: Response) => {
-    const responseBody: AvailabilityUserResponse = await res.json();
-    const times = getSlots({
-      frequency: slotInterval || eventLength,
-      inviteeDate: date,
-      workingHours: responseBody.workingHours,
-      minimumBookingNotice,
-      eventLength,
-    });
-    const filterTimeProps = {
-      times,
-      busy: responseBody.busy,
-      eventLength,
-      beforeBufferTime,
-      afterBufferTime,
-    };
-    const filteredTimes = getFilteredTimes(filterTimeProps);
-    // temporary
-    const user = res.url.substring(res.url.lastIndexOf("/") + 1, res.url.indexOf("?"));
-    return filteredTimes.map((time) => ({
-      time,
-      users: [user],
-    }));
-  };
+  }, [
+    afterBufferTime,
+    beforeBufferTime,
+    eventLength,
+    minimumBookingNotice,
+    slotInterval,
+    eventTypeId,
+    props.schedulingType,
+    users,
+    date,
+  ]);
 
   return {
     slots,

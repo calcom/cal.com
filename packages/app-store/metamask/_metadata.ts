@@ -14,7 +14,7 @@ export const metadata = {
   rating: 5,
   reviews: 69,
   slug: "metamask",
-  title: "Meta Mask",
+  title: "MetaMask",
   trending: true,
   type: "metamask_web3",
   url: "https://cal.com/",
