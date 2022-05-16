@@ -438,7 +438,7 @@ export default NextAuth({
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl || WEBSITE_URL) return url;
+      else if (new URL(url).origin === new URL(baseUrl  || WEBSITE_URL).origin) return url;
       return baseUrl;
     },
   },
