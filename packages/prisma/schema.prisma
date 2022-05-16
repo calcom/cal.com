@@ -65,6 +65,8 @@ model EventType {
   periodDays              Int?
   periodCountCalendarDays Boolean?
   requiresConfirmation    Boolean                @default(false)
+  /// @zod.custom(imports.recurringEvent)
+  recurringEvent          Json?
   disableGuests           Boolean                @default(false)
   hideCalendarNotes       Boolean                @default(false)
   minimumBookingNotice    Int                    @default(120)
@@ -285,6 +287,7 @@ model Booking {
   dynamicGroupSlugRef String?
   rescheduled         Boolean?
   fromReschedule      String?
+  recurringEventId    String?
 }
 
 model Schedule {

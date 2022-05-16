@@ -274,7 +274,17 @@ const BrandColor = ({
       "--brand-text-color-dark-mode",
       getContrastingTextColor(darkVal, true)
     );
-  }, [lightVal, darkVal]);
+  }, [
+    embedBrandingColors.highlightColor,
+    embedBrandingColors.lightestColor,
+    embedBrandingColors.lighterColor,
+    embedBrandingColors.lightColor,
+    embedBrandingColors.medianColor,
+    embedBrandingColors.darkColor,
+    embedBrandingColors.darkerColor,
+    lightVal,
+    darkVal,
+  ]);
   return null;
 };
 
