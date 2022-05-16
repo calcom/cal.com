@@ -16,7 +16,7 @@ import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
@@ -119,26 +119,36 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     );
   }, [telemetry]);
 
-  const changeDate = (newDate: Dayjs) => {
-    router.replace(
-      {
-        query: {
-          ...router.query,
-          date: newDate.format("YYYY-MM-DDZZ"),
+  const changeDate = useCallback(
+    (newDate: Dayjs) => {
+      router.replace(
+        {
+          query: {
+            ...router.query,
+            date: newDate.tz(timeZone(), true).format("YYYY-MM-DDZZ"),
+          },
         },
-      },
-      undefined,
-      {
-        shallow: true,
-      }
-    );
-  };
+        undefined,
+        { shallow: true }
+      );
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    if (
+      selectedDate != null &&
+      selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone()).utcOffset()
+    ) {
+      changeDate(selectedDate.tz(timeZone(), true));
+    }
+  }, [selectedDate, changeDate]);
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
+    timeZone(selectedTimeZone);
     if (selectedDate) {
       changeDate(selectedDate.tz(selectedTimeZone, true));
     }
-    timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
   };
 
