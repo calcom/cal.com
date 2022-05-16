@@ -7,7 +7,6 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.11.2",
-    "dayjs-business-time": "^1.0.4",
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
     "next-i18next": "^8.9.0",
