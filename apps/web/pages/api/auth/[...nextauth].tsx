@@ -434,5 +434,12 @@ export default NextAuth({
 
       return false;
     },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === new URL(baseUrl || WEBSITE_URL).origin) return url;
+      return baseUrl;
+    },
   },
 });
