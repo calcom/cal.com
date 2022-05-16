@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { EventTypeResponse } from "@lib/types";
-import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
+import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -52,7 +52,7 @@ export async function eventTypeById(
       case "GET":
         await prisma.eventType
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaEventTypePublic.parse(data))
+          .then((data) => schemaEventTypeReadPublic.parse(data))
           .then((event_type) => res.status(200).json({ event_type }))
           .catch((error: Error) =>
             res.status(404).json({
@@ -89,13 +89,13 @@ export async function eventTypeById(
        *        description: Authorization information is missing or invalid.
        */
       case "PATCH":
-        const safeBody = schemaEventTypeBodyParams.safeParse(body);
+        const safeBody = schemaEventTypeEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           throw new Error("Invalid request body");
         }
         await prisma.eventType
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaEventTypePublic.parse(data))
+          .then((data) => schemaEventTypeReadPublic.parse(data))
           .then((event_type) => res.status(200).json({ event_type }))
           .catch((error: Error) =>
             res.status(404).json({

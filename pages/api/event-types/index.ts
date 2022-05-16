@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { EventTypeResponse, EventTypesResponse } from "@lib/types";
-import { schemaEventTypeBodyParams, schemaEventTypePublic } from "@lib/validations/event-type";
+import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 async function createOrlistAllEventTypes(
   { method, body, userId }: NextApiRequest,
@@ -29,7 +29,7 @@ async function createOrlistAllEventTypes(
      *         description: No event types were found
      */
     const data = await prisma.eventType.findMany({ where: { userId } });
-    const event_types = data.map((eventType) => schemaEventTypePublic.parse(eventType));
+    const event_types = data.map((eventType) => schemaEventTypeReadPublic.parse(eventType));
     if (event_types) res.status(200).json({ event_types });
     else
       (error: Error) =>
@@ -55,11 +55,11 @@ async function createOrlistAllEventTypes(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    const safe = schemaEventTypeBodyParams.safeParse(body);
+    const safe = schemaEventTypeCreateBodyParams.safeParse(body);
     if (!safe.success) throw new Error("Invalid request body");
 
     const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
-    const event_type = schemaEventTypePublic.parse(data);
+    const event_type = schemaEventTypeReadPublic.parse(data);
 
     if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
     else
