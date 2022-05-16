@@ -3,6 +3,8 @@ import { expect, Locator, test } from "@playwright/test";
 import { randomString } from "../lib/random";
 import { deleteEventTypeByTitle } from "./lib/teardown";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Event Types tests", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/event-types");
@@ -47,6 +49,45 @@ test.describe("Event Types tests", () => {
       await page.goto("/event-types");
 
       isCreated = await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
+    });
+
+    test("enabling recurring event comes with default options", async ({ page }) => {
+      await page.click("[data-testid=new-event-type]");
+      const nonce = randomString(3);
+      eventTitle = `my recurring event ${nonce}`;
+
+      await page.fill("[name=title]", eventTitle);
+      await page.fill("[name=length]", "15");
+      await page.click("[type=submit]");
+
+      await page.waitForNavigation({
+        url(url) {
+          return url.pathname !== "/event-types";
+        },
+      });
+
+      await page.click("[data-testid=show-advanced-settings]");
+      await expect(await page.locator("[data-testid=recurring-event-collapsible] > *")).not.toBeVisible();
+      await page.click("[data-testid=recurring-event-check]");
+      isCreated = await expect(
+        await page.locator("[data-testid=recurring-event-collapsible] > *")
+      ).toBeVisible();
+
+      await expect(
+        await page
+          .locator("[data-testid=recurring-event-collapsible] input[type=number]")
+          .nth(0)
+          .getAttribute("value")
+      ).toBe("1");
+      await expect(
+        await page.locator("[data-testid=recurring-event-collapsible] div[class$=singleValue]").textContent()
+      ).toBe("week");
+      await expect(
+        await page
+          .locator("[data-testid=recurring-event-collapsible] input[type=number]")
+          .nth(1)
+          .getAttribute("value")
+      ).toBe("12");
     });
 
     test("can duplicate an existing event type", async ({ page }) => {

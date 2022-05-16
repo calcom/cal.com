@@ -118,8 +118,14 @@ export default function Login({
               .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
           }}
           data-testid="login-form">
-          <input defaultValue={csrfToken || undefined} type="hidden" hidden {...form.register("csrfToken")} />
-
+          <div>
+            <input
+              defaultValue={csrfToken || undefined}
+              type="hidden"
+              hidden
+              {...form.register("csrfToken")}
+            />
+          </div>
           <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
             <EmailField
               id="email"

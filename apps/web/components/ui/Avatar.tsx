@@ -27,6 +27,7 @@ export default function Avatar(props: AvatarProps) {
       />
       <AvatarPrimitive.Fallback delayMs={600}>
         {gravatarFallbackMd5 && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={className} />
         )}
       </AvatarPrimitive.Fallback>

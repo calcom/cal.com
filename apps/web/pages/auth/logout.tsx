@@ -25,7 +25,7 @@ export default function Logout(props: Props) {
     if (props.query?.survey === "true") {
       router.push("https://cal.com/cancellation");
     }
-  }, []);
+  }, [props.query?.survey, router]);
   const { t } = useLocale();
 
   return (
@@ -43,7 +43,7 @@ export default function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Link href="/auth/login">
+      <Link href="/auth/login" passHref>
         <Button className="flex w-full justify-center"> {t("go_back_login")}</Button>
       </Link>
     </AuthContainer>

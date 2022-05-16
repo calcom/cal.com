@@ -1,11 +1,4 @@
-import {
-  BookingStatus,
-  Credential,
-  Payment,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-time";
@@ -13,18 +6,16 @@ import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
+import rrule from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import EventManager from "@calcom/core/EventManager";
-import { getBusyVideoTimes } from "@calcom/core/videoClient";
-import { getDefaultEvent, getUsernameList, getGroupName } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import notEmpty from "@calcom/lib/notEmpty";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionInformation, CalendarEvent, EventBusyDate, Person } from "@calcom/types/Calendar";
+import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { handlePayment } from "@ee/lib/stripe/server";
 
@@ -36,6 +27,7 @@ import {
 } from "@lib/emails/email-manager";
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
+import getBusyTimes from "@lib/getBusyTimes";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -83,7 +75,7 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-function isAvailable(busyTimes: BufferedBusyTimes, time: string, length: number): boolean {
+function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
   // Check for conflicts
   let t = true;
 
@@ -190,7 +182,7 @@ const getUserNameWithBookingCounts = async (eventTypeId: number, selectedUserNam
 };
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  return await prisma.eventType.findUnique({
+  const eventType = await prisma.eventType.findUnique({
     rejectOnNotFound: true,
     where: {
       id: eventTypeId,
@@ -220,19 +212,28 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      recurringEvent: true,
     },
   });
+
+  return {
+    ...eventType,
+    recurringEvent: (eventType.recurringEvent || undefined) as RecurringEvent,
+  };
 };
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
+type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const reqBody = req.body as BookingCreateBody;
+  const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
     ? getGroupName(req.body.user)
     : getUsernameList(reqBody.user as string);
+  const hasHashedBookingLink = reqBody.hasHashedBookingLink;
   const eventTypeSlug = reqBody.eventTypeSlug;
   const eventTypeId = reqBody.eventTypeId;
   const tAttendees = await getTranslation(reqBody.language ?? "en", "common");
@@ -381,6 +382,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }; // used for invitee emails
   }
 
+  if (reqBody.recurringEventId && eventType.recurringEvent) {
+    // Overriding the recurring event configuration count to be the actual number of events booked for
+    // the recurring event (equal or less than recurring event configuration count)
+    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+  }
+
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
@@ -480,6 +487,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         : undefined,
     };
+    if (reqBody.recurringEventId) {
+      newBookingData.recurringEventId = reqBody.recurringEventId;
+    }
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
@@ -529,50 +539,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const credentials = currentUser.credentials;
+    const busyTimes = await getBusyTimes({
+      credentials: currentUser.credentials,
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      eventTypeId,
+      userId: currentUser.id,
+      selectedCalendars,
+    });
 
-    const calendarBusyTimes: EventBusyDate[] = await prisma.booking
-      .findMany({
-        where: {
-          AND: [
-            {
-              userId: currentUser.id,
-              eventTypeId: eventTypeId,
-            },
-            {
-              OR: [
-                {
-                  status: "ACCEPTED",
-                },
-                {
-                  status: "PENDING",
-                },
-              ],
-            },
-          ],
-        },
-      })
-      .then((bookings) => bookings.map((booking) => ({ end: booking.endTime, start: booking.startTime })));
+    console.log("calendarBusyTimes==>>>", busyTimes);
 
-    if (credentials) {
-      await getBusyCalendarTimes(credentials, reqBody.start, reqBody.end, selectedCalendars).then(
-        (busyTimes) => calendarBusyTimes.push(...busyTimes)
-      );
-
-      const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
-      calendarBusyTimes.push(...videoBusyTimes);
-    }
-
-    console.log("calendarBusyTimes==>>>", calendarBusyTimes);
-
-    const bufferedBusyTimes: BufferedBusyTimes = calendarBusyTimes.map((a) => ({
+    const bufferedBusyTimes = busyTimes.map((a) => ({
       start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),
       end: dayjs(a.end).add(currentUser.bufferTime, "minute").toString(),
     }));
 
     let isAvailableToBeBooked = true;
     try {
-      isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      if (eventType.recurringEvent) {
+        const allBookingDates = new rrule({
+          dtstart: new Date(reqBody.start),
+          ...eventType.recurringEvent,
+        }).all();
+        // Go through each date for the recurring event and check if each one's availability
+        isAvailableToBeBooked = allBookingDates
+          .map((aDate) => isAvailable(bufferedBusyTimes, aDate, eventType.length)) // <-- array of booleans
+          .reduce((acc, value) => acc && value, true); // <-- checks boolean array applying "AND" to each value and the current one, starting in true
+      } else {
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, reqBody.start, eventType.length);
+      }
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
@@ -650,8 +646,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-
-    if (results.length > 0 && results.every((res) => !res.success)) {
+    if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {
         errorCode: "BookingReschedulingMeetingFailed",
         message: "Booking Rescheduling failed",
@@ -673,11 +668,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      await sendRescheduledEmails({
-        ...evt,
-        additionInformation: metadata,
-        additionalNotes, // Resets back to the addtionalNote input and not the overriden value
-      });
+      if (noEmail !== true) {
+        await sendRescheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+          },
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+        );
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -707,22 +707,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
       }
-      await sendScheduledEmails({
-        ...evt,
-        additionInformation: metadata,
-        additionalNotes,
-      });
+      if (noEmail !== true) {
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionInformation: metadata,
+            additionalNotes,
+          },
+          reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+        );
+      }
     }
   }
 
-  if (eventType.requiresConfirmation && !rescheduleUid) {
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+  if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
+    await sendOrganizerRequestEmail(
+      { ...evt, additionalNotes },
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+    );
+    await sendAttendeeRequestEmail(
+      { ...evt, additionalNotes },
+      attendeesList[0],
+      reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
+    );
   }
 
   if (typeof eventType.price === "number" && eventType.price > 0 && !originalRescheduledBooking?.paid) {
     try {
       const [firstStripeCredential] = user.credentials.filter((cred) => cred.type == "stripe_payment");
+
+      if (!firstStripeCredential) return res.status(500).json({ message: "Missing payment credentials" });
 
       if (!booking.user) booking.user = user;
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
@@ -752,17 +766,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     metadata: reqBody.metadata,
   });
   const promises = subscribers.map((sub) =>
-    sendPayload(
-      eventTrigger,
-      new Date().toISOString(),
-      sub.subscriberUrl,
-      {
-        ...evt,
-        rescheduleUid,
-        metadata: reqBody.metadata,
-      },
-      sub.payloadTemplate
-    ).catch((e) => {
+    sendPayload(eventTrigger, new Date().toISOString(), sub, {
+      ...evt,
+      rescheduleUid,
+      metadata: reqBody.metadata,
+    }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
   );
@@ -780,6 +788,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+  // refresh hashed link if used
+  const urlSeed = `${users[0].username}:${dayjs(req.body.start).utc().format()}`;
+  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
+
+  if (hasHashedBookingLink) {
+    await prisma.hashedLink.update({
+      where: {
+        link: reqBody.hashedLink as string,
+      },
+      data: {
+        link: hashedUid,
+      },
+    });
+  }
 
   // booking successful
   return res.status(201).json(booking);
