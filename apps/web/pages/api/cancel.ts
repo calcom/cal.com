@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         select: {
           uid: true,
           type: true,
+          externalCalendarId: true,
         },
       },
       payment: true,
@@ -163,11 +164,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+    const bookingExternalCalendarId = bookingToDelete.references.filter(
+      (ref) => ref.type === credential.type
+    )[0]?.externalCalendarId;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
         const calendar = getCalendar(credential);
 
-        return calendar?.deleteEvent(bookingRefUid, evt);
+        return calendar?.deleteEvent(bookingRefUid, evt, bookingExternalCalendarId);
       } else if (credential.type.endsWith("_video")) {
         return deleteMeeting(credential, bookingRefUid);
       }
