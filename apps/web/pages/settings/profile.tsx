@@ -137,6 +137,21 @@ const CustomUsernameTextfield = (props) => {
     null
   );
 
+  const saveDesiredUsername = async () => {
+    try {
+      const result = await fetch("/api/intent-username", {
+        method: "POST",
+        body: JSON.stringify({ intentUsername: inputUsernameValue }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log({ result });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
@@ -371,6 +386,7 @@ const CustomUsernameTextfield = (props) => {
                 // loading={createMutation.isLoading}
                 onClick={async () => {
                   let url = "";
+                  await saveDesiredUsername();
                   if (usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
                     // redirect to checkout
                     url = "/api/integrations/stripepayment/subscription";
@@ -388,7 +404,7 @@ const CustomUsernameTextfield = (props) => {
                   console.log({ result });
                   const body = await result.json();
                   console.log({ body });
-                  window.location.href = body.url;
+                  // window.location.href = body.url;
                 }}>
                 {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
                 {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (

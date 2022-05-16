@@ -171,6 +171,7 @@ model User {
   apiKeys             ApiKey[]
   accounts            Account[]
   sessions            Session[]
+  desiredUsernames    IntentUsername[]
 
   @@map(name: "users")
 }
@@ -475,10 +476,12 @@ model App {
   ApiKey      ApiKey[]
 }
 
-model DesiredUsername {
+model IntentUsername {
   id                    String @id @default(cuid())
+  userId                Int
+  user                  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   currentUsername       String
-  newUsername           String
-  isNewUsernamePremium  Boolean
+  intentUsername        String
+  isIntentPremium       Boolean
   createdAt             DateTime @default(now())
 }
