@@ -64,32 +64,9 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   const slots: Dayjs[] = [];
 
   const slotsTimeFrameAvailable = [] as Array<WorkingHoursTimeFrame>;
+
   // Here we split working hour in chunks for every frequency available that can fit in whole working hours
-  const computedLocalWorkingHours: WorkingHoursTimeFrame[] = [];
-  let tempComputeTimeFrame: WorkingHoursTimeFrame | undefined;
-  const computeLength = localWorkingHours.length - 1;
-  const makeTimeFrame = (item: typeof localWorkingHours[0]): WorkingHoursTimeFrame => ({
-    startTime: item.startTime,
-    endTime: item.endTime,
-  });
   localWorkingHours.forEach((item, index) => {
-    if (!tempComputeTimeFrame) {
-      tempComputeTimeFrame = makeTimeFrame(item);
-    } else {
-      // please check the comment in splitAvailableTime func for the added 1 minute
-      if (tempComputeTimeFrame.endTime + 1 === item.startTime) {
-        // to deal with time that across the day, e.g. from 11:59 to to 12:01
-        tempComputeTimeFrame.endTime = item.endTime;
-      } else {
-        computedLocalWorkingHours.push(tempComputeTimeFrame);
-        tempComputeTimeFrame = makeTimeFrame(item);
-      }
-    }
-    if (index == computeLength) {
-      computedLocalWorkingHours.push(tempComputeTimeFrame);
-    }
-  });
-  computedLocalWorkingHours.forEach((item, index) => {
     slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency, eventLength));
   });
 

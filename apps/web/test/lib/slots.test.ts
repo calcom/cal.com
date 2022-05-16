@@ -165,3 +165,21 @@ it("adds buffer time with custom slot interval", async () => {
     })
   ).toHaveLength(239);
 });
+
+it("test for event of 45 min with a timezone in -7:00", async () => {
+  expect(
+    getSlots({
+      inviteeDate: dayjs().tz("America/Los_Angeles").startOf("day"),
+      frequency: 45,
+      minimumBookingNotice: 0,
+      workingHours: [
+        {
+          days: Array.from(Array(7).keys()),
+          startTime: MINUTES_DAY_START,
+          endTime: MINUTES_DAY_END,
+        },
+      ],
+      eventLength: 45,
+    })
+  ).toHaveLength(25);
+});

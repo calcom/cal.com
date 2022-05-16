@@ -85,7 +85,7 @@ export function getWorkingHours(
   const utcOffset = relativeTimeUnit.utcOffset ?? dayjs().tz(relativeTimeUnit.timeZone).utcOffset();
 
   const workingHours = availability.reduce((workingHours: WorkingHours[], schedule) => {
-    // Get times localised to the given utcOffset/timeZone
+    // Get times localized to the given utcOffset/timeZone
     const startTime =
       dayjs.utc(schedule.startTime).get("hour") * 60 +
       dayjs.utc(schedule.startTime).get("minute") -
@@ -120,7 +120,29 @@ export function getWorkingHours(
       });
     }
 
-    return workingHours;
+    /**
+     * We need to merge consecutive workingHours
+     * this means that [{startTime: 9:30, endTime: 10:30}, {startTime: 10:30, endTime: 11:00}]
+     * becomes a single element in the array [{startTime: 9:30, endTime: 11:00}]
+     * This is due sometimes when hours involved a day change in UTC, working hours
+     * got splitted by a day end unpurposely
+     */
+    const mergedConsecutiveHours = workingHours.reduce((accumulator, current) => {
+      const previousElement = accumulator[accumulator.length - 1];
+      if (previousElement && previousElement.endTime + 1 === current.startTime && accumulator.length > 0) {
+        // We don't push, but we modify previousElement
+        let copyPrevious = accumulator.pop();
+        if (copyPrevious) {
+          copyPrevious["endTime"] = current.endTime;
+          accumulator.push(copyPrevious);
+        }
+      } else {
+        accumulator.push(current);
+      }
+
+      return accumulator;
+    }, [] as { startTime: number; endTime: number; days: number[] }[]);
+    return mergedConsecutiveHours;
   }, []);
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
@@ -136,7 +158,7 @@ export function availabilityAsString(availability: Availability, locale: string)
           // append if the range is not complete (but the next day needs adding)
           days[days.length - 1].push(day);
         } else if (days[days.length - 1][days[days.length - 1].length - 1] === day - 1) {
-          // range complete, overwrite if the last day directly preceeds the current day
+          // range complete, overwrite if the last day directly precedes the current day
           days[days.length - 1] = [days[days.length - 1][0], day];
         } else {
           // new range
