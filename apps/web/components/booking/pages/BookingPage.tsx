@@ -66,6 +66,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
     [key: string]: string;
   };
@@ -193,7 +194,7 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string };
+  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -268,7 +269,9 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
@@ -279,6 +282,9 @@ const BookingPage = ({
       }
       case LocationType.Link: {
         return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.UserPhone: {
+        return locationInfo(locationType)?.hostPhoneNumber || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
