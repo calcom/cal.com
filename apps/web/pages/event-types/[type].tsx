@@ -282,8 +282,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
-  const [requirePayment, setRequirePayment] = useState(
-    eventType.price > 0 && eventType.recurringEvent?.count !== undefined
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const [recurringEventDefined, setRecurringEventDefined] = useState(
+    eventType.recurringEvent?.count !== undefined
   );
 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
@@ -1412,6 +1413,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <RecurringEventController
+                          paymentEnabled={hasPaymentIntegration && requirePayment}
+                          onRecurringEventDefined={setRecurringEventDefined}
                           recurringEvent={eventType.recurringEvent}
                           formMethods={formMethods}
                         />
@@ -1729,7 +1732,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
-                        {hasPaymentIntegration && eventType.recurringEvent?.count !== undefined && (
+                        {hasPaymentIntegration && !recurringEventDefined && (
                           <>
                             <hr className="border-neutral-200" />
                             <div className="block sm:flex">
