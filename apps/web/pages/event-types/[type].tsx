@@ -914,7 +914,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <h1
                   style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                  {eventType.title}
+                  {formMethods.getValues("title") && formMethods.getValues("title") !== ""
+                    ? formMethods.getValues("title")
+                    : eventType.title}
                 </h1>
                 <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
               </>
@@ -929,6 +931,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
+                  onBlur={() => {
+                    setEditIcon(true);
+                    formMethods.getValues("title") === "" && formMethods.setValue("title", eventType.title);
+                  }}
                 />
               </div>
             )}
