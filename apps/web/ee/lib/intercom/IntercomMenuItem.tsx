@@ -1,10 +1,18 @@
 import { ChatAltIcon } from "@heroicons/react/solid";
-import { useIntercom } from "react-use-intercom";
+import { useIntercom as _useIntercom } from "react-use-intercom";
 
 import { DropdownMenuItem } from "@calcom/ui/Dropdown";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
+
+const useIntercom =
+  typeof window !== "undefined"
+    ? _useIntercom
+    : () => ({
+        boot: () => {},
+        show: () => {},
+      });
 
 export default function IntercomMenuItem() {
   const { t } = useLocale();
