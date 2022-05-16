@@ -165,9 +165,6 @@ if (true) {
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
       sendVerificationRequest: ({ identifier, url }) => {
-        // Here we add /new endpoint to the callback URL by adding it before &token=.
-        // This is not elegant but it works. We should probably use a different approach when we can.
-        url = url.includes("/auth/new") ? url : url.replace("&token", "/auth/new&token");
         const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
           encoding: "utf8",
         });
@@ -198,7 +195,7 @@ export default NextAuth({
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
-    newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
+    // newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
   callbacks: {
