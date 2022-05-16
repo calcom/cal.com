@@ -1,10 +1,11 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
-import React, { useState } from "react";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Frequency as RRuleFrequency } from "rrule";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
+import { Alert } from "@calcom/ui/Alert";
 
 import Select from "@components/ui/form/Select";
 
@@ -40,15 +41,17 @@ export default function RecurringEventController({
     }));
 
   return (
-    <>
-      {!paymentEnabled && (
-        <div className="block items-start sm:flex">
-          <div className="min-w-48 mb-4 sm:mb-0">
-            <label htmlFor="recurringEvent" className="flex text-sm font-medium text-neutral-700">
-              {t("recurring_event")}
-            </label>
-          </div>
-          <div className="w-full">
+    <div className="block items-start sm:flex">
+      <div className="min-w-48 mb-4 sm:mb-0">
+        <label htmlFor="recurringEvent" className="flex text-sm font-medium text-neutral-700">
+          {t("recurring_event")}
+        </label>
+      </div>
+      <div className={!paymentEnabled ? "w-full" : ""}>
+        {paymentEnabled ? (
+          <Alert severity="warning" title={t("warning_payment_recurring_event")} />
+        ) : (
+          <>
             <div className="relative flex items-start">
               <div className="flex h-5 items-center">
                 <input
@@ -136,9 +139,9 @@ export default function RecurringEventController({
                 </div>
               </CollapsibleContent>
             </Collapsible>
-          </div>
-        </div>
-      )}
-    </>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
