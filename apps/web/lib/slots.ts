@@ -32,7 +32,7 @@ const splitAvailableTime = (
     const periodTime = initialTime + frequency;
     const slotEndTime = initialTime + eventLength;
     /*
-    check if the slot end time surpasses availability end time of the user 
+    check if the slot end time surpasses availability end time of the user
     1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
     eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
     */
@@ -64,9 +64,32 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   const slots: Dayjs[] = [];
 
   const slotsTimeFrameAvailable = [] as Array<WorkingHoursTimeFrame>;
-
-  // Here we split working hour in chunks for every frequency available that can fit in whole working hour
+  // Here we split working hour in chunks for every frequency available that can fit in whole working hours
+  const computedLocalWorkingHours: WorkingHoursTimeFrame[] = [];
+  let tempComputeTimeFrame: WorkingHoursTimeFrame | undefined;
+  const computeLength = localWorkingHours.length - 1;
+  const makeTimeFrame = (item: typeof localWorkingHours[0]): WorkingHoursTimeFrame => ({
+    startTime: item.startTime,
+    endTime: item.endTime,
+  });
   localWorkingHours.forEach((item, index) => {
+    if (!tempComputeTimeFrame) {
+      tempComputeTimeFrame = makeTimeFrame(item);
+    } else {
+      // please check the comment in splitAvailableTime func for the added 1 minute
+      if (tempComputeTimeFrame.endTime + 1 === item.startTime) {
+        // to deal with time that across the day, e.g. from 11:59 to to 12:01
+        tempComputeTimeFrame.endTime = item.endTime;
+      } else {
+        computedLocalWorkingHours.push(tempComputeTimeFrame);
+        tempComputeTimeFrame = makeTimeFrame(item);
+      }
+    }
+    if (index == computeLength) {
+      computedLocalWorkingHours.push(tempComputeTimeFrame);
+    }
+  });
+  computedLocalWorkingHours.forEach((item, index) => {
     slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency, eventLength));
   });
 
