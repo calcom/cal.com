@@ -829,7 +829,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // booking successful
     return res.status(201).json(booking);
   }
-  return res.status(500).json({ message: "There is not a stripe_payment credential" });
+  return res.status(400).json({ message: "There is not a stripe_payment credential" });
 }
 
 export function getLuckyUsers(
