@@ -33,7 +33,7 @@ import {
  *       404:
  *         description: Resource was not found
  */
-export async function resourceById({query}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+export async function resourceById({ query }: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
   const safe = schemaQueryIdParseInt.safeParse(query);
   if (!safe.success) throw new Error("Invalid request query");
 

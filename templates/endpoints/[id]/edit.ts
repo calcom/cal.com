@@ -33,7 +33,7 @@ import {
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function editResource({query, body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+export async function editResource({ query, body }: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaResourceBodyParams.safeParse(body);
 

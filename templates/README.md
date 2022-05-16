@@ -11,10 +11,11 @@ Basically there's three places of the codebase you need to think about for each 
 ## The example resource -model- and it's endpoints
 
 ### `pages/api/endpoint/`
-| Method | route | action |
-| ------ | ----- | -----  |
-| GET | pages/api/endpoint/index.ts | Read All of your resource |
-| POST |pages/api/endpoint/new.ts | Create new resource |
+
+| Method | route                       | action                    |
+| ------ | --------------------------- | ------------------------- |
+| GET    | pages/api/endpoint/index.ts | Read All of your resource |
+| POST   | pages/api/endpoint/new.ts   | Create new resource       |
 
 ### `pages/api/endpoint/[id]/`
 

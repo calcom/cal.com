@@ -32,7 +32,7 @@ import {
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function deleteResource({query}: NextApiRequest, res: NextApiResponse<BaseResponse>) {
+export async function deleteResource({ query }: NextApiRequest, res: NextApiResponse<BaseResponse>) {
   const safe = schemaQueryIdParseInt.safeParse(query);
   if (!safe.success) throw new Error("Invalid request query");
 

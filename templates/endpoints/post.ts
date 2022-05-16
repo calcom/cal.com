@@ -29,7 +29,7 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-async function createResource({body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
+async function createResource({ body }: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
   const safe = schemaResourceBodyParams.safeParse(body);
   if (!safe.success) throw new Error("Invalid request body");
 

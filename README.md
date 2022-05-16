@@ -120,21 +120,21 @@ We aim to provide a fully tested API for our peace of mind, this is accomplished
 
 ## Endpoints matrix
 
-| resource                 | get [id] | get all | create | edit | delete |
-| ------------------------ | -------- | ------- | ------ | ---- | ------ |
-| attendees                | ✅       | ✅      | ✅     | ✅   | ✅     |
-| availabilities           | ✅       | ✅      | ✅     | ✅   | ✅     |
-| booking-references       | ✅       | ✅      | ✅     | ✅   | ✅     |
-| event-references         | ✅       | ✅      | ✅     | ✅   | ✅     |
-| destination-calendars    | ✅       | ✅      | ✅     | ✅   | ✅     |
-| custom-inputs            | ✅       | ✅      | ✅     | ✅   | ✅     |
-| event-types              | ✅       | ✅      | ✅     | ✅   | ✅     |
-| memberships              | ✅       | ✅      | ✅     | ✅   | ✅     |
-| payments                 | ✅       | ✅      | ❌     | ❌   | ❌     |
-| schedules                | ✅       | ✅      | ✅     | ✅   | ✅     |
-| selected-calendars       | ✅       | ✅      | ✅     | ✅   | ✅     |
-| teams                    | ✅       | ✅      | ✅     | ✅   | ✅     |
-| users                    | ✅       | 👤[1]   | ✅     | ✅   | ✅     |
+| resource              | get [id] | get all | create | edit | delete |
+| --------------------- | -------- | ------- | ------ | ---- | ------ |
+| attendees             | ✅       | ✅      | ✅     | ✅   | ✅     |
+| availabilities        | ✅       | ✅      | ✅     | ✅   | ✅     |
+| booking-references    | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-references      | ✅       | ✅      | ✅     | ✅   | ✅     |
+| destination-calendars | ✅       | ✅      | ✅     | ✅   | ✅     |
+| custom-inputs         | ✅       | ✅      | ✅     | ✅   | ✅     |
+| event-types           | ✅       | ✅      | ✅     | ✅   | ✅     |
+| memberships           | ✅       | ✅      | ✅     | ✅   | ✅     |
+| payments              | ✅       | ✅      | ❌     | ❌   | ❌     |
+| schedules             | ✅       | ✅      | ✅     | ✅   | ✅     |
+| selected-calendars    | ✅       | ✅      | ✅     | ✅   | ✅     |
+| teams                 | ✅       | ✅      | ✅     | ✅   | ✅     |
+| users                 | ✅       | 👤[1]   | ✅     | ✅   | ✅     |
 
 ## Models from database that are not exposed
 

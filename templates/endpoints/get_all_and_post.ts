@@ -7,12 +7,11 @@ import { PaymentResponse, PaymentsResponse } from "@lib/types";
 import { schemaPaymentBodyParams, schemaPaymentPublic } from "@lib/validations/payment";
 
 async function createOrlistAllPayments(
-  {method, body}: NextApiRequest,
+  { method, body }: NextApiRequest,
   res: NextApiResponse<PaymentsResponse | PaymentResponse>
 ) {
   if (method === "GET") {
-
-/**
+    /**
  * @swagger
  * /v1/payments:
  *   get:
@@ -38,8 +37,7 @@ async function createOrlistAllPayments(
           error,
         });
   } else if (method === "POST") {
-
-/**
+    /**
  * @swagger
  * /v1/payments:
  *   post:
