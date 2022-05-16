@@ -1747,10 +1747,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                               <div className="flex flex-col">
                                 <div className="w-full">
-                                  {recurringEventDefined && (
+                                  {recurringEventDefined ? (
                                     <Alert severity="warning" title={t("warning_recurring_event_payment")} />
-                                  )}
-                                  {!recurringEventDefined && (
+                                  ) : (
                                     <div className="block items-center sm:flex">
                                       <div className="w-full">
                                         <div className="relative flex items-start">
