@@ -1,5 +1,5 @@
 import { useId } from "@radix-ui/react-id";
-import { forwardRef, ReactElement, ReactNode, Ref } from "react";
+import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -42,6 +42,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 
 type InputFieldProps = {
   label?: ReactNode;
+  hint?: ReactNode;
   addOnLeading?: ReactNode;
 } & React.ComponentProps<typeof Input> & {
     labelProps?: React.ComponentProps<typeof Label>;
@@ -59,6 +60,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       : "",
     className,
     addOnLeading,
+    hint,
     ...passThrough
   } = props;
   return (
@@ -82,6 +84,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
+      {hint}
       {methods?.formState?.errors[props.name] && (
         <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
       )}
@@ -179,7 +182,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   );
 });
 
-type FormProps<T> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
+type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
   JSX.IntrinsicElements["form"],
   "onSubmit"
 >;
@@ -192,6 +195,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
       <form
         ref={ref}
         onSubmit={(event) => {
+          event.preventDefault();
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
@@ -199,7 +203,25 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             });
         }}
         {...passThrough}>
-        {props.children}
+        {
+          /* @see https://react-hook-form.com/advanced-usage/#SmartFormComponent */
+          React.Children.map(props.children, (child) => {
+            return typeof child !== "string" &&
+              typeof child !== "number" &&
+              typeof child !== "boolean" &&
+              child &&
+              "props" in child &&
+              child.props.name
+              ? React.createElement(child.type, {
+                  ...{
+                    ...child.props,
+                    register: form.register,
+                    key: child.props.name,
+                  },
+                })
+              : child;
+          })
+        }
       </form>
     </FormProvider>
   );

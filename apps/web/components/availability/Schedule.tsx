@@ -57,7 +57,7 @@ const useOptions = () => {
       t = t.add(increment, "minutes");
     }
     return options;
-  }, []);
+  }, [timeFormat]);
 
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
