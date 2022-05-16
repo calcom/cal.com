@@ -13,7 +13,7 @@
   "dependencies": {
     "@calcom/ee": "*",
     "@calcom/lib": "*",
-    "@stripe/react-stripe-js": "^1.7.2",
+    "@stripe/react-stripe-js": "^1.8.0",
     "@stripe/stripe-js": "^1.29.0",
     "dayjs": "^1.11.2",
     "stripe": "^8.222.0"
