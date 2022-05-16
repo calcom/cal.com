@@ -396,18 +396,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               />
             </div>
             <div className="mt-3">
-              <CheckboxField
-                description={t("display_location_label")}
-                id="displayLocationPublicly"
-                onChange={(e) => {
-                  locationFormMethods.setValue("displayLocationPublicly", e?.target.checked);
-                }}
-                defaultChecked={
-                  formMethods
-                    .getValues("locations")
-                    .find((location) => location.type === LocationType.InPerson)?.displayLocationPublicly
-                }
-                infomationIconText={t("display_location_info_badge")}
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={({ field: { onChange, value } }) => (
+                  <CheckboxField
+                    description={t("display_location_label")}
+                    onChange={(e) => onChange(e.target.checked)}
+                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
               />
             </div>
           </div>
@@ -437,18 +434,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               )}
             </div>
             <div className="mt-3">
-              <CheckboxField
-                description={t("display_location_label")}
-                id="displayLocationPublicly"
-                onChange={(e) => {
-                  locationFormMethods.setValue("displayLocationPublicly", e?.target.checked);
-                }}
-                defaultChecked={
-                  formMethods
-                    .getValues("locations")
-                    .find((location) => location.type === LocationType.InPerson)?.displayLocationPublicly
-                }
-                infomationIconText={t("display_location_info_badge")}
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={({ field: { onChange, value } }) => (
+                  <CheckboxField
+                    description={t("display_location_label")}
+                    onChange={(e) => onChange(e.target.checked)}
+                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
               />
             </div>
           </div>
