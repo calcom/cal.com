@@ -14,7 +14,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, App>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true },
+  select: { id: true, type: true, key: true, userId: true, appId: true },
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
@@ -36,7 +36,8 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
 const defaultLocations: OptionTypeBase[] = [
   { value: LocationType.InPerson, label: "in_person_meeting" },
   { value: LocationType.Link, label: "link_meeting" },
-  { value: LocationType.Phone, label: "phone_call" },
+  { value: LocationType.Phone, label: "attendee_phone_number" },
+  { value: LocationType.UserPhone, label: "host_phone_number" },
 ];
 
 export function getLocationOptions(integrations: AppMeta, t: TFunction) {
@@ -66,6 +67,7 @@ function getApps(userCredentials: CredentialData[]) {
         type: appMeta.type,
         key: appMeta.key!,
         userId: +new Date().getTime(),
+        appId: appMeta.slug,
       });
     }
 
@@ -95,11 +97,6 @@ function getApps(userCredentials: CredentialData[]) {
 }
 
 export type AppMeta = ReturnType<typeof getApps>;
-
-/** @deprecated use `getApps`  */
-export function hasIntegration(apps: AppMeta, type: string): boolean {
-  return !!apps.find((app) => app.type === type && !!app.installed && app.credentials.length > 0);
-}
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {
   return ALL_APPS.some((app) => app.type === type && !!app.installed);

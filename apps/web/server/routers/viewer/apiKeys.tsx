@@ -11,8 +11,37 @@ export const apiKeysRouter = createProtectedRouter()
       return await ctx.prisma.apiKey.findMany({
         where: {
           userId: ctx.user.id,
+          OR: [
+            {
+              NOT: {
+                appId: "zapier",
+              },
+            },
+            {
+              appId: null,
+            },
+          ],
         },
         orderBy: { createdAt: "desc" },
+      });
+    },
+  })
+  .query("findKeyOfType", {
+    input: z.object({
+      appId: z.string().optional().nullable(),
+    }),
+    async resolve({ ctx, input }) {
+      return await ctx.prisma.apiKey.findFirst({
+        where: {
+          AND: [
+            {
+              userId: ctx.user.id,
+            },
+            {
+              appId: input.appId,
+            },
+          ],
+        },
       });
     },
   })
@@ -21,6 +50,7 @@ export const apiKeysRouter = createProtectedRouter()
       note: z.string().optional().nullish(),
       expiresAt: z.date().optional().nullable(),
       neverExpires: z.boolean().optional(),
+      appId: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();

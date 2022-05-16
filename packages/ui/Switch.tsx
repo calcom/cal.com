@@ -5,7 +5,7 @@ import React from "react";
 
 const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
-    label: string;
+    label?: string;
   }
 ) => {
   const { label, ...primitiveProps } = props;

@@ -1,3 +1,4 @@
+import { Frequency as RRuleFrequency } from "rrule";
 import { z } from "zod";
 
 import { LocationType } from "@calcom/core/location";
@@ -8,8 +9,19 @@ export const eventTypeLocations = z.array(
     type: z.nativeEnum(LocationType),
     address: z.string().optional(),
     link: z.string().url().optional(),
+    hostPhoneNumber: z.string().optional(),
   })
 );
+
+// Matching RRule.Options: rrule/dist/esm/src/types.d.ts
+export const recurringEvent = z.object({
+  dtstart: z.date().optional(),
+  interval: z.number().optional(),
+  count: z.number().optional(),
+  freq: z.nativeEnum(RRuleFrequency).optional(),
+  until: z.date().optional(),
+  tzid: z.string().optional(),
+});
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 export const stringToDate = z.string().transform((a) => new Date(a));

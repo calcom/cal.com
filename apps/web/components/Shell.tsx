@@ -11,15 +11,15 @@ import {
   MoonIcon,
   ViewGridIcon,
 } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import { useIsEmbed } from "@calcom/embed-core";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPlan } from "@calcom/prisma/client";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
   DropdownMenuContent,
@@ -34,6 +34,7 @@ import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
@@ -45,16 +46,6 @@ import ImpersonatingBanner from "@components/ui/ImpersonatingBanner";
 import pkg from "../package.json";
 import { useViewerI18n } from "./I18nLanguageHandler";
 import Logo from "./Logo";
-
-export function useMeQuery() {
-  const meQuery = trpc.useQuery(["viewer.me"], {
-    retry(failureCount) {
-      return failureCount > 3;
-    },
-  });
-
-  return meQuery;
-}
 
 function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   const { data: session, status } = useSession();
@@ -206,7 +197,7 @@ const Layout = ({
                   </Link>
                   {/* logo icon for tablet */}
                   <Link href="/event-types">
-                    <a className="md:inline lg:hidden">
+                    <a className="text-center md:inline lg:hidden">
                       <Logo small icon />
                     </a>
                   </Link>
@@ -469,7 +460,6 @@ function UserDropdown({ small }: { small?: boolean }) {
     },
   });
   const utils = trpc.useContext();
-
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
@@ -479,11 +469,14 @@ function UserDropdown({ small }: { small?: boolean }) {
               small ? "h-8 w-8" : "h-10 w-10",
               "relative flex-shrink-0 rounded-full bg-gray-300  ltr:mr-3 rtl:ml-3"
             )}>
-            <img
-              className="rounded-full"
-              src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
-              alt={user?.username || "Nameless User"}
-            />
+            {
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="rounded-full"
+                src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
+                alt={user?.username || "Nameless User"}
+              />
+            }
             {!user?.away && (
               <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
             )}
