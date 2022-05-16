@@ -115,7 +115,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations.map((el) => {
+    locations: locations?.map((el) => {
       // Filter out locations that are not to be displayed publicly
       const values = Object.values(AppStoreLocationType);
       // Display if the location can be set to public - and also display all locations like google meet etc
