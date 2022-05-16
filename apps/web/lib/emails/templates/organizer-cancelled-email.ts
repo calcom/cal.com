@@ -31,8 +31,8 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     }
 
     return {
-      to: toAddresses.join(","),
       from: `${this.calEvent.attendees[0].name} <${this.calEvent.attendees[0].email}>`,
+      to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("event_cancelled_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,

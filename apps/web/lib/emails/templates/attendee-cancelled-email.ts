@@ -6,11 +6,11 @@ import utc from "dayjs/plugin/utc";
 
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 import {
-  emailHead,
-  emailSchedulingBodyHeader,
   emailBodyLogo,
+  emailHead,
   emailScheduledBodyHeaderContent,
   emailSchedulingBodyDivider,
+  emailSchedulingBodyHeader,
 } from "./common";
 
 dayjs.extend(utc);
@@ -23,6 +23,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
+      replyTo: this.calEvent.organizer.email,
       subject: `${this.attendee.language.translate("event_cancelled_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,

@@ -133,7 +133,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent, recurringEven
       ...calEvent.attendees.map((attendee) => {
         return new Promise((resolve, reject) => {
           try {
-            const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee);
+            const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee, recurringEvent);
             resolve(scheduledEmail.sendEmail());
           } catch (e) {
             reject(console.error("AttendeeCancelledEmail.sendEmail failed", e));
@@ -145,7 +145,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent, recurringEven
     emailsToSend.push(
       new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new OrganizerCancelledEmail(calEvent);
+          const scheduledEmail = new OrganizerCancelledEmail(calEvent, recurringEvent);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
