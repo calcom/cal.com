@@ -48,8 +48,7 @@ export default function RecurringEventController({
         </label>
       </div>
       <div className={!paymentEnabled ? "w-full" : ""}>
-        {paymentEnabled && <Alert severity="warning" title={t("warning_payment_recurring_event")} />}
-        {!paymentEnabled && (
+        {paymentEnabled ? <Alert severity="warning" title={t("warning_payment_recurring_event")} /> : (
           <>
             <div className="relative flex items-start">
               <div className="flex h-5 items-center">
