@@ -153,7 +153,7 @@ export default function Login({
             <Button
               className="flex w-full justify-center"
               type="submit"
-              disabled={form.formState.isSubmitting}>
+              disabled={form.formState.isSubmitting || form.formState.isSubmitted}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
