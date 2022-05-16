@@ -436,4 +436,4 @@ Special thanks to these amazing projects which help power Cal.com:
   
  <a href="https://jitsu.com/?utm_source=cal.com-gihub"><img height="40px" src="https://jitsu.com/img/powered-by-jitsu.png?gh=true" alt="Jitsu.com"></a>
 
-Cal.com is an [open startup](https://jitsu.com) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.
+Cal.com is an [open startup](https://cal.com/open) and [Jitsu](https://github.com/jitsucom/jitsu) (an open-source Segment alternative) helps us to track most of the usage metrics.
