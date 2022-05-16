@@ -1,10 +1,8 @@
 import { TFunction } from "next-i18next";
-import nodemailer from "nodemailer";
 
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { serverConfig } from "@calcom/lib/serverConfig";
+import BaseEmail from "@lib/emails/templates/_base-email";
 
-import { emailHead, linkIcon, emailBodyLogo } from "./common";
+import { emailBodyLogo, emailHead, linkIcon } from "./common";
 
 export type TeamInvite = {
   language: TFunction;
@@ -14,35 +12,13 @@ export type TeamInvite = {
   joinLink: string;
 };
 
-export default class TeamInviteEmail {
+export default class TeamInviteEmail extends BaseEmail {
   teamInviteEvent: TeamInvite;
 
   constructor(teamInviteEvent: TeamInvite) {
+    super();
+    this.name = "SEND_TEAM_INVITE_EMAIL";
     this.teamInviteEvent = teamInviteEvent;
-  }
-
-  public sendEmail() {
-    new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
-          if (_err) {
-            const err = getErrorFromUnknown(_err);
-            this.printNodeMailerError(err);
-            reject(err);
-          } else {
-            resolve(info);
-          }
-        })
-    ).catch((e) => console.error("sendEmail", e));
-    return new Promise((resolve) => resolve("send mail async"));
-  }
-
-  protected getMailerOptions() {
-    return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    };
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
@@ -56,10 +32,6 @@ export default class TeamInviteEmail {
       html: this.getHtmlBody(),
       text: this.getTextBody(),
     };
-  }
-
-  protected printNodeMailerError(error: Error): void {
-    console.error("SEND_TEAM_INVITE_EMAIL_ERROR", this.teamInviteEvent.to, error);
   }
 
   protected getTextBody(): string {

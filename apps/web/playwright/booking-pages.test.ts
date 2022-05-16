@@ -1,27 +1,28 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { deleteAllBookingsByEmail } from "./lib/teardown";
+import { test } from "./lib/fixtures";
 import {
   bookFirstEvent,
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
-  todo,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("free user", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/free");
+  test.beforeEach(async ({ page, users }) => {
+    const free = await users.create({ plan: "FREE" });
+    await page.goto(`/${free.username}`);
+  });
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
   });
 
-  test.afterEach(async () => {
-    // delete test bookings
-    await deleteAllBookingsByEmail("free@example.com");
-  });
-
-  test("only one visible event", async ({ page }) => {
-    await expect(page.locator(`[href="/free/30min"]`)).toBeVisible();
-    await expect(page.locator(`[href="/free/60min"]`)).not.toBeVisible();
+  test("only one visible event", async ({ page, users }) => {
+    const [free] = users.get();
+    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[0].slug}"]`)).toBeVisible();
+    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[1].slug}"]`)).not.toBeVisible();
   });
 
   test("cannot book same slot multiple times", async ({ page }) => {
@@ -44,11 +45,7 @@ test.describe("free user", () => {
     await bookTimeSlot(page);
 
     // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // return to same time spot booking page
     await page.goto(bookingUrl);
@@ -60,55 +57,44 @@ test.describe("free user", () => {
     await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
   });
 
-  // Why do we need this test. The previous test is testing /30min booking only ?
-  todo("`/free/30min` is bookable");
-
-  test("`/free/60min` is not bookable", async ({ page }) => {
+  test("Second event type is not bookable", async ({ page, users }) => {
+    const [free] = users.get();
     // Not available in listing
-    await expect(page.locator('[href="/free/60min"]')).toHaveCount(0);
+    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[1].slug}"]`)).toHaveCount(0);
 
-    await page.goto("/free/60min");
+    await page.goto(`/${free.username}/${free.eventTypes[1].slug}`);
     // Not available on a direct visit to event type page
     await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
   });
 });
 
 test.describe("pro user", () => {
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-
-  test.beforeEach(async ({ page }) => {
-    await deleteAllBookingsByEmail("pro@example.com");
-    await page.goto("/pro");
+  test.beforeEach(async ({ page, users }) => {
+    const pro = await users.create();
+    await page.goto(`/${pro.username}`);
   });
-
-  test.afterEach(async () => {
-    await deleteAllBookingsByEmail("pro@example.com");
+  test.afterEach(async ({ users }) => {
+    await users.deleteAll();
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {
     // await page.pause();
-    const $eventTypes = await page.locator("[data-testid=event-types] > *");
+    const $eventTypes = page.locator("[data-testid=event-types] > *");
     expect(await $eventTypes.count()).toBeGreaterThanOrEqual(2);
   });
 
   test("book an event first day in next month", async ({ page }) => {
-    // Click first event type
-    await page.click('[data-testid="event-type-link"]');
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    // Make sure we're navigated to the success page
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname.endsWith("/success");
-      },
-    });
-  });
-  test("can reschedule a booking", async ({ page }) => {
     await bookFirstEvent(page);
+  });
 
+  test("can reschedule a booking", async ({ page, users, bookings }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    await bookings.create(pro.id, pro.username, eventType.id);
+
+    await pro.login();
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').click();
+    await page.locator('[data-testid="reschedule"]').nth(0).click();
     await page.locator('[data-testid="edit"]').click();
     await page.waitForNavigation({
       url: (url) => {
@@ -126,8 +112,11 @@ test.describe("pro user", () => {
     });
   });
 
-  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page }) => {
+  test("Can cancel the recently created booking and rebook the same timeslot", async ({ page, users }) => {
     await bookFirstEvent(page);
+
+    const [pro] = users.get();
+    await pro.login();
 
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
@@ -143,7 +132,7 @@ test.describe("pro user", () => {
         return url.pathname === "/cancel/success";
       },
     });
-    await page.goto("/pro");
+    await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
   });
 });

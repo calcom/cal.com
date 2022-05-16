@@ -35,6 +35,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -172,6 +173,15 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+  const telemetry = useTelemetry();
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/success")
+      )
+    );
+  }, [telemetry]);
 
   useEffect(() => {
     const users = eventType.users;
@@ -190,7 +200,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, [eventType, needsConfirmation]);
+  }, [date, eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -274,7 +284,10 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
@@ -299,14 +312,6 @@ export default function Success(props: SuccessProps) {
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          {/* <div className="col-span-2 mb-6">
-                            {date.format("MMMM DD, YYYY")}
-                            <br />
-                            {date.format("LT")} - {date.add(props.eventType.length, "m").format("LT")}{" "}
-                            <span className="text-bookinglight">
-                              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                            </span>
-                          </div> */}
                           <div className="col-span-2 mb-6">
                             <RecurringBookings
                               isReschedule={reschedule === "true"}
@@ -317,7 +322,7 @@ export default function Success(props: SuccessProps) {
                             />
                           </div>
                           <div className="font-medium">{t("who")}</div>
-                          <div className="col-span-2">
+                          <div className="col-span-2 mb-6">
                             {bookingInfo?.user && (
                               <div className="mb-3">
                                 <p>{bookingInfo.user.name}</p>
@@ -546,9 +551,9 @@ function RecurringBookings({
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
           <div key={idx} className="mb-2">
-            {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+            {dayjs(dateStr).format("MMMM DD, YYYY")}
             <br />
-            {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+            {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
             <span className="text-bookinglight">
               ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
             </span>
@@ -565,9 +570,9 @@ function RecurringBookings({
             {eventType.recurringEvent?.count &&
               recurringBookings.slice(4).map((dateStr, idx) => (
                 <div key={idx} className="mb-2">
-                  {dayjs(dateStr).format("dddd, DD MMMM YYYY")}
+                  {dayjs(dateStr).format("MMMM DD, YYYY")}
                   <br />
-                  {dayjs(dateStr).format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+                  {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
                   <span className="text-bookinglight">
                     ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                   </span>
@@ -579,9 +584,9 @@ function RecurringBookings({
     </>
   ) : !eventType.recurringEvent.freq ? (
     <>
-      {date.format("dddd, DD MMMM YYYY")}
+      {date.format("MMMM DD, YYYY")}
       <br />
-      {date.format(is24h ? "H:mm" : "h:mma")} - {eventType.length} mins{" "}
+      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
       <span className="text-bookinglight">
         ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
       </span>
@@ -634,7 +639,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const recurringEventIdQuery = asStringOrNull(context.query.recur);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
-  const bookingId = parseInt(context.query.bookingId as string);
+  if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
+  const bookingId = parseInt(context.query.bookingId);
 
   if (isNaN(typeId)) {
     return {
