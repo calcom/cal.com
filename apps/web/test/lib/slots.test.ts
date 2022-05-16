@@ -166,6 +166,10 @@ it("adds buffer time with custom slot interval", async () => {
   ).toHaveLength(239);
 });
 
+/**
+ * 25 its the expected result here since invitee timezone
+ * overlaps with userOwner from 7:00 to 23:00
+ */
 it("test for event of 45 min with a timezone in -7:00", async () => {
   expect(
     getSlots({
