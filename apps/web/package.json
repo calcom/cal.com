@@ -74,6 +74,7 @@
     "ical.js": "^1.4.0",
     "ics": "^2.31.0",
     "jimp": "^0.16.1",
+    "libphonenumber-js": "^1.9.53",
     "lodash": "^4.17.21",
     "micro": "^9.3.4",
     "mime-types": "^2.1.35",
