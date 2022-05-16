@@ -1,6 +1,6 @@
 import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/outline";
-import { RefreshIcon } from "@heroicons/react/solid";
+import { RefreshIcon, UserAddIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
@@ -210,7 +210,23 @@ function BookingListItem(booking: BookingItemProps) {
 
       <tr
         className="flex cursor-pointer hover:bg-neutral-50"
-        onClick={() => router.push("/bookings/details/" + booking.id)}>
+        onClick={() =>
+          router.push({
+            pathname: "/success",
+            query: {
+              date: booking.startTime,
+              type: booking.eventType.id,
+              eventSlug: booking.eventType.slug,
+              user: user?.username || "",
+              name: booking.attendees[0].name,
+              email: booking.attendees[0].email,
+              location: booking.location,
+              eventName: booking.eventType.eventName || "",
+              bookingId: booking.id,
+              recur: booking.recurringEventId,
+            },
+          })
+        }>
         <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
           <div className="text-sm leading-6 text-gray-900">{startTime}</div>
           <div className="text-sm text-gray-500">

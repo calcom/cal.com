@@ -253,6 +253,15 @@ export default function Success(props: SuccessProps) {
         <div
           className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
           data-testid="success-page">
+          {userIsOwner && !isEmbed && (
+            <div className="-mb-7 ml-9 mt-7">
+              <Link href="/bookings">
+                <a className="flex items-center text-black dark:text-white">
+                  <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                </a>
+              </Link>
+            </div>
+          )}
           <Theme />
           <HeadSeo title={title} description={title} />
           <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
@@ -514,15 +523,6 @@ export default function Success(props: SuccessProps) {
                             {t("try_for_free")}
                           </Button>
                         </form>
-                      </div>
-                    )}
-                    {userIsOwner && !isEmbed && (
-                      <div className="mt-4">
-                        <Link href="/bookings">
-                          <a className="flex items-center text-black dark:text-white">
-                            <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
-                          </a>
-                        </Link>
                       </div>
                     )}
                   </div>

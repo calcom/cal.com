@@ -399,8 +399,12 @@ const loggedInViewerRouter = createProtectedRouter()
           startTime: true,
           recurringEventId: true,
           endTime: true,
+          location: true,
           eventType: {
             select: {
+              slug: true,
+              id: true,
+              eventName: true,
               price: true,
               recurringEvent: true,
               team: {
