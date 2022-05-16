@@ -21,6 +21,7 @@ export type LocationObject = {
   address?: string;
   link?: string;
   displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
 };
 
 export const LocationType = { ...DefaultLocationType, ...AppStoreLocationType };
