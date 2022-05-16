@@ -40,6 +40,7 @@ import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
+import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -158,6 +159,7 @@ export default function Success(props: SuccessProps) {
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+  const [isCancellationMode, setIsCancellationMode] = useState(false);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -397,12 +399,35 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </div>
                     </div>
-                    {!needsConfirmation && (
+                    {userIsOwner &&
+                      !isEmbed &&
+                      (!isCancellationMode ? (
+                        <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
+                          <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            {t("need_to_make_a_change")}
+                          </span>
+                          <div className="ml-7 flex items-center justify-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            <button className="underline" onClick={() => setIsCancellationMode(true)}>
+                              {t("cancel")}
+                            </button>
+                            <div className="mx-2">{t("or_lowercase")}</div>
+                            <div className="underline">
+                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <CancelBooking
+                          booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
+                          profile={{ name: props.profile.name, slug: props.profile.slug }}
+                          team={eventType?.team?.name}></CancelBooking>
+                      ))}
+                    {!needsConfirmation && !isCancellationMode && (
                       <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
-                        <div className="flex flex-grow justify-center text-center">
+                        <div className="-ml-16 flex flex-grow justify-center text-center">
                           <Link
                             href={
                               `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -638,6 +663,7 @@ const getEventTypesFromDB = async (typeId: number) => {
         select: {
           id: true,
           name: true,
+          username: true,
           hideBranding: true,
           plan: true,
           theme: true,
@@ -649,6 +675,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       },
       team: {
         select: {
+          slug: true,
           name: true,
           hideBranding: true,
         },
@@ -735,6 +762,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
+    slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
   const bookingInfo = await prisma.booking.findUnique({
@@ -742,6 +770,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       id: bookingId,
     },
     select: {
+      title: true,
+      uid: true,
       description: true,
       customInputs: true,
       user: {

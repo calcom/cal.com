@@ -1,6 +1,6 @@
 import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/outline";
-import { RefreshIcon, UserAddIcon } from "@heroicons/react/solid";
+import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";

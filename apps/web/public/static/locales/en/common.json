@@ -822,5 +822,6 @@
   "go_to_app_store": "Go to App Store",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
   "calendar_no_busy_slots": "There are no busy slots",
-  "booking_details": "Booking details"
+  "booking_details": "Booking details",
+  "or_lowercase": "or"
 }
