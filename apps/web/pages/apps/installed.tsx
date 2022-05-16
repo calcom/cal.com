@@ -22,7 +22,7 @@ import Shell, { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
-import DisconnectiStripeIntegration from "@components/integrations/DisconnectiStripeIntegration";
+import DisconnectStripeIntegration from "@components/integrations/DisconnectStripeIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
@@ -45,7 +45,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectiStripeIntegration
+        <DisconnectStripeIntegration
           id={credentialId}
           render={(btnProps) => (
             <Button {...btnProps} color="warn" data-testid="integration-connection-button">
