@@ -34,7 +34,7 @@ export default function CalConjs({
                 type="radio"
                 id={id + postfix}
                 className="flex w-1/2 items-center border-0 p-0 text-sm"
-                defaultChecked={true}
+                defaultChecked={checked}
                 name={name + postfix}
                 checked={checked}
                 disabled={readonly || disabled}
