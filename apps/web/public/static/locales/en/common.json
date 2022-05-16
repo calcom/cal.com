@@ -348,6 +348,7 @@
   "receive_cal_event_meeting_data": "Receive Cal meeting data at a specified URL, in real-time, when this event is scheduled or cancelled.",
   "responsive_fullscreen_iframe": "Responsive full screen iframe",
   "loading": "Loading...",
+  "deleting": "Deleting...",
   "standard_iframe": "Standard iframe",
   "iframe_embed": "iframe Embed",
   "embed_calcom": "The easiest way to embed Cal.com on your website.",

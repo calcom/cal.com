@@ -37,6 +37,7 @@ const Team = ({ team }: TeamPageProps) => {
     );
 
     return (
+      // eslint-disable-next-line @next/next/link-passhref
       <Link key={member.id} href={`/${member.username}`}>
         <div className={classes}>
           <ArrowRightIcon
