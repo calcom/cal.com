@@ -1,0 +1,431 @@
+
+ .cal-query-builder .query-builder, .cal-query-builder .qb-draggable, .cal-query-builder .qb-drag-handler {
+	 -webkit-user-select: none;
+	 -khtml-user-select: none;
+	 -moz-user-select: none;
+	 -ms-user-select: none;
+	 user-select: none;
+}
+ .cal-query-builder .rule--header:after {
+	 content: "";
+	 display: table;
+	 clear: both;
+}
+ .cal-query-builder .group--header, .cal-query-builder .group--footer {
+	 display: flex;
+	 align-items: center;
+}
+ .cal-query-builder .query-builder {
+	 overflow: hidden;
+}
+ .cal-query-builder .query-builder *, .cal-query-builder .query-builder *::before, .cal-query-builder .query-builder *::after {
+	 box-sizing: border-box;
+}
+ .cal-query-builder body.qb-dragging .ant-tooltip {
+	 display: none;
+}
+ .cal-query-builder .query-builder {
+	 font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	 font-size: 14px;
+	 line-height: 1.25;
+	 /* margin: 1rem; */
+}
+ .cal-query-builder .query-builder.qb-dragging {
+	 cursor: -webkit-grabbing !important;
+	 cursor: grabbing !important;
+}
+ .cal-query-builder .query-builder.qb-dragging button {
+	 pointer-events: none;
+}
+ .cal-query-builder .group {
+	 /* background: rgba(250, 240, 210, 0.5);
+	 border: 1px solid #dcc896; */
+}
+ .cal-query-builder .rule {
+	 background-color: white;
+	 border: 1px solid transparent;
+	 padding: 10px;
+}
+ .cal-query-builder .rule-with-error .rule {
+	 border: 1px solid #e0a1a1;
+}
+ .cal-query-builder .rule--body--wrapper {
+	 flex: 1;
+	 display: flex;
+	 flex-direction: column;
+}
+ .cal-query-builder .rule--error {
+	 color: red;
+	 margin-bottom: -5px;
+	 margin-top: 5px;
+}
+ .cal-query-builder .group-or-rule {
+	 border-radius: 5px;
+	 position: relative;
+}
+ .cal-query-builder .rule_group {
+	 background: rgba(255, 252, 242, 0.5);
+	 border: 1px solid #f9f1dd;
+}
+ .cal-query-builder .qb-draggable {
+	 pointer-events: none;
+	 position: absolute;
+	 opacity: 0.7;
+	 z-index: 1000;
+}
+ .cal-query-builder .qb-placeholder {
+	 border: 1px dashed gray;
+}
+ .cal-query-builder .locked {
+	 border: 1px dashed red;
+}
+ .cal-query-builder .ant-tooltip-inner {
+	 min-height: 18px;
+}
+ .cal-query-builder .ant-slider {
+	 margin-bottom: 4px;
+	 margin-top: 4px;
+}
+ .cal-query-builder .ant-slider-with-marks {
+	 margin-bottom: 10px;
+	 margin-top: 4px;
+}
+ .cal-query-builder .ant-slider-track {
+	 visibility: visible !important;
+}
+ .cal-query-builder .ant-select-tree-dropdown > div[role="listbox"] {
+	 outline: none;
+}
+ .cal-query-builder ul.ant-select-selection__rendered {
+	 margin-right: 11px;
+}
+ .cal-query-builder .ant-select-item {
+	 min-height: 22px;
+}
+ .cal-query-builder .group--children {
+	 padding-left: 24px;
+}
+ .cal-query-builder .group--children > .group-or-rule-container > .group-or-rule:before {
+	 top: -4px;
+	 border-width: 0 0 2px 2px;
+}
+ .cal-query-builder .group--children > .group-or-rule-container > .group-or-rule::after {
+	 top: 50%;
+	 border-width: 0 0 0 2px;
+}
+ .cal-query-builder .group--children > .group-or-rule-container > .group-or-rule::before, .cal-query-builder .group--children > .group-or-rule-container > .group-or-rule::after {
+	 content: '';
+	 position: absolute;
+	 left: -14px;
+	 width: 14px;
+	 height: calc(50% + 8px);
+	 border-color: #ccc;
+	 border-style: solid;
+	 -webkit-box-sizing: border-box;
+	 -moz-box-sizing: border-box;
+	 box-sizing: border-box;
+}
+ .cal-query-builder .group--children.hide--conjs > .group-or-rule-container:first-child > .group-or-rule::before {
+	 display: none;
+}
+ .cal-query-builder .group--children.hide--conjs > .group-or-rule-container:first-child > .group-or-rule::after {
+	 border-radius: 4px 0 0 0;
+	 border-width: 2px 0 0 2px;
+}
+ .cal-query-builder .group--children.rule_group--children > .group-or-rule-container:first-child > .group-or-rule::before {
+	 display: none;
+}
+ .cal-query-builder .group--children.rule_group--children > .group-or-rule-container:first-child > .group-or-rule::after {
+	 border-radius: 4px 0 0 0;
+	 border-width: 2px 0 0 2px;
+}
+ .cal-query-builder .group--children > .group-or-rule-container:first-child > .group-or-rule::before {
+	 top: -12px;
+	 height: calc(50% + 14px);
+}
+ .cal-query-builder .group--children > .group-or-rule-container:last-child > .group-or-rule::before {
+	 border-radius: 0 0 0 4px;
+}
+ .cal-query-builder .group--children > .group-or-rule-container:last-child > .group-or-rule::after {
+	 display: none;
+}
+ .cal-query-builder .group--children.hide--line > .group-or-rule-container > .group-or-rule::before, .cal-query-builder .group--children.hide--line > .group-or-rule-container > .group-or-rule::after {
+	 border-color: rgba(128, 128, 128, 0.1);
+}
+ .cal-query-builder .qb-draggable::before, .cal-query-builder .qb-draggable::after {
+	 display: none;
+}
+ .cal-query-builder .qb-drag-handler {
+	 cursor: -webkit-grabbing;
+	 cursor: grabbing;
+}
+ .cal-query-builder .group--drag-handler {
+	 margin-right: 8px;
+	 position: relative;
+	 top: 3px;
+}
+ .cal-query-builder .group--conjunctions .group--drag-handler {
+	 margin-left: 10px;
+}
+ .cal-query-builder .group--conjunctions.hide--conj {
+	 opacity: 0.3;
+}
+ .cal-query-builder .group--actions {
+	 margin-left: 10px;
+	 flex: 1;
+	 display: flex;
+}
+ .cal-query-builder .group--actions--tl, .cal-query-builder .group--actions--bl {
+	 justify-content: flex-start;
+}
+ .cal-query-builder .group--actions--tl {
+	 margin-left: 20px;
+}
+ .cal-query-builder .group--actions--tc, .cal-query-builder .group--actions--bc {
+	 justify-content: center;
+}
+ .cal-query-builder .group--actions--tr, .cal-query-builder .group--actions--br {
+	 justify-content: flex-end;
+}
+ .cal-query-builder .group--actions .action--DELETE {
+	 margin-top: -1px;
+}
+ .cal-query-builder .case_group {
+	 border-width: 2px;
+}
+ .cal-query-builder .switch_group > .group--children > .group-or-rule-container > .group-or-rule::before, .cal-query-builder .switch_group > .group--children > .group-or-rule-container > .group-or-rule::after {
+	 height: calc(50% + 12px);
+}
+ .cal-query-builder .case_group--body {
+	 display: flex;
+	 flex-direction: row;
+	 margin-top: 10px;
+	 margin-bottom: 10px;
+}
+ .cal-query-builder .case_group--body .case_group--children {
+	 flex: auto;
+	 margin-top: 0 !important;
+	 margin-bottom: 0 !important;
+}
+ .cal-query-builder .case_group--body .case_group--value {
+	 margin-top: 0;
+	 margin-bottom: 0;
+	 margin-right: 10px;
+}
+ .cal-query-builder .rule_group {
+	 display: flex;
+	 padding-left: 10px;
+}
+ .cal-query-builder .rule_group .group--drag-handler {
+	 align-self: center;
+}
+ .cal-query-builder .rule_group .group--field {
+	 align-self: center;
+}
+ .cal-query-builder .rule_group .group--actions {
+	 align-self: center;
+	 flex: 0;
+}
+ .cal-query-builder .rule_group .rule_group--children {
+	 flex: 1;
+	 margin-top: 5px;
+	 margin-bottom: 5px;
+	 padding-left: 18px;
+}
+ .cal-query-builder .rule_group .rule_group--children .group-or-rule-container {
+	 margin-bottom: 5px;
+	 margin-top: 5px;
+	 padding-right: 5px;
+}
+ .cal-query-builder .rule_group .rule_group--children.one--child {
+	 padding-left: 10px;
+}
+ .cal-query-builder .rule_group .rule_group--children > .group-or-rule-container > .group-or-rule::before, .cal-query-builder .rule_group .rule_group--children > .group-or-rule-container > .group-or-rule::after {
+	 left: -10px;
+	 width: 10px;
+	 height: calc(50% + 8px);
+}
+ .cal-query-builder .group--header.hide--drag.with--conjs > .group--field--count--rule {
+	 margin-left: 20px;
+}
+ .cal-query-builder .rule {
+	 flex: 1;
+	 display: flex;
+}
+ .cal-query-builder .rule--header {
+	 margin-left: auto;
+	 display: flex;
+	 align-items: center;
+	 padding-left: 10px;
+}
+ .cal-query-builder .rule--drag-handler {
+	 display: flex;
+	 align-items: center;
+	 margin-right: 8px;
+}
+ .cal-query-builder .rule--field, .cal-query-builder .group--field, .cal-query-builder .rule--operator, .cal-query-builder .rule--value, .cal-query-builder .rule--operator-options, .cal-query-builder .rule--widget, .cal-query-builder .widget--widget, .cal-query-builder .widget--valuesrc, .cal-query-builder .widget--sep, .cal-query-builder .operator--options--sep, .cal-query-builder .rule--before-widget, .cal-query-builder .rule--after-widget {
+	 display: inline-block;
+}
+ .cal-query-builder .mui .widget--sep, .cal-query-builder .mui .operator--options--sep, .cal-query-builder .mui .rule--func--bracket-before, .cal-query-builder .mui .rule--func--bracket-after, .cal-query-builder .mui .rule--func--arg-sep {
+	 vertical-align: bottom;
+	 align-self: flex-end;
+	 margin-bottom: 8px;
+}
+ .cal-query-builder .mui .rule--operator-options {
+	 vertical-align: bottom;
+}
+ .cal-query-builder .mui .widget--valuesrc {
+	 vertical-align: bottom;
+}
+ .cal-query-builder .rule--operator, .cal-query-builder .widget--widget, .cal-query-builder .widget--valuesrc, .cal-query-builder .widget--sep {
+	 margin-left: 10px;
+}
+ .cal-query-builder .widget--valuesrc {
+	 margin-right: -8px;
+}
+ .cal-query-builder .widget--valuesrc span i {
+	 transform: rotate(90deg);
+}
+ .cal-query-builder .operator--options--sep {
+	 margin-right: 10px;
+}
+ .cal-query-builder div.tooltip-inner {
+	 max-width: 500px;
+}
+ .cal-query-builder .rule--field label, .cal-query-builder .group--field label, .cal-query-builder .rule--operator label, .cal-query-builder .widget--widget label {
+	 display: block;
+	 font-weight: bold;
+}
+ .cal-query-builder .conjunction {
+	 display: inline-block;
+}
+ .cal-query-builder .conjunction label {
+	 display: inline-block;
+	 border: 1px solid;
+	 cursor: pointer;
+	 color: white;
+	 text-transform: uppercase;
+	 padding: 0.2rem 0.4rem;
+}
+ .cal-query-builder .conjunction input {
+	 display: none;
+}
+ .cal-query-builder .conjunction[data-state="active"] label {
+	 background-color: #3276b1;
+	 border-color: #285e8e;
+}
+ .cal-query-builder .conjunction[data-state="inactive"] label {
+	 background-color: #428bca;
+	 border-color: #357ebd;
+}
+ .cal-query-builder .conjunction[data-state="inactive"] label:hover {
+	 background-color: #3276b1;
+	 border-color: #285e8e;
+}
+ .cal-query-builder .conjunction:first-child label {
+	 border-radius: 3px 0 0 3px;
+}
+ .cal-query-builder .conjunction:last-child label {
+	 border-radius: 0 3px 3px 0;
+}
+ .cal-query-builder .conjunction:first-child:last-child {
+	 border-radius: 3px;
+}
+ .cal-query-builder .rule--func--wrapper, .cal-query-builder .rule--func, .cal-query-builder .rule--func--args, .cal-query-builder .rule--func--arg, .cal-query-builder .rule--func--arg-value, .cal-query-builder .rule--func--bracket-before, .cal-query-builder .rule--func--bracket-after, .cal-query-builder .rule--func--arg-sep, .cal-query-builder .rule--func--arg-label, .cal-query-builder .rule--func--arg-label-sep {
+	 display: inline-block;
+}
+ .cal-query-builder .rule--func--bracket-before, .cal-query-builder .rule--func--bracket-after {
+	 margin-left: 3px;
+	 margin-right: 3px;
+}
+ .cal-query-builder .rule--func--bracket-before {
+	 margin-left: 5px;
+}
+ .cal-query-builder .rule--func--arg-value > .rule--widget {
+	 margin-left: -10px;
+}
+ .cal-query-builder .rule--func--arg-sep {
+	 margin-left: 3px;
+	 margin-right: 6px;
+}
+ .cal-query-builder .rule--func--arg-label-sep {
+	 margin-left: 1px;
+	 margin-right: 6px;
+}
+ .cal-query-builder .qb-lite .group--drag-handler, .cal-query-builder .qb-lite .group--actions {
+	 transition: opacity 0.2s;
+}
+ .cal-query-builder .qb-lite .group--header:hover .group--header .group--drag-handler, .cal-query-builder .qb-lite .group--header:not(:hover) .group--drag-handler, .cal-query-builder .qb-lite .rule_group:not(:hover) .group--drag-handler,  .cal-query-builder .qb-lite .rule_group:not(:hover) .group--actions {
+	 opacity: 0;
+}
+ .cal-query-builder .qb-lite .group--conjunctions .ant-btn:not(.ant-btn-primary), .cal-query-builder .qb-lite .rule_group_ext--drag-handler {
+	 transition: padding 0.2s;
+}
+ .cal-query-builder .qb-lite .group--header:hover .group--header .group--conjunctions .ant-btn:not(.ant-btn-primary), .cal-query-builder .qb-lite .group--header:not(:hover) .group--conjunctions .ant-btn:not(.ant-btn-primary), .cal-query-builder .qb-lite .rule_group:not(:hover) .group--conjunctions .ant-btn:not(.ant-btn-primary), .cal-query-builder .qb-lite .group--header:hover .group--header .rule_group_ext--drag-handler, .cal-query-builder .qb-lite .group--header:not(:hover) .rule_group_ext--drag-handler, .cal-query-builder .qb-lite .rule_group:not(:hover) .rule_group_ext--drag-handler {
+	 width: 0;
+	 padding: 0;
+	 overflow: hidden;
+	 opacity: 0;
+}
+ .cal-query-builder .qb-lite .widget--valuesrc, .cal-query-builder .qb-lite .rule--drag-handler, .cal-query-builder .qb-lite .rule--header {
+	 transition: opacity 0.2s;
+}
+ .cal-query-builder .qb-lite .rule:hover .rule .widget--valuesrc, .cal-query-builder .qb-lite .rule:not(:hover) .widget--valuesrc, .cal-query-builder .qb-lite .rule:hover .rule .rule--drag-handler, .cal-query-builder .qb-lite .rule:not(:hover) .rule--drag-handler, .cal-query-builder .qb-lite .rule:hover .rule .rule--header, .cal-query-builder .qb-lite .rule:not(:hover) .rule--header {
+	 opacity: 0;
+}
+ .cal-query-builder .qb-lite.qb-dragging ".widget--valuesrc", .cal-query-builder .qb-lite.qb-dragging ".rule--drag-handler", .cal-query-builder .qb-lite.qb-dragging ".rule--header", .cal-query-builder .qb-lite.qb-dragging ".group--drag-handler", .cal-query-builder .qb-lite.qb-dragging ".group--actions" {
+	 opacity: 0 !important;
+}
+ .cal-query-builder .qb-lite.qb-dragging .group--conjunctions .ant-btn:not(.ant-btn-primary), .cal-query-builder .qb-lite.qb-dragging .rule_group_ext--drag-handler {
+	 width: 0 !important;
+	 padding: 0 !important;
+	 overflow: hidden !important;
+	 opacity: 0 !important;
+}
+ .cal-query-builder .group--header, .cal-query-builder .group--footer {
+	 padding-left: 10px;
+	 padding-right: 10px;
+	 margin-top: 10px;
+	 margin-bottom: 10px;
+}
+ .cal-query-builder .group-or-rule-container {
+	 margin-top: 10px;
+	 margin-bottom: 10px;
+	 padding-right: 10px;
+}
+ .cal-query-builder .group-or-rule-container:first-child {
+	 margin-top: 0px !important;
+}
+ .cal-query-builder .group-or-rule-container:last-child {
+	 margin-bottom: 0px !important;
+}
+ .cal-query-builder .group--children {
+	 margin-top: 10px;
+	 margin-bottom: 10px;
+}
+ .cal-query-builder .rule--body.can--shrink--value {
+	 display: flex;
+	 align-items: center;
+}
+ .cal-query-builder .rule--body.can--shrink--value .rule--value {
+	 flex: 1;
+}
+ .cal-query-builder .rule--body.can--shrink--value .rule--value > .rule--widget {
+	 display: flex;
+}
+ .cal-query-builder .rule--body.can--shrink--value .rule--value > .rule--widget .widget--widget {
+	 flex: 1;
+}
+ .cal-query-builder .rule--body.can--shrink--value .rule--value > .rule--widget > .widget--valuesrc {
+	 display: flex;
+	 align-items: center;
+}
+ .cal-query-builder .rule--value > .rule--widget > .widget--valuesrc .anticon {
+	 height: 100%;
+}
+ .cal-query-builder .rule--value > .rule--widget > .widget--valuesrc .anticon svg {
+	 height: 100%;
+}
+ .cal-query-builder .svg-inline--fa {
+	 pointer-events: none;
+}
