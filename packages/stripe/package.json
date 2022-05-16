@@ -16,7 +16,7 @@
     "@stripe/react-stripe-js": "^1.8.0",
     "@stripe/stripe-js": "^1.29.0",
     "dayjs": "^1.11.2",
-    "stripe": "^8.222.0"
+    "stripe": "^9.1.0"
   },
   "main": "index.ts",
   "types": "index.d.ts",

@@ -80,7 +80,7 @@
     "mime-types": "^2.1.35",
     "next": "^12.1.6",
     "next-auth": "^4.3.4",
-    "next-i18next": "^8.9.0",
+    "next-i18next": "^11.0.0",
     "next-mdx-remote": "^4.0.3",
     "next-seo": "^4.26.0",
     "next-transpile-modules": "^9.0.0",
@@ -103,13 +103,13 @@
     "react-router-dom": "^5.3.1",
     "react-select": "^5.3.2",
     "react-timezone-select": "^1.3.1",
-    "react-use-intercom": "1.4.0",
+    "react-use-intercom": "1.5.1",
     "react-virtualized-auto-sizer": "^1.0.6",
     "react-window": "^1.8.7",
     "rrule": "^2.6.9",
     "short-uuid": "^4.2.0",
-    "stripe": "^8.222.0",
-    "superjson": "1.8.1",
+    "stripe": "^9.1.0",
+    "superjson": "1.9.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.3",
     "zod": "^3.16.0"
@@ -150,6 +150,6 @@
     "tailwindcss": "^3.0.24",
     "ts-jest": "^26.0.0",
     "ts-node": "^10.6.0",
-    "typescript": "^4.5.3"
+    "typescript": "^4.6.4"
   }
 }

@@ -44,12 +44,12 @@
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
-    "husky": "^7.0.1",
+    "husky": "^8.0.1",
     "lint-staged": "^12.4.1",
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "turbo": "latest"
+    "turbo": "1.2.9"
   },
   "lint-staged": {
     "apps/**/*.{js,ts,jsx,tsx}": [
