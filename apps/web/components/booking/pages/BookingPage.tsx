@@ -419,7 +419,7 @@ const BookingPage = ({
               "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
               isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
-              "rounded-md sm:border sm:dark:border-gray-600"
+              "rounded-md dark:border-gray-600 sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
