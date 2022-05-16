@@ -132,7 +132,7 @@
     "@types/node": "^16.11.24",
     "@types/nodemailer": "^6.4.4",
     "@types/qrcode": "^1.4.1",
-    "@types/react": "^17.0.37",
+    "@types/react": "17.0.2",
     "@types/react-phone-number-input": "^3.0.13",
     "@types/react-virtualized-auto-sizer": "^1.0.1",
     "@types/react-window": "^1.8.5",

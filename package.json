@@ -51,6 +51,10 @@
   "dependencies": {
     "turbo": "1.2.9"
   },
+  "resolutions": {
+    "@types/react": "17.0.2",
+    "@types/react-dom": "17.0.2"
+  },
   "lint-staged": {
     "apps/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
