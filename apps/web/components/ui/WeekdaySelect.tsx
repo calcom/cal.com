@@ -6,6 +6,7 @@ interface WeekdaySelectProps {
 }
 
 export const WeekdaySelect = (props: WeekdaySelectProps) => {
+  const { onSelect } = props;
   const [activeDays, setActiveDays] = useState<boolean[]>(
     Array.from(Array(7).keys()).map((v, i) => (props.defaultValue || []).includes(i))
   );
@@ -13,8 +14,8 @@ export const WeekdaySelect = (props: WeekdaySelectProps) => {
   const days = ["S", "M", "T", "W", "T", "F", "S"];
 
   useEffect(() => {
-    props.onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
-  }, [activeDays]);
+    onSelect(activeDays.map((v, idx) => (v ? idx : -1)).filter((v) => v !== -1));
+  }, [onSelect, activeDays]);
 
   const toggleDay = (idx: number) => {
     activeDays[idx] = !activeDays[idx];

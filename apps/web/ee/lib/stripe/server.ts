@@ -2,6 +2,7 @@ import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { createPaymentLink } from "@calcom/stripe/client";
@@ -16,8 +17,8 @@ export type PaymentInfo = {
   id?: string | null;
 };
 
-const paymentFeePercentage = process.env.PAYMENT_FEE_PERCENTAGE!;
-const paymentFeeFixed = process.env.PAYMENT_FEE_FIXED!;
+let paymentFeePercentage: number | undefined;
+let paymentFeeFixed: number | undefined;
 
 export async function handlePayment(
   evt: CalendarEvent,
@@ -33,6 +34,10 @@ export async function handlePayment(
     uid: string;
   }
 ) {
+  const appKeys = await getAppKeysFromSlug("stripe");
+  if (typeof appKeys.payment_fee_fixed === "number") paymentFeePercentage = appKeys.payment_fee_fixed;
+  if (typeof appKeys.payment_fee_percentage === "number") paymentFeeFixed = appKeys.payment_fee_percentage;
+
   const paymentFee = Math.round(
     selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
   );

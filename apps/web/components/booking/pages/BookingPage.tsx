@@ -89,6 +89,17 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -98,7 +109,7 @@ const BookingPage = ({
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -144,7 +155,7 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], recurringEventId } = responseData[0] || {};
+      const { attendees = [], id, recurringEventId } = responseData[0] || {};
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
@@ -168,6 +179,7 @@ const BookingPage = ({
           email: attendees[0].email,
           location,
           eventName: profile.eventName || "",
+          bookingId: id,
         },
       });
     },
@@ -193,8 +205,6 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
-
-  const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
@@ -293,7 +303,7 @@ const BookingPage = ({
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.bookingConfirmed,
+        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
@@ -409,7 +419,7 @@ const BookingPage = ({
               "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
               isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
-              "rounded-md sm:border sm:dark:border-gray-600"
+              "rounded-md dark:border-gray-600 sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">

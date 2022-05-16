@@ -1,10 +1,9 @@
 import { Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
-
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
+import getBusyTimes from "@lib/getBusyTimes";
 import prisma from "@lib/prisma";
 
 export async function getUserAvailability(query: {
@@ -60,12 +59,14 @@ export async function getUserAvailability(query: {
 
   const { selectedCalendars, ...currentUser } = rawUser;
 
-  const busyTimes = await getBusyCalendarTimes(
-    currentUser.credentials,
-    dateFrom.format(),
-    dateTo.format(),
-    selectedCalendars
-  );
+  const busyTimes = await getBusyTimes({
+    credentials: currentUser.credentials,
+    startTime: dateFrom.format(),
+    endTime: dateTo.format(),
+    eventTypeId: query.eventTypeId,
+    userId: currentUser.id,
+    selectedCalendars,
+  });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toString(),

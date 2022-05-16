@@ -50,7 +50,10 @@ async function main() {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
     });
-    await createApp("msteams", "office365video", ["video"], "office365_video");
+    await createApp("msteams", "office365video", ["video"], "office365_video", {
+      client_id: process.env.MS_GRAPH_CLIENT_ID,
+      client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    });
   }
   // Video apps
   if (process.env.DAILY_API_KEY) {
@@ -95,7 +98,12 @@ async function main() {
       webhook_secret: process.env.VITAL_WEBHOOK_SECRET,
     });
   }
-  await createApp("zapier", "zapier", ["other"], "zapier_other");
+
+  if (process.env.ZAPIER_INVITE_LINK) {
+    await createApp("zapier", "zapier", ["other"], "zapier_other", {
+      invite_link: process.env.ZAPIER_INVITE_LINK,
+    });
+  }
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");

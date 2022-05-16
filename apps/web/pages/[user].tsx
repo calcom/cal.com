@@ -119,7 +119,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
-      jitsu.track(telemetryEventTypes.pageView, collectPageParameters("/[user]"))
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/[user]")
+      )
     );
   }, [telemetry]);
   return (
