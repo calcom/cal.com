@@ -7,7 +7,7 @@ import { Dialog } from "@calcom/ui/Dialog";
 
 import DeleteStripeDialogContent from "@components/dialog/DeleteStripeDialogContent";
 
-export default function DisconnectiStripeIntegration(props: {
+export default function DisconnectStripeIntegration(props: {
   /** Integration credential id */
   id: number;
   render: (renderProps: ButtonBaseProps) => JSX.Element;
