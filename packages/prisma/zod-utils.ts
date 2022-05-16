@@ -10,6 +10,7 @@ export const eventTypeLocations = z.array(
     address: z.string().optional(),
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
+    hostPhoneNumber: z.string().optional(),
   })
 );
 

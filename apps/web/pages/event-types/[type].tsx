@@ -21,6 +21,7 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { BooleanArraySupportOption } from "prettier";
@@ -71,6 +72,7 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
+import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
@@ -281,8 +283,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
 
-  const [requirePayment, setRequirePayment] = useState(
-    eventType.price > 0 && eventType.recurringEvent?.count !== undefined
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const [recurringEventDefined, setRecurringEventDefined] = useState(
+    eventType.recurringEvent?.count !== undefined
   );
 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
@@ -448,6 +451,34 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         );
+      case LocationType.UserPhone:
+        return (
+          <div>
+            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
+              {t("set_your_phone_number")}
+            </label>
+            <div className="mt-1">
+              <PhoneInput
+                control={locationFormMethods.control}
+                name="locationPhoneNumber"
+                required
+                id="locationPhoneNumber"
+                placeholder={t("host_phone_number")}
+                rules={{}}
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.UserPhone)?.hostPhoneNumber
+                }
+              />
+              {locationFormMethods.formState.errors.locationPhoneNumber && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       case LocationType.Phone:
         return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
       /* TODO: Render this dynamically from App Store */
@@ -535,7 +566,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hidden: boolean;
     hideCalendarNotes: boolean;
     hashedLink: string | undefined;
-    locations: { type: LocationType; address?: string; link?: string; displayLocationPublicly?: boolean }[];
+    locations: {
+      type: LocationType;
+      address?: string;
+      link?: string;
+      hostPhoneNumber?: string;
+      displayLocationPublicly?: boolean;
+    }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -569,11 +606,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationType: z.string(),
     locationAddress: z.string().optional(),
     displayLocationPublicly: z.boolean().optional(),
+    locationPhoneNumber: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
     locationType: LocationType;
+    locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
     displayLocationPublicly?: boolean;
@@ -593,7 +635,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
                   locationFormMethods.setValue("locationType", newLocationType);
-                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                  if (
+                    newLocationType === LocationType.InPerson ||
+                    newLocationType === LocationType.Link ||
+                    newLocationType === LocationType.UserPhone
+                  ) {
                     openLocationModal(newLocationType);
                   } else {
                     addLocation(newLocationType);
@@ -627,6 +673,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.link}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.UserPhone && (
+                    <div className="flex flex-grow items-center">
+                      <PhoneIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.hostPhoneNumber}
                       />
                     </div>
                   )}
@@ -897,6 +953,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.setValue("locationType", location.type);
                         locationFormMethods.unregister("locationLink");
                         locationFormMethods.unregister("locationAddress");
+                        locationFormMethods.unregister("locationPhoneNumber");
                         openLocationModal(location.type);
                       }}
                       aria-label={t("edit")}
@@ -1390,6 +1447,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         />
 
                         <RecurringEventController
+                          paymentEnabled={hasPaymentIntegration && requirePayment}
+                          onRecurringEventDefined={setRecurringEventDefined}
                           recurringEvent={eventType.recurringEvent}
                           formMethods={formMethods}
                         />
@@ -1707,7 +1766,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
-                        {hasPaymentIntegration && eventType.recurringEvent?.count !== undefined && (
+                        {hasPaymentIntegration && !recurringEventDefined && (
                           <>
                             <hr className="border-neutral-200" />
                             <div className="block sm:flex">
@@ -1955,6 +2014,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.Link) {
                       details = { link: values.locationLink, displayLocationPublicly };
                     }
+                    if (newLocation === LocationType.UserPhone) {
+                      details = { hostPhoneNumber: values.locationPhoneNumber };
+                    }
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
@@ -1975,6 +2037,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               locationFormMethods.setValue("locationType", val.value);
                               locationFormMethods.unregister("locationLink");
                               locationFormMethods.unregister("locationAddress");
+                              locationFormMethods.unregister("locationPhoneNumber");
                               setSelectedLocation(val);
                             }
                           }}

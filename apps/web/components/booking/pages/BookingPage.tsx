@@ -66,6 +66,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
     [key: string]: string;
   };
@@ -267,7 +268,9 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
@@ -278,6 +281,9 @@ const BookingPage = ({
       }
       case LocationType.Link: {
         return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.UserPhone: {
+        return locationInfo(locationType)?.hostPhoneNumber || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -479,7 +485,7 @@ const BookingPage = ({
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
                     {(rescheduleUid || !eventType.recurringEvent.freq) &&
-                      parseDate(dayjs.tz(date, timeZone()), i18n)}
+                      parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
                       eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
