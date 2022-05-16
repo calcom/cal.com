@@ -1,6 +1,7 @@
 export enum DefaultLocationType {
   InPerson = "inPerson",
   Phone = "phone",
+  UserPhone = "userPhone",
   Link = "link",
 }
 
