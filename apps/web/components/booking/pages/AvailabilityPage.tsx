@@ -76,7 +76,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -113,8 +113,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
 
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.pageView,
-        collectPageParameters("availability", { isTeamBooking: document.URL.includes("team/") })
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
       )
     );
   }, [telemetry]);

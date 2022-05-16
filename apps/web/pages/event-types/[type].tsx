@@ -60,6 +60,7 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
@@ -164,6 +165,7 @@ const AvailabilitySelect = ({
   return (
     <QueryCell
       query={query}
+      customLoader={<AvailabilitySelectSkeletonLoader />}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
@@ -327,6 +329,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     fetchTokens();
 
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {

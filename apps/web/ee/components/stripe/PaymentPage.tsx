@@ -49,7 +49,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         embedIframeWidth = e.detail.data.iframeWidth as number;
       });
     }
-  }, [isEmbed]);
+  }, [date, isEmbed]);
 
   const eventName = props.booking.title;
 
@@ -137,6 +137,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         eventType={props.eventType}
                         user={props.user}
                         location={props.booking.location}
+                        bookingId={props.booking.id}
                       />
                     </Elements>
                   )}

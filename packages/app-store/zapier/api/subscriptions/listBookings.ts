@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           endTime: true,
           title: true,
           location: true,
-          cancellationReason: true,
           attendees: {
             select: {
               name: true,
