@@ -85,7 +85,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
 
   return {
     props: {
-      apps: apps,
+      apps,
     },
   };
 };
