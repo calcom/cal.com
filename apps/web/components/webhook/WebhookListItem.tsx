@@ -41,8 +41,8 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
                 <span
                   key={ind}
                   className={classNames(
-                    "w-max rounded-sm px-1 text-xs ",
-                    props.webhook.active ? "bg-blue-100 text-blue-700" : "bg-blue-50 text-blue-200"
+                    "w-max rounded-sm px-1 text-xs",
+                    props.webhook.active ? "text-grey-200 bg-gray-200" : "bg-grey-50 text-grey-200"
                   )}>
                   {t(`${eventTrigger.toLowerCase()}`)}
                 </span>
