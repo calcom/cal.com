@@ -31,7 +31,6 @@ export function canEventBeEdited({
       id: User["id"];
     }[];
     userId: User["id"] | null;
-    creatorId: EventType["creatorId"];
     team: {
       members: {
         userId: Membership["userId"];
@@ -40,11 +39,6 @@ export function canEventBeEdited({
     } | null;
   };
 }) {
-  // Check if he is creator.
-  if (eventType.creatorId === user.id) {
-    return true;
-  }
-
   // Check if he is the owner of the team to which event belongs
   if (eventType.team) {
     return eventType.team.members
