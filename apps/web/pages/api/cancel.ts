@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
-    isOrganizer: isOrganizer,
+    isOrganizer,
   };
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
