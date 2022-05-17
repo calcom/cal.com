@@ -120,34 +120,35 @@ export function getWorkingHours(
       });
     }
 
-    /**
-     * We need to merge consecutive workingHours
-     * this means that [{startTime: 9:30, endTime: 10:30}, {startTime: 10:30, endTime: 11:00}]
-     * becomes a single element in the array [{startTime: 9:30, endTime: 11:00}]
-     * This is due sometimes when hours involved a day change in UTC, working hours
-     * got splitted by a day end unpurposely
-     */
-    const mergedConsecutiveHours = workingHours.reduce((accumulator, current) => {
-      const previousElement = accumulator[accumulator.length - 1];
-      if (previousElement && previousElement.endTime + 1 === current.startTime && accumulator.length > 0) {
-        // We don't push, but we modify previousElement
-        let copyPrevious = accumulator.pop();
-        if (copyPrevious) {
-          copyPrevious["endTime"] = current.endTime;
-          accumulator.push(copyPrevious);
-        }
-      } else {
-        accumulator.push(current);
-      }
-
-      return accumulator;
-    }, [] as { startTime: number; endTime: number; days: number[] }[]);
-    return mergedConsecutiveHours;
-  }, []);
+    return workingHours;
+  }, [] as WorkingHours[]);
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
 
-  return workingHours;
+  /**
+   * We need to merge consecutive workingHours
+   * this means that [{startTime: 9:30, endTime: 10:30}, {startTime: 10:30, endTime: 11:00}]
+   * becomes a single element in the array [{startTime: 9:30, endTime: 11:00}]
+   * This is because when a day change is involved, working hours
+   * get splitted unpurposely
+   */
+  const mergedConsecutiveHours = workingHours.reduce((accumulator, current) => {
+    const previousElement = accumulator[accumulator.length - 1];
+    if (previousElement && previousElement.endTime + 1 === current.startTime && accumulator.length > 0) {
+      // We don't push, but we modify previousElement
+      let copyPrevious = accumulator.pop();
+      if (copyPrevious) {
+        copyPrevious["endTime"] = current.endTime;
+        accumulator.push(copyPrevious);
+      }
+    } else {
+      accumulator.push(current);
+    }
+
+    return accumulator;
+  }, [] as { startTime: number; endTime: number; days: number[] }[]);
+
+  return mergedConsecutiveHours;
 }
 
 export function availabilityAsString(availability: Availability, locale: string) {
