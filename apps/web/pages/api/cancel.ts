@@ -199,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: bookingToDelete.location ?? "",
       uid: bookingToDelete.uid ?? "",
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
-      isOrganizer: isOrganizer,
+      isOrganizer,
     };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
