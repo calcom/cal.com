@@ -89,7 +89,7 @@ export const SearchDialog = (props: ISearchDialog) => {
   const renderTab = (Icon: any, text: string, mode: Mode) => (
     <div
       className={classNames(
-        "flex items-center border-b-2 p-2 text-sm",
+        "flex cursor-pointer items-center border-b-2 p-2 text-sm",
         selectedMode === mode ? "border-black" : "border-transparent text-gray-500"
       )}
       onClick={() => {
@@ -121,7 +121,11 @@ export const SearchDialog = (props: ISearchDialog) => {
             <input
               type="text"
               className="block w-full rounded-sm border-gray-300 pl-9 shadow-sm sm:text-sm"
-              placeholder={t("search_giphy")}
+              placeholder={
+                selectedMode === MODE_SEARCH
+                  ? t("search_giphy")
+                  : "https://media.giphy.com/media/some-id/giphy.gif"
+              }
               value={keyword}
               onChange={(event) => {
                 setKeyword(event.target.value);
@@ -131,7 +135,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           <Button
             type="button"
             tabIndex={-1}
-            onClick={(event) => {
+            onClick={() => {
               if (selectedMode === MODE_SEARCH) {
                 searchGiphy(keyword, 0);
               } else if (selectedMode === MODE_URL) {

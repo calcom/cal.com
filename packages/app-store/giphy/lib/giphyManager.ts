@@ -29,7 +29,6 @@ export const searchGiphy = async (locale: string, keyword: string, offset: numbe
   });
   const responseBody = await response.json();
   const gifs = responseBody.data;
-  console.log(gifs?.[0]?.images?.fixed_height_downsampled);
   return {
     gifImageUrl: gifs?.[0]?.images?.fixed_height_downsampled?.url || null,
     total: responseBody.pagination.total_count,
@@ -49,6 +48,5 @@ export const getGiphyById = async (giphyId: string) => {
   });
   const responseBody = await response.json();
   const gifs = responseBody.data;
-  console.log(gifs?.images?.fixed_height_downsampled);
   return gifs?.images?.fixed_height_downsampled?.url || null;
 };

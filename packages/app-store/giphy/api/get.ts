@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 import { GiphyManager } from "../lib";
 
 const getSchema = z.object({
-  url: z.string().url(),
+  url: z.string(),
 });
 
 const giphyUrlRegexp = /^https:\/\/media.giphy.com\/media\/(.*)\/giphy.gif/g;
@@ -31,6 +31,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const gifImageUrl = await GiphyManager.getGiphyById(giphyId);
     return res.status(200).json({ image: gifImageUrl });
   } catch (error: unknown) {
+    console.error({ error });
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });
     }
