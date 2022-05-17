@@ -225,6 +225,7 @@ export default function IntegrationsPage() {
     <QueryCell
       query={query}
       success={({ data }) => {
+        console.log({ total: data.total });
         return (
           <Shell
             heading={t("installed_apps")}
@@ -233,7 +234,7 @@ export default function IntegrationsPage() {
             customLoader={<SkeletonLoader />}>
             <AppsShell>
               <ClientSuspense fallback={<SkeletonLoader />}>
-                {data.total > 0 && (
+                {data.total > 0 ? (
                   <>
                     <IntegrationsContainer variant="conferencing" />
                     <CalendarListContainer />
@@ -241,8 +242,7 @@ export default function IntegrationsPage() {
                     <IntegrationsContainer variant="other" className="mt-8" />
                     <Web3Container />
                   </>
-                )}
-                {data.total === 0 && (
+                ) : (
                   <EmptyScreen
                     Icon={ViewGridIcon}
                     headline={t("no_installed_apps")}
