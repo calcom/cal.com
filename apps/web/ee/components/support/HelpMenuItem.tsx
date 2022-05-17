@@ -21,6 +21,34 @@ export default function HelpMenuItem() {
     setDisableSubmit(false);
   };
 
+  const sendFeedback = async (rating: number, comment: string) => {
+    setLoading(true);
+    try {
+      const body = {
+        rating: rating,
+        comment: comment,
+      };
+
+      const res = await fetch("api/send-feedback", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.ok) {
+        setResMessage(t("submitted_feedback"));
+        setDisableSubmit(true);
+      } else {
+        setResMessage(t("feedback_error"));
+      }
+    } catch (error) {
+      setResMessage(t("feedback_error"));
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="w-full border-gray-300 bg-white shadow-sm md:w-[150%]">
       <div className=" w-full p-5">
@@ -152,34 +180,14 @@ export default function HelpMenuItem() {
             </svg>
           </button>
         </div>
-        <div className="flex justify-end">
+        <div className="mt-2 flex justify-end">
           <Button
             disabled={disableSubmit}
             loading={loading}
             onClick={async () => {
-              setLoading(true);
-
-              const body = {
-                rating: rating,
-                comment: comment,
-              };
-
-              const res = await fetch("api/send-feedback", {
-                method: "POST",
-                body: JSON.stringify(body),
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-
-              if (res.ok) {
-                setResMessage(t("submitted_feedback"));
-                setDisableSubmit(true);
-              } else {
-                setResMessage(t("feedback_error"));
+              if (rating && comment) {
+                await sendFeedback(rating, comment);
               }
-
-              setLoading(false);
             }}>
             {t("submit")}
           </Button>
