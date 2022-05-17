@@ -1,22 +1,14 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { ReactNode } from "react";
-import { useIntercom as _useIntercom } from "react-use-intercom";
 
 import Button from "@calcom/ui/Button";
+import { useIntercom } from "@ee/lib/intercom/useIntercom";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
-
-const useIntercom =
-  typeof window !== "undefined"
-    ? _useIntercom
-    : () => ({
-        boot: () => {},
-        show: () => {},
-      });
 
 type CardProps = { title: string; description: string; className?: string; children: ReactNode };
 const Card = ({ title, description, className = "", children }: CardProps): JSX.Element => (
