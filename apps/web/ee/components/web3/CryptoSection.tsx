@@ -89,12 +89,15 @@ const CryptoSection = (props: CryptoSectionProps) => {
     }
 
     return <div />;
-  }, [props.verified]);
+  }, [props.pathname, props.verified]);
 
   const verifyButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
-        <img className="mr-1 h-5" src="/apps/metamask.svg" />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("verify_wallet")}
       </Button>
     );
@@ -103,7 +106,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const connectButton = useMemo(() => {
     return (
       <Button color="secondary" onClick={connectMetamask} type="button">
-        <img className="mr-1 h-5" src="/apps/metamask.svg" />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("connect_metamask")}
       </Button>
     );
@@ -118,7 +124,10 @@ const CryptoSection = (props: CryptoSectionProps) => {
           await connectMetamask();
           await verifyWallet();
         }}>
-        <img className="mr-1 h-5" src="/apps/metamask.svg" />
+        {
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />
+        }
         {t("verify_wallet")}
       </Button>
     );

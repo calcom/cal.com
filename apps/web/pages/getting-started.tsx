@@ -12,7 +12,7 @@ import { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
@@ -102,21 +102,24 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const [selectedImport, setSelectedImport] = useState("");
   const [error, setError] = useState<Error | null>(null);
 
-  const updateUser = async (data: Prisma.UserUpdateInput) => {
-    const res = await fetch(`/api/user/${props.user.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ data: { ...data } }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  const updateUser = useCallback(
+    async (data: Prisma.UserUpdateInput) => {
+      const res = await fetch(`/api/user/${props.user.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ data: { ...data } }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    if (!res.ok) {
-      throw new Error((await res.json()).message);
-    }
-    const responseData = await res.json();
-    return responseData.data;
-  };
+      if (!res.ok) {
+        throw new Error((await res.json()).message);
+      }
+      const responseData = await res.json();
+      return responseData.data;
+    },
+    [props.user.id]
+  );
 
   const createEventType = async (data: Prisma.EventTypeCreateInput) => {
     const res = await fetch(`/api/availability/eventtype`, {
@@ -288,7 +291,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
     if (username) {
       validateAndSave(username);
     }
-  }, []);
+  }, [updateUser]);
 
   const availabilityForm = useForm({ defaultValues: { schedule: DEFAULT_SCHEDULE } });
   const steps = [

@@ -223,6 +223,7 @@ model BookingReference {
   meetingUrl      String?
   booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId       Int?
+  externalCalendarId String?
   deleted         Boolean?
 }
 

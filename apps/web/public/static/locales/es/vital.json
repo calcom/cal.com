@@ -1,13 +1,13 @@
 {
-  "connected_vital_app": "Conectado con",
-  "vital_app_sleep_automation": "Automatización de reagendado en base al patron de sueño",
-  "vital_app_automation_description": "Puedes seleccionar diferentes parámetros para activar el reagendado automático en base a tus patrones de sueño.",
-  "vital_app_parameter": "Parámetro",
-  "vital_app_trigger": "Activar cuando sea igual o menor que",
-  "vital_app_save_button": "Guardar configuración",
-  "vital_app_total_label": "Total (total = rem + sueño ligero + sueño profundo)",
-  "vital_app_duration_label": "Duration (duration = Hora que te levantaste de la cama - Hora que te acostaste en la cama)",
-  "vital_app_hours": "horas",
-  "vital_app_save_success": "Fue un éxito el guardado de tus configuraciones de App Vital",
-  "vital_app_save_error": "Ocurrió un error al intentar guardar tus configuraciones de App Vital"
+    "connected_vital_app": "Conectado con",
+    "vital_app_sleep_automation": "Automatización de reagendado en base al patron de sueño",
+    "vital_app_automation_description": "Puedes seleccionar diferentes parámetros para activar el reagendado automático en base a tus patrones de sueño.",
+    "vital_app_parameter": "Parámetro",
+    "vital_app_trigger": "Activar cuando sea igual o menor que",
+    "vital_app_save_button": "Guardar configuración",
+    "vital_app_total_label": "Total (total = rem + sueño ligero + sueño profundo)",
+    "vital_app_duration_label": "Duration (duration = Hora que te levantaste de la cama - Hora que te acostaste en la cama)",
+    "vital_app_hours": "horas",
+    "vital_app_save_success": "Fue un éxito el guardado de tus configuraciones de App Vital",
+    "vital_app_save_error": "Ocurrió un error al intentar guardar tus configuraciones de App Vital"
 }
