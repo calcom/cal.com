@@ -11,6 +11,7 @@ export const telemetryEventTypes = {
   bookingCancelled: "booking_cancelled",
   importSubmitted: "import_submitted",
   googleLogin: "google_login",
+  login: "login",
   samlLogin: "saml_login",
   samlConfig: "saml_config",
   embedView: "embed_view",
