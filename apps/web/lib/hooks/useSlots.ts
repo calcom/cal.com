@@ -133,19 +133,21 @@ export const useSlots = (props: UseSlotsProps) => {
 
     const handleAvailableSlots = async (res: Response) => {
       const responseBody: AvailabilityUserResponse = await res.json();
+      const { workingHours, busy, currentSeats } = responseBody;
       const times = getSlots({
         frequency: slotInterval || eventLength,
         inviteeDate: date,
-        workingHours: responseBody.workingHours,
+        workingHours: workingHours,
         minimumBookingNotice,
         eventLength,
       });
       const filterTimeProps = {
         times,
-        busy: responseBody.busy,
+        busy: busy,
         eventLength,
         beforeBufferTime,
         afterBufferTime,
+        currentSeats,
       };
       const filteredTimes = getFilteredTimes(filterTimeProps);
       // temporary
@@ -153,6 +155,14 @@ export const useSlots = (props: UseSlotsProps) => {
       return filteredTimes.map((time) => ({
         time,
         users: [user],
+        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+        ...(currentSeats?.some((booking) => booking.startTime === time.toISOString()) && {
+          attendees:
+            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())]._count
+              .attendees,
+          bookingId:
+            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].id,
+        }),
       }));
     };
 
