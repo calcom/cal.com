@@ -32,7 +32,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   successRedirectUrl: true,
 }).partial();
 
-// const schemaEventTypeBaseParams = z
+const schemaEventTypeBaseParams = z
   .object({
     title: z.string(),
     slug: z.string(),
