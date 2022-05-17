@@ -39,9 +39,9 @@ const schemaEventTypeBaseParams = z
     slug: z.string(),
     description: z.string().optional().nullable(),
     length: z.number().int(),
-    locations: jsonSchema,
+    locations: jsonSchema.optional().nullable().or(z.null()),
     metadata: jsonSchema.optional().nullable().or(z.null()),
-    recurringEvent: jsonSchema,
+    recurringEvent: jsonSchema.optional().nullable().or(z.null()),
   })
   .strict();
 
