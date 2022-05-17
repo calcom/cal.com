@@ -83,7 +83,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   price: true,
   currency: true,
   slotInterval: true,
-  metadata: true,
   successRedirectUrl: true,
 })
   .merge(schemaEventTypeBaseParams)
