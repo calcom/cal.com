@@ -14,6 +14,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
@@ -162,7 +163,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -194,9 +195,7 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.update(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
@@ -214,7 +213,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -225,9 +224,7 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
