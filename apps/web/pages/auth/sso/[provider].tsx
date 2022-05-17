@@ -38,7 +38,8 @@ export default function Provider(props: SSOProviderPageProps) {
     } else {
       signIn(props.provider);
     }
-  }, [props.isSAMLLoginEnabled, props.product, props.provider, props.tenant, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return null;
 }
 
