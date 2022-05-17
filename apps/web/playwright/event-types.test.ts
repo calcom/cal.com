@@ -22,7 +22,7 @@ test.describe("Event Types tests", () => {
     test.use({ storageState: "playwright/artifacts/proStorageState.json" });
 
     test("has at least 2 events", async ({ page }) => {
-      const $eventTypes = await page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
 
@@ -48,7 +48,8 @@ test.describe("Event Types tests", () => {
 
       await page.goto("/event-types");
 
-      isCreated = await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
+      isCreated = page.locator(`text='${eventTitle}'`);
+      await expect(isCreated).toBeVisible();
     });
 
     test("enabling recurring event comes with default options", async ({ page }) => {
@@ -67,22 +68,21 @@ test.describe("Event Types tests", () => {
       });
 
       await page.click("[data-testid=show-advanced-settings]");
-      await expect(await page.locator("[data-testid=recurring-event-collapsible] > *")).not.toBeVisible();
+      await expect(page.locator("[data-testid=recurring-event-collapsible] > *")).not.toBeVisible();
       await page.click("[data-testid=recurring-event-check]");
-      isCreated = await expect(
-        await page.locator("[data-testid=recurring-event-collapsible] > *")
-      ).toBeVisible();
+      isCreated = page.locator("[data-testid=recurring-event-collapsible] > *");
+      await expect(isCreated).toBeVisible();
 
-      await expect(
+      expect(
         await page
           .locator("[data-testid=recurring-event-collapsible] input[type=number]")
           .nth(0)
           .getAttribute("value")
       ).toBe("1");
-      await expect(
+      expect(
         await page.locator("[data-testid=recurring-event-collapsible] div[class$=singleValue]").textContent()
       ).toBe("week");
-      await expect(
+      expect(
         await page
           .locator("[data-testid=recurring-event-collapsible] input[type=number]")
           .nth(1)
@@ -98,21 +98,21 @@ test.describe("Event Types tests", () => {
       await page.click("[data-testid=event-type-options-3]");
       await page.click("[data-testid=event-type-duplicate-3]");
 
-      const url = await page.url();
+      const url = page.url();
       const params = new URLSearchParams(url);
 
-      await expect(params.get("title")).toBe(firstTitle);
-      await expect(params.get("slug")).toBe(firstSlug);
+      expect(params.get("title")).toBe(firstTitle);
+      expect(params.get("slug")).toBe(firstSlug);
 
       const formTitle = await page.inputValue("[name=title]");
       const formSlug = await page.inputValue("[name=slug]");
 
-      await expect(formTitle).toBe(firstTitle);
-      await expect(formSlug).toBe(firstSlug);
+      expect(formTitle).toBe(firstTitle);
+      expect(formSlug).toBe(firstSlug);
     });
     test("edit first event", async ({ page }) => {
-      const $eventTypes = await page.locator("[data-testid=event-types] > *");
-      const firstEventTypeElement = await $eventTypes.first();
+      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
       await page.waitForNavigation({
         url: (url) => {
@@ -135,12 +135,12 @@ test.describe("Event Types tests", () => {
     test.use({ storageState: "playwright/artifacts/freeStorageState.json" });
 
     test("has at least 2 events where first is enabled", async ({ page }) => {
-      const $eventTypes = await page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
 
-      const $first = await $eventTypes.first();
-      const $last = await $eventTypes.last()!;
+      const $first = $eventTypes.first();
+      const $last = $eventTypes.last()!;
       expect(await $first.getAttribute("data-disabled")).toBe("0");
       expect(await $last.getAttribute("data-disabled")).toBe("1");
     });
@@ -150,8 +150,8 @@ test.describe("Event Types tests", () => {
     });
 
     test("edit first event", async ({ page }) => {
-      const $eventTypes = await page.locator("[data-testid=event-types] > *");
-      const firstEventTypeElement = await $eventTypes.first();
+      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
       await page.waitForNavigation({
         url: (url) => {
