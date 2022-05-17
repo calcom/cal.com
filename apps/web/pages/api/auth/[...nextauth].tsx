@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { IdentityProvider, UserPermissionRole } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
@@ -185,6 +184,7 @@ if (true) {
 }
 const calcomAdapter = CalComAdapter(prisma);
 export default NextAuth({
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
@@ -203,6 +203,7 @@ export default NextAuth({
       const autoMergeIdentities = async () => {
         if (!hostedCal) {
           const existingUser = await prisma.user.findFirst({
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             where: { email: token.email! },
           });
 

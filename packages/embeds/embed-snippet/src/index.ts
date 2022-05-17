@@ -1,10 +1,13 @@
+/* eslint-disable prefer-rest-params */
+
 /**
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
 import type { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/src/embed";
 
-const WEBAPP_URL = import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+const WEBAPP_URL =
+  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
 
 const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
@@ -28,18 +31,19 @@ export interface CalWindow extends Window {
 
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C: CalWindow, A, L) {
-    let p = function (a: any, ar: any) {
+    const p = function (a: any, ar: any) {
       a.q.push(ar);
     };
-    let d = C.document;
+    const d = C.document;
     C.Cal =
       C.Cal ||
       function () {
-        let cal = C.Cal!;
-        let ar = arguments;
+        const cal = C.Cal!;
+        const ar = arguments;
         if (!cal.loaded) {
           cal.ns = {};
           cal.q = cal.q || [];
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           d.head.appendChild(d.createElement("script")).src = A;
           cal.loaded = true;

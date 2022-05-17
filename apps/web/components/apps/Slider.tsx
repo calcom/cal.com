@@ -4,7 +4,7 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/solid";
 import { useEffect, useRef } from "react";
 
-const Slider = <T extends unknown>({
+const Slider = <T extends string | unknown>({
   title = "",
   className = "",
   items,
