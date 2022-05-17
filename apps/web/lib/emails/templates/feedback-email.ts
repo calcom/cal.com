@@ -1,24 +1,6 @@
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import timezone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
-
 import BaseEmail from "@lib/emails/templates/_base-email";
 
-import {
-  emailHead,
-  emailSchedulingBodyHeader,
-  emailBodyLogo,
-  emailScheduledBodyHeaderContent,
-  emailSchedulingBodyDivider,
-  linkIcon,
-} from "./common";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
-dayjs.extend(toArray);
+import { emailHead, emailBodyLogo } from "./common";
 
 export interface Feedback {
   userId: number;
