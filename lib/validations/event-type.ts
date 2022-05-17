@@ -21,8 +21,9 @@ export const schemaEventTypeCreateBodyParams =
 
 const schemaEventTypeEditParams = z
   .object({
-    token: z.string().optional(),
-    url: z.string().optional(),
+    title: z.string().optional(),
+    slug: z.string().optional(),
+    length: z.number().optional(),
   })
   .strict();
 
