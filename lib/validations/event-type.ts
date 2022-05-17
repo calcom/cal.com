@@ -32,7 +32,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   successRedirectUrl: true,
 }).partial();
 
-const schemaEventTypeBaseParams = z
+// const schemaEventTypeBaseParams = z
   .object({
     title: z.string(),
     slug: z.string(),
@@ -83,7 +83,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   price: true,
   currency: true,
   slotInterval: true,
+  metadata: true,
   successRedirectUrl: true,
-})
-  .merge(schemaEventTypeBaseParams)
-  .partial();
+}).partial();
