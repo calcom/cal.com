@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
-import { eventTypeLocations, recurringEvent } from "@calcom/prisma/zod-utils";
 
 import { jsonSchema } from "./shared/jsonSchema";
 
