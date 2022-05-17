@@ -112,7 +112,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
-  isOrganizer: boolean;
+  isOrganizer?: boolean;
   recurrence?: string;
 }
 
