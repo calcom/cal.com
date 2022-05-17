@@ -87,11 +87,9 @@ export default function HelpMenuItem() {
         <p className="mb-1 text-neutral-500">{t("feedback").toUpperCase()}</p>
         <p className="flex w-full py-2 text-sm font-medium text-gray-700">{t("comments")}</p>
         <textarea
-          // ref={descriptionRef}
-          id="about"
-          name="about"
+          id="comment"
+          name="comment"
           rows={3}
-          // defaultValue={props.user.bio || undefined}
           onChange={(event) => setComment(event.target.value)}
           className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"></textarea>
 
