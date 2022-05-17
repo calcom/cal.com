@@ -118,7 +118,7 @@
     "@calcom/config": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
-    "@playwright/test": "^1.22.0",
+    "@playwright/test": "^1.22.1",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.13",
     "@types/bcryptjs": "^2.4.2",

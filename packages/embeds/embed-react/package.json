@@ -38,7 +38,7 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "playwright": "^1.22.0",
+    "playwright": "^1.22.1",
     "typescript": "^4.6.4"
   }
 }
