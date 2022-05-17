@@ -66,6 +66,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
     [key: string]: string;
   };
@@ -89,6 +90,7 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
@@ -97,6 +99,7 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -107,7 +110,7 @@ const BookingPage = ({
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -191,7 +194,7 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string };
+  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -203,8 +206,6 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
-
-  const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
@@ -268,7 +269,9 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
@@ -279,6 +282,9 @@ const BookingPage = ({
       }
       case LocationType.Link: {
         return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.UserPhone: {
+        return locationInfo(locationType)?.hostPhoneNumber || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -419,7 +425,7 @@ const BookingPage = ({
               "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
               isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
-              "rounded-md sm:border sm:dark:border-gray-600"
+              "rounded-md dark:border-gray-600 sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
@@ -480,7 +486,7 @@ const BookingPage = ({
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
                     {(rescheduleUid || !eventType.recurringEvent.freq) &&
-                      parseDate(dayjs.tz(date, timeZone()), i18n)}
+                      parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
                       eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}

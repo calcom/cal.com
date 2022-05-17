@@ -146,6 +146,7 @@ export default class EventManager {
         meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
       };
     });
 
@@ -188,6 +189,7 @@ export default class EventManager {
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
+            externalCalendarId: true,
           },
         },
         destinationCalendar: true,
@@ -354,7 +356,11 @@ export default class EventManager {
         ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)[0]?.uid
         : null;
 
-      return updateEvent(credential, event, bookingRefUid);
+      const bookingExternalCalendarId = booking.references
+        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
+        : null;
+
+      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
     });
   }
 
