@@ -240,7 +240,6 @@ const loggedInViewerRouter = createProtectedRouter()
         };
         metadata: {
           membershipCount: number;
-          readonly: boolean;
         };
         eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean; readOnly?: boolean })[];
       };

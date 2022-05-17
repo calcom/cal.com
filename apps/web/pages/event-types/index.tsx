@@ -189,10 +189,17 @@ export const EventTypeList = ({ group, groupIndex, types, profile }: EventTypeLi
       showToast(t("event_type_deleted_successfully"), "success");
     },
     onError: (err) => {
+      let message: string;
       if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        message = `${err.statusCode}: ${err.message}`;
       }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: You are not able to delete this event`;
+      } else {
+        message = "Some Error Occurred";
+      }
+      showToast(message, "error");
     },
   });
 

@@ -39,6 +39,11 @@ export function canEventBeEdited({
     } | null;
   };
 }) {
+  // I am the creator of the event.
+  if (eventType.userId === user.id) {
+    return true;
+  }
+
   // Check if he is the owner of the team to which event belongs
   if (eventType.team) {
     return eventType.team.members
@@ -48,7 +53,5 @@ export function canEventBeEdited({
       .map((member) => member.userId)
       .includes(user.id);
   }
-
-  // Fallback case for Events with creatorId default value
-  return eventType.userId === user.id || eventType.users.find((user) => user.id === user.id);
+  return eventType.users.find((user) => user.id === user.id);
 }
