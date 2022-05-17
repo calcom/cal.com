@@ -401,6 +401,7 @@ export default function Success(props: SuccessProps) {
                     </div>
                     {userIsOwner &&
                       !isEmbed &&
+                      !needsConfirmation &&
                       (!isCancellationMode ? (
                         <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
                           <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">

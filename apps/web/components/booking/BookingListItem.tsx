@@ -224,6 +224,7 @@ function BookingListItem(booking: BookingItemProps) {
               eventName: booking.eventType.eventName || "",
               bookingId: booking.id,
               recur: booking.recurringEventId,
+              reschedule: booking.confirmed,
             },
           })
         }>

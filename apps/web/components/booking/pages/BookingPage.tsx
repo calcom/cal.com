@@ -655,7 +655,7 @@ const BookingPage = ({
                               disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder={input.placeholder}
-                            disabled={loggedInIsOwner ? true : false}
+                            disabled={disableInput && loggedInIsOwner ? true : false}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
