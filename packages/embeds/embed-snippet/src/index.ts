@@ -1,3 +1,5 @@
+/* eslint-disable prefer-rest-params */
+
 /**
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
@@ -29,18 +31,19 @@ export interface CalWindow extends Window {
 
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C: CalWindow, A, L) {
-    let p = function (a: any, ar: any) {
+    const p = function (a: any, ar: any) {
       a.q.push(ar);
     };
-    let d = C.document;
+    const d = C.document;
     C.Cal =
       C.Cal ||
       function () {
-        let cal = C.Cal!;
-        let ar = arguments;
+        const cal = C.Cal!;
+        const ar = arguments;
         if (!cal.loaded) {
           cal.ns = {};
           cal.q = cal.q || [];
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           d.head.appendChild(d.createElement("script")).src = A;
           cal.loaded = true;
