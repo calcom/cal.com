@@ -145,7 +145,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
-  const usernameRef = useRef<HTMLInputElement>(null);
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */
