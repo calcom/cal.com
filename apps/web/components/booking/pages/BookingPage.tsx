@@ -646,7 +646,7 @@ const BookingPage = ({
                               disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder={input.placeholder}
-                            disabled={disableInput && loggedInIsOwner ? true : false}
+                            disabled={disableInput && loggedInIsOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -661,7 +661,7 @@ const BookingPage = ({
                               disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder={input.placeholder}
-                            disabled={disableInput && loggedInIsOwner ? true : false}
+                            disabled={disableInput && loggedInIsOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -676,7 +676,7 @@ const BookingPage = ({
                               disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                             )}
                             placeholder=""
-                            disabled={disableInput && loggedInIsOwner ? true : false}
+                            disabled={disableInput && loggedInIsOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
@@ -692,7 +692,7 @@ const BookingPage = ({
                                 disableInput && loggedInIsOwner ? "bg-gray-200 dark:text-gray-500" : ""
                               )}
                               placeholder=""
-                              disabled={disableInput && loggedInIsOwner ? true : false}
+                              disabled={disableInput && loggedInIsOwner}
                             />
                             <label
                               htmlFor={"custom_" + input.id}

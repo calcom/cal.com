@@ -402,9 +402,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </div>
                     </div>
-                    {userIsOwner &&
-                      !isEmbed &&
-                      !needsConfirmation &&
+                    {!needsConfirmation &&
                       (!isCancellationMode ? (
                         <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
                           <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -424,9 +422,11 @@ export default function Success(props: SuccessProps) {
                         <CancelBooking
                           booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
-                          team={eventType?.team?.name}></CancelBooking>
+                          team={eventType?.team?.name}
+                          setIsCancellationMode={setIsCancellationMode}
+                        />
                       ))}
-                    {!needsConfirmation && !isCancellationMode && (
+                    {userIsOwner && !needsConfirmation && !isCancellationMode && (
                       <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}

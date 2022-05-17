@@ -476,7 +476,6 @@
   "back": "Back",
   "cancel": "Cancel",
   "apply": "Apply",
-  "cancel_event": "Cancel this event",
   "continue": "Continue",
   "confirm": "Confirm",
   "confirm_all": "Confirm all",
@@ -829,5 +828,7 @@
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
   "calendar_no_busy_slots": "There are no busy slots",
   "booking_details": "Booking details",
-  "or_lowercase": "or"
+  "or_lowercase": "or",
+  "nevermind": "Nevermind",
+  "cancel_event": "Cancel event"
 }
