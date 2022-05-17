@@ -365,6 +365,16 @@ export class Cal {
     this.actionManager.on(action, callback);
   }
 
+  off({
+    action,
+    callback,
+  }: {
+    action: Parameters<SdkActionManager["on"]>[0];
+    callback: Parameters<SdkActionManager["on"]>[1];
+  }) {
+    this.actionManager.off(action, callback);
+  }
+
   preload({ calLink }: { calLink: string }) {
     validate(arguments[0], {
       required: true,
