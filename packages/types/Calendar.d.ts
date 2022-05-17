@@ -3,6 +3,7 @@ import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
+import type { Frequency as RRuleFrequency } from "rrule";
 
 import type { Event } from "./Event";
 import type { Ensure } from "./utils";
@@ -12,6 +13,8 @@ export type Person = {
   email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  username?: string;
+  id?: string;
 };
 
 export type EventBusyDate = Record<"start" | "end", Date | string>;
@@ -57,7 +60,13 @@ export type BatchResponse = {
 };
 
 export type SubResponse = {
-  body: { value: { start: { dateTime: string }; end: { dateTime: string } }[] };
+  body: {
+    value: {
+      showAs: "free" | "tentative" | "away" | "busy" | "workingElsewhere";
+      start: { dateTime: string };
+      end: { dateTime: string };
+    }[];
+  };
 };
 
 export interface ConferenceData {
@@ -70,19 +79,30 @@ export interface AdditionInformation {
   hangoutLink?: string;
 }
 
+export interface RecurringEvent {
+  dtstart?: Date | undefined;
+  interval?: number;
+  count?: number;
+  freq?: RRuleFrequency;
+  until?: Date | undefined;
+  tzid?: string | undefined;
+}
+
+// If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
   title: string;
   startTime: string;
   endTime: string;
+  organizer: Person;
+  attendees: Person[];
+  additionalNotes?: string | null;
   description?: string | null;
   team?: {
     name: string;
     members: string[];
   };
   location?: string | null;
-  organizer: Person;
-  attendees: Person[];
   conferenceData?: ConferenceData;
   additionInformation?: AdditionInformation;
   uid?: string | null;
@@ -92,6 +112,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  recurrence?: string;
 }
 
 export interface EntryPoint {
@@ -119,9 +140,13 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
 export interface Calendar {
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
-  updateEvent(uid: string, event: CalendarEvent): Promise<Event | Event[]>;
+  updateEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string | null
+  ): Promise<Event | Event[]>;
 
-  deleteEvent(uid: string, event: CalendarEvent): Promise<unknown>;
+  deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
   getAvailability(
     dateFrom: string,

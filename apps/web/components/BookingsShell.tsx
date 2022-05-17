@@ -12,6 +12,10 @@ export default function BookingsShell({ children }: { children: React.ReactNode 
       href: "/bookings/upcoming",
     },
     {
+      name: t("recurring"),
+      href: "/bookings/recurring",
+    },
+    {
       name: t("past"),
       href: "/bookings/past",
     },

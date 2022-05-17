@@ -139,7 +139,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   required
                   value={password}
                   onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
                 />
               </div>
 
@@ -150,7 +150,10 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
           <>
             <div className="flex justify-center">
-              <img src={dataUri} />
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={dataUri} alt="" />
+              }
             </div>
             <p className="text-center font-mono text-xs">{secret}</p>
           </>
@@ -172,7 +175,8 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   minLength={6}
                   inputMode="numeric"
                   onInput={(e) => setTotpCode(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                  className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                  autoComplete="one-time-code"
                 />
               </div>
 

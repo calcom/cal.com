@@ -1,17 +1,29 @@
 import { expect, Frame } from "@playwright/test";
 
 import { test } from "../fixtures/fixtures";
-import { todo } from "../lib/testUtils";
+import { todo, getEmbedIframe, bookFirstEvent, deleteAllBookingsByEmail } from "../lib/testUtils";
 
-test("Inline Iframe - Configured with Dark Theme", async ({ page }) => {
+test("Inline Iframe - Configured with Dark Theme", async ({
+  page,
+  getActionFiredDetails,
+  addEmbedListeners,
+}) => {
+  await deleteAllBookingsByEmail("embed-user@example.com");
+  await addEmbedListeners("");
   await page.goto("/?only=ns:default");
-  const embedIframe = page.frame({ url: /.*pro.*/ });
-  expect(embedIframe).toBeEmbedCalLink({
+  const embedIframe = await getEmbedIframe({ page, pathname: "/pro" });
+  expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
     pathname: "/pro",
     searchParams: {
       theme: "dark",
     },
   });
+  expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
+  if (!embedIframe) {
+    throw new Error("Embed iframe not found");
+  }
+  await bookFirstEvent("pro", embedIframe, page);
+  await deleteAllBookingsByEmail("embed-user@example.com");
 });
 
 todo(

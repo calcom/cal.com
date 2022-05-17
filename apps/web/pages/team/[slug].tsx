@@ -1,9 +1,12 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
+import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 
+import { useIsEmbed } from "@calcom/embed-core";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -11,8 +14,8 @@ import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import { defaultAvatarSrc } from "@lib/profile";
 import { getTeamWithMembers } from "@lib/queries/teams";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -23,18 +26,33 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import Text from "@components/ui/Text";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-
 function TeamPage({ team }: TeamPageProps) {
   const { isReady, Theme } = useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
+  const isEmbed = useIsEmbed();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        telemetryEventTypes.pageView,
+        collectPageParameters("/team/[slug]", {
+          isTeamBooking: true,
+        })
+      )
+    );
+  }, [telemetry]);
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (
         <li
           key={type.id}
-          className="hover:border-brand group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600">
+          className={classNames(
+            "hover:border-brand group relative rounded-sm border border-neutral-200   dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600",
+            isEmbed ? "" : "bg-white hover:bg-gray-50"
+          )}>
           <ArrowRightIcon className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={`${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4">
@@ -42,15 +60,15 @@ function TeamPage({ team }: TeamPageProps) {
                 <h2 className="font-cal font-semibold text-neutral-900 dark:text-white">{type.title}</h2>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <div className="mt-1">
+              <div className="mt-1 self-center">
                 <AvatarGroup
                   border="border-2 border-white dark:border-neutral-800"
                   truncateAfter={4}
-                  className="flex-shrink-0"
+                  className="flex flex-shrink-0"
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
-                    image: user.avatar || "",
+                    image: WEBSITE_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -68,7 +86,7 @@ function TeamPage({ team }: TeamPageProps) {
       <div>
         <Theme />
         <HeadSeo title={teamName} description={teamName} />
-        <div className="px-4 pt-24 pb-12">
+        <div className="rounded-md bg-white px-4 pt-24 pb-12 dark:bg-gray-900">
           <div className="max-w-96 mx-auto mb-8 text-center">
             <Avatar
               alt={teamName}
@@ -86,7 +104,6 @@ function TeamPage({ team }: TeamPageProps) {
           {!showMembers.isOn && team.eventTypes.length > 0 && (
             <div className="mx-auto max-w-3xl">
               {eventTypes}
-
               <div className="relative mt-12">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
                   <div className="w-full border-t border-gray-200 dark:border-gray-700" />
@@ -130,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: user.avatar || defaultAvatarSrc({ email: user.email || "" }),
+      avatar: WEBSITE_URL + "/" + user.username + "/avatar.png",
     })),
   }));
 

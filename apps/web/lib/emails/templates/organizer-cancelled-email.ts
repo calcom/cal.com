@@ -56,6 +56,7 @@ ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendee
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
+${this.getDescription()}
 ${this.getAdditionalNotes()}
 ${this.calEvent.cancellationReason && this.getCancellationReason()}
 `.replace(/(<([^>]+)>)/gi, "");
@@ -103,6 +104,7 @@ ${this.calEvent.cancellationReason && this.getCancellationReason()}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getLocation()}
+                              ${this.getDescription()}
                               ${this.getAdditionalNotes()}
                               ${this.calEvent.cancellationReason && this.getCancellationReason()}
                             </div>

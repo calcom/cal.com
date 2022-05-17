@@ -1,4 +1,4 @@
-import { Page, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
 export function todo(title: string) {
@@ -72,9 +72,10 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
-  await page.waitForTimeout(400);
-  await page.click('[data-testid="day"][data-disabled="false"]');
-  await page.click('[data-testid="time"]');
+  await page.waitForTimeout(1000);
+  // TODO: Find out why the first day is always booked on tests
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  await page.locator('[data-testid="time"]').nth(0).click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
@@ -82,7 +83,39 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
-  await page.waitForTimeout(400);
-  await page.click('[data-testid="day"][data-disabled="false"]');
+  await page.waitForTimeout(1000);
+  // TODO: Find out why the first day is always booked on tests
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await page.locator('[data-testid="time"]').nth(1).click();
+}
+
+export async function bookFirstEvent(page: Page) {
+  // Click first event type
+  await page.click('[data-testid="event-type-link"]');
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await bookTimeSlot(page);
+
+  // Make sure we're navigated to the success page
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/success");
+    },
+  });
+  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+}
+
+export const bookTimeSlot = async (page: Page) => {
+  // --- fill form
+  await page.fill('[name="name"]', "Test Testson");
+  await page.fill('[name="email"]', "test@example.com");
+  await page.press('[name="email"]', "Enter");
+};
+// Provide an standalone localize utility not managed by next-i18n
+export async function localize(locale: string) {
+  const localeModule = `../../public/static/locales/${locale}/common.json`;
+  const localeMap = await import(localeModule);
+  return (message: string) => {
+    if (message in localeMap) return localeMap[message];
+    throw "No locale found for the given entry message";
+  };
 }

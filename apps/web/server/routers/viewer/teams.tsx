@@ -65,7 +65,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       return memberships.map((membership) => ({
         role: membership.role,
-        accepted: membership.role === "OWNER" ? true : membership.accepted,
+        accepted: membership.accepted,
         ...teams.find((team) => team.id === membership.teamId),
       }));
     },
@@ -149,7 +149,9 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      await downgradeTeamMembers(input.teamId);
+      if (process.env.STRIPE_PRIVATE_KEY) {
+        await downgradeTeamMembers(input.teamId);
+      }
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -245,7 +247,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
         const token: string = randomBytes(32).toString("hex");
 
-        await ctx.prisma.verificationRequest.create({
+        await ctx.prisma.verificationToken.create({
           data: {
             identifier: input.usernameOrEmail,
             token,

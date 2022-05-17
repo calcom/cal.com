@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  if (!req.session?.user?.id) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
+  }
+
   const response = await stripe.oauth.token({
     grant_type: "authorization_code",
     code: code.toString(),
@@ -29,7 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: {
       type: "stripe_payment",
       key: data as unknown as Prisma.InputJsonObject,
-      userId: req.session?.user.id,
+      userId: req.session.user.id,
+      appId: "stripe",
     },
   });
 

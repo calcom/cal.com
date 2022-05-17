@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
@@ -61,11 +62,14 @@ export default function Login({
 
   let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
 
-  // If not absolute URL, make it absolute
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
+
+  // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {
     callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
+
+  callbackUrl = getSafeRedirectUrl(callbackUrl);
 
   const LoginFooter = (
     <span>
@@ -114,8 +118,14 @@ export default function Login({
               .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
           }}
           data-testid="login-form">
-          <input defaultValue={csrfToken || undefined} type="hidden" hidden {...form.register("csrfToken")} />
-
+          <div>
+            <input
+              defaultValue={csrfToken || undefined}
+              type="hidden"
+              hidden
+              {...form.register("csrfToken")}
+            />
+          </div>
           <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
             <EmailField
               id="email"
@@ -149,7 +159,7 @@ export default function Login({
             <Button
               className="flex w-full justify-center"
               type="submit"
-              disabled={form.formState.isSubmitting}>
+              disabled={form.formState.isSubmitting || form.formState.isSubmitted}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>

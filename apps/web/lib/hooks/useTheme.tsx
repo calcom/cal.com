@@ -2,6 +2,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
+import { useEmbedTheme } from "@calcom/embed-core";
+
 import { Maybe } from "@trpc/server";
 
 // This method is stringified and executed only on client. So,
@@ -16,6 +18,8 @@ function applyThemeAndAddListener(theme: string) {
         document.documentElement.classList.remove("dark");
       }
     } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("light");
       document.documentElement.classList.add(theme);
     }
   };
@@ -28,19 +32,19 @@ function applyThemeAndAddListener(theme: string) {
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
   const [isReady, setIsReady] = useState(false);
-  const router = useRouter();
-
+  const embedTheme = useEmbedTheme();
   // Embed UI configuration takes more precedence over App Configuration
-  theme = (router.query.theme as string | null) || theme;
-
+  theme = embedTheme || theme;
+  const [_theme, setTheme] = useState<Maybe<string>>(null);
   useEffect(() => {
     // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.
     setIsReady(true);
-  }, []);
+    setTheme(theme);
+  }, [theme]);
 
   function Theme() {
     const code = applyThemeAndAddListener.toString();
-    const themeStr = theme ? `"${theme}"` : null;
+    const themeStr = _theme ? `"${_theme}"` : null;
     return (
       <Head>
         <script dangerouslySetInnerHTML={{ __html: `(${code})(${themeStr})` }}></script>

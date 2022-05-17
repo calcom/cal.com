@@ -46,12 +46,23 @@ ${organizer + attendees}
 };
 
 export const getAdditionalNotes = (calEvent: CalendarEvent) => {
+  if (!calEvent.additionalNotes) {
+    return "";
+  }
   return `
 ${calEvent.organizer.language.translate("additional_notes")}:
-${calEvent.description}
+${calEvent.additionalNotes}
   `;
 };
 
+export const getDescription = (calEvent: CalendarEvent) => {
+  if (!calEvent.description) {
+    return "";
+  }
+  return `\n${calEvent.attendees[0].language.translate("description")}
+    ${calEvent.description}
+    `;
+};
 export const getLocation = (calEvent: CalendarEvent) => {
   let providerName = "";
 
@@ -97,6 +108,7 @@ ${getWhen(calEvent)}
 ${getWho(calEvent)}
 ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
+${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
   `.trim();
   }
@@ -107,6 +119,7 @@ ${getWhen(calEvent)}
 ${getWho(calEvent)}
 ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
+${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getManageLink(calEvent)}
   `.trim();

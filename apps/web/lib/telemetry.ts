@@ -13,6 +13,8 @@ export const telemetryEventTypes = {
   googleLogin: "google_login",
   samlLogin: "saml_login",
   samlConfig: "saml_config",
+  embedView: "embed_view",
+  embedBookingConfirmed: "embed_booking_confirmed",
 };
 
 /**
@@ -46,7 +48,7 @@ function isLocalhost(host: string) {
  * Collects page parameters and makes sure no sensitive data made it to telemetry
  * @param route current next.js route
  */
-export function collectPageParameters(route?: string): any {
+export function collectPageParameters(route?: string, extraData: Record<string, any> = {}): any {
   const host = document.location.hostname;
   const maskedHost = isLocalhost(host) ? "localhost" : "masked";
   //starts with ''
@@ -60,6 +62,7 @@ export function collectPageParameters(route?: string): any {
     doc_search: "",
     doc_path: docPath,
     referer: "",
+    ...extraData,
   };
 }
 

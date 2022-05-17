@@ -1,13 +1,13 @@
 name: E2E test
 on:
-  pull_request:
+  pull_request_target: # So we can test on forks
     branches:
       - main
     paths-ignore:
       - public/static/locales/**
 jobs:
   test:
-    timeout-minutes: 10
+    timeout-minutes: 20
     name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     strategy:
       matrix:
@@ -19,7 +19,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
       NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      JWT_SECRET: secret
+      NEXTAUTH_SECRET: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
@@ -56,7 +56,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v2

@@ -4,7 +4,6 @@ import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 
 import getApps from "@calcom/app-store/utils";
-import { LocationType } from "@calcom/lib/location";
 import prisma from "@calcom/prisma";
 import type { AdditionInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -16,6 +15,7 @@ import type {
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { createEvent, updateEvent } from "./CalendarManager";
+import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
 export type Event = AdditionInformation & VideoCallData;
@@ -146,6 +146,7 @@ export default class EventManager {
         meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
       };
     });
 
@@ -161,7 +162,11 @@ export default class EventManager {
    *
    * @param event
    */
-  public async update(event: CalendarEvent, rescheduleUid: string): Promise<CreateUpdateResult> {
+  public async update(
+    event: CalendarEvent,
+    rescheduleUid: string,
+    newBookingId?: number
+  ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
     if (!rescheduleUid) {
@@ -184,9 +189,11 @@ export default class EventManager {
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
+            externalCalendarId: true,
           },
         },
         destinationCalendar: true,
+        payment: true,
       },
     });
 
@@ -209,6 +216,23 @@ export default class EventManager {
 
     // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+    const bookingPayment = booking?.payment;
+
+    // Updating all payment to new
+    if (bookingPayment && newBookingId) {
+      const paymentIds = bookingPayment.map((payment) => payment.id);
+      await prisma.payment.updateMany({
+        where: {
+          id: {
+            in: paymentIds,
+          },
+        },
+        data: {
+          bookingId: newBookingId,
+        },
+      });
+    }
 
     // Now we can delete the old booking and its references.
     const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
@@ -282,6 +306,7 @@ export default class EventManager {
       return undefined;
     }
 
+    /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
 
     return this.videoCredentials.find((credential: Credential) => credential.type.includes(integrationName));
@@ -301,7 +326,9 @@ export default class EventManager {
     if (credential) {
       return createMeeting(credential, event);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
   }
 
@@ -320,11 +347,20 @@ export default class EventManager {
     booking: PartialBooking
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
+      // HACK:
+      // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
+      // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
+      // We should ignore the one with uid null, the other one is valid.
+      // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
       const bookingRefUid = booking
-        ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
+        ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)[0]?.uid
         : null;
 
-      return updateEvent(credential, event, bookingRefUid);
+      const bookingExternalCalendarId = booking.references
+        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
+        : null;
+
+      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
     });
   }
 
@@ -342,7 +378,21 @@ export default class EventManager {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
       return updateMeeting(credential, event, bookingRef);
     } else {
-      return Promise.reject("No suitable credentials given for the requested integration name.");
+      return Promise.reject(
+        `No suitable credentials given for the requested integration name:${event.location}`
+      );
     }
+  }
+
+  /**
+   * Update event to set a cancelled event placeholder on users calendar
+   * remove if virtual calendar is already done and user availability its read from there
+   * and not only in their calendars
+   * @param event
+   * @param booking
+   * @public
+   */
+  public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
+    await this.updateAllCalendarEvents(event, booking);
   }
 }

@@ -1,5 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 
+import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 import prisma from "@lib/prisma";
 
@@ -30,6 +32,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           },
         },
       },
+      dynamicEventSlugRef: true,
+      dynamicGroupSlugRef: true,
       user: true,
       title: true,
       description: true,
@@ -38,17 +42,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       attendees: true,
     },
   });
+  const dynamicEventSlugRef = booking?.dynamicEventSlugRef || "";
+  if (!booking?.eventType && !booking?.dynamicEventSlugRef) throw Error("This booking doesn't exists");
 
-  if (!booking?.eventType) throw Error("This booking doesn't exists");
-
-  const eventType = booking.eventType;
+  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
   const eventPage =
     (eventType.team
       ? "team/" + eventType.team.slug
+      : dynamicEventSlugRef
+      ? booking.dynamicGroupSlugRef
       : booking.user?.username || "rick") /* This shouldn't happen */ +
     "/" +
-    booking.eventType.slug;
+    eventType?.slug;
 
   return {
     redirect: {

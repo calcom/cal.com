@@ -1,36 +1,50 @@
-import type { Page } from "@playwright/test";
-import { UserPlan } from "@prisma/client";
+import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
+import { Prisma as PrismaType, UserPlan } from "@prisma/client";
 
 import { hashPassword } from "@calcom/lib/auth";
 import { prisma } from "@calcom/prisma";
 
-export interface UsersFixture {
-  create: (opts?: CustomUserOpts) => Promise<UserFixture>;
-  get: () => UserFixture[];
-  logout: () => Promise<void>;
-}
+import { TimeZoneEnum } from "./types";
 
-interface UserFixture {
-  id: number;
-  self: () => Promise<Prisma.User>;
-  login: () => Promise<void>;
-  debug: (message: Record<string, any>) => Promise<void>;
-}
+type UserFixture = ReturnType<typeof createUserFixture>;
 
-// An alias for the hard to remember timezones strings
-export enum TimeZoneE {
-  USA = "America/Phoenix",
-  UK = "Europe/London",
-}
+const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
+  eventTypes: true,
+  credentials: true,
+});
+
+const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
+  include: userIncludes,
+});
+
+type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page): UsersFixture => {
+export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   let store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
-    create: async (opts) => {
-      const user = await prisma.user.create({
-        data: await createUser(opts),
+    create: async (opts?: CustomUserOpts) => {
+      const _user = await prisma.user.create({
+        data: await createUser(workerInfo, opts),
+      });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "Paid",
+          slug: "paid",
+          length: 30,
+          price: 1000,
+        },
+      });
+      const user = await prisma.user.findUnique({
+        rejectOnNotFound: true,
+        where: { id: _user.id },
+        include: userIncludes,
       });
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);
@@ -40,34 +54,54 @@ export const createUsersFixture = (page: Page): UsersFixture => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-  };
-};
-
-// creates the single user fixture
-const createUserFixture = (user: Prisma.User, page: Page): UserFixture => {
-  const store = { user, page };
-
-  // self is a reflective method that return the Prisma object that references this fixture.
-  const self = async () => (await prisma.user.findUnique({ where: { id: store.user.id } }))!;
-  return {
-    id: user.id,
-    self,
-    login: async () => login(await self(), store.page),
-    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
-    debug: async (message) => {
-      await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
+    deleteAll: async () => {
+      const ids = store.users.map((u) => u.id);
+      await prisma.user.deleteMany({ where: { id: { in: ids } } });
+      store.users = [];
+    },
+    delete: async (id: number) => {
+      await prisma.user.delete({ where: { id } });
+      store.users = store.users.filter((b) => b.id !== id);
     },
   };
 };
 
-type CustomUserOptsKeys = "username" | "plan" | "completedOnboarding" | "locale";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneE };
+type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;
+
+// creates the single user fixture
+const createUserFixture = (user: UserWithIncludes, page: Page) => {
+  const store = { user, page };
+
+  // self is a reflective method that return the Prisma object that references this fixture.
+  const self = async () =>
+    (await prisma.user.findUnique({ where: { id: store.user.id }, include: { eventTypes: true } }))!;
+  return {
+    id: user.id,
+    username: user.username,
+    eventTypes: user.eventTypes!,
+    self,
+    login: async () => login({ ...(await self()), password: user.username }, store.page),
+    getPaymentCredential: async () => getPaymentCredential(store.page),
+    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
+    debug: async (message: string | Record<string, JSONValue>) => {
+      await prisma.user.update({ where: { id: store.user.id }, data: { metadata: { debug: message } } });
+    },
+    delete: async () => (await prisma.user.delete({ where: { id: store.user.id } }))!,
+  };
+};
+
+type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale";
+type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
-const createUser = async (opts?: CustomUserOpts) => {
+const createUser = async (
+  workerInfo: WorkerInfo,
+  opts?: CustomUserOpts
+): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
-  const uname =
-    (opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()) + "-" + Date.now();
+  const uname = `${opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()}-${
+    workerInfo.workerIndex
+  }-${Date.now()}`;
   return {
     username: uname,
     name: (opts?.username ?? opts?.plan ?? UserPlan.PRO).toUpperCase(),
@@ -76,21 +110,51 @@ const createUser = async (opts?: CustomUserOpts) => {
     password: await hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
-    timeZone: opts?.timeZone ?? TimeZoneE.UK,
+    timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
+    eventTypes: {
+      create: {
+        title: "30 min",
+        slug: "30-min",
+        length: 30,
+      },
+    },
   };
 };
 
 // login using a replay of an E2E routine.
-async function login(user: Prisma.User, page: Page) {
-  await page.goto("/auth/logout");
-  await page.goto("/");
-  await page.click('input[name="email"]');
-  await page.fill('input[name="email"]', user.email);
-  await page.press('input[name="email"]', "Tab");
-  await page.fill('input[name="password"]', user.username!);
-  await page.press('input[name="password"]', "Enter");
+export async function login(
+  user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "password" | "email">>,
+  page: Page
+) {
+  // get locators
+  const loginLocator = page.locator("[data-testid=login-form]");
+  const emailLocator = loginLocator.locator("#email");
+  const passwordLocator = loginLocator.locator("#password");
+  const signInLocator = loginLocator.locator('[type="submit"]');
 
-  // 2 seconds of delay before returning to help the session loading well
+  //login
+  await page.goto("/");
+  await emailLocator.fill(user.email ?? `${user.username}@example.com`);
+  await passwordLocator.fill(user.password ?? user.username!);
+  await signInLocator.click();
+
+  // 2 seconds of delay to give the session enough time for a clean load
   await page.waitForTimeout(2000);
+}
+
+export async function getPaymentCredential(page: Page) {
+  await page.goto("/apps/installed");
+
+  /** We start the Stripe flow */
+  await Promise.all([
+    page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
+    page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+  ]);
+
+  await Promise.all([
+    page.waitForNavigation({ url: "/apps/installed" }),
+    /** We skip filling Stripe forms (testing mode only) */
+    page.click('[id="skip-account-app"]'),
+  ]);
 }

@@ -18,6 +18,13 @@ module.exports = {
         brandcontrast: "var(--brand-text-color)",
         darkmodebrand: "var(--brand-color-dark-mode)",
         darkmodebrandcontrast: "var(--brand-text-color-dark-mode)",
+        bookinglightest: "var(--booking-lightest-color)",
+        bookinglighter: "var(--booking-lighter-color)",
+        bookinglight: "var(--booking-light-color)",
+        bookingmedian: "var(--booking-median-color)",
+        bookingdark: "var(--booking-dark-color)",
+        bookingdarker: "var(--booking-darker-color)",
+        bookinghighlight: "var(--booking-highlight-color)",
         black: "#111111",
         gray: {
           50: "#F8F8F8",

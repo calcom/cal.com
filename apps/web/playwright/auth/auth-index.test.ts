@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { BASE_URL } from "@lib/config/constants";
+import { WEBAPP_URL } from "@lib/config/constants";
 import prisma from "@lib/prisma";
 
 import { todo } from "../lib/testUtils";
@@ -35,12 +35,12 @@ test.describe("Can signup from a team invite", async () => {
     // Wait for the invite to be sent
     await page.waitForSelector(`[data-testid="member-email"][data-email="${testUser.email}"]`);
 
-    const tokenObj = await prisma.verificationRequest.findFirst({
+    const tokenObj = await prisma.verificationToken.findFirst({
       where: { identifier: testUser.email },
       select: { token: true },
     });
     token = tokenObj?.token;
-    signupFromInviteURL = `/auth/signup?token=${token}&callbackUrl=${BASE_URL}/settings/teams`;
+    signupFromInviteURL = `/auth/signup?token=${token}&callbackUrl=${WEBAPP_URL}/settings/teams`;
   });
 
   test.afterAll(async () => {
@@ -49,7 +49,7 @@ test.describe("Can signup from a team invite", async () => {
       where: { email: testUser.email },
     });
     // Delete verification request
-    await prisma.verificationRequest.delete({
+    await prisma.verificationToken.delete({
       where: { token },
     });
   });
