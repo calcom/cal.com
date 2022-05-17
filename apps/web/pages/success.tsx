@@ -200,7 +200,8 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, [date, eventType, needsConfirmation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
