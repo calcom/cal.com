@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             slug: eventType.slug,
             length: eventType.durations[0],
             description: eventType.description.replace(/<[^>]*>?/gm, ""),
-            hidden: eventType.state === "active" ? true : false,
+            hidden: eventType.state === "active",
             users: {
               connect: {
                 id: authenticatedUser.id,

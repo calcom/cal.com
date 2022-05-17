@@ -200,7 +200,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
-  }, [eventType, needsConfirmation]);
+  }, [date, eventType, needsConfirmation]);
 
   function eventLink(): string {
     const optional: { location?: string } = {};
@@ -284,7 +284,10 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
@@ -638,7 +641,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
   if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
   const bookingId = parseInt(context.query.bookingId);
-  //http://localhost:3000/success?date=2022-06-02T02%3A00%3A00-06%3A00&type=5&user=pro&name=Stripe%20Stripeson
 
   if (isNaN(typeId)) {
     return {
