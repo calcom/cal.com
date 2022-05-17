@@ -167,6 +167,7 @@ function BookingListItem(booking: BookingItemProps) {
       i18n
     );
   }
+
   return (
     <>
       <RescheduleDialog
@@ -220,7 +221,11 @@ function BookingListItem(booking: BookingItemProps) {
               user: user?.username || "",
               name: booking.attendees[0].name,
               email: booking.attendees[0].email,
-              location: booking.location,
+              location: booking.location
+                ? booking.location.includes("integration")
+                  ? (t("web_conferencing_details_to_follow") as string)
+                  : booking.location
+                : "",
               eventName: booking.eventType.eventName || "",
               bookingId: booking.id,
               recur: booking.recurringEventId,
