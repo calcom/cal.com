@@ -93,7 +93,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
   const verifyButton = useMemo(() => {
     return (
-      <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken" name="hasToken">
+      <Button color="secondary" onClick={verifyWallet} type="button" id="hasToken">
         {
           // eslint-disable-next-line @next/next/no-img-element
           <img className="mr-1 h-5" src="/apps/metamask.svg" alt="MetaMask" />

@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import { EventType, PeriodType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
-import dayjsBusinessTime from "dayjs-business-time";
+import dayjsBusinessTime from "dayjs-business-days2";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
@@ -56,7 +56,7 @@ function isOutOfBounds(
     case PeriodType.ROLLING: {
       const periodRollingEndDay = periodCountCalendarDays
         ? dayjs().utcOffset(date.utcOffset()).add(periodDays!, "days").endOf("day")
-        : dayjs().utcOffset(date.utcOffset()).addBusinessTime(periodDays!, "days").endOf("day");
+        : dayjs().utcOffset(date.utcOffset()).businessDaysAdd(periodDays!).endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
