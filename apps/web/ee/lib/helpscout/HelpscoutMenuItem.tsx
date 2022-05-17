@@ -24,7 +24,7 @@ export default function HelpscoutMenuItem() {
       <>
         <button
           onClick={handleClick}
-          className="flex w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
+          className="flex w-full py-2 pr-4 text-sm font-medium text-neutral-700 hover:bg-gray-100 hover:text-gray-900">
           {t("contact_support")}
         </button>
 
