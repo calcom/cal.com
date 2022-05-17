@@ -160,8 +160,8 @@ export const useSlots = (props: UseSlotsProps) => {
           attendees:
             currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())]._count
               .attendees,
-          bookingId:
-            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].id,
+          bookingUid:
+            currentSeats[currentSeats.findIndex((booking) => booking.startTime === time.toISOString())].uid,
         }),
       }));
     };
