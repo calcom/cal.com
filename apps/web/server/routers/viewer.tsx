@@ -626,6 +626,7 @@ const loggedInViewerRouter = createProtectedRouter()
       // `flatMap()` these work like `.filter()` but infers the types correctly
       const flapApps = apps.flatMap((item) => (item.variant === variant ? [item] : []));
       return {
+        total: countActive(apps),
         items: flapApps,
         numActive: countActive(flapApps),
       };

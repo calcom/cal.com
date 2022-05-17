@@ -23,7 +23,7 @@ export default function WebhookListItem(props: { webhook: TWebhook; onEditWebhoo
   });
 
   return (
-    <ListItem className="-mt-px flex w-full p-4">
+    <ListItem className="flex w-full p-4">
       <div className="flex w-full justify-between">
         <div className="flex max-w-full flex-col truncate">
           <div className="flex space-y-1">

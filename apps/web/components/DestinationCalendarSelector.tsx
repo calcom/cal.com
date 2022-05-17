@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { trpc } from "@lib/trpc";
 
 interface Props {
@@ -50,6 +50,21 @@ const DestinationCalendarSelector = ({
         value: `${cal.integration}:${cal.externalId}`,
       })),
     })) ?? [];
+  const customStyles = {
+    // Forgive me father for I have sinned, "any" is necessary here
+    option: (defaultStyles: any, state: any) => {
+      return {
+        ...defaultStyles,
+        backgroundColor: state.isSelected
+          ? state.isFocused
+            ? "var(--brand-color)"
+            : "var(--brand-color)"
+          : state.isFocused
+          ? "var(--brand-color-dark-mode)"
+          : "var(--brand-text-color)",
+      };
+    },
+  };
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
@@ -67,6 +82,7 @@ const DestinationCalendarSelector = ({
         name={"primarySelectedCalendar"}
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
+        styles={customStyles}
         isSearchable={false}
         className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
         onChange={(option) => {

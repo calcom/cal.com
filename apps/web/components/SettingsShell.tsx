@@ -1,4 +1,11 @@
-import { CreditCardIcon, KeyIcon, LockClosedIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import {
+  CodeIcon,
+  CreditCardIcon,
+  KeyIcon,
+  LockClosedIcon,
+  UserGroupIcon,
+  UserIcon,
+} from "@heroicons/react/solid";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +25,11 @@ export default function SettingsShell({ children }: { children: React.ReactNode 
       name: t("security"),
       href: "/settings/security",
       icon: KeyIcon,
+    },
+    {
+      name: t("developer"),
+      href: "/settings/developer",
+      icon: CodeIcon,
     },
     {
       name: t("teams"),

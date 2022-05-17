@@ -11,6 +11,7 @@ import Switch from "@calcom/ui/Switch";
 import { QueryCell } from "@lib/QueryCell";
 import { trpc, inferQueryOutput } from "@lib/trpc";
 
+import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
@@ -227,24 +228,24 @@ export function CalendarListContainer(props: { heading?: false }) {
               }
               subtitle={t("configure_how_your_event_types_interact")}
               actions={
-                <div className="sm:min-w-80 block max-w-full">
-                  <DestinationCalendarSelector
-                    onChange={mutation.mutate}
-                    isLoading={mutation.isLoading}
-                    value={query.data?.destinationCalendar?.externalId}
-                  />
+                <div className="flex flex-col xl:flex-row xl:space-x-5">
+                  <div className="sm:min-w-80 block max-w-full">
+                    <DestinationCalendarSelector
+                      onChange={mutation.mutate}
+                      isLoading={mutation.isLoading}
+                      value={query.data?.destinationCalendar?.externalId}
+                    />
+                  </div>
+                  {!!query.data?.connectedCalendars.length && (
+                    <div className="sm:min-w-80 inline max-w-full">
+                      <AdditionalCalendarSelector isLoading={mutation.isLoading} />
+                    </div>
+                  )}
                 </div>
               }
             />
           )}
           <ConnectedCalendarsList onChanged={onChanged} />
-          {!!query.data?.connectedCalendars.length && (
-            <ShellSubHeading
-              className="mt-6"
-              title={<SubHeadingTitleWithConnections title={t("connect_an_additional_calendar")} />}
-            />
-          )}
-          <CalendarList onChanged={onChanged} />
         </>
       )}
     </>

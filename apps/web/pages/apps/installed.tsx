@@ -1,5 +1,6 @@
-import { ClipboardIcon } from "@heroicons/react/solid";
+import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
@@ -9,6 +10,7 @@ import showToast from "@calcom/lib/notification";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
@@ -24,7 +26,6 @@ import { CalendarListContainer } from "@components/integrations/CalendarListCont
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 import IntegrationListItem from "@components/integrations/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
@@ -106,7 +107,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                   }
                 />
                 <List>
-                  {installedApps.map((item) => (
+                  {installedApps.map((item: AppOutput) => (
                     <IntegrationListItem
                       key={item.title}
                       title={item.title}
@@ -219,23 +220,46 @@ function Web3ConnectBtn() {
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
-
+  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
   return (
-    <Shell
-      heading={t("installed_apps")}
-      subtitle={t("manage_your_connected_apps")}
-      large
-      customLoader={<SkeletonLoader />}>
-      <AppsShell>
-        <ClientSuspense fallback={<SkeletonLoader />}>
-          <IntegrationsContainer variant="conferencing" />
-          <CalendarListContainer />
-          <IntegrationsContainer variant="payment" className="mt-8" />
-          <IntegrationsContainer variant="other" className="mt-8" />
-          <WebhookListContainer title={t("webhooks")} subtitle={t("receive_cal_meeting_data")} />
-          <Web3Container />
-        </ClientSuspense>
-      </AppsShell>
-    </Shell>
+    <QueryCell
+      query={query}
+      success={({ data }) => {
+        return (
+          <Shell
+            heading={t("installed_apps")}
+            subtitle={t("manage_your_connected_apps")}
+            large
+            customLoader={<SkeletonLoader />}>
+            <AppsShell>
+              <ClientSuspense fallback={<SkeletonLoader />}>
+                {data.total > 0 && (
+                  <>
+                    <IntegrationsContainer variant="conferencing" />
+                    <CalendarListContainer />
+                    <IntegrationsContainer variant="payment" className="mt-8" />
+                    <IntegrationsContainer variant="other" className="mt-8" />
+                    <Web3Container />
+                  </>
+                )}
+                {data.total === 0 && (
+                  <EmptyScreen
+                    Icon={ViewGridIcon}
+                    headline={t("no_installed_apps")}
+                    description={
+                      <Link href="/apps" passHref>
+                        <a className="text-neutral-900">
+                          <span>{t("no_installed_apps_description")}</span>
+                          <ArrowRightIcon className="-mt-1 ml-1 inline h-5 w-5" />
+                        </a>
+                      </Link>
+                    }
+                  />
+                )}
+              </ClientSuspense>
+            </AppsShell>
+          </Shell>
+        );
+      }}></QueryCell>
   );
 }
