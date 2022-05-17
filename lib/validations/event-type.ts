@@ -1,51 +1,92 @@
 import { z } from "zod";
 
 import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
+import { eventTypeLocations, recurringEvent } from "@calcom/prisma/zod-utils";
+
+import { jsonSchema } from "./shared/jsonSchema";
 
 export const schemaEventTypeBaseBodyParams = EventType.pick({
   title: true,
   slug: true,
   length: true,
+  hidden: true,
+  position: true,
+  userId: true,
+  teamId: true,
+  eventName: true,
+  timeZone: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodDays: true,
+  periodCountCalendarDays: true,
+  requiresConfirmation: true,
+  disableGuests: true,
+  hideCalendarNotes: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  schedulingType: true,
+  price: true,
+  currency: true,
+  slotInterval: true,
+  metadata: true,
+  successRedirectUrl: true,
 }).partial();
 
-const schemaEventTypeCreateParams = z
+const schemaEventTypeBaseParams = z
   .object({
     title: z.string(),
     slug: z.string(),
-    length: z.number(),
+    description: z.string().optional().nullable(),
+    length: z.number().int(),
+    locations: jsonSchema,
+    metadata: jsonSchema,
+    recurringEvent: jsonSchema,
   })
   .strict();
 
-export const schemaEventTypeCreateBodyParams =
-  schemaEventTypeBaseBodyParams.merge(schemaEventTypeCreateParams);
+export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeBaseParams);
 
 const schemaEventTypeEditParams = z
   .object({
     title: z.string().optional(),
     slug: z.string().optional(),
-    length: z.number().optional(),
+    length: z.number().int().optional(),
   })
   .strict();
 
 export const schemaEventTypeEditBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeEditParams);
 export const schemaEventTypeReadPublic = EventType.pick({
+  id: true,
   title: true,
   slug: true,
   length: true,
-});
-
-// import { z } from "zod";
-
-// import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
-
-// export const schemaEventTypeBaseBodyParams = EventType.omit({ id: true }).partial();
-
-// const schemaEventTypeRequiredParams = z.object({
-//   title: z.string(),
-//   slug: z.string(),
-//   length: z.number(),
-// });
-
-// export const schemaEventTypeBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeRequiredParams);
-// // @NOTE: Removing locations and metadata properties before validation, add them later if required
-// export const schemaEventTypePublic = EventType.omit({ locations: true, metadata: true });
+  locations: true,
+  hidden: true,
+  position: true,
+  userId: true,
+  teamId: true,
+  eventName: true,
+  timeZone: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodDays: true,
+  periodCountCalendarDays: true,
+  requiresConfirmation: true,
+  recurringEvent: true,
+  disableGuests: true,
+  hideCalendarNotes: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  schedulingType: true,
+  price: true,
+  currency: true,
+  slotInterval: true,
+  metadata: true,
+  successRedirectUrl: true,
+})
+  .merge(schemaEventTypeBaseParams)
+  .partial();

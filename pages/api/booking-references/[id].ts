@@ -132,7 +132,6 @@ export async function bookingReferenceById(
         console.log(safeBody.error);
         res.status(400).json({ message: "Invalid request body", error: safeBody.error });
         return;
-        // throw new Error("Invalid request body");
       }
       await prisma.bookingReference
         .update({ where: { id: safeQuery.data.id }, data: safeBody.data })

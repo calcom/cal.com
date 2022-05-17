@@ -76,7 +76,6 @@ async function createOrlistAllBookings(
       console.log(safe.error);
       res.status(400).json({ message: "Bad request. Booking body is invalid." });
       return;
-      // throw new Error("Invalid request body");
     }
     safe.data.userId = userId;
     const data = await prisma.booking.create({ data: { ...safe.data } });

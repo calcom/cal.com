@@ -85,7 +85,10 @@ export async function WebhookById(
       case "PATCH":
         const safeBody = schemaWebhookEditBodyParams.safeParse(body);
         if (!safeBody.success) {
-          throw new Error("Invalid request body");
+          {
+            res.status(400).json({ message: "Invalid request body" });
+            return;
+          }
         }
         await prisma.webhook
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })

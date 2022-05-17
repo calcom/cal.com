@@ -93,7 +93,10 @@ export async function dailyEventReferenceById(
        */
       case "PATCH":
         if (!safeBody.success) {
-          throw new Error("Invalid request body");
+          {
+            res.status(400).json({ message: "Invalid request body" });
+            return;
+          }
         }
         await prisma.dailyEventReference
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })

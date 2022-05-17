@@ -31,7 +31,10 @@ import { schemaResourceBodyParams, schemaResourcePublic, withValidResource } fro
  */
 async function createResource({body}: NextApiRequest, res: NextApiResponse<ResourceResponse>) {
   const safe = schemaResourceBodyParams.safeParse(body);
-  if (!safe.success) throw new Error("Invalid request body");
+  if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
 
   const resource = await prisma.resource.create({ data: safe.data });
   const data = schemaResourcePublic.parse(resource);

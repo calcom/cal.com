@@ -1,4 +1,4 @@
-    {
+{
   "name": "@calcom/api",
   "version": "1.0.0",
   "description": "Public API for Cal.com",
@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "next build && PORT=3002 next start",
-    "dev-real":"PORT=3002 next dev",
+    "dev-real": "PORT=3002 next dev",
     "start": "PORT=3002 next start",
     "build": "next build",
     "lint": "next lint",

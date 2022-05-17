@@ -54,7 +54,10 @@ async function createOrlistAllSchedules(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaScheduleBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
     const data = await prisma.schedule.create({ data: { ...safe.data, userId } });
     const schedule = schemaSchedulePublic.parse(data);
 

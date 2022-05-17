@@ -16,6 +16,7 @@ async function createOrlistAllEventTypes(
      * /event-types:
      *   get:
      *     summary: Find all event types
+     *     operationId: listEventTypes
      *     tags:
      *     - event-types
      *     externalDocs:
@@ -43,6 +44,32 @@ async function createOrlistAllEventTypes(
      * /event-types:
      *   post:
      *     summary: Creates a new event type
+     *     operationId: addEventType
+     *     requestBody:
+     *       description: Create a new event-type related to your user or team
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - slug
+     *               - length
+     *               - metadata
+     *             properties:
+     *               length:
+     *                 type: number
+     *                 example: 30
+     *               metadata:
+     *                 type: object
+     *                 example: {"smartContractAddress": "0x1234567890123456789012345678901234567890"}
+     *               title:
+     *                 type: string
+     *                 example: My Event
+     *               slug:
+     *                 type: string
+     *                 example: my-event
      *     tags:
      *     - event-types
      *     externalDocs:
@@ -56,7 +83,10 @@ async function createOrlistAllEventTypes(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaEventTypeCreateBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body", error: safe.error });
+      return;
+    }
 
     const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
     const event_type = schemaEventTypeReadPublic.parse(data);

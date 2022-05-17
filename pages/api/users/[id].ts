@@ -104,7 +104,7 @@ export async function userById(
         const safeBody = schemaUserEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           res.status(400).json({ message: "Bad request", error: safeBody.error });
-          // throw new Error("Invalid request body");
+
           return;
         }
         const userSchedules = await prisma.schedule.findMany({

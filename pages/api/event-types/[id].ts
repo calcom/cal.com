@@ -91,7 +91,10 @@ export async function eventTypeById(
       case "PATCH":
         const safeBody = schemaEventTypeEditBodyParams.safeParse(body);
         if (!safeBody.success) {
-          throw new Error("Invalid request body");
+          {
+            res.status(400).json({ message: "Invalid request body" });
+            return;
+          }
         }
         await prisma.eventType
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })

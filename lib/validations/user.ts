@@ -4,6 +4,8 @@ import { _UserModel as User } from "@calcom/prisma/zod";
 
 import { timeZone } from "@lib/validations/shared/timeZone";
 
+import { jsonSchema } from "./shared/jsonSchema";
+
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
 enum weekdays {
   MONDAY = "Monday",
@@ -57,6 +59,7 @@ export const schemaUserBaseBodyParams = User.pick({
   timeZone: true,
   weekStart: true,
   endTime: true,
+  metadata: true,
   bufferTime: true,
   theme: true,
   defaultScheduleId: true,
@@ -89,6 +92,7 @@ const schemaUserEditParams = z.object({
     .refine((id: number) => id > 0)
     .optional(),
   locale: z.nativeEnum(locales).optional(),
+  metadata: jsonSchema,
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -104,6 +108,7 @@ export const schemaUserReadPublic = User.pick({
   emailVerified: true,
   bio: true,
   avatar: true,
+  metadata: true,
   timeZone: true,
   weekStart: true,
   endTime: true,

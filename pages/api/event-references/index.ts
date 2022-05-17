@@ -64,7 +64,10 @@ async function createOrlistAllDailyEventReferences(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaDailyEventReferenceCreateBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
 
     const data = await prisma.dailyEventReference.create({ data: safe.data });
     const daily_event_reference = schemaDailyEventReferenceReadPublic.parse(data);
