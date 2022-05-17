@@ -52,6 +52,15 @@ import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var web3: {
+    currentProvider: {
+      selectedAddress: string;
+    };
+  };
+}
+
 /** These are like 40kb that not every user needs */
 const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
@@ -107,7 +116,6 @@ const BookingPage = ({
       const eventOwner = eventType.users[0];
 
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
   }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
@@ -331,7 +339,6 @@ const BookingPage = ({
     let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // @ts-ignore
         userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
       };
@@ -359,8 +366,8 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-          value: booking.customInputs![inputId],
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
+          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
         })),
         hasHashedBookingLink,
         hashedLink,
@@ -383,8 +390,8 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-          value: booking.customInputs![inputId],
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
+          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
         })),
         hasHashedBookingLink,
         hashedLink,
