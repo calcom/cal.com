@@ -125,6 +125,7 @@
     "@types/glidejs__glide": "^3.4.2",
     "@types/jest": "^27.5.1",
     "@types/lodash": "^4.14.182",
+    "@types/micro": "7.3.6",
     "@types/mime-types": "^2.1.1",
     "@types/module-alias": "^2.0.1",
     "@types/node": "14.17.6",
