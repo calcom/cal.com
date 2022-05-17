@@ -21,13 +21,13 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import short, { generate } from "short-uuid";
+import short from "short-uuid";
 import { JSONObject } from "superjson/dist/types";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -101,7 +101,44 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
+export type FormValues = {
+  title: string;
+  eventTitle: string;
+  smartContractAddress: string;
+  eventName: string;
+  slug: string;
+  length: number;
+  description: string;
+  disableGuests: boolean;
+  requiresConfirmation: boolean;
+  recurringEvent: RecurringEvent;
+  schedulingType: SchedulingType | null;
+  price: number;
+  currency: string;
+  hidden: boolean;
+  hideCalendarNotes: boolean;
+  hashedLink: string | undefined;
+  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  customInputs: EventTypeCustomInput[];
+  users: string[];
+  schedule: number;
+  periodType: PeriodType;
+  periodDays: number;
+  periodCountCalendarDays: "1" | "0";
+  periodDates: { startDate: Date; endDate: Date };
+  minimumBookingNotice: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
+  slotInterval: number | null;
+  destinationCalendar: {
+    integration: string;
+    externalId: string;
+  };
+  successRedirectUrl: string;
+  giphyThankYouPage: string;
+};
+
+const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   eventType,
   formMethods,
 }: {
@@ -524,42 +561,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
-  const formMethods = useForm<{
-    title: string;
-    eventTitle: string;
-    smartContractAddress: string;
-    eventName: string;
-    slug: string;
-    length: number;
-    description: string;
-    disableGuests: boolean;
-    requiresConfirmation: boolean;
-    recurringEvent: RecurringEvent;
-    schedulingType: SchedulingType | null;
-    price: number;
-    currency: string;
-    hidden: boolean;
-    hideCalendarNotes: boolean;
-    hashedLink: string | undefined;
-    locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
-    customInputs: EventTypeCustomInput[];
-    users: string[];
-    schedule: number;
-    periodType: PeriodType;
-    periodDays: number;
-    periodCountCalendarDays: "1" | "0";
-    periodDates: { startDate: Date; endDate: Date };
-    minimumBookingNotice: number;
-    beforeBufferTime: number;
-    afterBufferTime: number;
-    slotInterval: number | null;
-    destinationCalendar: {
-      integration: string;
-      externalId: string;
-    };
-    successRedirectUrl: string;
-    giphyThankYouPage: string;
-  }>({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || {},

@@ -51,12 +51,13 @@ function isOutOfBounds(
   >
 ) {
   const date = dayjs(time);
+  if (!periodDays) throw Error("periodDays is undefined");
 
   switch (periodType) {
     case PeriodType.ROLLING: {
       const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs().utcOffset(date.utcOffset()).add(periodDays!, "days").endOf("day")
-        : dayjs().utcOffset(date.utcOffset()).businessDaysAdd(periodDays!).endOf("day");
+        ? dayjs().utcOffset(date.utcOffset()).add(periodDays, "days").endOf("day")
+        : dayjs().utcOffset(date.utcOffset()).businessDaysAdd(periodDays).endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
@@ -94,7 +95,7 @@ function DatePicker({
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
   const [daysFromState, setDays] = useState<
     | {
-        disabled: Boolean;
+        disabled: boolean;
         date: number;
       }[]
     | null
@@ -191,7 +192,7 @@ function DatePicker({
       name: "DatePicker",
       length: daysInMonth,
       callback: (i: number) => {
-        let day = i + 1;
+        const day = i + 1;
         days[daysInitialOffset + i] = {
           disabled: isDisabledMemoized(day, {
             browsingDate,

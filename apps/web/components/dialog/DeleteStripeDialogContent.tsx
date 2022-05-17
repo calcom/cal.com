@@ -1,15 +1,13 @@
 import { ExclamationIcon } from "@heroicons/react/outline";
 import { CheckIcon } from "@heroicons/react/solid";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import React, { PropsWithChildren, ReactNode } from "react";
+import React, { PropsWithChildren } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/Button";
 import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
 
-import { useLocale } from "@lib/hooks/useLocale";
-
 export type DeleteStripeDialogContentProps = {
-  confirmBtn?: ReactNode;
   cancelAllBookingsBtnText?: string;
   removeBtnText?: string;
   cancelBtnText?: string;
@@ -24,7 +22,6 @@ export default function DeleteStripeDialogContent(props: PropsWithChildren<Delet
   const {
     title,
     variety,
-    confirmBtn = null,
     cancelAllBookingsBtnText,
     removeBtnText,
     cancelBtnText = t("cancel"),
