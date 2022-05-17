@@ -370,7 +370,7 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label as string,
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
           value: booking.customInputs![inputId],
         })),
         hasHashedBookingLink,
@@ -394,7 +394,7 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label as string,
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
           value: booking.customInputs![inputId],
         })),
         hasHashedBookingLink,
