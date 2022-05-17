@@ -18,7 +18,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
   return (
     <div className="flex flex-col items-start space-x-2 space-y-2">
       {selectedGif && (
-        <div>
+        <div className="min-h-[200px]">
           <img alt={"Selected Gif Image"} src={selectedGif} />
         </div>
       )}
