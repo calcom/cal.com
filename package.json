@@ -44,12 +44,17 @@
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
-    "husky": "^7.0.1",
-    "lint-staged": "^12.3.5",
+    "husky": "^8.0.1",
+    "lint-staged": "^12.4.1",
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "turbo": "latest"
+    "turbo": "1.2.9"
+  },
+  "resolutions": {
+    "@types/node": "14.17.6",
+    "@types/react": "18.0.9",
+    "@types/react-dom": "18.0.4"
   },
   "lint-staged": {
     "apps/**/*.{js,ts,jsx,tsx}": [

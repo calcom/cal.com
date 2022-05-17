@@ -100,8 +100,10 @@ export default function TeamAvailabilityScreen(props: Props) {
         </div>
       </div>
       <div className="flex h-full flex-1">
+        {/* @ts-ignore */}
         <AutoSizer>
           {({ height, width }) => (
+            // @ts-ignore
             <List
               itemSize={240}
               itemCount={props.team?.members?.length ?? 0}
