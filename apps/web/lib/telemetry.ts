@@ -1,6 +1,11 @@
 import { jitsuClient, JitsuClient } from "@jitsu/sdk-js";
 import React, { useContext } from "react";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var jitsu: JitsuClient | undefined;
+}
+
 /**
  * Enumeration of all event types that are being sent
  * to telemetry collection.
@@ -49,7 +54,10 @@ function isLocalhost(host: string) {
  * Collects page parameters and makes sure no sensitive data made it to telemetry
  * @param route current next.js route
  */
-export function collectPageParameters(route?: string, extraData: Record<string, any> = {}): any {
+export function collectPageParameters(
+  route?: string,
+  extraData: Record<string, unknown> = {}
+): Record<string, unknown> {
   const host = document.location.hostname;
   const maskedHost = isLocalhost(host) ? "localhost" : "masked";
   //starts with ''
@@ -78,13 +86,7 @@ function createTelemetryClient(): TelemetryClient {
         if (!window) {
           console.warn("Jitsu has been called during SSR, this scenario isn't supported yet");
           return;
-        } else if (
-          // FIXME
-          // @ts-ignore
-          !window["jitsu"]
-        ) {
-          // FIXME
-          // @ts-ignore
+        } else if (!window["jitsu"]) {
           window["jitsu"] = jitsuClient({
             log_level: "ERROR",
             tracking_host: "https://t.calendso.com",
@@ -93,8 +95,6 @@ function createTelemetryClient(): TelemetryClient {
             capture_3rd_party_cookies: false,
           });
         }
-        // FIXME
-        // @ts-ignore
         const res = callback(window["jitsu"]);
         if (res && typeof res["catch"] === "function") {
           res.catch((e) => {

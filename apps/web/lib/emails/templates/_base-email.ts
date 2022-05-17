@@ -4,7 +4,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 
 export default class BaseEmail {
-  name: string = "";
+  name = "";
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
