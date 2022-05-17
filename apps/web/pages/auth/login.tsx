@@ -105,6 +105,7 @@ export default function Login({
           form={form}
           className="space-y-6"
           handleSubmit={(values) => {
+            telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.login, collectPageParameters()));
             signIn<"credentials">("credentials", { ...values, callbackUrl, redirect: false })
               .then((res) => {
                 if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
@@ -159,7 +160,7 @@ export default function Login({
             <Button
               className="flex w-full justify-center"
               type="submit"
-              disabled={form.formState.isSubmitting}>
+              disabled={form.formState.isSubmitting || (form.formState.isSubmitted && !twoFactorRequired)}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>

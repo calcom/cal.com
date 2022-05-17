@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { deleteAllBookingsByEmail } from "./lib/teardown";
+import { test } from "./lib/fixtures";
 import {
   bookFirstEvent,
   bookTimeSlot,
@@ -11,18 +11,15 @@ import {
 test.describe.configure({ mode: "parallel" });
 
 test.describe("dynamic booking", () => {
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
-
-  test.beforeEach(async ({ page }) => {
-    await deleteAllBookingsByEmail("pro@example.com");
-    await deleteAllBookingsByEmail("free@example.com");
-    await page.goto("/pro+free");
+  test.beforeEach(async ({ page, users }) => {
+    const pro = await users.create();
+    await pro.login();
+    const free = await users.create({ plan: "FREE" });
+    await page.goto(`/${pro.username}+${free.username}`);
   });
 
-  test.afterEach(async () => {
-    // delete test bookings
-    await deleteAllBookingsByEmail("pro@example.com");
-    await deleteAllBookingsByEmail("free@example.com");
+  test.afterEach(async ({ page, users }) => {
+    await users.deleteAll();
   });
 
   test("book an event first day in next month", async ({ page }) => {

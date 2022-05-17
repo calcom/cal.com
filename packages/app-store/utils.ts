@@ -36,7 +36,8 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
 const defaultLocations: OptionTypeBase[] = [
   { value: LocationType.InPerson, label: "in_person_meeting" },
   { value: LocationType.Link, label: "link_meeting" },
-  { value: LocationType.Phone, label: "phone_call" },
+  { value: LocationType.Phone, label: "attendee_phone_number" },
+  { value: LocationType.UserPhone, label: "host_phone_number" },
 ];
 
 export function getLocationOptions(integrations: AppMeta, t: TFunction) {

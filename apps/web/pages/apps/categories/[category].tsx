@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import Shell from "@components/Shell";
 import AppCard from "@components/apps/AppCard";
 
-export default function Apps({ apps: apps }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -85,7 +85,7 @@ export const getStaticProps = async (context: GetStaticPropsContext) => {
 
   return {
     props: {
-      apps: apps,
+      apps,
     },
   };
 };
