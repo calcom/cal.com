@@ -70,7 +70,10 @@ async function createOrlistAllSelectedCalendars(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaSelectedCalendarBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
     // Create new selectedCalendar connecting it to current userId
     const data = await prisma.selectedCalendar.create({
       data: { ...safe.data, user: { connect: { id: userId } } },

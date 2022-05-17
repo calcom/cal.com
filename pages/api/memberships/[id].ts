@@ -97,7 +97,10 @@ export async function membershipById(
       case "PATCH":
         const safeBody = schemaMembershipBodyParams.safeParse(body);
         if (!safeBody.success) {
-          throw new Error("Invalid request body");
+          {
+            res.status(400).json({ message: "Invalid request body" });
+            return;
+          }
         }
         await prisma.membership
           .update({

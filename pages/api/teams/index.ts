@@ -58,7 +58,10 @@ async function createOrlistAllTeams(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaTeamBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
     const team = await prisma.team.create({ data: safe.data });
     // We're also creating the relation membership of team ownership in this call.
     const membership = await prisma.membership

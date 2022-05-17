@@ -106,7 +106,6 @@ export async function bookingById(
           console.log(safeBody.error);
           res.status(400).json({ message: "Bad request", error: safeBody.error });
           return;
-          // throw new Error("Invalid request body");
         }
         await prisma.booking
           .update({

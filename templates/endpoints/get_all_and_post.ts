@@ -54,7 +54,10 @@ async function createOrlistAllPayments(
  *        description: Authorization information is missing or invalid.
  */
     const safe = schemaPaymentBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
 
     const payment = await prisma.payment.create({ data: safe.data });
     const data = schemaPaymentPublic.parse(payment);

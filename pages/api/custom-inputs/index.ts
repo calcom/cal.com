@@ -59,7 +59,10 @@ async function createOrlistAllEventTypeCustomInputs(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaEventTypeCustomInputBodyParams.safeParse(body);
-    if (!safe.success) throw new Error("Invalid request body");
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
     // Since we're supporting a create or connect relation on eventType, we need to treat them differently
     // When using connect on event type, check if userId is the owner of the event
     if (safe.data.eventType.connect && !userEventTypes.includes(safe.data.eventType.connect.id as number)) {

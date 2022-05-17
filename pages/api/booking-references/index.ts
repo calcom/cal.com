@@ -97,17 +97,7 @@ async function createOrlistAllBookingReferences(
     if (!safe.success) {
       res.status(400).json({ message: "Bad request. BookingReference body is invalid", error: safe.error });
       return;
-      // throw new Error("Invalid request body");
     }
-
-    const userWithBookings = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { bookings: true },
-    });
-    if (!userWithBookings) {
-      throw new Error("User not found");
-    }
-    const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
     if (!safe.data.bookingId) throw new Error("BookingReference: bookingId not found");
     if (!userBookingIds.includes(safe.data.bookingId)) res.status(401).json({ message: "Unauthorized" });
     else {
