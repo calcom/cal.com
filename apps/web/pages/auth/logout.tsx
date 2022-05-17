@@ -1,14 +1,13 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
-import { useSession, signOut } from "next-auth/react";
-import { getCookieParser } from "next/dist/server/api-utils";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AuthContainer from "@components/ui/AuthContainer";
@@ -18,14 +17,15 @@ import { ssrInit } from "@server/lib/ssr";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 export default function Logout(props: Props) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
       router.push("https://cal.com/cancellation");
     }
-  }, [props.query?.survey, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.query?.survey]);
   const { t } = useLocale();
 
   return (
