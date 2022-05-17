@@ -35,7 +35,4 @@ jobs:
         run: yarn
 
       - name: Build
-        run: yarn build
-
-      - name: Test
-        run: yarn test
+        run: yarn deploy --include-dependencies --no-deps
