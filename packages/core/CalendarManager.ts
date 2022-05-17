@@ -128,19 +128,24 @@ export const createEvent = async (credential: Credential, calEvent: CalendarEven
 export const updateEvent = async (
   credential: Credential,
   calEvent: CalendarEvent,
-  bookingRefUid: string | null
+  bookingRefUid: string | null,
+  externalCalendarId: string | null
 ): Promise<EventResult> => {
   const uid = getUid(calEvent);
   const calendar = getCalendar(credential);
-  let success = true;
-
+  let success = false;
+  if (bookingRefUid === "") {
+    log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
+  }
   const updatedResult =
     calendar && bookingRefUid
-      ? await calendar.updateEvent(bookingRefUid, calEvent).catch((e) => {
-          log.error("updateEvent failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
+      ? await calendar
+          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+          .then(() => (success = true))
+          .catch((e) => {
+            log.error("updateEvent failed", e, calEvent);
+            return undefined;
+          })
       : undefined;
 
   return {

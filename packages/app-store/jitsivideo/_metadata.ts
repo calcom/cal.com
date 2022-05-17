@@ -17,10 +17,10 @@ export const metadata = {
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "video",
-  slug: "jitsi_video",
+  slug: "jitsi",
   title: "Jitsi Meet",
   trending: true,
-  isGlobal: true,
+  isGlobal: false,
   email: "help@cal.com",
   locationType: LocationType.Jitsi,
   locationLabel: "Jitsi Video",

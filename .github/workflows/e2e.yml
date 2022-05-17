@@ -7,7 +7,7 @@ on:
       - public/static/locales/**
 jobs:
   test:
-    timeout-minutes: 15
+    timeout-minutes: 20
     name: Testing ${{ matrix.node }} and ${{ matrix.os }}
     strategy:
       matrix:
@@ -19,7 +19,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
       NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      JWT_SECRET: secret
+      NEXTAUTH_SECRET: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx

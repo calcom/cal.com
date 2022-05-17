@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { GetServerSidePropsContext } from "next";
 import { useSession, signOut } from "next-auth/react";
+import { getCookieParser } from "next/dist/server/api-utils";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -24,7 +25,7 @@ export default function Logout(props: Props) {
     if (props.query?.survey === "true") {
       router.push("https://cal.com/cancellation");
     }
-  }, []);
+  }, [props.query?.survey, router]);
   const { t } = useLocale();
 
   return (
@@ -42,7 +43,7 @@ export default function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Link href="/auth/login">
+      <Link href="/auth/login" passHref>
         <Button className="flex w-full justify-center"> {t("go_back_login")}</Button>
       </Link>
     </AuthContainer>
@@ -51,6 +52,11 @@ export default function Logout(props: Props) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
+  // Deleting old cookie manually, remove this code after all existing cookies have expired
+  context.res.setHeader(
+    "Set-Cookie",
+    "next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+  );
 
   return {
     props: {

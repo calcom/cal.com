@@ -1,0 +1,21 @@
+---
+Title: Slack
+---
+
+# Slack
+
+## Connecting 
+Connecting the bot is easy - If you are a workspace admin, the install button will add the bot to the workspace and also authorize your account with the bot. If you are a normal user, the install button will connect your Slack account with Cal.com. This will allow you to perform commands in Slack.
+
+## Commands
+`/today` - This command will display all meetings you have in your Cal.com profile for the current day. This will send a hidden message (not visible to anyone other than you) to the channel you issued the command in.
+
+`/create-event` - It will display a modal allowing you to simply create a meeting invite with anyone in Slack. Success/Error information will be displayed in a private direct message from the bot.
+
+`/links` - This command will post all your Cal.com meeting links into the current Slack channel you are in. **Note**: The bot needs to have permission to talk in the channel you are sending the message in. Otherwise, you won't be able to send your links. 
+
+As this is the beggining stage of our Slack integration, we plan on adding more commands in the future that will further improve your Cal.com experience.
+
+## Self-Hosted
+If you are using our self-hosted version, please refer to our documentation in 
+[cal.com/README.md](https://github.com/calcom/cal.com/blob/main/README.md#obtaining-slack-client-id-and-secret-and-signing-secret)

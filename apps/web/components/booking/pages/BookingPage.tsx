@@ -2,9 +2,12 @@ import {
   CalendarIcon,
   ClockIcon,
   CreditCardIcon,
+  ExclamationCircleIcon,
   ExclamationIcon,
   InformationCircleIcon,
+  RefreshIcon,
 } from "@heroicons/react/solid";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
@@ -17,13 +20,17 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { useMutation } from "react-query";
+import { Frequency as RRuleFrequency } from "rrule";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
-import { useIsEmbed, useIsBackgroundTransparent } from "@calcom/embed-core";
+import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -32,7 +39,8 @@ import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
-import { parseDate } from "@lib/parseDate";
+import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
+import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
@@ -41,6 +49,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import type PhoneInputType from "@components/ui/form/PhoneInput";
 
 import { BookPageProps } from "../../../pages/[user]/book";
+import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 /** These are like 40kb that not every user needs */
@@ -48,7 +57,7 @@ const PhoneInput = dynamic(
   () => import("@components/ui/form/PhoneInput")
 ) as unknown as typeof PhoneInputType;
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps;
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {
   name: string;
@@ -57,6 +66,7 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
     [key: string]: string;
   };
@@ -67,14 +77,30 @@ const BookingPage = ({
   booking,
   profile,
   isDynamicGroupBooking,
+  recurringEventCount,
   locationLabels,
+  hasHashedBookingLink,
+  hashedLink,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
+  const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
+
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      )
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -84,11 +110,11 @@ const BookingPage = ({
         /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { attendees, paymentUid } = responseData;
+      const { id, attendees, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -122,6 +148,39 @@ const BookingPage = ({
           email: attendees[0].email,
           location,
           eventName: profile.eventName || "",
+          bookingId: id,
+        },
+      });
+    },
+  });
+
+  const recurringMutation = useMutation(createRecurringBooking, {
+    onSuccess: async (responseData = []) => {
+      const { attendees = [], id, recurringEventId } = responseData[0] || {};
+      const location = (function humanReadableLocation(location) {
+        if (!location) {
+          return;
+        }
+        if (location.includes("integration")) {
+          return t("web_conferencing_details_to_follow");
+        }
+        return location;
+      })(responseData[0].location);
+
+      return router.push({
+        pathname: "/success",
+        query: {
+          date,
+          type: eventType.id,
+          eventSlug: eventType.slug,
+          recur: recurringEventId,
+          user: profile.slug,
+          reschedule: !!rescheduleUid,
+          name: attendees[0].name,
+          email: attendees[0].email,
+          location,
+          eventName: profile.eventName || "",
+          bookingId: id,
         },
       });
     },
@@ -135,7 +194,7 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string };
+  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: Location[] = useMemo(
     () => (eventType.locations as Location[]) || [],
@@ -147,8 +206,6 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
-
-  const telemetry = useTelemetry();
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
   const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
@@ -187,8 +244,16 @@ const BookingPage = ({
     };
   };
 
+  const bookingFormSchema = z
+    .object({
+      name: z.string().min(1),
+      email: z.string().email(),
+    })
+    .passthrough();
+
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
+    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
 
   const selectedLocation = useWatch({
@@ -204,7 +269,9 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
@@ -216,16 +283,33 @@ const BookingPage = ({
       case LocationType.Link: {
         return locationInfo(locationType)?.link || "";
       }
+      case LocationType.UserPhone: {
+        return locationInfo(locationType)?.hostPhoneNumber || "";
+      }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
         return selectedLocation || "";
     }
   };
 
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [],
+    recurringDates: Date[] = [];
+  if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
+    [recurringStrings, recurringDates] = parseRecurringDates(
+      {
+        startDate: date,
+        recurringEvent: eventType.recurringEvent,
+        recurringCount: parseInt(recurringEventCount.toString()),
+      },
+      i18n
+    );
+  }
+
   const bookEvent = (booking: BookingFormValues) => {
     telemetry.withJitsu((jitsu) =>
       jitsu.track(
-        telemetryEventTypes.bookingConfirmed,
+        top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
@@ -244,7 +328,7 @@ const BookingPage = ({
         {}
       );
 
-    let web3Details;
+    let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
         // @ts-ignore
@@ -253,26 +337,59 @@ const BookingPage = ({
       };
     }
 
-    mutation.mutate({
-      ...booking,
-      web3Details,
-      start: dayjs(date).format(),
-      end: dayjs(date).add(eventType.length, "minute").format(),
-      eventTypeId: eventType.id,
-      eventTypeSlug: eventType.slug,
-      timeZone: timeZone(),
-      language: i18n.language,
-      rescheduleUid,
-      user: router.query.user,
-      location: getLocationValue(
-        booking.locationType ? booking : { ...booking, locationType: selectedLocation }
-      ),
-      metadata,
-      customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-        label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-        value: booking.customInputs![inputId],
-      })),
-    });
+    if (recurringDates.length) {
+      // Identify set of bookings to one intance of recurring event to support batch changes
+      const recurringEventId = uuidv4();
+      const recurringBookings = recurringDates.map((recurringDate) => ({
+        ...booking,
+        web3Details,
+        start: dayjs(recurringDate).format(),
+        end: dayjs(recurringDate).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        recurringEventId,
+        // Added to track down the number of actual occurrences selected by the user
+        recurringCount: recurringDates.length,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+        hasHashedBookingLink,
+        hashedLink,
+      }));
+      recurringMutation.mutate(recurringBookings);
+    } else {
+      mutation.mutate({
+        ...booking,
+        web3Details,
+        start: dayjs(date).format(),
+        end: dayjs(date).add(eventType.length, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        user: router.query.user,
+        location: getLocationValue(
+          booking.locationType ? booking : { ...booking, locationType: selectedLocation }
+        ),
+        metadata,
+        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
+          value: booking.customInputs![inputId],
+        })),
+        hasHashedBookingLink,
+        hashedLink,
+      });
+    }
   };
 
   const disableInput = !!rescheduleUid;
@@ -298,16 +415,17 @@ const BookingPage = ({
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
-          isEmbed ? "mx-auto" : "mx-auto my-0 rounded-sm sm:my-24",
-          "max-w-3xl  sm:border sm:dark:border-gray-600"
+          shouldAlignCentrally ? "mx-auto" : "",
+          isEmbed ? "" : "sm:my-24",
+          "my-0 max-w-3xl "
         )}>
         {isReady && (
           <div
             className={classNames(
-              "overflow-hidden",
+              "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
-              isBackgroundTransparent ? "" : "bg-white dark:border-0 dark:bg-gray-800",
-              "sm:rounded-sm"
+              isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
+              "rounded-md dark:border-gray-600 sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
@@ -351,10 +469,41 @@ const BookingPage = ({
                     </IntlProvider>
                   </p>
                 )}
-                <p className="text-bookinghighlight mb-4">
-                  <CalendarIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                  {parseDate(date, i18n)}
-                </p>
+                {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
+                  <div className="mb-3 text-gray-600 dark:text-white">
+                    <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
+                    <p className="mb-1 -ml-2 inline px-2 py-1">
+                      {`${t("every_for_freq", {
+                        freq: t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`),
+                      })} ${recurringEventCount} ${t(
+                        `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`,
+                        { count: parseInt(recurringEventCount.toString()) }
+                      )}`}
+                    </p>
+                  </div>
+                )}
+                <div className="text-bookinghighlight mb-4 flex">
+                  <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                  <div className="-mt-1">
+                    {(rescheduleUid || !eventType.recurringEvent.freq) &&
+                      parseDate(dayjs(date).tz(timeZone()), i18n)}
+                    {!rescheduleUid &&
+                      eventType.recurringEvent.freq &&
+                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                    {!rescheduleUid && eventType.recurringEvent.freq && recurringStrings.length > 5 && (
+                      <div className="flex">
+                        <Tooltip
+                          content={recurringStrings.slice(5).map((aDate, key) => (
+                            <p key={key}>{aDate}</p>
+                          ))}>
+                          <p className="text-gray-600 dark:text-white">
+                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 {eventTypeDetail.isWeb3Active && eventType.metadata.smartContractAddress && (
                   <p className="text-bookinglight mb-1 -ml-2 px-2 py-1">
                     {t("requires_ownership_of_a_token") + " " + eventType.metadata.smartContractAddress}
@@ -380,7 +529,7 @@ const BookingPage = ({
                     </label>
                     <div className="mt-1">
                       <input
-                        {...bookingForm.register("name")}
+                        {...bookingForm.register("name", { required: true })}
                         type="text"
                         name="name"
                         id="name"
@@ -405,13 +554,22 @@ const BookingPage = ({
                         {...bookingForm.register("email")}
                         required
                         className={classNames(
-                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
+                          "focus:border-brand block w-full rounded-sm shadow-sm focus:ring-black dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
+                          disableInput ? "bg-gray-200 dark:text-gray-500" : "",
+                          bookingForm.formState.errors.email
+                            ? "border-red-700 focus:ring-red-700"
+                            : " border-gray-300  dark:border-gray-900"
                         )}
                         placeholder="you@example.com"
                         type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                         disabled={disableInput}
                       />
+                      {bookingForm.formState.errors.email && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <ExclamationCircleIcon className="mr-2 h-3 w-3" />
+                          <p>{t("email_validation_error")}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {locations.length > 1 && (
@@ -427,7 +585,6 @@ const BookingPage = ({
                             {...bookingForm.register("locationType", { required: true })}
                             value={location.type}
                             defaultChecked={selectedLocation === location.type}
-                            disabled={disableInput}
                           />
                           <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-gray-500">
                             {locationLabels[location.type]}

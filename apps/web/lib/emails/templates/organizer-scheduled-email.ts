@@ -4,21 +4,20 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
-import nodemailer from "nodemailer";
+import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
-import { serverConfig } from "@lib/serverConfig";
+import BaseEmail from "@lib/emails/templates/_base-email";
 
 import {
-  emailHead,
-  emailSchedulingBodyHeader,
   emailBodyLogo,
+  emailHead,
   emailScheduledBodyHeaderContent,
   emailSchedulingBodyDivider,
+  emailSchedulingBodyHeader,
   linkIcon,
 } from "./common";
 
@@ -27,31 +26,23 @@ dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
-export default class OrganizerScheduledEmail {
+export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
+  recurringEvent: RecurringEvent;
 
-  constructor(calEvent: CalendarEvent) {
+  constructor(calEvent: CalendarEvent, recurringEvent: RecurringEvent) {
+    super();
+    this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
-  }
-
-  public sendEmail() {
-    new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
-          if (_err) {
-            const err = getErrorFromUnknown(_err);
-            this.printNodeMailerError(err);
-            reject(err);
-          } else {
-            resolve(info);
-          }
-        })
-    ).catch((e) => console.error("sendEmail", e));
-    return new Promise((resolve) => resolve("send mail async"));
+    this.recurringEvent = recurringEvent;
   }
 
   protected getiCalEventAsString(): string | undefined {
+    // Taking care of recurrence rule beforehand
+    let recurrenceRule: string | undefined = undefined;
+    if (this.recurringEvent?.count) {
+      recurrenceRule = new rrule(this.recurringEvent).toString().replace("RRULE:", "");
+    }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
@@ -67,6 +58,7 @@ export default class OrganizerScheduledEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+      ...{ recurrenceRule },
       attendees: this.calEvent.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
@@ -113,24 +105,15 @@ export default class OrganizerScheduledEmail {
     };
   }
 
-  protected getMailerOptions() {
-    return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    };
-  }
-
   protected getTextBody(): string {
     return `
-${this.calEvent.organizer.language.translate("new_event_scheduled")}
+${this.calEvent.organizer.language.translate(
+  this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+)}
 ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
 
 ${getRichDescription(this.calEvent)}
 `.trim();
-  }
-
-  protected printNodeMailerError(error: Error): void {
-    console.error("SEND_BOOKING_CONFIRMATION_ERROR", this.calEvent.organizer.email, error);
   }
 
   protected getHtmlBody(): string {
@@ -154,7 +137,9 @@ ${getRichDescription(this.calEvent)}
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("checkCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("new_event_scheduled"),
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+          ),
           this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")
         )}
         ${emailSchedulingBodyDivider()}
@@ -241,12 +226,30 @@ ${getRichDescription(this.calEvent)}
     </div>`;
   }
 
+  protected getRecurringWhen(): string {
+    if (this.recurringEvent?.freq) {
+      return ` - ${this.calEvent.attendees[0].language.translate("every_for_freq", {
+        freq: this.calEvent.attendees[0].language.translate(
+          `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`
+        ),
+      })} ${this.recurringEvent.count} ${this.calEvent.attendees[0].language.translate(
+        `${rrule.FREQUENCIES[this.recurringEvent.freq].toString().toLowerCase()}`,
+        { count: this.recurringEvent.count }
+      )}`;
+    } else {
+      return "";
+    }
+  }
+
   protected getWhen(): string {
     return `
     <p style="height: 6px"></p>
     <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}</p>
+      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}${
+      this.recurringEvent?.count ? this.getRecurringWhen() : ""
+    }</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">
+      ${this.recurringEvent?.count ? `${this.calEvent.attendees[0].language.translate("starting")} ` : ""}
       ${this.calEvent.organizer.language.translate(
         this.getOrganizerStart().format("dddd").toLowerCase()
       )}, ${this.calEvent.organizer.language.translate(
@@ -314,7 +317,7 @@ ${getRichDescription(this.calEvent)}
   }
 
   protected getLocation(): string {
-    let providerName = this.calEvent.location ? getAppName(this.calEvent.location) : "";
+    let providerName = this.calEvent.location && getAppName(this.calEvent.location); // This returns null if nothing is found
 
     if (this.calEvent.location && this.calEvent.location.includes("integrations:")) {
       const location = this.calEvent.location.split(":")[1];

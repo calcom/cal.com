@@ -8,14 +8,13 @@ import {
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
-//import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
 
@@ -60,10 +59,32 @@ export default function App({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-
+  const [installedApp, setInstalledApp] = useState(false);
+  useEffect(() => {
+    async function getInstalledApp(appCredentialType: string) {
+      const queryParam = new URLSearchParams();
+      queryParam.set("app-credential-type", appCredentialType);
+      try {
+        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (result.status === 200) {
+          setInstalledApp(true);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(error.message);
+        }
+      }
+    }
+    getInstalledApp(type);
+  }, [type]);
   return (
     <>
-      <Shell large>
+      <Shell large isPublic>
         <div className="-mx-4 md:-mx-8">
           <div className="bg-gray-50 px-4">
             <Link href="/apps">
@@ -73,7 +94,10 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt={name} />
+                {
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-16 w-16" src={logo} alt={name} />
+                }
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">
@@ -83,7 +107,7 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal ? (
+                {isGlobal || installedApp ? (
                   <Button color="secondary" disabled title="This app is globally installed">
                     {t("installed")}
                   </Button>

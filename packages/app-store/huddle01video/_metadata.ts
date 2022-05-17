@@ -18,10 +18,10 @@ export const metadata = {
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   category: "web3",
-  slug: "huddle01_video",
+  slug: "huddle01",
   title: "Huddle01",
   trending: true,
-  isGlobal: true,
+  isGlobal: false,
   email: "support@huddle01.com",
   locationType: LocationType.Huddle01,
   locationLabel: "Huddle01 Video",

@@ -2,6 +2,7 @@ import { GlobeAltIcon, PhoneIcon, XIcon } from "@heroicons/react/outline";
 import {
   ChevronRightIcon,
   ClockIcon,
+  DocumentDuplicateIcon,
   DocumentIcon,
   ExternalLinkIcon,
   LinkIcon,
@@ -20,21 +21,28 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import short, { generate } from "short-uuid";
 import { JSONObject } from "superjson/dist/types";
+import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
-import getApps, { getLocationOptions, hasIntegration } from "@calcom/app-store/utils";
+import { SelectGifInput } from "@calcom/app-store/giphy/components";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import { RecurringEvent } from "@calcom/types/Calendar";
+import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -50,10 +58,13 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -61,7 +72,8 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
-import Select, { SelectProps } from "@components/ui/form/Select";
+import PhoneInput from "@components/ui/form/PhoneInput";
+import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
@@ -156,6 +168,7 @@ const AvailabilitySelect = ({
   return (
     <QueryCell
       query={query}
+      customLoader={<AvailabilitySelectSkeletonLoader />}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
@@ -197,7 +210,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       prefix: t("indefinitely_into_future"),
     },
   ];
-  const { eventType, locationOptions, team, teamMembers, hasPaymentIntegration, currency } = props;
+  const {
+    eventType,
+    locationOptions,
+    team,
+    teamMembers,
+    hasPaymentIntegration,
+    currency,
+    hasGiphyIntegration,
+  } = props;
 
   const router = useRouter();
 
@@ -260,8 +281,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
 
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const [recurringEventDefined, setRecurringEventDefined] = useState(
+    eventType.recurringEvent?.count !== undefined
+  );
+
+  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
+  const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+
+  const generateHashedLink = (id: number) => {
+    const translator = short();
+    const seed = `${id}:${new Date().getTime()}`;
+    const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+    return uid;
+  };
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -296,6 +331,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
     fetchTokens();
+
+    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -388,6 +426,34 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             </div>
           </div>
         );
+      case LocationType.UserPhone:
+        return (
+          <div>
+            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
+              {t("set_your_phone_number")}
+            </label>
+            <div className="mt-1">
+              <PhoneInput
+                control={locationFormMethods.control}
+                name="locationPhoneNumber"
+                required
+                id="locationPhoneNumber"
+                placeholder={t("host_phone_number")}
+                rules={{}}
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.UserPhone)?.hostPhoneNumber
+                }
+              />
+              {locationFormMethods.formState.errors.locationPhoneNumber && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       case LocationType.Phone:
         return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
       /* TODO: Render this dynamically from App Store */
@@ -442,6 +508,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
+  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${hashedUrl}/${eventType.slug}`;
+
   const mapUserToValue = ({
     id,
     name,
@@ -466,12 +534,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     description: string;
     disableGuests: boolean;
     requiresConfirmation: boolean;
+    recurringEvent: RecurringEvent;
     schedulingType: SchedulingType | null;
     price: number;
     currency: string;
     hidden: boolean;
     hideCalendarNotes: boolean;
-    locations: { type: LocationType; address?: string; link?: string }[];
+    hashedLink: string | undefined;
+    locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
     customInputs: EventTypeCustomInput[];
     users: string[];
     schedule: number;
@@ -488,9 +558,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       externalId: string;
     };
     successRedirectUrl: string;
+    giphyThankYouPage: string;
   }>({
     defaultValues: {
       locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || {},
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -502,11 +574,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    locationPhoneNumber: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
     locationType: LocationType;
+    locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
   }>({
@@ -525,7 +602,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
                   locationFormMethods.setValue("locationType", newLocationType);
-                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                  if (
+                    newLocationType === LocationType.InPerson ||
+                    newLocationType === LocationType.Link ||
+                    newLocationType === LocationType.UserPhone
+                  ) {
                     openLocationModal(newLocationType);
                   } else {
                     addLocation(newLocationType);
@@ -559,6 +640,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.link}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.UserPhone && (
+                    <div className="flex flex-grow items-center">
+                      <PhoneIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.hostPhoneNumber}
                       />
                     </div>
                   )}
@@ -829,6 +920,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.setValue("locationType", location.type);
                         locationFormMethods.unregister("locationLink");
                         locationFormMethods.unregister("locationAddress");
+                        locationFormMethods.unregister("locationPhoneNumber");
                         openLocationModal(location.type);
                       }}
                       aria-label={t("edit")}
@@ -874,7 +966,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <h1
                   style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                  {eventType.title}
+                  {formMethods.getValues("title") && formMethods.getValues("title") !== ""
+                    ? formMethods.getValues("title")
+                    : eventType.title}
                 </h1>
                 <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
               </>
@@ -889,6 +983,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
+                  onBlur={() => {
+                    setEditIcon(true);
+                    formMethods.getValues("title") === "" && formMethods.setValue("title", eventType.title);
+                  }}
                 />
               </div>
             )}
@@ -906,28 +1004,28 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodDates,
                       periodCountCalendarDays,
                       smartContractAddress,
+                      giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
+                      recurringEvent,
                       locations,
                       ...input
                     } = values;
 
-                    if (requirePayment) input.currency = currency;
-
                     updateMutation.mutate({
                       ...input,
                       locations,
+                      recurringEvent,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      metadata: smartContractAddress
-                        ? {
-                            smartContractAddress,
-                          }
-                        : "",
+                      metadata: {
+                        ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+                      },
                     });
                   }}
                   className="space-y-6">
@@ -1117,7 +1215,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     open={advancedSettingsVisible}
                     onOpenChange={() => setAdvancedSettingsVisible(!advancedSettingsVisible)}>
                     <>
-                      <CollapsibleTrigger type="button" className="flex w-full">
+                      <CollapsibleTrigger
+                        type="button"
+                        data-testid="show-advanced-settings"
+                        className="flex w-full">
                         <ChevronRightIcon
                           className={`${
                             advancedSettingsVisible ? "rotate-90 transform" : ""
@@ -1127,7 +1228,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           {t("show_advanced_settings")}
                         </span>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6">
+                      <CollapsibleContent data-testid="advanced-settings-content" className="mt-4 space-y-6">
                         {/**
                          * Only display calendar selector if user has connected calendars AND if it's not
                          * a team event. Since we don't have logic to handle each attende calendar (for now).
@@ -1312,6 +1413,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <RecurringEventController
+                          paymentEnabled={hasPaymentIntegration && requirePayment}
+                          onRecurringEventDefined={setRecurringEventDefined}
+                          recurringEvent={eventType.recurringEvent}
+                          formMethods={formMethods}
+                        />
+
                         <Controller
                           name="disableGuests"
                           control={formMethods.control}
@@ -1327,6 +1435,71 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
                             />
+                          )}
+                        />
+
+                        <Controller
+                          name="hashedLink"
+                          control={formMethods.control}
+                          defaultValue={hashedUrl}
+                          render={() => (
+                            <>
+                              <CheckboxField
+                                id="hashedLinkCheck"
+                                name="hashedLinkCheck"
+                                label={t("private_link")}
+                                description={t("private_link_description")}
+                                defaultChecked={eventType.hashedLink ? true : false}
+                                onChange={(e) => {
+                                  setHashedLinkVisible(e?.target.checked);
+                                  formMethods.setValue(
+                                    "hashedLink",
+                                    e?.target.checked ? hashedUrl : undefined
+                                  );
+                                }}
+                              />
+                              {hashedLinkVisible && (
+                                <div className="!mt-1 block items-center sm:flex">
+                                  <div className="min-w-48 mb-4 sm:mb-0"></div>
+                                  <div className="w-full">
+                                    <div className="relative mt-1 flex w-full">
+                                      <input
+                                        disabled
+                                        name="hashedLink"
+                                        data-testid="generated-hash-url"
+                                        type="text"
+                                        className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
+                                        defaultValue={placeholderHashedLink}
+                                      />
+                                      <Tooltip
+                                        content={
+                                          eventType.hashedLink
+                                            ? t("copy_to_clipboard")
+                                            : t("enabled_after_update")
+                                        }>
+                                        <Button
+                                          color="minimal"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(placeholderHashedLink);
+                                            if (eventType.hashedLink) {
+                                              showToast(t("private_link_copied"), "success");
+                                            } else {
+                                              showToast(t("enabled_after_update_description"), "warning");
+                                            }
+                                          }}
+                                          type="button"
+                                          className="text-md flex items-center border border-gray-300 px-2 py-1 text-sm font-medium text-gray-700 ltr:rounded-r-sm ltr:border-l-0 rtl:rounded-l-sm rtl:border-r-0">
+                                          <DocumentDuplicateIcon className="w-6 p-1 text-neutral-500" />
+                                        </Button>
+                                      </Tooltip>
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                      The URL will regenerate after each use
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           )}
                         />
 
@@ -1424,7 +1597,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-12 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
@@ -1574,40 +1747,44 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                               <div className="flex flex-col">
                                 <div className="w-full">
-                                  <div className="block items-center sm:flex">
-                                    <div className="w-full">
-                                      <div className="relative flex items-start">
-                                        <div className="flex h-5 items-center">
-                                          <input
-                                            onChange={(event) => {
-                                              setRequirePayment(event.target.checked);
-                                              if (!event.target.checked) {
-                                                formMethods.setValue("price", 0);
-                                              }
-                                            }}
-                                            id="requirePayment"
-                                            name="requirePayment"
-                                            type="checkbox"
-                                            className="text-primary-600  h-4 w-4 rounded border-gray-300"
-                                            defaultChecked={requirePayment}
-                                          />
-                                        </div>
-                                        <div className="text-sm ltr:ml-3 rtl:mr-3">
-                                          <p className="text-neutral-900">
-                                            {t("require_payment")} (0.5% +{" "}
-                                            <IntlProvider locale="en">
-                                              <FormattedNumber
-                                                value={0.1}
-                                                style="currency"
-                                                currency={currency}
-                                              />
-                                            </IntlProvider>{" "}
-                                            {t("commission_per_transaction")})
-                                          </p>
+                                  {recurringEventDefined ? (
+                                    <Alert severity="warning" title={t("warning_recurring_event_payment")} />
+                                  ) : (
+                                    <div className="block items-center sm:flex">
+                                      <div className="w-full">
+                                        <div className="relative flex items-start">
+                                          <div className="flex h-5 items-center">
+                                            <input
+                                              onChange={(event) => {
+                                                setRequirePayment(event.target.checked);
+                                                if (!event.target.checked) {
+                                                  formMethods.setValue("price", 0);
+                                                }
+                                              }}
+                                              id="requirePayment"
+                                              name="requirePayment"
+                                              type="checkbox"
+                                              className="text-primary-600  h-4 w-4 rounded border-gray-300"
+                                              defaultChecked={requirePayment}
+                                            />
+                                          </div>
+                                          <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                            <p className="text-neutral-900">
+                                              {t("require_payment")} (0.5% +{" "}
+                                              <IntlProvider locale="en">
+                                                <FormattedNumber
+                                                  value={0.1}
+                                                  style="currency"
+                                                  currency={currency}
+                                                />
+                                              </IntlProvider>{" "}
+                                              {t("commission_per_transaction")})
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
                                 {requirePayment && (
                                   <div className="w-full">
@@ -1655,6 +1832,39 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </>
                         )}
+                        {hasGiphyIntegration && (
+                          <>
+                            <hr className="border-neutral-200" />
+                            <div className="block sm:flex">
+                              <div className="min-w-48 mb-4 sm:mb-0">
+                                <label
+                                  htmlFor="gif"
+                                  className="mt-2 flex text-sm font-medium text-neutral-700">
+                                  {t("confirmation_page_gif")}
+                                </label>
+                              </div>
+
+                              <div className="flex flex-col">
+                                <div className="w-full">
+                                  <div className="block items-center sm:flex">
+                                    <div className="w-full">
+                                      <div className="relative flex items-start">
+                                        <div className="flex items-center">
+                                          <SelectGifInput
+                                            defaultValue={eventType?.metadata?.giphyThankYouPage as string}
+                                            onChange={(url) => {
+                                              formMethods.setValue("giphyThankYouPage", url);
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </CollapsibleContent>
                     </>
                     {/* )} */}
@@ -1663,7 +1873,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <Button href="/event-types" color="secondary" tabIndex={-1}>
                       {t("cancel")}
                     </Button>
-                    <Button type="submit" disabled={updateMutation.isLoading}>
+                    <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
                       {t("update")}
                     </Button>
                   </div>
@@ -1709,6 +1919,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
+                {hashedLinkVisible && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(placeholderHashedLink);
+                      if (eventType.hashedLink) {
+                        showToast(t("private_link_copied"), "success");
+                      } else {
+                        showToast(t("enabled_after_update_description"), "warning");
+                      }
+                    }}
+                    type="button"
+                    className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                    <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                    {t("copy_private_link")}
+                  </button>
+                )}
+                <EmbedButton
+                  className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                  eventTypeId={eventType.id}
+                />
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
                     <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
@@ -1753,32 +1983,37 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     if (newLocation === LocationType.Link) {
                       details = { link: values.locationLink };
                     }
-
+                    if (newLocation === LocationType.UserPhone) {
+                      details = { hostPhoneNumber: values.locationPhoneNumber };
+                    }
                     addLocation(newLocation, details);
                     setShowLocationModal(false);
                   }}>
-                  <Controller
-                    name="locationType"
-                    control={locationFormMethods.control}
-                    render={() => (
-                      <Select
-                        maxMenuHeight={100}
-                        name="location"
-                        defaultValue={selectedLocation}
-                        options={locationOptions}
-                        isSearchable={false}
-                        className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                        onChange={(val) => {
-                          if (val) {
-                            locationFormMethods.setValue("locationType", val.value);
-                            locationFormMethods.unregister("locationLink");
-                            locationFormMethods.unregister("locationAddress");
-                            setSelectedLocation(val);
-                          }
-                        }}
-                      />
-                    )}
-                  />
+                  <div>
+                    <Controller
+                      name="locationType"
+                      control={locationFormMethods.control}
+                      render={() => (
+                        <Select
+                          maxMenuHeight={100}
+                          name="location"
+                          defaultValue={selectedLocation}
+                          options={locationOptions}
+                          isSearchable={false}
+                          className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                          onChange={(val) => {
+                            if (val) {
+                              locationFormMethods.setValue("locationType", val.value);
+                              locationFormMethods.unregister("locationLink");
+                              locationFormMethods.unregister("locationAddress");
+                              locationFormMethods.unregister("locationPhoneNumber");
+                              setSelectedLocation(val);
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
                   <LocationOptions />
                   <div className="mt-4 flex justify-end space-x-2">
                     <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
@@ -1856,6 +2091,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           )}
         </ClientSuspense>
+        <EmbedDialog />
       </Shell>
     </div>
   );
@@ -1935,12 +2171,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
+      hashedLink: true,
       successRedirectUrl: true,
       team: {
         select: {
@@ -1990,6 +2228,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       type: true,
       key: true,
       userId: true,
+      appId: true,
     },
   });
 
@@ -1997,6 +2236,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
     locations: locations as unknown as Location[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:
@@ -2004,6 +2244,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
         : false,
   };
+
+  const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -2020,8 +2262,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-
-  const hasPaymentIntegration = hasIntegration(integrations, "stripe_payment");
+  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
   const currency =
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
@@ -2062,6 +2303,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       hasPaymentIntegration,
+      hasGiphyIntegration,
       currency,
     },
   };
