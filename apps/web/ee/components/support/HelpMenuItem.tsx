@@ -184,7 +184,7 @@ export default function HelpMenuItem() {
             {t("submit")}
           </Button>
         </div>
-        <p>{resMessage}</p>
+        <p className="mt-2">{resMessage}</p>
       </div>
     </div>
   );
