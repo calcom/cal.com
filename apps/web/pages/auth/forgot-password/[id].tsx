@@ -63,16 +63,13 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
             </h2>
           </div>
           <p>{t("password_has_been_reset_login")}</p>
-          {
-            // eslint-disable-next-line @next/next/link-passhref
-            <Link href="/auth/login">
-              <button
-                type="button"
-                className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
-                {t("login")}
-              </button>
-            </Link>
-          }
+          <Link href="/auth/login">
+            <button
+              type="button"
+              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+              {t("login")}
+            </button>
+          </Link>
         </div>
       </>
     );

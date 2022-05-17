@@ -140,6 +140,7 @@ export async function login(
   await signInLocator.click();
 
   // 2 seconds of delay to give the session enough time for a clean load
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(2000);
 }
 

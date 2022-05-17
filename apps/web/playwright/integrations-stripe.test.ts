@@ -12,6 +12,7 @@ const IS_STRIPE_ENABLED = !!(
 );
 
 test.describe("Stripe integration", () => {
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
 
   test.describe("Stripe integration dashboard", () => {

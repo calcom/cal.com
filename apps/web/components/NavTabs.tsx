@@ -1,9 +1,10 @@
 import { AdminRequired } from "components/ui/AdminRequired";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
-import React, { ElementType, FC, Fragment, MouseEventHandler } from "react";
+import { FC, Fragment, MouseEventHandler } from "react";
 
 import classNames from "@lib/classNames";
+import { SVGComponent } from "@lib/types/SVGComponent";
 
 export interface NavTabProps {
   tabs: {
@@ -12,7 +13,7 @@ export interface NavTabProps {
     href?: string;
     /** If you want to change query param tabName as per current tab */
     tabName?: string;
-    icon?: ElementType;
+    icon?: SVGComponent;
     adminRequired?: boolean;
   }[];
   linkProps?: Omit<LinkProps, "href">;
