@@ -4,7 +4,7 @@ import { getSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
@@ -122,21 +122,23 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <Link href="/" passHref>
-          {
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-              src="https://cal.com/logo-white.svg"
-              alt="Cal.com Logo"
-              style={{
-                top: 46,
-                left: 24,
-              }}
-            />
-          }
-        </Link>
-        {JoinCall}
+        <>
+          <Link href="/" passHref>
+            {
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="h-5·w-auto fixed z-10 hidden sm:inline-block"
+                src="https://cal.com/logo-white.svg"
+                alt="Cal.com Logo"
+                style={{
+                  top: 46,
+                  left: 24,
+                }}
+              />
+            }
+          </Link>
+          {JoinCall}
+        </>
       </div>
     </>
   );

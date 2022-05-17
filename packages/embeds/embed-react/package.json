@@ -31,14 +31,14 @@
   },
   "devDependencies": {
     "@calcom/embed-snippet": "^1.0.0",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "@vitejs/plugin-react": "^1.3.0",
-    "eslint": "^8.10.0",
-    "vite": "^2.9.5"
+    "@types/react": "18.0.9",
+    "@types/react-dom": "18.0.4",
+    "@vitejs/plugin-react": "^1.3.2",
+    "eslint": "^8.15.0",
+    "vite": "^2.9.9"
   },
   "dependencies": {
-    "playwright": "^1.21.1",
-    "typescript": "^4.6.3"
+    "playwright": "^1.22.1",
+    "typescript": "^4.6.4"
   }
 }
