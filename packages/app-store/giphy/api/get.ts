@@ -24,7 +24,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { url } = req.body;
     // Extract Giphy ID from embed url
-    var matches = giphyUrlRegexp.exec(url);
+    const matches = giphyUrlRegexp.exec(url);
     if (!matches || matches.length < 2) {
       return res.status(400).json({ message: "Giphy URL is invalid" });
     }

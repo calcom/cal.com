@@ -4,14 +4,14 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 let api_key = "";
 
-const getGiphyApiKey = async () => {
+const checkGiphyApiKey = async () => {
   const appKeys = await getAppKeysFromSlug("giphy");
   if (typeof appKeys.api_key === "string") api_key = appKeys.api_key;
   if (!api_key) throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
 };
 
-export const searchGiphy = async (locale: string, keyword: string, offset: number = 0) => {
-  await getGiphyApiKey();
+export const searchGiphy = async (locale: string, keyword: string, offset = 0) => {
+  await checkGiphyApiKey();
   const queryParams = new URLSearchParams({
     api_key,
     q: keyword,
@@ -36,7 +36,7 @@ export const searchGiphy = async (locale: string, keyword: string, offset: numbe
 };
 
 export const getGiphyById = async (giphyId: string) => {
-  await getGiphyApiKey();
+  await checkGiphyApiKey();
   const queryParams = new URLSearchParams({
     api_key,
   });
