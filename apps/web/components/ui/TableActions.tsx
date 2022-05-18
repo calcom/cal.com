@@ -13,8 +13,8 @@ export type ActionType = {
   disabled?: boolean;
   color?: "primary" | "secondary";
 } & (
-  | { href?: string; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => any }
-  | { href?: never; onClick?: (e?: any) => any }
+  | { href?: string; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void }
+  | { href?: never; onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void }
 ) & {
     actions?: ActionType[];
   };
@@ -23,7 +23,13 @@ interface Props {
   actions: ActionType[];
 }
 
-const DropdownActions = ({ actions, actionTrigger }: { actions: ActionType[]; actionTrigger?: any }) => {
+const DropdownActions = ({
+  actions,
+  actionTrigger,
+}: {
+  actions: ActionType[];
+  actionTrigger?: React.ReactNode;
+}) => {
   return (
     <Dropdown>
       {!actionTrigger ? (
