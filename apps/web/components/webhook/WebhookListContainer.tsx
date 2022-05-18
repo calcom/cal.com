@@ -30,7 +30,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
     <QueryCell
       query={query}
       success={({ data }) => (
-        <div className="border-b border-gray-200 py-8">
+        <div className="border-b border-gray-200 py-8 pl-2 pr-1">
           <ShellSubHeading
             className="mt-2"
             title={props.title}

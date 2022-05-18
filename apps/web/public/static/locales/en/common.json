@@ -776,7 +776,6 @@
   "api_keys": "API Keys",
   "api_key_modal_subtitle": "API keys allow you to make API calls for your own account.",
   "api_keys_subtitle": "Generate API keys to use for accessing your own account.",
-  "generate_new_api_key": "Generate new API key",
   "create_api_key": "Create an API key",
   "personal_note": "Name this key",
   "personal_note_placeholder": "E.g. Development",
