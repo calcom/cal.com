@@ -11,6 +11,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -28,6 +29,7 @@ import {
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import getBusyTimes from "@lib/getBusyTimes";
+import isOutOfBounds from "@lib/isOutOfBounds";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -102,32 +104,6 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   }
 
   return t;
-}
-
-function isOutOfBounds(
-  time: dayjs.ConfigType,
-  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
-): boolean {
-  const date = dayjs(time);
-
-  switch (periodType) {
-    case "rolling": {
-      const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).businessDaysAdd(periodDays).endOf("day");
-      return date.endOf("day").isAfter(periodRollingEndDay);
-    }
-
-    case "range": {
-      const periodRangeStartDay = dayjs(periodStartDate).tz(timeZone).endOf("day");
-      const periodRangeEndDay = dayjs(periodEndDate).tz(timeZone).endOf("day");
-      return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
-    }
-
-    case "unlimited":
-    default:
-      return false;
-  }
 }
 
 const userSelect = Prisma.validator<Prisma.UserArgs>()({
@@ -348,18 +324,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     t: tOrganizer,
   };
 
-  const additionalNotes =
-    reqBody.notes +
-    reqBody.customInputs.reduce(
-      (str, input) => str + "<br /><br />" + input.label + ":<br />" + input.value,
-      ""
-    );
+  const additionalNotes = reqBody.notes;
+
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
+
+  if (reqBody.customInputs.length > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputs[label] = value;
+    });
+  }
 
   const evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
+    customInputs,
     startTime: reqBody.start,
     endTime: reqBody.end,
     organizer: {
@@ -456,6 +436,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: dayjs(evt.startTime).toDate(),
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
+      customInputs: isPrismaObjOrUndefined(evt.customInputs),
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,
@@ -613,7 +594,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        timeZone: currentUser.timeZone,
       });
     } catch {
       log.debug({
@@ -731,6 +711,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...evt,
             additionInformation: metadata,
             additionalNotes,
+            customInputs,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );

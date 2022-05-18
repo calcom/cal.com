@@ -6,6 +6,7 @@ import { z } from "zod";
 import getApps from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
@@ -388,18 +389,17 @@ const loggedInViewerRouter = createProtectedRouter()
           AND: passedBookingsFilter,
         },
         select: {
+          ...bookingMinimalSelect,
           uid: true,
-          title: true,
-          description: true,
-          attendees: true,
           confirmed: true,
           rejected: true,
-          id: true,
-          startTime: true,
           recurringEventId: true,
-          endTime: true,
+          location: true,
           eventType: {
             select: {
+              slug: true,
+              id: true,
+              eventName: true,
               price: true,
               recurringEvent: true,
               team: {
