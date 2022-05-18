@@ -1,9 +1,10 @@
 import { expect, Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
+import noop from "lodash/noop";
 
 export function todo(title: string) {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  test.skip(title, () => {});
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(title, noop);
 }
 
 type Request = IncomingMessage & { body?: unknown };
