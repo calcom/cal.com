@@ -61,7 +61,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   title: true,
   slug: true,
   length: true,
-  locations: true,
   hidden: true,
   position: true,
   userId: true,
@@ -86,4 +85,4 @@ export const schemaEventTypeReadPublic = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   description: true,
-}).merge(z.object({ metadata: z.any() }));
+}).merge(z.object({ metadata: z.any(), locations: z.any() }));
