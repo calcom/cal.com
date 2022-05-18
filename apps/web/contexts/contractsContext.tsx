@@ -44,5 +44,6 @@ export function ContractsProvider({ children }: Props) {
     addContract,
   };
 
-  return <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>;
+
+  return <ContractsContext.Provider value={value as any}>{children}</ContractsContext.Provider>;
 }
