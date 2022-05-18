@@ -255,7 +255,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }
-  const locations = eventType.locations as LocationObject[];
+  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
 
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
