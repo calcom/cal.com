@@ -40,7 +40,7 @@
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
     "@hookform/error-message": "^2.0.0",
-    "@hookform/resolvers": "^2.8.9",
+    "@hookform/resolvers": "^2.8.10",
     "@jitsu/sdk-js": "^2.2.4",
     "@metamask/providers": "^8.1.1",
     "@next-auth/prisma-adapter": "^1.0.3",
@@ -114,7 +114,7 @@
     "zod": "^3.16.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.10",
+    "@babel/core": "^7.17.12",
     "@calcom/config": "*",
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
