@@ -1,8 +1,7 @@
 import Router from "next/router";
-import { useCallback, useMemo, useState } from "react";
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Web3 from "web3";
-import { AbstractProvider } from "web3-core";
+import type { AbstractProvider } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -57,13 +56,12 @@ const CryptoSection = (props: CryptoSectionProps) => {
 
       const contract = new window.web3.eth.Contract(genericAbi as AbiItem[], props.smartContractAddress);
       const balance = await contract.methods.balanceOf(window.ethereum.selectedAddress).call();
-
       const hasToken = balance > 0;
 
       if (!hasToken) {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
-        const account = (await window.web3.eth.getAccounts())[0];
+        const [account] = await window.web3.eth.getAccounts();
         const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account, "");
         addContract({ address: props.smartContractAddress, signature });
 
