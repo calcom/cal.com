@@ -21,7 +21,7 @@ export default function HelpMenuItem() {
     setDisableSubmit(false);
   };
 
-  const sendFeedback = async (rating: number, comment: string) => {
+  const sendFeedback = async (rating: string, comment: string) => {
     setLoading(true);
     try {
       const body = {
