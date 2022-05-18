@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import findValidApiKey from "@calcom/ee/lib/api/findValidApiKey";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.query.apiKey as string;
@@ -24,10 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           userId: validKey.userId,
         },
         select: {
-          description: true,
-          startTime: true,
-          endTime: true,
-          title: true,
+          ...bookingMinimalSelect,
           location: true,
           attendees: {
             select: {

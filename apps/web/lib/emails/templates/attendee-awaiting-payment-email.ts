@@ -50,6 +50,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getDescription()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -97,6 +98,7 @@ ${this.getAdditionalNotes()}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>
