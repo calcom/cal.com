@@ -65,7 +65,7 @@ function RedirectionToast({ url }: { url: string }) {
   const parsedExternalUrl = new URL(url);
 
   /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
     parsedSuccessUrl.searchParams.set(name, value);
   }
 
@@ -201,6 +201,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
@@ -705,7 +706,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  let eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  const eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventTypeRaw) {
     return {
