@@ -55,7 +55,7 @@ export async function eventTypeById(
       case "GET":
         await prisma.eventType
           .findUnique({ where: { id: safeQuery.data.id } })
-          .then((data) => schemaEventTypeReadPublic.parse(data))
+          // .then((data) => schemaEventTypeReadPublic.parse(data))
           .then((event_type) => res.status(200).json({ event_type }))
           .catch((error: Error) =>
             res.status(404).json({
