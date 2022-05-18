@@ -7,7 +7,7 @@
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
-    "@hubspot/api-client": "^6.0.1-beta4"
+    "@hubspot/api-client": "^6.0.1"
   },
   "devDependencies": {
     "@calcom/types": "*"

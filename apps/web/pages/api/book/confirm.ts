@@ -1,6 +1,5 @@
 import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import rrule from "rrule";
 
 import EventManager from "@calcom/core/EventManager";
 import logger from "@calcom/lib/logger";
