@@ -36,5 +36,6 @@ export function ContractsProvider({ children }: Props) {
     contracts: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("contracts") || "{}") : {},
     addContract,
   };
+  //
   return <ContractsContext.Provider value={value as any}>{children}</ContractsContext.Provider>;
 }
