@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { isPrismaObjOrUndefined } from "@calcom/lib";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
@@ -33,13 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       select: {
-        title: true,
-        description: true,
-        customInputs: true,
+        ...bookingMinimalSelect,
         location: true,
-        startTime: true,
-        endTime: true,
-        attendees: true,
         user: {
           select: {
             email: true,
@@ -50,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             destinationCalendar: true,
           },
         },
-        id: true,
         uid: true,
         destinationCalendar: true,
       },
