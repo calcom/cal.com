@@ -1,11 +1,4 @@
-import {
-  BookingStatus,
-  Credential,
-  EventType,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
@@ -36,6 +29,7 @@ import {
 import { ensureArray } from "@lib/ensureArray";
 import { getEventName } from "@lib/event";
 import getBusyTimes from "@lib/getBusyTimes";
+import isOutOfBounds from "@lib/isOutOfBounds";
 import prisma from "@lib/prisma";
 import { BookingCreateBody } from "@lib/types/booking";
 import sendPayload from "@lib/webhooks/sendPayload";
@@ -110,49 +104,6 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
   }
 
   return t;
-}
-
-function isOutOfBounds(
-  time: dayjs.ConfigType,
-  {
-    periodType,
-    periodDays,
-    periodCountCalendarDays,
-    periodStartDate,
-    periodEndDate,
-    timeZone,
-  }: Pick<
-    EventType,
-    "periodType" | "periodDays" | "periodEndDate" | "periodStartDate" | "periodCountCalendarDays"
-  > &
-    Pick<User, "timeZone">
-): boolean {
-  const date = dayjs(time);
-
-  switch (periodType) {
-    case "ROLLING": {
-      const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs()
-            .tz(timeZone)
-            .add(periodDays || 0, "days")
-            .endOf("day")
-        : dayjs()
-            .tz(timeZone)
-            .businessDaysAdd(periodDays || 0)
-            .endOf("day");
-      return date.endOf("day").isAfter(periodRollingEndDay);
-    }
-
-    case "RANGE": {
-      const periodRangeStartDay = dayjs(periodStartDate).tz(timeZone).endOf("day");
-      const periodRangeEndDay = dayjs(periodEndDate).tz(timeZone).endOf("day");
-      return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
-    }
-
-    case "UNLIMITED":
-    default:
-      return false;
-  }
 }
 
 const userSelect = Prisma.validator<Prisma.UserArgs>()({
@@ -643,7 +594,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        timeZone: currentUser.timeZone,
       });
     } catch {
       log.debug({
