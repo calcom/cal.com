@@ -12,7 +12,8 @@ export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resMessage, setResMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("Please try again");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
 
@@ -190,7 +191,16 @@ export default function HelpMenuItem() {
             {t("submit")}
           </Button>
         </div>
-        <p className="mt-2">{resMessage}</p>
+        {successMessage && (
+          <div className="mb-4 bg-green-100 p-4 text-green-700">
+            <p className="font-medium">{successMessage}</p>
+          </div>
+        )}
+        {errorMessage && (
+          <div className="mb-4 bg-red-100 p-4 text-sm text-red-700">
+            <p className="font-medium">{errorMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   );
