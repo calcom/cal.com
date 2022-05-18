@@ -51,7 +51,7 @@ function isOutOfBounds(
   >
 ) {
   const date = dayjs(time);
-  if (!periodDays) throw Error("periodDays is undefined");
+  if (!periodDays) return false;
 
   switch (periodType) {
     case PeriodType.ROLLING: {
