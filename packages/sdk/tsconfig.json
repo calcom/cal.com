@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "./lib",
+    "strict": true
+  },
+  "include": ["src", "jest.config.ts"],
+  "exclude": ["**/node_modules", "**/__tests__/*"]
+}

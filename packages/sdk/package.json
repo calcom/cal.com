@@ -1,0 +1,42 @@
+{
+  "name": "@calcom/sdk",
+  "version": "1.0.0",
+  "description": "SDK for the Cal.com Public API",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --config jest.config.ts",
+    "build": "tsc",
+    "clean": "rm -rf node_modules && rm -rf lib && yarn install && yarn build",
+    "format": "prettier --write 'src/**/*.ts'",
+    "lint": "eslint --ext .js,.ts src",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "keywords": [
+    "cal.com",
+    "sdk",
+    "scheduling",
+    "api",
+    "infrastrcture"
+  ],
+  "author": "Cal.com, Inc",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^17.0.31",
+    "api": "^4.4.0",
+    "codecov": "^3.8.3",
+    "dotenv": "^16.0.0",
+    "eslint": "^8.14.0",
+    "jest": "^28.0.3",
+    "prettier": "^2.6.2",
+    "ts-jest": "^28.0.1",
+    "typescript": "^4.6.4"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
