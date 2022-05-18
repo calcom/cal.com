@@ -1,11 +1,10 @@
-import { Prisma } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { getLocationLabels } from "@calcom/app-store/utils";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
-import { asStringOrThrow, asStringOrNull } from "@lib/asStringOrNull";
+import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -61,6 +60,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       users: {
         select: {
           id: true,
+          username: true,
           avatar: true,
           name: true,
         },

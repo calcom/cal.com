@@ -1,7 +1,7 @@
 import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
-import dayjsBusinessTime from "dayjs-business-time";
+import dayjsBusinessTime from "dayjs-business-days2";
 import isBetween from "dayjs/plugin/isBetween";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -114,7 +114,7 @@ function isOutOfBounds(
     case "rolling": {
       const periodRollingEndDay = periodCountCalendarDays
         ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).addBusinessTime(periodDays, "days").endOf("day");
+        : dayjs().tz(timeZone).businessDaysAdd(periodDays).endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
