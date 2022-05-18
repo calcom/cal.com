@@ -2,7 +2,7 @@ import { expect, Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
 
 export function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   test.skip(title, () => {});
 }
 
