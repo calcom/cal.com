@@ -6,12 +6,12 @@ import { useState } from "react";
 
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
-import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";

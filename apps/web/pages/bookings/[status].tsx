@@ -6,12 +6,12 @@ import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/componen
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import BookingsShell from "@components/BookingsShell";
-import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
