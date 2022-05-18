@@ -81,7 +81,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   beforeEventBuffer: true,
   afterEventBuffer: true,
   schedulingType: true,
-  metadata: true,
   price: true,
   currency: true,
   slotInterval: true,
