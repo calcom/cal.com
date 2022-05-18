@@ -167,39 +167,6 @@ function ConnectedCalendarsList(props: Props) {
 type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
 const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
 
-function CalendarList(props: Props) {
-  const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
-  return (
-    <QueryCell
-      query={query}
-      success={({ data }) => (
-        <List>
-          {data.items.filter(installedFilter).map((item) => (
-            <IntegrationListItem
-              key={item.title}
-              title={item.title}
-              imageSrc={item.imageSrc}
-              description={item.description}
-              actions={
-                <InstallAppButton
-                  type={item.type}
-                  render={(buttonProps) => (
-                    <Button color="secondary" {...buttonProps}>
-                      {t("connect")}
-                    </Button>
-                  )}
-                  onChanged={() => props.onChanged()}
-                />
-              }
-            />
-          ))}
-        </List>
-      )}
-    />
-  );
-}
-
 export function CalendarListContainer(props: { heading?: false }) {
   const { t } = useLocale();
   const { heading = true } = props;

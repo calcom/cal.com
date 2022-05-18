@@ -49,6 +49,7 @@ const AdditionalCalendarSelector = ({ isLoading }: Props): JSX.Element | null =>
         }));
         const customStyles = {
           // Forgive me father for I have sinned, "any" is necessary here
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           placeholder: (defaultStyles: any) => {
             return {
               ...defaultStyles,

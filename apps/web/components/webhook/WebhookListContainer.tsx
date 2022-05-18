@@ -1,7 +1,6 @@
 import { PlusIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
