@@ -2,7 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import Button from "@calcom/ui/Button";
-import { DialogClose, DialogTrigger, Dialog, DialogContent } from "@calcom/ui/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
@@ -71,15 +71,15 @@ export default function ImageUploader({
   ...props
 }: ImageUploaderProps) {
   const { t } = useLocale();
-  const [imageSrc, setImageSrc] = useState<string | null>();
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>();
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
   });
 
   useEffect(() => {
-    setImageSrc(props.imageSrc);
+    if (props.imageSrc) setImageSrc(props.imageSrc);
   }, [props.imageSrc]);
 
   const onInputFile = (e: FileEvent<HTMLInputElement>) => {
@@ -90,8 +90,9 @@ export default function ImageUploader({
   };
 
   const showCroppedImage = useCallback(
-    async (croppedAreaPixels) => {
+    async (croppedAreaPixels: Area | null) => {
       try {
+        if (!croppedAreaPixels) return;
         const croppedImage = await getCroppedImg(
           result as string /* result is always string when using readAsDataUrl */,
           croppedAreaPixels

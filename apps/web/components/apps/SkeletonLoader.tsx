@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui";
 
 import { ShellSubHeading } from "@components/Shell";
 

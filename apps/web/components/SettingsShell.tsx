@@ -3,7 +3,7 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import NavTabs, { NavTabProps } from "./NavTabs";
+import NavTabs from "./NavTabs";
 
 export default function SettingsShell({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
