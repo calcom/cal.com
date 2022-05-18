@@ -16,7 +16,10 @@ export async function selectedCalendarById(
 ) {
   const safeQuery = schemaQueryIdAsString.safeParse(query);
   const safeBody = schemaSelectedCalendarBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   // This is how we set the userId and externalId in the query for managing compoundId.
   const [paramUserId, integration, externalId] = safeQuery.data.id.split("_");
   if (userId !== parseInt(paramUserId)) res.status(401).json({ message: "Unauthorized" });

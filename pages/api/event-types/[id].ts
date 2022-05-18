@@ -15,7 +15,10 @@ export async function eventTypeById(
   res: NextApiResponse<EventTypeResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });

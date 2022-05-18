@@ -12,7 +12,10 @@ export async function WebhookById(
   res: NextApiResponse<WebhookResponse>
 ) {
   const safeQuery = schemaQueryIdAsString.safeParse(query);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const data = await prisma.webhook.findMany({ where: { userId } });
   const userWebhooks = data.map((webhook) => webhook.id);
   if (!userWebhooks.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });

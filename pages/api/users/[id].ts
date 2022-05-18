@@ -16,7 +16,10 @@ export async function userById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   console.log(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {

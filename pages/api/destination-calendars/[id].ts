@@ -19,7 +19,10 @@ export async function destionationCalendarById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDestinationCalendarEditBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const data = await prisma.destinationCalendar.findMany({ where: { userId } });
   const userDestinationCalendars = data.map((destinationCalendar) => destinationCalendar.id);
   //  FIXME: Should we also check ownership of bokingId and eventTypeId to avoid users cross-pollinating other users calendars.

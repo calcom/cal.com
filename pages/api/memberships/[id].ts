@@ -12,7 +12,10 @@ export async function membershipById(
   res: NextApiResponse<MembershipResponse>
 ) {
   const safeQuery = schemaQueryIdAsString.safeParse(query);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   // This is how we set the userId and teamId in the query for managing compoundId.
   const [paramUserId, teamId] = safeQuery.data.id.split("_");
   if (parseInt(paramUserId) !== userId) res.status(401).json({ message: "Unauthorized" });
