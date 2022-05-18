@@ -88,9 +88,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test-results
-          path: |
-            test-results
-            playwright/screenshots
-            playwright/videos
-            playwright/results
-            playwright/reports
+          path: test-results
