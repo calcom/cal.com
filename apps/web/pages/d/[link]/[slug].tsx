@@ -157,7 +157,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
-  let booking: GetBookingType | null = null;
+  const booking: GetBookingType | null = null;
 
   const profile = {
     name: user.name || user.username,

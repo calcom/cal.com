@@ -15,7 +15,7 @@ type BookingFixture = ReturnType<typeof createBookingFixture>;
 
 // creates a user fixture instance and stores the collection
 export const createBookingsFixture = (page: Page) => {
-  let store = { bookings: [], page } as { bookings: BookingFixture[]; page: typeof page };
+  const store = { bookings: [], page } as { bookings: BookingFixture[]; page: typeof page };
   return {
     create: async (
       userId: number,
