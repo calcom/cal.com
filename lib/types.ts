@@ -127,7 +127,7 @@ export type EventTypeCustomInputsResponse = BaseResponse & {
 
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<EventType>;
+  event_type?: Partial<EventType & { locations?: object[] }>;
 };
 export type EventTypesResponse = BaseResponse & {
   event_types?: Partial<EventType>[];
