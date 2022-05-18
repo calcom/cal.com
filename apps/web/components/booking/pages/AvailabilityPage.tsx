@@ -25,7 +25,6 @@ import {
   useIsEmbed,
   useIsBackgroundTransparent,
   sdkActionManager,
-  useEmbedType,
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
@@ -68,7 +67,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  let isBackgroundTransparent = useIsBackgroundTransparent();
+  const isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
