@@ -1,5 +1,11 @@
-import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
-import { PaperAirplaneIcon } from "@heroicons/react/outline";
+import {
+  BanIcon,
+  CheckIcon,
+  ClockIcon,
+  PaperAirplaneIcon,
+  PencilAltIcon,
+  XIcon,
+} from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
@@ -18,7 +24,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { parseRecurringDates } from "@lib/parseDate";
-import { inferQueryOutput, trpc, inferQueryInput } from "@lib/trpc";
+import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -83,7 +89,7 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
-      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      onClick: (e) => {
         e.stopPropagation();
         setRejectionDialogIsOpen(true);
       },
@@ -96,7 +102,7 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
-      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      onClick: (e) => {
         e.stopPropagation();
         mutation.mutate(true);
       },
@@ -112,9 +118,6 @@ function BookingListItem(booking: BookingItemProps) {
       label: t("cancel"),
       href: `/cancel/${booking.uid}`,
       icon: XIcon,
-      onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        e.stopPropagation();
-      },
     },
     {
       id: "reschedule",
@@ -126,15 +129,12 @@ function BookingListItem(booking: BookingItemProps) {
           icon: PencilAltIcon,
           label: t("edit_booking"),
           href: `/reschedule/${booking.uid}`,
-          onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.stopPropagation();
-          },
         },
         {
           id: "reschedule_request",
           icon: ClockIcon,
           label: t("send_reschedule_request"),
-          onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+          onClick: (e) => {
             e.stopPropagation();
             setIsOpenRescheduleDialog(true);
           },

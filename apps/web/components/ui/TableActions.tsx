@@ -2,7 +2,7 @@ import { ChevronDownIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import React, { FC } from "react";
 
 import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -13,15 +13,18 @@ export type ActionType = {
   disabled?: boolean;
   color?: "primary" | "secondary";
 } & (
-  | { href?: string; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void }
-  | { href?: never; onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void }
-) & {
-    actions?: ActionType[];
-  };
+  | { href: string; onClick?: never; actions?: never }
+  | { href?: never; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void; actions?: never }
+  | { actions?: ActionType[]; href?: never; onClick?: never }
+);
 
 interface Props {
   actions: ActionType[];
 }
+
+const defaultAction = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  e.stopPropagation();
+};
 
 const DropdownActions = ({
   actions,
@@ -49,7 +52,7 @@ const DropdownActions = ({
               className="w-full rounded-none font-normal"
               href={action.href}
               StartIcon={action.icon}
-              onClick={action.onClick}
+              onClick={action.onClick || defaultAction}
               data-testid={action.id}>
               {action.label}
             </Button>
@@ -76,7 +79,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               key={action.id}
               data-testid={action.id}
               href={action.href}
-              onClick={action.onClick}
+              onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
               {...(action?.actions ? { EndIcon: ChevronDownIcon } : null)}
               disabled={action.disabled}
