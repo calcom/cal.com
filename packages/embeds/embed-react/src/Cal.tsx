@@ -25,7 +25,7 @@ export default function Cal({
     }
     initializedRef.current = true;
     const element = ref.current;
-    const initConfig = {};
+    let initConfig = {};
     if (calOrigin) {
       (initConfig as any).origin = calOrigin;
     }
