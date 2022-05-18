@@ -86,4 +86,4 @@ export const schemaEventTypeReadPublic = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   description: true,
-});
+}).merge(z.object({ metadata: z.any() }));
