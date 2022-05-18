@@ -9,14 +9,14 @@ import classNames from "@lib/classNames";
 import ContactMenuItem from "./ContactMenuItem";
 
 export default function HelpMenuItem() {
-  const [rating, setRating] = useState<null | number>(null);
+  const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [resMessage, setResMessage] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
 
-  const onRatingClick = (value: number) => {
+  const onRatingClick = (value: string) => {
     setRating(value);
     setDisableSubmit(false);
   };
@@ -93,72 +93,13 @@ export default function HelpMenuItem() {
           onChange={(event) => setComment(event.target.value)}
           className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 shadow-sm sm:text-sm"></textarea>
 
-        <div className="flex items-center">
+        <div className="my-3 flex justify-end">
           <button
             className={classNames(
-              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === 4 ? "bg-gray-300" : ""
-            )}
-            onClick={() => onRatingClick(4)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
-              <path
-                fill="#FFCC4D"
-                d="M36 18c0 9.941-8.059 18-18 18S0 27.941 0 18 8.059 0 18 0s18 8.059 18 18"
-              />
-              <path
-                fill="#664500"
-                d="M18 21c-3.623 0-6.027-.422-9-1-.679-.131-2 0-2 2 0 4 4.595 9 11 9 6.404 0 11-5 11-9 0-2-1.321-2.132-2-2-2.973.578-5.377 1-9 1z"
-              />
-              <path fill="#FFF" d="M9 22s3 1 9 1 9-1 9-1-2 4-9 4-9-4-9-4z" />
-              <path
-                fill="#E95F28"
-                d="M15.682 4.413l-4.542.801L8.8.961C8.542.492 8.012.241 7.488.333c-.527.093-.937.511-1.019 1.039l-.745 4.797-4.542.801c-.535.094-.948.525-1.021 1.064s.211 1.063.703 1.297l4.07 1.932-.748 4.812c-.083.536.189 1.064.673 1.309.179.09.371.133.562.133.327 0 .65-.128.891-.372l3.512-3.561 4.518 2.145c.49.232 1.074.123 1.446-.272.372-.395.446-.984.185-1.459L13.625 9.73l3.165-3.208c.382-.387.469-.977.217-1.459-.254-.482-.793-.743-1.325-.65zm4.636 0l4.542.801L27.2.961c.258-.469.788-.72 1.312-.628.526.093.936.511 1.018 1.039l.745 4.797 4.542.801c.536.094.949.524 1.021 1.063s-.211 1.063-.703 1.297l-4.07 1.932.748 4.812c.083.536-.189 1.064-.673 1.309-.179.09-.371.133-.562.133-.327 0-.65-.128-.891-.372l-3.512-3.561-4.518 2.145c-.49.232-1.074.123-1.446-.272-.372-.395-.446-.984-.185-1.459l2.348-4.267-3.165-3.208c-.382-.387-.469-.977-.217-1.459.255-.482.794-.743 1.326-.65z"
-              />
-            </svg>
-          </button>
-          <button
-            className={classNames(
-              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === 3 ? "bg-gray-300" : ""
-            )}
-            onClick={() => onRatingClick(3)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
-              <path
-                fill="#FFCC4D"
-                d="M36 18c0 9.941-8.059 18-18 18-9.94 0-18-8.059-18-18C0 8.06 8.06 0 18 0c9.941 0 18 8.06 18 18"
-              />
-              <path
-                fill="#664500"
-                d="M28.457 17.797c-.06-.135-1.499-3.297-4.457-3.297-2.957 0-4.397 3.162-4.457 3.297-.092.207-.032.449.145.591.175.142.426.147.61.014.012-.009 1.262-.902 3.702-.902 2.426 0 3.674.881 3.702.901.088.066.194.099.298.099.11 0 .221-.037.312-.109.177-.142.238-.386.145-.594zm-12 0c-.06-.135-1.499-3.297-4.457-3.297-2.957 0-4.397 3.162-4.457 3.297-.092.207-.032.449.144.591.176.142.427.147.61.014.013-.009 1.262-.902 3.703-.902 2.426 0 3.674.881 3.702.901.088.066.194.099.298.099.11 0 .221-.037.312-.109.178-.142.237-.386.145-.594zM18 22c-3.623 0-6.027-.422-9-1-.679-.131-2 0-2 2 0 4 4.595 9 11 9 6.404 0 11-5 11-9 0-2-1.321-2.132-2-2-2.973.578-5.377 1-9 1z"
-              />
-              <path fill="#FFF" d="M9 23s3 1 9 1 9-1 9-1-2 4-9 4-9-4-9-4z" />
-            </svg>
-          </button>
-          <button
-            className={classNames(
-              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === 2 ? "bg-gray-300" : ""
-            )}
-            onClick={() => onRatingClick(2)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
-              <path
-                fill="#FFCC4D"
-                d="M36 18c0 9.941-8.059 18-18 18-9.94 0-18-8.059-18-18C0 8.06 8.06 0 18 0c9.941 0 18 8.06 18 18"
-              />
-              <ellipse fill="#664500" cx="11.5" cy="14.5" rx="2.5" ry="3.5" />
-              <ellipse fill="#664500" cx="24.5" cy="14.5" rx="2.5" ry="3.5" />
-              <path
-                fill="#664500"
-                d="M8.665 27.871c.178.161.444.171.635.029.039-.029 3.922-2.9 8.7-2.9 4.766 0 8.662 2.871 8.7 2.9.191.142.457.13.635-.029.177-.16.217-.424.094-.628C27.3 27.029 24.212 22 18 22s-9.301 5.028-9.429 5.243c-.123.205-.084.468.094.628z"
-              />
-            </svg>
-          </button>
-          <button
-            className={classNames(
-              "m-1 items-center justify-center rounded-full p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
               rating === 1 ? "bg-gray-300" : ""
             )}
-            onClick={() => onRatingClick(1)}>
+            onClick={() => onRatingClick("Extremely unsatisfied")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
               <path
                 fill="#FFCC4D"
@@ -175,6 +116,65 @@ export default function HelpMenuItem() {
               />
               <ellipse fill="#5DADEC" cx="18" cy="34" rx="18" ry="2" />
               <ellipse fill="#E75A70" cx="18" cy="27" rx="3" ry="2" />
+            </svg>
+          </button>
+          <button
+            className={classNames(
+              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 2 ? "bg-gray-300" : ""
+            )}
+            onClick={() => onRatingClick("Unsatisfied")}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
+              <path
+                fill="#FFCC4D"
+                d="M36 18c0 9.941-8.059 18-18 18-9.94 0-18-8.059-18-18C0 8.06 8.06 0 18 0c9.941 0 18 8.06 18 18"
+              />
+              <ellipse fill="#664500" cx="11.5" cy="14.5" rx="2.5" ry="3.5" />
+              <ellipse fill="#664500" cx="24.5" cy="14.5" rx="2.5" ry="3.5" />
+              <path
+                fill="#664500"
+                d="M8.665 27.871c.178.161.444.171.635.029.039-.029 3.922-2.9 8.7-2.9 4.766 0 8.662 2.871 8.7 2.9.191.142.457.13.635-.029.177-.16.217-.424.094-.628C27.3 27.029 24.212 22 18 22s-9.301 5.028-9.429 5.243c-.123.205-.084.468.094.628z"
+              />
+            </svg>
+          </button>
+          <button
+            className={classNames(
+              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 3 ? "bg-gray-300" : ""
+            )}
+            onClick={() => onRatingClick("Satisfied")}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
+              <path
+                fill="#FFCC4D"
+                d="M36 18c0 9.941-8.059 18-18 18-9.94 0-18-8.059-18-18C0 8.06 8.06 0 18 0c9.941 0 18 8.06 18 18"
+              />
+              <path
+                fill="#664500"
+                d="M28.457 17.797c-.06-.135-1.499-3.297-4.457-3.297-2.957 0-4.397 3.162-4.457 3.297-.092.207-.032.449.145.591.175.142.426.147.61.014.012-.009 1.262-.902 3.702-.902 2.426 0 3.674.881 3.702.901.088.066.194.099.298.099.11 0 .221-.037.312-.109.177-.142.238-.386.145-.594zm-12 0c-.06-.135-1.499-3.297-4.457-3.297-2.957 0-4.397 3.162-4.457 3.297-.092.207-.032.449.144.591.176.142.427.147.61.014.013-.009 1.262-.902 3.703-.902 2.426 0 3.674.881 3.702.901.088.066.194.099.298.099.11 0 .221-.037.312-.109.178-.142.237-.386.145-.594zM18 22c-3.623 0-6.027-.422-9-1-.679-.131-2 0-2 2 0 4 4.595 9 11 9 6.404 0 11-5 11-9 0-2-1.321-2.132-2-2-2.973.578-5.377 1-9 1z"
+              />
+              <path fill="#FFF" d="M9 23s3 1 9 1 9-1 9-1-2 4-9 4-9-4-9-4z" />
+            </svg>
+          </button>
+          <button
+            className={classNames(
+              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
+              rating === 4 ? "bg-gray-300" : ""
+            )}
+            onClick={() => onRatingClick("Extremely satisfied")}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
+              <path
+                fill="#FFCC4D"
+                d="M36 18c0 9.941-8.059 18-18 18S0 27.941 0 18 8.059 0 18 0s18 8.059 18 18"
+              />
+              <path
+                fill="#664500"
+                d="M18 21c-3.623 0-6.027-.422-9-1-.679-.131-2 0-2 2 0 4 4.595 9 11 9 6.404 0 11-5 11-9 0-2-1.321-2.132-2-2-2.973.578-5.377 1-9 1z"
+              />
+              <path fill="#FFF" d="M9 22s3 1 9 1 9-1 9-1-2 4-9 4-9-4-9-4z" />
+              <path
+                fill="#E95F28"
+                d="M15.682 4.413l-4.542.801L8.8.961C8.542.492 8.012.241 7.488.333c-.527.093-.937.511-1.019 1.039l-.745 4.797-4.542.801c-.535.094-.948.525-1.021 1.064s.211 1.063.703 1.297l4.07 1.932-.748 4.812c-.083.536.189 1.064.673 1.309.179.09.371.133.562.133.327 0 .65-.128.891-.372l3.512-3.561 4.518 2.145c.49.232 1.074.123 1.446-.272.372-.395.446-.984.185-1.459L13.625 9.73l3.165-3.208c.382-.387.469-.977.217-1.459-.254-.482-.793-.743-1.325-.65zm4.636 0l4.542.801L27.2.961c.258-.469.788-.72 1.312-.628.526.093.936.511 1.018 1.039l.745 4.797 4.542.801c.536.094.949.524 1.021 1.063s-.211 1.063-.703 1.297l-4.07 1.932.748 4.812c.083.536-.189 1.064-.673 1.309-.179.09-.371.133-.562.133-.327 0-.65-.128-.891-.372l-3.512-3.561-4.518 2.145c-.49.232-1.074.123-1.446-.272-.372-.395-.446-.984-.185-1.459l2.348-4.267-3.165-3.208c-.382-.387-.469-.977-.217-1.459.255-.482.794-.743 1.326-.65z"
+              />
             </svg>
           </button>
         </div>
