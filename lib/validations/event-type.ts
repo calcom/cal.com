@@ -29,11 +29,10 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   price: true,
   currency: true,
   slotInterval: true,
-  metadata: true,
   successRedirectUrl: true,
 }).partial();
 
-const schemaEventTypeBaseParams = z
+const schemaEventTypeCreateParams = z
   .object({
     title: z.string(),
     slug: z.string(),
@@ -45,7 +44,8 @@ const schemaEventTypeBaseParams = z
   })
   .strict();
 
-export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeBaseParams);
+export const schemaEventTypeCreateBodyParams =
+  schemaEventTypeBaseBodyParams.merge(schemaEventTypeCreateParams);
 
 const schemaEventTypeEditParams = z
   .object({
@@ -86,5 +86,5 @@ export const schemaEventTypeReadPublic = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
 })
-  .merge(schemaEventTypeBaseParams)
+  .merge(schemaEventTypeCreateParams)
   .partial();
