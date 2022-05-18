@@ -607,7 +607,7 @@ const loggedInViewerRouter = createProtectedRouter()
   })
   .query("integrations", {
     input: z.object({
-      variant: z.string(),
+      variant: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
@@ -624,11 +624,13 @@ const loggedInViewerRouter = createProtectedRouter()
         })
       );
       // `flatMap()` these work like `.filter()` but infers the types correctly
-      const flapApps = apps.flatMap((item) => (item.variant === variant ? [item] : []));
+      let flatApps = apps;
+      if (variant) {
+        flatApps = apps.flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+      }
       return {
-        total: countActive(apps),
-        items: flapApps,
-        numActive: countActive(flapApps),
+        items: flatApps,
+        numActive: countActive(flatApps),
       };
     },
   })

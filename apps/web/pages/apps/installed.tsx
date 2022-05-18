@@ -102,15 +102,19 @@ interface IntegrationsContainerProps {
   className?: string;
 }
 
+function filterInstalled(app: AppOutput) {
+  return app.credentialIds.length > 0;
+}
+
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant }], { suspense: true });
-  const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
+
   return (
     <QueryCell
       query={query}
       success={({ data }) => {
-        const installedApps = data.items.filter(installedFilter);
+        const installedApps = data.items.filter(filterInstalled);
         return (
           <>
             {installedApps.length > 0 && (
@@ -234,12 +238,11 @@ function Web3ConnectBtn() {
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
+  const query = trpc.useQuery(["viewer.integrations", { variant: undefined }]);
   return (
     <QueryCell
       query={query}
       success={({ data }) => {
-        console.log({ total: data.total });
         return (
           <Shell
             heading={t("installed_apps")}
@@ -248,7 +251,7 @@ export default function IntegrationsPage() {
             customLoader={<SkeletonLoader />}>
             <AppsShell>
               <ClientSuspense fallback={<SkeletonLoader />}>
-                {data.total > 0 ? (
+                {data.numActive > 0 ? (
                   <>
                     <IntegrationsContainer variant="conferencing" />
                     <CalendarListContainer />

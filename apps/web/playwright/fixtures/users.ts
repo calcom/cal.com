@@ -22,7 +22,7 @@ type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
 // creates a user fixture instance and stores the collection
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
-  let store = { users: [], page } as { users: UserFixture[]; page: typeof page };
+  const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (opts?: CustomUserOpts) => {
       const _user = await prisma.user.create({
@@ -145,12 +145,12 @@ export async function login(
 }
 
 export async function getPaymentCredential(page: Page) {
-  await page.goto("/apps/installed");
+  await page.goto("/apps/stripe");
 
   /** We start the Stripe flow */
   await Promise.all([
     page.waitForNavigation({ url: "https://connect.stripe.com/oauth/v2/authorize?*" }),
-    page.click('li:has-text("Stripe") >> [data-testid="integration-connection-button"]'),
+    page.click('[data-testid="install-app-button"]'),
   ]);
 
   await Promise.all([
