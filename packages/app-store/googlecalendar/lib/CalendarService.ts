@@ -18,6 +18,10 @@ import type { PartialReference } from "@calcom/types/EventManager";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
+interface GoogleCalError extends Error {
+  code?: number;
+}
+
 export default class GoogleCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -229,8 +233,9 @@ export default class GoogleCalendarService implements Calendar {
           sendNotifications: true,
           sendUpdates: "all",
         },
-        function (err, event) {
+        function (err: GoogleCalError | null, event) {
           if (err) {
+            if (err.code === 410) resolve();
             console.error("There was an error contacting google calendar service: ", err);
             return reject(err);
           }
