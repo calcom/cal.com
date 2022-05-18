@@ -16,7 +16,10 @@ export async function scheduleById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const userSchedules = await prisma.schedule.findMany({ where: { userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
   if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });

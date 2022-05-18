@@ -77,7 +77,10 @@ export async function teamById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaTeamBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const userWithMemberships = await prisma.membership.findMany({
     where: { userId: userId },
   });

@@ -77,7 +77,10 @@ async function eventTypeById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaEventTypeCustomInputBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const data = await prisma.eventType.findMany({ where: { userId } });
   const userEventTypes = data.map((eventType) => eventType.id);
   const userEventTypeCustomInputs = await prisma.eventTypeCustomInput.findMany({

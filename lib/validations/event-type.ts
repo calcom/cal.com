@@ -32,19 +32,20 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   successRedirectUrl: true,
 }).partial();
 
-const schemaEventTypeBaseParams = z
+const schemaEventTypeCreateParams = z
   .object({
     title: z.string(),
     slug: z.string(),
     description: z.string().optional().nullable(),
     length: z.number().int(),
     locations: jsonSchema.optional().nullable().or(z.null()),
-    metadata: jsonSchema.optional().nullish(),
+    metadata: z.any().optional().nullable().nullish(),
     recurringEvent: jsonSchema.optional().nullable().or(z.null()),
   })
   .strict();
 
-export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeBaseParams);
+export const schemaEventTypeCreateBodyParams =
+  schemaEventTypeBaseBodyParams.merge(schemaEventTypeCreateParams);
 
 const schemaEventTypeEditParams = z
   .object({
@@ -84,6 +85,12 @@ export const schemaEventTypeReadPublic = EventType.pick({
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
+  description: true,
 })
-  .merge(schemaEventTypeBaseParams)
-  .partial();
+  .merge(
+    z.object({
+      recurringEvent: jsonSchema.nullable(),
+      metadata: jsonSchema.nullable(),
+    })
+  )
+  .strict();

@@ -19,7 +19,10 @@ export async function dailyEventReferenceById(
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaDailyEventReferenceEditBodyParams.safeParse(body);
-  if (!safeQuery.success) throw new Error("Invalid request query", safeQuery.error);
+  if (!safeQuery.success) {
+    res.status(400).json({ message: "Your query was invalid" });
+    return;
+  }
   const userBookings = await prisma.booking.findMany({ where: { userId } });
   const userBookingIds: number[] = userBookings.map((booking) => booking.id);
   const userBookingDailyEventReferences = await prisma.dailyEventReference.findMany({
