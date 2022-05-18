@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { useEffect, useRef } from "react";
 
 import useEmbed from "./useEmbed";
@@ -25,7 +26,7 @@ export default function Cal({
     }
     initializedRef.current = true;
     const element = ref.current;
-    const initConfig = {};
+    let initConfig = {};
     if (calOrigin) {
       (initConfig as any).origin = calOrigin;
     }
