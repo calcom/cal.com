@@ -147,9 +147,9 @@ export const SearchDialog = (props: ISearchDialog) => {
         </div>
         {gifImage && (
           <div className="flex flex-col items-center space-x-2 space-y-2 pt-3">
-            <div className="min-h-[200px]">
+            <div className="flex w-full items-center justify-center bg-gray-100">
               {isLoading ? (
-                <div className="flex h-[200px] w-full w-[300px] items-center justify-center bg-gray-400">
+                <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pt-3 pb-3">
                   <svg
                     className={classNames("mx-4 h-5 w-5 animate-spin", "text-white dark:text-black")}
                     xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +169,7 @@ export const SearchDialog = (props: ISearchDialog) => {
                   </svg>
                 </div>
               ) : (
-                <img src={gifImage} alt={`Gif from Giphy for ${keyword}`} />
+                <img className="h-[200px] pt-3 pb-3" src={gifImage} alt={`Gif from Giphy for ${keyword}`} />
               )}
             </div>
           </div>
