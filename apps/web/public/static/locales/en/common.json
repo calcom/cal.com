@@ -476,6 +476,7 @@
   "back": "Back",
   "cancel": "Cancel",
   "apply": "Apply",
+  "cancel_event": "Cancel event",
   "continue": "Continue",
   "confirm": "Confirm",
   "confirm_all": "Confirm all",
@@ -830,7 +831,6 @@
   "booking_details": "Booking details",
   "or_lowercase": "or",
   "nevermind": "Nevermind",
-  "cancel_event": "Cancel event",
   "go_to": "Go to: ",
   "zapier_invite_link": "Zapier Invite Link"
 }
