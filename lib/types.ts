@@ -1,10 +1,8 @@
 import {
   User,
-  ApiKey,
   Team,
   Credential,
   SelectedCalendar,
-  EventType,
   EventTypeCustomInput,
   Attendee,
   Availability,
@@ -18,6 +16,8 @@ import {
   Schedule,
   ReminderMail,
 } from "@calcom/prisma/client";
+
+import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 // Base response, used for all responses
 export type BaseResponse = {
@@ -124,17 +124,13 @@ export type EventTypeCustomInputResponse = BaseResponse & {
 export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
-export interface EventTypeMeta extends Omit<EventType, "locations" | "metadata" | "recurringEvent"> {
-  locations: object | null;
-  metadata: object | null;
-  recurringEvent: object | null;
-}
+
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<EventTypeMeta>;
+  event_type?: Partial<typeof schemaEventTypeReadPublic>;
 };
 export type EventTypesResponse = BaseResponse & {
-  event_types?: Partial<EventTypeMeta>[];
+  event_types?: Partial<typeof schemaEventTypeReadPublic>[];
 };
 
 // Payment
