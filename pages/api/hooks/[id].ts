@@ -26,6 +26,7 @@ export async function WebhookById(
        * /hooks/{id}:
        *   get:
        *     summary: Find a webhook
+       *     operationId: getWebhookById
        *     parameters:
        *       - in: path
        *         name: id
@@ -64,6 +65,7 @@ export async function WebhookById(
        * /hooks/{id}:
        *   patch:
        *     summary: Edit an existing webhook
+       *     operationId: editWebhookById
        *     parameters:
        *      - in: path
        *        name: id
@@ -109,6 +111,7 @@ export async function WebhookById(
        * /hooks/{id}:
        *   delete:
        *     summary: Remove an existing hook
+       *     operationId: removeWebhookById
        *     parameters:
        *      - in: path
        *        name: id
