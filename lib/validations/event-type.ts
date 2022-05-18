@@ -39,6 +39,7 @@ const schemaEventTypeBaseParams = z
     description: z.string().optional().nullable(),
     length: z.number().int(),
     locations: jsonSchema.optional().nullable().or(z.null()),
+    metadata: jsonSchema.optional().nullable().or(z.null()),
     recurringEvent: jsonSchema.optional().nullable().or(z.null()),
   })
   .strict();
@@ -79,8 +80,9 @@ export const schemaEventTypeReadPublic = EventType.pick({
   beforeEventBuffer: true,
   afterEventBuffer: true,
   schedulingType: true,
+  metadata: true,
   price: true,
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
-}).partial();
+}).merge(schemaEventTypeBaseParams);
