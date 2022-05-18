@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment,prefer-rest-params,prefer-const */
+
 /**
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.

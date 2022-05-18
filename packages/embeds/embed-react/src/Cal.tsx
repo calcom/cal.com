@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { useEffect, useRef } from "react";
 
 import useEmbed from "./useEmbed";
