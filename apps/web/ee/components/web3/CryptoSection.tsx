@@ -2,19 +2,19 @@ import Router from "next/router";
 import { useCallback, useMemo, useState } from "react";
 import React from "react";
 import Web3 from "web3";
+import { AbstractProvider } from "web3-core";
 import { AbiItem } from "web3-utils";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
 import verifyAccount, { AUTH_MESSAGE } from "../../../web3/utils/verifyAccount";
 
 interface Window {
-  ethereum: any;
+  ethereum: AbstractProvider & { selectedAddress: string };
   web3: Web3;
 }
 interface EvtsToVerify {
@@ -40,7 +40,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
   const { t } = useLocale();
 
   const connectMetamask = useCallback(async () => {
-    if (window.ethereum) {
+    if (window.ethereum && typeof window.ethereum.request === "function") {
       await window.ethereum.request({ method: "eth_requestAccounts" });
       window.web3 = new Web3(window.ethereum);
       toggleEthEnabled(true);
@@ -64,10 +64,7 @@ const CryptoSection = (props: CryptoSectionProps) => {
         throw new Error("Specified wallet does not own any tokens belonging to this smart contract");
       } else {
         const account = (await window.web3.eth.getAccounts())[0];
-
-        // @ts-ignore
-        const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account);
-        // @ts-ignore
+        const signature = await window.web3.eth.personal.sign(AUTH_MESSAGE, account, "");
         addContract({ address: props.smartContractAddress, signature });
 
         await verifyAccount(signature, account);
