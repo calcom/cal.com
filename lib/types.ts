@@ -124,13 +124,17 @@ export type EventTypeCustomInputResponse = BaseResponse & {
 export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
-
+export type EventTypeWithMetadataLocations = EventType & {
+  locations?: object;
+  metadata?: object;
+  recurringEvent?: object;
+};
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<EventType & { locations?: object[] }>;
+  event_type?: Partial<EventTypeWithMetadataLocations>;
 };
 export type EventTypesResponse = BaseResponse & {
-  event_types?: Partial<EventType>[];
+  event_types?: Partial<EventTypeWithMetadataLocations>[];
 };
 
 // Payment
