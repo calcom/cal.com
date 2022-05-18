@@ -42,7 +42,8 @@ button[role="switch"][data-state="checked"] span {
   transform: translateX(16px);
 }
 
-/* Radix Dropdown has crazy high z index which can't be controlled yet [ref: https://github.com/radix-ui/primitives/issues/1303] wihtout direct data-radix-portal 
+/* Radix Dropdown has crazy high z index which can't be controlled yet [ref: https://github.com/radix-ui/primitives/issues/1303] 
+   without directly targetting data-radix-portal using CSS.
    Until they do, we can use the following to make sure dropdown doesn't come above everything else such as a dialog, for instance.
 */
 [data-radix-portal] {
