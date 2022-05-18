@@ -125,9 +125,9 @@ export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
 export interface EventTypeMeta extends Omit<EventType, "locations" | "metadata" | "recurringEvent"> {
-  locations?: JSON;
-  metadata?: JSON;
-  recurringEvent: JSON;
+  locations: object | null;
+  metadata: object | null;
+  recurringEvent: object | null;
 }
 // EventType
 export type EventTypeResponse = BaseResponse & {
