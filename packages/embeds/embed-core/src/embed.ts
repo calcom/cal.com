@@ -64,7 +64,7 @@ function validate(data: any, schema: Record<"props" | "required", any>) {
     throw new Error("Argument is required");
   }
 
-  for (let [prop, propSchema] of Object.entries<Record<"type" | "required", any>>(schema.props)) {
+  for (const [prop, propSchema] of Object.entries<Record<"type" | "required", any>>(schema.props)) {
     if (propSchema.required && isUndefined(data[prop])) {
       throw new Error(`"${prop}" is required`);
     }
@@ -130,7 +130,7 @@ export class Cal {
       log(`Instruction ${method} not FOUND`);
     }
     try {
-      (this[method] as Function)(...args);
+      (this[method] as (...args: any[]) => void)(...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
       log(`Instruction couldn't be executed`, e);
@@ -145,6 +145,7 @@ export class Cal {
 
     queue.splice(0);
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     /** @ts-ignore */ // We changed the definition of push here.
     queue.push = (instruction) => {
       this.processInstruction(instruction);
@@ -188,8 +189,9 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    for (let [key, value] of searchParams) {
+    for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
     iframe.src = urlInstance.toString();
@@ -224,6 +226,7 @@ export class Cal {
     elementOrSelector: string | HTMLElement;
     config: Record<string, string>;
   }) {
+    // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
       props: {
@@ -255,7 +258,7 @@ export class Cal {
     const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
     iframe.style.width = "100%";
-    let element =
+    const element =
       elementOrSelector instanceof HTMLElement
         ? elementOrSelector
         : document.querySelector(elementOrSelector);
@@ -349,6 +352,7 @@ export class Cal {
     action: Parameters<SdkActionManager["on"]>[0];
     callback: Parameters<SdkActionManager["on"]>[1];
   }) {
+    // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
       props: {
@@ -366,6 +370,7 @@ export class Cal {
   }
 
   preload({ calLink }: { calLink: string }) {
+    // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
       required: true,
       props: {
@@ -499,7 +504,7 @@ export class Cal {
 
 globalCal.instance = new Cal("", globalCal.q!);
 
-for (let [ns, api] of Object.entries(globalCal.ns!)) {
+for (const [ns, api] of Object.entries(globalCal.ns!)) {
   api.instance = new Cal(ns, api.q!);
 }
 
