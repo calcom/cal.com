@@ -480,6 +480,7 @@ model Feedback {
   id      Int        @id @default(autoincrement())
   date    DateTime
   userId  Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  Int
   comment String?
 }
