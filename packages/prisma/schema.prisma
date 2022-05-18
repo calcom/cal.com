@@ -172,6 +172,7 @@ model User {
   accounts            Account[]
   sessions            Session[]
 
+  Feedback Feedback[]
   @@map(name: "users")
 }
 
@@ -477,10 +478,10 @@ model App {
 }
 
 model Feedback {
-  id      Int        @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   date    DateTime
   userId  Int
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  Int
   comment String?
 }
