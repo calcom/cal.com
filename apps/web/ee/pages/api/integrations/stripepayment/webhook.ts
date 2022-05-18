@@ -4,8 +4,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -42,16 +43,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       id: payment.bookingId,
     },
     select: {
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
+      ...bookingMinimalSelect,
       confirmed: true,
-      attendees: true,
       location: true,
       eventTypeId: true,
       userId: true,
-      id: true,
       uid: true,
       paid: true,
       destinationCalendar: true,
@@ -113,8 +109,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
     organizer: {
-      email: user.email!,
+      email: user.email,
       name: user.name!,
       timeZone: user.timeZone,
       language: { translate: t, locale: user.locale ?? "en" },
