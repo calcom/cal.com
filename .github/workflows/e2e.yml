@@ -98,7 +98,7 @@ jobs:
             ~/.cache/ms-playwright
             ${{ github.workspace }}/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
-      - run: yarn
+      - run: yarn --frozen-lockfile
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
