@@ -20,7 +20,6 @@ export type WebhookListContainerType = {
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
-  const { t } = useLocale();
   const query = props.eventTypeId
     ? trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }])
     : trpc.useQuery(["viewer.webhook.list"]);
