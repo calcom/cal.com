@@ -85,4 +85,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
-}).partial();
+})
+  .merge(z.object({ metadata: jsonSchema.nullable().nullish() }))
+  .partial();
