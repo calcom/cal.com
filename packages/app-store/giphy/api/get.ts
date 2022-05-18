@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import { GiphyManager } from "../lib";
 
-const giphyUrlRegexp = /^https:\/\/media.giphy.com\/media\/(.*)\/giphy.gif/g;
+const giphyUrlRegexp = new RegExp("^https://(.*).giphy.com/media/(.*)/giphy.gif(.*)");
 
 const getSchema = z.object({
   url: z.string().regex(giphyUrlRegexp, "Giphy URL is invalid"),
@@ -23,12 +23,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   try {
     const { url } = req.body;
+    const parsedUrl = new URL(url.replace(/ /g, ""));
+    // remove query strings if any that could cause trouble in parsing ID from url
+    const sanitisedUrl = parsedUrl.origin + parsedUrl.pathname;
     // Extract Giphy ID from embed url
-    const matches = giphyUrlRegexp.exec(url);
-    if (!matches || matches.length < 2) {
+    const matches = giphyUrlRegexp.exec(sanitisedUrl);
+    if (!matches || matches.length < 3) {
       return res.status(400).json({ message: "Giphy URL is invalid" });
     }
-    const giphyId = matches[1];
+    const giphyId = matches[2];
     const gifImageUrl = await GiphyManager.getGiphyById(giphyId);
     return res.status(200).json({ image: gifImageUrl });
   } catch (error: unknown) {

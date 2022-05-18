@@ -102,6 +102,16 @@ export const SearchDialog = (props: ISearchDialog) => {
     </div>
   );
 
+  const handleFormSubmit = async (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (selectedMode === MODE_SEARCH) {
+      searchGiphy(keyword, 0);
+    } else if (selectedMode === MODE_URL) {
+      getGiphyByUrl(keyword);
+    }
+  };
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
@@ -113,7 +123,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
           {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
         </div>
-        <div className="flex w-full justify-center space-x-2 space-y-2">
+        <form className="flex w-full justify-center space-x-2 space-y-2" onSubmit={handleFormSubmit}>
           <div className="relative block w-full pt-2">
             <input
               type="text"
@@ -129,22 +139,10 @@ export const SearchDialog = (props: ISearchDialog) => {
               }}
             />
           </div>
-          <Button
-            type="button"
-            tabIndex={-1}
-            onClick={() => {
-              if (selectedMode === MODE_SEARCH) {
-                searchGiphy(keyword, 0);
-              } else if (selectedMode === MODE_URL) {
-                getGiphyByUrl(keyword);
-              }
-              return false;
-            }}
-            color="secondary"
-            loading={isLoading}>
+          <Button type="submit" tabIndex={-1} color="secondary" loading={isLoading}>
             {t("search")}
           </Button>
-        </div>
+        </form>
         {gifImage && (
           <div className="flex flex-col items-center space-x-2 space-y-2 pt-3">
             <div className="flex w-full items-center justify-center bg-gray-100">
