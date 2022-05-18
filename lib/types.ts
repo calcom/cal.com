@@ -124,17 +124,17 @@ export type EventTypeCustomInputResponse = BaseResponse & {
 export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
-export type EventTypeWithMetadataLocations = EventType & {
-  locations?: object;
-  metadata?: object;
-  recurringEvent?: object;
-};
+export interface EventTypeMeta extends Omit<EventType, "locations" | "metadata" | "recurringEvent"> {
+  locations?: JSON;
+  metadata?: JSON;
+  recurringEvent: JSON;
+}
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<EventTypeWithMetadataLocations>;
+  event_type?: Partial<EventTypeMeta>;
 };
 export type EventTypesResponse = BaseResponse & {
-  event_types?: Partial<EventTypeWithMetadataLocations>[];
+  event_types?: Partial<EventTypeMeta>[];
 };
 
 // Payment
