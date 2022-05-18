@@ -424,6 +424,7 @@ export default function Success(props: SuccessProps) {
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
                           team={eventType?.team?.name}
                           setIsCancellationMode={setIsCancellationMode}
+                          theme={userIsOwner ? "light" : props.profile.theme}
                         />
                       ))}
                     {userIsOwner && !needsConfirmation && !isCancellationMode && (
