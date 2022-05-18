@@ -38,8 +38,8 @@ const schemaEventTypeCreateParams = z
     slug: z.string(),
     description: z.string().optional().nullable(),
     length: z.number().int(),
-    // locations: jsonSchema.optional().nullable().or(z.null()),
-    // metadata: z.any().optional().nullable().nullish(),
+    locations: jsonSchema.optional().nullable().or(z.null()),
+    metadata: z.any().optional().nullable().or(z.null()),
     recurringEvent: jsonSchema.optional().nullable().or(z.null()),
   })
   .strict();
@@ -85,4 +85,10 @@ export const schemaEventTypeReadPublic = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   description: true,
-}).merge(z.object({ metadata: z.any(), locations: jsonSchema.or(z.null()) }));
+}).merge(
+  z.object({
+    locations: jsonSchema.optional().nullable().or(z.null()),
+    metadata: z.any().optional().nullable().or(z.null()),
+    recurringEvent: jsonSchema.optional().nullable().or(z.null()),
+  })
+);
