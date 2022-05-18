@@ -16,6 +16,7 @@ async function createOrlistAllWebhooks(
      * /hooks:
      *   get:
      *     summary: Find all webhooks
+     *     operationId: listWebhooks
      *     tags:
      *     - hooks
      *     externalDocs:
@@ -43,6 +44,7 @@ async function createOrlistAllWebhooks(
      * /hooks:
      *   post:
      *     summary: Creates a new webhook
+     *     operationId: addWebhook
      *     tags:
      *     - webhooks
      *     externalDocs:
