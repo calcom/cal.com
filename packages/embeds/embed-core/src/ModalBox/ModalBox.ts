@@ -6,6 +6,7 @@ import modalBoxHtml from "./ModalBoxHtml";
 
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return ["state"];
