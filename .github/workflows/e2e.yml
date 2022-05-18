@@ -43,6 +43,8 @@ jobs:
       # MS_GRAPH_CLIENT_SECRET: xxx
       # ZOOM_CLIENT_ID: xxx
       # ZOOM_CLIENT_SECRET: xxx
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
     services:
       postgres:
         image: postgres:12.1
@@ -60,21 +62,33 @@ jobs:
           fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-          # cache: "yarn"
-          # cache-dependency-path: yarn.lock
+          cache: "yarn"
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Turbo Cache
         id: turbo-cache
         uses: actions/cache@v2
         with:
-          path: .turbo
+          path: |
+            ${{ github.workspace }}/apps/web/.turbo
+            ${{ github.workspace }}/apps/web/.next/cache
           key: turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-${{ github.event.pull_request.head.sha }}
           restore-keys: |
             turbo-${{ github.job }}-${{ github.event.pull_request.head.ref }}-
-      - run: yarn
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -82,15 +96,15 @@ jobs:
           path: |
             ~/Library/Caches/ms-playwright
             ~/.cache/ms-playwright
-            **/node_modules/playwright
+            ${{ github.workspace }}/node_modules/playwright
           key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
-
+      - run: yarn
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
       - run: yarn test-e2e
 
-      - name: Upload videos
+      - name: Upload test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
