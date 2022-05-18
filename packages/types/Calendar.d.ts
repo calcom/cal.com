@@ -97,7 +97,7 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   additionalNotes?: string | null;
-  customInputs?: json | null;
+  customInputs?: Record<string, string> | null;
   description?: string | null;
   team?: {
     name: string;
