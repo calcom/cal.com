@@ -39,7 +39,7 @@ const schemaEventTypeCreateParams = z
     description: z.string().optional().nullable(),
     length: z.number().int(),
     locations: jsonSchema.optional().nullable().or(z.null()),
-    metadata: z.any().optional().nullable().nullish(),
+    metadata: z.any().optional().nullable().or(z.null()),
     recurringEvent: jsonSchema.optional().nullable().or(z.null()),
   })
   .strict();
@@ -61,7 +61,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   title: true,
   slug: true,
   length: true,
-  locations: true,
   hidden: true,
   position: true,
   userId: true,
@@ -86,11 +85,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   slotInterval: true,
   successRedirectUrl: true,
   description: true,
-})
-  .merge(
-    z.object({
-      recurringEvent: jsonSchema.nullable(),
-      metadata: jsonSchema.nullable(),
-    })
-  )
-  .strict();
+  locations: true,
+  metadata: true,
+});

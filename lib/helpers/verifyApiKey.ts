@@ -23,7 +23,10 @@ export const dateNotInPast = function (date: Date) {
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
   // We remove the prefix from the user provided api_key. If no env set default to "cal_"
-  const strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX || "cal_", "");
+  let strippedApiKey = `${req.query.apiKey}`.replace(process.env.API_KEY_PREFIX, "");
+  strippedApiKey = strippedApiKey.includes("cal_")
+    ? strippedApiKey.replace("cal_", "")
+    : strippedApiKey;
   // Hash the key again before matching against the database records.
   const hashedKey = hashAPIKey(strippedApiKey);
   // Check if the hashed api key exists in database.
