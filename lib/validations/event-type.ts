@@ -85,4 +85,12 @@ export const schemaEventTypeReadPublic = EventType.pick({
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
-}).partial();
+  description: true,
+})
+  .merge(
+    z.object({
+      recurringEvent: jsonSchema.nullable(),
+      metadata: jsonSchema.nullable(),
+    })
+  )
+  .strict();
