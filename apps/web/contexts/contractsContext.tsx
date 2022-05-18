@@ -39,8 +39,7 @@ export function ContractsProvider({ children }: Props) {
 
   return (
     <>
-      {/* @ts-ignore */}
-      <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
+      <ContractsContext.Provider value={value as any}>{children}</ContractsContext.Provider>
     </>
   );
 }

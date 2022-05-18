@@ -10,6 +10,7 @@ export class FloatingButton extends HTMLElement {
     ].join(" ");
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return [
