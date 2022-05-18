@@ -31,17 +31,19 @@ const ImageOption = (props: OptionProps) => {
 };
 
 type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
+function filterInstalled(app: AppOutput) {
+  return app.credentialIds.length > 0;
+}
 
 const AdditionalCalendarSelector = ({ isLoading }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
-  const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
 
   return (
     <QueryCell
       query={query}
       success={({ data }) => {
-        const options = data.items.filter(installedFilter).map((item) => ({
+        const options = data.items.filter(filterInstalled).map((item) => ({
           value: item.slug,
           label: item.name,
           image: item.imageSrc,

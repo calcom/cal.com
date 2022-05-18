@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { useMutation } from "react-query";
 
-import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
@@ -165,7 +164,10 @@ function ConnectedCalendarsList(props: Props) {
 }
 
 type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
-const installedFilter = (app: AppOutput) => app.credentialIds.length > 0 || app.isGlobal;
+
+function filterInstalled(app: AppOutput) {
+  return app.credentialIds.length > 0;
+}
 
 export function CalendarListContainer(props: { heading?: false }) {
   const { t } = useLocale();
@@ -182,7 +184,7 @@ export function CalendarListContainer(props: { heading?: false }) {
   return (
     <>
       {(!!query.data?.connectedCalendars.length ||
-        !!installedCalendars.data?.items.filter(installedFilter).length) && (
+        !!installedCalendars.data?.items.filter(filterInstalled).length) && (
         <>
           {heading && (
             <ShellSubHeading
