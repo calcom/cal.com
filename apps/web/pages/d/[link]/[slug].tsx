@@ -134,7 +134,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const locations = hashedLink.eventType.locations as LocationObject[];
+  const locations = hashedLink.eventType.locations
+    ? (hashedLink.eventType.locations as LocationObject[])
+    : [];
 
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
