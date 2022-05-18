@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
-import React, { useState, useEffect, CSSProperties } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Avatar from "@components/ui/Avatar";
 import { DatePicker } from "@components/ui/form/DatePicker";
@@ -100,10 +100,8 @@ export default function TeamAvailabilityScreen(props: Props) {
         </div>
       </div>
       <div className="flex h-full flex-1">
-        {/* @ts-ignore */}
         <AutoSizer>
           {({ height, width }) => (
-            // @ts-ignore
             <List
               itemSize={240}
               itemCount={props.team?.members?.length ?? 0}
