@@ -1,6 +1,5 @@
 import { ArrowRightIcon, ViewGridIcon } from "@heroicons/react/solid";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
 
@@ -260,14 +259,14 @@ export default function IntegrationsPage() {
                 ) : (
                   <EmptyScreen
                     Icon={ViewGridIcon}
-                    headline={t("no_installed_apps")}
+                    headline={t("empty_installed_apps_headline")}
                     description={
-                      <Link href="/apps" passHref>
-                        <a className="text-neutral-900">
-                          <span>{t("no_installed_apps_description")}</span>
-                          <ArrowRightIcon className="-mt-1 ml-1 inline h-5 w-5" />
-                        </a>
-                      </Link>
+                      <>
+                        <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
+                        <Button href="/apps" EndIcon={ArrowRightIcon}>
+                          {t("empty_installed_apps_button")}
+                        </Button>
+                      </>
                     }
                   />
                 )}
