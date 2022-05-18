@@ -6,6 +6,7 @@ function chooseEmbedType(page: Page, embedType: string) {
 
 async function gotToPreviewTab(page: Page) {
   // To prevent early timeouts
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
   await page.locator("[data-testid=embed-tabs]").locator("text=Preview").click();
 }

@@ -35,6 +35,7 @@ test.describe("hash my url", () => {
     await page.keyboard.press("Enter");
 
     // To prevent an early 404
+    // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(1000);
 
     // book using generated url hash

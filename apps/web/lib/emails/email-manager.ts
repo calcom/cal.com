@@ -1,4 +1,3 @@
-import { recurringEvent } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";

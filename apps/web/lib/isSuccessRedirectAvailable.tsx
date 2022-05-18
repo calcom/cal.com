@@ -1,4 +1,4 @@
-import { Team, User } from ".prisma/client";
+import { Team, User } from "@prisma/client";
 
 export function isSuccessRedirectAvailable(
   eventType: {
