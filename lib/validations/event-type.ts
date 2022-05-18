@@ -29,6 +29,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   price: true,
   currency: true,
   slotInterval: true,
+  metadata: true,
   successRedirectUrl: true,
 }).partial();
 
