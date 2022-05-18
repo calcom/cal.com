@@ -231,7 +231,7 @@ export default class GoogleCalendarService implements Calendar {
         },
         function (err, event) {
           if (err) {
-            if (err.code === 410) resolve(err.data);
+            if (err.code === 410) resolve();
             console.error("There was an error contacting google calendar service: ", err);
             return reject(err);
           }
