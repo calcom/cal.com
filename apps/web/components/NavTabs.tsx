@@ -56,7 +56,6 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
 
           const Component = tab.adminRequired ? AdminRequired : Fragment;
 
-          if (!href) return null;
           return (
             <Component key={tab.name}>
               <Link key={tab.name} href={href} {...linkProps}>
