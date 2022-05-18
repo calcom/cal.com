@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/Button";
-import { TextField } from "@calcom/ui/form/fields";
 
 import useTheme from "@lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
@@ -20,7 +19,7 @@ type Props = {
   };
   team?: string | null;
   setIsCancellationMode: (value: boolean) => void;
-  theme: string;
+  theme: string | null;
 };
 
 export default function CancelBooking(props: Props) {
@@ -33,8 +32,8 @@ export default function CancelBooking(props: Props) {
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const { isReady, Theme } = useTheme(props.theme);
 
-  return (
-    isReady && (
+  if (isReady) {
+    return (
       <>
         <Theme />
         {error && (
@@ -114,6 +113,7 @@ export default function CancelBooking(props: Props) {
           </div>
         )}
       </>
-    )
-  );
+    );
+  }
+  return <></>;
 }
