@@ -1,3 +1,4 @@
+import noop from "lodash/noop";
 import { createContext, ReactNode, useContext } from "react";
 
 import { localStorage } from "@calcom/lib/webstorage";
@@ -9,8 +10,7 @@ type contractsContextType = {
 
 const contractsContextDefaultValue: contractsContextType = {
   contracts: {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  addContract: () => {},
+  addContract: noop,
 };
 
 const ContractsContext = createContext<contractsContextType>(contractsContextDefaultValue);
@@ -44,6 +44,5 @@ export function ContractsProvider({ children }: Props) {
     addContract,
   };
 
-
-  return <ContractsContext.Provider value={value as any}>{children}</ContractsContext.Provider>;
+  return <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>;
 }

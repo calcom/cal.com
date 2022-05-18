@@ -4,10 +4,9 @@ import Web3 from "web3";
 import type { AbstractProvider } from "web3-core";
 import { AbiItem } from "web3-utils";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
