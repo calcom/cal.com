@@ -482,6 +482,6 @@ model Feedback {
   date    DateTime
   userId  Int
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating  Int
+  rating  String
   comment String?
 }
