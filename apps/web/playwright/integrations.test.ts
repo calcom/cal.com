@@ -24,7 +24,7 @@ test.describe("Integrations", () => {
     const user = await users.create();
     const [eventType] = user.eventTypes;
     await user.login();
-    await page.goto("/apps/installed");
+    await page.goto("/settings/developer");
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
