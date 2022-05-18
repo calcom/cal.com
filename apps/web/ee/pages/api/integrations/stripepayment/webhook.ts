@@ -126,7 +126,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (booking.location) evt.location = booking.location;
 
-  let bookingData: Prisma.BookingUpdateInput = {
+  const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
     confirmed: true,
   };

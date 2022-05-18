@@ -100,9 +100,13 @@ export default function TeamAvailabilityScreen(props: Props) {
         </div>
       </div>
       <div className="flex h-full flex-1">
-        {/* @ts-ignore */}
+        {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+        }
         <AutoSizer>
           {({ height, width }) => (
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             <List
               itemSize={240}
