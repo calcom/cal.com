@@ -1,4 +1,11 @@
-import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  EventType,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import async from "async";
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
@@ -11,6 +18,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import EventManager from "@calcom/core/EventManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -106,25 +114,42 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 
 function isOutOfBounds(
   time: dayjs.ConfigType,
-  { periodType, periodDays, periodCountCalendarDays, periodStartDate, periodEndDate, timeZone }: any // FIXME types
+  {
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    timeZone,
+  }: Pick<
+    EventType,
+    "periodType" | "periodDays" | "periodEndDate" | "periodStartDate" | "periodCountCalendarDays"
+  > &
+    Pick<User, "timeZone">
 ): boolean {
   const date = dayjs(time);
 
   switch (periodType) {
-    case "rolling": {
+    case "ROLLING": {
       const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs().tz(timeZone).add(periodDays, "days").endOf("day")
-        : dayjs().tz(timeZone).businessDaysAdd(periodDays).endOf("day");
+        ? dayjs()
+            .tz(timeZone)
+            .add(periodDays || 0, "days")
+            .endOf("day")
+        : dayjs()
+            .tz(timeZone)
+            .businessDaysAdd(periodDays || 0)
+            .endOf("day");
       return date.endOf("day").isAfter(periodRollingEndDay);
     }
 
-    case "range": {
+    case "RANGE": {
       const periodRangeStartDay = dayjs(periodStartDate).tz(timeZone).endOf("day");
       const periodRangeEndDay = dayjs(periodEndDate).tz(timeZone).endOf("day");
       return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
     }
 
-    case "unlimited":
+    case "UNLIMITED":
     default:
       return false;
   }
@@ -350,7 +375,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const additionalNotes = reqBody.notes;
 
-  let customInputs: { [key: string]: string | boolean } = {};
+  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
@@ -460,7 +485,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startTime: dayjs(evt.startTime).toDate(),
       endTime: dayjs(evt.endTime).toDate(),
       description: evt.additionalNotes,
-      customInputs: evt.customInputs,
+      customInputs: isPrismaObjOrUndefined(evt.customInputs),
       confirmed: (!eventType.requiresConfirmation && !eventType.price) || !!rescheduleUid,
       location: evt.location,
       eventType: eventTypeRel,

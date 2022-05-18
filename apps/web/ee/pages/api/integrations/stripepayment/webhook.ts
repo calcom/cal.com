@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
@@ -108,9 +109,9 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
-    customInputs: booking.customInputs,
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
     organizer: {
-      email: user.email!,
+      email: user.email,
       name: user.name!,
       timeZone: user.timeZone,
       language: { translate: t, locale: user.locale ?? "en" },

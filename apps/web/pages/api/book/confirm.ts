@@ -1,16 +1,15 @@
-import { Prisma, User, Booking, SchedulingType, BookingStatus } from "@prisma/client";
+import { Booking, BookingStatus, Prisma, SchedulingType, User } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import EventManager from "@calcom/core/EventManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
-import type { AdditionInformation, RecurringEvent } from "@calcom/types/Calendar";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { sendDeclinedEmails } from "@lib/emails/email-manager";
-import { sendScheduledEmails } from "@lib/emails/email-manager";
+import { sendDeclinedEmails, sendScheduledEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
 import { BookingConfirmBody } from "@lib/types/booking";
 
@@ -157,7 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: booking.title,
       title: booking.title,
       description: booking.description,
-      customInputs: booking.customInputs,
+      customInputs: isPrismaObjOrUndefined(booking.customInputs),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {

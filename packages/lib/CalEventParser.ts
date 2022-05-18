@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { BASE_URL } from "./constants";
+import { WEBAPP_URL } from "./constants";
 
 const translator = short();
 
@@ -61,6 +61,7 @@ export const getCustomInputs = (calEvent: CalendarEvent) => {
   }
   const customInputsString = Object.keys(calEvent.customInputs)
     .map((key) => {
+      if (!calEvent.customInputs) return "";
       if (calEvent.customInputs[key] !== "") {
         return `
 ${key}:
@@ -112,7 +113,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return BASE_URL + "/cancel/" + getUid(calEvent);
+  return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {

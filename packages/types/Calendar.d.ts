@@ -97,7 +97,7 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   additionalNotes?: string | null;
-  customInputs?: Prisma.JsonValue | null;
+  customInputs?: Prisma.JsonObject | null;
   description?: string | null;
   team?: {
     name: string;

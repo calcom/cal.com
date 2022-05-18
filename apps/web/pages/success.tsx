@@ -252,6 +252,7 @@ export default function Success(props: SuccessProps) {
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
+  const customInputs = bookingInfo?.customInputs;
   return (
     (isReady && (
       <>
@@ -374,27 +375,19 @@ export default function Success(props: SuccessProps) {
                               </div>
                             </>
                           )}
-                          {bookingInfo?.customInputs &&
-                            Object.keys(bookingInfo?.customInputs).map((key) => {
-                              const customInputs = bookingInfo?.customInputs;
+                          {customInputs &&
+                            Object.keys(customInputs).map((key) => {
+                              const customInput = customInputs[key as keyof typeof customInputs];
                               return (
                                 <>
-                                  {bookingInfo?.customInputs![key as keyof typeof customInputs] !== "" && (
+                                  {customInput !== "" && (
                                     <>
                                       <div className="mt-2 pr-3 font-medium">{key}</div>
                                       <div className="col-span-2 mt-2 mb-2">
-                                        {typeof bookingInfo?.customInputs![
-                                          key as keyof typeof customInputs
-                                        ] === "boolean" ? (
-                                          <p>
-                                            {bookingInfo?.customInputs[key as keyof typeof customInputs]
-                                              ? "true"
-                                              : "false"}
-                                          </p>
+                                        {typeof customInput === "boolean" ? (
+                                          <p>{customInput ? "true" : "false"}</p>
                                         ) : (
-                                          <p>
-                                            {bookingInfo?.customInputs![key as keyof typeof customInputs]}
-                                          </p>
+                                          <p>{customInput}</p>
                                         )}
                                       </div>
                                     </>
@@ -740,6 +733,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: {
         id: true,
         name: true,
+        username: true,
         hideBranding: true,
         plan: true,
         theme: true,
