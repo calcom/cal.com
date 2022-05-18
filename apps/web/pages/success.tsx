@@ -152,7 +152,6 @@ export default function Success(props: SuccessProps) {
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
-  const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -246,6 +245,7 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const { isReady, Theme } = useTheme(userIsOwner ? "light" : props.profile.theme);
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
