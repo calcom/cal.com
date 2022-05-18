@@ -1,19 +1,12 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
   root: true,
-  extends: [
-    "plugin:playwright/playwright-test",
-    "next",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
-  ],
-  parser: "@typescript-eslint/parser",
+  extends: ["plugin:playwright/playwright-test", "next", "plugin:prettier/recommended"],
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
     project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
   },
-  plugins: ["@typescript-eslint"],
   settings: {
     next: {
       rootDir: ["apps/*/", "packages/*/"],
@@ -26,7 +19,21 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["playwright/**/*.{js,jsx,tsx,ts}"],
+      files: ["*.ts", "*.tsx"],
+      extends: ["plugin:@typescript-eslint/recommended"],
+      plugins: ["@typescript-eslint"],
+      parser: "@typescript-eslint/parser",
+      overrides: [
+        {
+          files: ["playwright/**/*.{tsx,ts}"],
+          rules: {
+            "no-undef": "off",
+          },
+        },
+      ],
+    },
+    {
+      files: ["playwright/**/*.{js,jsx}"],
       rules: {
         "no-undef": "off",
       },
