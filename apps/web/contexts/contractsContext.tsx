@@ -36,15 +36,15 @@ export function ContractsProvider({ children }: Props) {
     contracts: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("contracts") || "{}") : {},
     addContract,
   };
-
+  // prettier-ignore
   return (
     <>
       {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        /* eslint-disable @typescript-eslint/ban-ts-comment, prettier/prettier */
+        /* prettier-ignore */
         // @ts-ignore
-        // eslint-disable-next-line prettier/prettier
-      }
-      <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
+      }<ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
+      {/* eslint-enable @typescript-eslint/ban-ts-comment, prettier/prettier */}
     </>
   );
 }
