@@ -5,7 +5,7 @@ import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -42,17 +42,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       id: payment.bookingId,
     },
     select: {
-      title: true,
-      description: true,
-      customInputs: true,
-      startTime: true,
-      endTime: true,
+      ...bookingMinimalSelect,
       confirmed: true,
-      attendees: true,
       location: true,
       eventTypeId: true,
       userId: true,
-      id: true,
       uid: true,
       paid: true,
       destinationCalendar: true,

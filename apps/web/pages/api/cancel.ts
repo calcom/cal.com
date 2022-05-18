@@ -6,13 +6,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
-import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       uid,
     },
     select: {
-      id: true,
+      ...bookingMinimalSelect,
       userId: true,
       user: {
         select: {
@@ -45,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           destinationCalendar: true,
         },
       },
-      attendees: true,
       location: true,
       references: {
         select: {
@@ -56,16 +55,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       payment: true,
       paid: true,
-      title: true,
       eventType: {
         select: {
           title: true,
         },
       },
-      description: true,
-      customInputs: true,
-      startTime: true,
-      endTime: true,
       uid: true,
       eventTypeId: true,
       destinationCalendar: true,
