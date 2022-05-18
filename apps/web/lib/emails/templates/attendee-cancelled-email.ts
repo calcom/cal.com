@@ -49,6 +49,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getDescription()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.calEvent.cancellationReason && this.getCancellationReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
@@ -98,6 +99,7 @@ ${this.calEvent.cancellationReason && this.getCancellationReason()}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                               ${this.calEvent.cancellationReason && this.getCancellationReason()}
                             </div>
                           </td>
