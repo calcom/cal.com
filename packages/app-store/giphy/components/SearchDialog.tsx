@@ -75,7 +75,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     });
     const json = await res.json();
     if (!res.ok) {
-      setErrorMessage(json?.message || "Something went wrong");
+      setErrorMessage(json?.message || json?.[0]?.message || "Something went wrong");
     } else {
       setGifImage(json.image || "");
       if (!json.image) {
@@ -115,12 +115,9 @@ export const SearchDialog = (props: ISearchDialog) => {
         </div>
         <div className="flex w-full justify-center space-x-2 space-y-2">
           <div className="relative block w-full pt-2">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-2">
-              <SearchIcon color="grey" className="mt-2 h-5 w-5" />
-            </span>
             <input
               type="text"
-              className="block w-full rounded-sm border-gray-300 pl-9 shadow-sm sm:text-sm"
+              className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
               placeholder={
                 selectedMode === MODE_SEARCH
                   ? t("search_giphy")

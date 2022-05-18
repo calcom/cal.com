@@ -5,11 +5,11 @@ import prisma from "@calcom/prisma";
 
 import { GiphyManager } from "../lib";
 
-const getSchema = z.object({
-  url: z.string(),
-});
-
 const giphyUrlRegexp = /^https:\/\/media.giphy.com\/media\/(.*)\/giphy.gif/g;
+
+const getSchema = z.object({
+  url: z.string().regex(giphyUrlRegexp, "Giphy URL is invalid"),
+});
 
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
@@ -23,9 +23,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   try {
     const { url } = req.body;
+    // Extract Giphy ID from embed url
     var matches = giphyUrlRegexp.exec(url);
     if (!matches || matches.length < 2) {
-      return res.status(422).json({ message: "Giphy URL is invalid" });
+      return res.status(400).json({ message: "Giphy URL is invalid" });
     }
     const giphyId = matches[1];
     const gifImageUrl = await GiphyManager.getGiphyById(giphyId);
