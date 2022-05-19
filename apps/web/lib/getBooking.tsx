@@ -8,6 +8,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
     select: {
       startTime: true,
       description: true,
+      customInputs: true,
       attendees: {
         select: {
           email: true,

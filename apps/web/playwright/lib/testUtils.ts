@@ -1,8 +1,10 @@
 import { expect, Page, test } from "@playwright/test";
 import { createServer, IncomingMessage, ServerResponse } from "http";
+import noop from "lodash/noop";
 
 export function todo(title: string) {
-  test.skip(title, () => {});
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(title, noop);
 }
 
 type Request = IncomingMessage & { body?: unknown };
@@ -72,6 +74,7 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
@@ -83,6 +86,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
   // TODO: Find out why the first day is always booked on tests
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();

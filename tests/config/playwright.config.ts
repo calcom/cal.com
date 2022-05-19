@@ -32,8 +32,8 @@ const config: PlaywrightTestConfig = {
   maxFailures: headless ? 10 : undefined,
   reporter: [
     [process.env.CI ? "github" : "list"],
-    ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
-    ["junit", { outputFile: "./playwright/reports/results.xml" }],
+    ["html", { outputFolder: path.join(outputDir, "reports/playwright-html-report"), open: "never" }],
+    ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,

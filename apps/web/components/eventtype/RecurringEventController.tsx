@@ -1,4 +1,5 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
+import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Frequency as RRuleFrequency } from "rrule";
@@ -11,9 +12,9 @@ import Select from "@components/ui/form/Select";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent;
-  formMethods: UseFormReturn<any, any>;
+  formMethods: UseFormReturn<FormValues>;
   paymentEnabled: boolean;
-  onRecurringEventDefined: Function;
+  onRecurringEventDefined: (value: boolean) => void;
 };
 
 export default function RecurringEventController({
