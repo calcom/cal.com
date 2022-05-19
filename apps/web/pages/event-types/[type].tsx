@@ -69,7 +69,7 @@ import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeFor
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
 import CheckboxField from "@components/ui/form/CheckboxField";
-import CheckedSelect from "@components/ui/form/CheckedSelect";
+import CheckedSelect, { CheckedSelectProps } from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -956,7 +956,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     );
   };
   const onAttendeesChange = useCallback(
-    (options) => {
+    (options: CheckedSelectProps["options"]) => {
       formMethods.setValue(
         "users",
         options.map((user) => user.value)
