@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-react",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "Embed Cal Link as a React Component",
   "scripts": {
     "dev": "vite --port=3101 --open",
@@ -11,14 +11,16 @@
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
-    "embed-tests-quick": "QUICK=true yarn embed-tests"
+    "embed-tests-quick": "QUICK=true yarn embed-tests",
+    "publish-prod": "npm version patch && npm publish --access public",
+    "publish-beta": "npm version prepatch && npm publish --access public --tag beta"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
   "types": "./dist/src/index.d.ts",
   "peerDependencies": {
-    "react": "^17.0.0",
-    "react-dom": "^17.0.0"
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
   },
   "files": [
     "dist"
