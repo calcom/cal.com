@@ -25,7 +25,7 @@ const schemaWebhookEditParams = z
   .object({
     payloadTemplate: z.string().optional(),
     eventTriggers: z.string().optional(),
-    subscriberUrl: z.date().optional(),
+    subscriberUrl: z.string().optional(),
   })
   .strict();
 
