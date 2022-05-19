@@ -1,7 +1,5 @@
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
-import { useEffect } from "react";
-// import { ReactQueryDevtools } from "react-query/devtools";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";

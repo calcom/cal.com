@@ -34,7 +34,7 @@ const CustomError: NextPage<CustomErrorProps> = (props) => {
     // getInitialProps is not called in case of
     // https://github.com/vercel/next.js/issues/8592. As a workaround, we pass
     // err via _app.tsx so it can be captured
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const e = getErrorFromUnknown(err);
     // can be captured here
     // e.g. Sentry.captureException(e);

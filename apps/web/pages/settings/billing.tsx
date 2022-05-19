@@ -1,9 +1,9 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { ReactNode } from "react";
-import { useIntercom } from "react-use-intercom";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
+import { useIntercom } from "@ee/lib/intercom/useIntercom";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

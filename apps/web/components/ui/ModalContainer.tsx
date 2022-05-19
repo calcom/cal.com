@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React from "react";
 
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 
 interface Props extends React.PropsWithChildren<any> {
   wide?: boolean;

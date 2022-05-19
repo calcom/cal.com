@@ -1,10 +1,17 @@
+import noop from "lodash/noop";
 import { createContext, ReactNode, useContext } from "react";
 
 import { localStorage } from "@calcom/lib/webstorage";
 
-type contractsContextType = Record<string, string>;
+type contractsContextType = {
+  contracts: Record<string, string>;
+  addContract: (payload: addContractsPayload) => void;
+};
 
-const contractsContextDefaultValue: contractsContextType = {};
+const contractsContextDefaultValue: contractsContextType = {
+  contracts: {},
+  addContract: noop,
+};
 
 const ContractsContext = createContext<contractsContextType>(contractsContextDefaultValue);
 
@@ -37,10 +44,5 @@ export function ContractsProvider({ children }: Props) {
     addContract,
   };
 
-  return (
-    <>
-      {/* @ts-ignore */}
-      <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
-    </>
-  );
+  return <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>;
 }
