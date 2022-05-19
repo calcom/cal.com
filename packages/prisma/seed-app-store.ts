@@ -104,6 +104,8 @@ async function main() {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
+
+  await createApp("routing-forms", "routing-forms", ["other"], "routing-forms_other");
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
   await createApp("metamask", "metamask", ["web3"], "metamask_web3");

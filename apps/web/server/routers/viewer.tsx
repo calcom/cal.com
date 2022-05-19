@@ -644,6 +644,18 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
+  .query("integrationByType", {
+    input: z.object({
+      appId: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const appId = input.appId;
+      const { credentials } = user;
+      const apps = getApps(credentials);
+      return apps.find((app) => app.credential?.appId === appId);
+    },
+  })
   .query("web3Integration", {
     async resolve({ ctx }) {
       const { user } = ctx;

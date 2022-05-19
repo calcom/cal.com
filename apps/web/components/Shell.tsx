@@ -120,6 +120,12 @@ const Layout = ({
 }: LayoutProps & { status: SessionContextValue["status"]; plan?: UserPlan; isLoading: boolean }) => {
   const isEmbed = useIsEmbed();
   const router = useRouter();
+  const { data: routingForms } = trpc.useQuery([
+    "viewer.integrationByType",
+    {
+      appId: "routing-forms",
+    },
+  ]);
 
   const { t } = useLocale();
   const navigation = [
@@ -129,6 +135,14 @@ const Layout = ({
       icon: LinkIcon,
       current: router.asPath.startsWith("/event-types"),
     },
+    routingForms
+      ? {
+          name: t("routing-forms"),
+          href: "/routing",
+          icon: CalendarIcon,
+          current: router.asPath.startsWith("/routing"),
+        }
+      : null,
     {
       name: t("bookings"),
       href: "/bookings/upcoming",
@@ -202,47 +216,53 @@ const Layout = ({
                     </a>
                   </Link>
                   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
-                    {navigation.map((item) => (
-                      <Fragment key={item.name}>
-                        <Link href={item.href}>
-                          <a
-                            className={classNames(
-                              item.current
-                                ? "bg-neutral-100 text-neutral-900"
-                                : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
-                              "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
-                            )}>
-                            <item.icon
+                    {navigation.map((item) => {
+                      debugger;
+                      if (!item) {
+                        return null;
+                      }
+                      return (
+                        <Fragment key={item.name}>
+                          <Link href={item.href}>
+                            <a
                               className={classNames(
                                 item.current
-                                  ? "text-neutral-500"
-                                  : "text-neutral-400 group-hover:text-neutral-500",
-                                "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="hidden lg:inline">{item.name}</span>
-                          </a>
-                        </Link>
-                        {item.child &&
-                          router.asPath.startsWith(item.href) &&
-                          item.child.map((item) => {
-                            return (
-                              <Link key={item.name} href={item.href}>
-                                <a
-                                  className={classNames(
-                                    item.current
-                                      ? "text-neutral-900"
-                                      : "text-neutral-500 hover:text-neutral-900",
-                                    "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
-                                  )}>
-                                  <span className="hidden lg:inline">{item.name}</span>
-                                </a>
-                              </Link>
-                            );
-                          })}
-                      </Fragment>
-                    ))}
+                                  ? "bg-neutral-100 text-neutral-900"
+                                  : "text-neutral-500 hover:bg-gray-50 hover:text-neutral-900",
+                                "group flex items-center rounded-sm px-2 py-2 text-sm font-medium"
+                              )}>
+                              <item.icon
+                                className={classNames(
+                                  item.current
+                                    ? "text-neutral-500"
+                                    : "text-neutral-400 group-hover:text-neutral-500",
+                                  "h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                                )}
+                                aria-hidden="true"
+                              />
+                              <span className="hidden lg:inline">{item.name}</span>
+                            </a>
+                          </Link>
+                          {item.child &&
+                            router.asPath.startsWith(item.href) &&
+                            item.child.map((item) => {
+                              return (
+                                <Link key={item.name} href={item.href}>
+                                  <a
+                                    className={classNames(
+                                      item.current
+                                        ? "text-neutral-900"
+                                        : "text-neutral-500 hover:text-neutral-900",
+                                      "group hidden items-center rounded-sm px-2 py-2 pl-10 text-sm font-medium lg:flex"
+                                    )}>
+                                    <span className="hidden lg:inline">{item.name}</span>
+                                  </a>
+                                </Link>
+                              );
+                            })}
+                        </Fragment>
+                      );
+                    })}
                   </nav>
                 </div>
                 <TrialBanner />
@@ -355,8 +375,11 @@ const Layout = ({
                   style={isEmbed ? { display: "none" } : {}}
                   className="bottom-nav fixed bottom-0 z-30 flex w-full bg-white shadow md:hidden">
                   {/* note(PeerRich): using flatMap instead of map to remove settings from bottom nav */}
-                  {navigation.flatMap((item, itemIdx) =>
-                    item.href === "/settings/profile" ? (
+                  {navigation.flatMap((item, itemIdx) => {
+                    if (!item) {
+                      return null;
+                    }
+                    return item.href === "/settings/profile" ? (
                       []
                     ) : (
                       <Link key={item.name} href={item.href}>
@@ -378,8 +401,8 @@ const Layout = ({
                           <span className="truncate">{item.name}</span>
                         </a>
                       </Link>
-                    )
-                  )}
+                    );
+                  })}
                 </nav>
               )}
               {/* add padding to content for mobile navigation*/}

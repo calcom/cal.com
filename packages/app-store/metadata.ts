@@ -10,6 +10,7 @@ import { metadata as jitsivideo } from "./jitsivideo/_metadata";
 import { metadata as metamask } from "./metamask/_metadata";
 import { metadata as office365calendar } from "./office365calendar/_metadata";
 import { metadata as office365video } from "./office365video/_metadata";
+import { metadata as routingForms } from "./routing-forms/_metadata";
 import { metadata as slackmessaging } from "./slackmessaging/_metadata";
 import { metadata as spacebooking } from "./spacebooking/_metadata";
 import { metadata as stripepayment } from "./stripepayment/_metadata";
@@ -40,6 +41,7 @@ export const appStoreMetadata = {
   metamask,
   giphy,
   zapier,
+  routingForms,
 };
 
 export default appStoreMetadata;
