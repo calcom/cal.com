@@ -147,6 +147,7 @@ function BookingListItem(booking: BookingItemProps) {
           id: "change_location",
           label: t("edit_location"),
           onClick: (e) => {
+            e.stopPropagation();
             setIsOpenLocationDialog(true);
           },
           icon: LocationMarkerIcon,
