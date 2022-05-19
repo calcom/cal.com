@@ -12,8 +12,8 @@ export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("Please try again");
+  const [successMessage, setSuccessMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
 
@@ -39,13 +39,13 @@ export default function HelpMenuItem() {
       });
 
       if (res.ok) {
-        setResMessage(t("submitted_feedback"));
+        setSuccessMessage(true);
         setDisableSubmit(true);
       } else {
-        setResMessage(t("feedback_error"));
+        setErrorMessage(true);
       }
     } catch (error) {
-      setResMessage(t("feedback_error"));
+      setErrorMessage(true);
     }
     setLoading(false);
   };
@@ -193,12 +193,12 @@ export default function HelpMenuItem() {
         </div>
         {successMessage && (
           <div className="mb-4 bg-green-100 p-4 text-green-700">
-            <p className="font-medium">{successMessage}</p>
+            <p className="font-medium">{t("submitted_feedback")}</p>
           </div>
         )}
         {errorMessage && (
           <div className="mb-4 bg-red-100 p-4 text-sm text-red-700">
-            <p className="font-medium">{errorMessage}</p>
+            <p className="font-medium">{t("feedback_error")}</p>
           </div>
         )}
       </div>
