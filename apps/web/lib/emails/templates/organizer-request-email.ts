@@ -59,6 +59,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getDescription()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
 `.replace(/(<([^>]+)>)/gi, "");
@@ -86,7 +87,9 @@ ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
       <div style="background-color:#F5F5F5;">
         ${emailSchedulingBodyHeader("calendarCircle")}
         ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("event_awaiting_approval"),
+          this.calEvent.organizer.language.translate(
+            this.recurringEvent?.count ? "event_awaiting_approval_recurring" : "event_awaiting_approval"
+          ),
           this.calEvent.organizer.language.translate("someone_requested_an_event")
         )}
         ${emailSchedulingBodyDivider()}
@@ -108,6 +111,7 @@ ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>

@@ -1,11 +1,13 @@
-import { ClockIcon, CreditCardIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
+import { ClockIcon, CreditCardIcon, RefreshIcon, UserIcon, UsersIcon } from "@heroicons/react/solid";
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import React from "react";
+import React, { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
+
 import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
 
 const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
   select: {
@@ -14,6 +16,7 @@ const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
     price: true,
     currency: true,
     schedulingType: true,
+    recurringEvent: true,
     description: true,
   },
 });
@@ -27,6 +30,11 @@ export type EventTypeDescriptionProps = {
 
 export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
+
+  const recurringEvent: RecurringEvent = useMemo(
+    () => (eventType.recurringEvent as RecurringEvent) || [],
+    [eventType.recurringEvent]
+  );
 
   return (
     <>
@@ -52,6 +60,12 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             <li className="flex whitespace-nowrap">
               <UserIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
               {t("1_on_1")}
+            </li>
+          )}
+          {recurringEvent?.count && recurringEvent.count > 0 && (
+            <li className="flex whitespace-nowrap">
+              <RefreshIcon className="mt-0.5 mr-1.5 inline h-4 w-4 text-neutral-400" aria-hidden="true" />
+              {t("repeats_up_to", { count: recurringEvent.count })}
             </li>
           )}
           {eventType.price > 0 && (

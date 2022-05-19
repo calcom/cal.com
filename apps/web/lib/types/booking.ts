@@ -19,11 +19,12 @@ export type BookingCreateBody = {
   name: string;
   notes?: string;
   rescheduleUid?: string;
+  recurringEventId?: string;
   start: string;
   timeZone: string;
   user?: string | string[];
   language: string;
-  customInputs: { label: string; value: string }[];
+  customInputs: { label: string; value: string | boolean }[];
   metadata: {
     [key: string]: string;
   };

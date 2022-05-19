@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  envPrefix: "NEXT_PUBLIC_",
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
@@ -16,6 +17,7 @@ export default defineConfig({
       // into your library
       external: ["react", "react-dom"],
       output: {
+        exports: "named",
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {

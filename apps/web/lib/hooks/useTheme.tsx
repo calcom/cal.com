@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core";
@@ -40,7 +39,7 @@ export default function useTheme(theme?: Maybe<string>) {
     // TODO: isReady doesn't seem required now. This is also impacting PSI Score for pages which are using isReady.
     setIsReady(true);
     setTheme(theme);
-  }, []);
+  }, [theme]);
 
   function Theme() {
     const code = applyThemeAndAddListener.toString();

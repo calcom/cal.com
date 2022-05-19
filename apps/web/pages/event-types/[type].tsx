@@ -21,12 +21,15 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import short from "short-uuid";
 import { JSONObject } from "superjson/dist/types";
+import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
@@ -34,9 +37,12 @@ import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
+import { RecurringEvent } from "@calcom/types/Calendar";
+import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
+import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -52,12 +58,14 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
 import Shell from "@components/Shell";
-import { Tooltip } from "@components/Tooltip";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
+import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
@@ -65,7 +73,8 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
-import Select, { SelectProps } from "@components/ui/form/Select";
+import PhoneInput from "@components/ui/form/PhoneInput";
+import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
@@ -93,7 +102,44 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
+export type FormValues = {
+  title: string;
+  eventTitle: string;
+  smartContractAddress: string;
+  eventName: string;
+  slug: string;
+  length: number;
+  description: string;
+  disableGuests: boolean;
+  requiresConfirmation: boolean;
+  recurringEvent: RecurringEvent;
+  schedulingType: SchedulingType | null;
+  price: number;
+  currency: string;
+  hidden: boolean;
+  hideCalendarNotes: boolean;
+  hashedLink: string | undefined;
+  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  customInputs: EventTypeCustomInput[];
+  users: string[];
+  schedule: number;
+  periodType: PeriodType;
+  periodDays: number;
+  periodCountCalendarDays: "1" | "0";
+  periodDates: { startDate: Date; endDate: Date };
+  minimumBookingNotice: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
+  slotInterval: number | null;
+  destinationCalendar: {
+    integration: string;
+    externalId: string;
+  };
+  successRedirectUrl: string;
+  giphyThankYouPage: string;
+};
+
+const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   eventType,
   formMethods,
 }: {
@@ -160,6 +206,7 @@ const AvailabilitySelect = ({
   return (
     <QueryCell
       query={query}
+      customLoader={<AvailabilitySelectSkeletonLoader />}
       success={({ data }) => {
         const options = data.schedules.map((schedule) => ({
           value: schedule.id,
@@ -272,9 +319,22 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
 
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const [advancedSettingsVisible, setAdvancedSettingsVisible] = useState(false);
+
+  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
+  const [recurringEventDefined, setRecurringEventDefined] = useState(
+    eventType.recurringEvent?.count !== undefined
+  );
+
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
+  const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+
+  const generateHashedLink = (id: number) => {
+    const translator = short();
+    const seed = `${id}:${new Date().getTime()}`;
+    const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+    return uid;
+  };
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -309,6 +369,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     console.log(tokensList); // Just here to make sure it passes the gc hook. Can remove once actual use is made of tokensList.
 
     fetchTokens();
+
+    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -349,6 +412,109 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     setShowLocationModal(false);
   };
 
+  const LocationOptions = () => {
+    if (!selectedLocation) {
+      return null;
+    }
+    switch (selectedLocation.value) {
+      case LocationType.InPerson:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_address_place")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationAddress")}
+                id="address"
+                required
+                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.InPerson)?.address
+                }
+              />
+            </div>
+          </div>
+        );
+      case LocationType.Link:
+        return (
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              {t("set_link_meeting")}
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                {...locationFormMethods.register("locationLink")}
+                id="address"
+                required
+                className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+                defaultValue={
+                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
+                    ?.link
+                }
+              />
+              {locationFormMethods.formState.errors.locationLink && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationLink.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      case LocationType.UserPhone:
+        return (
+          <div>
+            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
+              {t("set_your_phone_number")}
+            </label>
+            <div className="mt-1">
+              <PhoneInput
+                control={locationFormMethods.control}
+                name="locationPhoneNumber"
+                required
+                id="locationPhoneNumber"
+                placeholder={t("host_phone_number")}
+                rules={{}}
+                defaultValue={
+                  formMethods
+                    .getValues("locations")
+                    .find((location) => location.type === LocationType.UserPhone)?.hostPhoneNumber
+                }
+              />
+              {locationFormMethods.formState.errors.locationPhoneNumber && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      case LocationType.Phone:
+        return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
+      /* TODO: Render this dynamically from App Store */
+      case LocationType.GoogleMeet:
+        return <p className="text-sm">{t("cal_provide_google_meet_location")}</p>;
+      case LocationType.Zoom:
+        return <p className="text-sm">{t("cal_provide_zoom_meeting_url")}</p>;
+      case LocationType.Daily:
+        return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
+      case LocationType.Jitsi:
+        return <p className="text-sm">{t("cal_provide_jitsi_meeting_url")}</p>;
+      case LocationType.Huddle01:
+        return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
+      case LocationType.Tandem:
+        return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
+      case LocationType.Teams:
+        return <p className="text-sm">{t("cal_provide_teams_meeting_url")}</p>;
+      default:
+        return null;
+    }
+  };
+
   const removeCustom = (index: number) => {
     formMethods.getValues("customInputs").splice(index, 1);
     customInputs.splice(index, 1);
@@ -381,9 +547,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     team ? `team/${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
-  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${
-    eventType.hashedLink ? eventType.hashedLink.link : "xxxxxxxxxxxxxxxxx"
-  }/${eventType.slug}`;
+  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const mapUserToValue = ({
     id,
@@ -399,43 +563,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
-  const formMethods = useForm<{
-    title: string;
-    eventTitle: string;
-    smartContractAddress: string;
-    eventName: string;
-    slug: string;
-    length: number;
-    description: string;
-    disableGuests: boolean;
-    requiresConfirmation: boolean;
-    schedulingType: SchedulingType | null;
-    price: number;
-    currency: string;
-    hidden: boolean;
-    hideCalendarNotes: boolean;
-    hashedLink: boolean;
-    locations: { type: LocationType; address?: string; link?: string }[];
-    customInputs: EventTypeCustomInput[];
-    users: string[];
-    schedule: number;
-    periodType: PeriodType;
-    periodDays: number;
-    periodCountCalendarDays: "1" | "0";
-    periodDates: { startDate: Date; endDate: Date };
-    minimumBookingNotice: number;
-    beforeBufferTime: number;
-    afterBufferTime: number;
-    slotInterval: number | null;
-    destinationCalendar: {
-      integration: string;
-      externalId: string;
-    };
-    successRedirectUrl: string;
-    giphyThankYouPage: string;
-  }>({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
       locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || {},
       schedule: eventType.schedule?.id,
       periodDates: {
         startDate: periodDates.startDate,
@@ -447,11 +578,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    locationPhoneNumber: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
   });
 
   const locationFormMethods = useForm<{
     locationType: LocationType;
+    locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
   }>({
@@ -470,7 +606,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
                   locationFormMethods.setValue("locationType", newLocationType);
-                  if (newLocationType === LocationType.InPerson || newLocationType === LocationType.Link) {
+                  if (
+                    newLocationType === LocationType.InPerson ||
+                    newLocationType === LocationType.Link ||
+                    newLocationType === LocationType.UserPhone
+                  ) {
                     openLocationModal(newLocationType);
                   } else {
                     addLocation(newLocationType);
@@ -504,6 +644,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         disabled
                         className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
                         value={location.link}
+                      />
+                    </div>
+                  )}
+                  {location.type === LocationType.UserPhone && (
+                    <div className="flex flex-grow items-center">
+                      <PhoneIcon className="h-6 w-6" />
+                      <input
+                        disabled
+                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
+                        value={location.hostPhoneNumber}
                       />
                     </div>
                   )}
@@ -774,6 +924,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         locationFormMethods.setValue("locationType", location.type);
                         locationFormMethods.unregister("locationLink");
                         locationFormMethods.unregister("locationAddress");
+                        locationFormMethods.unregister("locationPhoneNumber");
                         openLocationModal(location.type);
                       }}
                       aria-label={t("edit")}
@@ -819,7 +970,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <h1
                   style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
                   className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                  {eventType.title}
+                  {formMethods.getValues("title") && formMethods.getValues("title") !== ""
+                    ? formMethods.getValues("title")
+                    : eventType.title}
                 </h1>
                 <PencilIcon className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
               </>
@@ -834,6 +987,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   placeholder={t("quick_chat")}
                   {...formMethods.register("title")}
                   defaultValue={eventType.title}
+                  onBlur={() => {
+                    setEditIcon(true);
+                    formMethods.getValues("title") === "" && formMethods.setValue("title", eventType.title);
+                  }}
                 />
               </div>
             )}
@@ -854,15 +1011,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
+                      recurringEvent,
                       locations,
                       ...input
                     } = values;
 
-                    if (requirePayment) input.currency = currency;
-
                     updateMutation.mutate({
                       ...input,
                       locations,
+                      recurringEvent,
                       periodStartDate: periodDates.startDate,
                       periodEndDate: periodDates.endDate,
                       periodCountCalendarDays: periodCountCalendarDays === "1",
@@ -1260,6 +1417,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           )}
                         />
 
+                        <RecurringEventController
+                          paymentEnabled={hasPaymentIntegration && requirePayment}
+                          onRecurringEventDefined={setRecurringEventDefined}
+                          recurringEvent={eventType.recurringEvent}
+                          formMethods={formMethods}
+                        />
+
                         <Controller
                           name="disableGuests"
                           control={formMethods.control}
@@ -1281,27 +1445,31 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         <Controller
                           name="hashedLink"
                           control={formMethods.control}
-                          defaultValue={eventType.hashedLink ? true : false}
+                          defaultValue={hashedUrl}
                           render={() => (
                             <>
                               <CheckboxField
-                                id="hashedLink"
-                                name="hashedLink"
-                                label={t("hashed_link")}
-                                description={t("hashed_link_description")}
+                                id="hashedLinkCheck"
+                                name="hashedLinkCheck"
+                                label={t("private_link")}
+                                description={t("private_link_description")}
                                 defaultChecked={eventType.hashedLink ? true : false}
                                 onChange={(e) => {
                                   setHashedLinkVisible(e?.target.checked);
-                                  formMethods.setValue("hashedLink", e?.target.checked);
+                                  formMethods.setValue(
+                                    "hashedLink",
+                                    e?.target.checked ? hashedUrl : undefined
+                                  );
                                 }}
                               />
                               {hashedLinkVisible && (
-                                <div className="block items-center sm:flex">
+                                <div className="!mt-1 block items-center sm:flex">
                                   <div className="min-w-48 mb-4 sm:mb-0"></div>
                                   <div className="w-full">
                                     <div className="relative mt-1 flex w-full">
                                       <input
                                         disabled
+                                        name="hashedLink"
                                         data-testid="generated-hash-url"
                                         type="text"
                                         className="grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
@@ -1316,9 +1484,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <Button
                                           color="minimal"
                                           onClick={() => {
+                                            navigator.clipboard.writeText(placeholderHashedLink);
                                             if (eventType.hashedLink) {
-                                              navigator.clipboard.writeText(placeholderHashedLink);
-                                              showToast("Link copied!", "success");
+                                              showToast(t("private_link_copied"), "success");
+                                            } else {
+                                              showToast(t("enabled_after_update_description"), "warning");
                                             }
                                           }}
                                           type="button"
@@ -1581,40 +1751,44 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                               <div className="flex flex-col">
                                 <div className="w-full">
-                                  <div className="block items-center sm:flex">
-                                    <div className="w-full">
-                                      <div className="relative flex items-start">
-                                        <div className="flex h-5 items-center">
-                                          <input
-                                            onChange={(event) => {
-                                              setRequirePayment(event.target.checked);
-                                              if (!event.target.checked) {
-                                                formMethods.setValue("price", 0);
-                                              }
-                                            }}
-                                            id="requirePayment"
-                                            name="requirePayment"
-                                            type="checkbox"
-                                            className="text-primary-600 h-4 w-4 rounded border-gray-300"
-                                            defaultChecked={requirePayment}
-                                          />
-                                        </div>
-                                        <div className="text-sm ltr:ml-3 rtl:mr-3">
-                                          <p className="text-neutral-900">
-                                            {t("require_payment")} (0.5% +{" "}
-                                            <IntlProvider locale="en">
-                                              <FormattedNumber
-                                                value={0.1}
-                                                style="currency"
-                                                currency={currency}
-                                              />
-                                            </IntlProvider>{" "}
-                                            {t("commission_per_transaction")})
-                                          </p>
+                                  {recurringEventDefined ? (
+                                    <Alert severity="warning" title={t("warning_recurring_event_payment")} />
+                                  ) : (
+                                    <div className="block items-center sm:flex">
+                                      <div className="w-full">
+                                        <div className="relative flex items-start">
+                                          <div className="flex h-5 items-center">
+                                            <input
+                                              onChange={(event) => {
+                                                setRequirePayment(event.target.checked);
+                                                if (!event.target.checked) {
+                                                  formMethods.setValue("price", 0);
+                                                }
+                                              }}
+                                              id="requirePayment"
+                                              name="requirePayment"
+                                              type="checkbox"
+                                              className="text-primary-600 h-4 w-4 rounded border-gray-300"
+                                              defaultChecked={requirePayment}
+                                            />
+                                          </div>
+                                          <div className="text-sm ltr:ml-3 rtl:mr-3">
+                                            <p className="text-neutral-900">
+                                              {t("require_payment")} (0.5% +{" "}
+                                              <IntlProvider locale="en">
+                                                <FormattedNumber
+                                                  value={0.1}
+                                                  style="currency"
+                                                  currency={currency}
+                                                />
+                                              </IntlProvider>{" "}
+                                              {t("commission_per_transaction")})
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
                                 {requirePayment && (
                                   <div className="w-full">
@@ -1749,6 +1923,26 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
                   {t("copy_link")}
                 </button>
+                {hashedLinkVisible && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(placeholderHashedLink);
+                      if (eventType.hashedLink) {
+                        showToast(t("private_link_copied"), "success");
+                      } else {
+                        showToast(t("enabled_after_update_description"), "warning");
+                      }
+                    }}
+                    type="button"
+                    className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900">
+                    <LinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" />
+                    {t("copy_private_link")}
+                  </button>
+                )}
+                <EmbedButton
+                  className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                  eventTypeId={eventType.id}
+                />
                 <Dialog>
                   <DialogTrigger className="text-md flex items-center rounded-sm px-2 py-1 text-sm font-medium text-red-500 hover:bg-gray-200">
                     <TrashIcon className="h-4 w-4 text-red-500 ltr:mr-2 rtl:ml-2" />
@@ -1840,6 +2034,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             />
           )}
         </ClientSuspense>
+        <EmbedDialog />
       </Shell>
     </div>
   );
@@ -1919,6 +2114,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       periodEndDate: true,
       periodCountCalendarDays: true,
       requiresConfirmation: true,
+      recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
@@ -1929,6 +2125,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       successRedirectUrl: true,
       team: {
         select: {
+          id: true,
           slug: true,
           members: {
             where: {
@@ -1983,6 +2180,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
     locations: locations as unknown as Location[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:

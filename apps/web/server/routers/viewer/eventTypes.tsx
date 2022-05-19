@@ -1,6 +1,5 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -87,7 +86,7 @@ const EventTypeUpdateInput = _EventTypeModel
     }),
     users: z.array(stringOrNumber).optional(),
     schedule: z.number().optional(),
-    hashedLink: z.boolean(),
+    hashedLink: z.string(),
   })
   .partial()
   .merge(
@@ -124,7 +123,7 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
-      const appKeys = await getAppKeysFromSlug("dailyvideo");
+      const appKeys = await getAppKeysFromSlug("daily-video");
       if (typeof appKeys.api_key === "string") {
         data.locations = [{ type: "integrations:daily" }];
       }
@@ -151,9 +150,17 @@ export const eventTypesRouter = createProtectedRouter()
         data.schedulingType = schedulingType;
       }
 
-      const eventType = await ctx.prisma.eventType.create({ data });
-
-      return { eventType };
+      try {
+        const eventType = await ctx.prisma.eventType.create({ data });
+        return { eventType };
+      } catch (e) {
+        if (e instanceof PrismaClientKnownRequestError) {
+          if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
+          }
+        }
+        throw e;
+      }
     },
   })
   // Prevent non-owners to update/delete a team event
@@ -211,6 +218,40 @@ export const eventTypesRouter = createProtectedRouter()
 
     return next();
   })
+  .query("get", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          startTime: true,
+          endTime: true,
+          bufferTime: true,
+          avatar: true,
+          plan: true,
+        },
+      });
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+      return await ctx.prisma.eventType.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          team: true,
+          users: true,
+        },
+      });
+    },
+  })
   .mutation("update", {
     input: EventTypeUpdateInput.strict(),
     async resolve({ ctx, input }) {
@@ -220,6 +261,7 @@ export const eventTypesRouter = createProtectedRouter()
         locations,
         destinationCalendar,
         customInputs,
+        recurringEvent,
         users,
         id,
         hashedLink,
@@ -230,6 +272,17 @@ export const eventTypesRouter = createProtectedRouter()
       data.locations = locations ?? undefined;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
+      }
+
+      if (recurringEvent) {
+        data.recurringEvent = {
+          dstart: recurringEvent.dtstart as unknown as Prisma.InputJsonObject,
+          interval: recurringEvent.interval,
+          count: recurringEvent.count,
+          freq: recurringEvent.freq,
+          until: recurringEvent.until as unknown as Prisma.InputJsonObject,
+          tzid: recurringEvent.tzid,
+        };
       }
 
       if (destinationCalendar) {
@@ -271,19 +324,16 @@ export const eventTypesRouter = createProtectedRouter()
       if (hashedLink) {
         // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
         if (!connectedLink) {
-          const translator = short();
-          const seed = `${input.eventName}:${input.id}:${new Date().getTime()}`;
-          const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
           // create a hashed link
           await ctx.prisma.hashedLink.upsert({
             where: {
               eventTypeId: input.id,
             },
             update: {
-              link: uid,
+              link: hashedLink,
             },
             create: {
-              link: uid,
+              link: hashedLink,
               eventType: {
                 connect: { id: input.id },
               },

@@ -7,11 +7,11 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Tooltip } from "@calcom/ui/Tooltip";
 
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import { ListItem } from "@components/List";
-import { Tooltip } from "@components/Tooltip";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Badge from "@components/ui/Badge";
 

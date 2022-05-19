@@ -6,7 +6,7 @@ import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
@@ -118,7 +118,10 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
-      jitsu.track(telemetryEventTypes.pageView, collectPageParameters("/[user]"))
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/[user]")
+      )
     );
   }, [telemetry]);
   return (
@@ -272,6 +275,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       description: true,
       hidden: true,
       schedulingType: true,
+      recurringEvent: true,
       price: true,
       currency: true,
       metadata: true,
@@ -282,7 +286,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-  const crypto = require("crypto");
+  const crypto = await import("crypto");
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();

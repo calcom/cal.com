@@ -1,8 +1,17 @@
+import noop from "lodash/noop";
 import { createContext, ReactNode, useContext } from "react";
 
-type contractsContextType = Record<string, string>;
+import { localStorage } from "@calcom/lib/webstorage";
 
-const contractsContextDefaultValue: contractsContextType = {};
+type contractsContextType = {
+  contracts: Record<string, string>;
+  addContract: (payload: addContractsPayload) => void;
+};
+
+const contractsContextDefaultValue: contractsContextType = {
+  contracts: {},
+  addContract: noop,
+};
 
 const ContractsContext = createContext<contractsContextType>(contractsContextDefaultValue);
 
@@ -21,25 +30,19 @@ interface addContractsPayload {
 
 export function ContractsProvider({ children }: Props) {
   const addContract = (payload: addContractsPayload) => {
-    window.localStorage.setItem(
+    localStorage.setItem(
       "contracts",
       JSON.stringify({
-        ...JSON.parse(window.localStorage.getItem("contracts") || "{}"),
+        ...JSON.parse(localStorage.getItem("contracts") || "{}"),
         [payload.address]: payload.signature,
       })
     );
   };
 
   const value = {
-    contracts:
-      typeof window !== "undefined" ? JSON.parse(window.localStorage.getItem("contracts") || "{}") : {},
+    contracts: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("contracts") || "{}") : {},
     addContract,
   };
 
-  return (
-    <>
-      {/* @ts-ignore */}
-      <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>
-    </>
-  );
+  return <ContractsContext.Provider value={value}>{children}</ContractsContext.Provider>;
 }

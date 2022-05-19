@@ -6,7 +6,7 @@ import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
 import { getCancelLink } from "@calcom/lib/CalEventParser";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
   emailHead,
@@ -24,8 +24,8 @@ dayjs.extend(toArray);
 
 export default class OrganizerRequestRescheduledEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
-  constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
-    super(calEvent);
+  constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }, recurringEvent: RecurringEvent) {
+    super(calEvent, recurringEvent);
     this.metadata = metadata;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
@@ -115,6 +115,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
 ${getCancelLink(this.calEvent)}
 `.replace(/(<([^>]+)>)/gi, "");
@@ -166,6 +167,7 @@ ${getCancelLink(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>

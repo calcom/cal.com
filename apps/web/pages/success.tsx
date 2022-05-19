@@ -1,7 +1,9 @@
 import { CheckIcon } from "@heroicons/react/outline";
 import { ArrowLeftIcon, ClockIcon, XIcon } from "@heroicons/react/solid";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
@@ -11,6 +13,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import RRule from "rrule";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
 import {
@@ -21,6 +24,8 @@ import {
 } from "@calcom/embed-core";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
+import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
@@ -30,10 +35,12 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
+import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -41,6 +48,7 @@ import { ssrInit } from "@server/lib/ssr";
 dayjs.extend(utc);
 dayjs.extend(toArray);
 dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -56,8 +64,9 @@ function RedirectionToast({ url }: { url: string }) {
   const parsedSuccessUrl = new URL(document.URL);
   const parsedExternalUrl = new URL(url);
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
     parsedSuccessUrl.searchParams.set(name, value);
   }
 
@@ -133,7 +142,9 @@ function RedirectionToast({ url }: { url: string }) {
   );
 }
 
-export default function Success(props: inferSSRProps<typeof getServerSideProps>) {
+type SuccessProps = inferSSRProps<typeof getServerSideProps>;
+
+export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { location: _location, name, reschedule } = router.query;
@@ -142,13 +153,13 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
-  const { isReady, Theme } = useTheme(props.profile.theme);
-  const { eventType } = props;
+  const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+  const [isCancellationMode, setIsCancellationMode] = useState(false);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -164,11 +175,21 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+  const telemetry = useTelemetry();
+  useEffect(() => {
+    telemetry.withJitsu((jitsu) =>
+      jitsu.track(
+        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+        collectPageParameters("/success")
+      )
+    );
+  }, [telemetry]);
 
   useEffect(() => {
     const users = eventType.users;
+    if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager!.fire("bookingSuccessful", {
+    sdkActionManager.fire("bookingSuccessful", {
       eventType,
       date: date.toString(),
       duration: eventType.length,
@@ -182,6 +203,7 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
@@ -212,18 +234,42 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
 
     return encodeURIComponent(event.value ? event.value : false);
   }
+
+  function getTitle(): string {
+    const titleSuffix = props.recurringBookings ? "_recurring" : "";
+    if (needsConfirmation) {
+      if (props.profile.name !== null) {
+        return t("user_needs_to_confirm_or_reject_booking" + titleSuffix, {
+          user: props.profile.name,
+        });
+      }
+      return t("needs_to_be_confirmed_or_rejected" + titleSuffix);
+    }
+    return t("emailed_you_and_attendees" + titleSuffix);
+  }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const { isReady, Theme } = useTheme(userIsOwner ? "light" : props.profile.theme);
+  const title = t(
+    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
+  );
+  const customInputs = bookingInfo?.customInputs;
   return (
     (isReady && (
       <>
         <div
           className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
           data-testid="success-page">
+          {userIsOwner && !isEmbed && (
+            <div className="-mb-7 ml-9 mt-7">
+              <Link href="/bookings">
+                <a className="flex items-center text-black dark:text-white">
+                  <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                </a>
+              </Link>
+            </div>
+          )}
           <Theme />
-          <HeadSeo
-            title={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
-            description={needsConfirmation ? t("booking_submitted") : t("booking_confirmed")}
-          />
+          <HeadSeo title={title} description={title} />
           <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
           <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
             <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
@@ -253,7 +299,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
@@ -263,29 +312,46 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <h3
                           className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                           id="modal-headline">
-                          {needsConfirmation ? t("submitted") : t("meeting_is_scheduled")}
+                          {needsConfirmation
+                            ? props.recurringBookings
+                              ? t("submitted_recurring")
+                              : t("submitted")
+                            : props.recurringBookings
+                            ? t("meeting_is_scheduled_recurring")
+                            : t("meeting_is_scheduled")}
                         </h3>
                         <div className="mt-3">
-                          <p className="text-sm text-neutral-600 dark:text-gray-300">
-                            {needsConfirmation
-                              ? props.profile.name !== null
-                                ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
-                                : t("needs_to_be_confirmed_or_rejected")
-                              : t("emailed_you_and_attendees")}
-                          </p>
+                          <p className="text-sm text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                         </div>
-
                         <div className="border-bookinglightest text-bookingdark mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                           <div className="font-medium">{t("what")}</div>
                           <div className="col-span-2 mb-6">{eventName}</div>
                           <div className="font-medium">{t("when")}</div>
-                          <div className="col-span-2">
-                            {date.format("dddd, DD MMMM YYYY")}
-                            <br />
-                            {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                            <span className="text-bookinglight">
-                              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                            </span>
+                          <div className="col-span-2 mb-6">
+                            <RecurringBookings
+                              isReschedule={reschedule === "true"}
+                              eventType={props.eventType}
+                              recurringBookings={props.recurringBookings}
+                              date={date}
+                              is24h={is24h}
+                            />
+                          </div>
+                          <div className="font-medium">{t("who")}</div>
+                          <div className="col-span-2 mb-6">
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div
+                                key={attendee.name}
+                                className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </div>
                           {location && (
                             <>
@@ -301,15 +367,68 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               </div>
                             </>
                           )}
+                          {bookingInfo?.description && (
+                            <>
+                              <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <p>{bookingInfo.description}</p>
+                              </div>
+                            </>
+                          )}
+                          {customInputs &&
+                            Object.keys(customInputs).map((key) => {
+                              const customInput = customInputs[key as keyof typeof customInputs];
+                              return (
+                                <>
+                                  {customInput !== "" && (
+                                    <>
+                                      <div className="mt-2 pr-3 font-medium">{key}</div>
+                                      <div className="col-span-2 mt-2 mb-2">
+                                        {typeof customInput === "boolean" ? (
+                                          <p>{customInput ? "true" : "false"}</p>
+                                        ) : (
+                                          <p>{customInput}</p>
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })}
                         </div>
                       </div>
                     </div>
-                    {!needsConfirmation && (
-                      <div className="border-bookinglightest mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                    {!needsConfirmation &&
+                      (!isCancellationMode ? (
+                        <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
+                          <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            {t("need_to_make_a_change")}
+                          </span>
+                          <div className="ml-7 flex items-center justify-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            <button className="underline" onClick={() => setIsCancellationMode(true)}>
+                              {t("cancel")}
+                            </button>
+                            <div className="mx-2">{t("or_lowercase")}</div>
+                            <div className="underline">
+                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <CancelBooking
+                          booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
+                          profile={{ name: props.profile.name, slug: props.profile.slug }}
+                          team={eventType?.team?.name}
+                          setIsCancellationMode={setIsCancellationMode}
+                          theme={userIsOwner ? "light" : props.profile.theme}
+                        />
+                      ))}
+                    {userIsOwner && !needsConfirmation && !isCancellationMode && (
+                      <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
-                        <div className="flex flex-grow justify-center text-center">
+                        <div className="-ml-16 flex flex-grow justify-center text-center">
                           <Link
                             href={
                               `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -322,6 +441,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                               }` +
                               (typeof location === "string"
                                 ? "&location=" + encodeURIComponent(location)
+                                : "") +
+                              (props.eventType.recurringEvent
+                                ? "&recur=" +
+                                  encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }>
                             <a className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
@@ -412,7 +535,10 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
-                            router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
+                            const target = e.target as typeof e.target & {
+                              email: { value: string };
+                            };
+                            router.push(`https://cal.com/signup?email=${target.email.value}`);
                           }}
                           className="mt-4 flex">
                           <EmailInput
@@ -428,15 +554,6 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
                         </form>
                       </div>
                     )}
-                    {userIsOwner && !isEmbed && (
-                      <div className="mt-4">
-                        <Link href="/bookings">
-                          <a className="flex items-center text-black dark:text-white">
-                            <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
-                          </a>
-                        </Link>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -447,21 +564,15 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
         {props.userHasSpaceBooking && (
           <SpaceBookingSuccessPage
             open={props.userHasSpaceBooking}
-            what={` 
+            what={`
             ${needsConfirmation ? t("submitted") : `${t("meeting_is_scheduled")}.`}
-               ${
-                 needsConfirmation
-                   ? props.profile.name !== null
-                     ? t("user_needs_to_confirm_or_reject_booking", { user: props.profile.name })
-                     : t("needs_to_be_confirmed_or_rejected")
-                   : t("emailed_you_and_attendees")
-               } ${t("what")}: ${eventName}`}
+               ${getTitle()} ${t("what")}: ${eventName}`}
             where={`${t("where")}: ${
               location ? (location?.startsWith("http") ? { location } : location) : "Far far a way galaxy"
             }`}
-            when={`${t("when")}: ${date.format("dddd, DD MMMM YYYY")} ${date.format(
-              is24h ? "H:mm" : "h:mma"
-            )} - ${props.eventType.length} mins (${
+            when={`${t("when")}: ${props.recurringBookings ? t("starting") : ""} ${date.format(
+              "dddd, DD MMMM YYYY"
+            )} ${date.format(is24h ? "H:mm" : "h:mma")} - ${props.eventType.length} mins (${
               localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()
             })`}
           />
@@ -470,6 +581,70 @@ export default function Success(props: inferSSRProps<typeof getServerSideProps>)
     )) ||
     null
   );
+}
+
+type RecurringBookingsProps = {
+  isReschedule: boolean;
+  eventType: SuccessProps["eventType"];
+  recurringBookings: SuccessProps["recurringBookings"];
+  date: dayjs.Dayjs;
+  is24h: boolean;
+};
+
+function RecurringBookings({
+  isReschedule = false,
+  eventType,
+  recurringBookings,
+  date,
+}: RecurringBookingsProps) {
+  const [moreEventsVisible, setMoreEventsVisible] = useState(false);
+  const { t } = useLocale();
+  return !isReschedule && recurringBookings ? (
+    <>
+      {eventType.recurringEvent?.count &&
+        recurringBookings.slice(0, 4).map((dateStr, idx) => (
+          <div key={idx} className="mb-2">
+            {dayjs(dateStr).format("MMMM DD, YYYY")}
+            <br />
+            {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
+            <span className="text-bookinglight">
+              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+            </span>
+          </div>
+        ))}
+      {recurringBookings.length > 4 && (
+        <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+          <CollapsibleTrigger
+            type="button"
+            className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+            {t("plus_more", { count: recurringBookings.length - 4 })}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {eventType.recurringEvent?.count &&
+              recurringBookings.slice(4).map((dateStr, idx) => (
+                <div key={idx} className="mb-2">
+                  {dayjs(dateStr).format("MMMM DD, YYYY")}
+                  <br />
+                  {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
+                  <span className="text-bookinglight">
+                    ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                  </span>
+                </div>
+              ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </>
+  ) : !eventType.recurringEvent.freq ? (
+    <>
+      {date.format("MMMM DD, YYYY")}
+      <br />
+      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
+      <span className="text-bookinglight">
+        ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+      </span>
+    </>
+  ) : null;
 }
 
 const getEventTypesFromDB = async (typeId: number) => {
@@ -483,6 +658,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       description: true,
       length: true,
       eventName: true,
+      recurringEvent: true,
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
@@ -490,6 +666,7 @@ const getEventTypesFromDB = async (typeId: number) => {
         select: {
           id: true,
           name: true,
+          username: true,
           hideBranding: true,
           plan: true,
           theme: true,
@@ -501,6 +678,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       },
       team: {
         select: {
+          slug: true,
           name: true,
           hideBranding: true,
         },
@@ -513,8 +691,11 @@ const getEventTypesFromDB = async (typeId: number) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
+  const recurringEventIdQuery = asStringOrNull(context.query.recur);
   const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
+  if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
+  const bookingId = parseInt(context.query.bookingId);
 
   if (isNaN(typeId)) {
     return {
@@ -522,21 +703,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const eventType = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  const eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
-  if (!eventType) {
+  if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
-  let spaceBookingAvailable = false;
 
   let userHasSpaceBooking = false;
-  if (eventType.users[0] && eventType.users[0].id) {
+  if (eventTypeRaw.users[0] && eventTypeRaw.users[0].id) {
     const credential = await prisma.credential.findFirst({
       where: {
         type: "spacebooking_other",
-        userId: eventType.users[0].id,
+        userId: eventTypeRaw.users[0].id,
       },
     });
     if (credential && credential.type === "spacebooking_other") {
@@ -544,15 +724,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  if (!eventType.users.length && eventType.userId) {
+  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
     // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
     const user = await prisma.user.findUnique({
       where: {
-        id: eventType.userId,
+        id: eventTypeRaw.userId,
       },
       select: {
         id: true,
         name: true,
+        username: true,
         hideBranding: true,
         plan: true,
         theme: true,
@@ -563,17 +744,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
     if (user) {
-      eventType.users.push(user);
+      eventTypeRaw.users.push(user);
     }
   }
 
-  if (!eventType.users.length) {
+  if (!eventTypeRaw.users.length) {
     return {
       notFound: true,
     };
   }
 
-  // if (!typeId) eventType["eventName"] = getDynamicEventName(users, typeSlug);
+  const eventType = {
+    ...eventTypeRaw,
+    recurringEvent: (eventTypeRaw.recurringEvent || {}) as RecurringEvent,
+  };
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
@@ -581,16 +765,55 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
+    slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
+
+  const bookingInfo = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      title: true,
+      uid: true,
+      description: true,
+      customInputs: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+  let recurringBookings = null;
+  if (recurringEventIdQuery) {
+    // We need to get the dates for the bookings to be able to show them in the UI
+    recurringBookings = await prisma.booking.findMany({
+      where: {
+        recurringEventId: recurringEventIdQuery,
+      },
+      select: {
+        startTime: true,
+      },
+    });
+  }
 
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
       profile,
       eventType,
+      recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
       dynamicEventName,
       userHasSpaceBooking,
+      bookingInfo,
     },
   };
 }

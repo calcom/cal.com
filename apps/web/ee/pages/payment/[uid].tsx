@@ -21,6 +21,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bookingId: true,
       booking: {
         select: {
+          id: true,
           description: true,
           title: true,
           startTime: true,

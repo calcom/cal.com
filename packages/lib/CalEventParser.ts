@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { BASE_URL } from "./constants";
+import { WEBAPP_URL } from "./constants";
 
 const translator = short();
 
@@ -55,6 +55,25 @@ ${calEvent.additionalNotes}
   `;
 };
 
+export const getCustomInputs = (calEvent: CalendarEvent) => {
+  if (!calEvent.customInputs) {
+    return "";
+  }
+  const customInputsString = Object.keys(calEvent.customInputs)
+    .map((key) => {
+      if (!calEvent.customInputs) return "";
+      if (calEvent.customInputs[key] !== "") {
+        return `
+${key}:
+${calEvent.customInputs[key]}
+  `;
+      }
+    })
+    .join("");
+
+  return customInputsString;
+};
+
 export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
@@ -94,7 +113,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return BASE_URL + "/cancel/" + getUid(calEvent);
+  return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
@@ -110,6 +129,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
   `.trim();
   }
 
@@ -121,6 +141,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
+${getCustomInputs(calEvent)}
 ${getManageLink(calEvent)}
   `.trim();
 };

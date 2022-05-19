@@ -18,7 +18,7 @@ export const webhookRouter = createProtectedRouter()
       })
       .optional(),
     async resolve({ ctx, input }) {
-      let where: Prisma.WebhookWhereInput = {
+      const where: Prisma.WebhookWhereInput = {
         AND: [{ appId: null /* Don't mixup zapier webhooks with normal ones */ }],
       };
       if (Array.isArray(where.AND)) {

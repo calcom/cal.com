@@ -6,13 +6,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getCalendar } from "@calcom/core/CalendarManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { refund } from "@ee/lib/stripe/server";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { sendCancelledEmails } from "@lib/emails/email-manager";
-import prisma from "@lib/prisma";
 import sendPayload from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
@@ -33,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       uid,
     },
     select: {
-      id: true,
+      ...bookingMinimalSelect,
       userId: true,
       user: {
         select: {
@@ -45,25 +46,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           destinationCalendar: true,
         },
       },
-      attendees: true,
       location: true,
       references: {
         select: {
           uid: true,
           type: true,
+          externalCalendarId: true,
         },
       },
       payment: true,
       paid: true,
-      title: true,
       eventType: {
         select: {
           title: true,
         },
       },
-      description: true,
-      startTime: true,
-      endTime: true,
       uid: true,
       eventTypeId: true,
       destinationCalendar: true,
@@ -114,6 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     title: bookingToDelete?.title,
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
+    customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
@@ -163,11 +161,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const apiDeletes = async.mapLimit(bookingToDelete.user.credentials, 5, async (credential: Credential) => {
     const bookingRefUid = bookingToDelete.references.filter((ref) => ref.type === credential.type)[0]?.uid;
+    const bookingExternalCalendarId = bookingToDelete.references.filter(
+      (ref) => ref.type === credential.type
+    )[0]?.externalCalendarId;
     if (bookingRefUid) {
       if (credential.type.endsWith("_calendar")) {
         const calendar = getCalendar(credential);
 
-        return calendar?.deleteEvent(bookingRefUid, evt);
+        return calendar?.deleteEvent(bookingRefUid, evt, bookingExternalCalendarId);
       } else if (credential.type.endsWith("_video")) {
         return deleteMeeting(credential, bookingRefUid);
       }
@@ -179,6 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: bookingToDelete?.eventType?.title as string,
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
+      customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
       startTime: bookingToDelete.startTime.toISOString(),
       endTime: bookingToDelete.endTime.toISOString(),
       organizer: {

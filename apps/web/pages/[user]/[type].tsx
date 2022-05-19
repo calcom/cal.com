@@ -5,6 +5,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -84,6 +85,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodDays: true,
     periodCountCalendarDays: true,
     schedulingType: true,
+    recurringEvent: true,
     schedule: {
       select: {
         availability: true,
@@ -256,6 +258,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
   });
 
   const schedule = eventType.schedule

@@ -17,7 +17,7 @@
     "deploy": "turbo run deploy",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "dev:website": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
-    "dev:api": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
+    "dev:api": "yarn predev && turbo run dev --scope=\"@calcom/api\"",
     "dev:swagger": "yarn predev && turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:console": "yarn predev && turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "docs-dev": "yarn predev && turbo run dev --scope=\"@calcom/docs\"",
@@ -28,9 +28,11 @@
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint": "turbo run lint",
     "lint:report": "turbo run lint:report",
-    "postinstall": "turbo run postinstall",
+    "postinstall": "turbo run post-install",
     "pre-commit": "lint-staged",
-    "predev": "dotenv-checker --schema .env.example --env .env",
+    "env-check:common": "dotenv-checker --schema .env.example --env .env",
+    "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
+    "predev": "yarn env-check:common && yarn env-check:app-store ",
     "prepare": "husky install",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "test": "turbo run test",
@@ -42,12 +44,17 @@
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
-    "husky": "^7.0.1",
-    "lint-staged": "^12.3.5",
+    "husky": "^8.0.1",
+    "lint-staged": "^12.4.1",
     "prettier": "^2.5.1"
   },
   "dependencies": {
-    "turbo": "latest"
+    "turbo": "1.2.9"
+  },
+  "resolutions": {
+    "@types/node": "14.17.6",
+    "@types/react": "18.0.9",
+    "@types/react-dom": "18.0.4"
   },
   "lint-staged": {
     "apps/**/*.{js,ts,jsx,tsx}": [

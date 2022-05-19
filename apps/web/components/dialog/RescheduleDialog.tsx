@@ -1,4 +1,4 @@
-import { ClockIcon, XIcon } from "@heroicons/react/outline";
+import { ClockIcon } from "@heroicons/react/outline";
 import { RescheduleResponse } from "pages/api/book/request-reschedule";
 import React, { useState, Dispatch, SetStateAction } from "react";
 import { useMutation } from "react-query";
@@ -77,7 +77,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
             />
 
             <DialogFooter>
-              <DialogClose>
+              <DialogClose asChild>
                 <Button color="secondary">{t("cancel")}</Button>
               </DialogClose>
               <Button

@@ -1,8 +1,15 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment,prefer-rest-params,prefer-const */
+
 /**
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
 import type { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/src/embed";
+
+const WEBAPP_URL =
+  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+
+const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
 export interface GlobalCal {
   (methodName: string, arg?: any): void;
@@ -14,14 +21,15 @@ export interface GlobalCal {
   ns?: Record<string, GlobalCal>;
   instance?: CalClass;
   __css?: string;
+  fingerprint?: string;
+  __logQueue?: any[];
 }
 
 export interface CalWindow extends Window {
   Cal?: GlobalCal;
 }
 
-export default function EmbedSnippet(url = "https://cal.com/embed.js") {
-  /*!  Copy the code below and paste it in script tag of your website */
+export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C: CalWindow, A, L) {
     let p = function (a: any, ar: any) {
       a.q.push(ar);
@@ -35,6 +43,7 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
         if (!cal.loaded) {
           cal.ns = {};
           cal.q = cal.q || [];
+          //@ts-ignore
           d.head.appendChild(d.createElement("script")).src = A;
           cal.loaded = true;
         }
@@ -60,3 +69,5 @@ export default function EmbedSnippet(url = "https://cal.com/embed.js") {
 
   return (window as CalWindow).Cal;
 }
+
+export const EmbedSnippetString = EmbedSnippet.toString();

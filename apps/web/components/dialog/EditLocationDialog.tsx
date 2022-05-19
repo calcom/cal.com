@@ -35,6 +35,7 @@ type LocationFormValues = {
   locationAddress?: string;
   locationLink?: string;
   locationPhone?: string;
+  locationPhoneNumber?: string;
 };
 interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
@@ -82,6 +83,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     locationAddress: z.string().optional(),
     locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
     locationPhone: z.string().optional(),
+    locationPhoneNumber: z.string().optional(),
   });
 
   const locationFormMethods = useForm<LocationFormValues>({
@@ -174,6 +176,36 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         } else {
           return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
         }
+      case LocationType.UserPhone:
+        return (
+          <div>
+            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
+              {t("set_your_phone_number")}
+            </label>
+            <div className="mt-1">
+              <PhoneInput
+                control={locationFormMethods.control}
+                name="locationPhoneNumber"
+                required
+                id="locationPhoneNumber"
+                placeholder={t("host_phone_number")}
+                rules={{}}
+                defaultValue={
+                  defaultValues
+                    ? defaultValues.find(
+                        (location: { type: LocationType }) => location.type === LocationType.UserPhone
+                      )?.hostPhoneNumber
+                    : undefined
+                }
+              />
+              {locationFormMethods.formState.errors.locationPhoneNumber && (
+                <p className="mt-1 text-red-500">
+                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
+                </p>
+              )}
+            </div>
+          </div>
+        );
       default:
         return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
     }
@@ -221,6 +253,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 details = { number: values.locationPhone };
                 locationString = values.locationPhone || "";
               }
+              if (newLocation === LocationType.UserPhone) {
+                details = { hostPhoneNumber: values.locationPhoneNumber };
+              }
 
               saveLocation(newLocation, details);
               if (booking) {
@@ -231,6 +266,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               locationFormMethods.unregister("locationLink");
               locationFormMethods.unregister("locationAddress");
               locationFormMethods.unregister("locationPhone");
+              locationFormMethods.unregister("locationPhoneNumber");
             }}>
             <Controller
               name="locationType"
@@ -249,6 +285,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       locationFormMethods.unregister("locationLink");
                       locationFormMethods.unregister("locationAddress");
                       locationFormMethods.unregister("locationPhone");
+                      locationFormMethods.unregister("locationPhoneNumber");
                     }
                   }}
                 />
