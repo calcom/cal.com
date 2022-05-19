@@ -23,10 +23,9 @@ export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(s
 
 const schemaWebhookEditParams = z
   .object({
-    uid: z.string().optional(),
-    title: z.string().optional(),
-    startTime: z.date().optional(),
-    endTime: z.date().optional(),
+    payloadTemplate: z.string().optional(),
+    eventTriggers: z.string().optional(),
+    subscriberUrl: z.string().optional(),
   })
   .strict();
 
@@ -36,8 +35,9 @@ export const schemaWebhookReadPublic = Webhook.pick({
   id: true,
   userId: true,
   eventTypeId: true,
-  uid: true,
-  title: true,
-  startTime: true,
-  endTime: true,
+  payloadTemplate: true,
+  eventTriggers: true,
+  eventType: true,
+  app: true,
+  appId: true,
 });
