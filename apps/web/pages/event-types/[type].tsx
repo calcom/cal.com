@@ -126,6 +126,7 @@ export type FormValues = {
   periodDays: number;
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
+  seatsPerTimeSlot: number | null;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
