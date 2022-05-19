@@ -6,5 +6,9 @@ import "./next-auth";
 export declare module "next" {
   interface NextApiRequest extends IncomingMessage {
     session?: Session | null;
+    userId: number;
+    query: {
+      apiKey: string;
+    };
   }
 }
