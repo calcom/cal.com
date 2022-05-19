@@ -1,6 +1,6 @@
 import { ExclamationIcon } from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
-import { AriaRole, FC, Fragment } from "react";
+import React, { AriaRole, ComponentType, FC, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 
@@ -10,6 +10,7 @@ type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
   className?: string;
   role?: AriaRole | undefined;
+  children: React.ReactNode;
 };
 
 /**
@@ -41,5 +42,16 @@ const LicenseRequired: FC<LicenseRequiredProps> = ({ children, as = "", ...rest 
     </Component>
   );
 };
+
+export function withLicenseRequired<T>(Component: ComponentType<T>) {
+  // eslint-disable-next-line react/display-name
+  return (hocProps: T) => {
+    return (
+      <LicenseRequired>
+        <Component {...(hocProps as T)} />;
+      </LicenseRequired>
+    );
+  };
+}
 
 export default LicenseRequired;
