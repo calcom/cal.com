@@ -1967,6 +1967,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             selection={
               selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
             }
+            setSelectedLocation={setSelectedLocation}
           />
           <Controller
             name="customInputs"

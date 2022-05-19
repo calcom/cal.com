@@ -44,10 +44,19 @@ interface ISetLocationDialog {
   defaultValues?: any;
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
+  setSelectedLocation?: (param: OptionTypeBase) => void;
 }
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
-  const { saveLocation, selection, booking, setShowLocationModal, isOpenDialog, defaultValues } = props;
+  const {
+    saveLocation,
+    selection,
+    booking,
+    setShowLocationModal,
+    isOpenDialog,
+    defaultValues,
+    setSelectedLocation,
+  } = props;
   const { t } = useLocale();
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
@@ -223,6 +232,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                 {t("edit_location")}
               </h3>
+              <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left"></div>
           </div>
@@ -286,6 +296,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       locationFormMethods.unregister("locationAddress");
                       locationFormMethods.unregister("locationPhone");
                       locationFormMethods.unregister("locationPhoneNumber");
+                      setSelectedLocation?.(val);
                     }
                   }}
                 />
