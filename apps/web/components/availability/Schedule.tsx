@@ -6,7 +6,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { GroupBase, Props, SingleValue } from "react-select";
+import { GroupBase, Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
@@ -57,7 +57,7 @@ const useOptions = () => {
       t = t.add(increment, "minutes");
     }
     return options;
-  }, []);
+  }, [timeFormat]);
 
   const filter = useCallback(
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {

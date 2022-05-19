@@ -146,6 +146,7 @@ export default class EventManager {
         meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
       };
     });
 
@@ -188,6 +189,7 @@ export default class EventManager {
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
+            externalCalendarId: true,
           },
         },
         destinationCalendar: true,
@@ -345,11 +347,20 @@ export default class EventManager {
     booking: PartialBooking
   ): Promise<Array<EventResult>> {
     return async.mapLimit(this.calendarCredentials, 5, async (credential: Credential) => {
+      // HACK:
+      // Right now if two calendars are connected and a booking is created it has two bookingReferences, one is having uid null and the other is having valid uid.
+      // I don't know why yet - But we should work on fixing that. But even after the fix as there can be multiple references in an existing booking the following ref.uid check would still be required
+      // We should ignore the one with uid null, the other one is valid.
+      // Also, we should store(if not already) that which is the calendarCredential for the valid bookingReference, instead of going through all credentials one by one
       const bookingRefUid = booking
-        ? booking.references.filter((ref) => ref.type === credential.type)[0]?.uid
+        ? booking.references.filter((ref) => ref.type === credential.type && !!ref.uid)[0]?.uid
         : null;
 
-      return updateEvent(credential, event, bookingRefUid);
+      const bookingExternalCalendarId = booking.references
+        ? booking.references.filter((ref) => ref.type === credential.type)[0].externalCalendarId
+        : null;
+
+      return updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId!);
     });
   }
 

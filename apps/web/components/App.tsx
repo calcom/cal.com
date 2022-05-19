@@ -81,7 +81,7 @@ export default function App({
       }
     }
     getInstalledApp(type);
-  }, []);
+  }, [type]);
   return (
     <>
       <Shell large isPublic>
@@ -94,7 +94,10 @@ export default function App({
             </Link>
             <div className="items-center justify-between py-4 sm:flex sm:py-8">
               <div className="flex">
-                <img className="h-16 w-16" src={logo} alt={name} />
+                {
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="h-16 w-16" src={logo} alt={name} />
+                }
                 <header className="px-4 py-2">
                   <h1 className="font-cal text-xl text-gray-900">{name}</h1>
                   <h2 className="text-sm text-gray-500">

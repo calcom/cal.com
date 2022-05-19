@@ -2,22 +2,22 @@ import { CalendarIcon } from "@heroicons/react/outline";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  DotsHorizontalIcon,
-  ExternalLinkIcon,
-  DuplicateIcon,
-  LinkIcon,
-  UploadIcon,
   ClipboardCopyIcon,
-  TrashIcon,
+  DotsHorizontalIcon,
+  DuplicateIcon,
+  ExternalLinkIcon,
+  LinkIcon,
   PencilIcon,
-  CodeIcon,
+  TrashIcon,
+  UploadIcon,
+  UsersIcon,
 } from "@heroicons/react/solid";
-import { UsersIcon } from "@heroicons/react/solid";
+import { UserPlan } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,10 +26,10 @@ import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import Dropdown, {
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
@@ -49,13 +49,6 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import Badge from "@components/ui/Badge";
 
-type Profiles = inferQueryOutput<"viewer.eventTypes">["profiles"];
-
-interface CreateEventTypeProps {
-  canAddEvents: boolean;
-  profiles: Profiles;
-}
-
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 interface EventTypeListHeadingProps {
@@ -72,7 +65,7 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
-const Item = ({ type, group, readOnly }: any) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
   return (
@@ -135,17 +128,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
 
     utils.cancelQuery(["viewer.eventTypes"]);
-    utils.setQueryData(["viewer.eventTypes"], (data) =>
-      Object.assign(data, {
+    utils.setQueryData(["viewer.eventTypes"], (data) => {
+      // tRPC is very strict with the return signature...
+      if (!data)
+        return { eventTypeGroups: [], profiles: [], viewer: { canAddEvents: false, plan: UserPlan.FREE } };
+      return {
+        ...data,
         eventTypesGroups: [
-          data?.eventTypeGroups.slice(0, groupIndex),
-          Object.assign(group, {
-            eventTypes: newList,
-          }),
-          data?.eventTypeGroups.slice(groupIndex + 1),
+          ...data.eventTypeGroups.slice(0, groupIndex),
+          { ...group, eventTypes: newList },
+          ...data.eventTypeGroups.slice(groupIndex + 1),
         ],
-      })
-    );
+      };
+    });
 
     mutation.mutate({
       ids: newList.map((type) => type.id),
@@ -528,7 +523,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
   );
 };
 
-const CreateFirstEventTypeView = ({ canAddEvents, profiles }: CreateEventTypeProps) => {
+const CreateFirstEventTypeView = () => {
   const { t } = useLocale();
 
   return (
@@ -603,10 +598,8 @@ const EventTypesPage = () => {
                 </Fragment>
               ))}
 
-              {data.eventTypeGroups.length === 0 && (
-                <CreateFirstEventTypeView profiles={data.profiles} canAddEvents={data.viewer.canAddEvents} />
-              )}
-              <EmbedDialog></EmbedDialog>
+              {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+              <EmbedDialog />
             </>
           )}
         />

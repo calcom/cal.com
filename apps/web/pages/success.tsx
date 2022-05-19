@@ -63,8 +63,9 @@ function RedirectionToast({ url }: { url: string }) {
   const parsedSuccessUrl = new URL(document.URL);
   const parsedExternalUrl = new URL(url);
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
     parsedSuccessUrl.searchParams.set(name, value);
   }
 
@@ -185,8 +186,9 @@ export default function Success(props: SuccessProps) {
 
   useEffect(() => {
     const users = eventType.users;
+    if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager!.fire("bookingSuccessful", {
+    sdkActionManager.fire("bookingSuccessful", {
       eventType,
       date: date.toString(),
       duration: eventType.length,
@@ -200,6 +202,7 @@ export default function Success(props: SuccessProps) {
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
   function eventLink(): string {
@@ -284,7 +287,10 @@ export default function Success(props: SuccessProps) {
                           "mx-auto flex items-center justify-center",
                           !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
                         )}>
-                        {giphyImage && !needsConfirmation && <img src={giphyImage} alt={"Gif from Giphy"} />}
+                        {giphyImage && !needsConfirmation && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} alt={"Gif from Giphy"} />
+                        )}
                         {!giphyImage && !needsConfirmation && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
@@ -472,7 +478,10 @@ export default function Success(props: SuccessProps) {
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
-                            router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
+                            const target = e.target as typeof e.target & {
+                              email: { value: string };
+                            };
+                            router.push(`https://cal.com/signup?email=${target.email.value}`);
                           }}
                           className="mt-4 flex">
                           <EmailInput
@@ -539,7 +548,6 @@ function RecurringBookings({
   eventType,
   recurringBookings,
   date,
-  is24h,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -638,7 +646,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
   if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
   const bookingId = parseInt(context.query.bookingId);
-  //http://localhost:3000/success?date=2022-06-02T02%3A00%3A00-06%3A00&type=5&user=pro&name=Stripe%20Stripeson
 
   if (isNaN(typeId)) {
     return {
@@ -646,14 +653,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  let eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  const eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
-  let spaceBookingAvailable = false;
 
   let userHasSpaceBooking = false;
   if (eventTypeRaw.users[0] && eventTypeRaw.users[0].id) {
@@ -687,7 +693,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
     if (user) {
-      eventTypeRaw.users.push(user as any);
+      eventTypeRaw.users.push(user);
     }
   }
 
