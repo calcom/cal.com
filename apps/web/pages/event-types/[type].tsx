@@ -69,7 +69,7 @@ import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeFor
 import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
 import CheckboxField from "@components/ui/form/CheckboxField";
-import CheckedSelect, { CheckedSelectProps } from "@components/ui/form/CheckedSelect";
+import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
 import PhoneInput from "@components/ui/form/PhoneInput";
@@ -955,15 +955,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       </div>
     );
   };
-  const onAttendeesChange = useCallback(
-    (options: CheckedSelectProps["options"]) => {
-      formMethods.setValue(
-        "users",
-        options.map((user) => user.value)
-      );
-    },
-    [formMethods]
-  );
+
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
 
@@ -1204,11 +1196,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             name="users"
                             control={formMethods.control}
                             defaultValue={eventType.users.map((user) => user.id.toString())}
-                            render={() => (
+                            render={({ field: { onChange, value } }) => (
                               <CheckedSelect
-                                disabled={false}
-                                onChange={onAttendeesChange}
-                                defaultValue={eventType.users.map(mapUserToValue)}
+                                isDisabled={false}
+                                onChange={(options) => onChange(options.map((user) => user.value))}
+                                value={value
+                                  .map((userId) =>
+                                    teamMembers.map(mapUserToValue).find((member) => member.value === userId)
+                                  )
+                                  .filter(Boolean)}
                                 options={teamMembers.map(mapUserToValue)}
                                 placeholder={t("add_attendees")}
                               />
