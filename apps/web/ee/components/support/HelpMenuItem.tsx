@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, EmojiSadIcon } from "@heroicons/react/solid";
+import { ExternalLinkIcon, ExclamationIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -179,7 +179,7 @@ export default function HelpMenuItem() {
             </svg>
           </button>
         </div>
-        <div className="mt-2 flex justify-end">
+        <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
             loading={loading}
@@ -197,8 +197,14 @@ export default function HelpMenuItem() {
           </div>
         )}
         {errorMessage && (
-          <div className="mb-4 bg-red-100 p-4 text-sm text-red-700">
-            <p className="font-medium">{t("feedback_error")}</p>
+          <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
+            <div className="flex-shrink-0">
+              <ExclamationIcon className="h-5 w-5" />
+            </div>
+            <div className="ml-3 flex-grow">
+              <p className="font-medium">{t("feedback_error")}</p>
+              <p>{t("please_try_again")}</p>
+            </div>
           </div>
         )}
       </div>
