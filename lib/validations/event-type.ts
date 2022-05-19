@@ -38,9 +38,9 @@ const schemaEventTypeCreateParams = z
     slug: z.string(),
     description: z.string().optional().nullable(),
     length: z.number().int(),
-    locations: jsonSchema.optional().nullable().or(z.null()),
-    metadata: z.any().optional().nullable().or(z.null()),
-    recurringEvent: jsonSchema.optional().nullable().or(z.null()),
+    locations: jsonSchema.optional(),
+    metadata: z.any().optional(),
+    recurringEvent: jsonSchema.optional(),
   })
   .strict();
 

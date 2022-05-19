@@ -19,11 +19,12 @@
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
-    "babel-jest": "^28.0.3",
+    "@calcom/types": "*",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "babel-jest": "^28.1.0",
     "jest": "^28.0.3",
     "node-mocks-http": "^1.11.0"
-  },
+    },
   "dependencies": {
     "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.7",
