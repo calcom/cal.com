@@ -1201,8 +1201,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 isDisabled={false}
                                 onChange={(options) => onChange(options.map((user) => user.value))}
                                 value={value
-                                  .map((userId) =>
-                                    teamMembers.map(mapUserToValue).find((member) => member.value === userId)
+                                  .map(
+                                    (userId) =>
+                                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                      teamMembers
+                                        .map(mapUserToValue)
+                                        .find((member) => member.value === userId)!
                                   )
                                   .filter(Boolean)}
                                 options={teamMembers.map(mapUserToValue)}
