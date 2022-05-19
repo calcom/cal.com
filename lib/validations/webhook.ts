@@ -37,7 +37,8 @@ export const schemaWebhookReadPublic = Webhook.pick({
   eventTypeId: true,
   payloadTemplate: true,
   eventTriggers: true,
-  eventType: true,
-  app: true,
+  /** @todo: find out why this breaks the api */
+  // eventType: true,
+  // app: true,
   appId: true,
 });

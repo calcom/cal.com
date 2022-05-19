@@ -28,20 +28,12 @@ export async function bookingReferenceById(
   });
   if (!userWithBookings) throw new Error("User not found");
   const userBookingIds = userWithBookings.bookings.map((booking: { id: number }) => booking.id).flat();
-  // console.log(userBookingIds);
   const bookingReferences = await prisma.bookingReference
     .findMany({ where: { id: { in: userBookingIds } } })
-    .then((bookingReferences) => {
-      console.log(bookingReferences);
-      return bookingReferences.map((bookingReference) => bookingReference.id);
-    });
+    .then((bookingReferences) => bookingReferences.map((bookingReference) => bookingReference.id));
 
-  //   res.status(400).json({ message: "Booking reference not found" });
-  //   return;
-  // }
-  if (!bookingReferences?.includes(safeQuery.data.id)) {
-    // if (userBookingIds.includes(safeQuery.data.id)) {
-    // throw new Error("BookingReference: bookingId not found");
+  if (!bookingReferences?.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  else {
     switch (method) {
       case "GET":
         /**
@@ -67,26 +59,18 @@ export async function bookingReferenceById(
          *       404:
          *         description: BookingReference was not found
          */
-        // console.log(safeQuery.data.id);
-        const bookingReference = await prisma.bookingReference.findFirst().catch((error: Error) => {
-          console.log("hoerr:", error);
-        });
-        // console.log(bookingReference);
-        if (!bookingReference) res.status(404).json({ message: "Booking reference not found" });
-        else res.status(200).json({ booking_reference: bookingReference });
+        await prisma.bookingReference
+          .findFirst({ where: { id: safeQuery.data.id } })
+          .then((data) => schemaBookingReferenceReadPublic.parse(data))
+          .then((booking_reference) => res.status(200).json({ booking_reference }))
+          .catch((error: Error) => {
+            console.log(error);
+            res.status(404).json({
+              message: `BookingReference with id: ${safeQuery.data.id} not found`,
+              error,
+            });
+          });
 
-        // .then((data) => {
-        //   console.log(data);
-        //   return schemaBookingReferenceReadPublic.parse(data);
-        // })
-        // .then((booking_reference) => res.status(200).json({ booking_reference }))
-        // .catch((error: Error) => {
-        //   console.log(error);
-        //   res.status(404).json({
-        //     message: `BookingReference with id: ${safeQuery.data.id} not found`,
-        //     error,
-        //   });
-        // });
         break;
       case "PATCH":
         /**
@@ -192,7 +176,7 @@ export async function bookingReferenceById(
         res.status(405).json({ message: "Method not allowed" });
         break;
     }
-  } else res.status(401).json({ message: "Unauthorized" });
+  }
 }
 
 export default withMiddleware("HTTP_GET_DELETE_PATCH")(

@@ -1,21 +1,7 @@
-// import type { NextApiRequest } from "next";
 import { NextMiddleware } from "next-api-middleware";
 
 import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
 import prisma from "@calcom/prisma";
-
-// /** @todo figure how to use the one from `@calcom/types`ﬁ */
-// /** @todo: remove once `@calcom/types` is updated with it.*/
-// declare module "next" {
-//   export interface NextApiRequest extends NextApiRequest {
-//     userId: number;
-//     body: any;
-//     method: string;
-//     query: {
-//       apiKey: string;
-//     };
-//   }
-// }
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {
