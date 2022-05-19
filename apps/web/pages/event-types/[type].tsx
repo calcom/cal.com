@@ -369,7 +369,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
     fetchTokens();
 
-    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0].id));
+    !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2184,6 +2184,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       successRedirectUrl: true,
       team: {
         select: {
+          id: true,
           slug: true,
           members: {
             where: {

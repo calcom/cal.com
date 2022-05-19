@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -150,19 +150,14 @@ export async function getServerSideProps(context: NextPageContext) {
       uid: context.query.uid as string,
     },
     select: {
+      ...bookingMinimalSelect,
       uid: true,
-      id: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
       user: {
         select: {
           id: true,
           credentials: true,
         },
       },
-      attendees: true,
       dailyRef: {
         select: {
           dailyurl: true,

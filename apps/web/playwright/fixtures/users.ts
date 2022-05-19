@@ -22,7 +22,7 @@ type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
 // creates a user fixture instance and stores the collection
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
-  let store = { users: [], page } as { users: UserFixture[]; page: typeof page };
+  const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
     create: async (opts?: CustomUserOpts) => {
       const _user = await prisma.user.create({

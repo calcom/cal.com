@@ -1,4 +1,4 @@
-import type { DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
@@ -97,6 +97,7 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   additionalNotes?: string | null;
+  customInputs?: Prisma.JsonObject | null;
   description?: string | null;
   team?: {
     name: string;

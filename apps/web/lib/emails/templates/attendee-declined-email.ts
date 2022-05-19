@@ -51,6 +51,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getDescription()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.getRejectionReason()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
@@ -102,6 +103,7 @@ ${this.getRejectionReason()}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                               ${this.getRejectionReason()}
                             </div>
                           </td>
