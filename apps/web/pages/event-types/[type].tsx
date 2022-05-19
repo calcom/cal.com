@@ -24,7 +24,7 @@ import utc from "dayjs/plugin/utc";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import short from "short-uuid";
@@ -148,6 +148,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   const { t } = useLocale();
   const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
   const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <hr className="border-neutral-200" />
@@ -233,6 +234,7 @@ const AvailabilitySelect = ({
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -953,7 +955,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       </div>
     );
   };
-
+  const onAttendeesChange = useCallback(
+    (options) => {
+      formMethods.setValue(
+        "users",
+        options.map((user) => user.value)
+      );
+    },
+    [formMethods]
+  );
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
 
@@ -1197,12 +1207,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             render={() => (
                               <CheckedSelect
                                 disabled={false}
-                                onChange={(options) => {
-                                  formMethods.setValue(
-                                    "users",
-                                    options.map((user) => user.value)
-                                  );
-                                }}
+                                onChange={onAttendeesChange}
                                 defaultValue={eventType.users.map(mapUserToValue)}
                                 options={teamMembers.map(mapUserToValue)}
                                 placeholder={t("add_attendees")}
