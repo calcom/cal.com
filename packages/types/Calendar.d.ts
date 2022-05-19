@@ -1,4 +1,4 @@
-import type { DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
@@ -97,6 +97,7 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   additionalNotes?: string | null;
+  customInputs?: Prisma.JsonObject | null;
   description?: string | null;
   team?: {
     name: string;
@@ -140,9 +141,13 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
 export interface Calendar {
   createEvent(event: CalendarEvent): Promise<NewCalendarEventType>;
 
-  updateEvent(uid: string, event: CalendarEvent): Promise<Event | Event[]>;
+  updateEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string | null
+  ): Promise<Event | Event[]>;
 
-  deleteEvent(uid: string, event: CalendarEvent): Promise<unknown>;
+  deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
 
   getAvailability(
     dateFrom: string,

@@ -3,6 +3,7 @@ import { FC, Fragment } from "react";
 
 type AdminRequiredProps = {
   as?: keyof JSX.IntrinsicElements;
+  children?: React.ReactNode;
 };
 
 export const AdminRequired: FC<AdminRequiredProps> = ({ children, as, ...rest }) => {

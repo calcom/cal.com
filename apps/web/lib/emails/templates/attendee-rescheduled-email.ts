@@ -57,6 +57,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
   ${this.getLocation()}
   ${this.getDescription()}
   ${this.getAdditionalNotes()}
+  ${this.getCustomInputs()}
   ${this.attendee.language.translate("need_to_reschedule_or_cancel")}
   ${getCancelLink(this.calEvent)}
   `.replace(/(<([^>]+)>)/gi, "");
@@ -69,6 +70,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
@@ -116,6 +118,7 @@ ${this.getAdditionalNotes()}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>
