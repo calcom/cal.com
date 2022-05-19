@@ -24,7 +24,7 @@ export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(s
 const schemaWebhookEditParams = z
   .object({
     payloadTemplate: z.string().optional(),
-    eventTriggers: z.string().optional(),
+    eventTriggers: z.any(),
     subscriberUrl: z.string().optional(),
   })
   .strict();

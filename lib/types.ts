@@ -150,6 +150,7 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
     type: DefaultLocationType | AppStoreLocationType;
   }[];
 }
+
 // EventType
 export type EventTypeResponse = BaseResponse & {
   event_type?: Partial<EventTypeExtended>;
