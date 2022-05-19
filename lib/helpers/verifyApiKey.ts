@@ -5,9 +5,13 @@ import { hashAPIKey } from "@calcom/ee/lib/api/apiKeys";
 import prisma from "@calcom/prisma";
 
 /** @todo figure how to use the one from `@calcom/types`ﬁ */
+/** @todo: remove once `@calcom/types` is updated with it.*/
 declare module "next" {
   export interface NextApiRequest extends IncomingMessage {
     userId: number;
+    query: {
+      apiKey: string;
+    };
   }
 }
 

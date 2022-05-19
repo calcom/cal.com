@@ -1,3 +1,4 @@
+import { AppStoreLocationType, DefaultLocationType } from "@calcom/app-store/locations";
 import {
   User,
   Team,
@@ -15,9 +16,8 @@ import {
   Payment,
   Schedule,
   ReminderMail,
+  EventType,
 } from "@calcom/prisma/client";
-
-import { schemaEventTypeReadPublic } from "@lib/validations/event-type";
 
 // Base response, used for all responses
 export type BaseResponse = {
@@ -124,13 +124,38 @@ export type EventTypeCustomInputResponse = BaseResponse & {
 export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
-
+// From rrule https://jakubroztocil.github.io/rrule freq
+enum Frequency {
+  "YEARLY",
+  "MONTHLY",
+  "WEEKLY",
+  "DAILY",
+  "HOURLY",
+  "MINUTELY",
+  "SECONDLY",
+}
+interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "locations"> {
+  recurringEvent: {
+    dtstart?: Date | undefined;
+    interval?: number | undefined;
+    count?: number | undefined;
+    freq?: Frequency | undefined;
+    until?: Date | undefined;
+    tzid?: string | undefined;
+  };
+  locations: {
+    link?: string | undefined;
+    address?: string | undefined;
+    hostPhoneNumber?: string | undefined;
+    type: DefaultLocationType | AppStoreLocationType;
+  }[];
+}
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<typeof schemaEventTypeReadPublic>;
+  event_type?: Partial<EventTypeExtended>;
 };
 export type EventTypesResponse = BaseResponse & {
-  event_types?: Partial<typeof schemaEventTypeReadPublic>[];
+  event_types?: Partial<EventTypeExtended>[];
 };
 
 // Payment
