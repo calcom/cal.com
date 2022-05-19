@@ -19,7 +19,7 @@ export default function ApiKeyListContainer() {
 
   const [newApiKeyModal, setNewApiKeyModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires: boolean }) | null>(null);
+  const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | null>(null);
   return (
     <QueryCell
       query={query}
@@ -42,7 +42,7 @@ export default function ApiKeyListContainer() {
 
           {data.length > 0 && (
             <List className="mt-6">
-              {data.map((item: any) => (
+              {data.map((item) => (
                 <ApiKeyListItem
                   key={item.id}
                   apiKey={item}

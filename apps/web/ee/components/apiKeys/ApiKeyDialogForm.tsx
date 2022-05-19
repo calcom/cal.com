@@ -19,7 +19,7 @@ import { TApiKeys } from "./ApiKeyListItem";
 
 export default function ApiKeyDialogForm(props: {
   title: string;
-  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires: boolean };
+  defaultValues?: Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean };
   handleClose: () => void;
 }) {
   const { t } = useLocale();
