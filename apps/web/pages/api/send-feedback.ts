@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  if (process.env.SEND_FEEDBACK_EMAIL && feedback.comment) sendFeedbackEmail(feedback);
+  if (process.env.SEND_FEEDBACK_EMAIL && feedback.comment) await sendFeedbackEmail(feedback);
 
   res.status(200).end();
 }
