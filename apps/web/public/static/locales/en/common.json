@@ -832,5 +832,6 @@
   "or_lowercase": "or",
   "nevermind": "Nevermind",
   "go_to": "Go to: ",
-  "zapier_invite_link": "Zapier Invite Link"
+  "zapier_invite_link": "Zapier Invite Link",
+  "you_not_allowed_to_delete_event": "You are not allowed to delete this event."
 }

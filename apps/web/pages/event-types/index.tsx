@@ -62,7 +62,6 @@ interface EventTypeListProps {
   groupIndex: number;
   group: EventTypeGroup;
   types: EventType[];
-  profile: { slug: string | null };
 }
 
 const Item = ({ type, group }: { type: EventType; group: EventTypeGroup }) => {
@@ -104,7 +103,7 @@ const Item = ({ type, group }: { type: EventType; group: EventTypeGroup }) => {
 
 const MemoizedItem = React.memo(Item);
 
-export const EventTypeList = ({ group, groupIndex, types, profile }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ group, groupIndex, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -190,9 +189,9 @@ export const EventTypeList = ({ group, groupIndex, types, profile }: EventTypeLi
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to delete this event`;
+        message = `${err.data.code}: ${t("you_not_allowed_to_delete_event")}`;
       } else {
-        message = "Some Error Occurred";
+        message = "Some error occurred";
       }
       showToast(message, "error");
     },
@@ -596,12 +595,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList
-                    profile={group.profile}
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                  />
+                  <EventTypeList types={group.eventTypes} group={group} groupIndex={index} />
                 </Fragment>
               ))}
 
