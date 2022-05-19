@@ -62,7 +62,6 @@ export const getFilteredTimes = (props: getFilteredTimesProps) => {
       const slotStartTimeWithBeforeBuffer = times[i].subtract(beforeBufferTime, "minutes");
       // If the event has seats then see if there is already a booking (want to show full bookings as well)
       if (currentSeats?.some((booking) => booking.startTime === slotStartTime.toISOString())) {
-        console.log("This triggered");
         break;
       }
       busy.every((busyTime): boolean => {
