@@ -14,8 +14,8 @@ interface Props {
   isLoading?: boolean;
 }
 
-const ImageOption = (props: OptionProps) => {
-  const data = props.data as { [key: string]: string; type: App["type"] };
+const ImageOption = (props: OptionProps<{ [key: string]: string; type: App["type"] }>) => {
+  const { data } = props;
   return (
     <InstallAppButton
       type={data.type}
@@ -65,7 +65,15 @@ const AdditionalCalendarSelector = ({ isLoading }: Props): JSX.Element | null =>
             name={"additionalCalendar"}
             placeholder={t("connect_additional_calendar")}
             options={options}
-            styles={customStyles}
+            styles={{
+              placeholder: (defaultStyles) => {
+                return {
+                  ...defaultStyles,
+                  color: "#3E3E3E",
+                  marginLeft: "3px",
+                };
+              },
+            }}
             isSearchable={false}
             className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 font-medium text-gray-700 sm:text-sm"
             isLoading={isLoading}

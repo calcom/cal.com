@@ -146,14 +146,14 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
             )}
           </>
         );
-      }}></QueryCell>
+      }}/>
   );
 };
 
 function Web3Container() {
   const { t } = useLocale();
   const result = trpc.useQuery(["viewer.web3Integration"]);
-  const isWeb3Active = result.data?.isWeb3Active as boolean;
+  const isWeb3Active = !!result.data?.isWeb3Active;
   return (
     <>
       {isWeb3Active && (
@@ -277,6 +277,6 @@ export default function IntegrationsPage() {
             </AppsShell>
           </Shell>
         );
-      }}></QueryCell>
+      }}/>
   );
 }
