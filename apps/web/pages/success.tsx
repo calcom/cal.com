@@ -40,6 +40,7 @@ import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
+import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -63,8 +64,9 @@ function RedirectionToast({ url }: { url: string }) {
   const parsedSuccessUrl = new URL(document.URL);
   const parsedExternalUrl = new URL(url);
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (let [name, value] of parsedExternalUrl.searchParams.entries()) {
+  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
     parsedSuccessUrl.searchParams.set(name, value);
   }
 
@@ -151,13 +153,13 @@ export default function Success(props: SuccessProps) {
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
-  const { isReady, Theme } = useTheme(props.profile.theme);
   const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+  const [isCancellationMode, setIsCancellationMode] = useState(false);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -185,8 +187,9 @@ export default function Success(props: SuccessProps) {
 
   useEffect(() => {
     const users = eventType.users;
+    if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager!.fire("bookingSuccessful", {
+    sdkActionManager.fire("bookingSuccessful", {
       eventType,
       date: date.toString(),
       duration: eventType.length,
@@ -245,15 +248,26 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
   const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const { isReady, Theme } = useTheme(userIsOwner ? "light" : props.profile.theme);
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
+  const customInputs = bookingInfo?.customInputs;
   return (
     (isReady && (
       <>
         <div
           className={isEmbed ? "" : "h-screen bg-neutral-100 dark:bg-neutral-900"}
           data-testid="success-page">
+          {userIsOwner && !isEmbed && (
+            <div className="-mb-7 ml-9 mt-7">
+              <Link href="/bookings">
+                <a className="flex items-center text-black dark:text-white">
+                  <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
+                </a>
+              </Link>
+            </div>
+          )}
           <Theme />
           <HeadSeo title={title} description={title} />
           <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
@@ -355,21 +369,66 @@ export default function Success(props: SuccessProps) {
                           )}
                           {bookingInfo?.description && (
                             <>
-                              <div className="mt-6 font-medium">{t("additional_notes")}</div>
-                              <div className="col-span-2 mt-6 mb-6">
+                              <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
                                 <p>{bookingInfo.description}</p>
                               </div>
                             </>
                           )}
+                          {customInputs &&
+                            Object.keys(customInputs).map((key) => {
+                              const customInput = customInputs[key as keyof typeof customInputs];
+                              return (
+                                <>
+                                  {customInput !== "" && (
+                                    <>
+                                      <div className="mt-2 pr-3 font-medium">{key}</div>
+                                      <div className="col-span-2 mt-2 mb-2">
+                                        {typeof customInput === "boolean" ? (
+                                          <p>{customInput ? "true" : "false"}</p>
+                                        ) : (
+                                          <p>{customInput}</p>
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })}
                         </div>
                       </div>
                     </div>
-                    {!needsConfirmation && (
-                      <div className="border-bookinglightest mt-5 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
+                    {!needsConfirmation &&
+                      (!isCancellationMode ? (
+                        <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
+                          <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            {t("need_to_make_a_change")}
+                          </span>
+                          <div className="ml-7 flex items-center justify-center self-center ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            <button className="underline" onClick={() => setIsCancellationMode(true)}>
+                              {t("cancel")}
+                            </button>
+                            <div className="mx-2">{t("or_lowercase")}</div>
+                            <div className="underline">
+                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("Reschedule")}</Link>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <CancelBooking
+                          booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
+                          profile={{ name: props.profile.name, slug: props.profile.slug }}
+                          team={eventType?.team?.name}
+                          setIsCancellationMode={setIsCancellationMode}
+                          theme={userIsOwner ? "light" : props.profile.theme}
+                        />
+                      ))}
+                    {userIsOwner && !needsConfirmation && !isCancellationMode && (
+                      <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
-                        <div className="flex flex-grow justify-center text-center">
+                        <div className="-ml-16 flex flex-grow justify-center text-center">
                           <Link
                             href={
                               `https://calendar.google.com/calendar/r/eventedit?dates=${date
@@ -476,7 +535,10 @@ export default function Success(props: SuccessProps) {
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
-                            router.push(`https://cal.com/signup?email=` + (e as any).target.email.value);
+                            const target = e.target as typeof e.target & {
+                              email: { value: string };
+                            };
+                            router.push(`https://cal.com/signup?email=${target.email.value}`);
                           }}
                           className="mt-4 flex">
                           <EmailInput
@@ -490,15 +552,6 @@ export default function Success(props: SuccessProps) {
                             {t("try_for_free")}
                           </Button>
                         </form>
-                      </div>
-                    )}
-                    {userIsOwner && !isEmbed && (
-                      <div className="mt-4">
-                        <Link href="/bookings">
-                          <a className="flex items-center text-black dark:text-white">
-                            <ArrowLeftIcon className="mr-1 h-4 w-4" /> {t("back_to_bookings")}
-                          </a>
-                        </Link>
                       </div>
                     )}
                   </div>
@@ -543,7 +596,6 @@ function RecurringBookings({
   eventType,
   recurringBookings,
   date,
-  is24h,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -614,6 +666,7 @@ const getEventTypesFromDB = async (typeId: number) => {
         select: {
           id: true,
           name: true,
+          username: true,
           hideBranding: true,
           plan: true,
           theme: true,
@@ -625,6 +678,7 @@ const getEventTypesFromDB = async (typeId: number) => {
       },
       team: {
         select: {
+          slug: true,
           name: true,
           hideBranding: true,
         },
@@ -649,14 +703,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  let eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  const eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
 
   if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
-  let spaceBookingAvailable = false;
 
   let userHasSpaceBooking = false;
   if (eventTypeRaw.users[0] && eventTypeRaw.users[0].id) {
@@ -680,6 +733,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: {
         id: true,
         name: true,
+        username: true,
         hideBranding: true,
         plan: true,
         theme: true,
@@ -690,7 +744,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
     if (user) {
-      eventTypeRaw.users.push(user as any);
+      eventTypeRaw.users.push(user);
     }
   }
 
@@ -711,6 +765,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
     brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
+    slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
   const bookingInfo = await prisma.booking.findUnique({
@@ -718,7 +773,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       id: bookingId,
     },
     select: {
+      title: true,
+      uid: true,
       description: true,
+      customInputs: true,
       user: {
         select: {
           name: true,
