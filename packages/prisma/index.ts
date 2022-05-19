@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { bookingReferenceMiddleware } from "./middleware";
 
 declare global {
+  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
@@ -19,3 +20,5 @@ if (process.env.NODE_ENV !== "production") {
 bookingReferenceMiddleware(prisma);
 
 export default prisma;
+
+export * from "./selects";
