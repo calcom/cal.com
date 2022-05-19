@@ -97,7 +97,7 @@ const getSlots = ({
       computedLocalWorkingHours.push(tempComputeTimeFrame);
     }
   });
-  computedLocalWorkingHours.forEach((item, index) => {
+  computedLocalWorkingHours.forEach((item) => {
     slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency, eventLength));
   });
 

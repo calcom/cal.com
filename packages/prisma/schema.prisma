@@ -263,6 +263,7 @@ model Booking {
   eventTypeId         Int?
   title               String
   description         String?
+  customInputs        Json?
   startTime           DateTime
   endTime             DateTime
   attendees           Attendee[]

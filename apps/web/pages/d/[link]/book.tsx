@@ -30,7 +30,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const link = asStringOrThrow(context.query.link as string);
   const recurringEventCountQuery = asStringOrNull(context.query.count);
-  const slug = context.query.slug as string;
 
   const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     id: true,
