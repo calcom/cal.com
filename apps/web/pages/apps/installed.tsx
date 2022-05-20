@@ -121,7 +121,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
                   }
                 />
                 <List>
-                  {data.items.map((item: AppOutput) => (
+                  {data.items.map((item) => (
                     <IntegrationListItem
                       key={item.title}
                       title={item.title}
