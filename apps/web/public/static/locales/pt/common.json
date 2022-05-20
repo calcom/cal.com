@@ -251,6 +251,8 @@
   "booking_submitted_recurring": "A sua reunião recorrente foi submetida",
   "booking_confirmed": "A sua reserva foi confirmada",
   "booking_confirmed_recurring": "A sua reunião recorrente foi confirmada",
+  "warning_recurring_event_payment": "Os pagamentos ainda não são suportados com os eventos recorrentes",
+  "warning_payment_recurring_event": "Os eventos recorrentes ainda não são suportados com pagamentos",
   "enter_new_password": "Insira a nova senha que quer utilizar na sua conta.",
   "reset_password": "Redefinir senha",
   "change_your_password": "Altere a sua senha",
@@ -825,5 +827,9 @@
   "install_zapier_app": "Por favor, primeiro instale a aplicação Zapier da App Store.",
   "go_to_app_store": "Vá para a App Store",
   "calendar_error": "Algo correu mal, tente ligar de novo o seu calendário com todas as permissões necessárias",
-  "calendar_no_busy_slots": "Não há horários ocupados"
+  "calendar_no_busy_slots": "Não há horários ocupados",
+  "booking_details": "Detalhes da reserva",
+  "or_lowercase": "ou",
+  "go_to": "Vá a: ",
+  "zapier_invite_link": "Ligação de convite do Zapier"
 }
