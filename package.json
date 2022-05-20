@@ -21,9 +21,9 @@
     "@calcom/tsconfig": "*",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "babel-jest": "^28.1.0",
-    "jest": "^28.0.3",
+    "jest": "^28.1.0",
     "node-mocks-http": "^1.11.0"
-    },
+  },
   "dependencies": {
     "@calcom/prisma": "*",
     "@sentry/nextjs": "^6.19.7",
@@ -34,6 +34,7 @@
     "next-transpile-modules": "^9.0.0",
     "next-validations": "^0.2.0",
     "typescript": "^4.6.4",
-    "tzdata": "^1.0.30"
+    "tzdata": "^1.0.30",
+    "zod": "^3.16.0"
   }
 }
