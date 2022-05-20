@@ -9,7 +9,7 @@ export const schemaAttendeeBaseBodyParams = Attendee.pick({
   email: true,
   name: true,
   timeZone: true,
-}).partial();
+});
 
 const schemaAttendeeCreateParams = z
   .object({
