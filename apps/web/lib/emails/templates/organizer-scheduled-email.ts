@@ -365,7 +365,7 @@ ${getRichDescription(this.calEvent)}
           meetingUrl &&
           `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.organizer.language.translate(
             "meeting_url"
-          )}"><img src="${linkIcon()}" width="12px"></img></a>`
+          )}"><img src="${linkIcon()}" width="12px"/></a>`
         }</p>
         ${
           meetingId &&
