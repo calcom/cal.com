@@ -12,25 +12,37 @@ const schemaWebhookBaseBodyParams = Webhook.pick({
   payloadTemplate: true,
 }).partial();
 
-const schemaWebhookCreateParams = z
-  .object({
+// const schemaWebhookCreateParams = z
+//   .object({
+//     id: z.string(),
+//     subscriberUrl: z.string(),
+//   })
+//   .strict();
+
+export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(
+  z.object({
     id: z.string(),
     subscriberUrl: z.string(),
   })
-  .strict();
+);
 
-export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(schemaWebhookCreateParams);
+// const schemaWebhookEditParams = z
+//   .object({
+//     payloadTemplate: z.string().optional(),
+//     /** @todo: don't use any here and validate eventTriggers proper */
+//     eventTriggers: z.any(),
+//     subscriberUrl: z.string().optional(),
+//   })
+//   .strict();
 
-const schemaWebhookEditParams = z
-  .object({
+export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams.merge(
+  z.object({
     payloadTemplate: z.string().optional(),
     /** @todo: don't use any here and validate eventTriggers proper */
     eventTriggers: z.any(),
     subscriberUrl: z.string().optional(),
   })
-  .strict();
-
-export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams.merge(schemaWebhookEditParams);
+);
 
 export const schemaWebhookReadPublic = Webhook.pick({
   id: true,
