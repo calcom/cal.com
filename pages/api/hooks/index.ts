@@ -30,8 +30,8 @@ async function createOrlistAllWebhooks(
      *         description: No webhooks were found
      */
     const data = await prisma.webhook.findMany({ where: { userId } });
-    const webhooks = data.map((webhook) => schemaWebhookReadPublic.parse(webhook));
-    if (webhooks) res.status(200).json({ webhooks });
+    // const webhooks = data.map((webhook) => schemaWebhookReadPublic.parse(webhook));
+    if (data) res.status(200).json({ webhooks: data });
     else
       (error: Error) =>
         res.status(404).json({
