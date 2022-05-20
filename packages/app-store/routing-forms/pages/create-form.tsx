@@ -6,9 +6,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
 import NavTabs from "@components/NavTabs";
-import RoutingShell from "@components/RoutingShell";
 import Shell from "@components/Shell";
 import CheckboxField from "@components/ui/form/CheckboxField";
+
+import RoutingShell from "../components/RoutingShell";
 
 function Question({ question, updateQuestion, deleteQuestion, readonly = false }) {
   return (

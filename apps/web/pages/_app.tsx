@@ -16,7 +16,8 @@ import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
 
-import "../components/react-awesome-query-builder/styles.css";
+// FIXME: Shouldn't import an app dependency here
+import "../../../packages/app-store/routing-forms/components/react-awesome-query-builder/styles.css";
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
 import "../styles/globals.css";

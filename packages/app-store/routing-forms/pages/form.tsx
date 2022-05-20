@@ -1,17 +1,19 @@
 import jsonLogic from "json-logic-js";
-import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
-import { getStoredRoutes, QueryBuilderConfig } from "pages/routing/Routing";
-import { getStoredQuestions } from "pages/routing/create-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { Button } from "@calcom/ui";
 
-export default function Form() {
-  const router = useRouter();
-  const formId = router.query.formId;
-  const storedQuestions = getStoredQuestions(formId);
+import { getStoredRoutes, QueryBuilderConfig } from "./Routing";
+import { getStoredQuestions } from "./create-form";
+
+export default function RoutingForm({ subPage: id }) {
+  const formId = id;
+  const [storedQuestions, setStoredQuestions] = useState([]);
+
+  useEffect(() => {
+    setStoredQuestions(getStoredQuestions(formId));
+  }, []);
   const [answers, setAnswers] = useState(() => {
     const _answers = {};
     storedQuestions.forEach((q) => {
@@ -22,6 +24,7 @@ export default function Form() {
 
   return (
     <div>
+      <div>Form:{formId}</div>
       {storedQuestions.map((question) => {
         if (question.type === "text") {
           return (
@@ -81,6 +84,3 @@ export default function Form() {
     </div>
   );
 }
-// export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-//   const formId = context.query.formId;
-// };

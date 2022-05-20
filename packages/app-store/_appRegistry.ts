@@ -33,5 +33,6 @@ export async function getAppRegistry() {
         true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
     });
   }
+
   return apps;
 }

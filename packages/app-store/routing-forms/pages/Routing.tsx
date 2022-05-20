@@ -1,5 +1,4 @@
 import jsonLogic from "json-logic-js";
-import { getStoredQuestions } from "pages/routing/create-form";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
@@ -8,15 +7,16 @@ import { JsonGroup, Config, ImmutableTree, BuilderProps } from "react-awesome-qu
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
 
-import RoutingShell from "@components/RoutingShell";
 import Select from "@components/ui/form/Select";
 
+import RoutingShell from "../components/RoutingShell";
 // @ts-ignore
-import CalConfig from "../../components/react-awesome-query-builder/config/config";
+import CalConfig from "../components/react-awesome-query-builder/config/config";
+import { getStoredQuestions } from "./create-form";
 
 const InitialConfig = CalConfig as Config;
 
-let fields = {};
+const fields = {};
 getStoredQuestions().forEach((question) => {
   if (question.type === "text") {
     fields[question.id] = {
@@ -82,7 +82,7 @@ const getEmptyRoute = (): SerializableRoute => {
 
 export const getStoredRoutes = () => {
   if (typeof window !== "undefined") {
-    let storedRoutes = localStorage.getItem("routes") || "[]";
+    const storedRoutes = localStorage.getItem("routes") || "[]";
     return JSON.parse(storedRoutes) as SerializableRoute[];
   }
   return [getEmptyRoute()];
@@ -211,7 +211,7 @@ const RoutingForm: React.FC = () => {
                           if (!item) {
                             return;
                           }
-                          let action = {
+                          const action = {
                             type: item.value,
                           };
 
