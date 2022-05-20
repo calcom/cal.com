@@ -134,6 +134,7 @@ export default function Login({
               placeholder="john.doe@example.com"
               required
               {...form.register("email")}
+              onFocus={() => () => setErrorMessage(null)}
             />
             <div className="relative">
               <div className="absolute right-0 -top-[2px]">
@@ -149,6 +150,7 @@ export default function Login({
                 autoComplete="current-password"
                 required
                 {...form.register("password")}
+                onFocus={() => setErrorMessage(null)}
               />
             </div>
           </div>
@@ -160,7 +162,7 @@ export default function Login({
             <Button
               className="flex w-full justify-center"
               type="submit"
-              disabled={form.formState.isSubmitting || (form.formState.isSubmitted && !twoFactorRequired)}>
+              disabled={form.formState.isSubmitting || (errorMessage != null && !twoFactorRequired)}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
