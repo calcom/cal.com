@@ -97,7 +97,7 @@ export async function WebhookById(
         }
         await prisma.webhook
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
-          .then((data) => schemaWebhookReadPublic.parse(data))
+          // .then((data) => schemaWebhookReadPublic.parse(data))
           .then((webhook) => res.status(200).json({ webhook }))
           .catch((error: Error) =>
             res.status(404).json({
