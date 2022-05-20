@@ -48,6 +48,9 @@ export default function Login({
 
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // tracking form submit progress
+  // formState.isSubmitted/isSubmitting does not take network request time into account
+  const [submitInProgress, setSubmitProgress] = useState(false);
 
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
@@ -105,6 +108,7 @@ export default function Login({
           form={form}
           className="space-y-6"
           handleSubmit={(values) => {
+            setSubmitProgress(true);
             telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.login, collectPageParameters()));
             signIn<"credentials">("credentials", { ...values, callbackUrl, redirect: false })
               .then((res) => {
@@ -116,7 +120,8 @@ export default function Login({
                 // fallback if error not found
                 else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
               })
-              .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
+              .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]))
+              .finally(() => setSubmitProgress(false));
           }}
           data-testid="login-form">
           <div>
@@ -157,10 +162,7 @@ export default function Login({
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
           <div className="flex space-y-2">
-            <Button
-              className="flex w-full justify-center"
-              type="submit"
-              disabled={form.formState.isSubmitting || (form.formState.isSubmitted && !twoFactorRequired)}>
+            <Button className="flex w-full justify-center" type="submit" disabled={submitInProgress}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
