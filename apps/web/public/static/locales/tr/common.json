@@ -620,7 +620,6 @@
   "confirm_delete_event_type": "Evet, etkinlik türünü sil",
   "delete_account": "Hesabı sil",
   "confirm_delete_account": "Evet, hesabı sil",
-  "delete_account_confirmation_message": "Cal.com hesabınızı silmek istediğinizden emin misiniz? Hesap bağlantısı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacaktır ve kaydettiğiniz tüm tercihler kaybolacaktır.",
   "integrations": "Entegrasyonlar",
   "apps": "Uygulamalar",
   "app_store": "App Store",
@@ -763,5 +762,8 @@
   "send_reschedule_request": "Yeniden planlama isteğinde bulun ",
   "edit_booking": "Rezervasyonu düzenle",
   "reschedule_booking": "Rezervasyonu yeniden planla",
-  "former_time": "Önceki tarih"
+  "former_time": "Önceki tarih",
+  "delete_account_confirmation_message": "Cal.com hesabınızı silmek istediğinizden emin misiniz? Hesap bağlantısı paylaştığınız herkes artık bu bağlantıyı kullanarak rezervasyon yapamayacaktır ve kaydettiğiniz tüm tercihler kaybolacaktır.",
+  "reason_for_rescheduling_optional": "Yeniden planlama nedeni (isteğe bağlı)",
+  "share_your_reason_to_rescheduling": "yeniden planlama nedeninizi paylaşın"
 }

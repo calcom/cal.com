@@ -31,7 +31,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { createPaymentLink } from "@calcom/stripe/client";
 import { Button } from "@calcom/ui/Button";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import { EmailInput, Form } from "@calcom/ui/form/fields";
+import { EmailInput, Form, TextArea } from "@calcom/ui/form/fields";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -766,15 +766,17 @@ const BookingPage = ({
                     <label
                       htmlFor="notes"
                       className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("additional_notes")}
+                      {rescheduleUid ? t("reason_for_rescheduling_optional") : t("additional_notes")}
                     </label>
                     <textarea
                       {...bookingForm.register("notes")}
                       id="notes"
                       name="notes"
                       rows={3}
+                      placeholder={
+                        rescheduleUid ? t("share_your_reason_to_rescheduling") : t("share_additional_notes")
+                      }
                       className={inputClassName}
-                      placeholder={t("share_additional_notes")}
                       disabled={disabledExceptForOwner}
                     />
                   </div>

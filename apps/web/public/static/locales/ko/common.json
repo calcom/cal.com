@@ -763,5 +763,7 @@
   "send_reschedule_request": "일정 변경 요청",
   "edit_booking": "예약 편집",
   "reschedule_booking": "예약 일정 변경",
-  "former_time": "이전 시간"
+  "former_time": "이전 시간",
+  "reason_for_rescheduling_optional": "일정 변경 사유(선택사항)",
+  "share_your_reason_to_rescheduling": "일정을 변경하는 이유를 공유하세요."
 }

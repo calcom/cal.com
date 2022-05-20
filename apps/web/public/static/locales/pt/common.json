@@ -825,5 +825,7 @@
   "install_zapier_app": "Por favor, primeiro instale a aplicação Zapier da App Store.",
   "go_to_app_store": "Vá para a App Store",
   "calendar_error": "Algo correu mal, tente ligar de novo o seu calendário com todas as permissões necessárias",
-  "calendar_no_busy_slots": "Não há horários ocupados"
+  "calendar_no_busy_slots": "Não há horários ocupados",
+  "reason_for_rescheduling_optional": "Motivo do reagendamento (opcional)",
+  "share_your_reason_to_rescheduling": "compartilhe seu motivo para reagendar"
 }

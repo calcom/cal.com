@@ -770,5 +770,7 @@
   "impersonate_user_tip": "Toate utilizările acestei caracteristici sunt verificate.",
   "impersonating_user_warning": "Reprezentare nume de utilizator „{{user}}”.",
   "impersonating_stop_instructions": "<0>Faceți clic aici pentru a înceta</0>.",
-  "calendar_error": "A apărut o eroare. Încercați să reconectați calendarul cu toate permisiunile necesare"
+  "calendar_error": "A apărut o eroare. Încercați să reconectați calendarul cu toate permisiunile necesare",
+  "reason_for_rescheduling_optional": "Motivul reprogramării (opțional)",
+  "share_your_reason_to_rescheduling": "împărtășește-ți motivul pentru reprogramare"
 }

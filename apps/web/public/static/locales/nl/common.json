@@ -711,7 +711,6 @@
   "add_new_schedule": "Voeg een nieuwe planning toe",
   "delete_schedule": "Planning verwijderen",
   "schedule_created_successfully": "Planning {{scheduleName}} aangemaakt",
-  "availability_updated_successfully": "Beschikbaarheid bijgewerkt",
   "schedule_deleted_successfully": "Planning verwijderd",
   "default_schedule_name": "Werktijden",
   "new_schedule_heading": "Beschikbaarheidsschema aanmaken",
@@ -763,5 +762,8 @@
   "send_reschedule_request": "Verplaatsing aanvragen ",
   "edit_booking": "Boeking bewerken",
   "reschedule_booking": "Boeking verplaatsen",
-  "former_time": "Vorige tijd"
+  "former_time": "Vorige tijd",
+  "availability_updated_successfully": "Beschikbaarheid bijgewerkt",
+  "reason_for_rescheduling_optional": "Reden van verzetten (optioneel)",
+  "share_your_reason_to_rescheduling": "deel je reden om een ​​nieuwe afspraak te maken"
 }

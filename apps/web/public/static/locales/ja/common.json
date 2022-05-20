@@ -763,5 +763,7 @@
   "send_reschedule_request": "スケジュールの変更をリクエスト",
   "edit_booking": "予約を編集",
   "reschedule_booking": "予約のスケジュールを変更",
-  "former_time": "以前の時間"
+  "former_time": "以前の時間",
+  "reason_for_rescheduling_optional": "再スケジュールの理由（オプション）",
+  "share_your_reason_to_rescheduling": "スケジュールを変更する理由を共有する"
 }

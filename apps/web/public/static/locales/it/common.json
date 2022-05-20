@@ -761,5 +761,7 @@
   "send_reschedule_request": "Richiedi riprogrammazione ",
   "edit_booking": "Modifica prenotazione",
   "reschedule_booking": "Riprogramma prenotazione",
-  "former_time": "Orario precedente"
+  "former_time": "Orario precedente",
+  "reason_for_rescheduling_optional": "Motivo della riprogrammazione (facoltativo)",
+  "share_your_reason_to_rescheduling": "condividi il motivo della riprogrammazione"
 }

@@ -763,5 +763,7 @@
   "send_reschedule_request": "Demander un report ",
   "edit_booking": "Modifier la réservation",
   "reschedule_booking": "Reporter la réservation",
-  "former_time": "Ancienne heure"
+  "former_time": "Ancienne heure",
+  "reason_for_rescheduling_optional": "Raison du report (facultatif)",
+  "share_your_reason_to_rescheduling": "Partagez votre raison de reporter"
 }

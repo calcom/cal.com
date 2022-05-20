@@ -763,5 +763,7 @@
   "send_reschedule_request": "طلب إعادة جدولة ",
   "edit_booking": "تحرير الحجز",
   "reschedule_booking": "إعادة جدولة الحجز",
-  "former_time": "الوقت السابق"
+  "former_time": "الوقت السابق",
+  "reason_for_rescheduling_optional": "سبب إعادة الجدولة (اختياري)",
+  "share_your_reason_to_rescheduling": "شاركنا سبب إعادة الجدولة"
 }

@@ -763,5 +763,7 @@
   "send_reschedule_request": "要求重新預約 ",
   "edit_booking": "編輯預約",
   "reschedule_booking": "重新安排預約",
-  "former_time": "之前時間"
+  "former_time": "之前時間",
+  "reason_for_rescheduling_optional": "重新安排的原因（可選)",
+  "share_your_reason_to_rescheduling": "分享你重新安排的理由"
 }

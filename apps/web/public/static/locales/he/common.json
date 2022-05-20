@@ -198,7 +198,6 @@
   "dont_have_an_account": "אין לך חשבון עדיין?",
   "2fa_code": "קוד אימות דו-שלבי",
   "sign_in_account": "כניסה לחשבון",
-  "sign_in": "התחבר",
   "go_back_login": "חזרה לדף הכניסה",
   "error_during_login": "אירעה שגיאה בעת הכניסה. נא לחזור אל מסך הכניסה ולנסות שוב.",
   "request_password_reset": "בקשה לאיפוס סיסמה",
@@ -767,5 +766,8 @@
   "impersonate": "התחזות",
   "impersonate_user_tip": "כל השימושים בתכונה זו נבדקים.",
   "impersonating_user_warning": "בהתחזות לשם המשתמש \"{{user}}\".",
-  "impersonating_stop_instructions": "<0>לחץ כאן כדי להפסיק</0>."
+  "impersonating_stop_instructions": "<0>לחץ כאן כדי להפסיק</0>.",
+  "sign_in": "התחבר",
+  "reason_for_rescheduling_optional": "סיבה לתזמון מחדש (אופציונלי)",
+  "share_your_reason_to_rescheduling": "שתף את הסיבה שלך לשינוי מועד"
 }

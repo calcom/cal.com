@@ -763,5 +763,7 @@
   "send_reschedule_request": "Yêu cầu xếp lại lịch ",
   "edit_booking": "Sửa mục đặt chỗ",
   "reschedule_booking": "Xếp lại lịch đặt chỗ",
-  "former_time": "Thời gian cũ"
+  "former_time": "Thời gian cũ",
+  "reason_for_rescheduling_optional": "Lý do đổi lịch (tùy chọn)",
+  "share_your_reason_to_rescheduling": "chia sẻ lý do của bạn để lên lịch lại"
 }

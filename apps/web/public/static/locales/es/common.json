@@ -722,7 +722,6 @@
   "12_hour": "12 horas",
   "24_hour": "24 horas",
   "redirect_success_booking": "Redirigir al reservar ",
-  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
   "redirect_url_upgrade_description": "Para poder usar esta función, necesita actualizarse a una cuenta Pro.",
   "duplicate": "Duplicar",
@@ -768,5 +767,8 @@
   "impersonate_user_tip": "Todos los usos de esta característica se auditan.",
   "impersonating_user_warning": "Suplantando nombre de usuario \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Haga clic aquí para detener</0>.",
-  "zapier_setup_instructions": "<0>Inicia sesión en tu cuenta de Zapier y crea un nuevo Zap.</0><1>Selecciona Cal.com cómo tu aplicación disparadora. Tambien elige tu evento disparador.</1><2>Elige tu cuenta e ingresa tu Clave API única.</2><3>Prueba tu disparador.</3><4>¡Listo!</4>"
+  "zapier_setup_instructions": "<0>Inicia sesión en tu cuenta de Zapier y crea un nuevo Zap.</0><1>Selecciona Cal.com cómo tu aplicación disparadora. Tambien elige tu evento disparador.</1><2>Elige tu cuenta e ingresa tu Clave API única.</2><3>Prueba tu disparador.</3><4>¡Listo!</4>",
+  "you_are_being_redirected": "Serás redirigido a {{ url }} en $t(second, {\"count\": {{seconds}} }).",
+  "reason_for_rescheduling_optional": "Motivo de la reprogramación (opcional)",
+  "share_your_reason_to_rescheduling": "comparte tu razón para reprogramar"
 }

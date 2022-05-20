@@ -763,5 +763,7 @@
   "send_reschedule_request": "请求重新安排",
   "edit_booking": "编辑预约",
   "reschedule_booking": "重新安排预约",
-  "former_time": "之前的时间"
+  "former_time": "之前的时间",
+  "reason_for_rescheduling_optional": "重新安排的原因（可選)",
+  "share_your_reason_to_rescheduling": "分享你重新安排的理由"
 }

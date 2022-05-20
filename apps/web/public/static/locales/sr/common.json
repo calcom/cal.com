@@ -763,5 +763,7 @@
   "send_reschedule_request": "Zatražite promenu vremena ",
   "edit_booking": "Uredi rezervaciju",
   "reschedule_booking": "Promeni vreme rezervacije",
-  "former_time": "Prethodno vreme"
+  "former_time": "Prethodno vreme",
+  "reason_for_rescheduling_optional": "Разлог за померање (опционо)",
+  "share_your_reason_to_rescheduling": "delite razlog za prerazporeditev"
 }

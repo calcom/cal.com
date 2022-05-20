@@ -763,5 +763,7 @@
   "send_reschedule_request": "Poproś o zmianę harmonogramu ",
   "edit_booking": "Edytuj rezerwację",
   "reschedule_booking": "Przełóż rezerwację",
-  "former_time": "Poprzednia godzina"
+  "former_time": "Poprzednia godzina",
+  "reason_for_rescheduling_optional": "Powód zmiany harmonogramu (opcjonalnie)",
+  "share_your_reason_to_rescheduling": "podziel się powodem zmiany terminu"
 }

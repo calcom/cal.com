@@ -763,5 +763,7 @@
   "send_reschedule_request": "Надіслати запит на перенесення ",
   "edit_booking": "Редагувати бронювання",
   "reschedule_booking": "Перенести бронювання",
-  "former_time": "Попередній час"
+  "former_time": "Попередній час",
+  "reason_for_rescheduling_optional": "Причина перенесення (необов'язково)",
+  "share_your_reason_to_rescheduling": "поділіться причиною перенесення"
 }

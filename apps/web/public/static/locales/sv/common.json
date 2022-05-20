@@ -819,5 +819,7 @@
   "copy_safe_api_key": "Kopiera denna API-nyckel och spara den någonstans säkert. Om du förlorar denna nyckel måste du skapa en ny.",
   "install_zapier_app": "Installera först Zapier-appen i appbutiken.",
   "go_to_app_store": "Gå till App Store",
-  "calendar_error": "Något gick fel, försök att återansluta din kalender med alla nödvändiga behörigheter"
+  "calendar_error": "Något gick fel, försök att återansluta din kalender med alla nödvändiga behörigheter",
+  "reason_for_rescheduling_optional": "Anledning till omläggning (valfritt)",
+  "share_your_reason_to_rescheduling": "dela din anledning till att boka om"
 }

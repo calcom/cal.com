@@ -821,5 +821,7 @@
   "install_zapier_app": "Bitte installieren Sie zuerst die Zapier-App im App Store.",
   "go_to_app_store": "Zum App Store",
   "calendar_error": "Etwas ist schiefgelaufen. Versuche deinen Kalender mit allen notwendigen Berechtigungen erneut zu verbinden",
-  "calendar_no_busy_slots": "Keine belegten Zeiten vorhanden"
+  "calendar_no_busy_slots": "Keine belegten Zeiten vorhanden",
+  "reason_for_rescheduling_optional": "Grund der Terminverschiebung (optional)",
+  "share_your_reason_to_rescheduling": "Teilen Sie Ihren Grund für die Umplanung mit"
 }

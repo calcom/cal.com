@@ -768,5 +768,7 @@
   "impersonate": "Representar",
   "impersonate_user_tip": "Todos os usos desse recurso são auditados.",
   "impersonating_user_warning": "Representando o nome de usuário \"{{user}}\".",
-  "impersonating_stop_instructions": "<0>Clique aqui para parar</0>."
+  "impersonating_stop_instructions": "<0>Clique aqui para parar</0>.",
+  "reason_for_rescheduling_optional": "Motivo do reagendamento (opcional)",
+  "share_your_reason_to_rescheduling": "compartilhe seu motivo para reagendar"
 }
