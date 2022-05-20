@@ -29,15 +29,13 @@ async function createOrlistAllWebhooks(
      *       404:
      *         description: No webhooks were found
      */
-    const data = await prisma.webhook.findMany({ where: { userId } });
-    // const webhooks = data.map((webhook) => schemaWebhookReadPublic.parse(webhook));
-    if (data) res.status(200).json({ webhooks: data });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Webhooks were found",
-          error,
-        });
+    await prisma.webhook
+      .findMany({ where: { userId } })
+      .then((data) => res.status(200).json({ webhooks: data }))
+      .catch((error) => {
+        console.log(error);
+        res.status(404).json({ message: "No webhooks were found", error });
+      });
   } else if (method === "POST") {
     /**
      * @swagger
