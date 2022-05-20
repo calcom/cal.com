@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "@api/*": ["pages/api/*"],
