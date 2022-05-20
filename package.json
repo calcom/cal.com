@@ -7,7 +7,7 @@
   "author": "Cal.com Inc.",
   "private": true,
   "engines": {
-    "node": ">=15.0.0"
+    "node": ">=14.19.x"
   },
   "scripts": {
     "dev": "next build && PORT=3002 next start",
