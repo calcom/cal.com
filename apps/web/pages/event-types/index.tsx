@@ -107,7 +107,9 @@ const MemoizedItem = React.memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isWaitingForMutation, setIsWaitingForMutation] = useState(false);
+  const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
     onError: async (err) => {
@@ -149,6 +151,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   async function deleteEventTypeHandler(id: number) {
     const payload = { id };
+    setIsWaitingForMutation(true);
     deleteMutation.mutate(payload);
   }
 
@@ -182,11 +185,15 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
       showToast(t("event_type_deleted_successfully"), "success");
+      setDeleteDialogOpen(false);
+      setIsWaitingForMutation(false);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+        setDeleteDialogOpen(false);
+        setIsWaitingForMutation(false);
       }
     },
   });
@@ -327,30 +334,17 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                                color="warn"
-                                size="sm"
-                                StartIcon={TrashIcon}
-                                className="w-full rounded-none">
-                                {t("delete") as string}
-                              </Button>
-                            </DialogTrigger>
-                            <ConfirmationDialogContent
-                              variety="danger"
-                              title={t("delete_event_type")}
-                              confirmBtnText={t("confirm_delete_event_type")}
-                              onConfirm={(e) => {
-                                e.preventDefault();
-                                deleteEventTypeHandler(type.id);
-                              }}>
-                              {t("delete_event_type_description") as string}
-                            </ConfirmationDialogContent>
-                          </Dialog>
+                          <Button
+                            onClick={(e) => {
+                              setDeleteDialogOpen(true);
+                              setDeleteDialogTypeId(type.id);
+                            }}
+                            color="warn"
+                            size="sm"
+                            StartIcon={TrashIcon}
+                            className="w-full rounded-none">
+                            {t("delete") as string}
+                          </Button>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
@@ -442,30 +436,17 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
                     <DropdownMenuItem>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            color="warn"
-                            size="sm"
-                            StartIcon={TrashIcon}
-                            className="w-full rounded-none">
-                            {t("delete") as string}
-                          </Button>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("delete_event_type")}
-                          confirmBtnText={t("confirm_delete_event_type")}
-                          onConfirm={(e) => {
-                            e.preventDefault();
-                            deleteEventTypeHandler(type.id);
-                          }}>
-                          {t("delete_event_type_description") as string}
-                        </ConfirmationDialogContent>
-                      </Dialog>
+                      <Button
+                        onClick={(e) => {
+                          setDeleteDialogOpen(true);
+                          setDeleteDialogTypeId(type.id);
+                        }}
+                        color="warn"
+                        size="sm"
+                        StartIcon={TrashIcon}
+                        className="w-full rounded-none">
+                        {t("delete") as string}
+                      </Button>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
@@ -474,6 +455,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           </li>
         ))}
       </ul>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          isLoading={isWaitingForMutation}
+          variety="danger"
+          title={t("delete_event_type")}
+          confirmBtnText={t("confirm_delete_event_type")}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteEventTypeHandler(deleteDialogTypeId);
+          }}>
+          {t("delete_event_type_description") as string}
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 };
