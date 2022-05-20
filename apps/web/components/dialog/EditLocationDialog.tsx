@@ -174,7 +174,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 required
                 id="locationPhoneHost"
                 placeholder={t("host_phone_number")}
-                rules={{}}
                 defaultValue={
                   defaultValues
                     ? defaultValues.find(
@@ -242,10 +241,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 setCurrentLocation(applyNamingFormat(locationString));
               }
               setShowLocationModal(false);
-              locationFormMethods.unregister("locationType");
-              locationFormMethods.unregister("locationLink");
-              locationFormMethods.unregister("locationAddress");
-              locationFormMethods.unregister("locationPhoneHost");
+              locationFormMethods.unregister([
+                "locationType",
+                "locationLink",
+                "locationAddress",
+                "locationPhoneHost",
+              ]);
             }}>
             <Controller
               name="locationType"
@@ -265,9 +266,16 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   onChange={(val) => {
                     if (val) {
                       locationFormMethods.setValue("locationType", val.value);
-                      locationFormMethods.unregister("locationLink");
-                      locationFormMethods.unregister("locationAddress");
-                      locationFormMethods.unregister("locationPhoneHost");
+                      locationFormMethods.unregister([
+                        "locationLink",
+                        "locationAddress",
+                        "locationPhoneHost",
+                      ]);
+                      locationFormMethods.clearErrors([
+                        "locationLink",
+                        "locationPhoneHost",
+                        "locationAddress",
+                      ]);
                       setSelectedLocation?.(val);
                     }
                   }}
