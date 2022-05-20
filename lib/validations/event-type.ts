@@ -1,6 +1,10 @@
 import { z } from "zod";
 
+import { AppStoreLocationType, DefaultLocationType } from "@calcom/app-store/locations";
 import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
+
+import { Frequency } from "@lib/types";
+import { timeZone } from "@lib/validations/shared/timeZone";
 
 import { jsonSchema } from "./shared/jsonSchema";
 
@@ -89,8 +93,24 @@ export const schemaEventTypeReadPublic = EventType.pick({
   metadata: true,
 }).merge(
   z.object({
-    recurringEvent: jsonSchema.nullable(),
-    locations: z.array(jsonSchema).nullable(),
+    // { dtstart?: Date | undefined; interval?: number | undefined; count?: number | undefined; freq?: Frequency | undefined; until?: Date | undefined; tzid?: string | undefined; } | undefined'
+    // recurringEvent: jsonSchema.nullable(),
+    recurringEvent: z.object({
+      dtstart: z.date().optional(),
+      interval: z.number().int().optional(),
+      count: z.number().int().optional(),
+      freq: z.nativeEnum(Frequency).optional(),
+      until: z.date().optional(),
+      tzid: timeZone,
+    }),
+    locations: z.array(
+      z.object({
+        link: z.string().optional(),
+        address: z.string().optional(),
+        hostPhoneNumber: z.string().optional(),
+        type: z.nativeEnum(DefaultLocationType).or(z.nativeEnum(AppStoreLocationType)),
+      })
+    ),
     metadata: jsonSchema.nullable(),
   })
 );

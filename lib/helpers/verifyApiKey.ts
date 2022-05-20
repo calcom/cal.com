@@ -12,7 +12,7 @@ declare module "next" {
     body: Body;
     method: string;
     query: {
-      apiKey: string;
+      apiKey?: string;
     };
   }
 }
