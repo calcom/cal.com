@@ -3,8 +3,10 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/admin#build": {
+    "@calcom/console#build": {
       "dependsOn": [
+        "@calcom/prisma#post-install",
+        "@calcom/console#post-install",
         "$ADMIN_DATABASE_URL",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
