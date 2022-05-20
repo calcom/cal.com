@@ -177,7 +177,7 @@ export type SchedulesResponse = BaseResponse & {
 
 // Webhook
 export type WebhookResponse = BaseResponse & {
-  webhook?: Partial<Webhook>;
+  webhook?: Partial<Webhook> | null;
 };
 export type WebhooksResponse = BaseResponse & {
   webhooks?: Partial<Webhook>[];
