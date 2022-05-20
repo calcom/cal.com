@@ -1,6 +1,6 @@
-[submodule "apps/admin"]
-	path = apps/admin
-	url = https://github.com/calcom/admin.git
+[submodule "apps/console"]
+	path = apps/console
+	url = https://github.com/calcom/console.git
 	branch = main
 [submodule "apps/api"]
 	path = apps/api
