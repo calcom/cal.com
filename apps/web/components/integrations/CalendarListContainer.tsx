@@ -8,7 +8,7 @@ import Button from "@calcom/ui/Button";
 import Switch from "@calcom/ui/Switch";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";

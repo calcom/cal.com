@@ -8,7 +8,7 @@ import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 interface Props {
   isLoading?: boolean;
@@ -50,7 +50,7 @@ const AdditionalCalendarSelector = ({ isLoading }: Props): JSX.Element | null =>
             placeholder={t("connect_additional_calendar")}
             options={options}
             styles={{
-              placeholder: (defaultStyles: any) => ({
+              placeholder: (defaultStyles) => ({
                 ...defaultStyles,
                 color: "#3E3E3E",
                 marginLeft: "3px",

@@ -68,7 +68,7 @@ const DestinationCalendarSelector = ({
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
         styles={{
-          option: (defaultStyles: any, state: any) => ({
+          option: (defaultStyles, state) => ({
             ...defaultStyles,
             backgroundColor: state.isSelected
               ? state.isFocused
