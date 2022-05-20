@@ -27,7 +27,7 @@ fi
 # stop execution on error - don't let it build if something goes wrong
 set -e
 
-git config --global init.defaultBranch main
+git config --global init.defaultBranch feat/node-v15x
 git config --global advice.detachedHead false
 
 # set up an empty temporary work directory
