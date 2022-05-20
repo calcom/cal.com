@@ -8,8 +8,9 @@ import prisma from "@calcom/prisma";
 /** @todo: remove once `@calcom/types` is updated with it.*/
 declare module "next" {
   export interface NextApiRequest extends IncomingMessage {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    body: any;
     userId: number;
-    body: unknown;
     method: string;
     query: {
       apiKey?: string;
