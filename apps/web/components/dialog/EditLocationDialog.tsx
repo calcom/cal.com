@@ -1,8 +1,9 @@
 import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Controller, useForm, UseFormReturn, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
@@ -34,8 +35,7 @@ type LocationFormValues = {
   locationType: LocationType;
   locationAddress?: string;
   locationLink?: string;
-  locationPhone?: string;
-  locationPhoneNumber?: string;
+  locationPhoneHost?: string;
 };
 interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
@@ -88,10 +88,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const locationFormSchema = z.object({
     locationType: z.string(),
-    locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
-    locationPhone: z.string().optional(),
-    locationPhoneNumber: z.string().optional(),
+    locationAddress: z.string(),
+    locationLink: z.string().url(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationPhoneHost: z.string().refine((val) => isValidPhoneNumber(val)),
   });
 
   const locationFormMethods = useForm<LocationFormValues>({
@@ -154,48 +153,26 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }
               />
               {locationFormMethods.formState.errors.locationLink && (
-                <p className="mt-1 text-sm text-red-500">
-                  {locationFormMethods.formState.errors.locationLink.message}
-                </p>
+                <p className="mt-1 text-sm text-red-500">URL needs to start with https://</p>
               )}
             </div>
           </div>
         );
       case LocationType.Phone:
-        if (booking) {
-          return (
-            <div className="mb-4">
-              <label
-                htmlFor="locationPhone"
-                className="block text-sm font-medium text-gray-700 dark:text-white">
-                {t("set_your_phone_number")}
-              </label>
-              <div className="mt-1">
-                <PhoneInput<LocationFormValues>
-                  control={locationFormMethods.control}
-                  name="locationPhone"
-                  placeholder={t("enter_phone_number")}
-                  id="locationPhone"
-                  required
-                />
-              </div>
-            </div>
-          );
-        } else {
-          return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
-        }
+        return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
       case LocationType.UserPhone:
         return (
           <div>
             <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
               {t("set_your_phone_number")}
+              {locationFormMethods.formState?.errors?.locationPhoneHost?.message}
             </label>
             <div className="mt-1">
               <PhoneInput
                 control={locationFormMethods.control}
-                name="locationPhoneNumber"
+                name="locationPhoneHost"
                 required
-                id="locationPhoneNumber"
+                id="locationPhoneHost"
                 placeholder={t("host_phone_number")}
                 rules={{}}
                 defaultValue={
@@ -206,10 +183,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     : undefined
                 }
               />
-              {locationFormMethods.formState.errors.locationPhoneNumber && (
-                <p className="mt-1 text-red-500">
-                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
-                </p>
+              {locationFormMethods.formState.errors.locationPhoneHost && (
+                <p className="mt-1 text-sm text-red-500">Invalid input</p>
               )}
             </div>
           </div>
@@ -258,12 +233,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 details = { link: values.locationLink };
                 locationString = values.locationLink || "";
               }
-              if (newLocation === LocationType.Phone) {
-                details = { number: values.locationPhone };
-                locationString = values.locationPhone || "";
-              }
               if (newLocation === LocationType.UserPhone) {
-                details = { hostPhoneNumber: values.locationPhoneNumber };
+                details = { hostPhoneNumber: values.locationPhoneHost };
               }
 
               saveLocation(newLocation, details);
@@ -274,8 +245,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               locationFormMethods.unregister("locationType");
               locationFormMethods.unregister("locationLink");
               locationFormMethods.unregister("locationAddress");
-              locationFormMethods.unregister("locationPhone");
-              locationFormMethods.unregister("locationPhoneNumber");
+              locationFormMethods.unregister("locationPhoneHost");
             }}>
             <Controller
               name="locationType"
@@ -297,8 +267,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       locationFormMethods.setValue("locationType", val.value);
                       locationFormMethods.unregister("locationLink");
                       locationFormMethods.unregister("locationAddress");
-                      locationFormMethods.unregister("locationPhone");
-                      locationFormMethods.unregister("locationPhoneNumber");
+                      locationFormMethods.unregister("locationPhoneHost");
                       setSelectedLocation?.(val);
                     }
                   }}
