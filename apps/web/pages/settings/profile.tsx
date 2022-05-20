@@ -137,7 +137,7 @@ const CustomUsernameTextfield = (props) => {
     null
   );
 
-  const saveDesiredUsername = async () => {
+  const saveIntentUsername = async () => {
     try {
       const result = await fetch("/api/intent-username", {
         method: "POST",
@@ -146,7 +146,10 @@ const CustomUsernameTextfield = (props) => {
           "Content-Type": "application/json",
         },
       });
-      console.log({ result });
+      if (result.ok) {
+        await result.json();
+        console.log(result.body);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -386,7 +389,7 @@ const CustomUsernameTextfield = (props) => {
                 // loading={createMutation.isLoading}
                 onClick={async () => {
                   let url = "";
-                  await saveDesiredUsername();
+                  await saveIntentUsername();
                   if (usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
                     // redirect to checkout
                     url = "/api/integrations/stripepayment/subscription";
@@ -397,14 +400,17 @@ const CustomUsernameTextfield = (props) => {
                     headers: {
                       "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ action: "downgrade", isPremiumUsername: userIsPremium }),
+                    body: JSON.stringify({
+                      action: usernameChangeCondition?.toLowerCase(),
+                      isPremiumUsername: premiumUsername,
+                    }),
                     method: "POST",
                     mode: "cors",
                   });
                   console.log({ result });
                   const body = await result.json();
                   console.log({ body });
-                  // window.location.href = body.url;
+                  window.location.href = body.url;
                 }}>
                 {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
                 {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (

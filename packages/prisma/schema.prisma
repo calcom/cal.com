@@ -171,7 +171,7 @@ model User {
   apiKeys             ApiKey[]
   accounts            Account[]
   sessions            Session[]
-  desiredUsernames    IntentUsername[]
+  intentUsernames    IntentUsername[]
 
   @@map(name: "users")
 }
