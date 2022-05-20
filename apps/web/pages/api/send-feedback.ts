@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSession } from "@lib/auth";
 import { sendFeedbackEmail } from "@lib/emails/email-manager";
-import FeedbackEmail from "@lib/emails/templates/feedback-email";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
