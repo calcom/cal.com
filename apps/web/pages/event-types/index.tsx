@@ -87,12 +87,12 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
             data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
           {type.hidden && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ltr:ml-2">
-              {t("hidden")}
+              {t("hidden") as string}
             </span>
           )}
           {readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
-              {t("readonly")}
+              {t("readonly") as string}
             </span>
           )}
         </div>
@@ -252,7 +252,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         "flex justify-between space-x-2 rtl:space-x-reverse ",
                         type.$disabled && "pointer-events-none cursor-not-allowed"
                       )}>
-                      <Tooltip content={t("preview")}>
+                      <Tooltip content={t("preview") as string}>
                         <a
                           href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${group.profile.slug}/${type.slug}`}
                           target="_blank"
@@ -264,7 +264,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </a>
                       </Tooltip>
 
-                      <Tooltip content={t("copy_link")}>
+                      <Tooltip content={t("copy_link") as string}>
                         <button
                           onClick={() => {
                             showToast(t("link_copied"), "success");
@@ -297,8 +297,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
                               )}
                               StartIcon={PencilIcon}>
-                              {" "}
-                              {t("edit")}
+                              {t("edit") as string}
                             </Button>
                           </Link>
                         </DropdownMenuItem>
@@ -314,7 +313,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={DuplicateIcon}
                             onClick={() => openModal(group, type)}>
-                            {t("duplicate")}
+                            {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
@@ -338,7 +337,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 size="sm"
                                 StartIcon={TrashIcon}
                                 className="w-full rounded-none">
-                                {t("delete")}
+                                {t("delete") as string}
                               </Button>
                             </DialogTrigger>
                             <ConfirmationDialogContent
@@ -349,7 +348,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 e.preventDefault();
                                 deleteEventTypeHandler(type.id);
                               }}>
-                              {t("delete_event_type_description")}
+                              {t("delete_event_type_description") as string}
                             </ConfirmationDialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -373,7 +372,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             size="sm"
                             StartIcon={ExternalLinkIcon}
                             className="w-full rounded-none">
-                            {t("preview")}
+                            {t("preview") as string}
                           </Button>
                         </a>
                       </Link>
@@ -392,7 +391,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           );
                           showToast(t("link_copied"), "success");
                         }}>
-                        {t("copy_link")}
+                        {t("copy_link") as string}
                       </Button>
                     </DropdownMenuItem>
                     {isNativeShare ? (
@@ -414,7 +413,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               .then(() => showToast(t("link_shared"), "success"))
                               .catch(() => showToast(t("failed"), "error"));
                           }}>
-                          {t("share")}
+                          {t("share") as string}
                         </Button>
                       </DropdownMenuItem>
                     ) : null}
@@ -426,8 +425,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         color="minimal"
                         className="w-full rounded-none"
                         StartIcon={PencilIcon}>
-                        {" "}
-                        {t("edit")}
+                        {t("edit") as string}
                       </Button>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
@@ -439,7 +437,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         data-testid={"event-type-duplicate-" + type.id}
                         StartIcon={DuplicateIcon}
                         onClick={() => openModal(group, type)}>
-                        {t("duplicate")}
+                        {t("duplicate") as string}
                       </Button>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
@@ -454,7 +452,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             size="sm"
                             StartIcon={TrashIcon}
                             className="w-full rounded-none">
-                            {t("delete")}
+                            {t("delete") as string}
                           </Button>
                         </DialogTrigger>
                         <ConfirmationDialogContent
@@ -465,7 +463,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             e.preventDefault();
                             deleteEventTypeHandler(type.id);
                           }}>
-                          {t("delete_event_type_description")}
+                          {t("delete_event_type_description") as string}
                         </ConfirmationDialogContent>
                       </Dialog>
                     </DropdownMenuItem>
@@ -556,8 +554,8 @@ const EventTypesPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
-        heading={t("event_types_page_title")}
-        subtitle={t("event_types_page_subtitle")}
+        heading={t("event_types_page_title") as string}
+        subtitle={t("event_types_page_subtitle") as string}
         CTA={<CTA />}
         customLoader={<SkeletonLoader />}>
         <WithQuery
