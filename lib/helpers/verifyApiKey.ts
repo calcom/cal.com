@@ -12,9 +12,7 @@ declare module "next" {
     body: any;
     userId: number;
     method: string;
-    query: {
-      apiKey?: string;
-    };
+    query: { [key: string]: string | string[] };
   }
 }
 
