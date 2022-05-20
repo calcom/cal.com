@@ -153,10 +153,10 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
 
 // EventType
 export type EventTypeResponse = BaseResponse & {
-  event_type?: Partial<EventTypeExtended>;
+  event_type?: Partial<EventType | EventTypeExtended>;
 };
 export type EventTypesResponse = BaseResponse & {
-  event_types?: Partial<EventTypeExtended>[];
+  event_types?: Partial<EventType | EventTypeExtended>[];
 };
 
 // Payment
