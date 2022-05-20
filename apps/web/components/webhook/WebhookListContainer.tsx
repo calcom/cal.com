@@ -9,6 +9,7 @@ import { trpc } from "@lib/trpc";
 
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
+import SkeletonLoader from "@components/apps/SkeletonLoader";
 import WebhookDialogForm from "@components/webhook/WebhookDialogForm";
 import WebhookListItem, { TWebhook } from "@components/webhook/WebhookListItem";
 
@@ -28,6 +29,7 @@ export default function WebhookListContainer(props: WebhookListContainerType) {
   return (
     <QueryCell
       query={query}
+      customLoader={<SkeletonLoader />}
       success={({ data }) => (
         <div className="border-b border-gray-200 py-8 pl-2 pr-1">
           <ShellSubHeading

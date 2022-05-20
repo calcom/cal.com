@@ -30,49 +30,31 @@ const ImageOption = (props: OptionProps<{ [key: string]: string; type: App["type
   );
 };
 
-type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
-function filterInstalled(app: AppOutput) {
-  return app.credentialIds.length > 0;
-}
-
 const AdditionalCalendarSelector = ({ isLoading }: Props): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
+  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: true }]);
 
   return (
     <QueryCell
       query={query}
       success={({ data }) => {
-        const options = data.items.filter(filterInstalled).map((item) => ({
+        const options = data.items.map((item) => ({
           value: item.slug,
           label: item.name,
           image: item.imageSrc,
           type: item.type,
         }));
-        const customStyles = {
-          // Forgive me father for I have sinned, "any" is necessary here
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          placeholder: (defaultStyles: any) => {
-            return {
-              ...defaultStyles,
-              color: "#3E3E3E",
-              marginLeft: "3px",
-            };
-          },
-        };
         return (
           <Select
             name={"additionalCalendar"}
             placeholder={t("connect_additional_calendar")}
             options={options}
             styles={{
-              placeholder: (defaultStyles) => {
-                return {
-                  ...defaultStyles,
-                  color: "#3E3E3E",
-                  marginLeft: "3px",
-                };
-              },
+              placeholder: (defaultStyles: any) => ({
+                ...defaultStyles,
+                color: "#3E3E3E",
+                marginLeft: "3px",
+              }),
             }}
             isSearchable={false}
             className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 font-medium text-gray-700 sm:text-sm"

@@ -50,22 +50,6 @@ const DestinationCalendarSelector = ({
         value: `${cal.integration}:${cal.externalId}`,
       })),
     })) ?? [];
-  const customStyles = {
-    // Forgive me father for I have sinned, "any" is necessary here
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    option: (defaultStyles: any, state: any) => {
-      return {
-        ...defaultStyles,
-        backgroundColor: state.isSelected
-          ? state.isFocused
-            ? "var(--brand-color)"
-            : "var(--brand-color)"
-          : state.isFocused
-          ? "var(--brand-color-dark-mode)"
-          : "var(--brand-text-color)",
-      };
-    },
-  };
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       {/* There's no easy way to customize the displayed value for a Select, so we fake it. */}
@@ -83,7 +67,18 @@ const DestinationCalendarSelector = ({
         name={"primarySelectedCalendar"}
         placeholder={!hidePlaceholder ? `${t("select_destination_calendar")}:` : undefined}
         options={options}
-        styles={customStyles}
+        styles={{
+          option: (defaultStyles: any, state: any) => ({
+            ...defaultStyles,
+            backgroundColor: state.isSelected
+              ? state.isFocused
+                ? "var(--brand-color)"
+                : "var(--brand-color)"
+              : state.isFocused
+              ? "var(--brand-color-dark-mode)"
+              : "var(--brand-text-color)",
+          }),
+        }}
         isSearchable={false}
         className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 sm:text-sm"
         onChange={(option) => {

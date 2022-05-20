@@ -102,30 +102,26 @@ interface IntegrationsContainerProps {
   className?: string;
 }
 
-function filterInstalled(app: AppOutput) {
-  return app.credentialIds.length > 0;
-}
-
 const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant }], { suspense: true });
+  const query = trpc.useQuery(["viewer.integrations", { variant, onlyInstalled: true }], { suspense: true });
 
   return (
     <QueryCell
       query={query}
+      customLoader={<SkeletonLoader />}
       success={({ data }) => {
-        const installedApps = data.items.filter(filterInstalled);
         return (
           <>
-            {installedApps.length > 0 && (
+            {data.items.length > 0 && (
               <div className={className}>
                 <ShellSubHeading
                   title={
-                    <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.numActive} />
+                    <SubHeadingTitleWithConnections title={t(variant)} numConnections={data.items.length} />
                   }
                 />
                 <List>
-                  {installedApps.map((item: AppOutput) => (
+                  {data.items.map((item: AppOutput) => (
                     <IntegrationListItem
                       key={item.title}
                       title={item.title}
@@ -146,7 +142,8 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
             )}
           </>
         );
-      }}/>
+      }}
+    />
   );
 };
 
@@ -238,7 +235,7 @@ function Web3ConnectBtn() {
 
 export default function IntegrationsPage() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: undefined }]);
+  const query = trpc.useQuery(["viewer.integrations", { onlyInstalled: true }]);
   return (
     <QueryCell
       query={query}
@@ -251,7 +248,7 @@ export default function IntegrationsPage() {
             customLoader={<SkeletonLoader />}>
             <AppsShell>
               <ClientSuspense fallback={<SkeletonLoader />}>
-                {data.numActive > 0 ? (
+                {data.items.length > 0 ? (
                   <>
                     <IntegrationsContainer variant="conferencing" />
                     <CalendarListContainer />
@@ -277,6 +274,7 @@ export default function IntegrationsPage() {
             </AppsShell>
           </Shell>
         );
-      }}/>
+      }}
+    />
   );
 }

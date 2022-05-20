@@ -608,29 +608,30 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
+      onlyInstalled: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { variant } = input;
+      const { variant, onlyInstalled } = input;
       const { credentials } = user;
 
-      function countActive(items: { credentialIds: unknown[] }[]) {
-        return items.reduce((acc, item) => acc + item.credentialIds.length, 0);
-      }
-      const apps = getApps(credentials).map(
+      let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-      // `flatMap()` these work like `.filter()` but infers the types correctly
-      let flatApps = apps;
+
       if (variant) {
-        flatApps = apps.flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+        // `flatMap()` these work like `.filter()` but infers the types correctly
+        apps = apps
+          // variant check
+          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []))
+          // onlyInstalled check
+          .flatMap((item) => (onlyInstalled ? (item.credentialIds.length > 0 ? [item] : []) : [item]));
       }
       return {
-        items: flatApps,
-        numActive: countActive(flatApps),
+        items: apps,
       };
     },
   })

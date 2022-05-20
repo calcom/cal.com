@@ -14,6 +14,7 @@ import AdditionalCalendarSelector from "@components/AdditionalCalendarSelector";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
+import SkeletonLoader from "@components/apps/SkeletonLoader";
 
 import DisconnectIntegration from "./DisconnectIntegration";
 import IntegrationListItem from "./IntegrationListItem";
@@ -163,12 +164,6 @@ function ConnectedCalendarsList(props: Props) {
   );
 }
 
-type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
-
-function filterInstalled(app: AppOutput) {
-  return app.credentialIds.length > 0;
-}
-
 export function CalendarListContainer(props: { heading?: false }) {
   const { t } = useLocale();
   const { heading = true } = props;
@@ -179,44 +174,54 @@ export function CalendarListContainer(props: { heading?: false }) {
       utils.invalidateQueries(["viewer.connectedCalendars"]),
     ]);
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const installedCalendars = trpc.useQuery(["viewer.integrations", { variant: "calendar" }]);
+  const installedCalendars = trpc.useQuery([
+    "viewer.integrations",
+    { variant: "calendar", onlyInstalled: true },
+  ]);
   const mutation = trpc.useMutation("viewer.setDestinationCalendar");
   return (
-    <>
-      {(!!query.data?.connectedCalendars.length ||
-        !!installedCalendars.data?.items.filter(filterInstalled).length) && (
-        <>
-          {heading && (
-            <ShellSubHeading
-              className="mt-10 mb-0"
-              title={
-                <SubHeadingTitleWithConnections
-                  title="Calendars"
-                  numConnections={query.data?.connectedCalendars.length}
-                />
-              }
-              subtitle={t("configure_how_your_event_types_interact")}
-              actions={
-                <div className="flex flex-col xl:flex-row xl:space-x-5">
-                  <div className="sm:min-w-80 block max-w-full">
-                    <DestinationCalendarSelector
-                      onChange={mutation.mutate}
-                      isLoading={mutation.isLoading}
-                      value={query.data?.destinationCalendar?.externalId}
-                    />
-                  </div>
-                  {!!query.data?.connectedCalendars.length && (
-                    <div className="sm:min-w-80 inline max-w-full">
-                      <AdditionalCalendarSelector isLoading={mutation.isLoading} />
-                    </div>
-                  )}
-                </div>
-              }
-            />
-          )}
-          <ConnectedCalendarsList onChanged={onChanged} />
-        </>
-      )}
-    </>
+    <QueryCell
+      query={query}
+      customLoader={<SkeletonLoader />}
+      success={({ data }) => {
+        return (
+          <>
+            {(!!data.connectedCalendars.length || !!installedCalendars.data?.items.length) && (
+              <>
+                {heading && (
+                  <ShellSubHeading
+                    className="mt-10 mb-0"
+                    title={
+                      <SubHeadingTitleWithConnections
+                        title="Calendars"
+                        numConnections={data.connectedCalendars.length}
+                      />
+                    }
+                    subtitle={t("configure_how_your_event_types_interact")}
+                    actions={
+                      <div className="flex flex-col xl:flex-row xl:space-x-5">
+                        <div className="sm:min-w-80 block max-w-full">
+                          <DestinationCalendarSelector
+                            onChange={mutation.mutate}
+                            isLoading={mutation.isLoading}
+                            value={data.destinationCalendar?.externalId}
+                          />
+                        </div>
+                        {!!data.connectedCalendars.length && (
+                          <div className="sm:min-w-80 inline max-w-full">
+                            <AdditionalCalendarSelector isLoading={mutation.isLoading} />
+                          </div>
+                        )}
+                      </div>
+                    }
+                  />
+                )}
+                <ConnectedCalendarsList onChanged={onChanged} />
+              </>
+            )}
+          </>
+        );
+      }}
+    />
   );
 }
