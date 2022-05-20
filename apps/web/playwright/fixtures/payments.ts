@@ -8,7 +8,7 @@ type PaymentFixture = ReturnType<typeof createPaymentFixture>;
 
 // creates a user fixture instance and stores the collection
 export const createPaymentsFixture = (page: Page) => {
-  let store = { payments: [], page } as { payments: PaymentFixture[]; page: typeof page };
+  const store = { payments: [], page } as { payments: PaymentFixture[]; page: typeof page };
   return {
     create: async (
       bookingId: number,

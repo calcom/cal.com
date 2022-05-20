@@ -1,8 +1,15 @@
-import { BanIcon, CheckIcon, ClockIcon, XIcon, PencilAltIcon } from "@heroicons/react/outline";
-import { PaperAirplaneIcon } from "@heroicons/react/outline";
+import {
+  BanIcon,
+  CheckIcon,
+  ClockIcon,
+  PaperAirplaneIcon,
+  PencilAltIcon,
+  XIcon,
+} from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
@@ -17,7 +24,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { parseRecurringDates } from "@lib/parseDate";
-import { inferQueryOutput, trpc, inferQueryInput } from "@lib/trpc";
+import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
 
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -37,6 +44,7 @@ function BookingListItem(booking: BookingItemProps) {
   const user = query.data;
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const mutation = useMutation(
@@ -81,7 +89,10 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
-      onClick: () => setRejectionDialogIsOpen(true),
+      onClick: (e) => {
+        e.stopPropagation();
+        setRejectionDialogIsOpen(true);
+      },
       icon: BanIcon,
       disabled: mutation.isLoading,
     },
@@ -91,7 +102,10 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
-      onClick: () => mutation.mutate(true),
+      onClick: (e) => {
+        e.stopPropagation();
+        mutation.mutate(true);
+      },
       icon: CheckIcon,
       disabled: mutation.isLoading,
       color: "primary",
@@ -120,7 +134,10 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule_request",
           icon: ClockIcon,
           label: t("send_reschedule_request"),
-          onClick: () => setIsOpenRescheduleDialog(true),
+          onClick: (e) => {
+            e.stopPropagation();
+            setIsOpenRescheduleDialog(true);
+          },
         },
       ],
     },
@@ -150,6 +167,7 @@ function BookingListItem(booking: BookingItemProps) {
       i18n
     );
   }
+
   return (
     <>
       <RescheduleDialog
@@ -191,7 +209,30 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex">
+      <tr
+        className="flex cursor-pointer hover:bg-neutral-50"
+        onClick={() =>
+          router.push({
+            pathname: "/success",
+            query: {
+              date: booking.startTime,
+              type: booking.eventType.id,
+              eventSlug: booking.eventType.slug,
+              user: user?.username || "",
+              name: booking.attendees[0].name,
+              email: booking.attendees[0].email,
+              location: booking.location
+                ? booking.location.includes("integration")
+                  ? (t("web_conferencing_details_to_follow") as string)
+                  : booking.location
+                : "",
+              eventName: booking.eventType.eventName || "",
+              bookingId: booking.id,
+              recur: booking.recurringEventId,
+              reschedule: booking.confirmed,
+            },
+          })
+        }>
         <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
           <div className="text-sm leading-6 text-gray-900">{startTime}</div>
           <div className="text-sm text-gray-500">
@@ -264,9 +305,12 @@ function BookingListItem(booking: BookingItemProps) {
           )}
 
           {booking.attendees.length !== 0 && (
-            <div className="text-sm text-gray-900 hover:text-blue-500">
-              <a href={"mailto:" + booking.attendees[0].email}>{booking.attendees[0].email}</a>
-            </div>
+            <a
+              className="text-sm text-gray-900 hover:text-blue-500"
+              href={"mailto:" + booking.attendees[0].email}
+              onClick={(e) => e.stopPropagation()}>
+              {booking.attendees[0].email}
+            </a>
           )}
           {isCancelled && booking.rescheduled && (
             <div className="mt-2 inline-block text-left text-sm md:hidden">

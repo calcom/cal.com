@@ -2,8 +2,9 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { QueryCell } from "@lib/QueryCell";
-import { useLocale } from "@lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Loader from "@components/Loader";
@@ -20,10 +21,10 @@ const AvailabilityView = ({ user }: { user: User }) => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   function convertMinsToHrsMins(mins: number) {
-    let h = Math.floor(mins / 60);
-    let m = mins % 60;
-    let hs = h < 10 ? "0" + h : h;
-    let ms = m < 10 ? "0" + m : m;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const hs = h < 10 ? "0" + h : h;
+    const ms = m < 10 ? "0" + m : m;
     return `${hs}:${ms}`;
   }
 

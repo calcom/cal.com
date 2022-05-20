@@ -59,6 +59,7 @@ ${this.getWhen()}
 ${this.getLocation()}
 ${this.getDescription()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
 ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
 `.replace(/(<([^>]+)>)/gi, "");
@@ -110,6 +111,7 @@ ${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"
                               ${this.getWho()}
                               ${this.getLocation()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>

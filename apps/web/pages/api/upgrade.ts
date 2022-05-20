@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getStripeCustomerId } from "@calcom/stripe/customer";
