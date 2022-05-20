@@ -6,6 +6,9 @@
   "repository": "git@github.com:calcom/api.git",
   "author": "Cal.com Inc.",
   "private": true,
+  "engines": {
+    "node": ">=14.19.x"
+  },
   "scripts": {
     "dev": "next build && PORT=3002 next start",
     "dev-real": "PORT=3002 next dev",
