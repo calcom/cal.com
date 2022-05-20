@@ -461,7 +461,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           variety="danger"
           title={t("delete_event_type")}
           confirmBtnText={t("confirm_delete_event_type")}
-          isLoadingText={t("confirm_delete_event_type")}
+          loadingText={t("confirm_delete_event_type")}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
