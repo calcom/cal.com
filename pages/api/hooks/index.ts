@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { WebhookResponse, WebhooksResponse } from "@lib/types";
-import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "@lib/validations/webhook";
+import { schemaWebhookCreateBodyParams } from "@lib/validations/webhook";
 
 async function createOrlistAllWebhooks(
   { method, body, userId }: NextApiRequest,
@@ -29,13 +29,13 @@ async function createOrlistAllWebhooks(
      *       404:
      *         description: No webhooks were found
      */
-    await prisma.webhook
+    const webhooks = await prisma.webhook
       .findMany({ where: { userId } })
-      .then((data) => res.status(200).json({ webhooks: data }))
-      .catch((error) => {
-        console.log(error);
-        res.status(404).json({ message: "No webhooks were found", error });
-      });
+      .catch((error) => console.log(error));
+    if (!webhooks) {
+      console.log();
+      res.status(404).json({ message: "No webhooks were found" });
+    } else res.status(200).json({ webhooks });
   } else if (method === "POST") {
     /**
      * @swagger
@@ -62,9 +62,7 @@ async function createOrlistAllWebhooks(
     }
 
     const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
-    const webhook = schemaWebhookReadPublic.parse(data);
-
-    if (data) res.status(201).json({ webhook, message: "Webhook created successfully" });
+    if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
     else
       (error: Error) =>
         res.status(400).json({
