@@ -102,6 +102,7 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Unpaid rescheduling should go to payment page", async ({ page, users, bookings, payments }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "Skipped as Stripe is not installed");
     const user = await users.create();
     await user.login();
@@ -132,6 +133,9 @@ test.describe("Reschedule Tests", async () => {
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
     const user = await users.create();
+    await user.login();
+    await user.getPaymentCredential();
+    await users.logout();
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,

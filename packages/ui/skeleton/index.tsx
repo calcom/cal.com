@@ -14,6 +14,7 @@ interface AvatarProps extends SkeletonBaseProps {
 
 interface SkeletonContainer {
   as?: keyof JSX.IntrinsicElements;
+  children?: React.ReactNode;
 }
 
 const SkeletonAvatar: React.FC<AvatarProps> = ({ width, height }) => {

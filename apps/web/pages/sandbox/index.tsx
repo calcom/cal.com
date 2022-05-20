@@ -26,7 +26,7 @@ async function _getStaticProps() {
 }
 type PageProps = inferSSRProps<typeof _getStaticProps>;
 
-const SandboxPage: NextPage<PageProps> = (props) => {
+const SandboxPage: NextPage<PageProps & { children: React.ReactNode }> = (props) => {
   return (
     <>
       <Head>

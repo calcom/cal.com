@@ -98,7 +98,7 @@ export default function Custom404() {
 
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
-                    <Link href="https://docs.cal.com/self-hosting/install#setting-up-your-first-user">
+                    <Link href="https://docs.cal.com/self-hosting/installation">
                       <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">

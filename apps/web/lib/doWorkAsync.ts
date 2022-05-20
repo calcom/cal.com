@@ -1,3 +1,5 @@
+import noop from "lodash/noop";
+
 const data: Record<string, number> = {};
 /**
  * Starts an iteration from `0` to `length - 1` with batch size `batch`
@@ -20,9 +22,9 @@ export const doWorkAsync = ({
 }: {
   name: string;
   length: number;
-  callback: Function;
-  done?: Function;
-  batchDone?: Function;
+  callback: (i: number, b?: boolean) => void;
+  done?: () => void;
+  batchDone?: () => void;
   batch: number;
   offsetStart?: number;
   __pending?: boolean;
@@ -32,8 +34,8 @@ export const doWorkAsync = ({
   const lastIndex = length - 1;
   const offsetEndExclusive = offsetStart + stepLength;
 
-  batchDone = batchDone || (() => {});
-  done = done || (() => {});
+  batchDone = batchDone || noop;
+  done = done || noop;
 
   if (!__pending && data[name]) {
     cancelAnimationFrame(data[name]);

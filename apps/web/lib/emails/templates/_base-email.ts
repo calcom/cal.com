@@ -4,12 +4,13 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 
 export default class BaseEmail {
-  name: string = "";
+  name = "";
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
   }
   public sendEmail() {
+    if (process.env.NEXT_PUBLIC_IS_E2E) return new Promise((r) => r("Skipped sendEmail for E2E"));
     new Promise((resolve, reject) =>
       nodemailer
         .createTransport(this.getMailerOptions().transport)

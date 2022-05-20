@@ -14,8 +14,13 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import type { PartialReference } from "@calcom/types/EventManager";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+
+interface GoogleCalError extends Error {
+  code?: number;
+}
 
 export default class GoogleCalendarService implements Calendar {
   private url = "";
@@ -97,10 +102,10 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: calEventRaw.endTime,
           timeZone: calEventRaw.organizer.timeZone,
         },
-        attendees: calEventRaw.attendees.map((attendee) => ({
+        attendees: [{...calEventRaw.organizer, organizer: true }, ... calEventRaw.attendees.map((attendee) => ({
           ...attendee,
           responseStatus: "accepted",
-        })),
+        }))],
         reminders: {
           useDefault: true,
         },
@@ -162,7 +167,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -194,9 +199,7 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.update(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
@@ -214,7 +217,7 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const auth = await this.auth;
       const myGoogleAuth = await auth.getToken();
@@ -225,15 +228,14 @@ export default class GoogleCalendarService implements Calendar {
       calendar.events.delete(
         {
           auth: myGoogleAuth,
-          calendarId: event.destinationCalendar?.externalId
-            ? event.destinationCalendar.externalId
-            : "primary",
+          calendarId: externalCalendarId ? externalCalendarId : event.destinationCalendar?.externalId,
           eventId: uid,
           sendNotifications: true,
           sendUpdates: "all",
         },
-        function (err, event) {
+        function (err: GoogleCalError | null, event) {
           if (err) {
+            if (err.code === 410) resolve();
             console.error("There was an error contacting google calendar service: ", err);
             return reject(err);
           }
