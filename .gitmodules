@@ -1,4 +1,4 @@
-[submodule "apps/admin"]
+[submodule "apps/console"]
 	path = apps/console
 	url = https://github.com/calcom/console.git
 	branch = main
