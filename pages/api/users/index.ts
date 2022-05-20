@@ -40,18 +40,19 @@ async function getAllorCreateUser(
           message: "No Users were found",
           error,
         });
-  } else if (method === "POST") {
-    const isAdmin = await prisma.user
-      .findUnique({ where: { id: userId } })
-      .then((user) => user?.role === "ADMIN");
-    if (!isAdmin) res.status(401).json({ message: "You are not authorized" });
-    else {
-      const user = await prisma.user.create({
-        data: schemaUserReadPublic.parse(body),
-      });
-      res.status(201).json({ user });
-    }
   }
+  // else if (method === "POST") {
+  //   const isAdmin = await prisma.user
+  //     .findUnique({ where: { id: userId } })
+  //     .then((user) => user?.role === "ADMIN");
+  //   if (!isAdmin) res.status(401).json({ message: "You are not authorized" });
+  //   else {
+  //     const user = await prisma.user.create({
+  //       data: schemaUserReadPublic.parse(body),
+  //     });
+  //     res.status(201).json({ user });
+  //   }
+  // }
 }
 // No POST endpoint for users for now as a regular user you're expected to signup.
 
