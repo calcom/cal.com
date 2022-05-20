@@ -1,86 +1,131 @@
-import jsonLogic from "json-logic-js";
-import { useState, useEffect } from "react";
-import { Utils as QbUtils } from "react-awesome-query-builder";
+import { TrashIcon } from "@heroicons/react/solid";
+import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+import { trpc } from "@calcom/web/lib/trpc";
 
-import { getStoredRoutes, QueryBuilderConfig } from "./Routing";
-import { getStoredQuestions } from "./create-form";
+import CheckboxField from "@components/ui/form/CheckboxField";
 
-export default function RoutingForm({ subPage: id }) {
-  const formId = id;
-  const [storedQuestions, setStoredQuestions] = useState([]);
+import RoutingShell from "../components/RoutingShell";
 
-  useEffect(() => {
-    setStoredQuestions(getStoredQuestions(formId));
-  }, []);
-  const [answers, setAnswers] = useState(() => {
-    const _answers = {};
-    storedQuestions.forEach((q) => {
-      _answers[q.id] = "";
-    });
-    return _answers;
+function Field({ field, updateField, deleteField, readonly = false }) {
+  return (
+    <div className="mt-10 flex justify-around">
+      <div className="flex flex-col">
+        <input
+          type="text"
+          value={field.text}
+          onChange={(e) => {
+            updateField({
+              ...field,
+              text: e.target.value,
+            });
+          }}
+          placeholder="Write a field"></input>
+        <CheckboxField label="Required Field"></CheckboxField>
+      </div>
+      <div>
+        <Button
+          StartIcon={TrashIcon}
+          onClick={() => {
+            deleteField();
+          }}
+          color="secondary">
+          Delete
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function FormBuilder({ subPage: formId }: { subPage: string }) {
+  // TODO: Handle formId undefined in routing
+  const { data: form, isLoading } = trpc.useQuery([
+    "viewer.app_routing-forms.form",
+    {
+      id: +formId,
+    },
+  ]);
+  const utils = trpc.useContext();
+
+  const mutation = trpc.useMutation("viewer.app_routing-forms.form", {
+    onSettled() {
+      utils.invalidateQueries(["viewer.app_routing-forms.form"]);
+    },
   });
 
+  const [formName, setFormName] = useState();
+
+  if (!form) {
+    return null;
+  }
+  if (!form.fields) {
+    form.fields = [];
+  }
   return (
-    <div>
-      <div>Form:{formId}</div>
-      {storedQuestions.map((question) => {
-        if (question.type === "text") {
+    <RoutingShell formId={formId}>
+      <div className="flex">
+        <label>
+          Form Name
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => {
+              mutation.mutate({
+                name: e.target.value,
+              });
+            }}></input>
+        </label>
+      </div>
+      <div className="flex flex-col">
+        {form.fields.map((field, key) => {
           return (
-            <div key={question.id}>
-              <div>{question.text}</div>
-              <input
-                type="text"
-                onChange={(e) => {
-                  setAnswers((answers) => {
-                    const newAnswers = { ...answers };
-                    newAnswers[question.id] = e.target.value;
-                    return newAnswers;
-                  });
-                }}
-                value={answers[question.id]}
-              />
-            </div>
+            <Field
+              updateField={(field) => {
+                const index = form.fields.findIndex((f) => f.id === field.id);
+                const newFields = [...form.fields];
+                newFields[index] = { ...newFields[index], ...field };
+                mutation.mutate({
+                  ...form,
+                  fields: newFields,
+                });
+                return newFields;
+              }}
+              deleteField={() => {
+                const newFields = form.fields.filter((q) => q.id !== field.id);
+                mutation.mutate({
+                  ...form,
+                  fields: newFields,
+                });
+              }}
+              key={key}
+              field={field}></Field>
           );
-        } else {
-          return <div>Unsupported Question Type: {question.type}</div>;
-        }
-      })}
+        })}
+        {!form.fields.length ? "No Fields" : null}
+      </div>
       <Button
+        className="flex"
         onClick={() => {
-          const routes = getStoredRoutes();
-          let decidedAction = null;
-          routes.some((route) => {
-            const state = {
-              tree: QbUtils.checkTree(QbUtils.loadTree(route.queryValue), QueryBuilderConfig),
-              config: QueryBuilderConfig,
-            };
-            const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
-            const logic = jsonLogicQuery.logic;
-            let result: boolean;
-            if (logic) {
-              result = jsonLogic.apply(logic as any, answers);
-            }
-            if (result) {
-              decidedAction = route.action;
-              return true;
-            }
+          const newFields = [
+            ...form.fields,
+            {
+              // TODO: Should we give it a DB id?
+              id: uuidv4(),
+              // This is same type from react-awesome-query-builder
+              type: "text",
+              text: "Hello",
+            },
+          ];
+          mutation.mutate({
+            ...form,
+            fields: newFields,
           });
-          if (decidedAction) {
-            if (decidedAction.type === "customPageMessage") {
-              alert(decidedAction.value);
-            } else if (decidedAction.type === "eventTypeRedirectUrl") {
-              router.push(`/${decidedAction.value}`);
-            } else if (decidedAction.type === "externalRedirectUrl") {
-              window.location.href = decidedAction.value;
-            }
-          } else {
-            alert("No Matching Route found");
-          }
         }}>
-        Submit
+        Add Field
       </Button>
-    </div>
+    </RoutingShell>
   );
 }

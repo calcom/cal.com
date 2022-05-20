@@ -168,6 +168,7 @@ model User {
   role                UserPermissionRole   @default(USER)
   impersonatedUsers   Impersonations[]     @relation("impersonated_user")
   impersonatedBy      Impersonations[]     @relation("impersonated_by_user")
+  routingForms        App_RoutingForms_Form[]        @relation("routing-form")
   apiKeys             ApiKey[]
   accounts            Account[]
   sessions            Session[]
@@ -475,4 +476,24 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+}
+
+model App_RoutingForms_Form {
+  id         Int    @id @default(autoincrement())
+  route      String @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  name       String
+  fields     Json?
+  user       User   @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  responses App_RoutingForms_FormResponse[] 
+}
+
+model App_RoutingForms_FormResponse {
+  id            Int    @id @default(autoincrement())
+  formFillerId  String @default(cuid())
+  form          App_RoutingForms_Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId        Int
+  response      Json
 }

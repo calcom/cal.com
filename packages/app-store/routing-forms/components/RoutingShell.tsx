@@ -3,17 +3,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import NavTabs from "@components/NavTabs";
 import Shell from "@components/Shell";
 
-export default function RoutingShell({ children }) {
+export default function RoutingShell({ children, formId }) {
   const { t } = useLocale();
-
   const tabs = [
     {
       name: t("Form"),
-      href: "/routing/create-form",
+      href: `/apps/routing-forms/form/${formId}`,
     },
     {
       name: t("Routing"),
-      href: "/routing/Routing",
+      href: `/apps/routing-forms/routing/${formId}`,
     },
   ];
   return (

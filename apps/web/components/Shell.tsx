@@ -138,9 +138,9 @@ const Layout = ({
     routingForms
       ? {
           name: t("routing-forms"),
-          href: "/routing",
+          href: "/apps/routing-forms/forms",
           icon: CalendarIcon,
-          current: router.asPath.startsWith("/routing"),
+          current: router.asPath.startsWith("/apps/routing-forms/"),
         }
       : null,
     {
@@ -217,7 +217,6 @@ const Layout = ({
                   </Link>
                   <nav className="mt-2 flex-1 space-y-1 bg-white px-2 lg:mt-5">
                     {navigation.map((item) => {
-                      debugger;
                       if (!item) {
                         return null;
                       }

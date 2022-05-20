@@ -6,60 +6,17 @@ import { JsonGroup, Config, ImmutableTree, BuilderProps } from "react-awesome-qu
 
 import { Button } from "@calcom/ui";
 import { Label } from "@calcom/ui/form/fields";
+import { trpc } from "@calcom/web/lib/trpc";
 
 import Select from "@components/ui/form/Select";
 
 import RoutingShell from "../components/RoutingShell";
 // @ts-ignore
 import CalConfig from "../components/react-awesome-query-builder/config/config";
-import { getStoredQuestions } from "./create-form";
 
 const InitialConfig = CalConfig as Config;
 
 const fields = {};
-getStoredQuestions().forEach((question) => {
-  if (question.type === "text") {
-    fields[question.id] = {
-      label: question.text,
-      type: question.type,
-      valueSources: ["value"],
-    };
-  } else {
-    throw new Error("Unsupported question type");
-  }
-  // return {
-  //   companySize: {
-  //     label: "Company Size",
-  //     type: "select",
-  //     fieldSettings: {
-  //       listValues: [
-  //         { value: "1-10", title: "1-10" },
-  //         { value: "10-50", title: "10-50" },
-  //         { value: "50-100", title: "50-100" },
-  //         { value: "100+", title: "100+" },
-  //       ],
-  //     },
-  //     valueSources: ["value"],
-  //     preferWidgets: ["text"],
-  //   },
-  //   price: {
-  //     label: "Bid Price",
-  //     type: "number",
-  //     valueSources: ["value"],
-  //     fieldSettings: {
-  //       min: 10,
-  //       max: 100,
-  //     },
-  //     preferWidgets: ["slider", "rangeslider"],
-  //   },
-  //   email: {
-  //     label: "Email",
-  //     type: "string",
-  //     valueSources: ["value"],
-  //     preferWidgets: ["slider", "rangeslider"],
-  //   },
-  // };
-});
 
 // You need to provide your own config. See below 'Config format'
 const config: Config = {
@@ -118,7 +75,14 @@ type Route = {
 
 type SerializableRoute = Pick<Route, "id" | "action" | "queryValue">;
 
-const RoutingForm: React.FC = () => {
+const RouteBuilder: React.FC = ({ subPage: formId }) => {
+  const { data: form, isLoading } = trpc.useQuery([
+    "viewer.app_routing-forms.form",
+    {
+      id: +formId,
+    },
+  ]);
+
   const [dataToEvaluate, setData] = useState(`{ "companySize": "1-10", "color": "green" }`);
   let parsedDataToEvaluate: Record<string, string>;
   try {
@@ -166,6 +130,25 @@ const RoutingForm: React.FC = () => {
     ),
     []
   );
+
+  if (!form) {
+    return null;
+  }
+  if (!form.fields) {
+    form.fields = [];
+  }
+
+  form.fields.forEach((question) => {
+    if (question.type === "text") {
+      fields[question.id] = {
+        label: question.text,
+        type: question.type,
+        valueSources: ["value"],
+      };
+    } else {
+      throw new Error("Unsupported question type");
+    }
+  });
   const RoutingPages = [
     {
       label: "Custom Page",
@@ -181,7 +164,7 @@ const RoutingForm: React.FC = () => {
     },
   ];
   return (
-    <RoutingShell>
+    <RoutingShell formId={formId}>
       <div className="flex">
         {/* <textarea
           className="mr-10 w-1/4"
@@ -306,4 +289,4 @@ if (typeof window !== "undefined") {
   window.jsonLogic = jsonLogic;
 }
 
-export default RoutingForm;
+export default RouteBuilder;
