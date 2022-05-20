@@ -1,4 +1,4 @@
-import { PeriodType, SchedulingType, UserPlan, EventTypeCustomInput } from "@prisma/client";
+import type { PeriodType, SchedulingType, UserPlan, EventTypeCustomInput } from "@prisma/client";
 
 const availability = [
   {
