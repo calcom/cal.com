@@ -9,9 +9,9 @@ import prisma from "@calcom/prisma";
 declare module "next" {
   export interface NextApiRequest extends IncomingMessage {
     userId: number;
-    query: {
-      apiKey: string;
-    };
+    method: string;
+    query: { [key: string]: string | string[] };
+    body: any;
   }
 }
 

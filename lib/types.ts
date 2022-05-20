@@ -125,7 +125,7 @@ export type EventTypeCustomInputsResponse = BaseResponse & {
   event_type_custom_inputs?: Partial<EventTypeCustomInput>[];
 };
 // From rrule https://jakubroztocil.github.io/rrule freq
-enum Frequency {
+export enum Frequency {
   "YEARLY",
   "MONTHLY",
   "WEEKLY",
@@ -150,6 +150,7 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
     type: DefaultLocationType | AppStoreLocationType;
   }[];
 }
+
 // EventType
 export type EventTypeResponse = BaseResponse & {
   event_type?: Partial<EventTypeExtended>;
