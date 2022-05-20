@@ -838,7 +838,6 @@
   "submitted_feedback": "Thank you for your feedback!",
   "feedback_error": "Error sending feedback",
   "comments": "Comments",
-  "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
   "booking_details": "Booking details",
   "or_lowercase": "or",
   "nevermind": "Nevermind",
