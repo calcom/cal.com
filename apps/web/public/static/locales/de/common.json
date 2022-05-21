@@ -251,6 +251,8 @@
   "booking_submitted_recurring": "Ihr wiederkehrendes Meeting wurde gesendet",
   "booking_confirmed": "Ihre Buchung wurde bestätigt",
   "booking_confirmed_recurring": "Ihr wiederkehrendes Meeting wurde bestätigt",
+  "warning_recurring_event_payment": "Zahlungen werden mit wiederkehrenden Terminen noch nicht unterstützt",
+  "warning_payment_recurring_event": "Wiederkehrende Ereignisse werden mit Zahlungen noch nicht unterstützt",
   "enter_new_password": "Geben Sie das neue Passwort ein.",
   "reset_password": "Passwort zurücksetzen",
   "change_your_password": "Passwort ändern",
