@@ -91,6 +91,13 @@
       ],
       "outputs": [".next/**"]
     },
+    "@calcom/api#build": {
+      "dependsOn": [
+        "DATABASE_URL",
+        "@calcom/prisma#post-install"
+      ],
+      "outputs": [".next/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
