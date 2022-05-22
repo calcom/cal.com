@@ -212,9 +212,11 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     truncateAfter={5}
                   />
                   <div className="mt-4">
-                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <p className="break-words text-sm font-medium text-black dark:text-white">
+                      {profile.name}
+                    </p>
                     <div className="mt-2 gap-2 dark:text-gray-100">
-                      <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+                      <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
                         {eventType.title}
                       </h1>
                       {eventType?.description && (
@@ -263,7 +265,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
                 <div
                   className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                    "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                     (selectedDate ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
@@ -283,8 +285,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+                  <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
+                    {profile.name}
+                  </h2>
+                  <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
                   {eventType?.description && (
