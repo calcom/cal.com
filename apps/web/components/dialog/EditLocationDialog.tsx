@@ -88,9 +88,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const locationFormSchema = z.object({
     locationType: z.string(),
-    locationAddress: z.string(),
-    locationLink: z.string().url(), // URL validates as new URL() - which requires HTTPS:// In the input field
-    locationPhoneHost: z.string().refine((val) => isValidPhoneNumber(val)),
+    locationAddress: z.string().optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationPhoneHost: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
   });
 
   const locationFormMethods = useForm<LocationFormValues>({

@@ -839,5 +839,6 @@
   "or_lowercase": "or",
   "nevermind": "Nevermind",
   "go_to": "Go to: ",
-  "zapier_invite_link": "Zapier Invite Link"
+  "zapier_invite_link": "Zapier Invite Link",
+  "this_input_will_shown_booking_this_event": "This input will be shown when booking this event"
 }
