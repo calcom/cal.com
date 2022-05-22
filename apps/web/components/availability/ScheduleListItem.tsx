@@ -16,7 +16,7 @@ export function ScheduleListItem({
   isDeleting = false,
 }: {
   schedule: inferQueryOutput<"viewer.availability.list">["schedules"][number];
-  deleteFunction: Function;
+  deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
   isDeleting: boolean;
 }) {
   const { t, i18n } = useLocale();

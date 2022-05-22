@@ -41,6 +41,7 @@ test.describe("Onboarding", () => {
       // Try to go getting started with a available username
       await page.goto("/getting-started");
       // Wait for useEffectUpdate to run
+      // eslint-disable-next-line playwright/no-wait-for-timeout
       await page.waitForTimeout(1000);
 
       const updatedUser = await prisma.user.findUnique({

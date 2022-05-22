@@ -17,8 +17,8 @@ export type ButtonBaseProps = {
 };
 export type ButtonProps = ButtonBaseProps &
   (
-    | (Omit<JSX.IntrinsicElements["a"], "href"> & { href: LinkProps["href"] })
-    | (JSX.IntrinsicElements["button"] & { href?: never })
+    | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick"> & { href: LinkProps["href"] })
+    | (Omit<JSX.IntrinsicElements["button"], "onClick"> & { href?: never })
   );
 
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(

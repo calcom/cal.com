@@ -6,11 +6,11 @@ import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import Button from "@calcom/ui/Button";
 
-import prisma from "@lib/prisma";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
@@ -90,18 +90,13 @@ export async function getServerSideProps(context: NextPageContext) {
       uid: context.query.uid as string,
     },
     select: {
+      ...bookingMinimalSelect,
       uid: true,
-      id: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
       user: {
         select: {
           credentials: true,
         },
       },
-      attendees: true,
       dailyRef: {
         select: {
           dailyurl: true,

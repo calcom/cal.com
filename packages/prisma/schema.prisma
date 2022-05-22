@@ -215,16 +215,16 @@ model VerificationToken {
 }
 
 model BookingReference {
-  id              Int      @id @default(autoincrement())
-  type            String
-  uid             String
-  meetingId       String?
-  meetingPassword String?
-  meetingUrl      String?
-  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId       Int?
+  id                 Int      @id @default(autoincrement())
+  type               String
+  uid                String
+  meetingId          String?
+  meetingPassword    String?
+  meetingUrl         String?
+  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId          Int?
   externalCalendarId String?
-  deleted         Boolean?
+  deleted            Boolean?
 }
 
 model Attendee {
@@ -262,6 +262,7 @@ model Booking {
   eventTypeId         Int?
   title               String
   description         String?
+  customInputs        Json?
   startTime           DateTime
   endTime             DateTime
   attendees           Attendee[]
