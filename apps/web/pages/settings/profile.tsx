@@ -117,18 +117,16 @@ export enum UsernameChangeStatusEnum {
 }
 
 const CustomUsernameTextfield = (props) => {
-  const [isHoveredLock, setHoveredLock] = useState(false);
   const {
     currentUsername,
     userIsPremium,
     inputUsernameValue,
     setInputUsernameValue,
-    usernameLock,
-    setUsernameLock,
     usernameRef,
     premiumUsername,
     setPremiumUsername,
     subscriptionId,
+    updateUsername,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -360,42 +358,31 @@ const CustomUsernameTextfield = (props) => {
 
               <div className="flex w-full flex-row rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="px-2">
-                  <p className="text-gray-500">Current standard username</p>
+                  <p className="text-gray-500">Current {userIsPremium ? "premium" : "standard"} username</p>
                   <p className="mt-1">{currentUsername}</p>
                 </div>
                 <div className="ml-6">
-                  <p className="text-gray-500">New {premiumUsername && "premium"} username</p>
+                  <p className="text-gray-500">New {premiumUsername ? "premium" : ""} username</p>
                   <p>{inputUsernameValue}</p>
                 </div>
               </div>
               <p className="mt-4 text-sm text-gray-500">Learn more about premium usernames.</p>
             </div>
           </div>
-          <Form
-            form={form}
-            handleSubmit={(values) => {
-              // createMutation.mutate(values);
-            }}>
-            {/* <div className="mt-3 space-y-4">
-              <TextField
-                name={"username"}
-                label={"username"}
-                // {...register("name")}
-              />
-            </div> */}
-            <div className="mt-4 flex flex-row-reverse gap-x-2">
-              <Button
-                type="button"
-                // loading={createMutation.isLoading}
-                onClick={async () => {
-                  let url = "";
-                  await saveIntentUsername();
-                  if (usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE) {
-                    // redirect to checkout
-                    url = "/api/integrations/stripepayment/subscription";
-                  } else if (usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) {
-                    url = "/api/integrations/stripepayment/subscription";
-                  }
+
+          <div className="mt-4 flex flex-row-reverse gap-x-2">
+            <Button
+              type="button"
+              loading={updateUsername.isLoading}
+              onClick={async () => {
+                let url = "";
+                await saveIntentUsername();
+                if (
+                  usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
+                  usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE
+                ) {
+                  // redirect to checkout
+                  url = "/api/integrations/stripepayment/subscription";
                   const result = await fetch(url, {
                     headers: {
                       "Content-Type": "application/json",
@@ -407,27 +394,32 @@ const CustomUsernameTextfield = (props) => {
                     method: "POST",
                     mode: "cors",
                   });
-                  console.log({ result });
                   const body = await result.json();
-                  console.log({ body });
                   window.location.href = body.url;
-                }}>
-                {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
-                {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
-                  <>
-                    Go to billing <ExternalLinkIcon className="ml-1 h-4 w-4" />
-                  </>
-                )}
-                {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && "Downgrade and save"}
-              </Button>
+                } else {
+                  if (usernameChangeCondition === UsernameChangeStatusEnum.NORMAL) {
+                    updateUsername.mutate({
+                      username: inputUsernameValue,
+                    });
+                    setOpenDialogSaveUsername(false);
+                  }
+                }
+              }}>
+              {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && "Save"}
+              {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
+                usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) && (
+                <>
+                  Go to billing <ExternalLinkIcon className="ml-1 h-4 w-4" />
+                </>
+              )}
+            </Button>
 
-              <DialogClose asChild>
-                <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
-                  Cancel
-                </Button>
-              </DialogClose>
-            </div>
-          </Form>
+            <DialogClose asChild>
+              <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+                Cancel
+              </Button>
+            </DialogClose>
+          </div>
         </DialogContent>
       </Dialog>
     </>
@@ -603,6 +595,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     setPremiumUsername,
                     userIsPremium: user.isPremiumUsername,
                     subscriptionId: user.subscriptionId,
+                    updateUsername: mutation,
                   }}
                 />
               </div>
