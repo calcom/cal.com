@@ -63,7 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     await sendPasswordResetEmail(passwordEmail);
-
     /** So we can test the password reset flow on CI */
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       return res.status(201).json({ message: "Reset Requested", resetLink });

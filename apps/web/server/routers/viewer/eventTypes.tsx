@@ -7,6 +7,8 @@ import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel 
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
+import { canEventBeEdited } from "@lib/event";
+
 import { createProtectedRouter } from "@server/createRouter";
 import { viewerRouter } from "@server/routers/viewer";
 import { TRPCError } from "@trpc/server";
@@ -115,7 +117,7 @@ export const eventTypesRouter = createProtectedRouter()
 
       const data: Prisma.EventTypeCreateInput = {
         ...rest,
-        userId: teamId ? undefined : userId,
+        userId: userId,
         users: {
           connect: {
             id: userId,
@@ -187,13 +189,7 @@ export const eventTypesRouter = createProtectedRouter()
     }
 
     const isAuthorized = (function () {
-      if (event.team) {
-        return event.team.members
-          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-          .map((member) => member.userId)
-          .includes(ctx.user.id);
-      }
-      return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
+      return canEventBeEdited({ user: ctx.user, eventType: event });
     })();
 
     if (!isAuthorized) {

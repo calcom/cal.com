@@ -10,6 +10,7 @@ import { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { canEventBeEdited } from "@lib/event";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -135,6 +136,7 @@ const loggedInViewerRouter = createProtectedRouter()
         price: true,
         currency: true,
         position: true,
+        userId: true,
         successRedirectUrl: true,
         hashedLink: true,
         users: {
@@ -142,6 +144,11 @@ const loggedInViewerRouter = createProtectedRouter()
             id: true,
             username: true,
             name: true,
+          },
+        },
+        team: {
+          select: {
+            members: true,
           },
         },
       });
@@ -206,7 +213,6 @@ const loggedInViewerRouter = createProtectedRouter()
           },
         },
       });
-
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -235,9 +241,8 @@ const loggedInViewerRouter = createProtectedRouter()
         };
         metadata: {
           membershipCount: number;
-          readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean; readOnly?: boolean })[];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
@@ -260,12 +265,10 @@ const loggedInViewerRouter = createProtectedRouter()
         eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
         metadata: {
           membershipCount: 1,
-          readOnly: false,
         },
       });
 
-      eventTypeGroups = ([] as EventTypeGroup[]).concat(
-        eventTypeGroups,
+      eventTypeGroups = eventTypeGroups.concat(
         user.teams.map((membership) => ({
           teamId: membership.team.id,
           profile: {
@@ -275,9 +278,11 @@ const loggedInViewerRouter = createProtectedRouter()
           },
           metadata: {
             membershipCount: membership.team.members.length,
-            readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes,
+          eventTypes: membership.team.eventTypes.map((eventType) => ({
+            ...eventType,
+            readOnly: !canEventBeEdited({ user, eventType }),
+          })),
         }))
       );
 

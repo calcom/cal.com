@@ -59,13 +59,12 @@ interface EventTypeListHeadingProps {
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
-  group: EventTypeGroup;
   groupIndex: number;
-  readOnly: boolean;
+  group: EventTypeGroup;
   types: EventType[];
 }
 
-const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
+const Item = ({ type, group }: { type: EventType; group: EventTypeGroup }) => {
   const { t } = useLocale();
 
   return (
@@ -90,7 +89,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
               {t("hidden")}
             </span>
           )}
-          {readOnly && (
+          {type.readOnly && (
             <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
               {t("readonly")}
             </span>
@@ -104,7 +103,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
 
 const MemoizedItem = React.memo(Item);
 
-export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({ group, groupIndex, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -184,10 +183,17 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       showToast(t("event_type_deleted_successfully"), "success");
     },
     onError: (err) => {
+      let message: string;
       if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+        message = `${err.statusCode}: ${err.message}`;
       }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: ${t("you_not_allowed_to_delete_event")}`;
+      } else {
+        message = "Some error occurred";
+      }
+      showToast(message, "error");
     },
   });
 
@@ -232,7 +238,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </button>
                   </>
                 )}
-                <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                <MemoizedItem type={type} group={group} />
                 <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                   <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                     {type.users?.length > 1 && (
@@ -589,12 +595,7 @@ const EventTypesPage = () => {
                       membershipCount={group.metadata.membershipCount}
                     />
                   )}
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
-                  />
+                  <EventTypeList types={group.eventTypes} group={group} groupIndex={index} />
                 </Fragment>
               ))}
 
