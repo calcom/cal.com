@@ -136,7 +136,7 @@ export const useSlots = (props: UseSlotsProps) => {
       const times = getSlots({
         frequency: slotInterval || eventLength,
         inviteeDate: date,
-        workingHours: workingHours,
+        workingHours,
         minimumBookingNotice,
         eventLength,
       });
