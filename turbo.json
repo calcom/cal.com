@@ -92,7 +92,7 @@
       "outputs": [".next/**"]
     },
     "@calcom/api#build": {
-      "dependsOn": ["@calcom/prisma#post-install"],
+      "dependsOn": ["^build", "@calcom/prisma#build"],
       "outputs": [".next/**"]
     },
     "build": {
