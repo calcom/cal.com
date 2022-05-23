@@ -10,6 +10,7 @@ async function createOrlistAllEventTypes(
   { method, body, userId }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
+  console.log("userId:", userId);
   if (method === "GET") {
     /**
      * @swagger
@@ -33,7 +34,6 @@ async function createOrlistAllEventTypes(
       .findMany({ where: { userId } })
       .catch((error) => res.status(404).json({ message: "No event types were found", error }));
     console.log("eventTypes:", data);
-    console.log("userId:", userId);
     // const event_types = data.map(
     //   async (eventType) => await schemaEventTypeReadPublic.safeParseAsync(eventType)
     // );
