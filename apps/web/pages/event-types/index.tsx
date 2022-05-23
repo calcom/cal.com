@@ -108,7 +108,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const { t } = useLocale();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isWaitingForMutation, setIsWaitingForMutation] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
@@ -151,7 +150,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   async function deleteEventTypeHandler(id: number) {
     const payload = { id };
-    setIsWaitingForMutation(true);
     deleteMutation.mutate(payload);
   }
 
@@ -186,14 +184,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       await utils.invalidateQueries(["viewer.eventTypes"]);
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
-      setIsWaitingForMutation(false);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
         setDeleteDialogOpen(false);
-        setIsWaitingForMutation(false);
       }
     },
   });
@@ -335,7 +331,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DropdownMenuSeparator className="h-px bg-gray-200" />
                         <DropdownMenuItem>
                           <Button
-                            onClick={(e) => {
+                            onClick={() => {
                               setDeleteDialogOpen(true);
                               setDeleteDialogTypeId(type.id);
                             }}
@@ -437,7 +433,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
                     <DropdownMenuItem>
                       <Button
-                        onClick={(e) => {
+                        onClick={() => {
                           setDeleteDialogOpen(true);
                           setDeleteDialogTypeId(type.id);
                         }}
@@ -457,7 +453,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       </ul>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={isWaitingForMutation}
+          isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t("delete_event_type")}
           confirmBtnText={t("confirm_delete_event_type")}
