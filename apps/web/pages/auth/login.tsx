@@ -45,6 +45,8 @@ export default function Login({
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm<LoginValues>();
+  const { formState } = form;
+  const { isSubmitting, isSubmitted } = formState;
 
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -97,7 +99,7 @@ export default function Login({
       <AuthContainer
         title={t("login")}
         description={t("login")}
-        loading={form.formState.isSubmitting}
+        loading={isSubmitting}
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("sign_in_account")}
         footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
@@ -160,10 +162,7 @@ export default function Login({
             <Button
               className="flex w-full justify-center"
               type="submit"
-              disabled={
-                form.formState.isSubmitting ||
-                (form.formState.isSubmitted && !twoFactorRequired && !errorMessage)
-              }>
+              disabled={isSubmitting || (isSubmitted && !twoFactorRequired && !errorMessage)}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
