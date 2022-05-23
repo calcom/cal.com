@@ -33,6 +33,7 @@ async function createOrlistAllEventTypes(
       .findMany({ where: { userId } })
       .catch((error) => res.status(404).json({ message: "No event types were found", error }));
     console.log("eventTypes:", data);
+    console.log("userId:", userId);
     // const event_types = data.map(
     //   async (eventType) => await schemaEventTypeReadPublic.safeParseAsync(eventType)
     // );
