@@ -201,6 +201,8 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+        throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const translation = await getTranslation(input.language ?? "en", "common");
 
