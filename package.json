@@ -10,19 +10,19 @@
     "node": ">=14.19.x"
   },
   "scripts": {
-    "dev": "next build && PORT=3002 next start",
-    "dev-real": "PORT=3002 next dev",
-    "start": "PORT=3002 next start",
     "build": "next build",
-    "lint": "next lint",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "dev-real": "PORT=3002 next dev",
+    "dev": "next build && PORT=3002 next start",
     "lint-fix": "next lint --fix && prettier --write .",
+    "lint": "next lint",
+    "prebuild": "cd ../.. && yarn workspace @calcom/prisma generate-schemas",
+    "start": "PORT=3002 next start",
     "test": "jest --detectOpenHandles --passWithNoTests",
-    "type-check": "tsc --pretty --noEmit",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
-    "@typescript-eslint/eslint-plugin": "^5.25.0",
     "babel-jest": "^28.1.0",
     "jest": "^28.1.0",
     "node-mocks-http": "^1.11.0"
