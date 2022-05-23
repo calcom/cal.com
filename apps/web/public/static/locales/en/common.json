@@ -832,5 +832,6 @@
   "or_lowercase": "or",
   "nevermind": "Nevermind",
   "go_to": "Go to: ",
-  "zapier_invite_link": "Zapier Invite Link"
+  "zapier_invite_link": "Zapier Invite Link",
+  "meeting_url_provided_after_confirmed":"A Meeting URL will be created once the event is confirmed."
 }
