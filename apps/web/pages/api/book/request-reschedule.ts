@@ -91,6 +91,8 @@ const handler = async (
       },
     });
 
+    if (bookingToReschedule.userId !== userOwner.id) throw new Error("UNAUTHORIZED");
+
     if (bookingToReschedule && userOwner) {
       let event: Partial<EventType> = {};
       if (bookingToReschedule.eventTypeId) {
