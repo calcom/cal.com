@@ -13,17 +13,12 @@ function Page404() {
 function getComponent(appName, page) {
   const routingConfig = AppsRouting[appName];
   const mainPage = page[0];
-  const subPage = page[1];
-  if (!routingConfig || page.length > 2) {
-    console.error("Only 2 level of pages are supported");
-    return { props: { subPage }, Component: Page404 };
-  }
-
+  const props = { subPages: page.slice(1), Page404 };
   const Component = routingConfig[mainPage];
   if (Component) {
-    return { props: { subPage }, Component };
+    return { props, Component };
   }
-  return { props: { subPage }, Component: Page404 };
+  return { props, Component: Page404 };
 }
 
 export default function AppPage() {

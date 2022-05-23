@@ -121,7 +121,7 @@ const Layout = ({
   const isEmbed = useIsEmbed();
   const router = useRouter();
   const { data: routingForms } = trpc.useQuery([
-    "viewer.integrationByType",
+    "viewer.appById",
     {
       appId: "routing-forms",
     },

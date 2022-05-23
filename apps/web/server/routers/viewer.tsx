@@ -645,7 +645,7 @@ const loggedInViewerRouter = createProtectedRouter()
       };
     },
   })
-  .query("integrationByType", {
+  .query("appById", {
     input: z.object({
       appId: z.string(),
     }),
