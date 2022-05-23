@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
   const dateTo = dayjs(asStringOrNull(req.query.dateTo));
-  const eventTypeId = parseInt(asStringOrNull(req.query.eventTypeId) || "");
+  const eventTypeId = typeof req.query.eventTypeId === "string" ? parseInt(req.query.eventTypeId) : undefined;
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     return res.status(400).json({ message: "Invalid time range given." });
