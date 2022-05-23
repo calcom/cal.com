@@ -206,6 +206,7 @@ const Layout = ({
                       <Fragment key={item.name}>
                         <Link href={item.href}>
                           <a
+                            aria-label={item.name}
                             className={classNames(
                               item.current
                                 ? "bg-neutral-100 text-neutral-900"
