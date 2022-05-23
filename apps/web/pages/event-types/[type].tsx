@@ -148,6 +148,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   const { t } = useLocale();
   const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
   const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <hr className="border-neutral-200" />
@@ -233,6 +234,7 @@ const AvailabilitySelect = ({
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -1189,16 +1191,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             name="users"
                             control={formMethods.control}
                             defaultValue={eventType.users.map((user) => user.id.toString())}
-                            render={() => (
+                            render={({ field: { onChange, value } }) => (
                               <CheckedSelect
-                                disabled={false}
-                                onChange={(options) => {
-                                  formMethods.setValue(
-                                    "users",
-                                    options.map((user) => user.value)
-                                  );
-                                }}
-                                defaultValue={eventType.users.map(mapUserToValue)}
+                                isDisabled={false}
+                                onChange={(options) => onChange(options.map((user) => user.value))}
+                                value={value
+                                  .map(
+                                    (userId) =>
+                                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                      teamMembers
+                                        .map(mapUserToValue)
+                                        .find((member) => member.value === userId)!
+                                  )
+                                  .filter(Boolean)}
                                 options={teamMembers.map(mapUserToValue)}
                                 placeholder={t("add_attendees")}
                               />
