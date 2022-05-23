@@ -2,6 +2,7 @@ import { ExternalLinkIcon, ExclamationIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 
 import classNames from "@lib/classNames";
@@ -12,7 +13,6 @@ export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
@@ -22,7 +22,7 @@ export default function HelpMenuItem() {
     setDisableSubmit(false);
   };
 
-  const sendFeedback = async (rating: string, comment: string) => {
+  const sendFeedback = async (rating: string, comment?: string) => {
     setLoading(true);
     try {
       const body = {
@@ -39,8 +39,8 @@ export default function HelpMenuItem() {
       });
 
       if (res.ok) {
-        setSuccessMessage(true);
         setDisableSubmit(true);
+        showToast("Thank you, feedback submitted", "success");
       } else {
         setErrorMessage(true);
       }
@@ -191,11 +191,6 @@ export default function HelpMenuItem() {
             {t("submit")}
           </Button>
         </div>
-        {successMessage && (
-          <div className="mb-4 bg-green-100 p-4 text-green-700">
-            <p className="font-medium">{t("submitted_feedback")}</p>
-          </div>
-        )}
         {errorMessage && (
           <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
