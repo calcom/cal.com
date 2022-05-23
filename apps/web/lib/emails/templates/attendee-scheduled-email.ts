@@ -169,6 +169,7 @@ ${getRichDescription(this.calEvent)}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>
@@ -316,6 +317,28 @@ ${getRichDescription(this.calEvent)}
     `;
   }
 
+  protected getCustomInputs(): string {
+    const { customInputs } = this.calEvent;
+    if (!customInputs) return "";
+    const customInputsString = Object.keys(customInputs)
+      .map((key) => {
+        if (customInputs[key] !== "") {
+          return `
+          <p style="height: 6px"></p>
+          <div style="line-height: 6px;">
+            <p style="color: #494949;">${key}</p>
+            <p style="color: #494949; font-weight: 400;">
+              ${customInputs[key]}
+            </p>
+          </div>
+        `;
+        }
+      })
+      .join("");
+
+    return customInputsString;
+  }
+
   protected getRejectionReason(): string {
     if (!this.calEvent.rejectionReason) return "";
     return `
@@ -404,6 +427,12 @@ ${getRichDescription(this.calEvent)}
       <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("where")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
+      }</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${
+        (providerName === "Zoom" || providerName === "Google") &&
+        `
+          ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
+        `
       }</p>
     </div>
     `;

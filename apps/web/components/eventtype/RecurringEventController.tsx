@@ -1,4 +1,5 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
+import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Frequency as RRuleFrequency } from "rrule";
@@ -11,9 +12,9 @@ import Select from "@components/ui/form/Select";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent;
-  formMethods: UseFormReturn<any, any>;
+  formMethods: UseFormReturn<FormValues>;
   paymentEnabled: boolean;
-  onRecurringEventDefined: Function;
+  onRecurringEventDefined: (value: boolean) => void;
 };
 
 export default function RecurringEventController({
@@ -43,9 +44,7 @@ export default function RecurringEventController({
   return (
     <div className="block items-start sm:flex">
       <div className="min-w-48 mb-4 sm:mb-0">
-        <label htmlFor="recurringEvent" className="flex text-sm font-medium text-neutral-700">
-          {t("recurring_event")}
-        </label>
+        <span className="flex text-sm font-medium text-neutral-700">{t("recurring_event")}</span>
       </div>
       <div className={!paymentEnabled ? "w-full" : ""}>
         {paymentEnabled ? (
@@ -78,10 +77,13 @@ export default function RecurringEventController({
                   className="text-primary-600  h-4 w-4 rounded border-gray-300"
                   defaultChecked={recurringEventDefined}
                   data-testid="recurring-event-check"
+                  id="recurringEvent"
                 />
               </div>
               <div className="text-sm ltr:ml-3 rtl:mr-3">
-                <p className="text-neutral-900">{t("recurring_event_description")}</p>
+                <label htmlFor="recurringEvent" className="text-neutral-900">
+                  {t("recurring_event_description")}
+                </label>
               </div>
             </div>
             <Collapsible

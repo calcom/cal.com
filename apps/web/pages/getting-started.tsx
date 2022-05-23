@@ -14,7 +14,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import TimezoneSelect from "react-timezone-select";
 import * as z from "zod";
 
 import getApps from "@calcom/app-store/utils";
@@ -38,6 +37,7 @@ import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import Text from "@components/ui/Text";
+import TimezoneSelect from "@components/ui/form/TimezoneSelect";
 
 import getEventTypes from "../lib/queries/event-types/get-event-types";
 
@@ -145,7 +145,6 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
 
   /** Name */
   const nameRef = useRef<HTMLInputElement>(null);
-  const usernameRef = useRef<HTMLInputElement>(null);
   const bioRef = useRef<HTMLInputElement>(null);
   /** End Name */
   /** TimeZone */

@@ -21,13 +21,13 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { isValidPhoneNumber, parsePhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import short, { generate } from "short-uuid";
+import short from "short-uuid";
 import { JSONObject } from "superjson/dist/types";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -101,7 +101,44 @@ type OptionTypeBase = {
   disabled?: boolean;
 };
 
-const SuccessRedirectEdit = <T extends UseFormReturn<any, any>>({
+export type FormValues = {
+  title: string;
+  eventTitle: string;
+  smartContractAddress: string;
+  eventName: string;
+  slug: string;
+  length: number;
+  description: string;
+  disableGuests: boolean;
+  requiresConfirmation: boolean;
+  recurringEvent: RecurringEvent;
+  schedulingType: SchedulingType | null;
+  price: number;
+  currency: string;
+  hidden: boolean;
+  hideCalendarNotes: boolean;
+  hashedLink: string | undefined;
+  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  customInputs: EventTypeCustomInput[];
+  users: string[];
+  schedule: number;
+  periodType: PeriodType;
+  periodDays: number;
+  periodCountCalendarDays: "1" | "0";
+  periodDates: { startDate: Date; endDate: Date };
+  minimumBookingNotice: number;
+  beforeBufferTime: number;
+  afterBufferTime: number;
+  slotInterval: number | null;
+  destinationCalendar: {
+    integration: string;
+    externalId: string;
+  };
+  successRedirectUrl: string;
+  giphyThankYouPage: string;
+};
+
+const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   eventType,
   formMethods,
 }: {
@@ -524,42 +561,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
   });
 
-  const formMethods = useForm<{
-    title: string;
-    eventTitle: string;
-    smartContractAddress: string;
-    eventName: string;
-    slug: string;
-    length: number;
-    description: string;
-    disableGuests: boolean;
-    requiresConfirmation: boolean;
-    recurringEvent: RecurringEvent;
-    schedulingType: SchedulingType | null;
-    price: number;
-    currency: string;
-    hidden: boolean;
-    hideCalendarNotes: boolean;
-    hashedLink: string | undefined;
-    locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
-    customInputs: EventTypeCustomInput[];
-    users: string[];
-    schedule: number;
-    periodType: PeriodType;
-    periodDays: number;
-    periodCountCalendarDays: "1" | "0";
-    periodDates: { startDate: Date; endDate: Date };
-    minimumBookingNotice: number;
-    beforeBufferTime: number;
-    afterBufferTime: number;
-    slotInterval: number | null;
-    destinationCalendar: {
-      integration: string;
-      externalId: string;
-    };
-    successRedirectUrl: string;
-    giphyThankYouPage: string;
-  }>({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || {},
@@ -590,6 +592,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     resolver: zodResolver(locationFormSchema),
   });
   const Locations = () => {
+    const { t } = useLocale();
     return (
       <div className="w-full">
         {formMethods.getValues("locations").length === 0 && (
@@ -626,31 +629,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.address}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.link}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.Link && (
                     <div className="flex flex-grow items-center">
                       <GlobeAltIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.link}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.link}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.UserPhone && (
                     <div className="flex flex-grow items-center">
                       <PhoneIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.hostPhoneNumber}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.hostPhoneNumber}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
@@ -1384,6 +1381,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           render={() => (
                             <CheckboxField
                               id="hideCalendarNotes"
+                              descriptionAsLabel
                               name="hideCalendarNotes"
                               label={t("disable_notes")}
                               description={t("disable_notes_description")}
@@ -1402,6 +1400,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           render={() => (
                             <CheckboxField
                               id="requiresConfirmation"
+                              descriptionAsLabel
                               name="requiresConfirmation"
                               label={t("opt_in_booking")}
                               description={t("opt_in_booking_description")}
@@ -1428,6 +1427,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <CheckboxField
                               id="disableGuests"
                               name="disableGuests"
+                              descriptionAsLabel
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
@@ -1447,6 +1447,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <CheckboxField
                                 id="hashedLinkCheck"
                                 name="hashedLinkCheck"
+                                descriptionAsLabel
                                 label={t("private_link")}
                                 description={t("private_link_description")}
                                 defaultChecked={eventType.hashedLink ? true : false}
@@ -1565,7 +1566,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <hr className="my-2 border-neutral-200" />
 
-                        <div className="block sm:flex">
+                        <fieldset className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
@@ -1623,7 +1624,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 startDate={formMethods.getValues("periodDates").startDate}
                                                 endDate={formMethods.getValues("periodDates").endDate}
                                                 onDatesChange={({ startDate, endDate }) => {
-                                                  formMethods.setValue("periodDates", { startDate, endDate });
+                                                  formMethods.setValue("periodDates", {
+                                                    startDate,
+                                                    endDate,
+                                                  });
                                                 }}
                                               />
                                             )}
@@ -1639,7 +1643,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               )}
                             />
                           </div>
-                        </div>
+                        </fieldset>
                         <hr className="border-neutral-200" />
                         <div className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">

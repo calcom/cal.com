@@ -15,7 +15,7 @@ export default function Custom404() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const username = router.asPath.replace("%20", "-");
+  const username = router.asPath.replace("%20", "-").split(/[?#]/)[0];
 
   const links = [
     {
