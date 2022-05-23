@@ -1,4 +1,5 @@
-import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, Feedback } from "@prisma/client";
+import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -890,6 +891,24 @@ const loggedInViewerRouter = createProtectedRouter()
         console.error("Error deleting SAML configuration", err);
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
+    },
+  })
+  .mutation("submitFeedback", {
+    input: z.object({
+      rating: z.string(),
+      comment: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      const { rating, comment } = input;
+
+      await ctx.prisma.feedback.create({
+        data: {
+          date: dayjs().toISOString(),
+          userId: ctx.user.id,
+          rating: rating,
+          comment: comment,
+        },
+      });
     },
   });
 

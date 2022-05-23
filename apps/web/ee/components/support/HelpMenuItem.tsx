@@ -6,6 +6,7 @@ import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
 
 import classNames from "@lib/classNames";
+import { trpc } from "@lib/trpc";
 
 import ContactMenuItem from "./ContactMenuItem";
 
@@ -13,40 +14,27 @@ export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(false);
+  // const [errorMessage, setErrorMessage] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
+
+  const mutation = trpc.useMutation("viewer.submitFeedback");
 
   const onRatingClick = (value: string) => {
     setRating(value);
     setDisableSubmit(false);
   };
 
-  const sendFeedback = async (rating: string, comment?: string) => {
+  const sendFeedback = async (rating: string, comment: string) => {
     setLoading(true);
-    try {
-      const body = {
-        rating: rating,
-        comment: comment,
-      };
 
-      const res = await fetch("api/send-feedback", {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    mutation.mutate({ rating: rating, comment: comment });
 
-      if (res.ok) {
-        setDisableSubmit(true);
-        showToast("Thank you, feedback submitted", "success");
-      } else {
-        setErrorMessage(true);
-      }
-    } catch (error) {
-      setErrorMessage(true);
+    if (mutation.isSuccess) {
+      setDisableSubmit(true);
+      showToast("Thank you, feedback submitted", "success");
     }
+
     setLoading(false);
   };
 
@@ -182,7 +170,7 @@ export default function HelpMenuItem() {
         <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
-            loading={loading}
+            loading={mutation.isLoading}
             onClick={async () => {
               if (rating && comment) {
                 await sendFeedback(rating, comment);
@@ -191,7 +179,7 @@ export default function HelpMenuItem() {
             {t("submit")}
           </Button>
         </div>
-        {errorMessage && (
+        {mutation.isError && (
           <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
               <ExclamationIcon className="h-5 w-5" />
