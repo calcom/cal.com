@@ -7,7 +7,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
-import { AppStoreLocationType, LocationObject } from "@lib/location";
+import { AppStoreLocationType, locationHiddenFilter, LocationObject } from "@lib/location";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -115,18 +115,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations?.map((el) => {
-      // Filter out locations that are not to be displayed publicly
-      const values = Object.values(AppStoreLocationType);
-      // Display if the location can be set to public - and also display all locations like google meet etc
-      if (el.displayLocationPublicly || values.includes(el["type"] as unknown as AppStoreLocationType))
-        return el;
-      else {
-        delete el.address;
-        delete el.link;
-        return el;
-      }
-    }),
+    locations: locationHiddenFilter(locations),
   });
 
   eventTypeObject.availability = [];

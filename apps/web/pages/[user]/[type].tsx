@@ -3,7 +3,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { AppStoreLocationType, LocationObject } from "@calcom/app-store/locations";
+import { AppStoreLocationType, locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
@@ -262,18 +262,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations?.map((el) => {
-      // Filter out locations that are not to be displayed publicly
-      const values = Object.values(AppStoreLocationType);
-      // Display if the location can be set to public - and also display all locations like google meet etc
-      if (el.displayLocationPublicly || values.includes(el["type"] as unknown as AppStoreLocationType))
-        return el;
-      else {
-        delete el.address;
-        delete el.link;
-        return el;
-      }
-    }),
+    locations: locationHiddenFilter(locations),
   });
 
   const schedule = eventType.schedule
