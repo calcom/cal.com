@@ -97,8 +97,8 @@ export default function HelpMenuItem() {
         <div className="my-3 flex justify-end">
           <button
             className={classNames(
-              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === "Extremely unsatisfied" ? "bg-gray-300" : ""
+              "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
+              rating === "Extremely unsatisfied" ? "grayscale-0" : "opacity-50"
             )}
             onClick={() => onRatingClick("Extremely unsatisfied")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
@@ -121,8 +121,8 @@ export default function HelpMenuItem() {
           </button>
           <button
             className={classNames(
-              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === "Unsatisfied" ? "bg-gray-300" : ""
+              "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
+              rating === "Unsatisfied" ? "grayscale-0" : "opacity-50"
             )}
             onClick={() => onRatingClick("Unsatisfied")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
@@ -140,8 +140,8 @@ export default function HelpMenuItem() {
           </button>
           <button
             className={classNames(
-              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === "Satisfied" ? "bg-gray-300" : ""
+              "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
+              rating === "Satisfied" ? "grayscale-0" : "opacity-50"
             )}
             onClick={() => onRatingClick("Satisfied")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
@@ -158,8 +158,8 @@ export default function HelpMenuItem() {
           </button>
           <button
             className={classNames(
-              "m-1 items-center justify-center p-1.5 outline outline-1 outline-gray-300 hover:bg-gray-100",
-              rating === "Extremely satisfied" ? "bg-gray-300" : ""
+              "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
+              rating === "Extremely satisfied" ? "grayscale-0" : "opacity-50"
             )}
             onClick={() => onRatingClick("Extremely satisfied")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="1.5em" height="1.5em">
