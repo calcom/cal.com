@@ -4,7 +4,7 @@ import { emailHead, emailBodyLogo } from "./common";
 
 export interface Feedback {
   userId: number;
-  rating: number;
+  rating: string;
   comment: string;
 }
 

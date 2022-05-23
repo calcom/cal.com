@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, Feedback } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
@@ -11,6 +11,7 @@ import { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -896,10 +897,16 @@ const loggedInViewerRouter = createProtectedRouter()
   .mutation("submitFeedback", {
     input: z.object({
       rating: z.string(),
-      comment: z.string().optional(),
+      comment: z.string(),
     }),
     async resolve({ input, ctx }) {
       const { rating, comment } = input;
+
+      const feedback = {
+        userId: ctx.user.id,
+        rating: rating,
+        comment: comment,
+      };
 
       await ctx.prisma.feedback.create({
         data: {
@@ -909,6 +916,8 @@ const loggedInViewerRouter = createProtectedRouter()
           comment: comment,
         },
       });
+
+      if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
     },
   });
 

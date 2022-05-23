@@ -25,16 +25,12 @@ export default function HelpMenuItem() {
   };
 
   const sendFeedback = async (rating: string, comment: string) => {
-    setLoading(true);
-
     mutation.mutate({ rating: rating, comment: comment });
 
     if (mutation.isSuccess) {
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");
     }
-
-    setLoading(false);
   };
 
   return (
