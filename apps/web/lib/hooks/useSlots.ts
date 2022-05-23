@@ -142,7 +142,7 @@ export const useSlots = (props: UseSlotsProps) => {
       });
       const filterTimeProps = {
         times,
-        busy: busy,
+        busy,
         eventLength,
         beforeBufferTime,
         afterBufferTime,
