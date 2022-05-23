@@ -356,17 +356,17 @@ ${getRichDescription(this.calEvent)}
       const meetingId = this.calEvent.videoCallData.id;
       const meetingPassword = this.calEvent.videoCallData.password;
       const meetingUrl = this.calEvent.videoCallData.url;
-
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
         <p style="color: #494949;">${this.calEvent.organizer.language.translate("where")}</p>
-        <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName} ${
-        meetingUrl &&
-        `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.organizer.language.translate(
-          "meeting_url"
-        )}"><img src="${linkIcon()}" width="12px"></img></a>`
-      }</p>
+        <p style="color: #494949; font-weight: 400; line-height: 24px;">${providerName}
+        ${
+          meetingUrl &&
+          `<a href="${meetingUrl}" target="_blank" alt="${this.calEvent.organizer.language.translate(
+            "meeting_url"
+          )}"><img src="${linkIcon()}" width="12px"/></a>`
+        }</p>
         ${
           meetingId &&
           `<div style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.organizer.language.translate(
@@ -393,7 +393,6 @@ ${getRichDescription(this.calEvent)}
 
     if (this.calEvent.additionInformation?.hangoutLink) {
       const hangoutLink: string = this.calEvent.additionInformation.hangoutLink;
-
       return `
       <p style="height: 6px"></p>
       <div style="line-height: 6px;">
@@ -417,6 +416,12 @@ ${getRichDescription(this.calEvent)}
       <p style="color: #494949;">${this.calEvent.organizer.language.translate("where")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
+      }</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${
+        (providerName === "Zoom" || providerName === "Google") &&
+        `
+          ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
+        `
       }</p>
     </div>
     `;
