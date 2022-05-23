@@ -36,6 +36,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return_url,
     };
 
+    if (userData && (userData.plan === UserPlan.FREE || userData.plan === UserPlan.TRIAL)) {
+      const subscriptionPrice = isPremiumUsername ? PREMIUM_PLAN_PRICE : PRO_PLAN_PRICE;
+      const checkoutSession = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        customer: customerId,
+        line_items: [
+          {
+            price: subscriptionPrice,
+            quantity: 1,
+          },
+        ],
+        success_url: return_url,
+        cancel_url: return_url,
+        allow_promotion_codes: true,
+      });
+      res.status(200).json({ url: checkoutSession.url });
+    }
+
     if (action && userData) {
       let actionText = "";
       const customProductsSession = [];

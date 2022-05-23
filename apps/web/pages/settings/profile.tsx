@@ -37,7 +37,7 @@ import { proratePreview, retrieveSubscriptionIdFromStripeCustomerId } from "@cal
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@calcom/ui/Dialog";
-import { Form, Input, Label, TextField } from "@calcom/ui/form/fields";
+import { Input, Label } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -241,12 +241,17 @@ const CustomUsernameTextfield = (props) => {
     }
     return resultCondition;
   };
-  const ActionButtons = () => {
+  const ActionButtons = (props: { index: string }) => {
+    const { index } = props;
     return (
       (usernameIsAvailable || premiumUsername) &&
       currentUsername !== inputUsernameValue && (
         <div className="flex flex-row">
-          <Button type="button" className="mx-2" onClick={() => setOpenDialogSaveUsername(true)}>
+          <Button
+            type="button"
+            className="mx-2"
+            onClick={() => setOpenDialogSaveUsername(true)}
+            data-testid={`update-username-btn-${index}`}>
             Update
           </Button>
           <Button
@@ -292,6 +297,7 @@ const CustomUsernameTextfield = (props) => {
             )}
             defaultValue={currentUsername}
             onChange={(event) => setInputUsernameValue(event.target.value)}
+            data-testid="username-input"
           />
           <div
             className="top-0"
@@ -313,7 +319,7 @@ const CustomUsernameTextfield = (props) => {
           </div>
         </div>
         <div className="xs:hidden">
-          <ActionButtons />
+          <ActionButtons index="desktop" />
         </div>
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
@@ -331,7 +337,7 @@ const CustomUsernameTextfield = (props) => {
       )}
       {(usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue && (
         <div className="mt-2 flex justify-end md:hidden">
-          <ActionButtons />
+          <ActionButtons index="mobile" />
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
@@ -359,10 +365,14 @@ const CustomUsernameTextfield = (props) => {
               <div className="flex w-full flex-row rounded-sm bg-gray-100 py-3 text-sm">
                 <div className="px-2">
                   <p className="text-gray-500">Current {userIsPremium ? "premium" : "standard"} username</p>
-                  <p className="mt-1">{currentUsername}</p>
+                  <p className="mt-1" data-testid="current-username">
+                    {currentUsername}
+                  </p>
                 </div>
                 <div className="ml-6">
-                  <p className="text-gray-500">New {premiumUsername ? "premium" : ""} username</p>
+                  <p className="text-gray-500" data-testid="new-username">
+                    New {premiumUsername ? "premium" : ""} username
+                  </p>
                   <p>{inputUsernameValue}</p>
                 </div>
               </div>
@@ -374,6 +384,7 @@ const CustomUsernameTextfield = (props) => {
             <Button
               type="button"
               loading={updateUsername.isLoading}
+              data-testid="go-to-billing-or-save"
               onClick={async () => {
                 let url = "";
                 await saveIntentUsername();
