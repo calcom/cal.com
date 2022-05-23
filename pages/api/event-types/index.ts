@@ -33,7 +33,7 @@ async function createOrlistAllEventTypes(
     const data = await prisma.eventType
       .findMany({ where: { userId } })
       .catch((error) => res.status(404).json({ message: "No event types were found", error }));
-    console.log("eventTypes:", data);
+    console.log(`userid is: ${userId}`, "eventTypes:", data);
     // const event_types = data.map(
     //   async (eventType) => await schemaEventTypeReadPublic.safeParseAsync(eventType)
     // );
