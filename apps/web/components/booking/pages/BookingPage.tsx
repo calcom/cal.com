@@ -481,12 +481,9 @@ const BookingPage = ({
                     {booking
                       ? eventType.seatsPerTimeSlot - booking.attendees.length
                       : eventType.seatsPerTimeSlot}{" "}
-                    / {eventType.seatsPerTimeSlot} Seats available
+                    / {eventType.seatsPerTimeSlot} {t("seats_available")}
                   </p>
                 )}
-                <p className="text-bookinglight mb-2">
-                  <ClockIcon className="mr-1 -mt-1 inline-block h-4 w-4" />
-                </p>
                 {eventType?.description && (
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />

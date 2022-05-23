@@ -143,7 +143,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                               : "text-emerald-400"
                           } text-sm`}>
                           {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                          {seatsPerTimeSlot} Seats available
+                          {seatsPerTimeSlot} {t("seats_available")}
                         </p>
                       )}
                     </a>
