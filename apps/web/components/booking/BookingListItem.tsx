@@ -10,6 +10,7 @@ import {
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
@@ -94,7 +95,6 @@ function BookingListItem(booking: BookingItemProps) {
           ? t("reject_all")
           : t("reject"),
       onClick: (e) => {
-        e.stopPropagation();
         setRejectionDialogIsOpen(true);
       },
       icon: BanIcon,
@@ -107,7 +107,6 @@ function BookingListItem(booking: BookingItemProps) {
           ? t("confirm_all")
           : t("confirm"),
       onClick: (e) => {
-        e.stopPropagation();
         mutation.mutate(true);
       },
       icon: CheckIcon,
@@ -139,7 +138,6 @@ function BookingListItem(booking: BookingItemProps) {
           icon: PaperAirplaneIcon,
           label: t("send_reschedule_request"),
           onClick: (e) => {
-            e.stopPropagation();
             setIsOpenRescheduleDialog(true);
           },
         },
@@ -147,7 +145,6 @@ function BookingListItem(booking: BookingItemProps) {
           id: "change_location",
           label: t("edit_location"),
           onClick: (e) => {
-            e.stopPropagation();
             setIsOpenLocationDialog(true);
           },
           icon: LocationMarkerIcon,
@@ -258,114 +255,145 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr
-        className="flex cursor-pointer hover:bg-neutral-50"
-        onClick={() =>
-          router.push({
-            pathname: "/success",
-            query: {
-              date: booking.startTime,
-              type: booking.eventType.id,
-              eventSlug: booking.eventType.slug,
-              user: user?.username || "",
-              name: booking.attendees[0].name,
-              email: booking.attendees[0].email,
-              location: booking.location
-                ? booking.location.includes("integration")
-                  ? (t("web_conferencing_details_to_follow") as string)
-                  : booking.location
-                : "",
-              eventName: booking.eventType.eventName || "",
-              bookingId: booking.id,
-              recur: booking.recurringEventId,
-              reschedule: booking.confirmed,
-            },
-          })
-        }>
-        <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
-          <div className="text-sm leading-6 text-gray-900">{startTime}</div>
-          <div className="text-sm text-gray-500">
-            {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-            {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
-          </div>
-          <div className="text-sm text-gray-400">
-            {booking.recurringCount &&
-              booking.eventType?.recurringEvent?.freq &&
-              booking.listingStatus === "upcoming" && (
-                <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
-                  <div className="flex">
-                    <Tooltip
-                      content={recurringStrings.map((aDate, key) => (
-                        <p key={key}>{aDate}</p>
-                      ))}>
-                      <p className="text-gray-600 dark:text-white">
-                        <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        {`${t("every_for_freq", {
-                          freq: t(
-                            `${RRuleFrequency[booking.eventType.recurringEvent.freq]
-                              .toString()
-                              .toLowerCase()}`
-                          ),
-                        })} ${booking.recurringCount} ${t(
-                          `${RRuleFrequency[booking.eventType.recurringEvent.freq].toString().toLowerCase()}`,
-                          { count: booking.recurringCount }
-                        )}`}
-                      </p>
-                    </Tooltip>
-                  </div>
+      <tr className="flex hover:bg-neutral-50">
+        <td className="hidden whitespace-nowrap align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
+          <Link
+            href={{
+              pathname: "/success",
+              query: {
+                date: booking.startTime,
+                type: booking.eventType.id,
+                eventSlug: booking.eventType.slug,
+                user: user?.username || "",
+                name: booking.attendees[0].name,
+                email: booking.attendees[0].email,
+                location: booking.location
+                  ? booking.location.includes("integration")
+                    ? (t("web_conferencing_details_to_follow") as string)
+                    : booking.location
+                  : "",
+                eventName: booking.eventType.eventName || "",
+                bookingId: booking.id,
+                recur: booking.recurringEventId,
+                reschedule: booking.confirmed,
+              },
+            }}
+            passHref={true}>
+            <div className="cursor-pointer py-4">
+              <div className="text-sm leading-6 text-gray-900">{startTime}</div>
+              <div className="text-sm text-gray-500">
+                {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
+                {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              </div>
+              <div className="text-sm text-gray-400">
+                {booking.recurringCount &&
+                  booking.eventType?.recurringEvent?.freq &&
+                  booking.listingStatus === "upcoming" && (
+                    <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
+                      <div className="flex">
+                        <Tooltip
+                          content={recurringStrings.map((aDate, key) => (
+                            <p key={key}>{aDate}</p>
+                          ))}>
+                          <p className="text-gray-600 dark:text-white">
+                            <RefreshIcon className="mr-1 -mt-1 inline-block h-4 w-4 text-gray-400" />
+                            {`${t("every_for_freq", {
+                              freq: t(
+                                `${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                                  .toString()
+                                  .toLowerCase()}`
+                              ),
+                            })} ${booking.recurringCount} ${t(
+                              `${RRuleFrequency[booking.eventType.recurringEvent.freq]
+                                .toString()
+                                .toLowerCase()}`,
+                              { count: booking.recurringCount }
+                            )}`}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
+          </Link>
+        </td>
+        <td className={"flex-1 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
+          <Link
+            href={{
+              pathname: "/success",
+              query: {
+                date: booking.startTime,
+                type: booking.eventType.id,
+                eventSlug: booking.eventType.slug,
+                user: user?.username || "",
+                name: booking.attendees[0].name,
+                email: booking.attendees[0].email,
+                location: booking.location
+                  ? booking.location.includes("integration")
+                    ? (t("web_conferencing_details_to_follow") as string)
+                    : booking.location
+                  : "",
+                eventName: booking.eventType.eventName || "",
+                bookingId: booking.id,
+                recur: booking.recurringEventId,
+                reschedule: booking.confirmed,
+              },
+            }}
+            passHref={true}>
+            <div className="cursor-pointer py-4">
+              <div className="sm:hidden">
+                {!booking.confirmed && !booking.rejected && (
+                  <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
+                )}
+                {!!booking?.eventType?.price && !booking.paid && (
+                  <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
+                )}
+                <div className="text-sm font-medium text-gray-900">
+                  {startTime}:{" "}
+                  <small className="text-sm text-gray-500">
+                    {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
+                  </small>
+                </div>
+              </div>
+              <div
+                title={booking.title}
+                className={classNames(
+                  "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
+                  isCancelled ? "line-through" : ""
+                )}>
+                {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
+                {booking.title}
+                {!!booking?.eventType?.price && !booking.paid && (
+                  <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+                )}
+                {!booking.confirmed && !booking.rejected && (
+                  <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
+                )}
+              </div>
+              {booking.description && (
+                <div
+                  className="max-w-52 md:max-w-96 truncate text-sm text-gray-500"
+                  title={booking.description}>
+                  &quot;{booking.description}&quot;
                 </div>
               )}
-          </div>
-        </td>
-        <td className={"flex-1 py-4 ltr:pl-4 rtl:pr-4" + (booking.rejected ? " line-through" : "")}>
-          <div className="sm:hidden">
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">{t("unconfirmed")}</Tag>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="mb-2 ltr:mr-2 rtl:ml-2">Pending payment</Tag>
-            )}
-            <div className="text-sm font-medium text-gray-900">
-              {startTime}:{" "}
-              <small className="text-sm text-gray-500">
-                {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-              </small>
-            </div>
-          </div>
-          <div
-            title={booking.title}
-            className={classNames(
-              "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
-              isCancelled ? "line-through" : ""
-            )}>
-            {booking.eventType?.team && <strong>{booking.eventType.team.name}: </strong>}
-            {booking.title}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-            )}
-            {!booking.confirmed && !booking.rejected && (
-              <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>
-            )}
-          </div>
-          {booking.description && (
-            <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500" title={booking.description}>
-              &quot;{booking.description}&quot;
-            </div>
-          )}
 
-          {booking.attendees.length !== 0 && (
-            <a
-              className="text-sm text-gray-900 hover:text-blue-500"
-              href={"mailto:" + booking.attendees[0].email}
-              onClick={(e) => e.stopPropagation()}>
-              {booking.attendees[0].email}
-            </a>
-          )}
-          {isCancelled && booking.rescheduled && (
-            <div className="mt-2 inline-block text-left text-sm md:hidden">
-              <RequestSentMessage />
+              {booking.attendees.length !== 0 && (
+                <a
+                  className="text-sm text-gray-900 hover:text-blue-500"
+                  href={"mailto:" + booking.attendees[0].email}
+                  onClick={(e) => e.stopPropagation()}>
+                  {booking.attendees[0].email}
+                </a>
+              )}
+              {isCancelled && booking.rescheduled && (
+                <div className="mt-2 inline-block text-left text-sm md:hidden">
+                  <RequestSentMessage />
+                </div>
+              )}
             </div>
-          )}
+          </Link>
         </td>
 
         <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
