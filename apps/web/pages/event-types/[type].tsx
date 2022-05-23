@@ -625,6 +625,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     resolver: zodResolver(locationFormSchema),
   });
   const Locations = () => {
+    const { t } = useLocale();
     return (
       <div className="w-full">
         {formMethods.getValues("locations").length === 0 && (
@@ -661,31 +662,25 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.address}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.link}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.Link && (
                     <div className="flex flex-grow items-center">
                       <GlobeAltIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.link}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.link}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.UserPhone && (
                     <div className="flex flex-grow items-center">
                       <PhoneIcon className="h-6 w-6" />
-                      <input
-                        disabled
-                        className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2"
-                        value={location.hostPhoneNumber}
-                      />
+                      <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
+                        {location.hostPhoneNumber}
+                      </span>
                     </div>
                   )}
                   {location.type === LocationType.Phone && (
@@ -1419,6 +1414,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           render={() => (
                             <CheckboxField
                               id="hideCalendarNotes"
+                              descriptionAsLabel
                               name="hideCalendarNotes"
                               label={t("disable_notes")}
                               description={t("disable_notes_description")}
@@ -1437,6 +1433,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                           render={() => (
                             <CheckboxField
                               id="requiresConfirmation"
+                              descriptionAsLabel
                               name="requiresConfirmation"
                               label={t("opt_in_booking")}
                               description={t("opt_in_booking_description")}
@@ -1463,6 +1460,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             <CheckboxField
                               id="disableGuests"
                               name="disableGuests"
+                              descriptionAsLabel
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
@@ -1482,6 +1480,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <CheckboxField
                                 id="hashedLinkCheck"
                                 name="hashedLinkCheck"
+                                descriptionAsLabel
                                 label={t("private_link")}
                                 description={t("private_link_description")}
                                 defaultChecked={eventType.hashedLink ? true : false}
@@ -1600,7 +1599,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </div>
                         <hr className="my-2 border-neutral-200" />
 
-                        <div className="block sm:flex">
+                        <fieldset className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
                               htmlFor="inviteesCanSchedule"
@@ -1658,7 +1657,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 startDate={formMethods.getValues("periodDates").startDate}
                                                 endDate={formMethods.getValues("periodDates").endDate}
                                                 onDatesChange={({ startDate, endDate }) => {
-                                                  formMethods.setValue("periodDates", { startDate, endDate });
+                                                  formMethods.setValue("periodDates", {
+                                                    startDate,
+                                                    endDate,
+                                                  });
                                                 }}
                                               />
                                             )}
@@ -1674,7 +1676,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               )}
                             />
                           </div>
-                        </div>
+                        </fieldset>
                         <hr className="border-neutral-200" />
                         <div className="block sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">

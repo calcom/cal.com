@@ -5,18 +5,24 @@ import InfoBadge from "@components/ui/InfoBadge";
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
   description: string;
+  descriptionAsLabel?: boolean;
   infomationIconText?: string;
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, infomationIconText, ...rest }, ref) => {
+  ({ label, description, infomationIconText, descriptionAsLabel, ...rest }, ref) => {
     return (
       <div className="block items-center sm:flex">
-        {label && (
+        {label && !descriptionAsLabel && (
           <div className="min-w-48 mb-4 sm:mb-0">
             <label htmlFor={rest.id} className="flex text-sm font-medium text-neutral-700">
               {label}
             </label>
+          </div>
+        )}
+        {label && descriptionAsLabel && (
+          <div className="min-w-48 mb-4 sm:mb-0">
+            <span className="flex text-sm font-medium text-neutral-700">{label}</span>
           </div>
         )}
         <div className="w-full">
@@ -30,7 +36,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               />
             </div>
             <div className="text-sm ltr:ml-3 rtl:mr-3">
-              {!label ? (
+              {!label || descriptionAsLabel ? (
                 <label htmlFor={rest.id} className="text-neutral-700">
                   {description}
                 </label>
