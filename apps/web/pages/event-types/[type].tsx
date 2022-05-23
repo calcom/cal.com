@@ -1784,7 +1784,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                             {enableSeats && (
                               <div className="block sm:flex">
-                                <div className="ml-48 mt-2 inline-flex w-full space-x-2">
+                                <div className="mt-2 inline-flex w-full space-x-2 md:ml-48">
                                   <div className="w-full">
                                     <Controller
                                       name="seatsPerTimeSlot"
@@ -1840,7 +1840,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               </div>
 
                                               {inputSeatNumber && (
-                                                <div className="ml-5 flex-auto">
+                                                <div className="flex-auto md:ml-5">
                                                   <label
                                                     htmlFor="beforeBufferTime"
                                                     className="mb-2 flex text-sm font-medium text-neutral-700">
