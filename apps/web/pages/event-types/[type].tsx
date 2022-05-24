@@ -1834,7 +1834,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                         valueAsNumber: true,
                                                         min: defaultSeatsInput,
                                                       })}
-                                                      defaultValue={defaultSeatsInput}
+                                                      defaultValue={
+                                                        eventType.seatsPerTimeSlot || defaultSeatsInput
+                                                      }
                                                     />
                                                   </div>
                                                 ) : (
