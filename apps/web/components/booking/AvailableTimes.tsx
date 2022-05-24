@@ -13,6 +13,7 @@ import { useLocale } from "@lib/hooks/useLocale";
 import { useSlots } from "@lib/hooks/useSlots";
 
 import Loader from "@components/Loader";
+import { useMeQuery } from "@components/Shell";
 
 type AvailableTimesProps = {
   timeFormat: string;
@@ -59,7 +60,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     afterBufferTime,
     eventTypeId,
   });
-
+  const query = useMeQuery();
+  const user = query.data;
   const [brand, setBrand] = useState("#292929");
 
   useEffect(() => {
@@ -92,6 +94,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 date: slot.time.format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
+                email: user?.email,
+                name: user?.name!,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
               },
