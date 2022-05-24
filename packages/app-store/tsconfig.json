@@ -1,8 +1,24 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "include": [".", "@calcom/types"],
   "exclude": ["dist", "build", "node_modules"],
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["../../apps/web/components/*"],
+      "@lib/*": ["../../apps/web/lib/*"],
+      "@server/*": ["../../apps/web/server/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
+    },
     "resolveJsonModule": true
-  }
+  },
+  "include": [
+    "next-env.d.ts",
+    "@calcom/types",
+    "../../packages/types/*.d.ts",
+    "../../packages/types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../apps/web/server/**/*.ts",
+    "../../apps/web/server/**/*.tsx"
+  ]
 }

@@ -1,11 +1,17 @@
 import { PencilIcon } from "@heroicons/react/solid";
+import { noop } from "lodash";
 import { useState } from "react";
 
 export default function PencilEdit({ value, onChange, placeholder = "", readOnly }) {
   const [editIcon, setEditIcon] = useState(true);
   const [editValue, setEditValue] = useState(value);
+  const onDivClick = !readOnly
+    ? () => {
+        return setEditIcon(false);
+      }
+    : noop;
   return (
-    <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
+    <div className="group relative cursor-pointer" onClick={onDivClick}>
       {editIcon ? (
         <>
           <h1

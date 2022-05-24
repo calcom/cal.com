@@ -20,6 +20,26 @@ import { FieldTypes } from "./form";
 const InitialConfig = CalConfig as Config;
 
 const fields = {};
+export function getQueryBuilderConfig(form: any) {
+  form?.fields.forEach((field) => {
+    if (FieldTypes.map((f) => f.value).includes(field.type)) {
+      fields[field.id] = {
+        label: field.label,
+        type: field.type,
+        valueSources: ["value"],
+      };
+    } else {
+      throw new Error("Unsupported field type:" + field.type);
+    }
+  });
+
+  // You need to provide your own config. See below 'Config format'
+  const config: Config = {
+    ...InitialConfig,
+    fields: fields,
+  };
+  return config;
+}
 
 const getEmptyRoute = (): SerializableRoute => {
   const uuid = QbUtils.uuid();
@@ -72,23 +92,7 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
     },
   });
 
-  form?.fields.forEach((field) => {
-    if (FieldTypes.map((f) => f.value).includes(field.type)) {
-      fields[field.id] = {
-        label: field.label,
-        type: field.type,
-        valueSources: ["value"],
-      };
-    } else {
-      throw new Error("Unsupported field type:" + field.type);
-    }
-  });
-
-  // You need to provide your own config. See below 'Config format'
-  const config: Config = {
-    ...InitialConfig,
-    fields: fields,
-  };
+  const config: Config = getQueryBuilderConfig(form);
   const getStoredRoutes = () => {
     const route = form?.route || [getEmptyRoute()];
     route.forEach((r) => {
