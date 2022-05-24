@@ -76,6 +76,7 @@ function BookingListItem(booking: BookingItemProps) {
       if (!res.ok) {
         throw new HttpError({ statusCode: res.status });
       }
+      setRejectionDialogIsOpen(false);
     },
     {
       async onSettled() {
