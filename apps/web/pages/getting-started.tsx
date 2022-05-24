@@ -10,7 +10,6 @@ import debounce from "lodash/debounce";
 import omit from "lodash/omit";
 import { NextPageContext } from "next";
 import { useSession } from "next-auth/react";
-import { useCollector } from "next-collect/client";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState, useCallback } from "react";
@@ -27,8 +26,8 @@ import { Form } from "@calcom/ui/form/fields";
 import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectEventTypes } from "@lib/nextCollect";
 import prisma from "@lib/prisma";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
@@ -55,7 +54,7 @@ let mutationComplete: ((err: Error | null) => void) | null;
 export default function Onboarding(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const collector = useCollector();
+  const telemetry = useTelemetry();
 
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
@@ -324,7 +323,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   // track the number of imports. Without personal data/payload
-                  collector.event(collectEventTypes.importSubmitted, { selectedImport });
+                  telemetry.event(telemetryEventTypes.importSubmitted, { selectedImport });
                   setSubmitting(true);
                   const response = await fetch(`/api/import/${selectedImport}`, {
                     method: "POST",

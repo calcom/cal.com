@@ -2,7 +2,6 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
-import { useCollector } from "next-collect/client";
 import Link from "next/link";
 import React, { useEffect } from "react";
 
@@ -15,8 +14,8 @@ import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useLocale } from "@lib/hooks/useLocale";
 import useTheme from "@lib/hooks/useTheme";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
-import { collectEventTypes } from "@lib/nextCollect";
 import { getTeamWithMembers } from "@lib/queries/teams";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
@@ -33,12 +32,12 @@ function TeamPage({ team }: TeamPageProps) {
   const { t } = useLocale();
   useExposePlanGlobally("PRO");
   const isEmbed = useIsEmbed();
-  const collector = useCollector();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     // collectPageParameters("/team/[slug]", { isTeamBooking: true })
-    collector.event(collectEventTypes.pageView, { isTeamBooking: true });
-  }, [collector]);
+    telemetry.event(telemetryEventTypes.pageView, { isTeamBooking: true });
+  }, [telemetry]);
 
   const eventTypes = (
     <ul className="space-y-3">

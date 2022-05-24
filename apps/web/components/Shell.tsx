@@ -13,7 +13,6 @@ import {
 } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import { SessionContextValue, signOut, useSession } from "next-auth/react";
-import { useCollector } from "next-collect/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect } from "react";
@@ -36,7 +35,6 @@ import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { collectEventTypes } from "@lib/nextCollect";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
@@ -414,15 +412,8 @@ type LayoutProps = {
 };
 
 export default function Shell(props: LayoutProps) {
-  const router = useRouter();
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const collector = useCollector();
-
-  useEffect(() => {
-    // collectPageParameters(router.asPath)
-    collector.event(collectEventTypes.pageView, {});
-  }, [collector, router.asPath]);
 
   const query = useMeQuery();
   const user = query.data;

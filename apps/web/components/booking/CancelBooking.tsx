@@ -1,5 +1,4 @@
 import { XIcon } from "@heroicons/react/solid";
-import { useCollector } from "next-collect/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -7,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/Button";
 
 import useTheme from "@lib/hooks/useTheme";
-import { collectEventTypes } from "@lib/nextCollect";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 type Props = {
   booking: {
@@ -29,7 +28,7 @@ export default function CancelBooking(props: Props) {
   const router = useRouter();
   const { booking, profile, team } = props;
   const [loading, setLoading] = useState(false);
-  const collector = useCollector();
+  const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const { isReady, Theme } = useTheme(props.theme);
 
@@ -79,7 +78,7 @@ export default function CancelBooking(props: Props) {
                       reason: cancellationReason,
                     };
 
-                    collector.event(collectEventTypes.bookingCancelled, {});
+                    telemetry.event(telemetryEventTypes.bookingCancelled, {});
 
                     const res = await fetch("/api/cancel", {
                       body: JSON.stringify(payload),

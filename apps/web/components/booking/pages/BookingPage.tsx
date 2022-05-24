@@ -12,7 +12,6 @@ import { EventTypeCustomInputType } from "@prisma/client";
 import { useContracts } from "contexts/contractsContext";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
-import { useCollector } from "next-collect/client";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -41,9 +40,9 @@ import useTheme from "@lib/hooks/useTheme";
 import { LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { collectEventTypes } from "@lib/nextCollect";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -100,11 +99,11 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
-  const collector = useCollector();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     // collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/")} )
-    collector.event(top !== window ? collectEventTypes.embedView : collectEventTypes.pageView, {
+    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {
       isTeamBooking: document.URL.includes("team/"),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -326,8 +325,8 @@ const BookingPage = ({
 
   const bookEvent = (booking: BookingFormValues) => {
     // collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-    collector.event(
-      top !== window ? collectEventTypes.embedBookingConfirmed : collectEventTypes.bookingConfirmed,
+    telemetry.event(
+      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
     );
 

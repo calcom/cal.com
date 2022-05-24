@@ -1,7 +1,8 @@
 import { NextApiRequest } from "next";
 import { EventSinkOpts } from "next-collect";
+import { useCollector } from "next-collect/client";
 
-export const collectEventTypes = {
+export const telemetryEventTypes = {
   pageView: "page_view",
   apiCall: "api_call",
   bookingConfirmed: "booking_confirmed",
@@ -30,10 +31,10 @@ export const nextCollectBasicSettings: EventSinkOpts = {
   ],
   eventTypes: [
     { "/api/collect-api": null },
-    { "/api*": collectEventTypes.apiCall },
+    { "/api*": null },
     { "/img*": null },
     { "/favicon*": null },
-    { "/*": collectEventTypes.pageView },
+    { "/*": telemetryEventTypes.pageView },
   ],
 };
 
@@ -52,3 +53,5 @@ export const extendEventData = (req: NextApiRequest) => {
     referer: "",
   };
 };
+
+export const useTelemetry = useCollector;

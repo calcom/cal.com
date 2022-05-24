@@ -3,7 +3,6 @@ import { BadgeCheckIcon } from "@heroicons/react/solid";
 import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
-import { useCollector } from "next-collect/client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -22,8 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
-import { collectEventTypes } from "@lib/nextCollect";
 import prisma from "@lib/prisma";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";
@@ -116,11 +115,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
 
-  const collector = useCollector();
+  const telemetry = useTelemetry();
   useEffect(() => {
     // collectPageParameters("/[user]")
-    collector.event(top !== window ? collectEventTypes.embedView : collectEventTypes.pageView, {});
-  }, [collector]);
+    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {});
+  }, [telemetry]);
 
   return (
     <>

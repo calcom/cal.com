@@ -1,12 +1,11 @@
 import { signIn } from "next-auth/react";
-import { useCollector } from "next-collect/client";
 import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectEventTypes } from "@lib/nextCollect";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 interface Props {
@@ -20,7 +19,7 @@ interface Props {
 export default function SAMLLogin(props: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
-  const collector = useCollector();
+  const telemetry = useTelemetry();
 
   const mutation = trpc.useMutation("viewer.samlTenantProduct", {
     onSuccess: async (data) => {
@@ -41,7 +40,7 @@ export default function SAMLLogin(props: Props) {
           event.preventDefault();
 
           // track Google logins. Without personal data/payload
-          collector.event(collectEventTypes.googleLogin, {});
+          telemetry.event(telemetryEventTypes.googleLogin, {});
 
           if (!props.hostedCal) {
             await signIn("saml", {}, { tenant: props.samlTenantID, product: props.samlProductID });

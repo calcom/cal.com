@@ -10,7 +10,6 @@ import utc from "dayjs/plugin/utc";
 import { createEvent } from "ics";
 import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
-import { useCollector } from "next-collect/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
@@ -35,8 +34,8 @@ import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { collectEventTypes } from "@lib/nextCollect";
 import prisma from "@lib/prisma";
+import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -176,11 +175,11 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
-  const collector = useCollector();
+  const telemetry = useTelemetry();
   useEffect(() => {
     // collectPageParameters("/success")
-    collector.event(top !== window ? collectEventTypes.embedView : collectEventTypes.pageView, {});
-  }, [collector]);
+    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {});
+  }, [telemetry]);
 
   useEffect(() => {
     const users = eventType.users;

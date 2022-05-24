@@ -1,6 +1,6 @@
 import { nextEventsCollectApi } from "next-collect/server";
 
-import { extendEventData, nextCollectBasicSettings } from "@lib/nextCollect";
+import { extendEventData, nextCollectBasicSettings } from "@lib/telemetry";
 
 export default nextEventsCollectApi({
   ...nextCollectBasicSettings,
