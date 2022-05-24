@@ -1801,7 +1801,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           { value: 5, label: "5" },
                                           {
                                             value: -1,
-                                            isDisabled: !eventType.users.some((user) => user.plan === "PRO"),
+                                            isDisabled: !eventType.users.some(
+                                              (user) => user.plan === ("PRO" || "TRIAL")
+                                            ),
                                             label: (
                                               <div className="flex flex-row justify-between">
                                                 <span>6+</span>
@@ -1814,56 +1816,65 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           <>
                                             <div className="block sm:flex">
                                               <div className="flex-auto">
-                                                <label
-                                                  htmlFor="numberOfSeats"
-                                                  className="my-2 flex text-sm font-medium text-neutral-700">
-                                                  {t("number_of_seats")}
-                                                </label>
-                                                <Select
-                                                  id="numberOfSeats"
-                                                  isSearchable={false}
-                                                  classNamePrefix="react-select"
-                                                  className="react-select-container "
-                                                  onChange={(val) => {
-                                                    if (val!.value === -1) {
-                                                      formMethods.setValue(
-                                                        "seatsPerTimeSlot",
-                                                        defaultSeatsInput
-                                                      );
-                                                      setInputSeatNumber(true);
-                                                    } else {
-                                                      setInputSeatNumber(false);
-                                                      formMethods.setValue("seatsPerTimeSlot", val!.value);
-                                                    }
-                                                  }}
-                                                  defaultValue={{
-                                                    value: eventType.seatsPerTimeSlot || defaultSeats,
-                                                    label: `${eventType.seatsPerTimeSlot || defaultSeats}`,
-                                                  }}
-                                                  options={selectSeatsPerTimeSlotOptions}
-                                                />
+                                                {eventType.users.some(
+                                                  (user) => user.plan === ("PRO" || "TRIAL")
+                                                ) ? (
+                                                  <div className="flex-auto">
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("enter_number_of_seats")}
+                                                    </label>
+                                                    <input
+                                                      type="number"
+                                                      className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                      placeholder={`${defaultSeatsInput}`}
+                                                      {...formMethods.register("seatsPerTimeSlot", {
+                                                        valueAsNumber: true,
+                                                        min: defaultSeatsInput,
+                                                      })}
+                                                      defaultValue={
+                                                        eventType.seatsPerTimeSlot || defaultSeatsInput
+                                                      }
+                                                    />
+                                                  </div>
+                                                ) : (
+                                                  <>
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("number_of_seats")}
+                                                    </label>
+                                                    <Select
+                                                      isSearchable={false}
+                                                      classNamePrefix="react-select"
+                                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                      onChange={(val) => {
+                                                        if (val!.value === -1) {
+                                                          formMethods.setValue(
+                                                            "seatsPerTimeSlot",
+                                                            defaultSeatsInput
+                                                          );
+                                                          setInputSeatNumber(true);
+                                                        } else {
+                                                          setInputSeatNumber(false);
+                                                          formMethods.setValue(
+                                                            "seatsPerTimeSlot",
+                                                            val!.value
+                                                          );
+                                                        }
+                                                      }}
+                                                      defaultValue={{
+                                                        value: eventType.seatsPerTimeSlot || defaultSeats,
+                                                        label: `${
+                                                          eventType.seatsPerTimeSlot || defaultSeats
+                                                        }`,
+                                                      }}
+                                                      options={selectSeatsPerTimeSlotOptions}
+                                                    />
+                                                  </>
+                                                )}
                                               </div>
-
-                                              {inputSeatNumber && (
-                                                <div className="flex-auto md:ml-5">
-                                                  <label
-                                                    htmlFor="enterNumberOfSeats"
-                                                    className="my-2 flex text-sm font-medium text-neutral-700">
-                                                    {t("enter_number_of_seats")}
-                                                  </label>
-                                                  <input
-                                                    id="enterNumberOfSeats"
-                                                    type="number"
-                                                    className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                                    placeholder={`${defaultSeatsInput}`}
-                                                    {...formMethods.register("seatsPerTimeSlot", {
-                                                      valueAsNumber: true,
-                                                      min: defaultSeatsInput,
-                                                    })}
-                                                    defaultValue={defaultSeatsInput}
-                                                  />
-                                                </div>
-                                              )}
                                             </div>
                                           </>
                                         );
