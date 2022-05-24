@@ -818,6 +818,7 @@
   "event_location_changed": "Updated - Your event changed the location",
   "location_changed_event_type_subject": "Location Changed: {{eventType}} with {{name}} at {{date}}",
   "current_location": "Current Location",
+  "user_phone": "Your phone number",
   "new_location": "New Location",
   "no_location": "No location defined",
   "set_location": "Set Location",
@@ -855,5 +856,5 @@
   "go_to": "Go to: ",
   "zapier_invite_link": "Zapier Invite Link",
   "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
-  "meeting_url_provided_after_confirmed":"A Meeting URL will be created once the event is confirmed."
+  "meeting_url_provided_after_confirmed": "A Meeting URL will be created once the event is confirmed."
 }

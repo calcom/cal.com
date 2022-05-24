@@ -136,6 +136,7 @@ function BookingListItem(booking: BookingItemProps) {
         {
           id: "reschedule_request",
           icon: PaperAirplaneIcon,
+          iconClassName: "rotate-45 w-[18px] -ml-[2px]",
           label: t("send_reschedule_request"),
           onClick: () => {
             setIsOpenRescheduleDialog(true);
@@ -167,7 +168,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
 
   const setLocationMutation = useMutation(async (newLocation: string) => {
-    const result = await fetch("/api/book/setLocation", {
+    const result = await fetch("/api/book/set-location", {
       method: "POST",
       body: JSON.stringify({
         bookingId: booking.id,
@@ -180,6 +181,7 @@ function BookingListItem(booking: BookingItemProps) {
     if (result) {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
+      utils.invalidateQueries("viewer.bookings");
     }
   });
 
@@ -188,7 +190,7 @@ function BookingListItem(booking: BookingItemProps) {
     if (
       newLocationType === LocationType.InPerson ||
       newLocationType === LocationType.Link ||
-      newLocationType === LocationType.Phone
+      newLocationType === LocationType.UserPhone
     ) {
       newLocation = details[Object.keys(details)[0]];
     }

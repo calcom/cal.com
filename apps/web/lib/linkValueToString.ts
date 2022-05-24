@@ -3,19 +3,24 @@ import { TFunction } from "next-i18next";
 import { LocationType } from "./location";
 
 /**
- * Use this function for translating event location to a readable string
- * @param location
- * @param t
- * @returns string
+ * Use this function to translate booking location value to a readable string
+ * @param linkValue
+ * @param translationFunction
+ * @returns
  */
-export const LocationOptionsToString = (location: string, t: TFunction) => {
-  switch (location) {
+export const linkValueToString = (
+  linkValue: string | undefined | null,
+  translationFunction: TFunction
+): string => {
+  const t = translationFunction;
+  if (!linkValue) {
+    return translationFunction("no_location");
+  }
+  switch (linkValue) {
     case LocationType.InPerson:
-      return t("set_address_place");
-    case LocationType.Link:
-      return t("set_link_meeting");
-    case LocationType.Phone:
-      return t("cal_invitee_phone_number_scheduling");
+      return t("in_person_meeting");
+    case LocationType.UserPhone:
+      return t("user_phone");
     case LocationType.GoogleMeet:
       return t("cal_provide_google_meet_location");
     case LocationType.Zoom:
@@ -31,6 +36,6 @@ export const LocationOptionsToString = (location: string, t: TFunction) => {
     case LocationType.Teams:
       return t("cal_provide_teams_meeting_url");
     default:
-      return null;
+      return linkValue || "";
   }
 };

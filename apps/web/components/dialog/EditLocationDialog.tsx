@@ -12,6 +12,7 @@ import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";
 
+import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { LocationOptionsToString } from "@lib/locationOptions";
 import { inferQueryOutput, trpc } from "@lib/trpc";
@@ -209,9 +210,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           {booking && (
             <>
               <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
-              <p className="mb-2 ml-1 text-sm text-black">
-                {currentLocation ? currentLocation : t("no_location")}
-              </p>
+              <p className="mb-2 ml-1 text-sm text-black">{linkValueToString(booking.location, t)}</p>
             </>
           )}
           <Form

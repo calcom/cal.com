@@ -16,8 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const bookingId = req.body.bookingId;
-  const location = req.body.newLocation;
+  const { bookingId, newLocation: location } = req.body;
 
   const session = await getSession({ req: req });
 
@@ -47,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    await prisma.booking.updateMany({
+    await prisma.booking.update({
       where: {
         id: bookingId,
       },
