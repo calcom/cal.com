@@ -528,7 +528,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
                       <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
-                        {location.link}
+                        {location.address}
                       </span>
                     </div>
                   )}
