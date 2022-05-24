@@ -398,6 +398,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     schedulingType={eventType.schedulingType ?? null}
                     beforeBufferTime={eventType.beforeEventBuffer}
                     afterBufferTime={eventType.afterEventBuffer}
+                    seatsPerTimeSlot={eventType.seatsPerTimeSlot}
                   />
                 )}
               </div>
