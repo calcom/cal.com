@@ -1,7 +1,12 @@
 import { expect } from "@playwright/test";
+import { UserPlan } from "@prisma/client";
+import dayjs from "dayjs";
+
+import stripe from "@calcom/stripe/server";
+import { getFreePlanPrice, getProPlanPrice } from "@calcom/stripe/utils";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -70,10 +75,109 @@ test.describe("Stripe integration", () => {
     await user.delete();
   });
 
-  todo("Pending payment booking should not be confirmed by default");
-  todo("Payment should confirm pending payment booking");
-  todo("Payment should trigger a BOOKING_PAID webhook");
-  todo("Paid booking should be able to be rescheduled");
-  todo("Paid booking should be able to be cancelled");
-  todo("Cancelled paid booking should be refunded");
+  test("User trial can update to PREMIUM username", async ({ page, users }) => {
+    const user = await users.create({ plan: UserPlan.TRIAL });
+    const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
+    await stripe.subscriptionSchedules.create({
+      customer: customer.id,
+      start_date: "now",
+      end_behavior: "release",
+      phases: [
+        {
+          items: [{ price: getProPlanPrice() }],
+          trial_end: dayjs().add(14, "day").unix(),
+          end_date: dayjs().add(14, "day").unix(),
+        },
+        {
+          items: [{ price: getFreePlanPrice() }],
+        },
+      ],
+    });
+
+    await user.login();
+    await page.goto("/settings/profile");
+
+    // Change username from normal to premium
+    const usernameInput = page.locator("[data-testid=username-input]");
+
+    await usernameInput.fill("xxx1");
+    // expect(usernameInput.inputValue()).toBe("xxx1");
+
+    // Click on save button
+    const updateUsernameBtn = page.locator("[data-testid=update-username-btn-desktop]");
+
+    await updateUsernameBtn.click();
+
+    // Validate modal text fields
+    const currentUsernameText = page.locator("[data-testid=current-username]").innerText();
+    const newUsernameText = page.locator("[data-testid=new-username]").innerText();
+
+    expect(currentUsernameText).not.toBe(newUsernameText);
+
+    // Click on Go to billing
+    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    await goToBillingOrSaveBtn.click();
+
+    await page.waitForLoadState();
+
+    await expect(page).toHaveURL(/.*checkout.stripe.com/);
+
+    await user.delete();
+  });
+
+  test("User PRO can update to PREMIUM username", async ({ page, users }) => {
+    const user = await users.create({ plan: UserPlan.PRO });
+    const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: "card",
+      card: {
+        number: "4242424242424242",
+        cvc: "123",
+        exp_month: 12,
+        exp_year: 2040,
+      },
+    });
+    await stripe.paymentMethods.attach(paymentMethod.id, { customer: customer.id });
+    await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: getProPlanPrice() }],
+    });
+
+    await user.login();
+    await page.goto("/settings/profile");
+
+    // Change username from normal to premium
+    const usernameInput = page.locator("[data-testid=username-input]");
+
+    await usernameInput.fill("xxx1");
+    // expect(usernameInput.inputValue()).toBe("xxx1");
+
+    // Click on save button
+    const updateUsernameBtn = page.locator("[data-testid=update-username-btn-desktop]");
+
+    await updateUsernameBtn.click();
+
+    // Validate modal text fields
+    const currentUsernameText = page.locator("[data-testid=current-username]").innerText();
+    const newUsernameText = page.locator("[data-testid=new-username]").innerText();
+
+    expect(currentUsernameText).not.toBe(newUsernameText);
+
+    // Click on Go to billing
+    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    await goToBillingOrSaveBtn.click();
+
+    await page.waitForLoadState();
+
+    await expect(page).toHaveURL(/.*billing.stripe.com/);
+
+    await user.delete();
+  });
+
+  // todo("Pending payment booking should not be confirmed by default");
+  // todo("Payment should confirm pending payment booking");
+  // todo("Payment should trigger a BOOKING_PAID webhook");
+  // todo("Paid booking should be able to be rescheduled");
+  // todo("Paid booking should be able to be cancelled");
+  // todo("Cancelled paid booking should be refunded");
 });
