@@ -30,8 +30,6 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
 
-    await page.locator('[data-testid="reschedule"]').nth(0).click();
-
     await page.locator('[data-testid="reschedule_request"]').click();
 
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
