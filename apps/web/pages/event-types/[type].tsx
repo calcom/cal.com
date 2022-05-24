@@ -1884,7 +1884,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                             )}
                           </div>
-                          <hr className="border-neutral-200" />
                         </>
 
                         <SuccessRedirectEdit<typeof formMethods>
