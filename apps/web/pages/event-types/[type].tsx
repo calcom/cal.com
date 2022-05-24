@@ -294,10 +294,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
     onSuccess: async () => {
+      setLoading(false);
       await router.push("/event-types");
       showToast(t("event_type_deleted_successfully"), "success");
     },
     onError: (err) => {
+      setLoading(false);
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
@@ -315,6 +317,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
+  const [loading, setLoading] = useState(false);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -377,6 +380,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   async function deleteEventTypeHandler(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     event.preventDefault();
+    setLoading(true);
 
     const payload = { id: eventType.id };
     deleteMutation.mutate(payload);
@@ -1954,6 +1958,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                     {t("delete")}
                   </DialogTrigger>
                   <ConfirmationDialogContent
+                    isLoading={loading}
                     variety="danger"
                     title={t("delete_event_type")}
                     confirmBtnText={t("confirm_delete_event_type")}
