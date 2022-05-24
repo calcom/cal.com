@@ -74,7 +74,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       locationRawString = location.replace("integrations:", "");
       locationRawString = locationRawString.replace(":", " ");
     }
-    locationRawString = locationRawString === "Daily" ? "Cal Video" : locationRawString;
+    locationRawString = locationRawString === "daily" ? "Cal Video" : locationRawString;
 
     return locationRawString;
   };
@@ -155,7 +155,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           />
           {locationFormMethods.formState.errors.locationLink && (
-            <p className="mt-1 text-sm text-red-500">URL needs to start with https://</p>
+            <p className="mt-1 text-sm text-red-500">URL needs to start with http://</p>
           )}
         </div>
       </div>
