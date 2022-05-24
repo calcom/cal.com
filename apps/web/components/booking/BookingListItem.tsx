@@ -49,7 +49,6 @@ function BookingListItem(booking: BookingItemProps) {
   const user = query.data;
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
-  const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const mutation = useMutation(
@@ -94,7 +93,7 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
-      onClick: (e) => {
+      onClick: () => {
         setRejectionDialogIsOpen(true);
       },
       icon: BanIcon,
@@ -106,7 +105,7 @@ function BookingListItem(booking: BookingItemProps) {
         booking.listingStatus === "upcoming" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
-      onClick: (e) => {
+      onClick: () => {
         mutation.mutate(true);
       },
       icon: CheckIcon,
@@ -137,14 +136,14 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule_request",
           icon: PaperAirplaneIcon,
           label: t("send_reschedule_request"),
-          onClick: (e) => {
+          onClick: () => {
             setIsOpenRescheduleDialog(true);
           },
         },
         {
           id: "change_location",
           label: t("edit_location"),
-          onClick: (e) => {
+          onClick: () => {
             setIsOpenLocationDialog(true);
           },
           icon: LocationMarkerIcon,

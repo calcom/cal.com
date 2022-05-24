@@ -4,7 +4,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import EventManager from "@calcom/core/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { AdditionInformation } from "@calcom/types/Calendar";
 

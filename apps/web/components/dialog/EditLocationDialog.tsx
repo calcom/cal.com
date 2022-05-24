@@ -41,7 +41,12 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
   selection?: OptionTypeBase;
   booking?: BookingItem;
-  defaultValues?: any;
+  defaultValues?: {
+    type: LocationType;
+    address?: string | undefined;
+    link?: string | undefined;
+    hostPhoneNumber?: string | undefined;
+  }[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: OptionTypeBase) => void;
