@@ -28,6 +28,8 @@ test.describe("Reschedule Tests", async () => {
     await user.login();
     await page.goto("/bookings/upcoming");
 
+    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+
     await page.locator('[data-testid="reschedule"]').nth(0).click();
 
     await page.locator('[data-testid="reschedule_request"]').click();
