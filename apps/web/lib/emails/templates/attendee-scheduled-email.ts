@@ -82,17 +82,25 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
-      subject: `${this.calEvent.attendees[0].language.translate("confirmed_event_type_subject", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.team?.name || this.calEvent.organizer.name,
-        date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
-          "h:mma"
-        )}, ${this.calEvent.attendees[0].language.translate(
-          this.getInviteeStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.attendees[0].language.translate(
-          this.getInviteeStart().format("MMMM").toLowerCase()
-        )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
-      })}`,
+      subject: {
+        prepared: true,
+        value:
+          "=?UTF-8?B?" +
+          new Buffer(
+            `${this.calEvent.attendees[0].language.translate("confirmed_event_type_subject", {
+              eventType: this.calEvent.type,
+              name: this.calEvent.team?.name || this.calEvent.organizer.name,
+              date: `${this.getInviteeStart().format("h:mma")} - ${this.getInviteeEnd().format(
+                "h:mma"
+              )}, ${this.calEvent.attendees[0].language.translate(
+                this.getInviteeStart().format("dddd").toLowerCase()
+              )}, ${this.calEvent.attendees[0].language.translate(
+                this.getInviteeStart().format("MMMM").toLowerCase()
+              )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
+            })}`
+          ).toString("base64") +
+          "?=",
+      },
       html: this.getHtmlBody(),
       text: this.getTextBody(),
     };
