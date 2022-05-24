@@ -1763,6 +1763,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <CheckboxField
                                   id="seats"
                                   name="seats"
+                                  descriptionAsLabel
                                   label={t("offer_seats")}
                                   description={t("offer_seats_description")}
                                   defaultChecked={!!eventType.seatsPerTimeSlot}
@@ -1817,8 +1818,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               <div className="flex-auto">
                                                 <label
                                                   htmlFor="beforeBufferTime"
-                                                  className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                  Number of seats per booking
+                                                  className="my-2 flex text-sm font-medium text-neutral-700">
+                                                  {t("number_of_seats")}
                                                 </label>
                                                 <Select
                                                   isSearchable={false}
@@ -1849,7 +1850,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                   <label
                                                     htmlFor="beforeBufferTime"
                                                     className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                    Enter number of seats
+                                                    {t("enter_number_of_seats")}
                                                   </label>
                                                   <input
                                                     type="number"
@@ -1873,7 +1874,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                             )}
                           </div>
-                          <hr className="border-neutral-200" />
                         </>
 
                         <SuccessRedirectEdit<typeof formMethods>

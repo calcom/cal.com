@@ -770,6 +770,8 @@
   "offer_seats": "Offer seats",
   "offer_seats_description": "Offer seats to bookings (This disables guests)",
   "seats_available": "Seats available",
+  "number_of_seats": "Number of seats per booking",
+  "enter_number_of_seats": "Enter number of seats",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
   "booking_full": "No more seats available",
   "api_keys": "API Keys",
