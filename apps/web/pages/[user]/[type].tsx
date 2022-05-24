@@ -100,6 +100,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     timeZone: true,
     metadata: true,
     slotInterval: true,
+    seatsPerTimeSlot: true,
     users: {
       select: {
         avatar: true,
