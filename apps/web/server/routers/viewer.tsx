@@ -621,14 +621,15 @@ const loggedInViewerRouter = createProtectedRouter()
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-
+      console.log({ apps });
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
           // variant check
-          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []))
-          // onlyInstalled check
-          .flatMap((item) => (onlyInstalled ? (item.credentialIds.length > 0 ? [item] : []) : [item]));
+          .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+      }
+      if (onlyInstalled) {
+        apps = apps.flatMap((item) => (item.credentialIds.length > 0 ? [item] : []));
       }
       return {
         items: apps,

@@ -64,7 +64,10 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Overlay
+        asChild
+        className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity"
+      />
       {/*zIndex one less than Toast */}
       <DialogPrimitive.Content
         {...props}
@@ -104,7 +107,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
+      <div className="flex mt-5 justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
     </div>
   );
 }

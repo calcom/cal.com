@@ -673,6 +673,8 @@
   "next_step": "Skip step",
   "prev_step": "Prev step",
   "installed": "Installed",
+  "active_install": "{{count}} active install",
+  "active_install_plural": "{{count}} active installs",
   "disconnect": "Disconnect",
   "embed_your_calendar": "Embed your calendar within your webpage",
   "connect_your_favourite_apps": "Connect your favourite apps.",

@@ -95,8 +95,6 @@ function ConnectOrDisconnectIntegrationButton(props: {
   );
 }
 
-type AppOutput = inferQueryOutput<"viewer.integrations">["items"][0];
-
 interface IntegrationsContainerProps {
   variant: App["variant"];
   className?: string;
@@ -240,6 +238,7 @@ export default function IntegrationsPage() {
     <QueryCell
       query={query}
       success={({ data }) => {
+        console.log({ data });
         return (
           <Shell
             heading={t("installed_apps")}

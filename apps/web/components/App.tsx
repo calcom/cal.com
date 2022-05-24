@@ -5,6 +5,8 @@ import {
   FlagIcon,
   MailIcon,
   ShieldCheckIcon,
+  PlusIcon,
+  CheckIcon,
 } from "@heroicons/react/outline";
 import { ChevronLeftIcon } from "@heroicons/react/solid";
 import Link from "next/link";
@@ -59,7 +61,7 @@ export default function App({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedApp, setInstalledApp] = useState(false);
+  const [installedApp, setInstalledApp] = useState(0);
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
@@ -72,7 +74,8 @@ export default function App({
           },
         });
         if (result.status === 200) {
-          setInstalledApp(true);
+          const res = await result.json();
+          setInstalledApp(res.count);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -107,10 +110,20 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal || installedApp ? (
-                  <Button color="secondary" disabled title="This app is globally installed">
-                    {t("installed")}
-                  </Button>
+                {isGlobal || installedApp > 0 ? (
+                  <div className="space-x-3">
+                    <Button StartIcon={CheckIcon} color="secondary" disabled>
+                      {t("active_install", { count: installedApp })}
+                    </Button>
+                    <InstallAppButton
+                      type={type}
+                      render={(buttonProps) => (
+                        <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                          {t("add_another")}
+                        </Button>
+                      )}
+                    />
+                  </div>
                 ) : (
                   <InstallAppButton
                     type={type}

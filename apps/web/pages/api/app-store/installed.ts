@@ -14,15 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const userId = req.session.user.id;
     try {
-      const installedApp = await prisma.credential.findFirst({
+      const installedApp = await prisma.credential.findMany({
         where: {
           type: appCredentialType as string,
           userId: userId,
         },
       });
 
-      if (installedApp && !!installedApp.key) {
-        res.status(200);
+      if (installedApp && !!installedApp.length) {
+        res.json({ count: installedApp.length });
       } else {
         res.status(404);
       }
