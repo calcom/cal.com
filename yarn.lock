@@ -10366,6 +10366,11 @@ libphonenumber-js@^1.9.52, libphonenumber-js@^1.9.53:
   resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.9.53.tgz#f4f3321f8fb0ee62952c2a8df4711236d2626088"
   integrity sha512-3cuMrA2CY3TbKVC0wKye5dXYgxmVVi4g13gzotprQSguFHMqf0pIrMM2Z6ZtMsSWqvtIqi5TuQhGjMhxz0O9Mw==
 
+libphonenumber-js@^1.9.53:
+  version "1.9.53"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.9.53.tgz#f4f3321f8fb0ee62952c2a8df4711236d2626088"
+  integrity sha512-3cuMrA2CY3TbKVC0wKye5dXYgxmVVi4g13gzotprQSguFHMqf0pIrMM2Z6ZtMsSWqvtIqi5TuQhGjMhxz0O9Mw==
+
 lie@3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/lie/-/lie-3.1.1.tgz#9a436b2cc7746ca59de7a41fa469b3efb76bd87e"
