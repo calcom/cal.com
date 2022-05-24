@@ -1,5 +1,5 @@
 const CalText = (props) => {
-  const { value, setValue, config, readonly, placeholder, maxLength, customProps } = props;
+  const { value, setValue, config, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
   const onChange = (e) => {
     let val = e.target.value;
     if (val === "") val = undefined; // don't allow empty value
@@ -14,6 +14,7 @@ const CalText = (props) => {
       disabled={readonly}
       onChange={onChange}
       maxLength={maxLength}
+      {...remainingProps}
       {...customProps}
     />
   );

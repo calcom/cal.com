@@ -159,7 +159,6 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
     },
   });
 
-  const [formName, setFormName] = useState();
   if (subPages.length > 1) {
     return <Page404 />;
   }

@@ -13,6 +13,7 @@ import Select from "@components/ui/form/Select";
 
 import { utils } from "../../slackmessaging/lib";
 import RoutingShell from "../components/RoutingShell";
+import RoutingForm, { processRoute } from "../components/form";
 // @ts-ignore
 import CalConfig from "../components/react-awesome-query-builder/config/config";
 import { FieldTypes } from "./form";
@@ -151,6 +152,23 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
     []
   );
 
+  const [previewResponse, setPreviewResponse] = useState(null);
+  const getActionSummary = () => {
+    if (!previewResponse) {
+      return "Submit the form to evaluate the route";
+    }
+    const decidedAction = processRoute({ form, response: previewResponse });
+    if (!decidedAction) {
+      return "Now route can be matched";
+    }
+    if (decidedAction.type === "customPageMessage") {
+      return "Show the custom message: " + decidedAction.value;
+    } else if (decidedAction.type === "eventTypeRedirectUrl") {
+      return `Take user to /${decidedAction.value}`;
+    } else if (decidedAction.type === "externalRedirectUrl") {
+      return `Take user to ${decidedAction.value}`;
+    }
+  };
   if (subPages.length > 1) {
     return <Page404 />;
   }
@@ -177,98 +195,118 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
   ];
   return (
     <RoutingShell heading={<PencilEdit value={form.name} readOnly={true}></PencilEdit>} form={form}>
-      <div className="route-config w-1/2">
-        <div className="cal-query-builder mr-10">
-          {routes.map((route, key) => {
-            const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
-            console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
-            return (
-              <div key={key}>
-                {key !== 0 ? <hr className="my-4" /> : null}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Label className="text-lg">Go to</Label>
-                    <Select
-                      className="ml-10"
-                      value={RoutingPages.find((page) => page.value === route.action.type)}
-                      onChange={(item) => {
-                        if (!item) {
-                          return;
-                        }
-                        const action = {
-                          type: item.value,
-                        };
+      <div className="flex">
+        <div className="route-config -mx-4 w-4/6 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+          <div className="cal-query-builder mr-10">
+            {routes.map((route, key) => {
+              const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
+              console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
+              return (
+                <div key={key}>
+                  {key !== 0 ? <hr className="my-4" /> : null}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Label className="text-lg">Go to</Label>
+                      <Select
+                        className="ml-10"
+                        value={RoutingPages.find((page) => page.value === route.action.type)}
+                        onChange={(item) => {
+                          if (!item) {
+                            return;
+                          }
+                          const action = {
+                            type: item.value,
+                          };
 
-                        if (action.type === "customPageMessage") {
-                          action.value = "We are not ready for you yet :(";
-                        } else {
-                          action.value = "";
-                        }
+                          if (action.type === "customPageMessage") {
+                            action.value = "We are not ready for you yet :(";
+                          } else {
+                            action.value = "";
+                          }
 
-                        setRoute(route.id, { action });
-                      }}
-                      options={RoutingPages}></Select>
+                          setRoute(route.id, { action });
+                        }}
+                        options={RoutingPages}></Select>
 
-                    {route.action.type ? (
-                      route.action.type === "customPageMessage" ? (
-                        <textarea
-                          value={route.action.value}
-                          onChange={(e) => {
-                            setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                          }}></textarea>
-                      ) : (
-                        <input
-                          type="text"
-                          value={route.action.value}
-                          onChange={(e) => {
-                            setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                          }}
-                          placeholder={
-                            route.action.type === "eventTypeRedirectUrl"
-                              ? "Enter Cal Link"
-                              : "Enter External Redirect URL"
-                          }></input>
-                      )
-                    ) : null}
+                      {route.action.type ? (
+                        route.action.type === "customPageMessage" ? (
+                          <textarea
+                            value={route.action.value}
+                            onChange={(e) => {
+                              setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                            }}></textarea>
+                        ) : (
+                          <input
+                            type="text"
+                            value={route.action.value}
+                            onChange={(e) => {
+                              setRoute(route.id, { action: { ...route.action, value: e.target.value } });
+                            }}
+                            placeholder={
+                              route.action.type === "eventTypeRedirectUrl"
+                                ? "Enter Cal Link"
+                                : "Enter External Redirect URL"
+                            }></input>
+                        )
+                      ) : null}
 
-                    <div className="ml-10 text-xl italic">IF</div>
+                      <div className="ml-10 text-xl italic">IF</div>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const newRoutes = routes.filter((r) => r.id !== route.id);
+                        setStoredRoutes(newRoutes);
+                      }}>
+                      Delete Route
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => {
-                      const newRoutes = routes.filter((r) => r.id !== route.id);
-                      setStoredRoutes(newRoutes);
-                    }}>
-                    Delete Route
-                  </Button>
+                  <Query
+                    {...config}
+                    value={route.state.tree}
+                    onChange={(immutableTree, config) => {
+                      onChange(route, immutableTree, config);
+                    }}
+                    renderBuilder={renderBuilder}
+                  />
                 </div>
-                <Query
-                  {...config}
-                  value={route.state.tree}
-                  onChange={(immutableTree, config) => {
-                    onChange(route, immutableTree, config);
-                  }}
-                  renderBuilder={renderBuilder}
-                />
-              </div>
-            );
-          })}
-          <Button
-            onClick={() => {
-              const newEmptyRoute = getEmptyRoute();
-              const newRoutes = [
-                ...routes,
-                {
-                  ...newEmptyRoute,
-                  state: {
-                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
-                    config,
+              );
+            })}
+            <Button
+              onClick={() => {
+                const newEmptyRoute = getEmptyRoute();
+                const newRoutes = [
+                  ...routes,
+                  {
+                    ...newEmptyRoute,
+                    state: {
+                      tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
+                      config,
+                    },
                   },
-                },
-              ];
-              setStoredRoutes(newRoutes);
-            }}>
-            Add New Route
-          </Button>
+                ];
+                setStoredRoutes(newRoutes);
+              }}>
+              Add New Route
+            </Button>
+          </div>
+        </div>
+        <div className="ml-10 w-2/6">
+          <div className="transition-max-width mx-auto my-0 max-w-3xl duration-500 ease-in-out md:mb-10">
+            <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
+              <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900">
+                  Result
+                </h1>
+                <div>{getActionSummary()}</div>
+              </div>
+            </div>
+          </div>
+
+          <RoutingForm
+            formId={formId}
+            onSubmit={(response) => {
+              setPreviewResponse(response);
+            }}></RoutingForm>
         </div>
       </div>
     </RoutingShell>
