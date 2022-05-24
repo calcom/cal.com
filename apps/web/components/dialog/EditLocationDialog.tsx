@@ -102,6 +102,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   });
 
   const locationFormMethods = useForm<LocationFormValues>({
+    mode: "onSubmit",
     resolver: zodResolver(locationFormSchema),
   });
 
@@ -110,95 +111,84 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     name: "locationType",
   });
 
-  const LocationOptions = () => {
-    if (!selectedLocation) {
-      return null;
-    }
-    switch (selectedLocation) {
-      case LocationType.InPerson:
-        return (
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              {t("set_address_place")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                {...locationFormMethods.register("locationAddress")}
-                id="address"
-                required
-                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
-                defaultValue={
-                  defaultValues
-                    ? defaultValues.find(
-                        (location: { type: LocationType }) => location.type === LocationType.InPerson
-                      )?.address
-                    : undefined
-                }
-              />
-            </div>
-          </div>
-        );
-      case LocationType.Link:
-        return (
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              {t("set_link_meeting")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                {...locationFormMethods.register("locationLink")}
-                id="address"
-                required
-                className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-                defaultValue={
-                  defaultValues
-                    ? defaultValues.find(
-                        (location: { type: LocationType }) => location.type === LocationType.Link
-                      )?.link
-                    : undefined
-                }
-              />
-              {locationFormMethods.formState.errors.locationLink && (
-                <p className="mt-1 text-sm text-red-500">URL needs to start with https://</p>
-              )}
-            </div>
-          </div>
-        );
-      case LocationType.UserPhone:
-        return (
-          <div>
-            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
-              {t("set_your_phone_number")}
-              {locationFormMethods.formState?.errors?.locationPhoneNumber?.message}
-            </label>
-            <div className="mt-1">
-              <PhoneInput
-                control={locationFormMethods.control}
-                name="locationPhoneNumber"
-                required
-                id="locationPhoneNumber"
-                placeholder={t("host_phone_number")}
-                rules={{}}
-                defaultValue={
-                  defaultValues
-                    ? defaultValues.find(
-                        (location: { type: LocationType }) => location.type === LocationType.UserPhone
-                      )?.hostPhoneNumber
-                    : undefined
-                }
-              />
-              {locationFormMethods.formState.errors.locationPhoneNumber && (
-                <p className="mt-1 text-sm text-red-500">Invalid input</p>
-              )}
-            </div>
-          </div>
-        );
-      default:
-        return <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>;
-    }
-  };
+  const LocationOptions =
+    selectedLocation === LocationType.InPerson ? (
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          {t("set_address_place")}
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            {...locationFormMethods.register("locationAddress")}
+            id="address"
+            required
+            className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+            defaultValue={
+              defaultValues
+                ? defaultValues.find(
+                    (location: { type: LocationType }) => location.type === LocationType.InPerson
+                  )?.address
+                : undefined
+            }
+          />
+        </div>
+      </div>
+    ) : selectedLocation === LocationType.Link ? (
+      <div>
+        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+          {t("set_link_meeting")}
+        </label>
+        <div className="mt-1">
+          <input
+            type="text"
+            {...locationFormMethods.register("locationLink")}
+            id="address"
+            required
+            className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            defaultValue={
+              defaultValues
+                ? defaultValues.find(
+                    (location: { type: LocationType }) => location.type === LocationType.Link
+                  )?.link
+                : undefined
+            }
+          />
+          {locationFormMethods.formState.errors.locationLink && (
+            <p className="mt-1 text-sm text-red-500">URL needs to start with https://</p>
+          )}
+        </div>
+      </div>
+    ) : selectedLocation === LocationType.UserPhone ? (
+      <div>
+        <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
+          {t("set_your_phone_number")}
+          {locationFormMethods.formState?.errors?.locationPhoneNumber?.message}
+        </label>
+        <div className="mt-1">
+          <PhoneInput
+            control={locationFormMethods.control}
+            name="locationPhoneNumber"
+            required
+            id="locationPhoneNumber"
+            placeholder={t("host_phone_number")}
+            rules={{}}
+            defaultValue={
+              defaultValues
+                ? defaultValues.find(
+                    (location: { type: LocationType }) => location.type === LocationType.UserPhone
+                  )?.hostPhoneNumber
+                : undefined
+            }
+          />
+          {locationFormMethods.formState.errors.locationPhoneNumber && (
+            <p className="mt-1 text-sm text-red-500">Invalid input</p>
+          )}
+        </div>
+      </div>
+    ) : (
+      <p className="text-sm">{LocationOptionsToString(selectedLocation, t)}</p>
+    );
 
   return (
     <Dialog open={isOpenDialog}>
@@ -289,7 +279,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 />
               )}
             />
-            <LocationOptions />
+            {selectedLocation && LocationOptions}
             <div className="mt-4 flex justify-end space-x-2">
               <Button
                 onClick={() => {
