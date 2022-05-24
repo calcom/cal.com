@@ -269,14 +269,17 @@ export const sendRequestRescheduleEmail = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
+export const sendLocationChangeEmails = async (
+  calEvent: CalendarEvent,
+  recurringEvent: RecurringEvent = {}
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeLocationChangeEmail(calEvent, attendee);
+          const scheduledEmail = new AttendeeLocationChangeEmail(calEvent, attendee, recurringEvent);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeLocationChangeEmail.sendEmail failed", e));
@@ -288,7 +291,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerLocationChangeEmail(calEvent);
+        const scheduledEmail = new OrganizerLocationChangeEmail(calEvent, recurringEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
