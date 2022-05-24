@@ -15,6 +15,7 @@ import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
+import { useCollector } from "next-collect/client";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -37,8 +38,8 @@ import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { collectEventTypes } from "@lib/nextCollect";
 import { parseDate } from "@lib/parseDate";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
@@ -105,18 +106,16 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
-  const telemetry = useTelemetry();
+  const collector = useCollector();
 
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
-        collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
-  }, [telemetry]);
+    // collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
+    collector.event(top !== window ? collectEventTypes.embedView : collectEventTypes.pageView, {
+      isTeamBooking: document.URL.includes("team/"),
+    });
+  }, [collector]);
 
   const changeDate = useCallback(
     (newDate: Dayjs) => {

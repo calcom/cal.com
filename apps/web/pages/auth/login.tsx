@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
+import { useCollector } from "next-collect/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -15,8 +16,8 @@ import { EmailField, Form, PasswordField } from "@calcom/ui/form/fields";
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
+import { collectEventTypes } from "@lib/nextCollect";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
@@ -58,7 +59,7 @@ export default function Login({
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  const telemetry = useTelemetry();
+  const collector = useCollector();
 
   let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
 
@@ -105,7 +106,7 @@ export default function Login({
           form={form}
           className="space-y-6"
           handleSubmit={(values) => {
-            telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.login, collectPageParameters()));
+            collector.event(collectEventTypes.login, {});
             signIn<"credentials">("credentials", { ...values, callbackUrl, redirect: false })
               .then((res) => {
                 if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
@@ -180,9 +181,7 @@ export default function Login({
                   onClick={async (e) => {
                     e.preventDefault();
                     // track Google logins. Without personal data/payload
-                    telemetry.withJitsu((jitsu) =>
-                      jitsu.track(telemetryEventTypes.googleLogin, collectPageParameters())
-                    );
+                    collector.event(collectEventTypes.googleLogin, {});
                     await signIn("google");
                   }}>
                   {t("signin_with_google")}

@@ -1,6 +1,7 @@
 import { CalendarIcon, XIcon } from "@heroicons/react/solid";
 import dayjs from "dayjs";
 import { GetServerSidePropsContext } from "next";
+import { useCollector } from "next-collect/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -11,7 +12,7 @@ import { TextField } from "@calcom/ui/form/fields";
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectEventTypes } from "@lib/nextCollect";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -28,7 +29,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(props.booking ? null : t("booking_already_cancelled"));
   const [cancellationReason, setCancellationReason] = useState<string>("");
-  const telemetry = useTelemetry();
+  const collector = useCollector();
 
   return (
     <div>
@@ -114,9 +115,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 reason: cancellationReason,
                               };
 
-                              telemetry.withJitsu((jitsu) =>
-                                jitsu.track(telemetryEventTypes.bookingCancelled, collectPageParameters())
-                              );
+                              collector.event(collectEventTypes.bookingCancelled, {});
 
                               const res = await fetch("/api/cancel", {
                                 body: JSON.stringify(payload),

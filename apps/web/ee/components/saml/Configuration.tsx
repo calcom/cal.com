@@ -1,3 +1,4 @@
+import { useCollector } from "next-collect/client";
 import React, { useEffect, useState, useRef } from "react";
 
 import showToast from "@calcom/lib/notification";
@@ -7,7 +8,7 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectEventTypes } from "@lib/nextCollect";
 import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -25,7 +26,7 @@ export default function SAMLConfiguration({
 
   const query = trpc.useQuery(["viewer.showSAMLView", { teamsView, teamId }]);
 
-  const telemetry = useTelemetry();
+  const collector = useCollector();
 
   useEffect(() => {
     const data = query.data;
@@ -72,7 +73,7 @@ export default function SAMLConfiguration({
     const rawMetadata = samlConfigRef.current.value;
 
     // track Google logins. Without personal data/payload
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.samlConfig, collectPageParameters()));
+    collector.event(collectEventTypes.samlConfig, {});
 
     mutation.mutate({
       encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),
