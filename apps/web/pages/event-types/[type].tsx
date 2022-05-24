@@ -1824,7 +1824,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     <label
                                                       htmlFor="beforeBufferTime"
                                                       className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                      Enter number of seats
+                                                      {t("seats_input")}
                                                     </label>
                                                     <input
                                                       type="number"
@@ -1842,7 +1842,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     <label
                                                       htmlFor="beforeBufferTime"
                                                       className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                      Number of seats per booking
+                                                      {t("seats_per_booking")}
                                                     </label>
                                                     <Select
                                                       isSearchable={false}
