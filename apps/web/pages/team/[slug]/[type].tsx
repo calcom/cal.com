@@ -76,6 +76,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           timeZone: true,
           slotInterval: true,
           metadata: true,
+          seatsPerTimeSlot: true,
           schedule: {
             select: {
               timeZone: true,
