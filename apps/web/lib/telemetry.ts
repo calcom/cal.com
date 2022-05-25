@@ -1,5 +1,5 @@
 import { NextApiRequest } from "next";
-import { EventSinkOpts } from "next-collect";
+import { EventSinkOpts, PageEvent } from "next-collect";
 import { useCollector } from "next-collect/client";
 
 export const telemetryEventTypes = {
@@ -16,6 +16,19 @@ export const telemetryEventTypes = {
   embedBookingConfirmed: "embed_booking_confirmed",
 };
 
+export function collectPageParameters(
+  route?: string,
+  extraData: Record<string, unknown> = {}
+): Record<string, unknown> {
+  const host = document.location.hostname;
+  //starts with ''
+  const docPath = route ?? "";
+  return {
+    page_url: route,
+    url: document.location.protocol + "//" + host + (docPath ?? ""),
+    ...extraData,
+  };
+}
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
     {
@@ -31,6 +44,10 @@ export const nextCollectBasicSettings: EventSinkOpts = {
   ],
   eventTypes: [
     { "/api/collect-api": null },
+    { "*.ttf": null },
+    { "*.sitemanifest": null },
+    { "*.sitemanifest": null },
+    { "*.svg": null },
     { "/api*": null },
     { "/img*": null },
     { "/favicon*": null },
@@ -39,19 +56,16 @@ export const nextCollectBasicSettings: EventSinkOpts = {
 };
 
 export const extendEventData = (req: NextApiRequest) => {
-  const route = req.url;
-  const host = req.headers.host ?? "";
-  const docPath = route ?? "";
-  return {
-    page_url: docPath,
-    page_title: "",
-    source_ip: "",
-    url: document.location.protocol + "//" + host + docPath,
-    doc_host: "localhost" === host || "127.0.0.1" === host ? "localhost" : "masked",
-    doc_search: "",
-    doc_path: docPath,
-    referer: "",
-  };
+  const pageOverwrite: Partial<PageEvent> & any = {
+    title: "",
+    ipAddress: "",
+    queryString: "",
+    referrer: "",
+    onVercel: !!req.headers["x-vercel-id"],
+    isAuthorized: !!req.cookies['next-auth.session-token'],
+    utc_time: new Date().toISOString(),
+  }
+  return pageOverwrite;
 };
 
 export const useTelemetry = useCollector;
