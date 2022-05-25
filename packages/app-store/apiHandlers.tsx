@@ -5,6 +5,7 @@ export const apiHandlers = {
   googlecalendar: import("./googlecalendar/api"),
   hubspotothercalendar: import("./hubspotothercalendar/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
+  exchange2016calendar: import("./exchange2016calendar/api"),
   office365calendar: import("./office365calendar/api"),
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),

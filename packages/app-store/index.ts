@@ -3,6 +3,7 @@ import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
 import * as dailyvideo from "./dailyvideo";
 import * as exchange2013calendar from "./exchange2013calendar";
+import * as exchange2016calendar from "./exchange2016calendar";
 import * as giphy from "./giphy";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
@@ -44,6 +45,7 @@ const appStore = {
   giphy,
   zapier,
   exchange2013calendar,
+  exchange2016calendar,
 };
 
 export default appStore;

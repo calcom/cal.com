@@ -29,6 +29,7 @@ export const InstallAppButtonMap = {
   spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
   exchange2013: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
+  exchange2016: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (
