@@ -129,6 +129,7 @@ const BookingPage = ({
             paymentUid,
             date,
             name: attendees[0].name,
+            email: attendees[0].email,
             absolute: false,
           })
         );
