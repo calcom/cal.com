@@ -31,7 +31,7 @@ test.describe("Change Passsword Test", () => {
     const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
     await goToBillingOrSaveBtn.click();
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(200);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
@@ -60,7 +60,7 @@ test.describe("Change Passsword Test", () => {
     await goToBillingOrSaveBtn.click();
 
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(200);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
@@ -100,7 +100,7 @@ test.describe("Change Passsword Test", () => {
     await goToBillingOrSaveBtn.click();
 
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(200);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,

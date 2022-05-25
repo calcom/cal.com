@@ -1,11 +1,6 @@
-import { InformationCircleIcon } from "@heroicons/react/outline";
 import {
-  ArrowNarrowRightIcon,
   CheckIcon,
-  ClockIcon,
   ExternalLinkIcon,
-  LockClosedIcon,
-  LockOpenIcon,
   PencilAltIcon,
   StarIcon,
   TrashIcon,
@@ -28,8 +23,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm } from "react-hook-form";
-import { UseMutationResult } from "react-query";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
@@ -60,6 +53,9 @@ import Badge from "@components/ui/Badge";
 import InfoBadge from "@components/ui/InfoBadge";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
+
+import { AppRouter } from "@server/routers/_app";
+import { TRPCClientErrorLike } from "@trpc/client";
 
 import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
@@ -120,22 +116,23 @@ export enum UsernameChangeStatusEnum {
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
+  setCurrentUsername: (value: string | undefined) => void;
   userIsPremium: boolean;
   inputUsernameValue: string | undefined;
   usernameRef: MutableRefObject<HTMLInputElement>;
   premiumUsername: boolean;
   subscriptionId: string;
   // @TODO: not use any
-  updateUsername: any;
   setPremiumUsername: (value: boolean) => void;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
-  onErrorMutation?: (error: Error) => void;
+  onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
 const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   const {
     currentUsername,
+    setCurrentUsername,
     userIsPremium,
     inputUsernameValue,
     setInputUsernameValue,
@@ -239,9 +236,6 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
     console.log("usernameChangeCondition changed", usernameChangeCondition, subscriptionId);
   }, [usernameChangeCondition]);
 
-  const form = useForm<{
-    name: string;
-  }>();
   const obtainNewUsernameChangeCondition = ({
     userIsPremium,
     isNewUsernamePremium,
@@ -263,6 +257,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
+      setCurrentUsername(inputUsernameValue);
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -274,6 +269,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   });
   const ActionButtons = (props: { index: string }) => {
     const { index } = props;
+    console.log(usernameIsAvailable, premiumUsername, currentUsername, inputUsernameValue);
     return (usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button
@@ -331,24 +327,26 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => setInputUsernameValue(event.target.value)}
             data-testid="username-input"
           />
-          <div
-            className="top-0"
-            style={{
-              position: "absolute",
-              right: 2,
-              display: "flex",
-              flexDirection: "row",
-            }}>
-            <span
-              className={classNames(
-                "mx-2 py-1",
-                premiumUsername ? "text-orange-500" : "",
-                usernameIsAvailable ? "" : ""
-              )}>
-              {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
-              {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
-            </span>
-          </div>
+          {currentUsername !== inputUsernameValue && (
+            <div
+              className="top-0"
+              style={{
+                position: "absolute",
+                right: 2,
+                display: "flex",
+                flexDirection: "row",
+              }}>
+              <span
+                className={classNames(
+                  "mx-2 py-1",
+                  premiumUsername ? "text-orange-500" : "",
+                  usernameIsAvailable ? "" : ""
+                )}>
+                {premiumUsername ? <StarIcon className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <CheckIcon className="mt-[4px] w-6" /> : <></>}
+              </span>
+            </div>
+          )}
         </div>
         <div className="xs:hidden">
           <ActionButtons index="desktop" />
@@ -483,7 +481,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     await utils.invalidateQueries(["viewer.me"]);
   };
 
-  const onErrorMutation = (error: Error) => {
+  const onErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasErrors(true);
     setErrorMessage(error.message);
     document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
@@ -600,7 +598,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
       timeFormat: enteredTimeFormat,
     });
   }
-  const currentUsername = user.username || undefined;
+  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   const [usernameLock, setUsernameLock] = useState(true);
   const [premiumUsername, setPremiumUsername] = useState(user.isPremiumUsername);
@@ -636,6 +634,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   {...{
                     usernameRef,
                     currentUsername,
+                    setCurrentUsername,
                     inputUsernameValue,
                     setInputUsernameValue,
                     usernameLock,
