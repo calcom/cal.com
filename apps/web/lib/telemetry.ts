@@ -34,15 +34,17 @@ export const nextCollectBasicSettings: EventSinkOpts = {
     {
       type: "jitsu",
       opts: {
-        key: process.env.TELEMETRY_S2S_KEY,
-        server: "https://t.calendso.com",
+        // key: process.env.TELEMETRY_S2S_KEY,
+        // server: "https://t.calendso.com",
+        key: "s2s.5a5q9ho3phychs08tjjmy6.or027t7eru9gv6x13e2r8",
+        server: "http://localhost:8001",
       },
     },
   ],
   cookieName: "__clnds",
   eventTypes: [
     { "*.ttf": null },
-    { "*.sitemanifest": null },
+    { "*.webmanifest": null },
     { "*.json": null },
     { "*.svg": null },
     { "/api/collect-events": null },
