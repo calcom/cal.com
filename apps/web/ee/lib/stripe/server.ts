@@ -80,6 +80,7 @@ export async function handlePayment(
       link: createPaymentLink({
         paymentUid: payment.uid,
         name: booking.user?.name,
+        email: booking.user?.email,
         date: booking.startTime.toISOString(),
       }),
     },
