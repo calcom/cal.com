@@ -55,19 +55,19 @@ async function createOrlistAllWebhooks(
      *       401:
      *        description: Authorization information is missing or invalid.
      */
-    // const safe = schemaWebhookCreateBodyParams.safeParse(body);
-    // if (!safe.success) {
-    //   res.status(400).json({ message: "Invalid request body" });
-    //   return;
-    // }
-    // const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
-    // if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
-    // else
-    //   (error: Error) =>
-    //     res.status(400).json({
-    //       message: "Could not create new webhook",
-    //       error,
-    //     });
+    const safe = schemaWebhookCreateBodyParams.safeParse(body);
+    if (!safe.success) {
+      res.status(400).json({ message: "Invalid request body" });
+      return;
+    }
+    const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
+    if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
+    else
+      (error: Error) =>
+        res.status(400).json({
+          message: "Could not create new webhook",
+          error,
+        });
   } else res.status(405).json({ message: `Method ${method} not allowed` });
 }
 
