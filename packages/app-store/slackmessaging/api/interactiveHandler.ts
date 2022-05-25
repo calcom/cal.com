@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
 import createEvent from "../lib/actions/createEvent";
-import slackVerify from "../lib/slackVerify";
 
 enum InteractionEvents {
   CREATE_EVENT = "cal.event.create",
