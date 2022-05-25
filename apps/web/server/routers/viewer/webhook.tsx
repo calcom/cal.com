@@ -42,22 +42,58 @@ export const webhookRouter = createProtectedRouter()
       eventTypeId: z.number().optional(),
       appId: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input }) {
-      if (input.eventTypeId) {
-        return await ctx.prisma.webhook.create({
-          data: {
-            id: v4(),
-            ...input,
-          },
+    async resolve({ ctx, input: { eventTypeId, ...input } }) {
+      const webhookCreateInput: Prisma.WebhookCreateInput = {
+        id: v4(),
+        ...input,
+      };
+      const webhookPayload = { webhooks: { create: webhookCreateInput } };
+      let teamId = -1;
+      if (eventTypeId) {
+        /* [1] If an eventType is provided, we find the team were it belongs */
+        const team = await ctx.prisma.team.findFirst({
+          rejectOnNotFound: true,
+          where: { eventTypes: { some: { id: eventTypeId } } },
+          select: { id: true },
         });
+        /* [2] We save the id for later use */
+        teamId = team.id;
       }
-      return await ctx.prisma.webhook.create({
-        data: {
-          id: v4(),
-          userId: ctx.user.id,
-          ...input,
-        },
+      await ctx.prisma.user.update({
+        where: { id: ctx.user.id },
+        /**
+         * [3] Right now only team eventTypes can have webhooks so we make sure the
+         * user adding the webhook belongs to the team.
+         */
+        data: eventTypeId
+          ? {
+              teams: {
+                update: {
+                  /* [3.1] Here we make sure the requesting user belongs to the team */
+                  where: { userId_teamId: { teamId, userId: ctx.user.id } },
+                  data: {
+                    team: {
+                      update: {
+                        eventTypes: {
+                          update: {
+                            where: { id: eventTypeId },
+                            data: webhookPayload,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            }
+          : /* [4] If there's no eventTypeId we create it to the current user instead. */
+            webhookPayload,
       });
+      const webhook = await ctx.prisma.webhook.findUnique({
+        rejectOnNotFound: true,
+        where: { id: webhookCreateInput.id },
+      });
+      return webhook;
     },
   })
   .mutation("edit", {
