@@ -50,6 +50,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       price: true,
       currency: true,
       metadata: true,
+      seatsPerTimeSlot: true,
       team: {
         select: {
           slug: true,

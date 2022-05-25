@@ -1,4 +1,5 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import {
   isSAMLLoginEnabled,
@@ -890,6 +892,32 @@ const loggedInViewerRouter = createProtectedRouter()
         console.error("Error deleting SAML configuration", err);
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
+    },
+  })
+  .mutation("submitFeedback", {
+    input: z.object({
+      rating: z.string(),
+      comment: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { rating, comment } = input;
+
+      const feedback = {
+        userId: ctx.user.id,
+        rating: rating,
+        comment: comment,
+      };
+
+      await ctx.prisma.feedback.create({
+        data: {
+          date: dayjs().toISOString(),
+          userId: ctx.user.id,
+          rating: rating,
+          comment: comment,
+        },
+      });
+
+      if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
     },
   });
 

@@ -126,6 +126,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             price: true,
             currency: true,
             disableGuests: true,
+            seatsPerTimeSlot: true,
             users: {
               select: {
                 id: true,
@@ -176,8 +177,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   })[0];
 
   let booking: GetBookingType | null = null;
-  if (context.query.rescheduleUid) {
-    booking = await getBooking(prisma, context.query.rescheduleUid as string);
+  if (context.query.rescheduleUid || context.query.bookingUid) {
+    booking = await getBooking(
+      prisma,
+      context.query.rescheduleUid
+        ? (context.query.rescheduleUid as string)
+        : (context.query.bookingUid as string)
+    );
   }
 
   const dynamicNames = isDynamicGroupBooking
