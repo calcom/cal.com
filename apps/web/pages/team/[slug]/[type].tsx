@@ -7,6 +7,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
+import { AppStoreLocationType, locationHiddenFilter, LocationObject } from "@lib/location";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -71,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           beforeEventBuffer: true,
           afterEventBuffer: true,
           recurringEvent: true,
+          locations: true,
           price: true,
           currency: true,
           timeZone: true,
@@ -107,11 +109,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   eventType.schedule = null;
 
+  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    locations: locationHiddenFilter(locations),
   });
 
   eventTypeObject.availability = [];
