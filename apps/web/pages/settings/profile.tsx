@@ -20,6 +20,7 @@ import { useRouter } from "next/router";
 import {
   ComponentProps,
   FormEvent,
+  MutableRefObject,
   RefObject,
   useCallback,
   useEffect,
@@ -28,6 +29,7 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
+import { UseMutationResult } from "react-query";
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
@@ -116,7 +118,22 @@ export enum UsernameChangeStatusEnum {
   DOWNGRADE = "DOWNGRADE",
 }
 
-const CustomUsernameTextfield = (props) => {
+interface ICustomUsernameProps {
+  currentUsername: string | undefined;
+  userIsPremium: boolean;
+  inputUsernameValue: string | undefined;
+  usernameRef: MutableRefObject<HTMLInputElement>;
+  premiumUsername: boolean;
+  subscriptionId: string;
+  // @TODO: not use any
+  updateUsername: any;
+  setPremiumUsername: (value: boolean) => void;
+  setInputUsernameValue: (value: string) => void;
+  onSuccessMutation?: () => void;
+  onErrorMutation?: (error: Error) => void;
+}
+
+const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   const {
     currentUsername,
     userIsPremium,
@@ -126,7 +143,8 @@ const CustomUsernameTextfield = (props) => {
     premiumUsername,
     setPremiumUsername,
     subscriptionId,
-    updateUsername,
+    onSuccessMutation,
+    onErrorMutation,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -241,31 +259,45 @@ const CustomUsernameTextfield = (props) => {
     }
     return resultCondition;
   };
+  const utils = trpc.useContext();
+  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+    onSuccess: async () => {
+      onSuccessMutation && (await onSuccessMutation());
+      setOpenDialogSaveUsername(false);
+    },
+    onError: (error) => {
+      onErrorMutation && onErrorMutation(error);
+    },
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.i18n"]);
+    },
+  });
   const ActionButtons = (props: { index: string }) => {
     const { index } = props;
-    return (
-      (usernameIsAvailable || premiumUsername) &&
-      currentUsername !== inputUsernameValue && (
-        <div className="flex flex-row">
-          <Button
-            type="button"
-            className="mx-2"
-            onClick={() => setOpenDialogSaveUsername(true)}
-            data-testid={`update-username-btn-${index}`}>
-            Update
-          </Button>
-          <Button
-            type="button"
-            color="minimal"
-            className="mx-2"
-            onClick={() => {
+    return (usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue ? (
+      <div className="flex flex-row">
+        <Button
+          type="button"
+          className="mx-2"
+          onClick={() => setOpenDialogSaveUsername(true)}
+          data-testid={`update-username-btn-${index}`}>
+          Update
+        </Button>
+        <Button
+          type="button"
+          color="minimal"
+          className="mx-2"
+          onClick={() => {
+            if (currentUsername) {
               setInputUsernameValue(currentUsername);
               usernameRef.current.value = currentUsername;
-            }}>
-            Cancel
-          </Button>
-        </div>
-      )
+            }
+          }}>
+          Cancel
+        </Button>
+      </div>
+    ) : (
+      <></>
     );
   };
 
@@ -381,17 +413,20 @@ const CustomUsernameTextfield = (props) => {
           </div>
 
           <div className="mt-4 flex flex-row-reverse gap-x-2">
+            {/* NOTE: refactor to to Button Simple responsibility */}
+            {updateUsername.isSuccess ? "SUCCESS" : updateUsername.isSuccess.toString()}
             <Button
               type="button"
               loading={updateUsername.isLoading}
               data-testid="go-to-billing-or-save"
               onClick={async () => {
                 let url = "";
-                await saveIntentUsername();
                 if (
+                  // redirect to stripe
                   usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
                   usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE
                 ) {
+                  await saveIntentUsername();
                   // redirect to checkout
                   url = "/api/integrations/stripepayment/subscription";
                   const result = await fetch(url, {
@@ -408,11 +443,11 @@ const CustomUsernameTextfield = (props) => {
                   const body = await result.json();
                   window.location.href = body.url;
                 } else {
+                  // Normal save
                   if (usernameChangeCondition === UsernameChangeStatusEnum.NORMAL) {
                     updateUsername.mutate({
                       username: inputUsernameValue,
                     });
-                    setOpenDialogSaveUsername(false);
                   }
                 }
               }}>
@@ -439,20 +474,23 @@ const CustomUsernameTextfield = (props) => {
 
 function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: string }) {
   const { user } = props;
-  const utils = trpc.useContext();
   const { t } = useLocale();
   const router = useRouter();
+  const utils = trpc.useContext();
+  const onSuccessMutation = async () => {
+    showToast(t("your_user_profile_updated_successfully"), "success");
+    setHasErrors(false); // dismiss any open errors
+    await utils.invalidateQueries(["viewer.me"]);
+  };
+
+  const onErrorMutation = (error: Error) => {
+    setHasErrors(true);
+    setErrorMessage(error.message);
+    document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const mutation = trpc.useMutation("viewer.updateProfile", {
-    onSuccess: async () => {
-      showToast(t("your_user_profile_updated_successfully"), "success");
-      setHasErrors(false); // dismiss any open errors
-      await utils.invalidateQueries(["viewer.me"]);
-    },
-    onError: (err) => {
-      setHasErrors(true);
-      setErrorMessage(err.message);
-      document?.getElementsByTagName("main")[0]?.scrollTo({ top: 0, behavior: "smooth" });
-    },
+    onSuccess: onSuccessMutation,
+    onError: onErrorMutation,
     async onSettled() {
       await utils.invalidateQueries(["viewer.i18n"]);
     },
@@ -606,7 +644,8 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     setPremiumUsername,
                     userIsPremium: user.isPremiumUsername,
                     subscriptionId: user.subscriptionId,
-                    updateUsername: mutation,
+                    onSuccessMutation,
+                    onErrorMutation,
                   }}
                 />
               </div>

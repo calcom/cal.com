@@ -49,6 +49,7 @@ const config: PlaywrightTestConfig = {
     trace: "retain-on-failure",
     headless,
   },
+  testMatch: ["change-username.test.ts"],
   projects: [
     {
       name: "chromium",
