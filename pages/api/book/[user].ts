@@ -162,6 +162,7 @@ export const getLocationRequestFromIntegration = ({ location }: GetLocationReque
           requestId: requestId,
         },
       },
+      location,
     };
   }
 

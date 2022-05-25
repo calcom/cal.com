@@ -159,6 +159,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     if (method === "GET") {
+      // get booking id
       const credential = await prisma.credential.findFirst({ where: { userId: booking.userId } });
       const bookingRef = await prisma.bookingReference.findFirst({ where: { bookingId: booking.id } });
       const meetingResult = await getMeeting(credential, bookingRef.uid);

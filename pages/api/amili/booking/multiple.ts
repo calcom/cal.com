@@ -9,15 +9,18 @@ import logger from "../../../../lib/logger";
 import { CalendarEvent } from "@lib/calendarClient";
 import {
   getLocationRequestFromIntegration,
-  PropsRescheduleBooking,
-  PropsSplitCredentials,
+  // PropsRescheduleBooking,
+  // PropsSplitCredentials,
   // rescheduleBooking,
-  scheduleBooking,
-  splitCredentials,
+  // scheduleBooking,
+  // splitCredentials,
   User,
 } from "pages/api/book/[user]";
 // import EventAttendeeMail from "@lib/emails/EventAttendeeMail";
 import { checkRequestPayload } from "./check-request-payload";
+import EventManager from "@lib/amili/EventManager";
+import async from "async";
+import { Credential } from "@prisma/client";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] amili/booking:multiple"] });
@@ -115,6 +118,34 @@ export const checkUserExisted = async (userId: number): Promise<[boolean, User]>
   }
 };
 
+/**
+ * Refreshes a Credential with fresh data from the database.
+ *
+ * @param credential
+ */
+async function refreshCredential(credential: Credential): Promise<any> {
+  const newCredential = await prisma.credential.findUnique({
+    where: {
+      id: +credential.id,
+    },
+  });
+
+  if (!newCredential) {
+    return credential;
+  } else {
+    return newCredential;
+  }
+}
+
+/**
+ * Refreshes the given set of credentials.
+ *
+ * @param credentials
+ */
+async function refreshCredentials(credentials: Credential[]): Promise<Credential[]> {
+  return await async.mapLimit(credentials, 5, refreshCredential);
+}
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { method, body } = req;
 
@@ -136,7 +167,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const data = await Promise.all(
     healthCoachBookingSession.map(async (healthCoachBookingSessionItem) => {
-      const { startTime, endTime, timezone, coachBooking, assBookingId, id } = healthCoachBookingSessionItem;
+      const { startTime, endTime, timezone, coachBooking, id } = healthCoachBookingSessionItem;
 
       const { coachProfileProgram } = coachBooking;
       const user = coachProfileProgram?.coachProfile?.user;
@@ -166,16 +197,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           periodCountCalendarDays: true,
           userId: true,
           user: true,
+          locations: true,
         },
       });
 
-      const props: PropsSplitCredentials = {
-        start: startTime,
-        end: endTime,
-        user: reqAttendee as User,
-      };
+      // const props: PropsSplitCredentials = {
+      //   start: startTime,
+      //   end: endTime,
+      //   user: reqAttendee as User,
+      // };
 
-      const { calendarCredentials, videoCredentials } = await splitCredentials(props);
+      // const { calendarCredentials, videoCredentials } = await splitCredentials(props);
 
       const attendees = [
         {
@@ -198,6 +230,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           name: selectedEventType.user.name,
           timeZone: selectedEventType.user.timeZone,
         },
+        location: "integrations:office365_video",
       };
 
       const rawLocation = "integrations:zoom"; // hard code location
@@ -212,30 +245,41 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // const results = [];
       let referencesToCreate = [];
+      const credentials = await prisma.credential.findMany({
+        where: { userId: reqAttendee.id },
+      });
+      const newCredentials = await refreshCredentials(credentials);
+      const eventManager = new EventManager({
+        destinationCalendar: null,
+        credentials: newCredentials,
+      });
 
-      if (assBookingId) {
-        // const booking = await prisma.booking.findFirst({ where: { id: assBookingId } });
-        // const props: PropsRescheduleBooking = {
-        //   videoCredentials,
-        //   calendarCredentials,
-        //   evt,
-        //   rescheduleUid: booking.uid,
-        //   username: reqAttendee.username,
-        // };
-        // const { referencesToCreate: rescheduleReference } = await rescheduleBooking(props);
-        // results = [...rescheduleResults];
-        // referencesToCreate = [...rescheduleReference];
-      } else {
-        const props: PropsRescheduleBooking = {
-          videoCredentials,
-          calendarCredentials,
-          evt,
-          username: reqAttendee.username,
-        };
-        const { referencesToCreate: scheduleReference } = await scheduleBooking(props);
-        // results = [...scheduleResults];
-        referencesToCreate = [...scheduleReference];
-      }
+      // if (assBookingId) {
+      //   // const booking = await prisma.booking.findFirst({ where: { id: assBookingId } });
+      //   // const props: PropsRescheduleBooking = {
+      //   //   videoCredentials,
+      //   //   calendarCredentials,
+      //   //   evt,
+      //   //   rescheduleUid: booking.uid,
+      //   //   username: reqAttendee.username,
+      //   // };
+      //   // const { referencesToCreate: rescheduleReference } = await rescheduleBooking(props);
+      //   // results = [...rescheduleResults];
+      //   // referencesToCreate = [...rescheduleReference];
+      // } else {
+      //   const props: PropsRescheduleBooking = {
+      //     videoCredentials,
+      //     calendarCredentials,
+      //     evt,
+      //     username: reqAttendee.username,
+      //   };
+      //   const { referencesToCreate: scheduleReference } = await scheduleBooking(props);
+      //   // results = [...scheduleResults];
+      //   referencesToCreate = [...scheduleReference];
+      // }
+
+      const createManager = await eventManager.create(evt);
+      referencesToCreate = createManager.referencesToCreate;
 
       const hashUID = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
 

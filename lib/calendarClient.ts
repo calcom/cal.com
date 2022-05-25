@@ -120,6 +120,8 @@ export interface CalendarEvent {
   organizer: Person;
   attendees: Person[];
   conferenceData?: ConferenceData;
+  videoCallData?: any;
+  destinationCalendar?: any;
 }
 
 export interface ConferenceData {
