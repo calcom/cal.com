@@ -7,7 +7,7 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -72,7 +72,7 @@ export default function SAMLConfiguration({
     const rawMetadata = samlConfigRef.current.value;
 
     // track Google logins. Without personal data/payload
-    telemetry.event(telemetryEventTypes.samlConfig, {});
+    telemetry.event(telemetryEventTypes.samlConfig, collectPageParameters());
 
     mutation.mutate({
       encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),

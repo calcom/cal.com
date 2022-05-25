@@ -114,8 +114,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const [evtsToVerify, setEvtsToVerify] = useState<EvtsToVerify>({});
-
   const telemetry = useTelemetry();
+
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
