@@ -35,7 +35,7 @@ import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import prisma from "@lib/prisma";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { isBrowserLocale24h } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -177,8 +177,10 @@ export default function Success(props: SuccessProps) {
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
   const telemetry = useTelemetry();
   useEffect(() => {
-    // collectPageParameters("/success")
-    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {});
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/success"));
+    }
   }, [telemetry]);
 
   useEffect(() => {

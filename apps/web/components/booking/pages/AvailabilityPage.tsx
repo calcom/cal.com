@@ -38,7 +38,7 @@ import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { parseDate } from "@lib/parseDate";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 
 import CustomBranding from "@components/CustomBranding";
@@ -110,10 +110,13 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    // collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {
-      isTeamBooking: document.URL.includes("team/"),
-    });
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
+        collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
+      );
+    }
   }, [telemetry]);
 
   const changeDate = useCallback(

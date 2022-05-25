@@ -16,7 +16,7 @@ import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { useLocale } from "@lib/hooks/useLocale";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@lib/saml";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
@@ -105,7 +105,7 @@ export default function Login({
           form={form}
           className="space-y-6"
           handleSubmit={(values) => {
-            telemetry.event(telemetryEventTypes.login, {});
+            telemetry.event(telemetryEventTypes.login, collectPageParameters());
             signIn<"credentials">("credentials", { ...values, callbackUrl, redirect: false })
               .then((res) => {
                 if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
@@ -180,7 +180,7 @@ export default function Login({
                   onClick={async (e) => {
                     e.preventDefault();
                     // track Google logins. Without personal data/payload
-                    telemetry.event(telemetryEventTypes.googleLogin, {});
+                    telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
                     await signIn("google");
                   }}>
                   {t("signin_with_google")}

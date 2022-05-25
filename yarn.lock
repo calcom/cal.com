@@ -2987,10 +2987,20 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
-"@types/node@*", "@types/node@14.17.6", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^12.12.6":
+"@types/node@*", "@types/node@14.17.6", "@types/node@>=12.0.0", "@types/node@>=8.1.0":
   version "14.17.6"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.17.6.tgz#cc61c8361c89e70c468cda464d1fa3dd7e5ebd62"
   integrity sha512-iBxsxU7eswQDGhlr3AiamBxOssaYxbM+NKXVil8jg9yFXvrfEFbDumLD/2dMTB+zYyg7w+Xjt8yuxfdbUHAtcQ==
+
+"@types/node@16.9.1":
+  version "16.9.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
+  integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
+
+"@types/node@^12.12.6":
+  version "12.20.52"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.52.tgz#2fd2dc6bfa185601b15457398d4ba1ef27f81251"
+  integrity sha512-cfkwWw72849SNYp3Zx0IcIs25vABmFh73xicxhCkTcvtZQeIez15PpwQN8fY3RD7gv1Wrxlc9MEtfMORZDEsGw==
 
 "@types/nodemailer@^6.4.4":
   version "6.4.4"
@@ -10582,7 +10592,7 @@ next-auth@^4.3.4:
     preact-render-to-string "^5.1.19"
     uuid "^8.3.2"
 
-next-collect@canary:
+next-collect@^0.0.2-alpha.39:
   version "0.0.2-alpha.39"
   resolved "https://registry.yarnpkg.com/next-collect/-/next-collect-0.0.2-alpha.39.tgz#712cd1a2a7abd68ce698a2e2fffd8f78aec3c9e0"
   integrity sha512-pp460cabj8NdoBcLoSOUNQV0fIlyIF7Px3fi1S3bA8ikBYzAERvPIC9PzpRtpiLzBdOzM4KQGU/FnDMElA4Ogw==
@@ -11589,12 +11599,17 @@ playwright-core@1.22.1:
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.22.1.tgz#59ddf903546171fdfd9c3dc189630c883619667c"
   integrity sha512-H+ZUVYnceWNXrRf3oxTEKAr81QzFsCKu5Fp//fEjQvqgKkfA1iX3E9DBrPJpPNOrgVzcE+IqeI0fDmYJe6Ynnw==
 
+playwright-core@1.22.2:
+  version "1.22.2"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.22.2.tgz#ed2963d79d71c2a18d5a6fd25b60b9f0a344661a"
+  integrity sha512-w/hc/Ld0RM4pmsNeE6aL/fPNWw8BWit2tg+TfqJ3+p59c6s3B6C8mXvXrIPmfQEobkcFDc+4KirNzOQ+uBSP1Q==
+
 playwright@^1.22.1:
-  version "1.22.1"
-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.22.1.tgz#a41bf55065953a6b31c151433e0f00c9e23c54dd"
-  integrity sha512-pn4dvphQdL3zTgI+xfqkTL3HK1xbtQz+zjJxzyhwKLDxMNuAH7/NCm75auWbYLyssdnvApznujwrQuJvqXTKUw==
+  version "1.22.2"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.22.2.tgz#353a7c29f89ca9600edc7a9a30aed790823c797d"
+  integrity sha512-hUTpg7LytIl3/O4t0AQJS1V6hWsaSY5uZ7w1oCC8r3a1AQN5d6otIdCkiB3cbzgQkcMaRxisinjMFMVqZkybdQ==
   dependencies:
-    playwright-core "1.22.1"
+    playwright-core "1.22.2"
 
 pngjs@^3.0.0, pngjs@^3.3.3:
   version "3.4.0"

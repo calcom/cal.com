@@ -22,7 +22,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useTheme from "@lib/hooks/useTheme";
 import prisma from "@lib/prisma";
-import {collectPageParameters, telemetryEventTypes, useTelemetry} from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CustomBranding from "@components/CustomBranding";

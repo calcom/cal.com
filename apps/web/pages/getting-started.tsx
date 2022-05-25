@@ -27,7 +27,7 @@ import { getSession } from "@lib/auth";
 import { DEFAULT_SCHEDULE } from "@lib/availability";
 import { useLocale } from "@lib/hooks/useLocale";
 import prisma from "@lib/prisma";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { Schedule as ScheduleType } from "@lib/types/schedule";
@@ -323,7 +323,10 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
                 className="flex"
                 onSubmit={formMethods.handleSubmit(async (values) => {
                   // track the number of imports. Without personal data/payload
-                  telemetry.event(telemetryEventTypes.importSubmitted, { selectedImport });
+                  telemetry.event(telemetryEventTypes.importSubmitted, {
+                    ...collectPageParameters(),
+                    selectedImport,
+                  });
                   setSubmitting(true);
                   const response = await fetch(`/api/import/${selectedImport}`, {
                     method: "POST",

@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 interface Props {
@@ -40,7 +40,7 @@ export default function SAMLLogin(props: Props) {
           event.preventDefault();
 
           // track Google logins. Without personal data/payload
-          telemetry.event(telemetryEventTypes.googleLogin, {});
+          telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
 
           if (!props.hostedCal) {
             await signIn("saml", {}, { tenant: props.samlTenantID, product: props.samlProductID });

@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/Button";
 
 import useTheme from "@lib/hooks/useTheme";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 type Props = {
   booking: {
@@ -78,7 +78,7 @@ export default function CancelBooking(props: Props) {
                       reason: cancellationReason,
                     };
 
-                    telemetry.event(telemetryEventTypes.bookingCancelled, {});
+                    telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                     const res = await fetch("/api/cancel", {
                       body: JSON.stringify(payload),

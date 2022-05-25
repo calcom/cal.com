@@ -11,7 +11,7 @@ import { TextField } from "@calcom/ui/form/fields";
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { detectBrowserTimeFormat } from "@lib/timeFormat";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -114,7 +114,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                 reason: cancellationReason,
                               };
 
-                              telemetry.event(telemetryEventTypes.bookingCancelled, {});
+                              telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                               const res = await fetch("/api/cancel", {
                                 body: JSON.stringify(payload),

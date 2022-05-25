@@ -21,7 +21,6 @@ export function collectPageParameters(
   extraData: Record<string, unknown> = {}
 ): Record<string, unknown> {
   const host = document.location.hostname;
-  //starts with ''
   const docPath = route ?? "";
   return {
     page_url: route,
@@ -29,25 +28,24 @@ export function collectPageParameters(
     ...extraData,
   };
 }
+
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
     {
       type: "jitsu",
       opts: {
-        key: process.env.NEXT_PUBLIC_TELEMETRY_KEY,
-        host: "http://localhost:8001",
-        log_level: "ERROR",
-        cookie_name: "__clnds",
-        capture_3rd_party_cookies: false,
+        key: process.env.TELEMETRY_S2S_KEY,
+        server: "https://t.calendso.com",
       },
     },
   ],
+  cookieName: "__clnds",
   eventTypes: [
-    { "/api/collect-api": null },
     { "*.ttf": null },
     { "*.sitemanifest": null },
-    { "*.sitemanifest": null },
+    { "*.json": null },
     { "*.svg": null },
+    { "/api/collect-events": null },
     { "/api*": null },
     { "/img*": null },
     { "/favicon*": null },
@@ -62,9 +60,9 @@ export const extendEventData = (req: NextApiRequest) => {
     queryString: "",
     referrer: "",
     onVercel: !!req.headers["x-vercel-id"],
-    isAuthorized: !!req.cookies['next-auth.session-token'],
+    isAuthorized: !!req.cookies["next-auth.session-token"],
     utc_time: new Date().toISOString(),
-  }
+  };
   return pageOverwrite;
 };
 

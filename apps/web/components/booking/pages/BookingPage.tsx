@@ -42,7 +42,7 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@lib/telemetry";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 
 import CustomBranding from "@components/CustomBranding";
 import AvatarGroup from "@components/ui/AvatarGroup";
@@ -102,10 +102,13 @@ const BookingPage = ({
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    // collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/")} )
-    telemetry.event(top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView, {
-      isTeamBooking: document.URL.includes("team/"),
-    });
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -324,11 +327,12 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    // collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-    telemetry.event(
-      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
-      { isTeamBooking: document.URL.includes("team/") }
-    );
+    if (top !== window) {
+      telemetry.event(
+        telemetryEventTypes.embedBookingConfirmed,
+        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
+      );
+    }
 
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
