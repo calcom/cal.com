@@ -173,7 +173,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             }}
             readOnly={proUpgradeRequired}
             type="url"
-            className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 sm:text-sm"
             placeholder={t("external_redirect_url")}
             defaultValue={eventType.successRedirectUrl || ""}
             {...formMethods.register("successRedirectUrl")}
@@ -528,9 +528,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         {formMethods.getValues("locations").length > 0 && (
           <ul>
             {formMethods.getValues("locations").map((location) => (
-              <li
-                key={location.type}
-                className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2 shadow-sm">
+              <li key={location.type} className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2">
                 <div className="flex justify-between">
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
@@ -946,7 +944,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </label>
                       </div>
                       <div className="w-full">
-                        <div className="flex rounded-sm shadow-sm">
+                        <div className="flex rounded-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
                             {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
@@ -1022,7 +1020,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <textarea
                           id="description"
-                          className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+                          className="block w-full rounded-sm border-gray-300 text-sm "
                           placeholder={t("quick_video_meeting")}
                           {...formMethods.register("description")}
                           defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -1152,7 +1150,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </label>
                             </div>
                             <div className="w-full">
-                              <div className="relative mt-1 rounded-sm shadow-sm">
+                              <div className="relative mt-1 rounded-sm">
                                 <Controller
                                   control={formMethods.control}
                                   name="destinationCalendar"
@@ -1176,10 +1174,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </label>
                           </div>
                           <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
+                            <div className="relative mt-1 rounded-sm">
                               <input
                                 type="text"
-                                className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+                                className="block w-full rounded-sm border-gray-300 text-sm "
                                 placeholder={t("meeting_with_user")}
                                 defaultValue={eventType.eventName || ""}
                                 {...formMethods.register("eventName")}
@@ -1197,11 +1195,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </label>
                             </div>
                             <div className="w-full">
-                              <div className="relative mt-1 rounded-sm shadow-sm">
+                              <div className="relative mt-1 rounded-sm">
                                 {
                                   <input
                                     type="text"
-                                    className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+                                    className="block w-full rounded-sm border-gray-300 text-sm "
                                     placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
                                     defaultValue={(eventType.metadata.smartContractAddress || "") as string}
                                     {...formMethods.register("smartContractAddress")}
@@ -1514,7 +1512,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
@@ -1661,6 +1659,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                 <CheckboxField
                                   id="seats"
                                   name="seats"
+                                  descriptionAsLabel
                                   label={t("offer_seats")}
                                   description={t("offer_seats_description")}
                                   defaultChecked={!!eventType.seatsPerTimeSlot}
@@ -1700,10 +1699,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           { value: 5, label: "5" },
                                           {
                                             value: -1,
-                                            isDisabled: !eventType.users.some((user) => user.plan === "PRO"),
+                                            isDisabled: !eventType.users.some(
+                                              (user) => user.plan === ("PRO" || "TRIAL")
+                                            ),
                                             label: (
                                               <div className="flex flex-row justify-between">
-                                                <span>6 +</span>
+                                                <span>6+</span>
                                                 <Badge variant="default">PRO</Badge>
                                               </div>
                                             ) as unknown as string,
@@ -1713,54 +1714,65 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                           <>
                                             <div className="block sm:flex">
                                               <div className="flex-auto">
-                                                <label
-                                                  htmlFor="beforeBufferTime"
-                                                  className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                  Number of seats per booking
-                                                </label>
-                                                <Select
-                                                  isSearchable={false}
-                                                  classNamePrefix="react-select"
-                                                  className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
-                                                  onChange={(val) => {
-                                                    if (val!.value === -1) {
-                                                      formMethods.setValue(
-                                                        "seatsPerTimeSlot",
-                                                        defaultSeatsInput
-                                                      );
-                                                      setInputSeatNumber(true);
-                                                    } else {
-                                                      setInputSeatNumber(false);
-                                                      formMethods.setValue("seatsPerTimeSlot", val!.value);
-                                                    }
-                                                  }}
-                                                  defaultValue={{
-                                                    value: eventType.seatsPerTimeSlot || defaultSeats,
-                                                    label: `${eventType.seatsPerTimeSlot || defaultSeats}`,
-                                                  }}
-                                                  options={selectSeatsPerTimeSlotOptions}
-                                                />
+                                                {eventType.users.some(
+                                                  (user) => user.plan === ("PRO" || "TRIAL")
+                                                ) ? (
+                                                  <div className="flex-auto">
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("enter_number_of_seats")}
+                                                    </label>
+                                                    <input
+                                                      type="number"
+                                                      className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                      placeholder={`${defaultSeatsInput}`}
+                                                      {...formMethods.register("seatsPerTimeSlot", {
+                                                        valueAsNumber: true,
+                                                        min: defaultSeatsInput,
+                                                      })}
+                                                      defaultValue={
+                                                        eventType.seatsPerTimeSlot || defaultSeatsInput
+                                                      }
+                                                    />
+                                                  </div>
+                                                ) : (
+                                                  <>
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("number_of_seats")}
+                                                    </label>
+                                                    <Select
+                                                      isSearchable={false}
+                                                      classNamePrefix="react-select"
+                                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                      onChange={(val) => {
+                                                        if (val!.value === -1) {
+                                                          formMethods.setValue(
+                                                            "seatsPerTimeSlot",
+                                                            defaultSeatsInput
+                                                          );
+                                                          setInputSeatNumber(true);
+                                                        } else {
+                                                          setInputSeatNumber(false);
+                                                          formMethods.setValue(
+                                                            "seatsPerTimeSlot",
+                                                            val!.value
+                                                          );
+                                                        }
+                                                      }}
+                                                      defaultValue={{
+                                                        value: eventType.seatsPerTimeSlot || defaultSeats,
+                                                        label: `${
+                                                          eventType.seatsPerTimeSlot || defaultSeats
+                                                        }`,
+                                                      }}
+                                                      options={selectSeatsPerTimeSlotOptions}
+                                                    />
+                                                  </>
+                                                )}
                                               </div>
-
-                                              {inputSeatNumber && (
-                                                <div className="flex-auto md:ml-5">
-                                                  <label
-                                                    htmlFor="beforeBufferTime"
-                                                    className="mb-2 flex text-sm font-medium text-neutral-700">
-                                                    Enter number of seats
-                                                  </label>
-                                                  <input
-                                                    type="number"
-                                                    className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                                    placeholder={`${defaultSeatsInput}`}
-                                                    {...formMethods.register("seatsPerTimeSlot", {
-                                                      valueAsNumber: true,
-                                                      min: defaultSeatsInput,
-                                                    })}
-                                                    defaultValue={defaultSeatsInput}
-                                                  />
-                                                </div>
-                                              )}
                                             </div>
                                           </>
                                         );
@@ -1771,7 +1783,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </div>
                             )}
                           </div>
-                          <hr className="border-neutral-200" />
                         </>
 
                         <SuccessRedirectEdit<typeof formMethods>
@@ -1834,7 +1845,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="w-full">
                                     <div className="block items-center sm:flex">
                                       <div className="w-full">
-                                        <div className="relative mt-1 rounded-sm shadow-sm">
+                                        <div className="relative mt-1 rounded-sm">
                                           <Controller
                                             defaultValue={eventType.price}
                                             control={formMethods.control}

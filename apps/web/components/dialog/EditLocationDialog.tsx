@@ -124,7 +124,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             {...locationFormMethods.register("locationAddress")}
             id="address"
             required
-            className="block w-full rounded-sm border-gray-300 text-sm shadow-sm "
+            className="block w-full rounded-sm border-gray-300 text-sm"
             defaultValue={
               defaultValues
                 ? defaultValues.find(
@@ -146,7 +146,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             {...locationFormMethods.register("locationLink")}
             id="address"
             required
-            className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 sm:text-sm"
             defaultValue={
               defaultValues
                 ? defaultValues.find(
