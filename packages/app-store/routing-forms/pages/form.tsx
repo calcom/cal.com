@@ -211,26 +211,35 @@ export default function FormBuilder({ subPages, Page404 }: { subPages: string[] 
         })}
         {!form.fields.length ? "No Fields" : null}
       </div>
-      <Button
-        className="flex"
-        onClick={() => {
-          const newFields = [
-            ...form.fields,
-            {
-              // TODO: Should we give it a DB id?
-              id: uuidv4(),
-              // This is same type from react-awesome-query-builder
-              type: "text",
-              label: "Hello",
-            },
-          ];
-          mutation.mutate({
-            ...form,
-            fields: newFields,
-          });
-        }}>
-        Add Field
-      </Button>
+      <div className="mt-4 flex w-full  max-w-4xl justify-end space-x-2 rtl:space-x-reverse">
+        <Button
+          className="mr-1 flex"
+          onClick={() => {
+            router.push("/apps/routing-forms/forms");
+          }}>
+          Cancel
+        </Button>
+        <Button
+          className="flex"
+          onClick={() => {
+            const newFields = [
+              ...form.fields,
+              {
+                // TODO: Should we give it a DB id?
+                id: uuidv4(),
+                // This is same type from react-awesome-query-builder
+                type: "text",
+                label: "Hello",
+              },
+            ];
+            mutation.mutate({
+              ...form,
+              fields: newFields,
+            });
+          }}>
+          Add Field
+        </Button>
+      </div>
     </RoutingShell>
   );
 }

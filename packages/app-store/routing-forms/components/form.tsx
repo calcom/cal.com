@@ -23,6 +23,10 @@ export default function RoutingForm({ formId, onSubmit = null }) {
     onSubmit ||
     ((response) => {
       const decidedAction = processRoute({ form, response });
+      if (!decidedAction) {
+        alert("No route matched");
+        return;
+      }
       if (decidedAction.type === "customPageMessage") {
         alert(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {

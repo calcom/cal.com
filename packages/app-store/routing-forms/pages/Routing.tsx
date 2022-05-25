@@ -1,4 +1,6 @@
+import { ExternalLinkIcon } from "@heroicons/react/solid";
 import jsonLogic from "json-logic-js";
+import { debounce } from "lodash";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
@@ -75,13 +77,13 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
   const formId = subPages[0];
   const utils = trpc.useContext();
 
-  const { data: form, isLoading } = trpc.useQuery([
+  const { data: remoteForm, isLoading } = trpc.useQuery([
     "viewer.app_routing-forms.form",
     {
       id: formId,
     },
   ]);
-
+  const [form, setForm] = useState(remoteForm);
   const mutation = trpc.useMutation("viewer.app_routing-forms.form", {
     onSettled: () => {
       utils.invalidateQueries([
@@ -91,6 +93,15 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
         },
       ]);
     },
+  });
+
+  const mutate = debounce((newForm) => {
+    const updatedForm = {
+      ...form,
+      ...newForm,
+    };
+    setForm(updatedForm);
+    mutation.mutate(updatedForm);
   });
 
   const config: Config = getQueryBuilderConfig(form);
@@ -119,8 +130,7 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
       action: route.action,
       queryValue: route.queryValue,
     }));
-    mutation.mutate({
-      ...form,
+    mutate({
       route: serializedRoutes,
     });
   };
@@ -130,7 +140,6 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
     const newRoutes = [...routes];
     newRoutes[index] = { ...routes[index], ...route };
     setStoredRoutes(newRoutes);
-    return newRoutes;
   };
 
   const onChange = (route, immutableTree: ImmutableTree, config: Config) => {
@@ -196,8 +205,16 @@ const RouteBuilder: React.FC = ({ subPages, Page404 }: { subPages: string[] }) =
   return (
     <RoutingShell heading={<PencilEdit value={form.name} readOnly={true}></PencilEdit>} form={form}>
       <div className="flex">
-        <div className="route-config -mx-4 w-4/6 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
-          <div className="cal-query-builder mr-10">
+        <div className="route-config -mx-4 flex w-4/6 flex-col rounded-sm border border-neutral-200 bg-white sm:mx-0 sm:px-8">
+          <a
+            href={"/apps/routing-forms/routingLink/" + formId}
+            target="_blank"
+            rel="noreferrer"
+            className="text-md my-3 inline-flex items-center self-end rounded-sm px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-gray-200 hover:text-gray-900">
+            <ExternalLinkIcon className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
+            Visit Routing Form
+          </a>
+          <div className="cal-query-builder m-4 my-3 mr-10 ">
             {routes.map((route, key) => {
               const jsonLogicQuery = QbUtils.jsonLogicFormat(route.state.tree, route.state.config);
               console.log(`Route: ${JSON.stringify({ action: route.action, jsonLogicQuery })}`);
