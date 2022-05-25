@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import RRule from "rrule";
+import { z } from "zod";
 
 import { SpaceBookingSuccessPage } from "@calcom/app-store/spacebooking/components";
 import {
@@ -29,7 +30,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import Button from "@calcom/ui/Button";
 import { EmailInput } from "@calcom/ui/form/fields";
 
-import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
+import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getEventName } from "@lib/event";
 import useTheme from "@lib/hooks/useTheme";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -647,10 +648,10 @@ function RecurringBookings({
   ) : null;
 }
 
-const getEventTypesFromDB = async (typeId: number) => {
+const getEventTypesFromDB = async (id: number) => {
   return await prisma.eventType.findUnique({
     where: {
-      id: typeId,
+      id,
     },
     select: {
       id: true,
@@ -688,22 +689,42 @@ const getEventTypesFromDB = async (typeId: number) => {
   });
 };
 
+const strToNumber = z.string().transform((val, ctx) => {
+  const parsed = parseInt(val);
+  if (isNaN(parsed)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Not a number" });
+  return parsed;
+});
+
+const schema = z.object({
+  type: strToNumber,
+  date: z.string().optional(),
+  user: z.string().optional(),
+  reschedule: z.string().optional(),
+  name: z.string().optional(),
+  email: z.string().optional(),
+  recur: z.string().optional(),
+  location: z.string().optional(),
+  eventSlug: z.string().default("15min"),
+  eventName: z.string(),
+  bookingId: strToNumber,
+});
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const typeId = parseInt(asStringOrNull(context.query.type) ?? "");
-  const recurringEventIdQuery = asStringOrNull(context.query.recur);
-  const typeSlug = asStringOrNull(context.query.eventSlug) ?? "15min";
-  const dynamicEventName = asStringOrNull(context.query.eventName) ?? "";
-  if (typeof context.query.bookingId !== "string") return { notFound: true } as const;
-  const bookingId = parseInt(context.query.bookingId);
+  const parsedQuery = schema.safeParse(context.query);
+  if (!parsedQuery.success) return { notFound: true };
+  const {
+    type: eventTypeId,
+    recur: recurringEventIdQuery,
+    eventSlug: eventTypeSlug,
+    eventName: dynamicEventName,
+    bookingId,
+    user: username,
+    name,
+    email,
+  } = parsedQuery.data;
 
-  if (isNaN(typeId)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const eventTypeRaw = !typeId ? getDefaultEvent(typeSlug) : await getEventTypesFromDB(typeId);
+  const eventTypeRaw = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
 
   if (!eventTypeRaw) {
     return {
@@ -768,9 +789,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  const bookingInfo = await prisma.booking.findUnique({
+  const bookingInfo = await prisma.booking.findFirst({
     where: {
       id: bookingId,
+      eventTypeId: eventType.id,
+      user: { username },
+      attendees: { some: { email, name } },
     },
     select: {
       title: true,
