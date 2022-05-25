@@ -1,13 +1,15 @@
 import { Prisma } from "@prisma/client";
 
+import { TRPCClientError } from "@trpc/react";
+
 export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number; code?: string } {
-  if (cause instanceof Prisma.PrismaClientKnownRequestError) {
+  if (cause instanceof TRPCClientError) {
     return cause;
-  }
-  if (cause instanceof Error) {
+  } else if (cause instanceof Prisma.PrismaClientKnownRequestError) {
     return cause;
-  }
-  if (typeof cause === "string") {
+  } else if (cause instanceof Error) {
+    return cause;
+  } else if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
     return new Error(cause, { cause });
   }
