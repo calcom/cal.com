@@ -102,10 +102,13 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: calEventRaw.endTime,
           timeZone: calEventRaw.organizer.timeZone,
         },
-        attendees: [{...calEventRaw.organizer, organizer: true }, ... calEventRaw.attendees.map((attendee) => ({
-          ...attendee,
-          responseStatus: "accepted",
-        }))],
+        attendees: [
+          { ...calEventRaw.organizer, organizer: true },
+          ...calEventRaw.attendees.map((attendee) => ({
+            ...attendee,
+            responseStatus: "accepted",
+          })),
+        ],
         reminders: {
           useDefault: true,
         },
@@ -235,8 +238,10 @@ export default class GoogleCalendarService implements Calendar {
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
-            if (err.code === 410) resolve();
+            /* 410 is when an event is already deleted on the Google cal before on cal.com
+            404 is when the event is on a different calendar */
             console.error("There was an error contacting google calendar service: ", err);
+            if (err.code === (410 || 404)) return resolve();
             return reject(err);
           }
           return resolve(event?.data);
