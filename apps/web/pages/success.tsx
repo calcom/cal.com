@@ -705,7 +705,7 @@ const schema = z.object({
   recur: z.string().optional(),
   location: z.string().optional(),
   eventSlug: z.string().default("15min"),
-  eventName: z.string(),
+  eventName: z.string().default(""),
   bookingId: strToNumber,
 });
 
