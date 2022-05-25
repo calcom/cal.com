@@ -2,10 +2,11 @@ import { ReminderType } from "@prisma/client";
 import dayjs from "dayjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { isPrismaObjOrUndefined } from "@calcom/lib";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendOrganizerRequestReminderEmail } from "@lib/emails/email-manager";
-import prisma from "@lib/prisma";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -32,12 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       select: {
-        title: true,
-        description: true,
+        ...bookingMinimalSelect,
         location: true,
-        startTime: true,
-        endTime: true,
-        attendees: true,
         user: {
           select: {
             email: true,
@@ -48,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             destinationCalendar: true,
           },
         },
-        id: true,
         uid: true,
         destinationCalendar: true,
       },
@@ -94,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: booking.title,
         title: booking.title,
         description: booking.description || undefined,
+        customInputs: isPrismaObjOrUndefined(booking.customInputs),
         location: booking.location ?? "",
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),

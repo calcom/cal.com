@@ -4,22 +4,20 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray } from "ics";
-import { DatasetJsonLdProps } from "next-seo";
-import nodemailer from "nodemailer";
 import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { serverConfig } from "@calcom/lib/serverConfig";
-import type { Person, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
+
+import BaseEmail from "@lib/emails/templates/_base-email";
 
 import {
-  emailHead,
-  emailSchedulingBodyHeader,
   emailBodyLogo,
+  emailHead,
   emailScheduledBodyHeaderContent,
   emailSchedulingBodyDivider,
+  emailSchedulingBodyHeader,
   linkIcon,
 } from "./common";
 
@@ -28,32 +26,17 @@ dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
 
-export default class AttendeeScheduledEmail {
+export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
   recurringEvent: RecurringEvent;
 
   constructor(calEvent: CalendarEvent, attendee: Person, recurringEvent: RecurringEvent) {
+    super();
+    this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
     this.recurringEvent = recurringEvent;
-  }
-
-  public sendEmail() {
-    new Promise((resolve, reject) =>
-      nodemailer
-        .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
-          if (_err) {
-            const err = getErrorFromUnknown(_err);
-            this.printNodeMailerError(err);
-            reject(err);
-          } else {
-            resolve(info);
-          }
-        })
-    ).catch((e) => console.error("sendEmail", e));
-    return new Promise((resolve) => resolve("send mail async"));
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -115,12 +98,6 @@ export default class AttendeeScheduledEmail {
     };
   }
 
-  protected getMailerOptions() {
-    return {
-      transport: serverConfig.transport,
-      from: serverConfig.from,
-    };
-  }
   protected getDescription(): string {
     if (!this.calEvent.description) return "";
     return `
@@ -142,10 +119,6 @@ ${this.calEvent.attendees[0].language.translate("emailed_you_and_any_other_atten
 
 ${getRichDescription(this.calEvent)}
 `.trim();
-  }
-
-  protected printNodeMailerError(error: Error): void {
-    console.error("SEND_BOOKING_CONFIRMATION_ERROR", this.attendee.email, error);
   }
 
   protected getHtmlBody(): string {
@@ -196,6 +169,7 @@ ${getRichDescription(this.calEvent)}
                               ${this.getLocation()}
                               ${this.getDescription()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>
@@ -343,6 +317,28 @@ ${getRichDescription(this.calEvent)}
     `;
   }
 
+  protected getCustomInputs(): string {
+    const { customInputs } = this.calEvent;
+    if (!customInputs) return "";
+    const customInputsString = Object.keys(customInputs)
+      .map((key) => {
+        if (customInputs[key] !== "") {
+          return `
+          <p style="height: 6px"></p>
+          <div style="line-height: 6px;">
+            <p style="color: #494949;">${key}</p>
+            <p style="color: #494949; font-weight: 400;">
+              ${customInputs[key]}
+            </p>
+          </div>
+        `;
+        }
+      })
+      .join("");
+
+    return customInputsString;
+  }
+
   protected getRejectionReason(): string {
     if (!this.calEvent.rejectionReason) return "";
     return `
@@ -432,6 +428,13 @@ ${getRichDescription(this.calEvent)}
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
       }</p>
+      ${
+        providerName === "Zoom" || providerName === "Google"
+          ? `<p style="color: #494949; font-weight: 400; line-height: 24px;">
+              ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
+              </p>`
+          : ``
+      }
     </div>
     `;
   }

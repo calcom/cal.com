@@ -15,6 +15,8 @@ addAliases({
   "@ee": __dirname + "/apps/web/ee",
 });
 
+require("dotenv").config({ path: "../../.env" });
+
 const outputDir = path.join(__dirname, "..", "..", "test-results");
 const testDir = path.join(__dirname, "..", "..", "apps/web/playwright");
 
@@ -30,8 +32,8 @@ const config: PlaywrightTestConfig = {
   maxFailures: headless ? 10 : undefined,
   reporter: [
     [process.env.CI ? "github" : "list"],
-    ["html", { outputFolder: "./playwright/reports/playwright-html-report", open: "never" }],
-    ["junit", { outputFile: "./playwright/reports/results.xml" }],
+    ["html", { outputFolder: path.join(outputDir, "reports/playwright-html-report"), open: "never" }],
+    ["junit", { outputFile: path.join(outputDir, "reports/results.xml") }],
   ],
   globalSetup: require.resolve("./globalSetup"),
   outputDir,

@@ -1,6 +1,11 @@
 import classNames from "classnames";
 import { components } from "react-select";
-import BaseSelect, { ITimezone, Props as SelectProps } from "react-timezone-select";
+import BaseSelect, {
+  allTimezones,
+  ITimezoneOption,
+  ITimezone,
+  Props as SelectProps,
+} from "react-timezone-select";
 
 import { InputComponent } from "@components/ui/form/Select";
 
@@ -28,6 +33,10 @@ function TimezoneSelect({ className, ...props }: SelectProps) {
           },
         }),
       }}
+      timezones={{
+        ...allTimezones,
+        "America/Asuncion": "Asuncion",
+      }}
       components={{
         ...components,
         IndicatorSeparator: () => null,
@@ -40,4 +49,4 @@ function TimezoneSelect({ className, ...props }: SelectProps) {
 }
 
 export default TimezoneSelect;
-export type { ITimezone };
+export type { ITimezone, ITimezoneOption };

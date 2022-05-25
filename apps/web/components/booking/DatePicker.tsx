@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
-import { EventType, PeriodType } from "@prisma/client";
+import { PeriodType } from "@prisma/client";
 import dayjs, { Dayjs } from "dayjs";
-import dayjsBusinessTime from "dayjs-business-time";
+import dayjsBusinessTime from "dayjs-business-days2";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
@@ -14,6 +14,7 @@ import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { weekdayNames } from "@lib/core/i18n/weekday";
 import { doWorkAsync } from "@lib/doWorkAsync";
+import isOutOfBounds from "@lib/isOutOfBounds";
 import getSlots from "@lib/slots";
 import { WorkingHours } from "@lib/types/schedule";
 
@@ -37,41 +38,6 @@ type DatePickerProps = {
   minimumBookingNotice: number;
 };
 
-function isOutOfBounds(
-  time: dayjs.ConfigType,
-  {
-    periodType,
-    periodDays,
-    periodCountCalendarDays,
-    periodStartDate,
-    periodEndDate,
-  }: Pick<
-    EventType,
-    "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
-  >
-) {
-  const date = dayjs(time);
-
-  switch (periodType) {
-    case PeriodType.ROLLING: {
-      const periodRollingEndDay = periodCountCalendarDays
-        ? dayjs().utcOffset(date.utcOffset()).add(periodDays!, "days").endOf("day")
-        : dayjs().utcOffset(date.utcOffset()).addBusinessTime(periodDays!, "days").endOf("day");
-      return date.endOf("day").isAfter(periodRollingEndDay);
-    }
-
-    case PeriodType.RANGE: {
-      const periodRangeStartDay = dayjs(periodStartDate).utcOffset(date.utcOffset()).endOf("day");
-      const periodRangeEndDay = dayjs(periodEndDate).utcOffset(date.utcOffset()).endOf("day");
-      return date.endOf("day").isBefore(periodRangeStartDay) || date.endOf("day").isAfter(periodRangeEndDay);
-    }
-
-    case PeriodType.UNLIMITED:
-    default:
-      return false;
-  }
-}
-
 function DatePicker({
   weekStart,
   onDatePicked,
@@ -94,7 +60,7 @@ function DatePicker({
   const [isFirstMonth, setIsFirstMonth] = useState<boolean>(false);
   const [daysFromState, setDays] = useState<
     | {
-        disabled: Boolean;
+        disabled: boolean;
         date: number;
       }[]
     | null
@@ -191,7 +157,7 @@ function DatePicker({
       name: "DatePicker",
       length: daysInMonth,
       callback: (i: number) => {
-        let day = i + 1;
+        const day = i + 1;
         days[daysInitialOffset + i] = {
           disabled: isDisabledMemoized(day, {
             browsingDate,

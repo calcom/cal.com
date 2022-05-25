@@ -4,9 +4,7 @@ import { Trans } from "next-i18next";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 
-type Props = {};
-
-function ImpersonatingBanner({}: Props) {
+function ImpersonatingBanner() {
   const { t } = useLocale();
   const { data } = useSession();
 

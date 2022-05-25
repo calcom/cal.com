@@ -41,6 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     recurringEvent: true,
     schedulingType: true,
+    seatsPerTimeSlot: true,
     userId: true,
     schedule: {
       select: {
@@ -157,7 +158,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventTypeObject.schedule = null;
   eventTypeObject.availability = [];
 
-  let booking: GetBookingType | null = null;
+  const booking: GetBookingType | null = null;
 
   const profile = {
     name: user.name || user.username,

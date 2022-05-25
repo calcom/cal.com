@@ -11,6 +11,7 @@ const ImpersonationProvider = CredentialsProvider({
     username: { label: "Username", type: "text " },
   },
   async authorize(creds, req) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
     if (session?.user.role !== "ADMIN") {
@@ -29,6 +30,10 @@ const ImpersonationProvider = CredentialsProvider({
 
     if (!user) {
       throw new Error("This user does not exist");
+    }
+
+    if (user.disableImpersonation) {
+      throw new Error("This user has disabled Impersonation.");
     }
 
     // Log impersonations for audit purposes

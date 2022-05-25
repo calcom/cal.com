@@ -5,6 +5,7 @@ import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
 
 export class Inline extends HTMLElement {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   static get observedAttributes() {
     return ["loading"];
