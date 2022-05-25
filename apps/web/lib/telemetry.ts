@@ -41,7 +41,6 @@ export const nextCollectBasicSettings: EventSinkOpts = {
       },
     },
   ],
-  cookieName: "__clnds",
   eventTypes: [
     { "*.ttf": null },
     { "*.webmanifest": null },
