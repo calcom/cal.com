@@ -41,7 +41,6 @@ export default class ExchangeCalendarService implements Calendar {
   private credentials: Record<string, string>;
 
   constructor(credential: Credential) {
-    // this.integrationName = CALENDAR_INTEGRATIONS_TYPES.exchange;
     this.integrationName = "exchange2013_calendar";
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
@@ -181,7 +180,6 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    console.log("This triggers");
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()
