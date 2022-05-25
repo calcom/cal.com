@@ -44,6 +44,7 @@ async function getUserFromSession({
       hideBranding: true,
       avatar: true,
       twoFactorEnabled: true,
+      disableImpersonation: true,
       identityProvider: true,
       brandColor: true,
       darkBrandColor: true,

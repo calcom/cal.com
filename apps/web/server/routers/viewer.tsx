@@ -86,6 +86,7 @@ const loggedInViewerRouter = createProtectedRouter()
         trialEndsAt: user.trialEndsAt,
         completedOnboarding: user.completedOnboarding,
         twoFactorEnabled: user.twoFactorEnabled,
+        disableImpersonation: user.disableImpersonation,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
@@ -681,6 +682,7 @@ const loggedInViewerRouter = createProtectedRouter()
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
       timeFormat: z.number().optional(),
+      disableImpersonation: z.boolean().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
