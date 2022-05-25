@@ -34,7 +34,8 @@ export const nextCollectBasicSettings: EventSinkOpts = {
     {
       type: "jitsu",
       opts: {
-        key: process.env.TELEMETRY_S2S_KEY,
+        key: "s2s.2pvs2bbpqq1zxna97wcml.3jdhd69y09dzku3x243ive",
+        // key: process.env.TELEMETRY_S2S_KEY,
         // server: "https://t.calendso.com",
       },
     },
