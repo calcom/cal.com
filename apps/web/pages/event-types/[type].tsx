@@ -50,7 +50,7 @@ import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -118,7 +118,13 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
-  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  locations: {
+    type: LocationType;
+    address?: string;
+    link?: string;
+    hostPhoneNumber?: string;
+    displayLocationPublicly?: boolean;
+  }[];
   customInputs: EventTypeCustomInput[];
   users: string[];
   schedule: number;
@@ -422,6 +428,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     if (!selectedLocation) {
       return null;
     }
+
     switch (selectedLocation.value) {
       case LocationType.InPerson:
         return (
@@ -435,12 +442,24 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 {...locationFormMethods.register("locationAddress")}
                 id="address"
                 required
-                className="  block w-full rounded-sm border-gray-300 text-sm"
+                className="block w-full rounded-sm border-gray-300 text-sm"
                 defaultValue={
                   formMethods
                     .getValues("locations")
                     .find((location) => location.type === LocationType.InPerson)?.address
                 }
+              />
+            </div>
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={({ field: { onChange, value } }) => (
+                  <CheckboxField
+                    description={t("display_location_label")}
+                    onChange={(e) => onChange(e.target.checked)}
+                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
               />
             </div>
           </div>
@@ -468,6 +487,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                   {locationFormMethods.formState.errors.locationLink.message}
                 </p>
               )}
+            </div>
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={({ field: { onChange, value } }) => (
+                  <CheckboxField
+                    description={t("display_location_label")}
+                    onChange={(e) => onChange(e.target.checked)}
+                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
             </div>
           </div>
         );
@@ -584,6 +615,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
       .refine((val) => isValidPhoneNumber(val))
@@ -596,6 +628,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
+    displayLocationPublicly?: boolean;
   }>({
     resolver: zodResolver(locationFormSchema),
   });
@@ -2131,14 +2164,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 <Form
                   form={locationFormMethods}
                   handleSubmit={async (values) => {
-                    const newLocation = values.locationType;
-
+                    const { locationType: newLocation, displayLocationPublicly } = values;
                     let details = {};
                     if (newLocation === LocationType.InPerson) {
-                      details = { address: values.locationAddress };
+                      details = {
+                        address: values.locationAddress,
+                        displayLocationPublicly,
+                      };
                     }
                     if (newLocation === LocationType.Link) {
-                      details = { link: values.locationLink };
+                      details = { link: values.locationLink, displayLocationPublicly };
                     }
                     if (newLocation === LocationType.UserPhone) {
                       details = { hostPhoneNumber: values.locationPhoneNumber };
@@ -2373,11 +2408,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!rawEventType) throw Error("Event type not found");
 
-  type Location = {
-    type: LocationType;
-    address?: string;
-  };
-
   const credentials = await prisma.credential.findMany({
     where: {
       userId: session.user.id,
@@ -2396,7 +2426,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = {
     ...restEventType,
     recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations as unknown as Location[],
+    locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key
