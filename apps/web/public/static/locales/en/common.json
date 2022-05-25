@@ -858,5 +858,6 @@
   "go_to": "Go to: ",
   "zapier_invite_link": "Zapier Invite Link",
   "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
-  "meeting_url_provided_after_confirmed": "A Meeting URL will be created once the event is confirmed."
+  "meeting_url_provided_after_confirmed": "A Meeting URL will be created once the event is confirmed.",
+  "meeting_url_in_conformation_email": "Meeting url is in the confirmation email"
 }

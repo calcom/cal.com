@@ -22,19 +22,19 @@ export const linkValueToString = (
     case LocationType.UserPhone:
       return t("user_phone");
     case LocationType.GoogleMeet:
-      return t("cal_provide_google_meet_location");
+      return `Google Meet: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Zoom:
-      return t("cal_provide_zoom_meeting_url");
+      return `Zoom: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Daily:
-      return t("cal_provide_video_meeting_url");
+      return `Cal Video: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Jitsi:
-      return t("cal_provide_jitsi_meeting_url");
+      return `Jitsi: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Huddle01:
-      return t("cal_provide_huddle01_meeting_url");
+      return `Huddle01t: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Tandem:
-      return t("cal_provide_tandem_meeting_url");
+      return `Tandem: ${t("meeting_url_in_conformation_email")}`;
     case LocationType.Teams:
-      return t("cal_provide_teams_meeting_url");
+      return `Teams: ${t("meeting_url_in_conformation_email")}`;
     default:
       return linkValue || "";
   }

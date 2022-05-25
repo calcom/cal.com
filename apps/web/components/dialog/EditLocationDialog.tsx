@@ -67,21 +67,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
   const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
 
-  const applyNamingFormat = (location: string | null | undefined): string => {
-    if (!location) return "";
-
-    let locationRawString = location;
-    if (location.includes("integrations:")) {
-      locationRawString = location.replace("integrations:", "");
-      locationRawString = locationRawString.replace(":", " ");
-    }
-    locationRawString = locationRawString === "daily" ? "Cal Video" : locationRawString;
-
-    return locationRawString;
-  };
-
-  const [currentLocation, setCurrentLocation] = useState(applyNamingFormat(booking?.location) || "");
-
   useEffect(() => {
     if (data) {
       const integrations = getApps(data);
@@ -203,7 +188,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                 {t("edit_location")}
               </h3>
-              <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
+              {!booking && (
+                <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
+              )}
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left"></div>
           </div>
@@ -233,9 +220,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               }
 
               saveLocation(newLocation, details);
-              if (booking) {
-                setCurrentLocation(applyNamingFormat(locationString));
-              }
               setShowLocationModal(false);
               locationFormMethods.unregister([
                 "locationType",
