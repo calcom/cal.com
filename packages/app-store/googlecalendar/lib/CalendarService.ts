@@ -241,7 +241,7 @@ export default class GoogleCalendarService implements Calendar {
             /* 410 is when an event is already deleted on the Google cal before on cal.com
             404 is when the event is on a different calendar */
             console.error("There was an error contacting google calendar service: ", err);
-            if (err.code === (410 || 404)) return resolve();
+            if (err.code === 410 || err.code === 404) return resolve();
             return reject(err);
           }
           return resolve(event?.data);
