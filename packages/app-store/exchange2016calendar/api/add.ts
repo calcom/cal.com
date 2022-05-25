@@ -21,12 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const data = {
-      type: "exchange206_calendar",
+      type: "exchange2016_calendar",
       key: symmetricEncrypt(
         JSON.stringify({ username, password, url }),
         process.env.CALENDSO_ENCRYPTION_KEY!
       ),
       userId: user.id,
+      appId: "exchange2016_calendar",
     };
 
     try {
