@@ -16,7 +16,7 @@ export const schemaWebhookCreateParams = z
   .object({
     userId: z.number().or(z.string()).optional(),
     eventTypeId: z.number().or(z.string()).optional(),
-    eventTriggers: z.any.optional(),
+    eventTriggers: z.any().optional(),
     active: z.boolean().optional(),
     subscriberUrl: z.string(),
     payloadTemplate: z.string().optional(),
