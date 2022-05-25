@@ -12,7 +12,7 @@ export default async function slackVerify(req: NextApiRequest, res: NextApiRespo
   const timeStamp = req.headers["x-slack-request-timestamp"] as string; // Always returns a string and not a string[]
   const slackSignature = req.headers["x-slack-signature"] as string;
   const currentTime = dayjs().unix();
-  let { signing_secret } = await getAppKeysFromSlug("slack");
+  const { signing_secret } = await getAppKeysFromSlug("slack");
   if (typeof signing_secret === "string") signingSecret = signing_secret;
 
   if (!timeStamp) {

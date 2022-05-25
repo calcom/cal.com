@@ -9,7 +9,7 @@ const TodayMessage = (bookings: Booking[]) => {
     return Message()
       .blocks(Blocks.Section({ text: "You do not have any bookings for today." }))
       .asUser()
-      .buildToJSON();
+      .buildToObject();
   }
   return Message()
     .blocks(

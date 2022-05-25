@@ -1,6 +1,7 @@
 import { WebClient } from "@slack/web-api";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
+import { Modal, Blocks, Elements, Bits } from "slack-block-builder";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
@@ -38,9 +39,10 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     user,
     view: {
       state: { values },
+      id: view_id,
     },
   } = JSON.parse(req.body.payload);
-
+  console.log(req.body.payload);
   // This is a mess I have no idea why slack makes getting infomation this hard.
   const {
     eventName: {
@@ -90,9 +92,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       },
     });
 
-  const slackCredentials = foundUser?.credentials[0].key; // Only one slack credential for user
-
-  // @ts-ignore access_token must exist on slackCredentials otherwise we have wouldnt have reached this endpoint
+  const slackCredentials = foundUser?.credentials[0].key as { access_token: string }; // Only one slack credential for user
 
   const access_token = slackCredentials?.access_token;
   // https://api.slack.com/authentication/best-practices#verifying since we verify the request is coming from slack we can store the access_token in the DB.
@@ -124,36 +124,38 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     notes: "This event was created with slack.",
   };
 
-  if (startDate < dayjs()) {
-    client.chat.postMessage({
-      token: access_token,
-      channel: user.id,
-      text: `Error: Day must not be in the past`,
-    });
-    return res.status(200).send("");
-  }
-
-  fetch(`${WEBAPP_URL}/api/book/event`, {
+  await fetch(`${WEBAPP_URL}/api/book/event`, {
     method: "POST",
     body: JSON.stringify(PostData),
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then(() => {
-      client.chat.postMessage({
-        token: access_token,
-        channel: user.id, // We just dm the user here as there is no point posting this message publicly - In future it might be worth pinging all the members of the invite also?
-        text: "Booking has been created.",
-      });
-      return res.status(200).send(""); // Slack requires a 200 to be sent to clear the modal. This makes it massive pain to update the user that the event has been created.
+    .then(async (res) => {
+      return await res.json();
     })
-    .catch((e) => {
-      client.chat.postMessage({
-        token: access_token,
-        channel: user.id,
-        text: `Error: ${e}`,
-      });
-      return res.status(200).send("");
+    .then((body) => {
+      if (body.errorCode) {
+        client.views.update({
+          view_id,
+          view: ErrorModal(body.message),
+        });
+      } else {
+        client.views.update({ view_id, view: SucessModal() });
+      }
     });
 }
+
+const ErrorModal = (message: string) =>
+  Modal({ title: "Create Event Error" })
+    .blocks(
+      Blocks.Section({ text: "Hey!" }),
+      Blocks.Section({ text: ":warning: There appears to be an error" }),
+      Blocks.Section({ text: message })
+    )
+    .buildToObject();
+
+const SucessModal = () =>
+  Modal({ title: "Event Created" })
+    .blocks(Blocks.Section({ text: "Hey!" }), Blocks.Section({ text: "Booking has been created" }))
+    .buildToObject();

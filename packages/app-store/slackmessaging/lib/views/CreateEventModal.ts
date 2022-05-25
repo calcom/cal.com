@@ -13,7 +13,7 @@ const CreateEventModal = (
         } | null;
       })
     | null,
-  invalidInput: boolean = false
+  invalidInput = false
 ) => {
   return Modal({ title: "Create Booking", submit: "Create", callbackId: "cal.event.create" })
     .blocks(

@@ -12,8 +12,6 @@ export default async function interactiveHandler(req: NextApiRequest, res: NextA
     await slackVerify(req, res);
     const payload = JSON.parse(req.body.payload);
     const actions = payload.view.callback_id;
-
-    // I've not found a case where actions is ever > than 1 when this function is called.
     switch (actions) {
       case InteractionEvents.CREATE_EVENT:
         return await createEvent(req, res);
