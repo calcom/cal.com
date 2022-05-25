@@ -47,7 +47,7 @@ type States =
 export default function PaymentComponent(props: Props) {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { name, date } = router.query;
+  const { email, name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
@@ -86,6 +86,7 @@ export default function PaymentComponent(props: Props) {
         date,
         type: props.eventType.id,
         user: props.user.username,
+        email,
         name,
         bookingId: props.bookingId,
       };

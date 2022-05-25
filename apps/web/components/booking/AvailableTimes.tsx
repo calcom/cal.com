@@ -29,6 +29,7 @@ type AvailableTimesProps = {
     username: string | null;
   }[];
   schedulingType: SchedulingType | null;
+  seatsPerTimeSlot?: number | null;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -44,6 +45,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   schedulingType,
   beforeBufferTime,
   afterBufferTime,
+  seatsPerTimeSlot,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -105,18 +107,48 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               bookingUrl.query.user = slot.users;
             }
 
+            // If event already has an attendee add booking id
+            if (slot.bookingUid) {
+              bookingUrl.query.bookingUid = slot.bookingUid;
+            }
+
             return (
               <div key={slot.time.format()}>
-                <Link href={bookingUrl}>
-                  <a
+                {/* Current there is no way to disable Next.js Links */}
+                {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
+                  <div
                     className={classNames(
-                      "text-bookingdarker hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                      "text-primary-500 mb-2 block rounded-sm border bg-white py-4 font-medium opacity-25  dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 ",
                       brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
-                    )}
-                    data-testid="time">
-                    {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
-                  </a>
-                </Link>
+                    )}>
+                    {slot.time.format(timeFormat)}
+                    {seatsPerTimeSlot && <p className={`text-sm`}>{t("booking_full")}</p>}
+                  </div>
+                ) : (
+                  <Link href={bookingUrl}>
+                    <a
+                      className={classNames(
+                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast mb-2 block rounded-sm border bg-white py-4 font-medium hover:text-white dark:border-transparent dark:bg-gray-600 dark:text-neutral-200 dark:hover:border-black",
+                        brand === "#fff" || brand === "#ffffff" ? "border-brandcontrast" : "border-brand"
+                      )}
+                      data-testid="time">
+                      {dayjs.tz(slot.time, timeZone()).format(timeFormat)}
+                      {seatsPerTimeSlot && (
+                        <p
+                          className={`${
+                            slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
+                              ? "text-rose-600"
+                              : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                              ? "text-yellow-500"
+                              : "text-emerald-400"
+                          } text-sm`}>
+                          {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
+                          {seatsPerTimeSlot} {t("seats_available")}
+                        </p>
+                      )}
+                    </a>
+                  </Link>
+                )}
               </div>
             );
           })}

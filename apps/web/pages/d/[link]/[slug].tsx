@@ -41,6 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     recurringEvent: true,
     schedulingType: true,
+    seatsPerTimeSlot: true,
     userId: true,
     schedule: {
       select: {

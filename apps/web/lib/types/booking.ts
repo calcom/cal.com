@@ -24,6 +24,7 @@ export type BookingCreateBody = {
   timeZone: string;
   user?: string | string[];
   language: string;
+  bookingUid?: string;
   customInputs: { label: string; value: string | boolean }[];
   metadata: {
     [key: string]: string;
