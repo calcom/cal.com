@@ -28,6 +28,7 @@ export const InstallAppButtonMap = {
   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
   spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
+  exchange2013: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
 };
 
 export const InstallAppButton = (

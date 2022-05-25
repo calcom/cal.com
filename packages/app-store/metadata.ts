@@ -1,6 +1,7 @@
 import { metadata as applecalendar } from "./applecalendar/_metadata";
 import { metadata as caldavcalendar } from "./caldavcalendar/_metadata";
 import { metadata as dailyvideo } from "./dailyvideo/_metadata";
+import { metadata as exchange2013calendar } from "./exchange2013calendar/_metadata";
 import { metadata as giphy } from "./giphy/_metadata";
 import { metadata as googlecalendar } from "./googlecalendar/_metadata";
 import { metadata as googlevideo } from "./googlevideo/_metadata";
@@ -40,6 +41,7 @@ export const appStoreMetadata = {
   metamask,
   giphy,
   zapier,
+  exchange2013calendar,
 };
 
 export default appStoreMetadata;
