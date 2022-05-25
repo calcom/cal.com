@@ -817,7 +817,7 @@
   "search": "Search",
   "impersonate": "Impersonate",
   "user_impersonation_heading":"User Impersonation",
-  "user_impersonation_description":"Allows your account to be impersonated for debugging purposes.",
+  "user_impersonation_description":"Allows our support team to temporarily sign in as you to help us quickly resolve any issues you report to us.",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
   "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
