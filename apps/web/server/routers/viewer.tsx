@@ -629,7 +629,7 @@ const loggedInViewerRouter = createProtectedRouter()
           .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
       }
       if (onlyInstalled) {
-        apps = apps.flatMap((item) => (item.credentialIds.length > 0 ? [item] : []));
+        apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
       return {
         items: apps,

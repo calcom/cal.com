@@ -113,7 +113,9 @@ export default function App({
                 {isGlobal || installedApp > 0 ? (
                   <div className="space-x-3">
                     <Button StartIcon={CheckIcon} color="secondary" disabled>
-                      {t("active_install", { count: installedApp })}
+                      {installedApp > 0
+                        ? t("active_install", { count: installedApp })
+                        : t("globally_install")}
                     </Button>
                     <InstallAppButton
                       type={type}

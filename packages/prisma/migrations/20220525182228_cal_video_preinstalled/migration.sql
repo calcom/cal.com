@@ -1,0 +1,1 @@
+insert into "App" ("slug", "dirName", "updatedAt", "categories") values ('daily-video', 'dailyvideo', NOW(), '{video}')

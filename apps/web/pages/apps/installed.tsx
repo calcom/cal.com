@@ -109,6 +109,7 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
       query={query}
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
+        console.log(variant, data);
         return (
           <>
             {data.items.length > 0 && (

@@ -1,29 +1,18 @@
-import { useRouter } from "next/router";
-import { useState } from "react";
+import type { InstallAppButtonProps } from "@calcom/app-store/types";
 
-import { InstallAppButtonProps } from "../../types";
-import AddIntegration from "./AddIntegration";
+import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const appRoute = "/apps/apple-calendar";
+  const mutation = useAddAppMutation("apple_calendar");
+
   return (
     <>
       {props.render({
         onClick() {
-          if (router.asPath !== appRoute) {
-            router.push(appRoute);
-            setIsLoading(true);
-          } else {
-            setIsModalOpen(true);
-          }
+          mutation.mutate("");
         },
-        disabled: isModalOpen,
-        loading: isLoading,
+        loading: mutation.isLoading,
       })}
-      <AddIntegration open={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

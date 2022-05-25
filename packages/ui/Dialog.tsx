@@ -64,10 +64,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay
-        asChild
-        className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity"
-      />
+      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
       {/*zIndex one less than Toast */}
       <DialogPrimitive.Content
         {...props}
