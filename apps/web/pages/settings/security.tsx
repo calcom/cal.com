@@ -11,6 +11,7 @@ import { trpc } from "@lib/trpc";
 import SettingsShell from "@components/SettingsShell";
 import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
+import DisableUserImpersonation from "@components/security/DisableUserImpersonation";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
 
 export default function Security() {
@@ -39,6 +40,7 @@ export default function Security() {
             <ChangePasswordSection />
             <ApiKeyListContainer />
             <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled || false} />
+            <DisableUserImpersonation disableImpersonation={user?.disableImpersonation ?? true} />
           </div>
         )}
 
