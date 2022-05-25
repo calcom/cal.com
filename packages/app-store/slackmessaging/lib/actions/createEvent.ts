@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import db from "@calcom/prisma";
 
 import { WhereCredsEqualsId } from "../WhereCredsEqualsID";
+import slackVerify from "../slackVerify";
 import { getUserEmail } from "../utils";
 import BookingSuccess from "../views/BookingSuccess";
 
@@ -42,7 +43,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       id: view_id,
     },
   } = JSON.parse(req.body.payload);
-  console.log(req.body.payload);
+  await slackVerify(req, res);
   // This is a mess I have no idea why slack makes getting infomation this hard.
   const {
     eventName: {
