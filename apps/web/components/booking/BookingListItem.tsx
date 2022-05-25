@@ -258,7 +258,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden whitespace-nowrap py-4 align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
+        <td className="hidden whitespace-nowrap align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-56">
           <Link
             href={{
               pathname: "/success",
