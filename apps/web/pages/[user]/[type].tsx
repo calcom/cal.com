@@ -307,11 +307,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         weekStart: "Sunday",
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
       }
     : {
         name: user.name || user.username,
