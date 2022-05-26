@@ -3,6 +3,12 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
+    "@calcom/admin#post-install": {
+      "outputs": ["./node_modules/@prisma/admin-client/**", "./apps/console/prisma/schema.prisma"]
+    },
+    "@calcom/prisma#post-install": {
+      "outputs": ["./node_modules/@prisma/client/**", "./packages/prisma/schema.prisma"]
+    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]

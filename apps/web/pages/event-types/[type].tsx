@@ -126,6 +126,7 @@ export type FormValues = {
   periodDays: number;
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
+  seatsPerTimeSlot: number | null;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -148,6 +149,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   const { t } = useLocale();
   const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
   const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <>
       <hr className="border-neutral-200" />
@@ -233,6 +235,7 @@ const AvailabilitySelect = ({
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -313,6 +316,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
+
+  const defaultSeats = 2;
+  const defaultSeatsInput = 6;
+  const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
+  const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= defaultSeatsInput);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -1004,6 +1012,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
+                      seatsPerTimeSlot,
                       recurringEvent,
                       locations,
                       ...input
@@ -1019,6 +1028,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
+                      seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
@@ -1189,16 +1199,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             name="users"
                             control={formMethods.control}
                             defaultValue={eventType.users.map((user) => user.id.toString())}
-                            render={() => (
+                            render={({ field: { onChange, value } }) => (
                               <CheckedSelect
-                                disabled={false}
-                                onChange={(options) => {
-                                  formMethods.setValue(
-                                    "users",
-                                    options.map((user) => user.value)
-                                  );
-                                }}
-                                defaultValue={eventType.users.map(mapUserToValue)}
+                                isDisabled={false}
+                                onChange={(options) => onChange(options.map((user) => user.value))}
+                                value={value
+                                  .map(
+                                    (userId) =>
+                                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                      teamMembers
+                                        .map(mapUserToValue)
+                                        .find((member) => member.value === userId)!
+                                  )
+                                  .filter(Boolean)}
                                 options={teamMembers.map(mapUserToValue)}
                                 placeholder={t("add_attendees")}
                               />
@@ -1405,6 +1418,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("opt_in_booking")}
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
+                              disabled={enableSeats}
+                              checked={formMethods.watch("disableGuests")}
                               onChange={(e) => {
                                 formMethods.setValue("requiresConfirmation", e?.target.checked);
                               }}
@@ -1431,6 +1446,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
+                              // If we have seats per booking then we need to disable guests
+                              disabled={enableSeats}
+                              checked={formMethods.watch("disableGuests")}
                               onChange={(e) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
@@ -1734,6 +1752,130 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
+
+                        <>
+                          <hr className="border-neutral-200" />
+                          <div className="block flex-col sm:flex">
+                            <Controller
+                              name="seatsPerTimeSlot"
+                              control={formMethods.control}
+                              render={() => (
+                                <CheckboxField
+                                  id="seats"
+                                  name="seats"
+                                  label={t("offer_seats")}
+                                  description={t("offer_seats_description")}
+                                  defaultChecked={!!eventType.seatsPerTimeSlot}
+                                  onChange={(e) => {
+                                    if (e?.target.checked) {
+                                      setEnableSeats(true);
+                                      // Want to disable individuals from taking multiple seats
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeats);
+                                      formMethods.setValue("disableGuests", true);
+                                      formMethods.setValue("requiresConfirmation", false);
+                                    } else {
+                                      setEnableSeats(false);
+                                      formMethods.setValue("seatsPerTimeSlot", null);
+                                      formMethods.setValue(
+                                        "requiresConfirmation",
+                                        eventType.requiresConfirmation
+                                      );
+                                      formMethods.setValue("disableGuests", eventType.disableGuests);
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+
+                            {enableSeats && (
+                              <div className="block sm:flex">
+                                <div className="mt-2 inline-flex w-full space-x-2 md:ml-48">
+                                  <div className="w-full">
+                                    <Controller
+                                      name="seatsPerTimeSlot"
+                                      control={formMethods.control}
+                                      render={() => {
+                                        const selectSeatsPerTimeSlotOptions = [
+                                          { value: 2, label: "2" },
+                                          { value: 3, label: "3" },
+                                          { value: 4, label: "4" },
+                                          { value: 5, label: "5" },
+                                          {
+                                            value: -1,
+                                            isDisabled: !eventType.users.some((user) => user.plan === "PRO"),
+                                            label: (
+                                              <div className="flex flex-row justify-between">
+                                                <span>6 +</span>
+                                                <Badge variant="default">PRO</Badge>
+                                              </div>
+                                            ) as unknown as string,
+                                          },
+                                        ];
+                                        return (
+                                          <>
+                                            <div className="block sm:flex">
+                                              <div className="flex-auto">
+                                                <label
+                                                  htmlFor="beforeBufferTime"
+                                                  className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                  Number of seats per booking
+                                                </label>
+                                                <Select
+                                                  isSearchable={false}
+                                                  classNamePrefix="react-select"
+                                                  className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                  onChange={(val) => {
+                                                    if (val!.value === -1) {
+                                                      formMethods.setValue(
+                                                        "seatsPerTimeSlot",
+                                                        defaultSeatsInput
+                                                      );
+                                                      setInputSeatNumber(true);
+                                                    } else {
+                                                      setInputSeatNumber(false);
+                                                      formMethods.setValue("seatsPerTimeSlot", val!.value);
+                                                    }
+                                                  }}
+                                                  defaultValue={{
+                                                    value: eventType.seatsPerTimeSlot || defaultSeats,
+                                                    label: `${eventType.seatsPerTimeSlot || defaultSeats}`,
+                                                  }}
+                                                  options={selectSeatsPerTimeSlotOptions}
+                                                />
+                                              </div>
+
+                                              {inputSeatNumber && (
+                                                <div className="flex-auto md:ml-5">
+                                                  <label
+                                                    htmlFor="beforeBufferTime"
+                                                    className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                    Enter number of seats
+                                                  </label>
+                                                  <input
+                                                    type="number"
+                                                    className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                    placeholder={`${defaultSeatsInput}`}
+                                                    {...formMethods.register("seatsPerTimeSlot", {
+                                                      valueAsNumber: true,
+                                                      min: defaultSeatsInput,
+                                                    })}
+                                                    defaultValue={defaultSeatsInput}
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
+                                          </>
+                                        );
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <hr className="border-neutral-200" />
+                        </>
+
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
@@ -2214,6 +2356,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       currency: true,
       destinationCalendar: true,
+      seatsPerTimeSlot: true,
     },
   });
 
