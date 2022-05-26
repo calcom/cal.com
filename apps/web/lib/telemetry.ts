@@ -34,10 +34,8 @@ export const nextCollectBasicSettings: EventSinkOpts = {
     {
       type: "jitsu",
       opts: {
-        key: "s2s.2pvs2bbpqq1zxna97wcml.3jdhd69y09dzku3x243ive",
-        // TODO: uncomment after tests
-        // key: process.env.TELEMETRY_S2S_KEY,
-        // server: "https://t.calendso.com",
+        key: process.env.TELEMETRY_S2S_KEY,
+        server: "https://t.calendso.com",
       },
     },
   ],
@@ -46,6 +44,8 @@ export const nextCollectBasicSettings: EventSinkOpts = {
     { "*.webmanifest": null },
     { "*.json": null },
     { "*.svg": null },
+    { "*.png": null },
+    { "*.gif": null },
     { "/api/collect-events": null },
     { "/api*": null },
     { "/img*": null },
@@ -63,6 +63,7 @@ export const extendEventData = (req: NextApiRequest) => {
     onVercel: !!req.headers["x-vercel-id"],
     isAuthorized: !!req.cookies["next-auth.session-token"],
     utc_time: new Date().toISOString(),
+    browser_user_agent: req.headers["user-agent"] ?? "",
   };
   return pageOverwrite;
 };
