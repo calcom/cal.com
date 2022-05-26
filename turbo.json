@@ -3,20 +3,6 @@
   "baseBranch": "origin/main",
   "globalDependencies": [".env", "packages/prisma/.env"],
   "pipeline": {
-    "@calcom/console#build": {
-      "dependsOn": [
-        "@calcom/prisma#post-install",
-        "@calcom/console#post-install",
-        "$ADMIN_DATABASE_URL",
-        "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
-        "$NEXT_PUBLIC_WEBAPP_URL",
-        "$NEXT_PUBLIC_WEBSITE_URL",
-        "$STRIPE_PRIVATE_KEY"
-      ]
-    },
-    "@calcom/console#post-install": {
-      "outputs": ["./node_modules/@prisma/admin-client/**", "./apps/console/prisma/schema.prisma"]
-    },
     "@calcom/prisma#post-install": {
       "outputs": ["./node_modules/@prisma/client/**", "./packages/prisma/schema.prisma"]
     },
