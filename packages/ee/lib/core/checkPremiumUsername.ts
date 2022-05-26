@@ -9,7 +9,6 @@ export type ResponseUsernameApi = {
 
 export async function checkPremiumUsername(_username: string): Promise<ResponseUsernameApi> {
   const username = slugify(_username);
-  // @TODO: edit fetch url so it can handle dev and localhost
   const response = await fetch("/api/username", {
     credentials: "include",
     headers: {

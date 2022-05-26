@@ -28,10 +28,10 @@ test.describe("Change username on settings", () => {
 
     await updateUsernameBtn.click();
 
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    const goToBillingOrSaveBtn = page.locator("[data-testid=save-username]");
     await goToBillingOrSaveBtn.click();
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
@@ -56,11 +56,11 @@ test.describe("Change username on settings", () => {
 
     await updateUsernameBtn.click();
 
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    const goToBillingOrSaveBtn = page.locator("[data-testid=save-username]");
     await goToBillingOrSaveBtn.click();
 
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,
@@ -96,11 +96,11 @@ test.describe("Change username on settings", () => {
 
     await updateUsernameBtn.click();
 
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    const goToBillingOrSaveBtn = page.locator("[data-testid=save-username]");
     await goToBillingOrSaveBtn.click();
 
     // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     const newUpdatedUser = await prisma.user.findFirst({
       where: {
         id: user.id,

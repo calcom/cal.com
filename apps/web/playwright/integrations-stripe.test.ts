@@ -115,7 +115,7 @@ test.describe("Stripe integration", () => {
     expect(currentUsernameText).not.toBe(newUsernameText);
 
     // Click on Go to billing
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing]");
     await goToBillingOrSaveBtn.click();
 
     await page.waitForLoadState();
@@ -164,7 +164,7 @@ test.describe("Stripe integration", () => {
     expect(currentUsernameText).not.toBe(newUsernameText);
 
     // Click on Go to billing
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing-or-save]");
+    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing]");
     await goToBillingOrSaveBtn.click();
 
     await page.waitForLoadState();
