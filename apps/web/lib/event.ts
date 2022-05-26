@@ -51,8 +51,12 @@ export function getEventName(eventNameObj: EventNameObjectType, fromAttendee = f
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
-  return eventName
-    .replace("{ATTENDEE}", eventNameObj.attendeeName)
-    .replace("{HOST}", eventNameObj.host)
-    .replace("{HOST/ATTENDEE}", fromAttendee ? eventNameObj.host : eventNameObj.attendeeName);
+  return (
+    eventName
+      // Need this for compatibility with older event names
+      .replace("{USER}", eventNameObj.attendeeName)
+      .replace("{ATTENDEE}", eventNameObj.attendeeName)
+      .replace("{HOST}", eventNameObj.host)
+      .replace("{HOST/ATTENDEE}", fromAttendee ? eventNameObj.host : eventNameObj.attendeeName)
+  );
 }
