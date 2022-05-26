@@ -289,7 +289,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
           )}
           {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
             <>
-              This is a premium username. You will take you to billing to upgrade. Learn more.
+              {t("upgrade_and_go_to_billing")}
               {/* @TODO: Add learn more link */}
             </>
           )}

@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 import {
-  FREE_PLAN_PRICE,
-  FREE_PLAN_PRODUCT_ID,
   PREMIUM_PLAN_PRICE,
   PREMIUM_PLAN_PRODUCT_ID,
   PRO_PLAN_PRICE,
@@ -17,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "POST") {
     const userId = req.session!.user.id;
     const { action = null, isPremiumUsername = false } = req.body;
-    console.log({ action, isPremiumUsername });
+
     const customerId = await getStripeCustomerIdFromUserId(userId);
 
     if (!customerId) {
@@ -71,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           customProductsSession.push({ prices: [PRO_PLAN_PRICE], product: PRO_PLAN_PRODUCT_ID });
         }
       }
-      console.log({ customProductsSession });
+
       const configuration = await stripe.billingPortal.configurations.create({
         business_profile: {
           headline: actionText,

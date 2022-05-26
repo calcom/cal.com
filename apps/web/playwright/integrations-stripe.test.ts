@@ -101,7 +101,6 @@ test.describe("Stripe integration", () => {
     const usernameInput = page.locator("[data-testid=username-input]");
 
     await usernameInput.fill("xxx1");
-    // expect(usernameInput.inputValue()).toBe("xxx1");
 
     // Click on save button
     const updateUsernameBtn = page.locator("[data-testid=update-username-btn-desktop]");
@@ -115,8 +114,8 @@ test.describe("Stripe integration", () => {
     expect(currentUsernameText).not.toBe(newUsernameText);
 
     // Click on Go to billing
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing]");
-    await goToBillingOrSaveBtn.click();
+    const goToBillingBtn = page.locator("[data-testid=go-to-billing]");
+    await goToBillingBtn.click();
 
     await page.waitForLoadState();
 
@@ -150,7 +149,6 @@ test.describe("Stripe integration", () => {
     const usernameInput = page.locator("[data-testid=username-input]");
 
     await usernameInput.fill("xxx1");
-    // expect(usernameInput.inputValue()).toBe("xxx1");
 
     // Click on save button
     const updateUsernameBtn = page.locator("[data-testid=update-username-btn-desktop]");
@@ -164,8 +162,8 @@ test.describe("Stripe integration", () => {
     expect(currentUsernameText).not.toBe(newUsernameText);
 
     // Click on Go to billing
-    const goToBillingOrSaveBtn = page.locator("[data-testid=go-to-billing]");
-    await goToBillingOrSaveBtn.click();
+    const goToBillingBtn = page.locator("[data-testid=go-to-billing]");
+    await goToBillingBtn.click();
 
     await page.waitForLoadState();
 

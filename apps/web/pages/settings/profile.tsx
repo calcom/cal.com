@@ -217,25 +217,6 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
           <div className="flex-grow space-y-6">
             <div className="block rtl:space-x-reverse sm:flex sm:space-x-2">
               <div className="w-full">
-                {/* <TextField
-                  className={user.premiumUsername ? "border-r-0 border-yellow-300 border-l-gray-300" : ""}
-                  name={user.premiumUsername ? "Premium Username" : "Username"}
-                  addOnLeading={
-                    <span
-                      className={classNames(
-                        "inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500",
-                        user.premiumUsername ? "border-yellow-300 border-r-gray-300" : ""
-                      )}>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                    </span>
-                  }
-                  addOnEnding={
-                    <StarIcon className="color-yellow-300 fill-none  border-1 w-8 border-l-0 border-yellow-300" />
-                  }
-                  ref={usernameRef}
-                  defaultValue={user.username || undefined}
-                  disabled={!!user.premiumUsername}
-                /> */}
                 <CustomUsernameTextfield
                   {...{
                     usernameRef,

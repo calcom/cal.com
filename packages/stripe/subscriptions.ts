@@ -40,40 +40,6 @@ export async function retrieveSubscriptionIdFromStripeCustomerId(
   };
 }
 
-export interface IDowngradeSubscription {
-  subscriptionId: string;
-}
-
-export async function updateSubscription({
-  subscriptionId,
-}: IDowngradeSubscription): Promise<Stripe.Subscription> {
-  const subscription = await retrieveSubscriptionFromStripe(subscriptionId);
-
-  let newPriceId;
-  const pricePlanResult = obtainUserPlanDetails(subscription);
-
-  await stripe.subscriptions.update(subscriptionId, {
-    cancel_at_period_end: false,
-    proration_behavior: "create_prorations",
-    items: [
-      {
-        id: subscription.items.data[0].id,
-        price: pricePlanResult.priceId,
-      },
-    ],
-  });
-  const newSubscription = await stripe.subscriptions.retrieve(subscriptionId);
-  return newSubscription;
-}
-
-export interface IProratePreview {
-  subscriptionId: string;
-}
-
-async function retrieveSubscriptionFromStripe(subscriptionId: string) {
-  return stripe.subscriptions.retrieve(subscriptionId);
-}
-
 // @NOTE: Remove when user subscription plan id is saved on db and not on stripe only
 export function obtainUserPlanDetails(subscription: Stripe.Subscription) {
   const proPlanProductId = getProPlanProductId();
