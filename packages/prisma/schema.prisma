@@ -402,8 +402,8 @@ model Webhook {
 model Impersonations {
   id                 Int      @id @default(autoincrement())
   createdAt          DateTime @default(now())
-  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id])
-  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id])
+  impersonatedUser   User     @relation("impersonated_user", fields: [impersonatedUserId], references: [id], onDelete: Cascade)
+  impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
 }
