@@ -1,9 +1,15 @@
 import { z } from "zod";
 
 import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
+import { WebhookTriggerEvents } from "@calcom/prisma/client";
+
+export const WEBHOOK_TRIGGER_EVENTS = [
+  WebhookTriggerEvents.BOOKING_CANCELLED,
+  WebhookTriggerEvents.BOOKING_CREATED,
+  WebhookTriggerEvents.BOOKING_RESCHEDULED,
+] as ["BOOKING_CANCELLED", "BOOKING_CREATED", "BOOKING_RESCHEDULED"];
 
 const schemaWebhookBaseBodyParams = Webhook.pick({
-  id: true,
   userId: true,
   eventTypeId: true,
   eventTriggers: true,
@@ -14,12 +20,12 @@ const schemaWebhookBaseBodyParams = Webhook.pick({
 
 export const schemaWebhookCreateParams = z
   .object({
-    userId: z.number().or(z.string()).optional(),
-    eventTypeId: z.number().or(z.string()).optional(),
-    eventTriggers: z.any().optional(),
-    active: z.boolean().optional(),
-    subscriberUrl: z.string(),
-    payloadTemplate: z.string().optional(),
+    subscriberUrl: z.string().url(),
+    eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
+    active: z.boolean(),
+    payloadTemplate: z.string().nullable(),
+    eventTypeId: z.number().optional(),
+    appId: z.string().optional().nullable(),
   })
   .strict();
 
@@ -30,8 +36,8 @@ export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(
 export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams.merge(
   z.object({
     payloadTemplate: z.string().optional(),
-    /** @todo: don't use any here and validate eventTriggers proper */
-    eventTriggers: z.any(),
+    /** @todo: don't use 'any' here and validate eventTriggers proper */
+    eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
     subscriberUrl: z.string().optional(),
   })
 );
