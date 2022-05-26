@@ -1,6 +1,6 @@
 import { SessionProvider } from "next-auth/react";
 import { appWithTranslation } from "next-i18next";
-import type { AppProps as NextAppProps } from "next/app";
+import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { ComponentProps, ReactNode, useMemo } from "react";
 
 import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
@@ -11,7 +11,9 @@ import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 import { trpc } from "./trpc";
 
-const I18nextAdapter = appWithTranslation(({ children }: { children?: ReactNode }) => <>{children}</>);
+const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.ReactNode }>(({ children }) => (
+  <>{children}</>
+));
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = NextAppProps & {

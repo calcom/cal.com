@@ -1,4 +1,3 @@
-import { recurringEvent } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "@lib/emails/templates/attendee-awaiting-payment-email";
@@ -8,6 +7,7 @@ import AttendeeRequestEmail from "@lib/emails/templates/attendee-request-email";
 import AttendeeRequestRescheduledEmail from "@lib/emails/templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "@lib/emails/templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "@lib/emails/templates/attendee-scheduled-email";
+import FeedbackEmail, { Feedback } from "@lib/emails/templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "@lib/emails/templates/forgot-password-email";
 import OrganizerCancelledEmail from "@lib/emails/templates/organizer-cancelled-email";
 import OrganizerPaymentRefundFailedEmail from "@lib/emails/templates/organizer-payment-refund-failed-email";
@@ -266,4 +266,15 @@ export const sendRequestRescheduleEmail = async (
   );
 
   await Promise.all(emailsToSend);
+};
+
+export const sendFeedbackEmail = async (feedback: Feedback) => {
+  await new Promise((resolve, reject) => {
+    try {
+      const feedbackEmail = new FeedbackEmail(feedback);
+      resolve(feedbackEmail.sendEmail());
+    } catch (e) {
+      reject(console.error("FeedbackEmail.sendEmail failed", e));
+    }
+  });
 };

@@ -1,9 +1,11 @@
 import { AdminRequired } from "components/ui/AdminRequired";
+import noop from "lodash/noop";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
-import React, { ElementType, FC, Fragment, MouseEventHandler } from "react";
+import { FC, Fragment, MouseEventHandler } from "react";
 
 import classNames from "@lib/classNames";
+import { SVGComponent } from "@lib/types/SVGComponent";
 
 export interface NavTabProps {
   tabs: {
@@ -12,7 +14,7 @@ export interface NavTabProps {
     href?: string;
     /** If you want to change query param tabName as per current tab */
     tabName?: string;
-    icon?: ElementType;
+    icon?: SVGComponent;
     adminRequired?: boolean;
   }[];
   linkProps?: Omit<LinkProps, "href">;
@@ -27,11 +29,11 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab) => {
-          let href: string;
-          let isCurrent;
           if ((tab.tabName && tab.href) || (!tab.tabName && !tab.href)) {
             throw new Error("Use either tabName or href");
           }
+          let href = "";
+          let isCurrent;
           if (tab.href) {
             href = tab.href;
             isCurrent = router.asPath === tab.href;
@@ -39,6 +41,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
             href = "";
             isCurrent = router.query.tabName === tab.tabName;
           }
+
           const onClick: MouseEventHandler = tab.tabName
             ? (e) => {
                 e.preventDefault();
@@ -49,12 +52,13 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   },
                 });
               }
-            : () => {};
+            : noop;
 
           const Component = tab.adminRequired ? AdminRequired : Fragment;
+
           return (
             <Component key={tab.name}>
-              <Link key={tab.name} href={href!} {...linkProps}>
+              <Link key={tab.name} href={href} {...linkProps}>
                 <a
                   onClick={onClick}
                   className={classNames(

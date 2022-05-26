@@ -8,24 +8,27 @@ import {
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
+  LocationMarkerIcon,
   RefreshIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
+import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
   useEmbedStyles,
   useIsEmbed,
   useIsBackgroundTransparent,
   sdkActionManager,
-  useEmbedType,
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core";
 import classNames from "@calcom/lib/classNames";
@@ -58,6 +61,33 @@ dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
 
+export const locationKeyToString = (location: LocationObject, t: TFunction) => {
+  switch (location.type) {
+    case LocationType.InPerson:
+      return location.address || "In Person"; // If disabled address won't exist on the object
+    case LocationType.Link:
+      return location.link || "Link"; // If disabled link won't exist on the object
+    case LocationType.Phone:
+      return t("phone_call");
+    case LocationType.GoogleMeet:
+      return "Google Meet";
+    case LocationType.Zoom:
+      return "Zoom";
+    case LocationType.Daily:
+      return "Cal Video";
+    case LocationType.Jitsi:
+      return "Jitsi";
+    case LocationType.Huddle01:
+      return "Huddle Video";
+    case LocationType.Tandem:
+      return "Tandem";
+    case LocationType.Teams:
+      return "Microsoft Teams";
+    default:
+      return null;
+  }
+};
+
 const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -68,7 +98,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  let isBackgroundTransparent = useIsBackgroundTransparent();
+  const isBackgroundTransparent = useIsBackgroundTransparent();
   useExposePlanGlobally(plan);
   useEffect(() => {
     if (eventType.metadata.smartContractAddress) {
@@ -76,7 +106,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const selectedDate = useMemo(() => {
     const dateString = asStringOrNull(router.query.date);
@@ -119,26 +149,36 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
     );
   }, [telemetry]);
 
-  const changeDate = (newDate: Dayjs) => {
-    router.replace(
-      {
-        query: {
-          ...router.query,
-          date: newDate.format("YYYY-MM-DDZZ"),
+  const changeDate = useCallback(
+    (newDate: Dayjs) => {
+      router.replace(
+        {
+          query: {
+            ...router.query,
+            date: newDate.tz(timeZone(), true).format("YYYY-MM-DDZZ"),
+          },
         },
-      },
-      undefined,
-      {
-        shallow: true,
-      }
-    );
-  };
+        undefined,
+        { shallow: true }
+      );
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    if (
+      selectedDate != null &&
+      selectedDate?.utcOffset() !== selectedDate.clone().utcOffset(0).tz(timeZone()).utcOffset()
+    ) {
+      changeDate(selectedDate.tz(timeZone(), true));
+    }
+  }, [selectedDate, changeDate]);
 
   const handleSelectTimeZone = (selectedTimeZone: string): void => {
+    timeZone(selectedTimeZone);
     if (selectedDate) {
       changeDate(selectedDate.tz(selectedTimeZone, true));
     }
-    timeZone(selectedTimeZone);
     setIsTimeOptionsOpen(false);
   };
 
@@ -203,15 +243,36 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     truncateAfter={5}
                   />
                   <div className="mt-4">
-                    <p className="text-sm font-medium text-black dark:text-white">{profile.name}</p>
+                    <p className="break-words text-sm font-medium text-black dark:text-white">
+                      {profile.name}
+                    </p>
                     <div className="mt-2 gap-2 dark:text-gray-100">
-                      <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
+                      <h1 className="text-bookingdark mb-4 break-words text-xl font-semibold dark:text-white">
                         {eventType.title}
                       </h1>
                       {eventType?.description && (
                         <p className="text-bookinglight mb-2 dark:text-white">
                           <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {eventType.description}
+                        </p>
+                      )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          {locationKeyToString(eventType.locations[0], t)}
+                        </p>
+                      )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          {Object.values(AppStoreLocationType).includes(
+                            eventType.locations[0].type as unknown as AppStoreLocationType
+                          ) ? (
+                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          ) : (
+                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          )}
+
+                          {locationKeyToString(eventType.locations[0], t)}
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
@@ -254,7 +315,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
               <div className="px-4 sm:flex sm:p-4 sm:py-5">
                 <div
                   className={
-                    "hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
+                    "hidden overflow-hidden pr-8 sm:border-r sm:dark:border-gray-700 md:flex md:flex-col " +
                     (selectedDate ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                   }>
                   <AvatarGroup
@@ -274,8 +335,10 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     size={10}
                     truncateAfter={3}
                   />
-                  <h2 className="mt-3 font-medium text-gray-500 dark:text-gray-300">{profile.name}</h2>
-                  <h1 className="font-cal mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+                  <h2 className="mt-3 break-words font-medium text-gray-500 dark:text-gray-300">
+                    {profile.name}
+                  </h2>
+                  <h1 className="font-cal mb-4 break-words text-xl font-semibold text-gray-900 dark:text-white">
                     {eventType.title}
                   </h1>
                   {eventType?.description && (
@@ -283,6 +346,36 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {eventType.description}
                     </p>
+                  )}
+                  {eventType.locations.length === 1 && (
+                    <p className="text-bookinglight mb-2 dark:text-white">
+                      {Object.values(AppStoreLocationType).includes(
+                        eventType.locations[0].type as unknown as AppStoreLocationType
+                      ) ? (
+                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      )}
+
+                      {locationKeyToString(eventType.locations[0], t)}
+                    </p>
+                  )}
+                  {eventType.locations.length > 1 && (
+                    <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
+                      <div className="mr-[10px] ml-[2px] -mt-1 ">
+                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                      </div>
+                      <p>
+                        {eventType.locations.map((el, i, arr) => {
+                          return (
+                            <span key={el.type}>
+                              {locationKeyToString(el, t)}{" "}
+                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                            </span>
+                          );
+                        })}
+                      </p>
+                    </div>
                   )}
                   <p className="text-bookinglight mb-3 dark:text-white">
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
@@ -327,7 +420,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       </IntlProvider>
                     </p>
                   )}
-
                   <TimezoneDropdown />
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
@@ -385,6 +477,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     schedulingType={eventType.schedulingType ?? null}
                     beforeBufferTime={eventType.beforeEventBuffer}
                     afterBufferTime={eventType.afterEventBuffer}
+                    seatsPerTimeSlot={eventType.seatsPerTimeSlot}
                   />
                 )}
               </div>

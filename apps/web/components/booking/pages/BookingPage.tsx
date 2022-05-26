@@ -37,7 +37,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -51,6 +51,15 @@ import type PhoneInputType from "@components/ui/form/PhoneInput";
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var web3: {
+    currentProvider: {
+      selectedAddress: string;
+    };
+  };
+}
 
 /** These are like 40kb that not every user needs */
 const PhoneInput = dynamic(
@@ -66,8 +75,9 @@ type BookingFormValues = {
   locationType?: LocationType;
   guests?: string[];
   phone?: string;
+  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
-    [key: string]: string;
+    [key: string]: string | boolean;
   };
 };
 
@@ -89,6 +99,7 @@ const BookingPage = ({
   const { contracts } = useContracts();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
@@ -97,6 +108,7 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -104,10 +116,9 @@ const BookingPage = ({
       const eventOwner = eventType.users[0];
 
       if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        /* @ts-ignore */
         router.replace(`/${eventOwner.username}`);
     }
-  }, [contracts, eventType.metadata.smartContractAddress, router]);
+  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -118,6 +129,7 @@ const BookingPage = ({
             paymentUid,
             date,
             name: attendees[0].name,
+            email: attendees[0].email,
             absolute: false,
           })
         );
@@ -191,10 +203,9 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: Location[] = useMemo(
-    () => (eventType.locations as Location[]) || [],
+  const locations: LocationObject[] = useMemo(
+    () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 
@@ -204,10 +215,8 @@ const BookingPage = ({
     }
   }, [router.query.guest]);
 
-  const telemetry = useTelemetry();
-
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
+  const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
     : [];
@@ -235,11 +244,22 @@ const BookingPage = ({
     if (!primaryAttendee) {
       return {};
     }
+
+    const customInputType = booking.customInputs;
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      customInputs: eventType.customInputs.reduce(
+        (customInputs, input) => ({
+          ...customInputs,
+          [input.id]: booking.customInputs
+            ? booking.customInputs[input.label as keyof typeof customInputType]
+            : "",
+        }),
+        {}
+      ),
     };
   };
 
@@ -268,7 +288,9 @@ const BookingPage = ({
     })(),
   });
 
-  const getLocationValue = (booking: Pick<BookingFormValues, "locationType" | "phone">) => {
+  const getLocationValue = (
+    booking: Pick<BookingFormValues, "locationType" | "phone" | "hostPhoneNumber">
+  ) => {
     const { locationType } = booking;
     switch (locationType) {
       case LocationType.Phone: {
@@ -279,6 +301,9 @@ const BookingPage = ({
       }
       case LocationType.Link: {
         return locationInfo(locationType)?.link || "";
+      }
+      case LocationType.UserPhone: {
+        return locationInfo(locationType)?.hostPhoneNumber || "";
       }
       // Catches all other location types, such as Google Meet, Zoom etc.
       default:
@@ -325,7 +350,6 @@ const BookingPage = ({
     let web3Details: Record<"userWallet" | "userSignature", string> | undefined;
     if (eventTypeDetail.metadata.smartContractAddress) {
       web3Details = {
-        // @ts-ignore
         userWallet: window.web3.currentProvider.selectedAddress,
         userSignature: contracts[(eventTypeDetail.metadata.smartContractAddress || null) as number],
       };
@@ -353,8 +377,8 @@ const BookingPage = ({
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-          value: booking.customInputs![inputId],
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
+          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
         })),
         hasHashedBookingLink,
         hashedLink,
@@ -371,14 +395,15 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
+        bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         location: getLocationValue(
           booking.locationType ? booking : { ...booking, locationType: selectedLocation }
         ),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))!.label,
-          value: booking.customInputs![inputId],
+          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
+          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
         })),
         hasHashedBookingLink,
         hashedLink,
@@ -387,6 +412,9 @@ const BookingPage = ({
   };
 
   const disableInput = !!rescheduleUid;
+  const disabledExceptForOwner = disableInput && !loggedInIsOwner;
+  const inputClassName =
+    "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
 
   return (
     <div>
@@ -419,7 +447,7 @@ const BookingPage = ({
               "main overflow-hidden",
               isEmbed ? "" : "border border-gray-200",
               isBackgroundTransparent ? "" : "dark:border-1 bg-white dark:bg-gray-800",
-              "rounded-md sm:border sm:dark:border-gray-600"
+              "rounded-md dark:border-gray-600 sm:border"
             )}>
             <div className="px-4 py-5 sm:flex sm:p-4">
               <div className="sm:w-1/2 sm:border-r sm:dark:border-gray-700">
@@ -441,6 +469,21 @@ const BookingPage = ({
                 <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType.seatsPerTimeSlot && (
+                  <p
+                    className={`${
+                      booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                        ? "text-rose-600"
+                        : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                        ? "text-yellow-500"
+                        : "text-emerald-400"
+                    } mb-2`}>
+                    {booking
+                      ? eventType.seatsPerTimeSlot - booking.attendees.length
+                      : eventType.seatsPerTimeSlot}{" "}
+                    / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                  </p>
+                )}
                 {eventType?.description && (
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
@@ -480,7 +523,7 @@ const BookingPage = ({
                   <CalendarIcon className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                   <div className="-mt-1">
                     {(rescheduleUid || !eventType.recurringEvent.freq) &&
-                      parseDate(dayjs.tz(date, timeZone()), i18n)}
+                      parseDate(dayjs(date).tz(timeZone()), i18n)}
                     {!rescheduleUid &&
                       eventType.recurringEvent.freq &&
                       recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
@@ -528,10 +571,7 @@ const BookingPage = ({
                         name="name"
                         id="name"
                         required
-                        className={classNames(
-                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                        )}
+                        className={inputClassName}
                         placeholder={t("example_name")}
                         disabled={disableInput}
                       />
@@ -548,8 +588,7 @@ const BookingPage = ({
                         {...bookingForm.register("email")}
                         required
                         className={classNames(
-                          "focus:border-brand block w-full rounded-sm shadow-sm focus:ring-black dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : "",
+                          inputClassName,
                           bookingForm.formState.errors.email
                             ? "border-red-700 focus:ring-red-700"
                             : " border-gray-300  dark:border-gray-900"
@@ -624,12 +663,9 @@ const BookingPage = ({
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                            )}
+                            className={inputClassName}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -639,9 +675,9 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={inputClassName}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -651,8 +687,9 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={inputClassName}
                             placeholder=""
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
@@ -663,8 +700,9 @@ const BookingPage = ({
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
                               placeholder=""
+                              disabled={disabledExceptForOwner}
                             />
                             <label
                               htmlFor={"custom_" + input.id}
@@ -751,12 +789,9 @@ const BookingPage = ({
                       id="notes"
                       name="notes"
                       rows={3}
-                      className={classNames(
-                        "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                        disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                      )}
+                      className={inputClassName}
                       placeholder={t("share_additional_notes")}
-                      disabled={disableInput}
+                      disabled={disabledExceptForOwner}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">

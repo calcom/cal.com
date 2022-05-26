@@ -1,20 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import * as teardown from "./lib/teardown";
+import { test } from "./lib/fixtures";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth, todo, waitFor } from "./lib/testUtils";
 
-test.describe("integrations", () => {
-  //teardown
-  test.afterAll(async () => {
-    await teardown.deleteAllWebhooksByEmail("pro@example.com");
-    await teardown.deleteAllBookingsByEmail("pro@example.com");
-  });
-  test.use({ storageState: "playwright/artifacts/proStorageState.json" });
+test.describe.configure({ mode: "parallel" });
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/apps/installed");
-  });
-
+test.describe("Integrations", () => {
   todo("Can add Zoom integration");
 
   todo("Can add Google Calendar");
@@ -25,8 +16,15 @@ test.describe("integrations", () => {
 
   todo("Can add Apple Calendar");
 
-  test("add webhook & test that creating an event triggers a webhook call", async ({ page }, testInfo) => {
+  test("add webhook & test that creating an event triggers a webhook call", async ({
+    page,
+    users,
+  }, testInfo) => {
     const webhookReceiver = createHttpServer();
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+    await user.login();
+    await page.goto("/apps/installed");
 
     // --- add webhook
     await page.click('[data-testid="new_webhook"]');
@@ -43,7 +41,7 @@ test.describe("integrations", () => {
     expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
 
     // --- Book the first available day next month in the pro user's "30min"-event
-    await page.goto(`/pro/30min`);
+    await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     // --- fill form
@@ -69,6 +67,7 @@ test.describe("integrations", () => {
       attendee.timeZone = dynamic;
       attendee.language = dynamic;
     }
+    body.payload.organizer.email = dynamic;
     body.payload.organizer.timeZone = dynamic;
     body.payload.organizer.language = dynamic;
     body.payload.uid = dynamic;
