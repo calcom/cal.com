@@ -3,7 +3,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
-import { AppStoreLocationType, locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
+import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
