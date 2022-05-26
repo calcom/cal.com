@@ -5,7 +5,7 @@ import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import React, { useEffect } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
