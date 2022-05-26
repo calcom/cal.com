@@ -768,7 +768,7 @@
   "redirect_url_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "duplicate": "Duplicate",
   "offer_seats": "Offer seats",
-  "offer_seats_description": "Offer seats to bookings (This disables guests)",
+  "offer_seats_description": "Offer seats to bookings (This disables guests & opt in bookings)",
   "seats_available": "Seats available",
   "number_of_seats": "Number of seats per booking",
   "enter_number_of_seats": "Enter number of seats",
