@@ -35,15 +35,12 @@ function TeamPage({ team }: TeamPageProps) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        telemetryEventTypes.pageView,
-        collectPageParameters("/team/[slug]", {
-          isTeamBooking: true,
-        })
-      )
+    telemetry.event(
+      telemetryEventTypes.pageView,
+      collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
   }, [telemetry]);
+
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (

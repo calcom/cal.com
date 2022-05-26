@@ -40,9 +40,7 @@ export default function SAMLLogin(props: Props) {
           event.preventDefault();
 
           // track Google logins. Without personal data/payload
-          telemetry.withJitsu((jitsu) =>
-            jitsu.track(telemetryEventTypes.googleLogin, collectPageParameters())
-          );
+          telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
 
           if (!props.hostedCal) {
             await signIn("saml", {}, { tenant: props.samlTenantID, product: props.samlProductID });

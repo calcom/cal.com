@@ -78,9 +78,7 @@ export default function CancelBooking(props: Props) {
                       reason: cancellationReason,
                     };
 
-                    telemetry.withJitsu((jitsu) =>
-                      jitsu.track(telemetryEventTypes.bookingCancelled, collectPageParameters())
-                    );
+                    telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                     const res = await fetch("/api/cancel", {
                       body: JSON.stringify(payload),
