@@ -50,7 +50,7 @@ interface ISetLocationDialog {
   }[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
-  setSelectedLocation?: (param: OptionTypeBase) => void;
+  setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
 }
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
@@ -99,37 +99,39 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   const LocationOptions =
     selectedLocation === LocationType.InPerson ? (
-      <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-          {t("set_address_place")}
-        </label>
-        <div className="mt-1">
-          <input
-            type="text"
-            {...locationFormMethods.register("locationAddress")}
-            id="address"
-            required
-            className="block w-full rounded-sm border-gray-300 text-sm"
-            defaultValue={
-              defaultValues
-                ? defaultValues.find(
-                    (location: { type: LocationType }) => location.type === LocationType.InPerson
-                  )?.address
-                : undefined
-            }
-          />
+      <>
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            {t("set_address_place")}
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              {...locationFormMethods.register("locationAddress")}
+              id="address"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              defaultValue={
+                defaultValues
+                  ? defaultValues.find(
+                      (location: { type: LocationType }) => location.type === LocationType.InPerson
+                    )?.address
+                  : undefined
+              }
+            />
+          </div>
         </div>
-      </div>
+      </>
     ) : selectedLocation === LocationType.Link ? (
       <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="link" className="block text-sm font-medium text-gray-700">
           {t("set_link_meeting")}
         </label>
         <div className="mt-1">
           <input
             type="text"
             {...locationFormMethods.register("locationLink")}
-            id="address"
+            id="link"
             required
             className="block w-full rounded-sm border-gray-300 sm:text-sm"
             defaultValue={
@@ -221,6 +223,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
               saveLocation(newLocation, details);
               setShowLocationModal(false);
+              setSelectedLocation?.(undefined);
               locationFormMethods.unregister([
                 "locationType",
                 "locationLink",
@@ -267,6 +270,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <Button
                 onClick={() => {
                   setShowLocationModal(false);
+                  setSelectedLocation?.(undefined);
                   locationFormMethods.unregister("locationType");
                 }}
                 type="button"
