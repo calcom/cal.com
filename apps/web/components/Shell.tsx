@@ -32,6 +32,7 @@ import LicenseBanner from "@ee/components/LicenseBanner";
 import TrialBanner from "@ee/components/TrialBanner";
 import HelpMenuItem from "@ee/components/support/HelpMenuItem";
 
+import ErrorBoundary from "@lib/ErrorBoundary";
 import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
@@ -349,7 +350,7 @@ const Layout = ({
                   "px-4 sm:px-6 md:px-8",
                   props.flexChildrenContainer && "flex flex-1 flex-col"
                 )}>
-                {!props.isLoading ? props.children : props.customLoader}
+                <ErrorBoundary>{!props.isLoading ? props.children : props.customLoader}</ErrorBoundary>
               </div>
               {/* show bottom navigation for md and smaller (tablet and phones) */}
               {status === "authenticated" && (
