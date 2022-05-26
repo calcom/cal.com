@@ -10,7 +10,7 @@ type EventNameObjectType = {
 
 export function getEventName(eventNameObj: EventNameObjectType) {
   return eventNameObj.eventName
-    ? eventNameObj.eventName.replace("{USER}", eventNameObj.attendeeName)
+    ? eventNameObj.eventName.replace("{ATTENDEE}", eventNameObj.attendeeName)
     : eventNameObj.t("event_between_users", {
         eventName: eventNameObj.eventType,
         host: eventNameObj.host,
