@@ -143,7 +143,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           />
           {locationFormMethods.formState.errors.locationLink && (
-            <p className="mt-1 text-sm text-red-500">URL needs to start with http://</p>
+            <p className="mt-1 text-sm text-red-500">{t("url_start_with_https")}</p>
           )}
         </div>
       </div>
