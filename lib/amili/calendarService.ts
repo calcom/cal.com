@@ -3,9 +3,19 @@ import { handleErrorsJson, O365AuthCredentials } from "./videoClient";
 import prisma from "@lib/prisma";
 import { CalendarEvent } from "@lib/calendarClient";
 import CalEventParser from "@lib/CalEventParser";
+import { EventResult } from "./EventManager";
 
 const MS_GRAPH_CLIENT_ID = process.env.MS_GRAPH_CLIENT_ID || "";
 const MS_GRAPH_CLIENT_SECRET = process.env.MS_GRAPH_CLIENT_SECRET || "";
+
+export type NewCalendarEventType = {
+  uid: string;
+  id: string;
+  type: string;
+  password: string;
+  url: string;
+  additionalInfo: Record<string, unknown>;
+};
 
 const o365Auth = (credential: Credential) => {
   const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
@@ -34,7 +44,7 @@ const o365Auth = (credential: Credential) => {
               id: credential.id,
             },
             data: {
-              key: o365AuthCredentials as any,
+              key: JSON.stringify(o365AuthCredentials),
             },
           })
           .then(() => o365AuthCredentials.access_token);
@@ -90,7 +100,10 @@ const translateEvent = (event: CalendarEvent) => {
   };
 };
 
-const createUrlEvent = async (credential: Credential, event: CalendarEvent): Promise<any> => {
+const createUrlEvent = async (
+  credential: Credential,
+  event: CalendarEvent
+): Promise<NewCalendarEventType> => {
   try {
     const auth = o365Auth(credential);
     const accessToken = await auth.getToken();
@@ -116,7 +129,7 @@ const createUrlEvent = async (credential: Credential, event: CalendarEvent): Pro
   }
 };
 
-const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<any> => {
+const createEvent = async (credential: Credential, calEvent: CalendarEvent): Promise<EventResult> => {
   const parser: CalEventParser = new CalEventParser(calEvent);
   const uid: string = parser.getUid();
   let success = true;

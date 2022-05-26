@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CalendarEvent } from "@lib/calendarClient";
 import { Credential } from "@prisma/client";
 import { getLocationRequestFromIntegration } from "pages/api/book/[user]";
@@ -29,6 +30,30 @@ export const isJitsi = (location: string): boolean => {
   return location === "integrations:jitsi";
 };
 
+export interface PartialReference {
+  id?: number;
+  type: string;
+  uid: string;
+  meetingId?: string | null;
+  meetingPassword?: string | null;
+  meetingUrl?: string | null;
+}
+
+export interface EventResult {
+  type: string;
+  success: boolean;
+  uid: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createdEvent?: any;
+  updatedEvent?: any;
+  originalEvent: CalendarEvent;
+}
+
+export interface CreateUpdateResult {
+  results: Array<EventResult>;
+  referencesToCreate: Array<PartialReference>;
+}
+
 export const isDedicatedIntegration = (location: string): boolean => {
   return (
     isZoom(location) ||
@@ -53,10 +78,33 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
+export type DestinationCalendar = {
+  id: number;
+  integration: string;
+  externalId: string;
+  userId: number | null;
+  bookingId: number | null;
+  eventTypeId: number | null;
+};
+
 type EventManagerUser = {
   credentials: Credential[];
-  destinationCalendar: any;
+  destinationCalendar: DestinationCalendar | null;
 };
+
+export interface PartialReference {
+  id?: number;
+  type: string;
+  uid: string;
+  meetingId?: string | null;
+  meetingPassword?: string | null;
+  meetingUrl?: string | null;
+}
+
+export interface PartialBooking {
+  id: number;
+  references: Array<PartialReference>;
+}
 
 export default class EventManager {
   calendarCredentials: Credential[];
@@ -110,7 +158,7 @@ export default class EventManager {
     }
   }
 
-  private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<any>> {
+  private async createAllCalendarEvents(event: CalendarEvent): Promise<Array<EventResult>> {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
     if (event.destinationCalendar) {
@@ -139,11 +187,11 @@ export default class EventManager {
    * @param event
    */
 
-  public async create(event: CalendarEvent): Promise<any> {
+  public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    const results = [] as any;
+    const results: EventResult[] = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
@@ -158,10 +206,10 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(evt)));
 
-    const referencesToCreate = results.map((result) => {
+    const referencesToCreate: Array<PartialReference> = results.map((result: EventResult) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id.toString() ?? "",
+        uid: result.createdEvent?.id?.toString() ?? "",
         meetingId: result.createdEvent?.id.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
@@ -173,8 +221,4 @@ export default class EventManager {
       referencesToCreate,
     };
   }
-
-  // public async update(event: CalendarEvent, rescheduleUid: string, newBookingId?: number): Promise<any> {
-  //   return null;
-  // }
 }

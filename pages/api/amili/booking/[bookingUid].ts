@@ -80,6 +80,7 @@ const handleRescheduleBooking = async (
       name: selectedEventType.user.name,
       timeZone: selectedEventType.user.timeZone,
     },
+    location: "integrations:office365_video",
   };
 
   const rawLocation = "integrations:zoom"; // hard code location

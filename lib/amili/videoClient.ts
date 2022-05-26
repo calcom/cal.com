@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CalendarEvent } from "@lib/calendarClient";
 import CalEventParser from "@lib/CalEventParser";
 import prisma from "@lib/prisma";

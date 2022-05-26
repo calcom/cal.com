@@ -123,7 +123,7 @@ export const checkUserExisted = async (userId: number): Promise<[boolean, User]>
  *
  * @param credential
  */
-async function refreshCredential(credential: Credential): Promise<any> {
+async function refreshCredential(credential: Credential): Promise<Credential> {
   const newCredential = await prisma.credential.findUnique({
     where: {
       id: +credential.id,
