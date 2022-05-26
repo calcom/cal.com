@@ -5,7 +5,7 @@ import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
 export const WebhookTriggerEvents = {
   BOOKING_CREATED: "BOOKING_CREATED",
   BOOKING_RESCHEDULED: "BOOKING_RESCHEDULED",
-  BOOKING_CANCELLED: "BOOKING_CANCELLED"
+  BOOKING_CANCELLED: "BOOKING_CANCELLED",
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
