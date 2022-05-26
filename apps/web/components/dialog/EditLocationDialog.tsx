@@ -49,6 +49,7 @@ interface ISetLocationDialog {
     address?: string | undefined;
     link?: string | undefined;
     hostPhoneNumber?: string | undefined;
+    displayLocationPublicly?: boolean | undefined;
   }[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
@@ -128,10 +129,18 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <Controller
                 name="displayLocationPublicly"
                 control={locationFormMethods.control}
-                render={({ field: { onChange, value } }) => (
+                render={() => (
                   <CheckboxField
+                    defaultChecked={
+                      defaultValues
+                        ? defaultValues.find((location) => location.type === LocationType.InPerson)
+                            ?.displayLocationPublicly
+                        : undefined
+                    }
                     description={t("display_location_label")}
-                    onChange={(e) => onChange(e.target.checked)}
+                    onChange={(e) =>
+                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
+                    }
                     infomationIconText={t("display_location_info_badge")}></CheckboxField>
                 )}
               />
@@ -171,6 +180,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               render={({ field: { onChange, value } }) => (
                 <CheckboxField
                   description={t("display_location_label")}
+                  defaultChecked={
+                    defaultValues
+                      ? defaultValues.find((location) => location.type === LocationType.Link)
+                          ?.displayLocationPublicly
+                      : undefined
+                  }
                   onChange={(e) => onChange(e.target.checked)}
                   infomationIconText={t("display_location_info_badge")}></CheckboxField>
               )}
