@@ -107,9 +107,8 @@ const IntegrationsContainer = ({ variant, className = "" }: IntegrationsContaine
   return (
     <QueryCell
       query={query}
-      customLoader={<SkeletonLoader />}
+      customLoader={<SkeletonLoader className={className} />}
       success={({ data }) => {
-        console.log(variant, data);
         return (
           <>
             {data.items.length > 0 && (
@@ -239,7 +238,6 @@ export default function IntegrationsPage() {
     <QueryCell
       query={query}
       success={({ data }) => {
-        console.log({ data });
         return (
           <Shell
             heading={t("installed_apps")}

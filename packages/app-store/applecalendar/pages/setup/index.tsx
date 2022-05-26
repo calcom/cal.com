@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
@@ -9,6 +10,7 @@ import { Form, TextField } from "@calcom/ui/form/fields";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();
+  const router = useRouter();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -31,7 +33,7 @@ export default function AppleCalendarSetup() {
             />
           </div>
           <div className="ml-5">
-            <div className="text-gray-600">Connect to Apple Server</div>
+            <h1 className="text-gray-600">Connect to Apple Server</h1>
 
             <div className="mt-1 text-sm">
               Generate an app specific password to use with Cal.com at{" "}
@@ -44,7 +46,7 @@ export default function AppleCalendarSetup() {
               </a>
               . Your credentials will be stored and encrypted.
             </div>
-            <div className="flex my-2 mt-3">
+            <div className="my-2 mt-3">
               <Form
                 form={form}
                 handleSubmit={async (values) => {
@@ -59,6 +61,8 @@ export default function AppleCalendarSetup() {
                   const json = await res.json();
                   if (!res.ok) {
                     setErrorMessage(json?.message || "Something went wrong");
+                  } else {
+                    router.push(json.url);
                   }
                 }}>
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>

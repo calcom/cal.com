@@ -182,7 +182,7 @@ export function CalendarListContainer(props: { heading?: false }) {
   return (
     <QueryCell
       query={query}
-      customLoader={<SkeletonLoader />}
+      customLoader={<SkeletonLoader className="mt-10" />}
       success={({ data }) => {
         return (
           <>

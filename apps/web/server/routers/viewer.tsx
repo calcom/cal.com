@@ -624,7 +624,6 @@ const loggedInViewerRouter = createProtectedRouter()
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
-      console.log({ apps });
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps

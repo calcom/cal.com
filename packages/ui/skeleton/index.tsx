@@ -27,9 +27,17 @@ const SkeletonText: React.FC<SkeletonBaseProps> = ({ width, height }) => {
   return <div className={`rounded-md bg-gray-200  w-${width} h-${height} ${classNames}`} />;
 };
 
+const SkeletonButton: React.FC<SkeletonBaseProps> = ({ width, height }) => {
+  return (
+    <SkeletonContainer>
+      <div className={`w-${width} h-${height} bg-gray-200 ${classNames}`} />
+    </SkeletonContainer>
+  );
+};
+
 const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as }) => {
   const Component = as || "div";
   return <Component className="animate-pulse">{children}</Component>;
 };
 
-export { SkeletonAvatar, SkeletonText, SkeletonContainer };
+export { SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };

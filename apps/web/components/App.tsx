@@ -15,7 +15,7 @@ import React, { useEffect, useState } from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App as AppType } from "@calcom/types/App";
-import { Button } from "@calcom/ui";
+import { Button, SkeletonButton } from "@calcom/ui";
 
 import Shell from "@components/Shell";
 import Badge from "@components/ui/Badge";
@@ -62,6 +62,7 @@ export default function App({
     useGrouping: false,
   }).format(price);
   const [installedApp, setInstalledApp] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
@@ -72,6 +73,9 @@ export default function App({
           headers: {
             "Content-Type": "application/json",
           },
+        }).then((data) => {
+          setIsLoading(false);
+          return data;
         });
         if (result.status === 200) {
           const res = await result.json();
@@ -110,31 +114,35 @@ export default function App({
               </div>
 
               <div className="mt-4 sm:mt-0 sm:text-right">
-                {isGlobal || installedApp > 0 ? (
-                  <div className="space-x-3">
-                    <Button StartIcon={CheckIcon} color="secondary" disabled>
-                      {installedApp > 0
-                        ? t("active_install", { count: installedApp })
-                        : t("globally_install")}
-                    </Button>
+                {!isLoading ? (
+                  isGlobal || installedApp > 0 ? (
+                    <div className="space-x-3">
+                      <Button StartIcon={CheckIcon} color="secondary" disabled>
+                        {installedApp > 0
+                          ? t("active_install", { count: installedApp })
+                          : t("globally_install")}
+                      </Button>
+                      <InstallAppButton
+                        type={type}
+                        render={(buttonProps) => (
+                          <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
+                            {t("add_another")}
+                          </Button>
+                        )}
+                      />
+                    </div>
+                  ) : (
                     <InstallAppButton
                       type={type}
                       render={(buttonProps) => (
-                        <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
-                          {t("add_another")}
+                        <Button data-testid="install-app-button" {...buttonProps}>
+                          {t("install_app")}
                         </Button>
                       )}
                     />
-                  </div>
+                  )
                 ) : (
-                  <InstallAppButton
-                    type={type}
-                    render={(buttonProps) => (
-                      <Button data-testid="install-app-button" {...buttonProps}>
-                        {t("install_app")}
-                      </Button>
-                    )}
-                  />
+                  <SkeletonButton width="24" height="10" />
                 )}
                 {price !== 0 && (
                   <small className="block text-right">

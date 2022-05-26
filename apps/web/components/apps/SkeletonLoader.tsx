@@ -4,10 +4,10 @@ import { SkeletonText } from "@calcom/ui";
 
 import { ShellSubHeading } from "@components/Shell";
 
-function SkeletonLoader() {
+function SkeletonLoader({ className }: { className?: string }) {
   return (
     <>
-      <ShellSubHeading title={<div className="h-6 w-32 rounded-sm bg-gray-100"></div>} />
+      <ShellSubHeading title={<div className="h-6 w-32 rounded-sm bg-gray-100"></div>} {...{ className }} />
       <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-sm border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
