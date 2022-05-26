@@ -2294,6 +2294,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
 
+  if (Number.isNaN(typeParam)) {
+    return {
+      notFound: true,
+    };
+  }
+
   if (!session?.user?.id) {
     return {
       redirect: {
@@ -2406,7 +2412,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawEventType) throw Error("Event type not found");
+  if (!rawEventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {
