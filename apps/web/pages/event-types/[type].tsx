@@ -1417,7 +1417,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
                               disabled={enableSeats}
-                              checked={formMethods.watch("disableGuests")}
+                              checked={formMethods.watch("requiresConfirmation")}
                               onChange={(e) => {
                                 formMethods.setValue("requiresConfirmation", e?.target.checked);
                               }}
