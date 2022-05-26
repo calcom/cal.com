@@ -83,7 +83,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   const responseObj = await response.json();
   const bookingId = responseObj.uid;
   // Make sure we're navigated to the success page
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   expect(await page.screenshot()).toMatchSnapshot("success-page.png");
   return bookingId;
 }
