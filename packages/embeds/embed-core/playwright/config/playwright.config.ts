@@ -123,7 +123,7 @@ expect.extend({
 
     const searchParams = u.searchParams;
     const expectedSearchParams = expectedUrlDetails.searchParams || {};
-    for (let [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
+    for (const [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
       const value = searchParams.get(expectedKey);
       if (value !== expectedValue) {
         return {

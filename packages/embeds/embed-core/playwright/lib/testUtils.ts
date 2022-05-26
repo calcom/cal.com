@@ -36,7 +36,7 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
   await new Promise((resolve) => {
     setTimeout(resolve, 2000);
   });
-  let embedIframe = page.frame("cal-embed");
+  const embedIframe = page.frame("cal-embed");
   if (!embedIframe) {
     return null;
   }

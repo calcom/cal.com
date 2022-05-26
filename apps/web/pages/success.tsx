@@ -148,7 +148,7 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule } = router.query;
+  const { location: _location, name, reschedule, status } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -333,6 +333,7 @@ export default function Success(props: SuccessProps) {
                               isReschedule={reschedule === "true"}
                               eventType={props.eventType}
                               recurringBookings={props.recurringBookings}
+                              status={(status as string) || "upcoming"}
                               date={date}
                               is24h={is24h}
                             />
@@ -590,6 +591,7 @@ type RecurringBookingsProps = {
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
   is24h: boolean;
+  status: string;
 };
 
 function RecurringBookings({
@@ -597,10 +599,11 @@ function RecurringBookings({
   eventType,
   recurringBookings,
   date,
+  status,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return !isReschedule && recurringBookings ? (
+  return !isReschedule && recurringBookings && status === "upcoming" ? (
     <>
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
@@ -636,7 +639,7 @@ function RecurringBookings({
         </Collapsible>
       )}
     </>
-  ) : !eventType.recurringEvent.freq ? (
+  ) : (
     <>
       {date.format("MMMM DD, YYYY")}
       <br />
@@ -645,7 +648,7 @@ function RecurringBookings({
         ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
       </span>
     </>
-  ) : null;
+  );
 }
 
 const getEventTypesFromDB = async (id: number) => {
