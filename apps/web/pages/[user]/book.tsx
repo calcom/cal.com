@@ -200,7 +200,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null,
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
         }),
         eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
