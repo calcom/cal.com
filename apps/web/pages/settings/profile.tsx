@@ -28,7 +28,7 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 import { checkPremiumUsername, ResponseUsernameApi } from "@calcom/ee/lib/core/checkPremiumUsername";
 import showToast from "@calcom/lib/notification";
 import { Prisma } from "@calcom/prisma/client";
-import { proratePreview, retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
+import { retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@calcom/ui/Dialog";
@@ -122,7 +122,6 @@ interface ICustomUsernameProps {
   usernameRef: MutableRefObject<HTMLInputElement>;
   premiumUsername: boolean;
   subscriptionId: string;
-  // @TODO: not use any
   setPremiumUsername: (value: boolean) => void;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
@@ -161,17 +160,15 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
       });
       if (result.ok) {
         await result.json();
-        console.log(result.body);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
-      console.log({ data });
       if (data.premium && data.available) {
         setMarkAsError(false);
         setPremiumUsername(true);
@@ -212,29 +209,10 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
         userIsPremium,
         isNewUsernamePremium: premiumUsername,
       });
-      console.log({ condition });
+
       setUsernameChangeCondition(condition);
     }
-    console.log("usernameIsAvailable changed", usernameIsAvailable);
   }, [usernameIsAvailable, premiumUsername]);
-
-  useEffect(() => {
-    async function fetchPreviewProrate(subscriptionId: string) {
-      console.log({ subscriptionId }, "2");
-      const result = await proratePreview({ subscriptionId });
-      console.log({ result });
-      return result;
-    }
-    if (
-      subscriptionId &&
-      usernameChangeCondition &&
-      usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL
-    ) {
-      console.log({ subscriptionId });
-      fetchPreviewProrate(subscriptionId);
-    }
-    console.log("usernameChangeCondition changed", usernameChangeCondition, subscriptionId);
-  }, [usernameChangeCondition]);
 
   const obtainNewUsernameChangeCondition = ({
     userIsPremium,
@@ -269,7 +247,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   });
   const ActionButtons = (props: { index: string }) => {
     const { index } = props;
-    console.log(usernameIsAvailable, premiumUsername, currentUsername, inputUsernameValue);
+
     return (usernameIsAvailable || premiumUsername) && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button

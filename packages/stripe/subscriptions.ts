@@ -70,45 +70,11 @@ export interface IProratePreview {
   subscriptionId: string;
 }
 
-export async function proratePreview({ subscriptionId }: IProratePreview): Promise<Stripe.Invoice> {
-  try {
-    console.log("3");
-    // Set proration date to this moment:
-    const proration_date = Math.floor(Date.now() / 1000);
-    console.log("4", subscriptionId);
-    const subscription = await retrieveSubscriptionFromStripe(subscriptionId);
-    console.log("4.5", { subscription });
-    const pricePlanResult = obtainUserPlanDetails(subscription);
-    // See what the next invoice would look like with a price switch
-    // and proration set:
-
-    const items = [
-      {
-        id: subscription.items.data[0].id,
-        price: pricePlanResult.priceId, // Switch to new price
-      },
-    ];
-    console.log("5");
-    const invoice = await stripe.invoices.retrieveUpcoming({
-      customer: `${subscription.customer}`,
-      subscription: subscriptionId,
-      subscription_items: items,
-      subscription_proration_date: proration_date,
-    });
-    console.log({ invoice });
-    return invoice;
-  } catch (error) {
-    console.log(error);
-    // throw new Error();
-  }
-  return {} as Stripe.Invoice;
-}
-
 async function retrieveSubscriptionFromStripe(subscriptionId: string) {
   return stripe.subscriptions.retrieve(subscriptionId);
 }
 
-// @NOTE: REMOVE WHEN PLAN IS SAVED ON DB AND NOT ON STRIPE ONLY
+// @NOTE: Remove when user subscription plan id is saved on db and not on stripe only
 export function obtainUserPlanDetails(subscription: Stripe.Subscription) {
   const proPlanProductId = getProPlanProductId();
   const premiumPlanProductId = getPremiumPlanProductId();

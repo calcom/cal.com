@@ -7,7 +7,7 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Change Passsword Test", () => {
+test.describe("Change username on settings", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });

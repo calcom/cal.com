@@ -12,9 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userId = session?.user?.id;
     const user = await prisma.user.findFirst({ where: { id: userId }, rejectOnNotFound: true });
     const checkPremiumUsernameResult = await checkPremiumUsername(intentUsername);
-    console.log(userId, user);
+
     if (userId && user) {
-      const result = await prisma.intentUsername.create({
+      await prisma.intentUsername.create({
         data: {
           userId,
           currentUsername: user?.username || "",
@@ -22,10 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           isIntentPremium: checkPremiumUsernameResult.premium,
         },
       });
-      console.log({ result }, "RESULT");
     }
   } catch (error) {
-    console.log(error);
     res.status(501).send({ message: "intent-username.save.error" });
   }
   res.end();
