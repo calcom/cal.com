@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
-
 import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
 
 export const WEBHOOK_TRIGGER_EVENTS = [
