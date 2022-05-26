@@ -82,7 +82,7 @@ jobs:
       - run: yarn --frozen-lockfile
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
-      - run: yarn playwright install --with-deps
+        run: yarn playwright install --with-deps
       - run: yarn build
       - run: yarn embed-tests-update-snapshots:ci
 
