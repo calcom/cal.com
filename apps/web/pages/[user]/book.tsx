@@ -202,9 +202,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         darkBrandColor: "",
         allowDynamicBooking: users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
         eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
       }
     : {
