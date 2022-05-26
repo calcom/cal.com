@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
+
+import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
 
 export const WEBHOOK_TRIGGER_EVENTS = [
   WebhookTriggerEvents.BOOKING_CANCELLED,
@@ -31,9 +32,7 @@ export const schemaWebhookCreateParams = z
   })
   .strict();
 
-export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(
-  schemaWebhookCreateParams
-);
+export const schemaWebhookCreateBodyParams = schemaWebhookBaseBodyParams.merge(schemaWebhookCreateParams);
 
 export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams.merge(
   z.object({
