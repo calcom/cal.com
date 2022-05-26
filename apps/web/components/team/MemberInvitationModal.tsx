@@ -1,10 +1,10 @@
 import { UserIcon } from "@heroicons/react/outline";
 import { InformationCircleIcon } from "@heroicons/react/solid";
 import { MembershipRole } from "@prisma/client";
-import React, { useState, useEffect, SyntheticEvent, useMemo } from "react";
+import React, { useState, SyntheticEvent, useMemo } from "react";
 
 import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { TextField } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
