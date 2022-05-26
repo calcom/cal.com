@@ -190,6 +190,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      locations: true,
     },
   });
 
@@ -361,6 +362,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: users[0].name || "Nameless",
+    location: eventType.locations[0].type || "",
     t: tOrganizer,
   };
 
