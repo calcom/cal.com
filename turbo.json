@@ -14,6 +14,12 @@
         "$STRIPE_PRIVATE_KEY"
       ]
     },
+    "@calcom/console#post-install": {
+      "outputs": ["./node_modules/@prisma/admin-client/**", "./apps/console/prisma/schema.prisma"]
+    },
+    "@calcom/prisma#post-install": {
+      "outputs": ["./node_modules/@prisma/client/**", "./packages/prisma/schema.prisma"]
+    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]

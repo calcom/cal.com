@@ -45,6 +45,8 @@ export default function Login({
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm<LoginValues>();
+  const { formState } = form;
+  const { isSubmitting } = formState;
 
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -97,26 +99,27 @@ export default function Login({
       <AuthContainer
         title={t("login")}
         description={t("login")}
-        loading={form.formState.isSubmitting}
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("sign_in_account")}
         footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
         <Form
           form={form}
           className="space-y-6"
-          handleSubmit={(values) => {
+          handleSubmit={async (values) => {
+            setErrorMessage(null);
             telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.login, collectPageParameters()));
-            signIn<"credentials">("credentials", { ...values, callbackUrl, redirect: false })
-              .then((res) => {
-                if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-                // we're logged in! let's do a hard refresh to the desired url
-                else if (!res.error) router.push(callbackUrl);
-                // reveal two factor input if required
-                else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
-                // fallback if error not found
-                else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
-              })
-              .catch(() => setErrorMessage(errorMessages[ErrorCode.InternalServerError]));
+            const res = await signIn<"credentials">("credentials", {
+              ...values,
+              callbackUrl,
+              redirect: false,
+            });
+            if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
+            // we're logged in! let's do a hard refresh to the desired url
+            else if (!res.error) router.push(callbackUrl);
+            // reveal two factor input if required
+            else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+            // fallback if error not found
+            else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
           }}
           data-testid="login-form">
           <div>
@@ -157,13 +160,7 @@ export default function Login({
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
           <div className="flex space-y-2">
-            <Button
-              className="flex w-full justify-center"
-              type="submit"
-              disabled={
-                form.formState.isSubmitting ||
-                (form.formState.isSubmitted && !twoFactorRequired && !errorMessage)
-              }>
+            <Button className="flex w-full justify-center" type="submit" disabled={isSubmitting}>
               {twoFactorRequired ? t("submit") : t("sign_in")}
             </Button>
           </div>
