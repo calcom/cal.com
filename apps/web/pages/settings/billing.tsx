@@ -1,14 +1,13 @@
 import { ExternalLinkIcon } from "@heroicons/react/solid";
 import { ReactNode } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { useIntercom } from "@ee/lib/intercom/useIntercom";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 
 type CardProps = { title: string; description: string; className?: string; children: ReactNode };
 const Card = ({ title, description, className = "", children }: CardProps): JSX.Element => (
@@ -30,8 +29,8 @@ export default function Billing() {
   const { boot, show } = useIntercom();
 
   return (
-    <Shell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
-      <SettingsShell>
+    <SettingsShell heading={t("billing")} subtitle={t("manage_your_billing_info")}>
+      <>
         <div className="py-6 lg:col-span-9 lg:pb-8">
           {data?.plan && ["FREE", "TRIAL"].includes(data.plan) && (
             <Card
@@ -72,7 +71,7 @@ export default function Billing() {
             </div>
           </div>
         </div>
-      </SettingsShell>
-    </Shell>
+      </>
+    </SettingsShell>
   );
 }
