@@ -17,6 +17,7 @@ import { LocationType } from "@lib/location";
 import { LocationOptionsToString } from "@lib/locationOptions";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import CheckboxField from "@components/ui/form/CheckboxField";
 import type PhoneInputType from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
 
@@ -37,6 +38,7 @@ type LocationFormValues = {
   locationAddress?: string;
   locationLink?: string;
   locationPhoneNumber?: string;
+  displayLocationPublicly?: boolean;
 };
 interface ISetLocationDialog {
   saveLocation: (newLocationType: LocationType, details: { [key: string]: string }) => void;
@@ -80,7 +82,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
-    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+    locationLink: z.string().url().optional(),
+    displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
       .refine((val) => isValidPhoneNumber(val))
@@ -120,6 +123,20 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               }
             />
           </div>
+          {!booking && (
+            <div className="mt-3">
+              <Controller
+                name="displayLocationPublicly"
+                control={locationFormMethods.control}
+                render={({ field: { onChange, value } }) => (
+                  <CheckboxField
+                    description={t("display_location_label")}
+                    onChange={(e) => onChange(e.target.checked)}
+                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                )}
+              />
+            </div>
+          )}
         </div>
       </>
     ) : selectedLocation === LocationType.Link ? (
@@ -146,6 +163,20 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <p className="mt-1 text-sm text-red-500">{t("url_start_with_https")}</p>
           )}
         </div>
+        {!booking && (
+          <div className="mt-3">
+            <Controller
+              name="displayLocationPublicly"
+              control={locationFormMethods.control}
+              render={({ field: { onChange, value } }) => (
+                <CheckboxField
+                  description={t("display_location_label")}
+                  onChange={(e) => onChange(e.target.checked)}
+                  infomationIconText={t("display_location_info_badge")}></CheckboxField>
+              )}
+            />
+          </div>
+        )}
       </div>
     ) : selectedLocation === LocationType.UserPhone ? (
       <div>
@@ -205,16 +236,19 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <Form
             form={locationFormMethods}
             handleSubmit={async (values) => {
-              const newLocation = values.locationType;
+              const { locationType: newLocation, displayLocationPublicly } = values;
 
               let details = {};
               let locationString = values.locationType as string;
               if (newLocation === LocationType.InPerson) {
-                details = { address: values.locationAddress };
+                details = {
+                  address: values.locationAddress,
+                  displayLocationPublicly,
+                };
                 locationString = values.locationAddress || "";
               }
               if (newLocation === LocationType.Link) {
-                details = { link: values.locationLink };
+                details = { link: values.locationLink, displayLocationPublicly };
                 locationString = values.locationLink || "";
               }
               if (newLocation === LocationType.UserPhone) {

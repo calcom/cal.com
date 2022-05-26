@@ -50,7 +50,7 @@ import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -118,7 +118,13 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
-  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  locations: {
+    type: LocationType;
+    address?: string;
+    link?: string;
+    hostPhoneNumber?: string;
+    displayLocationPublicly?: boolean;
+  }[];
   customInputs: EventTypeCustomInput[];
   users: string[];
   schedule: number;
@@ -482,6 +488,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
       .refine((val) => isValidPhoneNumber(val))
@@ -494,6 +501,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
+    displayLocationPublicly?: boolean;
   }>({
     resolver: zodResolver(locationFormSchema),
   });
@@ -2097,6 +2105,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
 
+  if (Number.isNaN(typeParam)) {
+    return {
+      notFound: true,
+    };
+  }
+
   if (!session?.user?.id) {
     return {
       redirect: {
@@ -2209,12 +2223,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawEventType) throw Error("Event type not found");
-
-  type Location = {
-    type: LocationType;
-    address?: string;
-  };
+  if (!rawEventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -2234,7 +2247,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = {
     ...restEventType,
     recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations as unknown as Location[],
+    locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key
