@@ -1,7 +1,10 @@
 import React, { ErrorInfo } from "react";
 
-class ErrorBoundary extends React.Component<{}, { error: Error | null; errorInfo: ErrorInfo | null }> {
-  constructor(props: {} | Readonly<{}>) {
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null; errorInfo: ErrorInfo | null }
+> {
+  constructor(props: { children: React.ReactNode } | Readonly<{ children: React.ReactNode }>) {
     super(props);
     this.state = { error: null, errorInfo: null };
   }
