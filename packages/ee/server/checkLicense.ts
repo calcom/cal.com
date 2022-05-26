@@ -2,6 +2,8 @@ import cache from "memory-cache";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 
+const CACHING_TIME = 86400000; // 24 hours in milliseconds
+
 async function checkLicense(license: string): Promise<boolean> {
   const url = `${CONSOLE_URL}/api/license?key=${license}`;
   const cachedResponse = cache.get(url);
@@ -9,10 +11,9 @@ async function checkLicense(license: string): Promise<boolean> {
     return cachedResponse;
   } else {
     try {
-      const hours = 24;
       const response = await fetch(url);
       const data = await response.json();
-      cache.put(url, data.valid, hours * 1000 * 60 * 60);
+      cache.put(url, data.valid, CACHING_TIME);
       return data.valid;
     } catch (error) {
       return false;
