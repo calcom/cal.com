@@ -1439,9 +1439,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                         <Controller
                           name="requiresConfirmation"
-                          control={formMethods.control}
                           defaultValue={eventType.requiresConfirmation}
-                          render={() => (
+                          render={({ field: { value, onChange } }) => (
                             <CheckboxField
                               id="requiresConfirmation"
                               descriptionAsLabel
@@ -1450,10 +1449,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
                               disabled={enableSeats}
-                              checked={formMethods.watch("disableGuests")}
-                              onChange={(e) => {
-                                formMethods.setValue("requiresConfirmation", e?.target.checked);
-                              }}
+                              checked={value}
+                              onChange={(e) => onChange(e?.target.checked)}
                             />
                           )}
                         />
