@@ -6,6 +6,9 @@
     "@calcom/prisma#post-install": {
       "outputs": ["./node_modules/@prisma/client/**", "./packages/prisma/schema.prisma"]
     },
+    "@calcom/prisma#build": {
+      "dependsOn": ["$DATABASE_URL"]
+    },
     "@calcom/prisma#db-deploy": {
       "cache": false,
       "dependsOn": ["$DATABASE_URL"]
