@@ -836,6 +836,8 @@
   "go_to_app_store": "Go to App Store",
   "calendar_error": "Something went wrong, try reconnecting your calendar with all necessary permissions",
   "calendar_no_busy_slots": "There are no busy slots",
+  "display_location_label":"Display on booking page",
+  "display_location_info_badge":"Location will be visible before the booking is confirmed",
   "share_feedback": "Share feedback",
   "resources": "Resources",
   "support_documentation": "Support documentation",
