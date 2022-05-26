@@ -1,6 +1,8 @@
 import { PlaywrightTestConfig, Frame, devices, expect } from "@playwright/test";
 import * as path from "path";
 
+require("dotenv").config({ path: "../../../../../.env" });
+
 const outputDir = path.join("../results");
 const testDir = path.join("../tests");
 const quickMode = process.env.QUICK === "true";
@@ -27,7 +29,7 @@ const config: PlaywrightTestConfig = {
   },
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
-    command: "yarn workspace @calcom/embed-core dev",
+    command: "yarn run-p 'embed-core-dev' 'embed-web-start'",
     port: 3100,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
@@ -123,7 +125,7 @@ expect.extend({
 
     const searchParams = u.searchParams;
     const expectedSearchParams = expectedUrlDetails.searchParams || {};
-    for (let [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
+    for (const [expectedKey, expectedValue] of Object.entries(expectedSearchParams)) {
       const value = searchParams.get(expectedKey);
       if (value !== expectedValue) {
         return {
