@@ -7,6 +7,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Prisma } from "@calcom/prisma/client";
 import { retrieveSubscriptionIdFromStripeCustomerId } from "@calcom/stripe/subscriptions";
@@ -18,7 +19,6 @@ import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { nameOfDay } from "@lib/core/i18n/weekday";
-import { useLocale } from "@lib/hooks/useLocale";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import prisma from "@lib/prisma";
 import { trpc } from "@lib/trpc";
@@ -26,7 +26,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Avatar from "@components/ui/Avatar";
 import Badge from "@components/ui/Badge";
@@ -511,11 +510,9 @@ export default function Settings(props: Props) {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
-      <SettingsShell>
-        <WithQuery success={({ data }) => <SettingsView {...props} localeProp={data.locale} />} />
-      </SettingsShell>
-    </Shell>
+    <SettingsShell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
+      <WithQuery success={({ data }) => <SettingsView {...props} localeProp={data.locale} />} />
+    </SettingsShell>
   );
 }
 
