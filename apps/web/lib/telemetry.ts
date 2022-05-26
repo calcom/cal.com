@@ -31,10 +31,10 @@ export function collectPageParameters(
 
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
-    {
+    process.env.TELEMETRY_KEY && {
       type: "jitsu",
       opts: {
-        key: process.env.TELEMETRY_S2S_KEY,
+        key: process.env.TELEMETRY_KEY,
         server: "https://t.calendso.com",
       },
     },
