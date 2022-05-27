@@ -52,7 +52,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
       return `
   ${this.attendee.language.translate("event_has_been_rescheduled")}
   ${this.attendee.language.translate("emailed_you_and_any_other_attendees")}
-  ${this.getReason()}
+  ${this.calEvent.rescheduleReason && this.getReason()}
   ${this.getWhat()}
   ${this.getWhen()}
   ${this.getLocation()}
