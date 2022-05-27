@@ -52,7 +52,6 @@ const handler = async (
   res: NextApiResponse
 ): Promise<RescheduleResponse | NextApiResponse | void> => {
   const session = await getSession({ req });
-  console.log("🚀 ~ file: request-reschedule.ts ~ line 55 ~ req", req.body);
   const {
     bookingId,
     rescheduleReason: cancellationReason,
