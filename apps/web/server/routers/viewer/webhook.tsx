@@ -9,8 +9,64 @@ import sendPayload from "@lib/webhooks/sendPayload";
 
 import { createProtectedRouter } from "@server/createRouter";
 import { getTranslation } from "@server/lib/i18n";
+import { TRPCError } from "@trpc/server";
+
+// Common data for all endpoints under webhook
+const webhookIdAndEventTypeIdSchema = z.object({
+  // Webhook ID
+  id: z.string().optional(),
+  // Event type ID
+  eventTypeId: z.number().optional(),
+});
 
 export const webhookRouter = createProtectedRouter()
+  .middleware(async ({ ctx, rawInput, next }) => {
+    // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
+    if (!rawInput) {
+      return next();
+    }
+    const webhookIdAndEventTypeId = webhookIdAndEventTypeIdSchema.safeParse(rawInput);
+    if (!webhookIdAndEventTypeId.success) {
+      throw new TRPCError({ code: "PARSE_ERROR" });
+    }
+    const { eventTypeId, id } = webhookIdAndEventTypeId.data;
+
+    // A webhook is either linked to Event Type or to a user.
+    if (eventTypeId) {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          eventTypes: {
+            some: {
+              id: eventTypeId,
+            },
+          },
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      // Team should be available and the user should be a member of the team
+      if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+    } else if (id) {
+      const authorizedHook = await ctx.prisma.webhook.findFirst({
+        where: {
+          id: id,
+          userId: ctx.user.id,
+        },
+      });
+      if (!authorizedHook) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+    }
+    return next();
+  })
   .query("list", {
     input: z
       .object({
@@ -42,58 +98,22 @@ export const webhookRouter = createProtectedRouter()
       eventTypeId: z.number().optional(),
       appId: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input: { eventTypeId, ...input } }) {
-      const webhookCreateInput: Prisma.WebhookCreateInput = {
-        id: v4(),
-        ...input,
-      };
-      const webhookPayload = { webhooks: { create: webhookCreateInput } };
-      let teamId = -1;
-      if (eventTypeId) {
-        /* [1] If an eventType is provided, we find the team were it belongs */
-        const team = await ctx.prisma.team.findFirst({
-          rejectOnNotFound: true,
-          where: { eventTypes: { some: { id: eventTypeId } } },
-          select: { id: true },
+    async resolve({ ctx, input }) {
+      if (input.eventTypeId) {
+        return await ctx.prisma.webhook.create({
+          data: {
+            id: v4(),
+            ...input,
+          },
         });
-        /* [2] We save the id for later use */
-        teamId = team.id;
       }
-      await ctx.prisma.user.update({
-        where: { id: ctx.user.id },
-        /**
-         * [3] Right now only team eventTypes can have webhooks so we make sure the
-         * user adding the webhook belongs to the team.
-         */
-        data: eventTypeId
-          ? {
-              teams: {
-                update: {
-                  /* [3.1] Here we make sure the requesting user belongs to the team */
-                  where: { userId_teamId: { teamId, userId: ctx.user.id } },
-                  data: {
-                    team: {
-                      update: {
-                        eventTypes: {
-                          update: {
-                            where: { id: eventTypeId },
-                            data: webhookPayload,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            }
-          : /* [4] If there's no eventTypeId we create it to the current user instead. */
-            webhookPayload,
+      return await ctx.prisma.webhook.create({
+        data: {
+          id: v4(),
+          userId: ctx.user.id,
+          ...input,
+        },
       });
-      const webhook = await ctx.prisma.webhook.findUnique({
-        rejectOnNotFound: true,
-        where: { id: webhookCreateInput.id },
-      });
-      return webhook;
     },
   })
   .mutation("edit", {
