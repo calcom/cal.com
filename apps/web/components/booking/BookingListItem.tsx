@@ -230,7 +230,8 @@ function BookingListItem(booking: BookingItemProps) {
               bookingId: booking.id,
               recur: booking.recurringEventId,
               reschedule: booking.confirmed,
-              status: booking.listingStatus,
+              listingStatus: booking.listingStatus,
+              status: booking.status,
             },
           })
         }>
