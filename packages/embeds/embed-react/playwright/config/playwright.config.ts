@@ -22,7 +22,7 @@ const config: PlaywrightTestConfig = {
     command: "yarn run-p 'embed-dev' 'embed-web-start'",
     port: 3000,
     timeout: 60_000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
   use: {
     ...baseConfig.use,
