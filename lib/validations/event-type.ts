@@ -103,8 +103,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
         tzid: timeZone.optional(),
       })
       .optional()
-      .nullable()
-      .or(z.null()),
+      .nullable(),
     locations: z
       .array(
         z.object({
