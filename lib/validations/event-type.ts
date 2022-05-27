@@ -93,16 +93,16 @@ export const schemaEventTypeReadPublic = EventType.pick({
   metadata: true,
 }).merge(
   z.object({
-    // { dtstart?: Date | undefined; interval?: number | undefined; count?: number | undefined; freq?: Frequency | undefined; until?: Date | undefined; tzid?: string | undefined; } | undefined'
-    // recurringEvent: jsonSchema.nullable(),
-    recurringEvent: z.object({
-      dtstart: z.date().optional(),
-      interval: z.number().int().optional(),
-      count: z.number().int().optional(),
-      freq: z.nativeEnum(Frequency).optional(),
-      until: z.date().optional(),
-      tzid: timeZone,
-    }),
+    recurringEvent: z
+      .object({
+        dtstart: z.date().optional(),
+        interval: z.number().int().optional(),
+        count: z.number().int().optional(),
+        freq: z.nativeEnum(Frequency).optional(),
+        until: z.date().optional(),
+        tzid: timeZone.optional(),
+      })
+      .optional(),
     locations: z.array(
       z.object({
         link: z.string().optional(),

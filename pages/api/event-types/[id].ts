@@ -19,8 +19,12 @@ export async function eventTypeById(
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  const data = await prisma.eventType.findMany({ where: { userId } });
-  const userEventTypes = data.map((eventType) => eventType.id);
+  const data = await await prisma.user.findUnique({
+    where: { id: userId },
+    rejectOnNotFound: true,
+    select: { eventTypes: true },
+  });
+  const userEventTypes = data.eventTypes.map((eventType) => eventType.id);
   if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
