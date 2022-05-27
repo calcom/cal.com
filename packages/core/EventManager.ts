@@ -165,7 +165,8 @@ export default class EventManager {
   public async update(
     event: CalendarEvent,
     rescheduleUid: string,
-    newBookingId?: number
+    newBookingId?: number,
+    rescheduleReason?: string
   ): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
 
@@ -200,6 +201,16 @@ export default class EventManager {
     if (!booking) {
       throw new Error("booking not found");
     }
+
+    // Add reschedule reason to new booking
+    await prisma.booking.update({
+      where: {
+        id: newBookingId,
+      },
+      data: {
+        cancellationReason: rescheduleReason,
+      },
+    });
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const results: Array<EventResult> = [];
