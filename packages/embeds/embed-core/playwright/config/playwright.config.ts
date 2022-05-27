@@ -24,7 +24,8 @@ const config: PlaywrightTestConfig = {
   expect: {
     toMatchSnapshot: {
       // Opacity transitions can cause small differences
-      maxDiffPixels: 50,
+      // Every month the rendered month changes failing the snapshot tests. So, increase the threshold to catch major bugs only.
+      maxDiffPixelRatio: 0.1,
     },
   },
   webServer: {

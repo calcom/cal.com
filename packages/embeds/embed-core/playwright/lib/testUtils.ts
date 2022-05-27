@@ -47,7 +47,6 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
       resolve(true);
     }, 10000);
   });
-
   const embedIframe = page.frame("cal-embed");
   if (!embedIframe) {
     return null;

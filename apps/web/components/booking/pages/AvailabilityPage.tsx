@@ -30,7 +30,7 @@ import {
   useIsBackgroundTransparent,
   sdkActionManager,
   useEmbedNonStylesConfig,
-} from "@calcom/embed-core";
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
