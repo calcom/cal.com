@@ -35,7 +35,6 @@ function ApiKeyListContainer() {
             size="icon"
             StartIcon={PlusIcon}
             onClick={() => setNewApiKeyModal(true)}
-            data-testid="new_webhook"
           />
         }
       />
