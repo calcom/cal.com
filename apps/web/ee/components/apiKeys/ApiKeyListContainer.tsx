@@ -14,7 +14,9 @@ import { List } from "@components/List";
 import { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";
 
-export default function ApiKeyListContainer() {
+import LicenseRequired from "../LicenseRequired";
+
+function ApiKeyListContainer() {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.apiKeys.list"]);
 
@@ -81,3 +83,5 @@ export default function ApiKeyListContainer() {
     />
   );
 }
+
+export default ApiKeyListContainer;
