@@ -385,7 +385,7 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id              String                 @id @unique
+  id              String                 @unique @default(uuid()) @db.Uuid
   userId          Int?
   eventTypeId     Int?
   subscriberUrl   String
