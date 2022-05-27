@@ -40,5 +40,6 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   /* We save the user id in the request for later use */
   req.userId = apiKey.userId;
+  console.log(`User ${apiKey.userId} verified`);
   await next();
 };
