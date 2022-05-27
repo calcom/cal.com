@@ -4,30 +4,12 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-import type { Cal as CalClass, InstructionQueue } from "@calcom/embed-core/src/embed";
+import { CalWindow } from "@calcom/embed-core";
 
 const WEBAPP_URL =
-  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
+  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
 
-const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
-
-export interface GlobalCal {
-  (methodName: string, arg?: any): void;
-  /** Marks that the embed.js is loaded. Avoids re-downloading it. */
-  loaded?: boolean;
-  /** Maintains a queue till the time embed.js isn't loaded */
-  q?: InstructionQueue;
-  /** If user registers multiple namespaces, those are available here */
-  ns?: Record<string, GlobalCal>;
-  instance?: CalClass;
-  __css?: string;
-  fingerprint?: string;
-  __logQueue?: any[];
-}
-
-export interface CalWindow extends Window {
-  Cal?: GlobalCal;
-}
+const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C: CalWindow, A, L) {
