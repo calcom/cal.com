@@ -24,7 +24,11 @@ import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -37,7 +41,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -203,10 +207,9 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: Location[] = useMemo(
-    () => (eventType.locations as Location[]) || [],
+  const locations: LocationObject[] = useMemo(
+    () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 

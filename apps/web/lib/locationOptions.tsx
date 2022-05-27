@@ -2,6 +2,12 @@ import { TFunction } from "next-i18next";
 
 import { LocationType } from "./location";
 
+/**
+ * Use this function for translating event location to a readable string
+ * @param location
+ * @param t
+ * @returns string
+ */
 export const LocationOptionsToString = (location: string, t: TFunction) => {
   switch (location) {
     case LocationType.InPerson:
