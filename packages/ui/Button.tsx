@@ -12,6 +12,7 @@ export type ButtonBaseProps = {
   disabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   StartIcon?: SVGComponent;
+  startIconClassName?: string;
   EndIcon?: SVGComponent;
   shallow?: boolean;
 };
@@ -30,6 +31,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     color = "primary",
     size = "base",
     StartIcon,
+    startIconClassName,
     EndIcon,
     shallow,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
@@ -103,7 +105,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <StartIcon
           className={classNames(
             "inline",
-            size === "icon" ? "h-5 w-5 " : "-ml-1 h-5 w-5 ltr:mr-2 rtl:ml-2 rtl:-mr-1"
+            size === "icon" ? "h-5 w-5 " : "-ml-1 h-5 w-5 ltr:mr-2 rtl:ml-2 rtl:-mr-1",
+            startIconClassName || ""
           )}
         />
       )}
