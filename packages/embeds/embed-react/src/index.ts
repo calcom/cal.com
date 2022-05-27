@@ -1,4 +1,4 @@
-import { CalWindow } from "@calcom/embed-snippet";
+import { CalWindow } from "@calcom/embed-core";
 
 import Cal from "./Cal";
 
