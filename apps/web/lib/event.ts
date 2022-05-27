@@ -9,7 +9,7 @@ type EventNameObjectType = {
   t: TFunction;
 };
 
-export function getEventName(eventNameObj: EventNameObjectType, fromAttendee = false) {
+export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
@@ -57,6 +57,6 @@ export function getEventName(eventNameObj: EventNameObjectType, fromAttendee = f
       .replace("{USER}", eventNameObj.attendeeName)
       .replace("{ATTENDEE}", eventNameObj.attendeeName)
       .replace("{HOST}", eventNameObj.host)
-      .replace("{HOST/ATTENDEE}", fromAttendee ? eventNameObj.host : eventNameObj.attendeeName)
+      .replace("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : eventNameObj.attendeeName)
   );
 }

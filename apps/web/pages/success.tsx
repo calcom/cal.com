@@ -164,13 +164,14 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-
+  const [locationFromEventType] = eventType.locations as Array<{ type: string }>;
+  const locationType = locationFromEventType?.type || "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
-    location: props.eventType.locations[0].type || "",
+    location: locationType,
     t,
   };
   const metadata = props.eventType?.metadata as { giphyThankYouPage: string };

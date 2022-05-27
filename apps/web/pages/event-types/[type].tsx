@@ -991,7 +991,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-
+  const { ref, isComponentVisible } = useComponentVisible(true);
   return (
     <div>
       <Shell
@@ -1322,10 +1322,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               />
                               {displayNameTips && (
                                 <div className="mt-1 text-gray-500">
-                                  <p>{"{HOST} = Your name"}</p>
-                                  <p>{"{ATTENDEE} = Attendee's name"}</p>
-                                  <p>{"{HOST/ATTENDEE} = Dynamically display your name or the attendee's"}</p>
-                                  <p>{"{LOCATION} = Event's location"}</p>
+                                  <p>{`{HOST} = ${t("your_name")}`}</p>
+                                  <p>{`{ATTENDEE} = ${t("attendee_name")}`}</p>
+                                  <p>{`{HOST/ATTENDEE} = ${t(
+                                    "dynamically_display_attendee_or_organizer"
+                                  )}`}</p>
+                                  <p>{`{LOCATION} = ${t("event_location")}`}</p>
                                 </div>
                               )}
                             </div>
