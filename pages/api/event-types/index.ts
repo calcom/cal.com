@@ -37,16 +37,13 @@ async function createOrlistAllEventTypes(
         select: { eventTypes: true },
       })
       .catch((error) => res.status(404).json({ message: "No event types were found", error }));
-<<<<<<< HEAD
-
     if (data) res.status(200).json({ event_types: data.eventTypes });
-=======
+
     console.log(`userid is: ${userId}`, "eventTypes:", data);
     // const event_types = data.map(
     //   async (eventType) => await schemaEventTypeReadPublic.safeParseAsync(eventType)
     // );
-    if (data) res.status(200).json({ event_types: data });
->>>>>>> 6099bfb (fix: more logging)
+    if (data) res.status(200).json({ event_types: data.eventTypes });
     else
       (error: Error) =>
         res.status(404).json({
