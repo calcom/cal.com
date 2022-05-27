@@ -4,7 +4,7 @@
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./index.ts",
   "scripts": {
-    "embed-core-dev": "yarn workspace @calcom/embed-core dev",
+    "embed-dev": "yarn workspace @calcom/embed-core dev",
     "embed-web-start": "yarn workspace @calcom/web start",
     "__build": "yarn tailwind && vite build",
     "__dev": "yarn __build --mode development",

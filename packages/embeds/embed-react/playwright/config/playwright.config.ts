@@ -20,7 +20,7 @@ const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
     // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
-    command: "yarn workspace @calcom/embed-react dev",
+    command: "yarn run-p 'embed-dev' 'embed-web-start'",
     port: 3101,
     timeout: 60_000,
     reuseExistingServer: true,

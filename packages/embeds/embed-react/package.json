@@ -14,7 +14,9 @@
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "publish-prod": "npm version patch && npm publish --access public",
     "publish-beta": "npm version prepatch && npm publish --access public --tag beta",
-    "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots"
+    "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
+    "embed-web-start": "yarn workspace @calcom/web start",
+    "embed-dev": "yarn workspace @calcom/embed-react dev"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
