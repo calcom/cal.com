@@ -10,7 +10,6 @@ async function createOrlistAllEventTypes(
   { method, body, userId }: NextApiRequest,
   res: NextApiResponse<EventTypesResponse | EventTypeResponse>
 ) {
-  console.log("userId:", userId);
   if (method === "GET") {
     /**
      * @swagger
