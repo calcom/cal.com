@@ -1,23 +1,21 @@
 import { useSession } from "next-auth/react";
 import React from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import NavTabs from "./NavTabs";
 
+const tabs = [
+  {
+    name: "app_store",
+    href: "/apps",
+  },
+  {
+    name: "installed_apps",
+    href: "/apps/installed",
+  },
+];
+
 export default function AppsShell({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
   const { status } = useSession();
-  const tabs = [
-    {
-      name: t("app_store"),
-      href: "/apps",
-    },
-    {
-      name: t("installed_apps"),
-      href: "/apps/installed",
-    },
-  ];
 
   return (
     <>
