@@ -991,7 +991,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const membership = team?.members.find((membership) => membership.user.id === props.session.user.id);
   const isAdmin = membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
-  const { ref, isComponentVisible } = useComponentVisible(true);
   return (
     <div>
       <Shell
