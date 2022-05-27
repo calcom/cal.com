@@ -1,3 +1,4 @@
+import { Booking, SchedulingType, User } from "@prisma/client";
 import dayjs from "dayjs";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -10,6 +11,32 @@ import type { AdditionInformation } from "@calcom/types/Calendar";
 import { getSession } from "@lib/auth";
 import { sendLocationChangeEmails } from "@lib/emails/email-manager";
 import prisma from "@lib/prisma";
+
+const authorized = async (
+  currentUser: Pick<User, "id">,
+  booking: Pick<Booking, "eventTypeId" | "userId">
+) => {
+  // if the organizer
+  if (booking.userId === currentUser.id) {
+    return true;
+  }
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      id: booking.eventTypeId || undefined,
+    },
+    select: {
+      schedulingType: true,
+      users: true,
+    },
+  });
+  if (
+    eventType?.schedulingType === SchedulingType.COLLECTIVE &&
+    eventType.users.find((user) => user.id === currentUser.id)
+  ) {
+    return true;
+  }
+  return false;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -43,17 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!currentUser) {
-      return res.status(401).json({ message: "Not authenticated" });
+      return res.status(401).json({ message: "User not found" });
     }
-
-    await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        location,
-      },
-    });
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -67,6 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             destinationCalendar: true,
           },
         },
+        eventTypeId: true,
         attendees: true,
         location: true,
         title: true,
@@ -80,6 +99,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         endTime: true,
         uid: true,
         destinationCalendar: true,
+      },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ message: "booking not found" });
+    }
+
+    if (!(await authorized(currentUser, booking))) {
+      return res.status(401).end();
+    }
+
+    await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        location,
       },
     });
 
@@ -127,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         attendees: attendeesList,
         uid: booking.uid,
-        location: booking.location,
+        location: location,
         destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
       };
 
