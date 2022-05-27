@@ -8,6 +8,6 @@
     "moduleResolution": "Node",
     "baseUrl": "."
   },
-  "include": ["."],
+  "include": ["src", "env.d.ts", "index.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

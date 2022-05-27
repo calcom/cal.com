@@ -1,5 +1,4 @@
-import { CalWindow } from "@calcom/embed-snippet";
-
+import { CalWindow } from "../embed";
 import getFloatingButtonHtml from "./FloatingButtonHtml";
 
 export class FloatingButton extends HTMLElement {
