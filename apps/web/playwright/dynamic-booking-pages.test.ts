@@ -35,8 +35,8 @@ test.describe("dynamic booking", () => {
 
     // Logged in
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="reschedule"]').nth(0).click();
-    await page.locator('[data-testid="edit"]').click();
+    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    await page.locator('[data-testid="reschedule"]').click();
     await page.waitForNavigation({
       url: (url) => {
         const bookingId = url.searchParams.get("rescheduleUid");
