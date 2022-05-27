@@ -722,8 +722,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           {
             ...evt,
             additionInformation: metadata,
-            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
-            rescheduleReason: reqBody.rescheduleReason,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: reqBody.rescheduleReason,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );

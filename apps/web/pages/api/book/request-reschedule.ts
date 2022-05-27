@@ -213,12 +213,9 @@ const handler = async (
       }
 
       // Send emails
-      await sendRequestRescheduleEmail(
-        { ...builder.calendarEvent, rescheduleReason: req.body.rescheduleReason },
-        {
-          rescheduleLink: builder.rescheduleLink,
-        }
-      );
+      await sendRequestRescheduleEmail(builder.calendarEvent, {
+        rescheduleLink: builder.rescheduleLink,
+      });
     }
 
     return res.status(200).json(bookingToReschedule);
