@@ -25,7 +25,7 @@ const tabs = [
     icon: KeyIcon,
   },
   {
-    name: t("developer"),
+    name: "developer",
     href: "/settings/developer",
     icon: CodeIcon,
   },
