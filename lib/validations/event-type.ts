@@ -102,15 +102,18 @@ export const schemaEventTypeReadPublic = EventType.pick({
         until: z.date().optional(),
         tzid: timeZone.optional(),
       })
-      .optional(),
-    locations: z.array(
-      z.object({
-        link: z.string().optional(),
-        address: z.string().optional(),
-        hostPhoneNumber: z.string().optional(),
-        type: z.nativeEnum(DefaultLocationType).or(z.nativeEnum(AppStoreLocationType)),
-      })
-    ),
+      .optional()
+      .nullable(),
+    locations: z
+      .array(
+        z.object({
+          link: z.string().optional(),
+          address: z.string().optional(),
+          hostPhoneNumber: z.string().optional(),
+          type: z.nativeEnum(DefaultLocationType).or(z.nativeEnum(AppStoreLocationType)),
+        })
+      )
+      .nullable(),
     metadata: jsonSchema.nullable(),
   })
 );
