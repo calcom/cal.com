@@ -9,6 +9,7 @@ import { SVGComponent } from "@lib/types/SVGComponent";
 export type ActionType = {
   id: string;
   icon?: SVGComponent;
+  iconClassName?: string;
   label: string;
   disabled?: boolean;
   color?: "primary" | "secondary";
@@ -52,6 +53,7 @@ const DropdownActions = ({
               className="w-full rounded-none font-normal"
               href={action.href}
               StartIcon={action.icon}
+              startIconClassName={action.iconClassName}
               onClick={action.onClick || defaultAction}
               data-testid={action.id}>
               {action.label}
@@ -81,6 +83,7 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
+              startIconClassName={action.iconClassName}
               {...(action?.actions ? { EndIcon: ChevronDownIcon } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
