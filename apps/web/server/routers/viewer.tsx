@@ -396,9 +396,6 @@ const loggedInViewerRouter = createProtectedRouter()
           uid: true,
           confirmed: true,
           rejected: true,
-          id: true,
-          startTime: true,
-          endTime: true,
           recurringEventId: true,
           location: true,
           eventType: {
