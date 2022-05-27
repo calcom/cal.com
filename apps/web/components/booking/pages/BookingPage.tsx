@@ -670,6 +670,7 @@ const BookingPage = ({
                             className={inputClassName}
                             placeholder={input.placeholder}
                             disabled={disabledExceptForOwner}
+                            required={input.required}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -682,6 +683,7 @@ const BookingPage = ({
                             className={inputClassName}
                             placeholder={input.placeholder}
                             disabled={disabledExceptForOwner}
+                            required={input.required}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -694,6 +696,7 @@ const BookingPage = ({
                             className={inputClassName}
                             placeholder=""
                             disabled={disabledExceptForOwner}
+                            required={input.required}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
@@ -707,6 +710,7 @@ const BookingPage = ({
                               className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
                               placeholder=""
                               disabled={disabledExceptForOwner}
+                              required={input.required}
                             />
                             <label
                               htmlFor={"custom_" + input.id}
