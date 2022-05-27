@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.1",
+    "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.2",
     "@trivago/prettier-plugin-sort-imports": "3.2.0",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
