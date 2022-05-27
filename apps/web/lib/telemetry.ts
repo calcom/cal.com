@@ -35,7 +35,7 @@ export const nextCollectBasicSettings: EventSinkOpts = {
       type: "jitsu",
       opts: {
         key: process.env.TELEMETRY_KEY,
-        server: "https://t.calendso.com",
+        // server: "https://t.calendso.com",
       },
     },
   ],
@@ -63,7 +63,6 @@ export const extendEventData = (req: NextApiRequest) => {
     onVercel: !!req.headers["x-vercel-id"],
     isAuthorized: !!req.cookies["next-auth.session-token"],
     utc_time: new Date().toISOString(),
-    browser_user_agent: req.headers["user-agent"] ?? "",
   };
   return pageOverwrite;
 };
