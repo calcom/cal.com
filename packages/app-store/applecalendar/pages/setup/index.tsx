@@ -22,9 +22,9 @@ export default function AppleCalendarSetup() {
 
   return (
     <div className="flex h-screen bg-gray-200">
-      <div className="m-auto w-[560px] rounded bg-white p-10">
-        <div className="flex flex-row">
-          <div className="mr-5">
+      <div className="m-auto rounded bg-white p-5 md:w-[560px] md:p-10">
+        <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
+          <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
               src="/api/app-store/applecalendar/icon.svg"
@@ -32,7 +32,7 @@ export default function AppleCalendarSetup() {
               className="h-12 w-12 max-w-2xl"
             />
           </div>
-          <div className="ml-5">
+          <div>
             <h1 className="text-gray-600">Connect to Apple Server</h1>
 
             <div className="mt-1 text-sm">
