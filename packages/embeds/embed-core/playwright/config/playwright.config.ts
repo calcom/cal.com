@@ -28,7 +28,7 @@ const config: PlaywrightTestConfig = {
     },
   },
   webServer: {
-    // Start App Server manually - Can't be handled here. See https://github.com/microsoft/playwright/issues/8206
+    // Run servers in parallel as Playwright doesn't support two different webserver commands at the moment See https://github.com/microsoft/playwright/issues/8206
     command: "yarn run-p 'embed-core-dev' 'embed-web-start'",
     port: 3100,
     timeout: 60_000,

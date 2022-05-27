@@ -5,12 +5,20 @@ on:
   pull_request_target: # So we can test on forks
     branches:
       - main
-    paths-ignore:
-      - public/static/locales/**
+    # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
+    paths-ignore: 
+      - apps/api/**
+      - apps/console/**
+      - apps/docs/**
+      - apps/swagger/**
+      - apps/website/**
+      - public/**
+      - tests/**
+      - playwright/**
 jobs:
   test:
     timeout-minutes: 20
-    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
+    name: Testing Embeds
     strategy:
       matrix:
         node: ["14.x"]
