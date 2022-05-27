@@ -52,6 +52,7 @@ const handler = async (
   res: NextApiResponse
 ): Promise<RescheduleResponse | NextApiResponse | void> => {
   const session = await getSession({ req });
+  console.log("🚀 ~ file: request-reschedule.ts ~ line 55 ~ req", req.body);
   const {
     bookingId,
     rescheduleReason: cancellationReason,
@@ -213,9 +214,12 @@ const handler = async (
       }
 
       // Send emails
-      await sendRequestRescheduleEmail(builder.calendarEvent, {
-        rescheduleLink: builder.rescheduleLink,
-      });
+      await sendRequestRescheduleEmail(
+        { ...builder.calendarEvent, rescheduleReason: req.body.rescheduleReason },
+        {
+          rescheduleLink: builder.rescheduleLink,
+        }
+      );
     }
 
     return res.status(200).json(bookingToReschedule);

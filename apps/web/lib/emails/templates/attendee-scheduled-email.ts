@@ -232,14 +232,6 @@ ${getRichDescription(this.calEvent)}
     return "";
   }
 
-  protected getReason(): string {
-    return `
-    <div style="line-height: 6px; margin-bottom: 24px;">
-      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("reschedule_reason")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.rescheduleReason}</p>
-    </div>`;
-  }
-
   protected getWhat(): string {
     return `
     <div style="line-height: 6px;">
@@ -459,5 +451,13 @@ ${getRichDescription(this.calEvent)}
 
   protected getInviteeEnd(): Dayjs {
     return dayjs(this.calEvent.endTime).tz(this.getTimezone());
+  }
+
+  protected getReason(): string {
+    return `
+    <div style="line-height: 6px; margin-bottom: 24px;">
+      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("reschedule_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.rescheduleReason}</p>
+    </div>`;
   }
 }
