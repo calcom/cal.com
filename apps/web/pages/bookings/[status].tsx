@@ -1,14 +1,19 @@
 import { CalendarIcon } from "@heroicons/react/outline";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
+import { getSession } from "@lib/auth";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
+import prisma from "@lib/prisma";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingsShell from "@components/BookingsShell";
 import EmptyScreen from "@components/EmptyScreen";
@@ -16,11 +21,13 @@ import Shell from "@components/Shell";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
+import { getTranslation } from "@server/lib/i18n";
+
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
 type BookingPage = inferQueryOutput<"viewer.bookings">;
 
-export default function Bookings() {
+export default function Bookings(props: inferSSRProps<typeof getServerSideProps>) {
   const router = useRouter();
   const status = router.query?.status as BookingListingStatus;
 
@@ -81,6 +88,7 @@ export default function Bookings() {
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
+                                locationOptions={props.locationOptions}
                                 {...defineRecurrentCount(booking, page)}
                                 {...booking}
                               />
@@ -118,3 +126,51 @@ export default function Bookings() {
     </Shell>
   );
 }
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req } = context;
+  const session = await getSession({ req });
+
+  if (!session?.user?.id) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      appId: true,
+    },
+  });
+
+  const integrations = getApps(credentials);
+
+  const currentUser = await prisma?.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      locale: true,
+    },
+  });
+
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+
+  const locationOptions = getLocationOptions(integrations, t);
+
+  return {
+    props: {
+      locationOptions,
+    },
+  };
+};

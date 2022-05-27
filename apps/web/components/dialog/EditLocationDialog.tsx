@@ -54,6 +54,11 @@ interface ISetLocationDialog {
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
+  locationOptions: {
+    label: string;
+    value: LocationType;
+    disabled?: boolean | undefined;
+  }[];
 }
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
@@ -65,20 +70,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
+    locationOptions,
   } = props;
   const { t } = useLocale();
-  const { isSuccess, data } = trpc.useQuery(["viewer.credentials"]);
-  const [locationOptions, setLocationOptions] = useState<Array<OptionTypeBase>>([]);
 
   useEffect(() => {
-    if (data) {
-      const integrations = getApps(data);
-      setLocationOptions(getLocationOptions(integrations, t));
-      if (selection) {
-        locationFormMethods.setValue("locationType", selection?.value);
-      }
+    if (selection) {
+      locationFormMethods.setValue("locationType", selection?.value);
     }
-  }, [isSuccess, selection]);
+  }, [selection]);
 
   const locationFormSchema = z.object({
     locationType: z.string(),
