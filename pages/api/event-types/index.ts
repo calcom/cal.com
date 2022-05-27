@@ -30,14 +30,14 @@ async function createOrlistAllEventTypes(
      *       404:
      *         description: No event types were found
      */
-    const data = await prisma.eventType
-      .findMany({ where: { userId } })
+    const data = await prisma.user
+      .findUnique({
+        where: { id: userId },
+        rejectOnNotFound: true,
+        select: { eventTypes: true },
+      })
       .catch((error) => res.status(404).json({ message: "No event types were found", error }));
-    console.log(`userid is: ${userId}`, "eventTypes:", data);
-    // const event_types = data.map(
-    //   async (eventType) => await schemaEventTypeReadPublic.safeParseAsync(eventType)
-    // );
-    if (data) res.status(200).json({ event_types: data });
+    if (data) res.status(200).json({ event_types: data.eventTypes });
     else
       (error: Error) =>
         res.status(404).json({
