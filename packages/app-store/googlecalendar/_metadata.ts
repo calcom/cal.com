@@ -7,6 +7,7 @@ import _package from "./package.json";
 export const metadata = {
   name: "Google Calendar",
   description: _package.description,
+  uninstallable: true,
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   type: "google_calendar",
   title: "Google Calendar",

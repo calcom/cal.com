@@ -8,6 +8,8 @@ export const metadata = {
   description: _package.description,
   installed: !!process.env.DAILY_API_KEY,
   type: "daily_video",
+  //TODO: Remove imports in apps.generated.tsx for uninstallable apps
+  uninstallable: true,
   imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
   url: "https://daily.co",

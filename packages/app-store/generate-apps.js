@@ -9,7 +9,8 @@ fs.readdirSync(`${__dirname}`).forEach(function (dir) {
   }
 });
 
-let output = [`import dynamic from "next/dynamic"`];
+let clientOutput = [`import dynamic from "next/dynamic"`];
+let serverOutput = [];
 
 function forEachAppDir(callback) {
   for (let i = 0; i < appDirs.length; i++) {
@@ -17,58 +18,43 @@ function forEachAppDir(callback) {
   }
 }
 
-forEachAppDir((dirName) => {
-  output.push(`import { metadata as ${dirName} } from "./${dirName}/_metadata";`);
-});
-output.push(`export const appStoreMetadata = {`);
-forEachAppDir((dirName) => {
-  output.push(`${dirName},`);
-});
-output.push(`};`);
+function getObjectExporter(objectName, { dirName, importBuilder, entryBuilder }) {
+  const output = [];
+  forEachAppDir((dirName) => {
+    output.push(importBuilder(dirName));
+  });
 
-// export const apiHandlers = {
-//   // examplevideo: import("./_example/api"),
-//   applecalendar: import("./applecalendar/api"),
-//   caldavcalendar: import("./caldavcalendar/api"),
-//   googlecalendar: import("./googlecalendar/api"),
-//   hubspotothercalendar: import("./hubspotothercalendar/api"),
-//   office365calendar: import("./office365calendar/api"),
-//   slackmessaging: import("./slackmessaging/api"),
-//   stripepayment: import("./stripepayment/api"),
-//   tandemvideo: import("./tandemvideo/api"),
-//   vital: import("./vital/api"),
-//   zoomvideo: import("@calcom/zoomvideo/api"),
-//   office365video: import("@calcom/office365video/api"),
-//   wipemycalother: import("./wipemycalother/api"),
-//   jitsivideo: import("./jitsivideo/api"),
-//   huddle01video: import("./huddle01video/api"),
-//   metamask: import("./metamask/api"),
-//   giphy: import("./giphy/api"),
-//   spacebookingother: import("./spacebooking/api"),
-//   // @todo Until we use DB slugs everywhere
-//   zapierother: import("./zapier/api"),
-// };
+  output.push(`export const ${objectName} = {`);
 
-// export const InstallAppButtonMap = {
-//   // examplevideo: dynamic(() => import("./_example/components/InstallAppButton")),
-//   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
-//   caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
-//   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
-//   hubspotothercalendar: dynamic(() => import("./hubspotothercalendar/components/InstallAppButton")),
-//   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
-//   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
-//   stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
-//   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
-//   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
-//   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
-//   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
-//   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
-//   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
-//   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
-//   metamask: dynamic(() => import("./metamask/components/InstallAppButton")),
-//   giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
-//   spacebookingother: dynamic(() => import("./spacebooking/components/InstallAppButton")),
-//   vital: dynamic(() => import("./vital/components/InstallAppButton")),
-// };
+  forEachAppDir((dirName) => {
+    output.push(entryBuilder(dirName));
+  });
 
-fs.writeFileSync(`${__dirname}/apps.generated.tsx`, output.join("\n"));
+  output.push(`};`);
+  return output;
+}
+
+serverOutput.push(
+  ...getObjectExporter("appStoreMetadata", {
+    importBuilder: (dirName) => `import { metadata as ${dirName}_meta } from "./${dirName}/_metadata";`,
+    entryBuilder: (dirName) => `${dirName}:${dirName}_meta,`,
+  })
+);
+
+serverOutput.push(
+  ...getObjectExporter("apiHandlers", {
+    importBuilder: (dirName) => `const ${dirName}_api = import("./${dirName}/api");`,
+    entryBuilder: (dirName) => `${dirName}:${dirName}_api,`,
+  })
+);
+
+clientOutput.push(
+  ...getObjectExporter("InstallAppButtonMap", {
+    importBuilder: (dirName) =>
+      `const ${dirName}_installAppButton = dynamic(() =>import("./${dirName}/components/InstallAppButton"));`,
+    entryBuilder: (dirName) => `${dirName}:${dirName}_installAppButton,`,
+  })
+);
+
+fs.writeFileSync(`${__dirname}/apps.generated.ts`, serverOutput.join("\n"));
+fs.writeFileSync(`${__dirname}/apps.components.generated.tsx`, clientOutput.join("\n"));

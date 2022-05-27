@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import Button from "@calcom/ui/Button";
 
-import { InstallAppButtonMap } from "./apps.generated.backup";
+import { InstallAppButtonMap } from "./apps.components.generated";
 import { InstallAppButtonProps } from "./types";
 
 export const InstallAppButton = (
