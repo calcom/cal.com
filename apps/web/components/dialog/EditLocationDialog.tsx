@@ -200,13 +200,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           {locationFormMethods.formState?.errors?.locationPhoneNumber?.message}
         </label>
         <div className="mt-1">
-          <PhoneInput
+          <PhoneInput<LocationFormValues>
             control={locationFormMethods.control}
             name="locationPhoneNumber"
             required
             id="locationPhoneNumber"
             placeholder={t("host_phone_number")}
-            rules={{}}
             defaultValue={
               defaultValues
                 ? defaultValues.find(
