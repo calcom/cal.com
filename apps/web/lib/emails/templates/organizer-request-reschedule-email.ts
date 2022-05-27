@@ -115,6 +115,7 @@ ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
 ${this.getAdditionalNotes()}
+${this.getCustomInputs()}
 ${this.calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
 ${getCancelLink(this.calEvent)}
 `.replace(/(<([^>]+)>)/gi, "");
@@ -166,6 +167,7 @@ ${getCancelLink(this.calEvent)}
                               ${this.getWhen()}
                               ${this.getWho()}
                               ${this.getAdditionalNotes()}
+                              ${this.getCustomInputs()}
                             </div>
                           </td>
                         </tr>

@@ -4,6 +4,8 @@ import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
 import { FC, Fragment, MouseEventHandler } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import classNames from "@lib/classNames";
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -22,6 +24,7 @@ export interface NavTabProps {
 
 const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
   const router = useRouter();
+  const { t } = useLocale();
   return (
     <>
       <nav
@@ -56,7 +59,6 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
 
           const Component = tab.adminRequired ? AdminRequired : Fragment;
 
-          if (!href) return null;
           return (
             <Component key={tab.name}>
               <Link key={tab.name} href={href} {...linkProps}>
@@ -78,7 +80,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                       aria-hidden="true"
                     />
                   )}
-                  <span>{tab.name}</span>
+                  <span>{t(tab.name)}</span>
                 </a>
               </Link>
             </Component>

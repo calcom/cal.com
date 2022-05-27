@@ -5,6 +5,7 @@
   "types": "./index.ts",
   "license": "MIT",
   "dependencies": {
+    "@prisma/client": "^3.14.0",
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.11.2",
     "ical.js": "^1.4.0",
@@ -17,6 +18,7 @@
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
+    "@calcom/types": "*",
     "typescript": "^4.6.4"
   }
 }

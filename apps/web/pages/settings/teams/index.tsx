@@ -4,21 +4,20 @@ import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { trpc } from "@lib/trpc";
 
 import EmptyScreen from "@components/EmptyScreen";
 import Loader from "@components/Loader";
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 import TeamCreateModal from "@components/team/TeamCreateModal";
 import TeamList from "@components/team/TeamList";
 
-export default function Teams() {
+function Teams() {
   const { t } = useLocale();
   const { status } = useSession();
   const loading = status === "loading";
@@ -40,8 +39,8 @@ export default function Teams() {
   const isFreePlan = me.data?.plan === "FREE";
 
   return (
-    <Shell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
-      <SettingsShell>
+    <SettingsShell heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
+      <>
         {!!errorMessage && <Alert severity="error" title={errorMessage} />}
         {isFreePlan && (
           <Alert
@@ -87,7 +86,11 @@ export default function Teams() {
           />
         )}
         {teams.length > 0 && <TeamList teams={teams}></TeamList>}
-      </SettingsShell>
-    </Shell>
+      </>
+    </SettingsShell>
   );
 }
+
+Teams.requiresLicense = false;
+
+export default Teams;

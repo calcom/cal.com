@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = asStringOrNull(req.query.user);
   const dateFrom = dayjs(asStringOrNull(req.query.dateFrom));
   const dateTo = dayjs(asStringOrNull(req.query.dateTo));
-  const eventTypeId = parseInt(asStringOrNull(req.query.eventTypeId) || "");
+  const eventTypeId = typeof req.query.eventTypeId === "string" ? parseInt(req.query.eventTypeId) : undefined;
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     return res.status(400).json({ message: "Invalid time range given." });
@@ -50,6 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     prisma.eventType.findUnique({
       where: { id },
       select: {
+        seatsPerTimeSlot: true,
         timeZone: true,
         schedule: {
           select: {
@@ -107,9 +108,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (eventType?.availability.length ? eventType.availability : currentUser.availability)
   );
 
+  /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
+  current bookings with a seats event type and display them on the calendar, even if they are full */
+  let currentSeats;
+  if (eventType?.seatsPerTimeSlot) {
+    currentSeats = await prisma.booking.findMany({
+      where: {
+        eventTypeId: eventTypeId,
+        startTime: {
+          gte: dateFrom.format(),
+          lte: dateTo.format(),
+        },
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        _count: {
+          select: {
+            attendees: true,
+          },
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
+    currentSeats,
   });
 }

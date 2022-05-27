@@ -37,7 +37,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useTheme from "@lib/hooks/useTheme";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -77,7 +77,7 @@ type BookingFormValues = {
   phone?: string;
   hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
-    [key: string]: string;
+    [key: string]: string | boolean;
   };
 };
 
@@ -129,6 +129,7 @@ const BookingPage = ({
             paymentUid,
             date,
             name: attendees[0].name,
+            email: attendees[0].email,
             absolute: false,
           })
         );
@@ -202,10 +203,9 @@ const BookingPage = ({
 
   const eventTypeDetail = { isWeb3Active: false, ...eventType };
 
-  type Location = { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string };
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
-  const locations: Location[] = useMemo(
-    () => (eventType.locations as Location[]) || [],
+  const locations: LocationObject[] = useMemo(
+    () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 
@@ -216,7 +216,7 @@ const BookingPage = ({
   }, [router.query.guest]);
 
   const locationInfo = (type: LocationType) => locations.find((location) => location.type === type);
-  const loggedInIsOwner = eventType?.users[0]?.name === session?.user?.name;
+  const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
     : [];
@@ -244,11 +244,22 @@ const BookingPage = ({
     if (!primaryAttendee) {
       return {};
     }
+
+    const customInputType = booking.customInputs;
     return {
       name: primaryAttendee.name || "",
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      customInputs: eventType.customInputs.reduce(
+        (customInputs, input) => ({
+          ...customInputs,
+          [input.id]: booking.customInputs
+            ? booking.customInputs[input.label as keyof typeof customInputType]
+            : "",
+        }),
+        {}
+      ),
     };
   };
 
@@ -384,6 +395,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
+        bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         location: getLocationValue(
           booking.locationType ? booking : { ...booking, locationType: selectedLocation }
@@ -400,6 +412,9 @@ const BookingPage = ({
   };
 
   const disableInput = !!rescheduleUid;
+  const disabledExceptForOwner = disableInput && !loggedInIsOwner;
+  const inputClassName =
+    "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm";
 
   return (
     <div>
@@ -454,6 +469,21 @@ const BookingPage = ({
                 <h1 className="text-bookingdark mb-4 text-xl font-semibold dark:text-white">
                   {eventType.title}
                 </h1>
+                {eventType.seatsPerTimeSlot && (
+                  <p
+                    className={`${
+                      booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                        ? "text-rose-600"
+                        : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                        ? "text-yellow-500"
+                        : "text-emerald-400"
+                    } mb-2`}>
+                    {booking
+                      ? eventType.seatsPerTimeSlot - booking.attendees.length
+                      : eventType.seatsPerTimeSlot}{" "}
+                    / {eventType.seatsPerTimeSlot} {t("seats_available")}
+                  </p>
+                )}
                 {eventType?.description && (
                   <p className="text-bookinglight mb-2 dark:text-white">
                     <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
@@ -541,10 +571,7 @@ const BookingPage = ({
                         name="name"
                         id="name"
                         required
-                        className={classNames(
-                          "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                        )}
+                        className={inputClassName}
                         placeholder={t("example_name")}
                         disabled={disableInput}
                       />
@@ -561,8 +588,7 @@ const BookingPage = ({
                         {...bookingForm.register("email")}
                         required
                         className={classNames(
-                          "focus:border-brand block w-full rounded-sm shadow-sm focus:ring-black dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                          disableInput ? "bg-gray-200 dark:text-gray-500" : "",
+                          inputClassName,
                           bookingForm.formState.errors.email
                             ? "border-red-700 focus:ring-red-700"
                             : " border-gray-300  dark:border-gray-900"
@@ -637,12 +663,9 @@ const BookingPage = ({
                             })}
                             id={"custom_" + input.id}
                             rows={3}
-                            className={classNames(
-                              "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                              disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                            )}
+                            className={inputClassName}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.TEXT && (
@@ -652,9 +675,9 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={inputClassName}
                             placeholder={input.placeholder}
-                            disabled={disableInput}
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.NUMBER && (
@@ -664,8 +687,9 @@ const BookingPage = ({
                               required: input.required,
                             })}
                             id={"custom_" + input.id}
-                            className="focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm"
+                            className={inputClassName}
                             placeholder=""
+                            disabled={disabledExceptForOwner}
                           />
                         )}
                         {input.type === EventTypeCustomInputType.BOOL && (
@@ -676,8 +700,9 @@ const BookingPage = ({
                                 required: input.required,
                               })}
                               id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
                               placeholder=""
+                              disabled={disabledExceptForOwner}
                             />
                             <label
                               htmlFor={"custom_" + input.id}
@@ -764,12 +789,9 @@ const BookingPage = ({
                       id="notes"
                       name="notes"
                       rows={3}
-                      className={classNames(
-                        "focus:border-brand block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 sm:text-sm",
-                        disableInput ? "bg-gray-200 dark:text-gray-500" : ""
-                      )}
+                      className={inputClassName}
                       placeholder={t("share_additional_notes")}
-                      disabled={disableInput}
+                      disabled={disabledExceptForOwner}
                     />
                   </div>
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
