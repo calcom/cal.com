@@ -1,9 +1,4 @@
-import { ChatAltIcon } from "@heroicons/react/solid";
-
-import { DropdownMenuItem } from "@calcom/ui/Dropdown";
-
-import classNames from "@lib/classNames";
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useIntercom } from "./useIntercom";
 

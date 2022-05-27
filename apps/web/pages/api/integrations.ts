@@ -5,7 +5,7 @@ import { getSession } from "@lib/auth";
 import prisma from "@lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!["GET", "DELETE"].includes(req.method!)) {
+  if (!["GET", "DELETE"].includes(req.method || "")) {
     return res.status(405).end();
   }
 

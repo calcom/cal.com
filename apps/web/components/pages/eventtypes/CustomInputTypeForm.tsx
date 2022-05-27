@@ -35,7 +35,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     defaultValues,
   });
   const selectedInputType = useWatch({ name: "type", control });
-  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value)!;
+  const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
   const onCancel = () => {
     props.onCancel();

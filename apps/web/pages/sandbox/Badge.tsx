@@ -30,7 +30,7 @@ const page = sandboxPage(function BadgePage() {
                   )}
                 </code>
               </h3>
-              <Badge {...(props as any)}>Badge text</Badge>
+              <Badge {...props}>Badge text</Badge>
             </div>
           ))}
         </div>

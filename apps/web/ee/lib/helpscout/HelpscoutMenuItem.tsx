@@ -1,17 +1,13 @@
-import { ChatAltIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DropdownMenuItem } from "@calcom/ui/Dropdown";
-
-import classNames from "@lib/classNames";
 
 export default function HelpscoutMenuItem() {
   const { t } = useLocale();
   const [active, setActive] = useState(false);
 
-  const [state, loadChat] = useChat();
+  const [, loadChat] = useChat();
 
   function handleClick() {
     setActive(true);
