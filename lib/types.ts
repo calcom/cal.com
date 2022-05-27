@@ -142,13 +142,15 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
     freq?: Frequency | undefined;
     until?: Date | undefined;
     tzid?: string | undefined;
-  };
-  locations: {
-    link?: string | undefined;
-    address?: string | undefined;
-    hostPhoneNumber?: string | undefined;
-    type: DefaultLocationType | AppStoreLocationType;
-  }[];
+  } | null;
+  locations:
+    | {
+        link?: string | undefined;
+        address?: string | undefined;
+        hostPhoneNumber?: string | undefined;
+        type: DefaultLocationType | AppStoreLocationType;
+      }[]
+    | null;
 }
 
 // EventType

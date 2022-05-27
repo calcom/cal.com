@@ -25,6 +25,7 @@ export async function eventTypeById(
     select: { eventTypes: true },
   });
   const userEventTypes = data.eventTypes.map((eventType) => eventType.id);
+
   if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
     switch (method) {
