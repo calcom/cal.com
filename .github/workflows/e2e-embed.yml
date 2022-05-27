@@ -12,7 +12,7 @@ on:
       - apps/docs/**
       - apps/swagger/**
       - apps/website/**
-      - public/**
+      - apps/web/public/**
       - tests/**
       - playwright/**
 jobs:
