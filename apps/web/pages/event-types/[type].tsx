@@ -1439,9 +1439,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                         <Controller
                           name="requiresConfirmation"
-                          control={formMethods.control}
                           defaultValue={eventType.requiresConfirmation}
-                          render={() => (
+                          render={({ field: { value, onChange } }) => (
                             <CheckboxField
                               id="requiresConfirmation"
                               descriptionAsLabel
@@ -1450,10 +1449,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
                               disabled={enableSeats}
-                              checked={formMethods.watch("disableGuests")}
-                              onChange={(e) => {
-                                formMethods.setValue("requiresConfirmation", e?.target.checked);
-                              }}
+                              checked={value}
+                              onChange={(e) => onChange(e?.target.checked)}
                             />
                           )}
                         />
@@ -2294,6 +2291,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
 
+  if (Number.isNaN(typeParam)) {
+    return {
+      notFound: true,
+    };
+  }
+
   if (!session?.user?.id) {
     return {
       redirect: {
@@ -2406,7 +2409,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawEventType) throw Error("Event type not found");
+  if (!rawEventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {
