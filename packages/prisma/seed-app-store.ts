@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from ".";
+import generatedApps from "./seed-app-store.config";
 
 require("dotenv").config({ path: "../../.env.appStore" });
 
@@ -130,6 +131,10 @@ async function main() {
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
+  }
+  for (let i = 0; i < generatedApps.length; i++) {
+    const generatedApp = generatedApps[i];
+    await createApp(generatedApp.name, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
 }
 
