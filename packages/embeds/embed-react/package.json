@@ -13,7 +13,8 @@
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "publish-prod": "npm version patch && npm publish --access public",
-    "publish-beta": "npm version prepatch && npm publish --access public --tag beta"
+    "publish-beta": "npm version prepatch && npm publish --access public --tag beta",
+    "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.js",
