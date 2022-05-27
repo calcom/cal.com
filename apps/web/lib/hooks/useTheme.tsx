@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
-import { useEmbedTheme } from "@calcom/embed-core";
+import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
 
 import { Maybe } from "@trpc/server";
 
