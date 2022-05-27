@@ -254,17 +254,14 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               const { locationType: newLocation, displayLocationPublicly } = values;
 
               let details = {};
-              let locationString = values.locationType as string;
               if (newLocation === LocationType.InPerson) {
                 details = {
                   address: values.locationAddress,
                   displayLocationPublicly,
                 };
-                locationString = values.locationAddress || "";
               }
               if (newLocation === LocationType.Link) {
                 details = { link: values.locationLink, displayLocationPublicly };
-                locationString = values.locationLink || "";
               }
               if (newLocation === LocationType.UserPhone) {
                 details = { hostPhoneNumber: values.locationPhoneNumber };
