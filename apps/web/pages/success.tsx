@@ -164,7 +164,6 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  console.log(props.eventType.locations);
 
   const eventNameObject = {
     attendeeName,
