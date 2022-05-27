@@ -2,16 +2,15 @@ import {
   BanIcon,
   CheckIcon,
   ClockIcon,
-  PencilAltIcon,
   LocationMarkerIcon,
   PaperAirplaneIcon,
+  PencilAltIcon,
   XIcon,
 } from "@heroicons/react/outline";
 import { RefreshIcon } from "@heroicons/react/solid";
 import { BookingStatus } from "@prisma/client";
 import dayjs from "dayjs";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Frequency as RRuleFrequency } from "rrule";
@@ -171,23 +170,12 @@ function BookingListItem(booking: BookingItemProps) {
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-
-  const setLocationMutation = useMutation(async (newLocation: string) => {
-    const result = await fetch("/api/book/set-location", {
-      method: "POST",
-      body: JSON.stringify({
-        bookingId: booking.id,
-        newLocation,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (result) {
+  const setLocationMutation = trpc.useMutation("viewer.bookings.editLocation", {
+    onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
       utils.invalidateQueries("viewer.bookings");
-    }
+    },
   });
 
   const saveLocation = (newLocationType: LocationType, details: { [key: string]: string }) => {
@@ -199,7 +187,7 @@ function BookingListItem(booking: BookingItemProps) {
     ) {
       newLocation = details[Object.keys(details)[0]];
     }
-    setLocationMutation.mutate(newLocation);
+    setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
   // Calculate the booking date(s)

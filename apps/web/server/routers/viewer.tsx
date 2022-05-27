@@ -14,18 +14,19 @@ import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
 import {
-  isSAMLLoginEnabled,
-  samlTenantID,
-  samlProductID,
-  isSAMLAdmin,
   hostedCal,
-  tenantPrefix,
+  isSAMLAdmin,
+  isSAMLLoginEnabled,
+  samlProductID,
+  samlTenantID,
   samlTenantProduct,
+  tenantPrefix,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
+import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -926,6 +927,7 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)
