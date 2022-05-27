@@ -91,11 +91,20 @@ jobs:
       - name: Install playwright deps
         # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn embed-tests-update-snapshots:ci
+      - run: yarn embed-tests-prepare
+      - run: yarn workspace @calcom/embed-core embed-tests-update-snapshots:ci
+      - run: yarn workspace @calcom/embed-react embed-tests-update-snapshots:ci
 
-      - name: Upload test results
+      - name: Upload embed-core results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: test-results-core
-          path: packages/embeds
+          path: packages/embeds/embed-core/playwright/results
+
+      - name: Upload embed-react results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-react
+          path: packages/embeds/embed-react/playwright/results

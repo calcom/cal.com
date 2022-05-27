@@ -20,7 +20,7 @@ const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
     command: "yarn run-p 'embed-dev' 'embed-web-start'",
-    port: 3101,
+    port: 3000,
     timeout: 60_000,
     reuseExistingServer: true,
   },

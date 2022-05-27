@@ -138,10 +138,6 @@
     },
     "test-e2e": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#build"]
-    },
-    "embed-tests-update-snapshots:ci": {
-      "cache": false,
       "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
