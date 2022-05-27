@@ -4,7 +4,7 @@ import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import getApps from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { bookingMinimalSelect } from "@calcom/prisma";
@@ -13,6 +13,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
 import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
+import prisma from "@lib/prisma";
 import {
   hostedCal,
   isSAMLAdmin,
@@ -24,6 +25,7 @@ import {
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { getTranslation } from "@server/lib/i18n";
 import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
 import { bookingsRouter } from "@server/routers/viewer/bookings";
@@ -921,6 +923,30 @@ const loggedInViewerRouter = createProtectedRouter()
       });
 
       if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
+    },
+  })
+  .query("locationOptions", {
+    async resolve({ ctx }) {
+      const credentials = await prisma.credential.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+          appId: true,
+        },
+      });
+
+      const integrations = getApps(credentials);
+
+      const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+      const locationOptions = getLocationOptions(integrations, t);
+
+      return locationOptions;
     },
   });
 

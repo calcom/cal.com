@@ -40,11 +40,6 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringCount?: number;
-  locationOptions: {
-    label: string;
-    value: LocationType;
-    disabled?: boolean | undefined;
-  }[];
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -238,7 +233,6 @@ function BookingListItem(booking: BookingItemProps) {
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
-        locationOptions={booking.locationOptions}
       />
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}

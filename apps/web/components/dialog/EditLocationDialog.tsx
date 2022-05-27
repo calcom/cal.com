@@ -2,16 +2,16 @@ import { LocationMarkerIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
 import { Form } from "@calcom/ui/form/fields";
 
+import { QueryCell } from "@lib/QueryCell";
 import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { LocationOptionsToString } from "@lib/locationOptions";
@@ -54,11 +54,6 @@ interface ISetLocationDialog {
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
-  locationOptions: {
-    label: string;
-    value: LocationType;
-    disabled?: boolean | undefined;
-  }[];
 }
 
 export const EditLocationDialog = (props: ISetLocationDialog) => {
@@ -70,9 +65,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
-    locationOptions,
   } = props;
   const { t } = useLocale();
+  const locationsQuery = trpc.useQuery(["viewer.locationOptions"]);
 
   useEffect(() => {
     if (selection) {
@@ -276,39 +271,47 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 "locationPhoneNumber",
               ]);
             }}>
-            <Controller
-              name="locationType"
-              control={locationFormMethods.control}
-              render={() => (
-                <Select
-                  maxMenuHeight={150}
-                  name="location"
-                  defaultValue={selection}
-                  options={
-                    booking
-                      ? locationOptions.filter((location) => location.value !== "phone")
-                      : locationOptions
-                  }
-                  isSearchable={false}
-                  className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                  onChange={(val) => {
-                    if (val) {
-                      locationFormMethods.setValue("locationType", val.value);
-                      locationFormMethods.unregister([
-                        "locationLink",
-                        "locationAddress",
-                        "locationPhoneNumber",
-                      ]);
-                      locationFormMethods.clearErrors([
-                        "locationLink",
-                        "locationPhoneNumber",
-                        "locationAddress",
-                      ]);
-                      setSelectedLocation?.(val);
-                    }
-                  }}
-                />
-              )}
+            <QueryCell
+              query={locationsQuery}
+              success={({ data: locationOptions }) => {
+                if (!locationOptions.length) return null;
+                return (
+                  <Controller
+                    name="locationType"
+                    control={locationFormMethods.control}
+                    render={() => (
+                      <Select
+                        maxMenuHeight={150}
+                        name="location"
+                        defaultValue={selection}
+                        options={
+                          booking
+                            ? locationOptions.filter((location) => location.value !== "phone")
+                            : locationOptions
+                        }
+                        isSearchable={false}
+                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
+                        onChange={(val) => {
+                          if (val) {
+                            locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister([
+                              "locationLink",
+                              "locationAddress",
+                              "locationPhoneNumber",
+                            ]);
+                            locationFormMethods.clearErrors([
+                              "locationLink",
+                              "locationPhoneNumber",
+                              "locationAddress",
+                            ]);
+                            setSelectedLocation?.(val);
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                );
+              }}
             />
             {selectedLocation && LocationOptions}
             <div className="mt-4 flex justify-end space-x-2">
