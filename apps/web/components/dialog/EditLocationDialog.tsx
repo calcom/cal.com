@@ -177,7 +177,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <Controller
               name="displayLocationPublicly"
               control={locationFormMethods.control}
-              render={({ field: { onChange, value } }) => (
+              render={() => (
                 <CheckboxField
                   description={t("display_location_label")}
                   defaultChecked={
@@ -186,7 +186,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                           ?.displayLocationPublicly
                       : undefined
                   }
-                  onChange={(e) => onChange(e.target.checked)}
+                  onChange={(e) => locationFormMethods.setValue("displayLocationPublicly", e.target.checked)}
                   infomationIconText={t("display_location_info_badge")}></CheckboxField>
               )}
             />
