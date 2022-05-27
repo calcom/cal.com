@@ -17063,7 +17063,7 @@ zwitch@^2.0.0:
   integrity sha512-JZxotl7SxAJH0j7dN4pxsTV6ZLXoLdGME+PsjkL/DaBrVryK9kTGq06GfKrwcSOqypP+fdXGoCHE36b99fWVoA==
 next-collect@canary:
   version "0.0.2-alpha.43"
-  resolved "https://registry.yarnpkg.com/next-collect/-/next-collect-0.0.2-alpha.43.tgz#558afc8e19820e9cc0cacdd63431340902be0ac0"
-  integrity sha512-CRTk5dm901Ym53Wr1m+LtdPBCgxy5/iPRBQCtuHYFzzuqo7e9XDON7QZaAcUQY2ECGomLLfGZXGP0cuWLOgJEQ==
+  resolved "https://registry.yarnpkg.com/next-collect/-/next-collect-0.0.2-alpha.43.tgz#a056329539fea9331ea2744d007574f3e5d69a56"
+  integrity sha512-kL8RzbzhHQQmtJGukXxY+0h+cT8h1uOet726s6spKu958AFwUON77amyzDPjJa3iMg2ikDoMo2soIPVducO9Tw==
   dependencies:
     cookie "^0.5.0"
