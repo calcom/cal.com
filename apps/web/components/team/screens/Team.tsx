@@ -54,7 +54,7 @@ const Team = ({ team }: TeamPageProps) => {
               imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
               className="-mt-4 h-12 w-12"
             />
-            <section className="mt-2 w-full space-y-1">
+            <section className="line-clamp-4 mt-2 w-full space-y-1">
               <p className="font-medium text-neutral-900 dark:text-white">{member.name}</p>
               <p className="text-sm font-normal text-neutral-500 dark:text-white">
                 {member.bio || t("user_from_team", { user: member.name, team: team.name })}
