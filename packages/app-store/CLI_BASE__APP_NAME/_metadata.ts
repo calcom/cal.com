@@ -1,5 +1,9 @@
+import fs from "fs";
+import path from "path";
+
 import type { App } from "@calcom/types/App";
 
+import config from "./config.json";
 import _package from "./package.json";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -21,6 +25,7 @@ export const metadata = {
   variant: "CLI_BASE__APP_TYPE",
   verified: true,
   email: "CLI_BASE__PUBLISHER_EMAIL",
+  ...config,
 } as App;
 
 export default metadata;

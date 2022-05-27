@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 import prisma from ".";
-import generatedApps from "./seed-app-store.config";
 
 require("dotenv").config({ path: "../../.env.appStore" });
 
@@ -132,6 +133,10 @@ async function main() {
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
   }
+
+  const generatedApps = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "seed-app-store.config.json"), "utf8")
+  );
   for (let i = 0; i < generatedApps.length; i++) {
     const generatedApp = generatedApps[i];
     await createApp(generatedApp.name, generatedApp.dirName, generatedApp.categories, generatedApp.type);
