@@ -746,18 +746,6 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-6.0.0.tgz#fe364f025ba74f6de6c837a84ef44bdb1d61e68f"
   integrity sha512-mgmE7XBYY/21erpzhexk4Cj1cyTQ9LzvnTxtzM17BJ7ERMNE6W72mQRo0I1Ud8eFJ+RVVIcBNhLFZ3GX4XFz5w==
 
-"@calcom/embed-react@^1.0.2":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@calcom/embed-react/-/embed-react-1.0.5.tgz#8c14bd3d89105e5ba6d0720ed74ec76f8a883f89"
-  integrity sha512-d9OXMM8w+F9ztl0g+FOQXtJVgIlZAyEw5lhX1aumFnMxHJJWF361//u5D2hsnnAunRV3444iAvI8++848Tf3Vg==
-  dependencies:
-    "@calcom/embed-snippet" "^1.0.0"
-
-"@calcom/embed-snippet@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@calcom/embed-snippet/-/embed-snippet-1.0.0.tgz#e4cf75e0b217312767287b20db54cab9c8ebf94f"
-  integrity sha512-nMcFkNNhwXqaS55JPeGVj2arDpu1ka6TRC1n1g2cC8G7fLEcWrJbkdiVkoQL8YrEm8t74CgtEE2BLCU4+LTzmg==
-
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"
