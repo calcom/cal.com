@@ -7,7 +7,7 @@ Contributions are what make the open source community such an amazing place to b
 ## Areas of expertise
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark">
+  <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark=1">
   <img alt="Areas of expertise table" src="https://dynamic-svgs.vercel.app/image.svg">
 </picture>
 
