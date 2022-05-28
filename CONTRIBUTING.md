@@ -4,6 +4,10 @@ Contributions are what make the open source community such an amazing place to b
 
 - Before jumping into a PR be sure to search [existing PRs](https://github.com/calcom/cal.com/pulls) or [issues](https://github.com/calcom/cal.com/issues) for an open or closed item that relates to your submission.
 
+## Areas of expertise
+
+![](https://dynamic-svgs.vercel.app/image.svg)
+
 ## Developing
 
 The development branch is `main`. This is the branch that all pull
