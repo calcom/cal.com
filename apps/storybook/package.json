@@ -11,22 +11,24 @@
   "dependencies": {
     "@calcom/ui": "*",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "react-feather": "^2.0.9"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
+    "@mdx-js/preact": "^2.1.1",
     "@storybook/addon-actions": "^6.4.18",
     "@storybook/addon-docs": "^6.4.22",
     "@storybook/addon-essentials": "^6.4.18",
     "@storybook/addon-links": "^6.4.18",
     "@storybook/builder-vite": "^0.1.33",
-    "@mdx-js/preact": "^2.1.1",
     "@storybook/react": "^6.4.18",
     "@vitejs/plugin-react": "^1.3.2",
     "autoprefixer": "^10.4.7",
     "eslint-preset-acme": "*",
     "postcss": "^8.4.14",
     "serve": "^13.0.2",
+    "storybook-addon-designs": "^6.2.1",
     "tailwindcss": "^3.0.24",
     "typescript": "^4.5.4",
     "vite": "^2.9.9"

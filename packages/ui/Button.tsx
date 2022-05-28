@@ -1,19 +1,31 @@
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
+import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
-type SVGComponent = React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
-
 export type ButtonBaseProps = {
-  color?: "primary" | "secondary" | "minimal" | "warn" | "alert" | "alert2";
-  size?: "base" | "sm" | "lg" | "fab" | "icon";
+  /* Primary: Signals most important actions at any given point in the application.
+     Secondary: Gives visual weight to actions that are important
+     Minimal: Used for actions that we want to give very little significane to */
+  color?: "primary" | "secondary" | "minimal" | "destructive";
+  /**Default: H = 36px (default)
+     Large: H = 38px (Onboarding, modals)
+     Icon: Makes the button be an icon button */
+  size?: "base" | "lg" | "icon";
+  /**Signals the button is loading */
   loading?: boolean;
+  /** Disables the button from being clicked */
   disabled?: boolean;
+  /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  StartIcon?: SVGComponent;
-  EndIcon?: SVGComponent;
+  /**Left aligned icon*/
+  StartIcon?: Icon;
+  /**Right aligned icon */
+  EndIcon?: Icon;
   shallow?: boolean;
+  /**Tool tip used when icon size is set to small */
+  tooltip?: string;
 };
 export type ButtonProps = ButtonBaseProps &
   (
@@ -50,43 +62,29 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
-        "inline-flex items-center",
+        "inline-flex items-center text-sm font-medium",
         // different styles depending on size
-        size === "sm" && "px-3 py-2 text-sm leading-4 font-medium rounded-sm",
-        size === "base" && "px-3 py-2 text-sm font-medium rounded-sm",
-        size === "lg" && "px-4 py-2 text-base font-medium rounded-sm",
-        size === "icon" &&
-          "group p-2 border rounded-sm border-transparent text-neutral-400 hover:border-gray-200 transition",
-        // turn button into a floating action button (fab)
-        size === "fab" ? "fixed" : "relative",
-        size === "fab" && "justify-center bottom-20 right-8 rounded-full p-4 w-14 h-14",
+        size === "base" && "h-9 px-4 py-2.5 rounded-md ",
+        size === "lg" && "h-[36px] px-4 py-2.5 rounded-md",
+        size === "icon" && " p-2.5 rounded-md",
 
         // different styles depending on color
         color === "primary" &&
           (disabled
-            ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-brand dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            ? "border border-transparent bg-brand-500 bg-opacity-20 text-white"
+            : "border border-transparent text-white bg-brand-500 hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"),
         color === "secondary" &&
           (disabled
-            ? "border border-gray-200 text-gray-400 bg-white"
-            : "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900 dark:bg-transparent dark:text-white dark:border-gray-800 dark:hover:bg-gray-800"),
-        color === "alert" &&
-          (disabled
-            ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent dark:text-darkmodebrandcontrast text-brandcontrast bg-red-600 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
-        color === "alert2" &&
-          (disabled
-            ? "border border-transparent bg-gray-400 text-white"
-            : "border border-transparent dark:text-darkmodebrandcontrast text-black bg-yellow-400 dark:bg-darkmodebrand hover:bg-opacity-90 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-900"),
+            ? "border border-gray-200 text-brand-900 bg-white opacity-30"
+            : "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100"),
         color === "minimal" &&
           (disabled
             ? "text-gray-400 bg-transparent"
-            : "text-gray-700 bg-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-neutral-500"),
-        color === "warn" &&
+            : "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900"),
+        color === "destructive" &&
           (disabled
-            ? "text-gray-400 bg-transparent"
-            : "text-gray-700 bg-transparent hover:text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-50 focus:ring-red-500"),
-
+            ? "text-red-700 bg-transparent opacity-30"
+            : "text-gray-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700"),
         // set not-allowed cursor if disabled
         loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
         props.className

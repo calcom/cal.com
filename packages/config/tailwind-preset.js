@@ -14,7 +14,6 @@ module.exports = {
     extend: {
       colors: {
         /* your primary brand color */
-        brand: "var(--brand-color)",
         brandcontrast: "var(--brand-text-color)",
         darkmodebrand: "var(--brand-color-dark-mode)",
         darkmodebrandcontrast: "var(--brand-text-color-dark-mode)",
@@ -26,6 +25,20 @@ module.exports = {
         bookingdarker: "var(--booking-darker-color)",
         bookinghighlight: "var(--booking-highlight-color)",
         black: "#111111",
+        brand: {
+          // Figure out a way to automate this for self hosted users
+          // Goto https://javisperez.github.io/tailwindcolorshades to generate your brand color
+          50: "#f3f3f4",
+          100: "#e7e8e9",
+          200: "#c4c5c9",
+          300: "#a0a3a9",
+          400: "#585d68",
+          500: "#111827", // Brand color
+          600: "#0f1623",
+          700: "#0d121d",
+          800: "#0a0e17",
+          900: "#080c13",
+        },
         gray: {
           50: "#F8F8F8",
           100: "#F5F5F5",
@@ -112,7 +125,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        cal: ["Cal Sans", "sans-serif"],
+        cal: ["inter", "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
       },
       maxHeight: (theme) => ({
