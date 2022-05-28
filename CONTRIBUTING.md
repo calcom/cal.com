@@ -8,6 +8,14 @@ Contributions are what make the open source community such an amazing place to b
 
 ![](https://dynamic-svgs.vercel.app/image.svg#gh-light-mode-only)
 
+### Legend
+Emoji | Meaning |
+-- | -- |
+✅ | has knowledge |
+🥇 | is their main priority |
+⚠️ | is the only one with knowledge |
+👀 | has no knowledge but wants to be onboarded |
+
 ## Developing
 
 The development branch is `main`. This is the branch that all pull
