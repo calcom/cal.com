@@ -6,7 +6,7 @@ Contributions are what make the open source community such an amazing place to b
 
 ## Areas of expertise
 
-![](https://dynamic-svgs.vercel.app/image.svg)
+![](https://dynamic-svgs.vercel.app/image.svg#gh-light-mode-only)
 
 ## Developing
 
