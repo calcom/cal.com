@@ -6,8 +6,10 @@ Contributions are what make the open source community such an amazing place to b
 
 ## Areas of expertise
 
-![Areas of expertise](https://dynamic-svgs.vercel.app/image.svg#gh-light-mode-only)
-![Areas of expertise](https://dynamic-svgs.vercel.app/image.svg?dark#gh-dark-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark">
+  <img alt="Areas of expertise table" src="https://dynamic-svgs.vercel.app/image.svg">
+</picture>
 
 ### Legend
 Emoji | Meaning |
