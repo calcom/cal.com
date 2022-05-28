@@ -1,8 +1,10 @@
 import Link, { LinkProps } from "next/link";
-import React, { forwardRef } from "react";
+import React, { forwardRef, Fragment } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+
+import Tooltip from "./Tooltip";
 
 export type ButtonBaseProps = {
   /* Primary: Signals most important actions at any given point in the application.
@@ -53,7 +55,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? "a" : "button";
-
   const element = React.createElement(
     elementType,
     {
@@ -66,7 +67,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         // different styles depending on size
         size === "base" && "h-9 px-4 py-2.5 rounded-md ",
         size === "lg" && "h-[36px] px-4 py-2.5 rounded-md",
-        size === "icon" && " p-2.5 rounded-md",
+        size === "icon" && " p-2.5 h-[36px] w-[36px] rounded-md",
 
         // different styles depending on color
         color === "primary" &&
