@@ -1,30 +1,3 @@
-# Core Contributors
-Emoji | Meaning |
--- | -- |
-✅ | has knowledge |
-🥇 | is their main priority |
-⚠️ | is the only one with knowledge |
-👀 | has no knowledge but wants to be onboarded |
-
-> tip: hover over the abbreviation for the full title
-
-Core Team | <span title="Availability">AV</span> | <span title="Timezones">![](https://rotate-svg-text-agu.vercel.app/api/rotate?text=Timezones&color=white&size=14#gh-dark-mode-only)![](https://rotate-svg-text-agu.vercel.app/api/rotate?text=Timezones&color=black&size=14#gh-light-mode-only)</span> | <span title="App Store">AS</span> | <span title="Teams">TM</span> | <span title="Booking Page">BP</span> | <span title="Turbo Repo">TR</span> | <span title="End-to-end testing">E2E</span> | <span title="Webhooks">WH</span> | <span title="Event-Types">ET</span> | <span title="Prisma">PR</span> | <span title="Billing (Stripe)">BL</span> | <span title="Authentication">Auth</span> | Stripe App | Google Cal | tRPC | SSO / SAML | CalDAV | Outlook App | Slack App | <span title="Public API">API</span> | <span title="Recurring Event">RE</span> | Seats | Zapier | Embeds | <span title="Admin Console">AC</span> | <span title="Workflows">WF</span>
--- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | --
-@PeerRich  |   |   |   |   | 👀 | 👀 |   |   | ✅ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |  
-@baileypumfleet  |   |   | ✅ |   | ✅ | 👀 |   |   |   |   |   |   |   | ✅ |   |   |   |   |   |   |   |   |   |   |   |  
-@zomars  |   |   | 🥇✅ |   | ✅ | ✅ | ✅ |   | ✅ | ✅ | ✅ | ✅ | ✅ |   | ✅ | 👀 |   |   |   |   |   |   |   |   |   |  
-@emrysal  | 🥇✅ | 🥇✅ |   | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |   |   |   | ✅ | ✅ |   |   |   |   |   |   |   |   |   |   |  
-@alannnc  | ✅ | 🥇✅ |   |   | ✅ | 👀 | ✅ |   | ✅ | ✅ | 🥇✅ | ✅ | ✅ | 👀 | ✅ | ✅ |   |   |   |   |   |   |   |   |   |  
-@agustif  |   |   | 👀 |   | ✅ | ✅ | 👀 |   | 👀 | ✅ | ✅ | 🥇✅ | 👀 |   | ✅ | 🥇✅ |   |   |   | 🥇✅ |   |   |   |   |   |  
-@leog  | 👀 |   | ✅ | 👀 |   | 👀 |   | 👀 | ✅ |   |   |   | 👀 |   | 👀 |   |   | 👀 |   |   | ✅⚠️ |   |   |   |   |  
-@joeauyeung  |   |   | ✅ | 👀 |   |   |   |   | ✅👀 | ✅👀 | ✅👀 |   |   |   |   | 👀 |   | ✅ |   |   |   | ✅⚠️ |   |   |   |  
-@alishaz-polymath  | ✅ | ✅ | 👀 | ✅ | ✅ |   | ✅ | ✅ | ✅ | ✅👀 |   | ✅👀 | 👀 | 👀 | ✅ |   | 👀 | 👀 |   | ✅ |   |   |   |   |   |  
-@hariombalhara  |   |   |   |   |   |   | ✅ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ✅⚠️ |   |  
-@CarinaWolli  |   |   |   |   |   |   |   | ✅ | ✅ |   |   |   |   |   |   |   |   |   |   |   |   |   | ✅⚠️ |   |   | ✅⚠️
-@sean-brydon  |   |   | ✅ |   |   | 👀 | ✅ | 👀 |   | ✅ |   | 👀 |   |   | ✅ | 👀 | 👀 |   | 🥇✅⚠️ |   |   |   |   |   |   |  
-
-
-
 # Contributing to Cal.com
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
