@@ -1,0 +1,17 @@
+/*
+ * Here is where you can add your global email CSS resets.
+ *
+ * We use a custom, email-specific CSS reset, instead
+ * of Tailwind's web-optimized base.
+*/
+
+body {
+  @apply m-0 w-full p-0;
+  word-break: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  @apply leading-full max-w-full align-middle;
+  border: 0;
+}

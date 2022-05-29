@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/emails",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "local": "maizzle build -b ../../node_modules/@maizzle/framework/src",
+    "production": "maizzle build production -b ../../node_modules/@maizzle/framework/src",
+    "watch": "maizzle serve -b ../../node_modules/@maizzle/framework/src"
+  },
+  "dependencies": {
+    "@maizzle/framework": "^3.7.3"
+  },
+  "devDependencies": {
+    "@maizzle/cli": "^1.4.0"
+  }
+}

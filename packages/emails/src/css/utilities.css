@@ -1,0 +1,15 @@
+/*
+ * Here is where you can define your custom utility classes.
+ *
+ * We wrap them in the `utilities` @layer directive, so
+ * that Tailwind moves them to the correct location.
+ *
+ * More info:
+ * https://tailwindcss.com/docs/functions-and-directives#layer
+*/
+
+@layer utilities {
+  .mso-leading-exactly {
+    mso-line-height-rule: exactly;
+  }
+}
