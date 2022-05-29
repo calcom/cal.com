@@ -1,17 +1,12 @@
 /* eslint-disable @next/next/no-head-element */
-
-const HeadComment = ({ before = "", text = "", after = "" }) => (
-  <script dangerouslySetInnerHTML={{ __html: `</script>${before}${text}${after}<script>` }} />
-);
+import RawHtml from "./RawHtml";
 
 const EmailHead = ({ title = "" }) => {
   return (
     <head>
       <title>{title}</title>
-      <HeadComment
-        before="<!--[if !mso]><!-->"
-        text={`<meta http-equiv="X-UA-Compatible" content="IE=edge">`}
-        after="<!--<![endif]-->"
+      <RawHtml
+        html={`<!--[if !mso]><!--><meta http-equiv="X-UA-Compatible" content="IE=edge"><!--<![endif]-->`}
       />
       <meta httpEquiv="Content-Type" content="text/html; charset=UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -50,21 +45,15 @@ const EmailHead = ({ title = "" }) => {
           }
         `}
       </style>
-      <HeadComment
-        before="<!--[if mso]>"
-        text={`<noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>`}
-        after="<![endif]-->"
+      <RawHtml
+        html={`<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->`}
       />
-      <HeadComment
-        before="<!--[if lte mso 11]>"
-        text={`<style type="text/css">.mj-outlook-group-fix { width:100% !important; }</style>`}
-        after="<![endif]-->"
+      <RawHtml
+        html={`<!--[if lte mso 11]><style type="text/css">.mj-outlook-group-fix { width:100% !important; }</style><![endif]-->`}
       />
-      <HeadComment
-        before="<!--[if !mso]><!-->"
-        text={`<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet" type="text/css"/>
-      <style type="text/css">@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);</style>`}
-        after="<!--<![endif]-->"
+      <RawHtml
+        html={`<!--[if !mso]><!--><link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" rel="stylesheet" type="text/css"/>
+      <style type="text/css">@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);</style><!--<![endif]-->`}
       />
       <style type="text/css">
         {`
