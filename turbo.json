@@ -125,7 +125,9 @@
       "cache": false,
       "outputs": ["lint-results"]
     },
-    "post-install": {},
+    "post-install": {
+      "cache": false
+    },
     "start": {},
     "embed-tests": {
       "cache": false

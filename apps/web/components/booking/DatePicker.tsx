@@ -7,7 +7,7 @@ import utc from "dayjs/plugin/utc";
 import { memoize } from "lodash";
 import { useEffect, useRef, useState } from "react";
 
-import { useEmbedStyles } from "@calcom/embed-core";
+import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";

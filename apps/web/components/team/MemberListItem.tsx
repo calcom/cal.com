@@ -4,7 +4,7 @@ import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/Button";
@@ -74,7 +74,7 @@ export default function MemberListItem(props: Props) {
         <div className="flex w-full flex-col justify-between sm:flex-row">
           <div className="flex">
             <Avatar
-              imageSrc={WEBSITE_URL + "/" + props.member.username + "/avatar.png"}
+              imageSrc={WEBAPP_URL + "/" + props.member.username + "/avatar.png"}
               alt={name || ""}
               className="h-9 w-9 rounded-full"
             />

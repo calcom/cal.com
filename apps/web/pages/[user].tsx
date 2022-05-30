@@ -10,7 +10,12 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import {
+  sdkActionManager,
+  useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
