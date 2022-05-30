@@ -23,7 +23,6 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import Text from "@components/ui/Text";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -93,12 +92,8 @@ function TeamPage({ team }: TeamPageProps) {
               imageSrc={getPlaceholderAvatar(team.logo, team.name)}
               className="mx-auto mb-4 h-20 w-20 rounded-full"
             />
-            <Text variant="largetitle" className="text-gray-900 dark:text-white">
-              {teamName}
-            </Text>
-            <Text variant="subtitle" className="mt-2">
-              {team.bio}
-            </Text>
+            <p className="font-cal mb-2 text-3xl tracking-wider text-gray-900 dark:text-white">{teamName}</p>
+            <p className="mt-2 text-sm font-normal text-neutral-500 dark:text-white">{team.bio}</p>
           </div>
           {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
           {!showMembers.isOn && team.eventTypes.length > 0 && (
