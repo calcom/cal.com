@@ -8,8 +8,16 @@ export default {
   component: ButtonGroup,
 } as ComponentMeta<typeof ButtonGroup>;
 
-export const All = () => (
+export const Default = () => (
   <ButtonGroup>
+    <Button StartIcon={Trash2} size="icon" color="secondary"></Button>
+    <Button StartIcon={Navigation2} size="icon" color="secondary"></Button>
+    <Button StartIcon={Clipboard} size="icon" color="secondary"></Button>
+  </ButtonGroup>
+);
+
+export const Combined = () => (
+  <ButtonGroup combined>
     <Button StartIcon={Trash2} size="icon" color="secondary"></Button>
     <Button StartIcon={Navigation2} size="icon" color="secondary"></Button>
     <Button StartIcon={Clipboard} size="icon" color="secondary"></Button>

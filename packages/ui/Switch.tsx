@@ -17,8 +17,8 @@ const Switch = (
     <div className="flex h-[20px] items-center">
       <PrimitiveSwitch.Root
         className={classNames(
-          props.checked ? "bg-gray-900" : "bg-gray-200",
-          "h-[24px] w-[40px] rounded-full p-0.5"
+          props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
+          "focus:ring-brand-800 h-[24px] w-[40px] rounded-full p-0.5 shadow-none focus:ring-1"
         )}
         {...primitiveProps}>
         <PrimitiveSwitch.Thumb
@@ -29,7 +29,7 @@ const Switch = (
       {label && (
         <Label.Root
           htmlFor={id}
-          className="cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
+          className="ml-2 cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
           {label}
         </Label.Root>
       )}

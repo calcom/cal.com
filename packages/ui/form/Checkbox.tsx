@@ -45,7 +45,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             </div>
             <div className="text-sm ltr:ml-3 rtl:mr-3">
               {!label || descriptionAsLabel ? (
-                <label htmlFor={rest.id} className="text-neutral-700">
+                <label htmlFor={rest.id} className="ml-2 text-neutral-700">
                   {description}
                 </label>
               ) : (
