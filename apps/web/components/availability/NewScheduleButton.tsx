@@ -46,20 +46,17 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <div className="mb-4">
+        <div className="mb-8">
           <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
             {t("add_new_schedule")}
           </h3>
-          <div>
-            <p className="text-sm text-gray-500">{t("new_event_type_to_book_description")}</p>
-          </div>
         </div>
         <Form
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-2">
             <label htmlFor="label" className="block text-sm font-medium text-gray-700">
               {t("name")}
             </label>
