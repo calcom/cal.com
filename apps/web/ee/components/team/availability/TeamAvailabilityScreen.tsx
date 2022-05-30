@@ -3,7 +3,7 @@ import React, { useState, useEffect, CSSProperties } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
@@ -46,7 +46,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           HeaderComponent={
             <div className="mb-6 flex items-center">
               <Avatar
-                imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
+                imageSrc={CAL_URL + "/" + member.username + "/avatar.png"}
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
