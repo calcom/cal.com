@@ -73,6 +73,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     if (selection) {
       locationFormMethods.setValue("locationType", selection?.value);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
 
   const locationFormSchema = z.object({
@@ -136,7 +137,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     onChange={(e) =>
                       locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
                     }
-                    infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                    informationIconText={t("display_location_info_badge")}></CheckboxField>
                 )}
               />
             </div>
@@ -182,7 +183,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       : undefined
                   }
                   onChange={(e) => locationFormMethods.setValue("displayLocationPublicly", e.target.checked)}
-                  infomationIconText={t("display_location_info_badge")}></CheckboxField>
+                  informationIconText={t("display_location_info_badge")}></CheckboxField>
               )}
             />
           </div>

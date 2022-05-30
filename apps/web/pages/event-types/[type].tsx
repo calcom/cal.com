@@ -34,6 +34,7 @@ import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
@@ -323,10 +324,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
-  const defaultSeats = 2;
-  const defaultSeatsInput = 6;
+  const defaultSeatsPro = 6;
+  const minSeats = 2;
   const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
-  const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= defaultSeatsInput);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -453,11 +453,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${
-    team ? `team/${team.slug}` : eventType.users[0].username
-  }/${eventType.slug}`;
+  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+    eventType.slug
+  }`;
 
-  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${hashedUrl}/${eventType.slug}`;
+  const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const mapUserToValue = ({
     id,
@@ -470,7 +470,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
+    avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<FormValues>({
@@ -954,7 +954,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <div className="flex rounded-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                            {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
                           <input
@@ -1672,7 +1672,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     if (e?.target.checked) {
                                       setEnableSeats(true);
                                       // Want to disable individuals from taking multiple seats
-                                      formMethods.setValue("seatsPerTimeSlot", defaultSeats);
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeatsPro);
                                       formMethods.setValue("disableGuests", true);
                                       formMethods.setValue("requiresConfirmation", false);
                                     } else {
@@ -1731,13 +1731,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     <input
                                                       type="number"
                                                       className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                                      placeholder={`${defaultSeatsInput}`}
+                                                      placeholder={`${defaultSeatsPro}`}
+                                                      min={minSeats}
                                                       {...formMethods.register("seatsPerTimeSlot", {
                                                         valueAsNumber: true,
-                                                        min: defaultSeatsInput,
                                                       })}
                                                       defaultValue={
-                                                        eventType.seatsPerTimeSlot || defaultSeatsInput
+                                                        eventType.seatsPerTimeSlot || defaultSeatsPro
                                                       }
                                                     />
                                                   </div>
@@ -1753,25 +1753,18 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                       classNamePrefix="react-select"
                                                       className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
                                                       onChange={(val) => {
-                                                        if (val!.value === -1) {
-                                                          formMethods.setValue(
-                                                            "seatsPerTimeSlot",
-                                                            defaultSeatsInput
-                                                          );
-                                                          setInputSeatNumber(true);
+                                                        if (!val) {
+                                                          return;
+                                                        }
+                                                        if (val.value === -1) {
+                                                          formMethods.setValue("seatsPerTimeSlot", minSeats);
                                                         } else {
-                                                          setInputSeatNumber(false);
-                                                          formMethods.setValue(
-                                                            "seatsPerTimeSlot",
-                                                            val!.value
-                                                          );
+                                                          formMethods.setValue("seatsPerTimeSlot", val.value);
                                                         }
                                                       }}
                                                       defaultValue={{
-                                                        value: eventType.seatsPerTimeSlot || defaultSeats,
-                                                        label: `${
-                                                          eventType.seatsPerTimeSlot || defaultSeats
-                                                        }`,
+                                                        value: eventType.seatsPerTimeSlot || minSeats,
+                                                        label: `${eventType.seatsPerTimeSlot || minSeats}`,
                                                       }}
                                                       options={selectSeatsPerTimeSlotOptions}
                                                     />
@@ -1867,7 +1860,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
                                                 }}
-                                                value={field.value > 0 ? field.value / 100 : 0}
+                                                value={field.value > 0 ? field.value / 100 : undefined}
                                               />
                                             )}
                                           />
@@ -2296,7 +2289,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`;
+        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];
