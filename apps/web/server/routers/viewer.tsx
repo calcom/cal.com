@@ -1,29 +1,34 @@
 import { BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import dayjs from "dayjs";
 import _ from "lodash";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import getApps from "@calcom/app-store/utils";
+import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import { RecurringEvent } from "@calcom/types/Calendar";
 
 import { checkRegularUsername } from "@lib/core/checkRegularUsername";
+import { sendFeedbackEmail } from "@lib/emails/email-manager";
 import jackson from "@lib/jackson";
+import prisma from "@lib/prisma";
 import {
-  isSAMLLoginEnabled,
-  samlTenantID,
-  samlProductID,
-  isSAMLAdmin,
   hostedCal,
-  tenantPrefix,
+  isSAMLAdmin,
+  isSAMLLoginEnabled,
+  samlProductID,
+  samlTenantID,
   samlTenantProduct,
+  tenantPrefix,
 } from "@lib/saml";
 import slugify from "@lib/slugify";
 
+import { getTranslation } from "@server/lib/i18n";
 import { apiKeysRouter } from "@server/routers/viewer/apiKeys";
 import { availabilityRouter } from "@server/routers/viewer/availability";
+import { bookingsRouter } from "@server/routers/viewer/bookings";
 import { eventTypesRouter } from "@server/routers/viewer/eventTypes";
 import { TRPCError } from "@trpc/server";
 
@@ -84,6 +89,7 @@ const loggedInViewerRouter = createProtectedRouter()
         trialEndsAt: user.trialEndsAt,
         completedOnboarding: user.completedOnboarding,
         twoFactorEnabled: user.twoFactorEnabled,
+        disableImpersonation: user.disableImpersonation,
         identityProvider: user.identityProvider,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
@@ -679,6 +685,7 @@ const loggedInViewerRouter = createProtectedRouter()
       completedOnboarding: z.boolean().optional(),
       locale: z.string().optional(),
       timeFormat: z.number().optional(),
+      disableImpersonation: z.boolean().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
@@ -891,11 +898,62 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST" });
       }
     },
+  })
+  .mutation("submitFeedback", {
+    input: z.object({
+      rating: z.string(),
+      comment: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+      const { rating, comment } = input;
+
+      const feedback = {
+        userId: ctx.user.id,
+        rating: rating,
+        comment: comment,
+      };
+
+      await ctx.prisma.feedback.create({
+        data: {
+          date: dayjs().toISOString(),
+          userId: ctx.user.id,
+          rating: rating,
+          comment: comment,
+        },
+      });
+
+      if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
+    },
+  })
+  .query("locationOptions", {
+    async resolve({ ctx }) {
+      const credentials = await prisma.credential.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+          appId: true,
+        },
+      });
+
+      const integrations = getApps(credentials);
+
+      const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+      const locationOptions = getLocationOptions(integrations, t);
+
+      return locationOptions;
+    },
   });
 
 export const viewerRouter = createRouter()
   .merge(publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
   .merge("teams.", viewerTeamsRouter)

@@ -8,27 +8,31 @@ import {
   CreditCardIcon,
   GlobeIcon,
   InformationCircleIcon,
+  LocationMarkerIcon,
   RefreshIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/solid";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { useContracts } from "contexts/contractsContext";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { Frequency as RRuleFrequency } from "rrule";
 
+import { AppStoreLocationType, LocationObject, LocationType } from "@calcom/app-store/locations";
 import {
   useEmbedStyles,
   useIsEmbed,
   useIsBackgroundTransparent,
   sdkActionManager,
   useEmbedNonStylesConfig,
-} from "@calcom/embed-core";
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
@@ -56,6 +60,35 @@ dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 type Props = AvailabilityTeamPageProps | AvailabilityPageProps;
+
+export const locationKeyToString = (location: LocationObject, t: TFunction) => {
+  switch (location.type) {
+    case LocationType.InPerson:
+      return location.address || "In Person"; // If disabled address won't exist on the object
+    case LocationType.Link:
+      return location.link || "Link"; // If disabled link won't exist on the object
+    case LocationType.Phone:
+      return t("your_number");
+    case LocationType.UserPhone:
+      return t("phone_call");
+    case LocationType.GoogleMeet:
+      return "Google Meet";
+    case LocationType.Zoom:
+      return "Zoom";
+    case LocationType.Daily:
+      return "Cal Video";
+    case LocationType.Jitsi:
+      return "Jitsi";
+    case LocationType.Huddle01:
+      return "Huddle Video";
+    case LocationType.Tandem:
+      return "Tandem";
+    case LocationType.Teams:
+      return "Microsoft Teams";
+    default:
+      return null;
+  }
+};
 
 const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage, booking }: Props) => {
   const router = useRouter();
@@ -203,7 +236,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -223,6 +256,25 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         <p className="text-bookinglight mb-2 dark:text-white">
                           <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {eventType.description}
+                        </p>
+                      )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          {locationKeyToString(eventType.locations[0], t)}
+                        </p>
+                      )}
+                      {eventType.locations.length === 1 && (
+                        <p className="text-bookinglight mb-2 dark:text-white">
+                          {Object.values(AppStoreLocationType).includes(
+                            eventType.locations[0].type as unknown as AppStoreLocationType
+                          ) ? (
+                            <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          ) : (
+                            <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                          )}
+
+                          {locationKeyToString(eventType.locations[0], t)}
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
@@ -278,7 +330,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
@@ -296,6 +348,38 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       {eventType.description}
                     </p>
+                  )}
+                  {eventType.locations.length === 1 && (
+                    <p className="text-bookinglight mb-2 dark:text-white">
+                      {Object.values(AppStoreLocationType).includes(
+                        eventType.locations[0].type as unknown as AppStoreLocationType
+                      ) ? (
+                        <VideoCameraIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      ) : (
+                        <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                      )}
+
+                      {locationKeyToString(eventType.locations[0], t)}
+                    </p>
+                  )}
+                  {eventType.locations.length > 1 && (
+                    <div className="text-bookinglight flex-warp mb-2 flex dark:text-white">
+                      <div className="mr-[10px] ml-[2px] -mt-1 ">
+                        <LocationMarkerIcon className="inline-block h-4 w-4 text-gray-400" />
+                      </div>
+                      <p>
+                        {eventType.locations.map((el, i, arr) => {
+                          return (
+                            <span key={el.type}>
+                              {locationKeyToString(el, t)}{" "}
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </p>
+                    </div>
                   )}
                   <p className="text-bookinglight mb-3 dark:text-white">
                     <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
@@ -340,12 +424,11 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       </IntlProvider>
                     </p>
                   )}
-
                   <TimezoneDropdown />
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>
@@ -398,6 +481,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     schedulingType={eventType.schedulingType ?? null}
                     beforeBufferTime={eventType.beforeEventBuffer}
                     afterBufferTime={eventType.afterEventBuffer}
+                    seatsPerTimeSlot={eventType.seatsPerTimeSlot}
                   />
                 )}
               </div>

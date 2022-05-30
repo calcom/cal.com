@@ -46,6 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     periodEndDate: true,
     metadata: true,
     periodCountCalendarDays: true,
+    seatsPerTimeSlot: true,
     price: true,
     currency: true,
     disableGuests: true,

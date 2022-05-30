@@ -34,6 +34,7 @@ import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { StripeData } from "@calcom/stripe/server";
@@ -50,7 +51,7 @@ import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
-import { LocationType } from "@lib/location";
+import { LocationObject, LocationType } from "@lib/location";
 import prisma from "@lib/prisma";
 import { slugify } from "@lib/slugify";
 import { trpc } from "@lib/trpc";
@@ -64,6 +65,7 @@ import Shell from "@components/Shell";
 import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
 import CustomInputTypeForm from "@components/pages/eventtypes/CustomInputTypeForm";
 import Badge from "@components/ui/Badge";
@@ -72,7 +74,6 @@ import CheckboxField from "@components/ui/form/CheckboxField";
 import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { DateRangePicker } from "@components/ui/form/DateRangePicker";
 import MinutesField from "@components/ui/form/MinutesField";
-import PhoneInput from "@components/ui/form/PhoneInput";
 import Select from "@components/ui/form/Select";
 import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
@@ -118,7 +119,13 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
-  locations: { type: LocationType; address?: string; link?: string; hostPhoneNumber?: string }[];
+  locations: {
+    type: LocationType;
+    address?: string;
+    link?: string;
+    hostPhoneNumber?: string;
+    displayLocationPublicly?: boolean;
+  }[];
   customInputs: EventTypeCustomInput[];
   users: string[];
   schedule: number;
@@ -126,6 +133,7 @@ export type FormValues = {
   periodDays: number;
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
+  seatsPerTimeSlot: number | null;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -172,7 +180,7 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             }}
             readOnly={proUpgradeRequired}
             type="url"
-            className="  block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
+            className="block w-full rounded-sm border-gray-300 sm:text-sm"
             placeholder={t("external_redirect_url")}
             defaultValue={eventType.successRedirectUrl || ""}
             {...formMethods.register("successRedirectUrl")}
@@ -316,6 +324,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
+  const defaultSeatsPro = 6;
+  const minSeats = 2;
+  const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
+
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
@@ -410,109 +422,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         formMethods.getValues("locations").concat({ type: newLocationType, ...details })
       );
     }
-  };
-
-  const LocationOptions = () => {
-    if (!selectedLocation) {
-      return null;
-    }
-    switch (selectedLocation.value) {
-      case LocationType.InPerson:
-        return (
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              {t("set_address_place")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                {...locationFormMethods.register("locationAddress")}
-                id="address"
-                required
-                className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
-                defaultValue={
-                  formMethods
-                    .getValues("locations")
-                    .find((location) => location.type === LocationType.InPerson)?.address
-                }
-              />
-            </div>
-          </div>
-        );
-      case LocationType.Link:
-        return (
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              {t("set_link_meeting")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                {...locationFormMethods.register("locationLink")}
-                id="address"
-                required
-                className="  block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
-                defaultValue={
-                  formMethods.getValues("locations").find((location) => location.type === LocationType.Link)
-                    ?.link
-                }
-              />
-              {locationFormMethods.formState.errors.locationLink && (
-                <p className="mt-1 text-red-500">
-                  {locationFormMethods.formState.errors.locationLink.message}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      case LocationType.UserPhone:
-        return (
-          <div>
-            <label htmlFor="phonenumber" className="block text-sm font-medium text-gray-700">
-              {t("set_your_phone_number")}
-            </label>
-            <div className="mt-1">
-              <PhoneInput
-                control={locationFormMethods.control}
-                name="locationPhoneNumber"
-                required
-                id="locationPhoneNumber"
-                placeholder={t("host_phone_number")}
-                rules={{}}
-                defaultValue={
-                  formMethods
-                    .getValues("locations")
-                    .find((location) => location.type === LocationType.UserPhone)?.hostPhoneNumber
-                }
-              />
-              {locationFormMethods.formState.errors.locationPhoneNumber && (
-                <p className="mt-1 text-red-500">
-                  {locationFormMethods.formState.errors.locationPhoneNumber.message}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      case LocationType.Phone:
-        return <p className="text-sm">{t("cal_invitee_phone_number_scheduling")}</p>;
-      /* TODO: Render this dynamically from App Store */
-      case LocationType.GoogleMeet:
-        return <p className="text-sm">{t("cal_provide_google_meet_location")}</p>;
-      case LocationType.Zoom:
-        return <p className="text-sm">{t("cal_provide_zoom_meeting_url")}</p>;
-      case LocationType.Daily:
-        return <p className="text-sm">{t("cal_provide_video_meeting_url")}</p>;
-      case LocationType.Jitsi:
-        return <p className="text-sm">{t("cal_provide_jitsi_meeting_url")}</p>;
-      case LocationType.Huddle01:
-        return <p className="text-sm">{t("cal_provide_huddle01_meeting_url")}</p>;
-      case LocationType.Tandem:
-        return <p className="text-sm">{t("cal_provide_tandem_meeting_url")}</p>;
-      case LocationType.Teams:
-        return <p className="text-sm">{t("cal_provide_teams_meeting_url")}</p>;
-      default:
-        return null;
-    }
+    setShowLocationModal(false);
   };
 
   const removeCustom = (index: number) => {
@@ -543,11 +453,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${
-    team ? `team/${team.slug}` : eventType.users[0].username
-  }/${eventType.slug}`;
+  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+    eventType.slug
+  }`;
 
-  const placeholderHashedLink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/d/${hashedUrl}/${eventType.slug}`;
+  const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const mapUserToValue = ({
     id,
@@ -560,7 +470,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }) => ({
     value: `${id || ""}`,
     label: `${name || ""}`,
-    avatar: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${username}/avatar.png`,
+    avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   });
 
   const formMethods = useForm<FormValues>({
@@ -578,6 +488,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const locationFormSchema = z.object({
     locationType: z.string(),
     locationAddress: z.string().optional(),
+    displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
       .refine((val) => isValidPhoneNumber(val))
@@ -590,6 +501,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     locationPhoneNumber?: string;
     locationAddress?: string; // TODO: We should validate address or fetch the address from googles api to see if its valid?
     locationLink?: string; // Currently this only accepts links that are HTTPS://
+    displayLocationPublicly?: boolean;
   }>({
     resolver: zodResolver(locationFormSchema),
   });
@@ -602,7 +514,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             <Select
               options={locationOptions}
               isSearchable={false}
-              className="  block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+              className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
               onChange={(e) => {
                 if (e?.value) {
                   const newLocationType: LocationType = e.value;
@@ -624,15 +536,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         {formMethods.getValues("locations").length > 0 && (
           <ul>
             {formMethods.getValues("locations").map((location) => (
-              <li
-                key={location.type}
-                className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2 shadow-sm">
+              <li key={location.type} className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2">
                 <div className="flex justify-between">
                   {location.type === LocationType.InPerson && (
                     <div className="flex flex-grow items-center">
                       <LocationMarkerIcon className="h-6 w-6" />
                       <span className="w-full border-0 bg-transparent text-sm ltr:ml-2 rtl:mr-2">
-                        {location.link}
+                        {location.address}
                       </span>
                     </div>
                   )}
@@ -1006,6 +916,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
+                      seatsPerTimeSlot,
                       recurringEvent,
                       locations,
                       ...input
@@ -1021,6 +932,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
+                      seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
@@ -1040,9 +952,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         </label>
                       </div>
                       <div className="w-full">
-                        <div className="flex rounded-sm shadow-sm">
+                        <div className="flex rounded-sm">
                           <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                            {process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}/
+                            {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
                             {team ? "team/" + team.slug : eventType.users[0].username}/
                           </span>
                           <input
@@ -1050,7 +962,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             id="slug"
                             aria-labelledby="slug-label"
                             required
-                            className="  block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
+                            className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 sm:text-sm"
                             defaultValue={eventType.slug}
                             {...formMethods.register("slug", {
                               setValueAs: (v) => slugify(v),
@@ -1116,7 +1028,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       <div className="w-full">
                         <textarea
                           id="description"
-                          className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                          className="block w-full rounded-sm border-gray-300 text-sm "
                           placeholder={t("quick_video_meeting")}
                           {...formMethods.register("description")}
                           defaultValue={asStringOrUndefined(eventType.description)}></textarea>
@@ -1246,7 +1158,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </label>
                             </div>
                             <div className="w-full">
-                              <div className="relative mt-1 rounded-sm shadow-sm">
+                              <div className="relative mt-1 rounded-sm">
                                 <Controller
                                   control={formMethods.control}
                                   name="destinationCalendar"
@@ -1270,10 +1182,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </label>
                           </div>
                           <div className="w-full">
-                            <div className="relative mt-1 rounded-sm shadow-sm">
+                            <div className="relative mt-1 rounded-sm">
                               <input
                                 type="text"
-                                className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                className="block w-full rounded-sm border-gray-300 text-sm "
                                 placeholder={t("meeting_with_user")}
                                 defaultValue={eventType.eventName || ""}
                                 {...formMethods.register("eventName")}
@@ -1291,11 +1203,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               </label>
                             </div>
                             <div className="w-full">
-                              <div className="relative mt-1 rounded-sm shadow-sm">
+                              <div className="relative mt-1 rounded-sm">
                                 {
                                   <input
                                     type="text"
-                                    className="  block w-full rounded-sm border-gray-300 text-sm shadow-sm"
+                                    className="block w-full rounded-sm border-gray-300 text-sm "
                                     placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
                                     defaultValue={(eventType.metadata.smartContractAddress || "") as string}
                                     {...formMethods.register("smartContractAddress")}
@@ -1400,9 +1312,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
                         <Controller
                           name="requiresConfirmation"
-                          control={formMethods.control}
                           defaultValue={eventType.requiresConfirmation}
-                          render={() => (
+                          render={({ field: { value, onChange } }) => (
                             <CheckboxField
                               id="requiresConfirmation"
                               descriptionAsLabel
@@ -1410,9 +1321,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("opt_in_booking")}
                               description={t("opt_in_booking_description")}
                               defaultChecked={eventType.requiresConfirmation}
-                              onChange={(e) => {
-                                formMethods.setValue("requiresConfirmation", e?.target.checked);
-                              }}
+                              disabled={enableSeats}
+                              checked={value}
+                              onChange={(e) => onChange(e?.target.checked)}
                             />
                           )}
                         />
@@ -1436,6 +1347,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               label={t("disable_guests")}
                               description={t("disable_guests_description")}
                               defaultChecked={eventType.disableGuests}
+                              // If we have seats per booking then we need to disable guests
+                              disabled={enableSeats}
+                              checked={formMethods.watch("disableGuests")}
                               onChange={(e) => {
                                 formMethods.setValue("disableGuests", e?.target.checked);
                               }}
@@ -1474,7 +1388,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         name="hashedLink"
                                         data-testid="generated-hash-url"
                                         type="text"
-                                        className="  grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
+                                        className="grow select-none border-gray-300 bg-gray-50 text-sm text-gray-500 ltr:rounded-l-sm rtl:rounded-r-sm"
                                         defaultValue={placeholderHashedLink}
                                       />
                                       <Tooltip
@@ -1603,14 +1517,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                         <div className="inline-flex">
                                           <input
                                             type="number"
-                                            className="block w-16 rounded-sm border-gray-300 shadow-sm [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                            className="block w-16 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
                                             placeholder="30"
                                             {...formMethods.register("periodDays", { valueAsNumber: true })}
                                             defaultValue={eventType.periodDays || 30}
                                           />
                                           <select
                                             id=""
-                                            className="  block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
+                                            className="block w-full rounded-sm border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none sm:text-sm"
                                             {...formMethods.register("periodCountCalendarDays")}
                                             defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                                             <option value="1">{t("calendar_days")}</option>
@@ -1684,7 +1598,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        className="  block w-full min-w-0 flex-1 rounded-sm  sm:text-sm"
+                                        className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1722,7 +1636,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     return (
                                       <Select
                                         isSearchable={false}
-                                        className="  block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
+                                        className="block w-full min-w-0 flex-1 rounded-sm sm:text-sm"
                                         onChange={(val) => {
                                           if (val) onChange(val.value);
                                         }}
@@ -1739,6 +1653,136 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
+
+                        <>
+                          <hr className="border-neutral-200" />
+                          <div className="block flex-col sm:flex">
+                            <Controller
+                              name="seatsPerTimeSlot"
+                              control={formMethods.control}
+                              render={() => (
+                                <CheckboxField
+                                  id="seats"
+                                  name="seats"
+                                  descriptionAsLabel
+                                  label={t("offer_seats")}
+                                  description={t("offer_seats_description")}
+                                  defaultChecked={!!eventType.seatsPerTimeSlot}
+                                  onChange={(e) => {
+                                    if (e?.target.checked) {
+                                      setEnableSeats(true);
+                                      // Want to disable individuals from taking multiple seats
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeatsPro);
+                                      formMethods.setValue("disableGuests", true);
+                                      formMethods.setValue("requiresConfirmation", false);
+                                    } else {
+                                      setEnableSeats(false);
+                                      formMethods.setValue("seatsPerTimeSlot", null);
+                                      formMethods.setValue(
+                                        "requiresConfirmation",
+                                        eventType.requiresConfirmation
+                                      );
+                                      formMethods.setValue("disableGuests", eventType.disableGuests);
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+
+                            {enableSeats && (
+                              <div className="block sm:flex">
+                                <div className="mt-2 inline-flex w-full space-x-2 md:ml-48">
+                                  <div className="w-full">
+                                    <Controller
+                                      name="seatsPerTimeSlot"
+                                      control={formMethods.control}
+                                      render={() => {
+                                        const selectSeatsPerTimeSlotOptions = [
+                                          { value: 2, label: "2" },
+                                          { value: 3, label: "3" },
+                                          { value: 4, label: "4" },
+                                          { value: 5, label: "5" },
+                                          {
+                                            value: -1,
+                                            isDisabled: !eventType.users.some(
+                                              (user) => user.plan === ("PRO" || "TRIAL")
+                                            ),
+                                            label: (
+                                              <div className="flex flex-row justify-between">
+                                                <span>6+</span>
+                                                <Badge variant="default">PRO</Badge>
+                                              </div>
+                                            ) as unknown as string,
+                                          },
+                                        ];
+                                        return (
+                                          <>
+                                            <div className="block sm:flex">
+                                              <div className="flex-auto">
+                                                {eventType.users.some(
+                                                  (user) => user.plan === ("PRO" || "TRIAL")
+                                                ) ? (
+                                                  <div className="flex-auto">
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("enter_number_of_seats")}
+                                                    </label>
+                                                    <input
+                                                      type="number"
+                                                      className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
+                                                      placeholder={`${defaultSeatsPro}`}
+                                                      min={minSeats}
+                                                      {...formMethods.register("seatsPerTimeSlot", {
+                                                        valueAsNumber: true,
+                                                      })}
+                                                      defaultValue={
+                                                        eventType.seatsPerTimeSlot || defaultSeatsPro
+                                                      }
+                                                    />
+                                                  </div>
+                                                ) : (
+                                                  <>
+                                                    <label
+                                                      htmlFor="beforeBufferTime"
+                                                      className="mb-2 flex text-sm font-medium text-neutral-700">
+                                                      {t("number_of_seats")}
+                                                    </label>
+                                                    <Select
+                                                      isSearchable={false}
+                                                      classNamePrefix="react-select"
+                                                      className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
+                                                      onChange={(val) => {
+                                                        if (!val) {
+                                                          return;
+                                                        }
+                                                        if (val.value === -1) {
+                                                          formMethods.setValue("seatsPerTimeSlot", minSeats);
+                                                        } else {
+                                                          formMethods.setValue("seatsPerTimeSlot", val.value);
+                                                        }
+                                                      }}
+                                                      defaultValue={{
+                                                        value: eventType.seatsPerTimeSlot || minSeats,
+                                                        label: `${eventType.seatsPerTimeSlot || minSeats}`,
+                                                      }}
+                                                      options={selectSeatsPerTimeSlotOptions}
+                                                    />
+                                                  </>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </>
+                                        );
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </>
+
                         <SuccessRedirectEdit<typeof formMethods>
                           formMethods={formMethods}
                           eventType={eventType}></SuccessRedirectEdit>
@@ -1773,7 +1817,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                               id="requirePayment"
                                               name="requirePayment"
                                               type="checkbox"
-                                              className="text-primary-600  h-4 w-4 rounded border-gray-300"
+                                              className="text-primary-600 h-4 w-4 rounded border-gray-300"
                                               defaultChecked={requirePayment}
                                             />
                                           </div>
@@ -1799,7 +1843,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                   <div className="w-full">
                                     <div className="block items-center sm:flex">
                                       <div className="w-full">
-                                        <div className="relative mt-1 rounded-sm shadow-sm">
+                                        <div className="relative mt-1 rounded-sm">
                                           <Controller
                                             defaultValue={eventType.price}
                                             control={formMethods.control}
@@ -1811,12 +1855,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 min="0.5"
                                                 type="number"
                                                 required
-                                                className="  block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
+                                                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 sm:text-sm"
                                                 placeholder="Price"
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
                                                 }}
-                                                value={field.value > 0 ? field.value / 100 : 0}
+                                                value={field.value > 0 ? field.value / 100 : undefined}
                                               />
                                             )}
                                           />
@@ -1964,76 +2008,16 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               </div>
             </div>
           </div>
-          <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
-            <DialogContent asChild>
-              <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
-                <div className="mb-4 sm:flex sm:items-start">
-                  <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-                    <LocationMarkerIcon className="text-primary-600 h-6 w-6" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                      {t("edit_location")}
-                    </h3>
-                    <div>
-                      <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
-                    </div>
-                  </div>
-                </div>
-                <Form
-                  form={locationFormMethods}
-                  handleSubmit={async (values) => {
-                    const newLocation = values.locationType;
-
-                    let details = {};
-                    if (newLocation === LocationType.InPerson) {
-                      details = { address: values.locationAddress };
-                    }
-                    if (newLocation === LocationType.Link) {
-                      details = { link: values.locationLink };
-                    }
-                    if (newLocation === LocationType.UserPhone) {
-                      details = { hostPhoneNumber: values.locationPhoneNumber };
-                    }
-                    addLocation(newLocation, details);
-                    setShowLocationModal(false);
-                  }}>
-                  <div>
-                    <Controller
-                      name="locationType"
-                      control={locationFormMethods.control}
-                      render={() => (
-                        <Select
-                          maxMenuHeight={100}
-                          name="location"
-                          defaultValue={selectedLocation}
-                          options={locationOptions}
-                          isSearchable={false}
-                          className="  my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 sm:text-sm"
-                          onChange={(val) => {
-                            if (val) {
-                              locationFormMethods.setValue("locationType", val.value);
-                              locationFormMethods.unregister("locationLink");
-                              locationFormMethods.unregister("locationAddress");
-                              locationFormMethods.unregister("locationPhoneNumber");
-                              setSelectedLocation(val);
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                  </div>
-                  <LocationOptions />
-                  <div className="mt-4 flex justify-end space-x-2">
-                    <Button onClick={() => setShowLocationModal(false)} type="button" color="secondary">
-                      {t("cancel")}
-                    </Button>
-                    <Button type="submit">{t("update")}</Button>
-                  </div>
-                </Form>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <EditLocationDialog
+            isOpenDialog={showLocationModal}
+            setShowLocationModal={setShowLocationModal}
+            saveLocation={addLocation}
+            defaultValues={formMethods.getValues("locations")}
+            selection={
+              selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+            }
+            setSelectedLocation={setSelectedLocation}
+          />
           <Controller
             name="customInputs"
             control={formMethods.control}
@@ -2110,6 +2094,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
+
+  if (Number.isNaN(typeParam)) {
+    return {
+      notFound: true,
+    };
+  }
 
   if (!session?.user?.id) {
     return {
@@ -2219,15 +2209,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       currency: true,
       destinationCalendar: true,
+      seatsPerTimeSlot: true,
     },
   });
 
-  if (!rawEventType) throw Error("Event type not found");
-
-  type Location = {
-    type: LocationType;
-    address?: string;
-  };
+  if (!rawEventType) {
+    return {
+      notFound: true,
+    };
+  }
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -2247,7 +2237,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventType = {
     ...restEventType,
     recurringEvent: (restEventType.recurringEvent || {}) as RecurringEvent,
-    locations: locations as unknown as Location[],
+    locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
     isWeb3Active:
       web3Credentials && web3Credentials.key
@@ -2299,7 +2289,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamMembers = eventTypeObject.team
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
-        user.avatar = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`;
+        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
         return user;
       })
     : [];

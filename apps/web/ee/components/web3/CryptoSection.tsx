@@ -11,6 +11,7 @@ import { Button } from "@calcom/ui/Button";
 import { useContracts } from "../../../contexts/contractsContext";
 import genericAbi from "../../../web3/abis/abiWithGetBalance.json";
 import verifyAccount, { AUTH_MESSAGE } from "../../../web3/utils/verifyAccount";
+import { withLicenseRequired } from "../LicenseRequired";
 
 interface Window {
   ethereum: AbstractProvider & { selectedAddress: string };
@@ -150,4 +151,4 @@ const CryptoSection = (props: CryptoSectionProps) => {
   );
 };
 
-export default CryptoSection;
+export default withLicenseRequired(CryptoSection);

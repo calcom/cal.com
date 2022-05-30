@@ -22,7 +22,7 @@ import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
-} from "@calcom/embed-core";
+} from "@calcom/embed-core/embed-iframe";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -148,7 +148,7 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule } = router.query;
+  const { location: _location, name, reschedule, listingStatus, status } = router.query;
   const location = Array.isArray(_location) ? _location[0] : _location;
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -176,6 +176,7 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+  const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
   useEffect(() => {
     telemetry.withJitsu((jitsu) =>
@@ -238,6 +239,9 @@ export default function Success(props: SuccessProps) {
 
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
+    if (isCancelled) {
+      return t("emailed_information_about_cancelled_event");
+    }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t("user_needs_to_confirm_or_reject_booking" + titleSuffix, {
@@ -298,25 +302,31 @@ export default function Success(props: SuccessProps) {
                       <div
                         className={classNames(
                           "mx-auto flex items-center justify-center",
-                          !giphyImage ? "h-12 w-12 rounded-full bg-green-100" : ""
+                          !giphyImage && !isCancelled ? "h-12 w-12 rounded-full bg-green-100" : "",
+                          isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                         )}>
                         {giphyImage && !needsConfirmation && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={giphyImage} alt={"Gif from Giphy"} />
                         )}
-                        {!giphyImage && !needsConfirmation && (
+                        {!giphyImage && !needsConfirmation && !isCancelled && (
                           <CheckIcon className="h-8 w-8 text-green-600" />
                         )}
-                        {needsConfirmation && <ClockIcon className="h-8 w-8 text-green-600" />}
+                        {needsConfirmation && !isCancelled && (
+                          <ClockIcon className="h-8 w-8 text-green-600" />
+                        )}
+                        {isCancelled && <XIcon className="h-8 w-8 text-red-600" />}
                       </div>
                       <div className="mt-3 text-center sm:mt-5">
                         <h3
                           className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                           id="modal-headline">
-                          {needsConfirmation
+                          {needsConfirmation && !isCancelled
                             ? props.recurringBookings
                               ? t("submitted_recurring")
                               : t("submitted")
+                            : isCancelled
+                            ? t("event_cancelled")
                             : props.recurringBookings
                             ? t("meeting_is_scheduled_recurring")
                             : t("meeting_is_scheduled")}
@@ -333,31 +343,36 @@ export default function Success(props: SuccessProps) {
                               isReschedule={reschedule === "true"}
                               eventType={props.eventType}
                               recurringBookings={props.recurringBookings}
+                              listingStatus={(listingStatus as string) || "upcoming"}
                               date={date}
                               is24h={is24h}
                             />
                           </div>
-                          <div className="font-medium">{t("who")}</div>
-                          <div className="col-span-2 mb-6">
-                            {bookingInfo?.user && (
-                              <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                          {(bookingInfo?.user || bookingInfo?.attendees) && (
+                            <>
+                              <div className="font-medium">{t("who")}</div>
+                              <div className="col-span-2 mb-6">
+                                {bookingInfo?.user && (
+                                  <div className="mb-3">
+                                    <p>{bookingInfo.user.name}</p>
+                                    <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                                  </div>
+                                )}
+                                {bookingInfo?.attendees.map((attendee, index) => (
+                                  <div
+                                    key={attendee.name}
+                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                    <p>{attendee.name}</p>
+                                    <p className="text-bookinglight">{attendee.email}</p>
+                                  </div>
+                                ))}
                               </div>
-                            )}
-                            {bookingInfo?.attendees.map((attendee, index) => (
-                              <div
-                                key={attendee.name}
-                                className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                <p>{attendee.name}</p>
-                                <p className="text-bookinglight">{attendee.email}</p>
-                              </div>
-                            ))}
-                          </div>
+                            </>
+                          )}
                           {location && (
                             <>
-                              <div className="mt-6 font-medium">{t("where")}</div>
-                              <div className="col-span-2 mt-6">
+                              <div className="mt-3 font-medium">{t("where")}</div>
+                              <div className="col-span-2 mt-3">
                                 {location.startsWith("http") ? (
                                   <a title="Meeting Link" href={location}>
                                     {location}
@@ -400,6 +415,7 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </div>
                     {!needsConfirmation &&
+                      !isCancelled &&
                       (!isCancellationMode ? (
                         <div className="border-bookinglightest text-bookingdark mt-2 grid grid-cols-3 border-b py-4 text-left dark:border-gray-900">
                           <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -424,7 +440,7 @@ export default function Success(props: SuccessProps) {
                           theme={userIsOwner ? "light" : props.profile.theme}
                         />
                       ))}
-                    {userIsOwner && !needsConfirmation && !isCancellationMode && (
+                    {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                       <div className="border-bookinglightest mt-9 flex border-b pt-2 pb-4 text-center dark:border-gray-900 sm:mt-0 sm:pt-4">
                         <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
@@ -590,6 +606,7 @@ type RecurringBookingsProps = {
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
   is24h: boolean;
+  listingStatus: string;
 };
 
 function RecurringBookings({
@@ -597,10 +614,11 @@ function RecurringBookings({
   eventType,
   recurringBookings,
   date,
+  listingStatus,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return !isReschedule && recurringBookings ? (
+  return !isReschedule && recurringBookings && listingStatus === "upcoming" ? (
     <>
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (
@@ -636,7 +654,7 @@ function RecurringBookings({
         </Collapsible>
       )}
     </>
-  ) : !eventType.recurringEvent.freq ? (
+  ) : (
     <>
       {date.format("MMMM DD, YYYY")}
       <br />
@@ -645,7 +663,7 @@ function RecurringBookings({
         ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
       </span>
     </>
-  ) : null;
+  );
 }
 
 const getEventTypesFromDB = async (id: number) => {
