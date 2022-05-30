@@ -73,6 +73,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     if (selection) {
       locationFormMethods.setValue("locationType", selection?.value);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
 
   const locationFormSchema = z.object({
