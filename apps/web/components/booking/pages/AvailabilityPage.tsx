@@ -68,6 +68,8 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.Link:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
+      return t("your_number");
+    case LocationType.UserPhone:
       return t("phone_call");
     case LocationType.GoogleMeet:
       return "Google Meet";
@@ -370,7 +372,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           return (
                             <span key={el.type}>
                               {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
                             </span>
                           );
                         })}
@@ -424,7 +428,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>
