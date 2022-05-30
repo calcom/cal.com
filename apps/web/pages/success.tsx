@@ -348,27 +348,31 @@ export default function Success(props: SuccessProps) {
                               is24h={is24h}
                             />
                           </div>
-                          <div className="font-medium">{t("who")}</div>
-                          <div className="col-span-2 mb-6">
-                            {bookingInfo?.user && (
-                              <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                          {(bookingInfo?.user || bookingInfo?.attendees) && (
+                            <>
+                              <div className="font-medium">{t("who")}</div>
+                              <div className="col-span-2 mb-6">
+                                {bookingInfo?.user && (
+                                  <div className="mb-3">
+                                    <p>{bookingInfo.user.name}</p>
+                                    <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                                  </div>
+                                )}
+                                {bookingInfo?.attendees.map((attendee, index) => (
+                                  <div
+                                    key={attendee.name}
+                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                    <p>{attendee.name}</p>
+                                    <p className="text-bookinglight">{attendee.email}</p>
+                                  </div>
+                                ))}
                               </div>
-                            )}
-                            {bookingInfo?.attendees.map((attendee, index) => (
-                              <div
-                                key={attendee.name}
-                                className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                <p>{attendee.name}</p>
-                                <p className="text-bookinglight">{attendee.email}</p>
-                              </div>
-                            ))}
-                          </div>
+                            </>
+                          )}
                           {location && (
                             <>
-                              <div className="mt-6 font-medium">{t("where")}</div>
-                              <div className="col-span-2 mt-6">
+                              <div className="mt-3 font-medium">{t("where")}</div>
+                              <div className="col-span-2 mt-3">
                                 {location.startsWith("http") ? (
                                   <a title="Meeting Link" href={location}>
                                     {location}
