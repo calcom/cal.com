@@ -24,7 +24,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
