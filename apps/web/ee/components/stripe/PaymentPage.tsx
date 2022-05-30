@@ -9,7 +9,7 @@ import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { sdkActionManager, useIsEmbed } from "@calcom/embed-core";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import getStripe from "@calcom/stripe/client";
 import PaymentComponent from "@ee/components/stripe/Payment";
 import { PaymentPageProps } from "@ee/pages/payment/[uid]";
