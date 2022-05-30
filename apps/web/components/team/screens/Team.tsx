@@ -5,7 +5,7 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -52,7 +52,7 @@ const Team = ({ team }: TeamPageProps) => {
           <div>
             <Avatar
               alt={member.name || ""}
-              imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
+              imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
               className="-mt-4 h-12 w-12"
             />
             <section className="line-clamp-4 mt-2 w-full space-y-1">
