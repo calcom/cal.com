@@ -326,7 +326,7 @@ export default function Success(props: SuccessProps) {
                               ? t("submitted_recurring")
                               : t("submitted")
                             : isCancelled
-                            ? t("event_canelled")
+                            ? t("event_cancelled")
                             : props.recurringBookings
                             ? t("meeting_is_scheduled_recurring")
                             : t("meeting_is_scheduled")}
