@@ -41,7 +41,8 @@
     "embed-tests-quick": "turbo run embed-tests-quick",
     "embed-tests": "turbo run embed-tests",
     "test-e2e": "turbo run test-e2e --concurrency=1",
-    "type-check": "turbo run type-check"
+    "type-check": "turbo run type-check",
+    "embed-tests-prepare": "yarn workspace @calcom/prisma db-reset && yarn build"
   },
   "devDependencies": {
     "dotenv-checker": "^1.1.5",
