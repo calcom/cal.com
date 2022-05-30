@@ -111,6 +111,7 @@ ${this.calEvent.organizer.language.translate("request_reschedule_title_organizer
 ${this.calEvent.organizer.language.translate("request_reschedule_subtitle_organizer", {
   attendee: this.calEvent.attendees[0].name,
 })},
+${this.calEvent.cancellationReason && this.getReason()}
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -162,6 +163,7 @@ ${getCancelLink(this.calEvent)}
                         <tr>
                           <td align="left" style="font-size:0px;padding:10px 40px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:1;text-align:left;color:#3E3E3E;">
+                              ${this.calEvent.cancellationReason && this.getReason()}   
                               ${this.getWhat()}
                               ${this.getWhen()}
                               ${this.getWho()}
