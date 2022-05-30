@@ -691,8 +691,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
 
-    console.log("🚀 ~ file: event.ts ~ line 684 ~ handler ~ descripiton", reqBody);
-
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
     if (results.length > 0 && results.some((res) => !res.success)) {
