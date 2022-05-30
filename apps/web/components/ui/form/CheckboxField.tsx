@@ -1,5 +1,7 @@
 import React, { forwardRef, InputHTMLAttributes } from "react";
 
+import classNames from "@calcom/lib/classNames";
+
 import InfoBadge from "@components/ui/InfoBadge";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
@@ -10,7 +12,8 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, informationIconText, descriptionAsLabel, ...rest }, ref) => {
+  ({ label, description, informationIconText, ...rest }, ref) => {
+    const descriptionAsLabel = !label || rest.descriptionAsLabel;
     return (
       <div className="block items-center sm:flex">
         {label && (
@@ -18,8 +21,12 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             {React.createElement(
               descriptionAsLabel ? "div" : "label",
               {
-                htmlFor: rest.id,
                 className: "flex text-sm font-medium text-neutral-700",
+                ...(!descriptionAsLabel
+                  ? {
+                      htmlFor: rest.id,
+                    }
+                  : {}),
               },
               label
             )}
@@ -30,7 +37,10 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             {React.createElement(
               descriptionAsLabel ? "label" : "div",
               {
-                className: "relative flex items-start",
+                className: classNames(
+                  "relative flex items-start",
+                  descriptionAsLabel ? "text-neutral-700" : "text-neutral-900"
+                ),
               },
               <>
                 <div className="flex h-5 items-center">
@@ -41,7 +51,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300"
                   />
                 </div>
-                <span className="text-sm text-neutral-700 ltr:ml-3 rtl:mr-3">{description}</span>
+                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
               </>
             )}
             {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>}
