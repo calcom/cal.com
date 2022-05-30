@@ -2,6 +2,11 @@ export const WEBAPP_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${proce
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
+
+// Use website URL to make links shorter(cal.com and not app.cal.com)
+// As website isn't setup for preview environments, use the webapp url instead
+export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app") ? WEBAPP_URL : WEBSITE_URL;
+
 export const CONSOLE_URL = WEBAPP_URL.startsWith("http://localhost")
   ? "http://localhost:3004"
   : `https://console.cal.${process.env.VERCEL_ENV === "production" ? "com" : "dev"}`;
