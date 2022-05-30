@@ -207,8 +207,8 @@ function BookingListItem(booking: BookingItemProps) {
         type: booking.eventType.id,
         eventSlug: booking.eventType.slug,
         user: user?.username || "",
-        name: booking.attendees[0].name,
-        email: booking.attendees[0].email,
+        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
         location: booking.location
           ? booking.location.includes("integration")
             ? (t("web_conferencing_details_to_follow") as string)
@@ -218,6 +218,8 @@ function BookingListItem(booking: BookingItemProps) {
         bookingId: booking.id,
         recur: booking.recurringEventId,
         reschedule: booking.confirmed,
+        listingStatus: booking.listingStatus,
+        status: booking.status,
       },
     });
   };
