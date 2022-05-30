@@ -44,7 +44,7 @@ const components = {
               objectFit="cover"
               objectPosition="center center"
               height={382}
-              />
+            />
           ) : (
             <Image
               src={item}
@@ -53,7 +53,7 @@ const components = {
               objectFit="cover"
               objectPosition="center center"
               height={382}
-              />
+            />
           )
         }
       />
