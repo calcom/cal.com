@@ -24,7 +24,11 @@ import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";

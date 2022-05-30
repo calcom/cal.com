@@ -10,6 +10,6 @@
       "@lib/*": ["../../../apps/web/lib/*"]
     }
   },
-  "include": ["."],
+  "include": ["src","env.d.ts"],
   "exclude": ["dist", "build", "node_modules", "test-cal.tsx"]
 }
