@@ -6,7 +6,7 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -68,7 +68,7 @@ function TeamPage({ team }: TeamPageProps) {
                   size={10}
                   items={type.users.map((user) => ({
                     alt: user.name || "",
-                    image: WEBSITE_URL + "/" + user.username + "/avatar.png" || "",
+                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
                   }))}
                 />
               </div>
@@ -147,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...type,
     users: type.users.map((user) => ({
       ...user,
-      avatar: WEBSITE_URL + "/" + user.username + "/avatar.png",
+      avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
   }));
 
