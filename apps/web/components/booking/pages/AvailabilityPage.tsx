@@ -32,7 +32,7 @@ import {
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
@@ -236,7 +236,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -330,7 +330,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
