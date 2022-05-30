@@ -235,44 +235,40 @@ export default function IntegrationsPage() {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.integrations", { onlyInstalled: true }]);
   return (
-    <QueryCell
-      query={query}
-      success={({ data }) => {
-        return (
-          <Shell
-            heading={t("installed_apps")}
-            subtitle={t("manage_your_connected_apps")}
-            large
-            customLoader={<SkeletonLoader />}>
-            <AppsShell>
-              <ClientSuspense fallback={<SkeletonLoader />}>
-                {data.items.length > 0 ? (
+    <Shell
+      heading={t("installed_apps")}
+      subtitle={t("manage_your_connected_apps")}
+      large
+      customLoader={<SkeletonLoader />}>
+      <AppsShell>
+        <QueryCell
+          query={query}
+          success={({ data }) => {
+            return data.items.length > 0 ? (
+              <>
+                <IntegrationsContainer variant="conferencing" />
+                <CalendarListContainer />
+                <IntegrationsContainer variant="payment" className="mt-8" />
+                <IntegrationsContainer variant="other" className="mt-8" />
+                <Web3Container />
+              </>
+            ) : (
+              <EmptyScreen
+                Icon={ViewGridIcon}
+                headline={t("empty_installed_apps_headline")}
+                description={
                   <>
-                    <IntegrationsContainer variant="conferencing" />
-                    <CalendarListContainer />
-                    <IntegrationsContainer variant="payment" className="mt-8" />
-                    <IntegrationsContainer variant="other" className="mt-8" />
-                    <Web3Container />
+                    <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
+                    <Button href="/apps" EndIcon={ArrowRightIcon}>
+                      {t("empty_installed_apps_button")}
+                    </Button>
                   </>
-                ) : (
-                  <EmptyScreen
-                    Icon={ViewGridIcon}
-                    headline={t("empty_installed_apps_headline")}
-                    description={
-                      <>
-                        <span className="mb-6 block">{t("empty_installed_apps_description")}</span>
-                        <Button href="/apps" EndIcon={ArrowRightIcon}>
-                          {t("empty_installed_apps_button")}
-                        </Button>
-                      </>
-                    }
-                  />
-                )}
-              </ClientSuspense>
-            </AppsShell>
-          </Shell>
-        );
-      }}
-    />
+                }
+              />
+            );
+          }}
+        />
+      </AppsShell>
+    </Shell>
   );
 }
