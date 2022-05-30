@@ -20,9 +20,9 @@ export type WebhookListContainerType = {
 };
 
 export default function WebhookListContainer(props: WebhookListContainerType) {
-  const query = props.eventTypeId
-    ? trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }])
-    : trpc.useQuery(["viewer.webhook.list"]);
+  const query = trpc.useQuery(["viewer.webhook.list", { eventTypeId: props.eventTypeId }], {
+    suspense: true,
+  });
   const [newWebhookModal, setNewWebhookModal] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editing, setEditing] = useState<TWebhook | null>(null);
