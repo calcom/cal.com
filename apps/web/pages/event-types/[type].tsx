@@ -1868,7 +1868,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                 onChange={(e) => {
                                                   field.onChange(e.target.valueAsNumber * 100);
                                                 }}
-                                                value={field.value > 0 ? field.value / 100 : 0}
+                                                value={field.value > 0 ? field.value / 100 : undefined}
                                               />
                                             )}
                                           />
