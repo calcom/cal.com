@@ -18,8 +18,8 @@ export const Default = () => (
 
 export const Combined = () => (
   <ButtonGroup combined>
-    <Button StartIcon={Trash2} size="icon" color="secondary"></Button>
-    <Button StartIcon={Navigation2} size="icon" color="secondary"></Button>
-    <Button StartIcon={Clipboard} size="icon" color="secondary"></Button>
+    <Button StartIcon={Trash2} size="icon" color="secondary" combined></Button>
+    <Button StartIcon={Navigation2} size="icon" color="secondary" combined></Button>
+    <Button StartIcon={Clipboard} size="icon" color="secondary" combined></Button>
   </ButtonGroup>
 );

@@ -28,6 +28,7 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  combined?: boolean;
 };
 export type ButtonProps = ButtonBaseProps &
   (
@@ -46,6 +47,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     StartIcon,
     EndIcon,
     shallow,
+    combined = false,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -67,7 +69,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         size === "base" && "h-9 px-4 py-2.5 rounded-md ",
         size === "lg" && "h-[36px] px-4 py-2.5 rounded-md",
         size === "icon" && " p-2.5 h-[36px] w-[36px] rounded-md",
-
+        combined && "-mx-0.5 rounded-none first:rounded-l-md last:rounded-r-md",
         // different styles depending on color
         color === "primary" &&
           (disabled
