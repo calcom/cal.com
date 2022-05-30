@@ -1,14 +1,24 @@
-name: E2E test
+name: E2E test - embed
 on:
+  push:
+    branches: [ tests/ci-embed ]
   pull_request_target: # So we can test on forks
     branches:
       - main
-    paths-ignore:
-      - apps/web/public/static/locales/**
+    # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
+    paths-ignore: 
+      - apps/api/**
+      - apps/console/**
+      - apps/docs/**
+      - apps/swagger/**
+      - apps/website/**
+      - apps/web/public/**
+      - tests/**
+      - playwright/**
 jobs:
   test:
     timeout-minutes: 20
-    name: Testing ${{ matrix.node }} and ${{ matrix.os }}
+    name: Testing Embeds
     strategy:
       matrix:
         node: ["14.x"]
@@ -79,13 +89,22 @@ jobs:
           restore-keys: cache-playwright-
       - run: yarn --frozen-lockfile
       - name: Install playwright deps
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        # if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install --with-deps
-      - run: yarn test-e2e
+      - run: yarn embed-tests-prepare
+      - run: yarn workspace @calcom/embed-core embed-tests-update-snapshots:ci
+      - run: yarn workspace @calcom/embed-react embed-tests-update-snapshots:ci
 
-      - name: Upload test results
+      - name: Upload embed-core results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
-          path: test-results
+          name: test-results-core
+          path: packages/embeds/embed-core/playwright/results
+
+      - name: Upload embed-react results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-react
+          path: packages/embeds/embed-react/playwright/results
