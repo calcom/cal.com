@@ -11,7 +11,6 @@ import Button from "@calcom/ui/Button";
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
-import Text from "@components/ui/Text";
 
 type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];
@@ -56,10 +55,10 @@ const Team = ({ team }: TeamPageProps) => {
               className="-mt-4 h-12 w-12"
             />
             <section className="line-clamp-4 mt-2 w-full space-y-1">
-              <Text variant="title">{member.name}</Text>
-              <Text variant="subtitle" className="">
+              <p className="font-medium text-neutral-900 dark:text-white">{member.name}</p>
+              <p className="text-sm font-normal text-neutral-500 dark:text-white">
                 {member.bio || t("user_from_team", { user: member.name, team: team.name })}
-              </Text>
+              </p>
             </section>
           </div>
         </div>
