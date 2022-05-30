@@ -32,7 +32,7 @@ import {
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
@@ -68,6 +68,8 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.Link:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
+      return t("your_number");
+    case LocationType.UserPhone:
       return t("phone_call");
     case LocationType.GoogleMeet:
       return "Google Meet";
@@ -234,7 +236,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -328,7 +330,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
@@ -370,7 +372,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           return (
                             <span key={el.type}>
                               {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
                             </span>
                           );
                         })}
@@ -424,7 +428,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>

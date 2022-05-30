@@ -14,10 +14,9 @@ import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { QueryCell } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
-import { trpc, inferQueryOutput } from "@lib/trpc";
+import { trpc } from "@lib/trpc";
 
 import AppsShell from "@components/AppsShell";
-import { ClientSuspense } from "@components/ClientSuspense";
 import { List, ListItem, ListItemText, ListItemTitle } from "@components/List";
 import Shell, { ShellSubHeading } from "@components/Shell";
 import SkeletonLoader from "@components/apps/SkeletonLoader";

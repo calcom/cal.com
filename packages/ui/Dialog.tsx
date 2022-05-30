@@ -75,7 +75,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             : props.size == "lg"
             ? "p-6 sm:max-w-[70rem]"
             : "p-6 sm:max-w-[35rem]",
-          "max-h-[560px] overflow-auto overscroll-auto md:h-auto md:max-h-[inherit]",
+          "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
           `${props.className || ""}`
         )}
         ref={forwardedRef}>
@@ -104,7 +104,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="flex mt-5 justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
+      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
     </div>
   );
 }
