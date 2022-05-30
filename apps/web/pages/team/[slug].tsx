@@ -6,7 +6,7 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";

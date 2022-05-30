@@ -327,7 +327,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const defaultSeats = 2;
   const defaultSeatsInput = 6;
   const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
-  const [inputSeatNumber, setInputSeatNumber] = useState(eventType.seatsPerTimeSlot! >= defaultSeatsInput);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -1754,14 +1753,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                       classNamePrefix="react-select"
                                                       className="react-select-container focus:border-primary-500 focus:ring-primary-500 block w-full min-w-0 flex-auto rounded-sm border border-gray-300 sm:text-sm "
                                                       onChange={(val) => {
-                                                        if (val!.value === -1) {
+                                                        if (!val) {
+                                                          return;
+                                                        }
+                                                        if (val.value === -1) {
                                                           formMethods.setValue(
                                                             "seatsPerTimeSlot",
                                                             defaultSeatsInput
                                                           );
-                                                          setInputSeatNumber(true);
                                                         } else {
-                                                          setInputSeatNumber(false);
                                                           formMethods.setValue(
                                                             "seatsPerTimeSlot",
                                                             val!.value
