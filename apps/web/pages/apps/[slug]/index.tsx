@@ -36,22 +36,24 @@ const components = {
         }}
         renderItem={(item) =>
           isTabletAndUp ? (
-            <Image 
+            <Image
               src={item}
               alt=""
               loading="eager"
               layout="fill"
               objectFit="cover"
               objectPosition="center center"
-              height={382} />
+              height={382}
+              />
           ) : (
-            <Image 
+            <Image
               src={item}
               alt=""
               layout="fill"
               objectFit="cover"
               objectPosition="center center"
-              height={382} />
+              height={382}
+              />
           )
         }
       />
