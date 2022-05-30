@@ -9,7 +9,6 @@ import { identityProviderNameMap } from "@lib/auth";
 import { trpc } from "@lib/trpc";
 
 import SettingsShell from "@components/SettingsShell";
-import Shell from "@components/Shell";
 import ChangePasswordSection from "@components/security/ChangePasswordSection";
 import DisableUserImpersonation from "@components/security/DisableUserImpersonation";
 import TwoFactorAuthSection from "@components/security/TwoFactorAuthSection";
@@ -18,8 +17,8 @@ export default function Security() {
   const user = trpc.useQuery(["viewer.me"]).data;
   const { t } = useLocale();
   return (
-    <Shell heading={t("security")} subtitle={t("manage_account_security")}>
-      <SettingsShell>
+    <SettingsShell heading={t("security")} subtitle={t("manage_account_security")}>
+      <>
         {user && user.identityProvider !== IdentityProvider.CAL ? (
           <>
             <div className="mt-6">
@@ -45,7 +44,7 @@ export default function Security() {
         )}
 
         <SAMLConfiguration teamsView={false} teamId={null} />
-      </SettingsShell>
-    </Shell>
+      </>
+    </SettingsShell>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useBrandColors } from "@calcom/embed-core";
+import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
 const brandColor = "#292929";
 const brandTextColor = "#ffffff";

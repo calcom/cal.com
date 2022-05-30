@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { useIsEmbed } from "@calcom/embed-core";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
