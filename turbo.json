@@ -105,7 +105,12 @@
       "outputs": [".next/**"]
     },
     "build": {
-      "dependsOn": ["^build",  "@calcom/embed-core#build","@calcom/embed-react#build", "@calcom/embed-react#build"],
+      "dependsOn": [
+        "^build",
+        "@calcom/embed-core#build",
+        "@calcom/embed-react#build",
+        "@calcom/embed-react#build"
+      ],
       "outputs": ["dist/**", ".next/**"]
     },
     "db-deploy": {},
@@ -150,7 +155,7 @@
       "dependsOn": ["@calcom/prisma#db-reset", "@calcom/web#test", "@calcom/web#build"]
     },
     "type-check": {
-      "dependsOn": ["@calcom/embed-react#build","@calcom/embed-core#build", "@calcom/embed-snippet#build"],
+      "dependsOn": ["@calcom/embed-react#build", "@calcom/embed-core#build", "@calcom/embed-snippet#build"],
       "outputs": []
     }
   }
