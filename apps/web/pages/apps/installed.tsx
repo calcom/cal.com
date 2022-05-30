@@ -1,4 +1,3 @@
-import { ClipboardIcon } from "@heroicons/react/solid";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { JSONObject } from "superjson/dist/types";
