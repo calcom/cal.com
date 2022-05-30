@@ -324,8 +324,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   );
   const [tokensList, setTokensList] = useState<Array<Token>>([]);
 
-  const defaultSeats = 2;
-  const defaultSeatsInput = 6;
+  const defaultSeatsPro = 6;
+  const minSeats = 2;
   const [enableSeats, setEnableSeats] = useState(!!eventType.seatsPerTimeSlot);
 
   const periodType =
@@ -1672,7 +1672,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                     if (e?.target.checked) {
                                       setEnableSeats(true);
                                       // Want to disable individuals from taking multiple seats
-                                      formMethods.setValue("seatsPerTimeSlot", defaultSeats);
+                                      formMethods.setValue("seatsPerTimeSlot", defaultSeatsPro);
                                       formMethods.setValue("disableGuests", true);
                                       formMethods.setValue("requiresConfirmation", false);
                                     } else {
@@ -1731,13 +1731,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                     <input
                                                       type="number"
                                                       className="focus:border-primary-500 focus:ring-primary-500 py- block  w-20 rounded-sm border-gray-300 [appearance:textfield] ltr:mr-2 rtl:ml-2 sm:text-sm"
-                                                      placeholder={`${defaultSeatsInput}`}
+                                                      placeholder={`${defaultSeatsPro}`}
+                                                      min={minSeats}
                                                       {...formMethods.register("seatsPerTimeSlot", {
                                                         valueAsNumber: true,
-                                                        min: defaultSeatsInput,
                                                       })}
                                                       defaultValue={
-                                                        eventType.seatsPerTimeSlot || defaultSeatsInput
+                                                        eventType.seatsPerTimeSlot || defaultSeatsPro
                                                       }
                                                     />
                                                   </div>
@@ -1757,22 +1757,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                                                           return;
                                                         }
                                                         if (val.value === -1) {
-                                                          formMethods.setValue(
-                                                            "seatsPerTimeSlot",
-                                                            defaultSeatsInput
-                                                          );
+                                                          formMethods.setValue("seatsPerTimeSlot", minSeats);
                                                         } else {
-                                                          formMethods.setValue(
-                                                            "seatsPerTimeSlot",
-                                                            val!.value
-                                                          );
+                                                          formMethods.setValue("seatsPerTimeSlot", val.value);
                                                         }
                                                       }}
                                                       defaultValue={{
-                                                        value: eventType.seatsPerTimeSlot || defaultSeats,
-                                                        label: `${
-                                                          eventType.seatsPerTimeSlot || defaultSeats
-                                                        }`,
+                                                        value: eventType.seatsPerTimeSlot || minSeats,
+                                                        label: `${eventType.seatsPerTimeSlot || minSeats}`,
                                                       }}
                                                       options={selectSeatsPerTimeSlotOptions}
                                                     />
