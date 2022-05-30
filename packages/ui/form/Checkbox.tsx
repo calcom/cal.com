@@ -37,7 +37,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                   " h-4 w-4 rounded focus:ring-1",
                   !error
                     ? "text-primary-600 focus:ring-primary-500 border-gray-300 hover:bg-gray-100 "
-                    : "border-red-50 bg-red-800 text-red-800 focus:ring-red-800",
+                    : "border-red-800 text-red-800 checked:bg-red-800 focus:ring-red-800",
                   rest.disabled &&
                     "border-2 bg-white opacity-30 checked:bg-gray-900 checked:hover:bg-gray-900"
                 )}

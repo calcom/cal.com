@@ -1,5 +1,4 @@
 import { ComponentMeta } from "@storybook/react";
-import { Bell } from "react-feather";
 
 import { Badge } from "@calcom/ui";
 

@@ -51,7 +51,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
   const disabled = props.disabled || loading;
-
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? "a" : "button";
