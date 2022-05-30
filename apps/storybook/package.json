@@ -10,6 +10,15 @@
   },
   "dependencies": {
     "@calcom/ui": "*",
+    "@radix-ui/react-avatar": "^0.1.0",
+    "@radix-ui/react-collapsible": "^0.1.0",
+    "@radix-ui/react-dialog": "^0.1.0",
+    "@radix-ui/react-dropdown-menu": "^0.1.1",
+    "@radix-ui/react-id": "^0.1.0",
+    "@radix-ui/react-radio-group": "^0.1.1",
+    "@radix-ui/react-slider": "^0.1.1",
+    "@radix-ui/react-switch": "^0.1.1",
+    "@radix-ui/react-tooltip": "^0.1.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-feather": "^2.0.9"
