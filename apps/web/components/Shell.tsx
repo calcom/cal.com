@@ -478,7 +478,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="rounded-full"
-                src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
+                src={WEBAPP_URL + "/" + user?.username + "/avatar.png"}
                 alt={user?.username || "Nameless User"}
               />
             }
