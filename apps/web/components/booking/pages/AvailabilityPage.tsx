@@ -260,12 +260,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       )}
                       {eventType.locations.length === 1 && (
                         <p className="text-bookinglight mb-2 dark:text-white">
-                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
@@ -278,7 +272,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
@@ -496,7 +490,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
