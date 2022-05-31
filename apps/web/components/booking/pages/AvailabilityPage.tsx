@@ -276,8 +276,8 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                        <div className="text-bookinglight dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -407,7 +407,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                    <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
                       <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
