@@ -6,38 +6,16 @@ import utc from "dayjs/plugin/utc";
 import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
+import { getCancelLink } from "@calcom/lib/CalEventParser";
 import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
-import { BaseEmailHtml } from "../components/BaseEmailHtml";
+import { BaseEmailHtml, Info } from "../components";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(localizedFormat);
 dayjs.extend(toArray);
-
-function Info(props: {
-  label: string;
-  description: React.ReactNode | undefined | null;
-  extraInfo?: React.ReactNode;
-  withSpacer?: boolean;
-}) {
-  if (!props.description) return null;
-  return (
-    <>
-      {props.withSpacer && <Spacer />}
-      <div style={{ lineHeight: "6px" }}>
-        <p style={{ color: "#494949" }}>{props.label}</p>
-        <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px", whiteSpace: "pre-wrap" }}>
-          {props.description}
-        </p>
-        {props.extraInfo}
-      </div>
-    </>
-  );
-}
-
-const Spacer = () => <p style={{ height: 6 }} />;
 
 const LinkIcon = () => (
   <img
@@ -48,6 +26,7 @@ const LinkIcon = () => (
 );
 
 function LocationInfo(props: { calEvent: CalendarEvent }) {
+  const t = props.calEvent.attendees[0].language.translate;
   let providerName = props.calEvent.location && getAppName(props.calEvent.location);
 
   if (props.calEvent.location && props.calEvent.location.includes("integrations:")) {
@@ -67,7 +46,8 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
 
     return (
       <Info
-        label={props.calEvent.attendees[0].language.translate("where")}
+        label={t("where")}
+        withSpacer
         description={
           <>
             {providerName}
@@ -75,7 +55,7 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
               <a
                 href={meetingUrl}
                 target="_blank"
-                title={props.calEvent.attendees[0].language.translate("meeting_url")}
+                title={t("meeting_url")}
                 style={{ color: "#3E3E3E" }}
                 rel="noreferrer">
                 <LinkIcon />
@@ -88,26 +68,22 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
             {meetingId && (
               <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
                 <>
-                  {props.calEvent.attendees[0].language.translate("meeting_id")}: <span>{meetingId}</span>
+                  {t("meeting_id")}: <span>{meetingId}</span>
                 </>
               </div>
             )}
             {meetingPassword && (
               <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
                 <>
-                  {props.calEvent.attendees[0].language.translate("meeting_password")}:{" "}
-                  <span>{meetingPassword}</span>
+                  {t("meeting_password")}: <span>{meetingPassword}</span>
                 </>
               </div>
             )}
             {meetingUrl && (
               <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
                 <>
-                  {props.calEvent.attendees[0].language.translate("meeting_url")}:{" "}
-                  <a
-                    href="${meetingUrl}"
-                    title={props.calEvent.attendees[0].language.translate("meeting_url")}
-                    style={{ color: "#3E3E3E" }}>
+                  {t("meeting_url")}:{" "}
+                  <a href="${meetingUrl}" title={t("meeting_url")} style={{ color: "#3E3E3E" }}>
                     {meetingUrl}
                   </a>
                 </>
@@ -124,7 +100,8 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
 
     return (
       <Info
-        label={props.calEvent.attendees[0].language.translate("where")}
+        label={t("where")}
+        withSpacer
         description={
           <>
             {providerName}
@@ -132,7 +109,7 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
               <a
                 href={hangoutLink}
                 target="_blank"
-                title={props.calEvent.attendees[0].language.translate("meeting_url")}
+                title={t("meeting_url")}
                 style={{ color: "#3E3E3E" }}
                 rel="noreferrer">
                 <LinkIcon />
@@ -143,7 +120,7 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
         extraInfo={
           providerName === "Zoom" || providerName === "Google" ? (
             <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
-              <>{props.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}</>
+              <>{t("meeting_url_provided_after_confirmed")}</>
             </p>
           ) : null
         }
@@ -153,12 +130,13 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
 
   return (
     <Info
-      label={props.calEvent.attendees[0].language.translate("where")}
+      label={t("where")}
+      withSpacer
       description={providerName || props.calEvent.location}
       extraInfo={
         providerName === "Zoom" || providerName === "Google" ? (
           <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
-            <>{props.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}</>
+            <>{t("meeting_url_provided_after_confirmed")}</>
           </p>
         ) : null
       }
@@ -166,13 +144,12 @@ function LocationInfo(props: { calEvent: CalendarEvent }) {
   );
 }
 
-function getRecurringWhen(props): string {
-  return props.recurringEvent?.freq
-    ? ` - ${props.calEvent.attendees[0].language.translate("every_for_freq", {
-        freq: props.calEvent.attendees[0].language.translate(
-          `${rrule.FREQUENCIES[props.recurringEvent.freq].toString().toLowerCase()}`
-        ),
-      })} ${props.recurringEvent.count} ${props.calEvent.attendees[0].language.translate(
+function getRecurringWhen(props: { calEvent: CalendarEvent; recurringEvent: RecurringEvent }) {
+  const t = props.calEvent.attendees[0].language.translate;
+  return props.recurringEvent?.count && props.recurringEvent?.freq
+    ? ` - ${t("every_for_freq", {
+        freq: t(`${rrule.FREQUENCIES[props.recurringEvent.freq].toString().toLowerCase()}`),
+      })} ${props.recurringEvent.count} ${t(
         `${rrule.FREQUENCIES[props.recurringEvent.freq].toString().toLowerCase()}`,
         { count: props.recurringEvent.count }
       )}`
@@ -180,6 +157,8 @@ function getRecurringWhen(props): string {
 }
 
 function WhenInfo(props: { calEvent: CalendarEvent; recurringEvent: RecurringEvent }) {
+  const t = props.calEvent.attendees[0].language.translate;
+
   function getInviteeStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(props.calEvent.attendees[0].timeZone).format(format);
   }
@@ -191,16 +170,11 @@ function WhenInfo(props: { calEvent: CalendarEvent; recurringEvent: RecurringEve
   return (
     <div>
       <Info
-        label={`${props.calEvent.attendees[0].language.translate("when")} ${
-          props.recurringEvent?.count ? getRecurringWhen(props) : ""
-        }`}
+        label={`${t("when")} ${getRecurringWhen(props)}`}
         description={
           <>
-            {props.recurringEvent?.count
-              ? `${props.calEvent.attendees[0].language.translate("starting")} `
-              : ""}
-            {props.calEvent.attendees[0].language.translate(getInviteeStart("dddd").toLowerCase())},{" "}
-            {props.calEvent.attendees[0].language.translate(getInviteeStart("MMMM").toLowerCase())}{" "}
+            {props.recurringEvent?.count ? `${t("starting")} ` : ""}
+            {t(getInviteeStart("dddd").toLowerCase())}, {t(getInviteeStart("MMMM").toLowerCase())}{" "}
             {getInviteeStart("D")}, {getInviteeStart("YYYY")} | {getInviteeStart("h:mma")} -{" "}
             {getInviteeEnd("h:mma")}{" "}
             <span style={{ color: "#888888" }}>({props.calEvent.attendees[0].timeZone})</span>
@@ -224,21 +198,22 @@ const PersonInfo = ({ name = "", email = "", role = "" }) => (
 );
 
 function WhoInfo(props: { calEvent: CalendarEvent }) {
+  const t = props.calEvent.attendees[0].language.translate;
   return (
     <Info
-      label={props.calEvent.attendees[0].language.translate("who")}
+      label={t("who")}
       description={
         <>
           <PersonInfo
             name={props.calEvent.organizer.name}
-            role={props.calEvent.attendees[0].language.translate("organizer")}
+            role={t("organizer")}
             email={props.calEvent.organizer.email}
           />
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
               key={attendee.id || attendee.name}
               name={attendee.name}
-              role={props.calEvent.attendees[0].language.translate("guest")}
+              role={t("guest")}
               email={attendee.email}
             />
           ))}
@@ -262,12 +237,43 @@ function CustomInputs(props: { calEvent: CalendarEvent }) {
   );
 }
 
-export const AttendeeScheduledEmail = (props: {
-  calEvent: CalendarEvent;
-  attendee: Person;
-  recurringEvent: RecurringEvent;
-}) => {
+function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
+  // Only the original attendee can make changes to the event
+  // Guests cannot
+  if (props.attendee.email !== props.calEvent.attendees[0].email) return null;
+  const t = props.attendee.language.translate;
+
+  return (
+    <div
+      style={{
+        fontFamily: "Roboto, Helvetica, sans-serif",
+        fontSize: "16px",
+        fontWeight: 500,
+        lineHeight: "0px",
+        textAlign: "left",
+        color: "#3e3e3e",
+      }}>
+      <p>
+        <>{t("need_to_reschedule_or_cancel")}</>
+      </p>
+      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+        <a href={getCancelLink(props.calEvent)} style={{ color: "#3e3e3e" }}>
+          <>{t("manage_this_event")}</>
+        </a>
+      </p>
+    </div>
+  );
+}
+
+export const AttendeeScheduledEmail = (
+  props: {
+    calEvent: CalendarEvent;
+    attendee: Person;
+    recurringEvent: RecurringEvent;
+  } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
+) => {
   const [firstAttendee] = props.calEvent.attendees;
+  const t = firstAttendee.language.translate;
 
   function getInviteeStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(firstAttendee.timeZone).format(format);
@@ -277,41 +283,38 @@ export const AttendeeScheduledEmail = (props: {
     return dayjs(props.calEvent.endTime).tz(firstAttendee.timeZone).format(format);
   }
 
-  const headTitle = firstAttendee.language.translate("confirmed_event_type_subject", {
+  const headTitle = t(props.headTitle || "confirmed_event_type_subject", {
     eventType: props.calEvent.type,
     name: props.calEvent.team?.name || props.calEvent.organizer.name,
-    date: `${getInviteeStart("h:mma")} - ${getInviteeEnd("h:mma")}, ${firstAttendee.language.translate(
+    date: `${getInviteeStart("h:mma")} - ${getInviteeEnd("h:mma")}, ${t(
       getInviteeStart("dddd").toLowerCase()
-    )}, ${firstAttendee.language.translate(getInviteeStart("MMMM").toLowerCase())} ${getInviteeStart(
-      "D"
-    )}, ${getInviteeStart("YYYY")}`,
+    )}, ${t(getInviteeStart("MMMM").toLowerCase())} ${getInviteeStart("D")}, ${getInviteeStart("YYYY")}`,
   });
 
   return (
     <BaseEmailHtml
-      headerType="checkCircle"
-      headTitle={headTitle}
-      title={firstAttendee.language.translate(
-        props.recurringEvent?.count
+      headerType={props.headerType || "checkCircle"}
+      headTitle={props.headTitle || headTitle}
+      title={t(
+        props.title
+          ? props.title
+          : props.recurringEvent?.count
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled"
       )}
-      subtitle={firstAttendee.language.translate("emailed_you_and_any_other_attendees")}>
-      <Info label={firstAttendee.language.translate("what")} description={props.calEvent.type} />
+      callToAction={
+        props.callToAction !== null && <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
+      }
+      subtitle={t(props.subtitle || "emailed_you_and_any_other_attendees")}>
+      <Info label={t("what")} description={props.calEvent.type} />
       <WhenInfo calEvent={props.calEvent} recurringEvent={props.recurringEvent} />
       <WhoInfo calEvent={props.calEvent} />
       <LocationInfo calEvent={props.calEvent} />
-      <Info
-        label={props.calEvent.organizer.language.translate("description")}
-        description={props.calEvent.description}
-        withSpacer
-      />
-      <Info
-        label={firstAttendee.language.translate("additional_notes")}
-        description={props.calEvent.additionalNotes}
-        withSpacer
-      />
+      <Info label={t("description")} description={props.calEvent.description} withSpacer />
+      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       <CustomInputs calEvent={props.calEvent} />
+      <Info label={t("cancellation_reason")} description={props.calEvent.cancellationReason} withSpacer />
+      <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
     </BaseEmailHtml>
   );
 };

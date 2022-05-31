@@ -28,11 +28,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         language: { translate: t, locale: "en" },
       },
     ],
-    location: "",
+    location: "Zoom video",
     destinationCalendar: null,
     hideCalendarNotes: false,
     uid: "bwPWLpjYrx4rZf6MCZdKgE",
     metadata: {},
+    cancellationReason: "It got late",
   };
 
   req.statusCode = 200;
@@ -40,7 +41,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("AttendeeScheduledEmail", {
+    renderEmail("AttendeeCancelledEmail", {
       calEvent: evt,
       attendee: evt.attendees[0],
       recurringEvent: {},

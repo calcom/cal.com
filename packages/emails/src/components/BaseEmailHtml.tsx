@@ -15,28 +15,9 @@ const Html = (props: { children: React.ReactNode }) => (
   </>
 );
 
-function GetManageLink(props: { attendee: any; calEvent: any }) {
-  if (!props.calEvent.paymentInfo) return null;
-
-  const manageText = props.attendee.language?.translate("pay_now") || "";
-
-  return (
-    <RawHtml
-      html={`
-<tr>
-  <td align="center" bgcolor="#292929" role="presentation" style="border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#292929;" valign="middle">
-    <p style="display:inline-block;background:#292929;color:#ffffff;font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;">
-      <a style="color: #FFFFFF; text-decoration: none;" href="" target="_blank">${manageText} <img src="" width="12px"></img></a>
-    </p>
-  </td>
-</tr>
-    `}
-    />
-  );
-}
-
 export const BaseEmailHtml = (props: {
   children: React.ReactNode;
+  callToAction?: React.ReactNode;
   headTitle: string;
   title: string;
   subtitle: string;
@@ -106,77 +87,79 @@ export const BaseEmailHtml = (props: {
               </td>
             </Row>
           </div>
-          <EmailSchedulingBodyDivider />
+          {props.callToAction && <EmailSchedulingBodyDivider />}
           <RawHtml
             html={`<!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" className="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />
-          <div
-            style={{
-              background: "#FFFFFF",
-              backgroundColor: "#FFFFFF",
-              margin: "0px auto",
-              maxWidth: 600,
-            }}>
-            <Row
-              align="center"
-              border="0"
-              style={{ background: "#FFFFFF", backgroundColor: "#FFFFFF", width: "100%" }}>
-              <td
-                style={{
-                  borderBottom: "1px solid #E1E1E1",
-                  borderLeft: "1px solid #E1E1E1",
-                  borderRight: "1px solid #E1E1E1",
-                  direction: "ltr",
-                  fontSize: 0,
-                  padding: 0,
-                  textAlign: "center",
-                }}>
-                <RawHtml
-                  html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td className="" style="vertical-align:top;width:598px;" ><![endif]-->`}
-                />
-                <div
-                  className="mj-column-per-100 mj-outlook-group-fix"
+          {props.callToAction && (
+            <div
+              style={{
+                background: "#FFFFFF",
+                backgroundColor: "#FFFFFF",
+                margin: "0px auto",
+                maxWidth: 600,
+              }}>
+              <Row
+                align="center"
+                border="0"
+                style={{ background: "#FFFFFF", backgroundColor: "#FFFFFF", width: "100%" }}>
+                <td
                   style={{
-                    fontSize: 0,
-                    textAlign: "left",
+                    borderBottom: "1px solid #E1E1E1",
+                    borderLeft: "1px solid #E1E1E1",
+                    borderRight: "1px solid #E1E1E1",
                     direction: "ltr",
-                    display: "inline-block",
-                    verticalAlign: "top",
-                    width: "100%",
+                    fontSize: 0,
+                    padding: 0,
+                    textAlign: "center",
                   }}>
-                  <BaseTable border="0" style={{ verticalAlign: "top" }} width="100%">
-                    <tbody>
-                      <tr>
-                        <td
-                          align="center"
-                          vertical-align="middle"
-                          style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
-                          <BaseTable border="0" style={{ borderCollapse: "separate", lineHeight: "100%" }}>
-                            <GetManageLink attendee={{}} calEvent={{}} />
-                          </BaseTable>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          align="left"
-                          style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
-                          <div
-                            style={{
-                              fontFamily: "Roboto, Helvetica, sans-serif",
-                              fontSize: 13,
-                              lineHeight: 1,
-                              textAlign: "left",
-                              color: "#000000",
-                            }}></div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </BaseTable>
-                </div>
-                <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
-              </td>
-            </Row>
-          </div>
+                  <RawHtml
+                    html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td className="" style="vertical-align:top;width:598px;" ><![endif]-->`}
+                  />
+                  <div
+                    className="mj-column-per-100 mj-outlook-group-fix"
+                    style={{
+                      fontSize: 0,
+                      textAlign: "left",
+                      direction: "ltr",
+                      display: "inline-block",
+                      verticalAlign: "top",
+                      width: "100%",
+                    }}>
+                    <BaseTable border="0" style={{ verticalAlign: "top" }} width="100%">
+                      <tbody>
+                        <tr>
+                          <td
+                            align="center"
+                            vertical-align="middle"
+                            style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
+                            <BaseTable border="0" style={{ borderCollapse: "separate", lineHeight: "100%" }}>
+                              {props.callToAction}
+                            </BaseTable>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            align="left"
+                            style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
+                            <div
+                              style={{
+                                fontFamily: "Roboto, Helvetica, sans-serif",
+                                fontSize: 13,
+                                lineHeight: 1,
+                                textAlign: "left",
+                                color: "#000000",
+                              }}></div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </BaseTable>
+                  </div>
+                  <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
+                </td>
+              </Row>
+            </div>
+          )}
           <EmailBodyLogo />
           <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
         </div>
