@@ -32,7 +32,7 @@ import {
   useEmbedNonStylesConfig,
 } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 
@@ -68,6 +68,8 @@ export const locationKeyToString = (location: LocationObject, t: TFunction) => {
     case LocationType.Link:
       return location.link || "Link"; // If disabled link won't exist on the object
     case LocationType.Phone:
+      return t("your_number");
+    case LocationType.UserPhone:
       return t("phone_call");
     case LocationType.GoogleMeet:
       return "Google Meet";
@@ -234,7 +236,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .filter((user) => user.name !== profile.name)
                           .map((user) => ({
                             title: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                             alt: user.name || undefined,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
@@ -258,12 +260,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       )}
                       {eventType.locations.length === 1 && (
                         <p className="text-bookinglight mb-2 dark:text-white">
-                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
@@ -276,12 +272,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                        <div className="text-bookinglight dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -328,7 +324,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           .map((user) => ({
                             title: user.name,
                             alt: user.name,
-                            image: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}/avatar.png`,
+                            image: `${CAL_URL}/${user.username}/avatar.png`,
                           })),
                       ].filter((item) => !!item.image) as { image: string; alt?: string; title?: string }[]
                     }
@@ -370,7 +366,9 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           return (
                             <span key={el.type}>
                               {locationKeyToString(el, t)}{" "}
-                              {arr.length - 1 !== i && <span className="font-light"> or </span>}
+                              {arr.length - 1 !== i && (
+                                <span className="font-light"> {t("or_lowercase")} </span>
+                              )}
                             </span>
                           );
                         })}
@@ -384,7 +382,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
                     <div className="mb-3 text-gray-600 dark:text-white">
                       <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <p className="mb-1 -ml-2 inline px-2 py-1">
+                      <p className="text-bookinglight mb-1 -ml-2 inline px-2 py-1">
                         {t("every_for_freq", {
                           freq: t(
                             `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
@@ -401,7 +399,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           setRecurringEventCount(parseInt(event?.target.value));
                         }}
                       />
-                      <p className="inline text-gray-600 dark:text-white">
+                      <p className="text-bookinglight inline dark:text-white">
                         {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
                           count: recurringEventCount,
                         })}
@@ -409,7 +407,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                    <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
                       <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
@@ -424,7 +422,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {previousPage === `${WEBAPP_URL}/${profile.slug}` && (
                     <div className="flex h-full flex-col justify-end">
                       <ArrowLeftIcon
-                        className="h-4 w-4 text-black  transition-opacity hover:cursor-pointer dark:text-white"
+                        className="h-4 w-4 text-black transition-opacity hover:cursor-pointer dark:text-white"
                         onClick={() => router.back()}
                       />
                       <p className="sr-only">Go Back</p>
@@ -492,7 +490,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (

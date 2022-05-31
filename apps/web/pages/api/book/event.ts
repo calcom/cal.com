@@ -202,7 +202,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
+type ExtendedBookingCreateBody = BookingCreateBody & {
+  noEmail?: boolean;
+  recurringCount?: number;
+  rescheduleReason?: string;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { recurringCount, noEmail, ...reqBody } = req.body as ExtendedBookingCreateBody;
@@ -681,7 +685,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
-    const updateManager = await eventManager.update(evt, originalRescheduledBooking.uid, booking?.id);
+    const updateManager = await eventManager.update(
+      evt,
+      originalRescheduledBooking.uid,
+      booking?.id,
+      reqBody.rescheduleReason
+    );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -715,7 +724,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           {
             ...evt,
             additionInformation: metadata,
-            additionalNotes, // Resets back to the addtionalNote input and not the overriden value
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: reqBody.rescheduleReason,
           },
           reqBody.recurringEventId ? (eventType.recurringEvent as RecurringEvent) : {}
         );

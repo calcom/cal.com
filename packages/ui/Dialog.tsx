@@ -52,7 +52,7 @@ export function Dialog(props: DialogProps) {
 
   return (
     <DialogPrimitive.Root {...dialogProps}>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 transition-opacity bg-black bg-opacity-50 fadeIn" />
       {children}
     </DialogPrimitive.Root>
   );
@@ -64,7 +64,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 transition-opacity bg-gray-500 bg-opacity-75 fadeIn" />
       {/*zIndex one less than Toast */}
       <DialogPrimitive.Content
         {...props}
@@ -75,7 +75,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             : props.size == "lg"
             ? "p-6 sm:max-w-[70rem]"
             : "p-6 sm:max-w-[35rem]",
-          "max-h-[560px] overflow-auto overscroll-auto md:h-auto md:max-h-[inherit]",
+          "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
           `${props.className || ""}`
         )}
         ref={forwardedRef}>
@@ -93,7 +93,7 @@ type DialogHeaderProps = {
 export function DialogHeader(props: DialogHeaderProps) {
   return (
     <div className="mb-8">
-      <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
+      <h3 className="text-xl text-gray-900 leading-16 font-cal" id="modal-title">
         {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
@@ -104,7 +104,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
+      <div className="flex justify-end mt-5 space-x-2 rtl:space-x-reverse">{props.children}</div>
     </div>
   );
 }
