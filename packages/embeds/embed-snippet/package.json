@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-snippet",
-  "version": "1.0.1-beta.10",
+  "version": "1.0.1",
   "main": "./dist/snippet.umd.js",
   "module": "./dist/snippet.es.js",
   "description": "Vanilla JS embed snippet that is responsible to fetch @calcom/embed-core and thus show Cal Link as an embed on a page.",
@@ -8,7 +8,7 @@
     "build": "vite build && yarn tsc  --emitDeclarationOnly --declarationDir dist",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
-    "prepare":"NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build"
+    "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn build"
   },
   "files": [
     "dist"
@@ -18,6 +18,6 @@
     "eslint": "^8.15.0"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.1.0-beta.10"
+    "@calcom/embed-core": "^1.1.0"
   }
 }

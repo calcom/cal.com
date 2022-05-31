@@ -13,7 +13,6 @@ import ContactMenuItem from "./ContactMenuItem";
 export default function HelpMenuItem() {
   const [rating, setRating] = useState<null | string>(null);
   const [comment, setComment] = useState("");
-  // const [errorMessage, setErrorMessage] = useState(false);
   const [disableSubmit, setDisableSubmit] = useState(true);
   const { t } = useLocale();
 
