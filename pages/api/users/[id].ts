@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { UserResponse } from "@lib/types";
+import { isAdminGuard } from "@lib/utils/isAdmin";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -20,8 +21,11 @@ export async function userById(
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" });
-  else {
+  const isAdmin = await isAdminGuard(userId);
+  // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
+  if (!isAdmin) {
+    if (safeQuery.data.id !== userId) res.status(401).json({ message: "Unauthorized" });
+  } else {
     switch (method) {
       case "GET":
         /**

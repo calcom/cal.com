@@ -85,19 +85,45 @@ const schemaUserEditParams = z.object({
   bufferTime: z.number().min(0).max(86400).optional(),
   startTime: z.number().min(0).max(86400).optional(),
   endTime: z.number().min(0).max(86400).optional(),
-  theme: z.nativeEnum(theme).optional(),
+  theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
   defaultScheduleId: z
     .number()
     .refine((id: number) => id > 0)
-    .optional(),
+    .optional()
+    .nullable(),
+  locale: z.nativeEnum(locales).optional().nullable(),
+  metadata: jsonSchema.or(z.null()),
+});
+
+// @note: These are the values that are editable via PATCH method on the user Model,
+// merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
+
+const schemaUserCreateParams = z.object({
+  email: z.string().email(),
+  weekStart: z.nativeEnum(weekdays).optional(),
+  brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  timeZone: timeZone.optional(),
+  bufferTime: z.number().min(0).max(86400).optional(),
+  startTime: z.number().min(0).max(86400).optional(),
+  endTime: z.number().min(0).max(86400).optional(),
+  theme: z.nativeEnum(theme).optional().nullable(),
+  timeFormat: z.nativeEnum(timeFormat).optional(),
+  defaultScheduleId: z
+    .number()
+    .refine((id: number) => id > 0)
+    .optional()
+    .nullable(),
   locale: z.nativeEnum(locales).optional(),
   metadata: jsonSchema,
+  createdDate: z.string().or(z.date()).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
 export const schemaUserEditBodyParams = schemaUserBaseBodyParams.merge(schemaUserEditParams).omit({});
+export const schemaUserCreateBodyParams = schemaUserBaseBodyParams.merge(schemaUserCreateParams).omit({});
 
 // @note: These are the values that are always returned when reading a user
 export const schemaUserReadPublic = User.pick({
@@ -124,4 +150,4 @@ export const schemaUserReadPublic = User.pick({
   createdDate: true,
   verified: true,
   invitedTo: true,
-});
+}).merge(schemaUserEditBodyParams);
