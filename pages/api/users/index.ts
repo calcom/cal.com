@@ -4,7 +4,8 @@ import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { UserResponse, UsersResponse } from "@lib/types";
-import { schemaUserReadPublic } from "@lib/validations/user";
+import { isAdminGuard } from "@lib/utils/isAdmin";
+import { schemaUserReadPublic, schemaUserCreateBodyParams } from "@lib/validations/user";
 
 /**
  * @swagger
@@ -26,34 +27,34 @@ async function getAllorCreateUser(
   { userId, method, body }: NextApiRequest,
   res: NextApiResponse<UsersResponse | UserResponse>
 ) {
+  const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
-    const data = await prisma.user.findMany({
-      where: {
-        id: userId,
-      },
-    });
-    const users = data.map((user) => schemaUserReadPublic.parse(user));
-    if (users) res.status(200).json({ users });
-    else
-      (error: Error) =>
-        res.status(404).json({
-          message: "No Users were found",
-          error,
-        });
+    if (!isAdmin) {
+      // If user is not ADMIN, return only his data.
+      const data = await prisma.user.findMany({ where: { id: userId } });
+      const users = data.map((user) => schemaUserReadPublic.parse(user));
+      if (users) res.status(200).json({ users });
+    } else {
+      // If user is admin, return all users.
+      const data = await prisma.user.findMany({});
+      const users = data.map((user) => schemaUserReadPublic.parse(user));
+      if (users) res.status(200).json({ users });
+    }
+  } else if (method === "POST") {
+    // If user is not ADMIN, return unauthorized.
+    if (!isAdmin) res.status(401).json({ message: "You are not authorized" });
+    else {
+      const safeBody = schemaUserCreateBodyParams.safeParse(body);
+      if (!safeBody.success) {
+        res.status(400).json({ message: "Your body was invalid" });
+        return;
+      }
+      const user = await prisma.user.create({
+        data: safeBody.data,
+      });
+      res.status(201).json({ user });
+    }
   }
-  // else if (method === "POST") {
-  //   const isAdmin = await prisma.user
-  //     .findUnique({ where: { id: userId } })
-  //     .then((user) => user?.role === "ADMIN");
-  //   if (!isAdmin) res.status(401).json({ message: "You are not authorized" });
-  //   else {
-  //     const user = await prisma.user.create({
-  //       data: schemaUserReadPublic.parse(body),
-  //     });
-  //     res.status(201).json({ user });
-  //   }
-  // }
 }
-// No POST endpoint for users for now as a regular user you're expected to signup.
 
 export default withMiddleware("HTTP_GET_OR_POST")(getAllorCreateUser);
