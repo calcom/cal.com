@@ -39,14 +39,18 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
         {workflows.map((workflow) => (
           <li key={workflow.id}>
             <div className="first-line:group flex w-full items-center justify-between px-4 py-4 hover:bg-neutral-50 sm:px-6">
-              <div className="rtl:space-x-reverse">
-                <div className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
-                  {workflow.name}
-                </div>
-                <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500">
-                  {t("triggers")} {t(`${workflow.trigger.toLowerCase()}_trigger`)}
-                </div>
-              </div>
+              <Link href={"/workflows/" + workflow.id}>
+                <a className="flex-grow cursor-pointer">
+                  <div className="rtl:space-x-reverse">
+                    <div className="max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max">
+                      {workflow.name}
+                    </div>
+                    <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500">
+                      {t("triggers")} {t(`${workflow.trigger.toLowerCase()}_trigger`)}
+                    </div>
+                  </div>
+                </a>
+              </Link>
               <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                 <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                   <Dropdown>

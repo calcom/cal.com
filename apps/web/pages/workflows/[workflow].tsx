@@ -62,7 +62,9 @@ export default function WorkflowPage(props: inferSSRProps<typeof getServerSidePr
             )}
           </div>
         }
-        customLoader={<SkeletonLoader />}></Shell>
+        customLoader={<SkeletonLoader />}>
+        Create Workflow
+      </Shell>
     </div>
   );
 }
