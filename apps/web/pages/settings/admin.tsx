@@ -55,7 +55,7 @@ export default function Admin() {
   const { t } = useLocale();
 
   return (
-    <SettingsShell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
+    <SettingsShell heading={t("admin")}>
       <AdminView />
     </SettingsShell>
   );
