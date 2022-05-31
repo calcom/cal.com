@@ -14,6 +14,9 @@ Change name and description
 
 ## TODO
 
+- Get strong confirmation for deletion of app. Get the name of the app from user that he wants to delete
+- App Description Missing
+- Select Box for App Type
 - Credentials table doesn't get new entries with cli. Figure out how to do it.
 - App already exists check. Ask user to run edit/regenerate command
 - Allow deletion of App, cleaning up everything

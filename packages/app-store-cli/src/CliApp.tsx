@@ -5,6 +5,14 @@ import TextInput from "ink-text-input";
 import path from "path";
 import React, { FC, useEffect, useRef, useState } from "react";
 
+function sanitizeAppName(value: string): string {
+  return value.toLowerCase().replace(/-/g, "_");
+}
+
+function getAppDirPath(appName: any) {
+  return path.join(appStoreDir, `${appName}`);
+}
+
 const appStoreDir = path.resolve(__dirname, "..", "..", "app-store");
 const workspaceDir = path.resolve(__dirname, "..", "..", "..");
 const execSync = (...args) => {
@@ -75,12 +83,13 @@ const Seed = {
       execSync(`cd ${workspaceDir} && yarn db-seed`);
     }
   },
-  revert: function ({ appName, noDbUpdate }) {
+  revert: async function ({ appName, noDbUpdate }) {
     let seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
     seedConfig = seedConfig.filter((app) => app.name !== appName);
-    console.log(seedConfig);
     fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
-    console.log("DB not cleaned up. Do it manually. Autoclean coming soon.");
+    if (!noDbUpdate) {
+      execSync(`yarn workspace @calcom/prisma delete-app ${appName}`);
+    }
   },
 };
 
@@ -124,7 +133,8 @@ const CreateApp = ({ noDbUpdate }) => {
 
       generateAppFiles();
 
-      setResult("App Generated");
+      // FIXME: Even after CLI showing this message, it is stuck doing work before exiting
+      setResult("App almost generated. Wait for a few seconds.");
     }
   });
 
@@ -153,7 +163,7 @@ const CreateApp = ({ noDbUpdate }) => {
         }}
         onChange={(value) => {
           if (value) {
-            value = value.replace(/-/g, "_");
+            value = sanitizeAppName(value);
           }
           setAppInputData((appInputData) => {
             return {
@@ -168,9 +178,11 @@ const CreateApp = ({ noDbUpdate }) => {
 };
 
 const DeleteApp = ({ noDbUpdate, appName }) => {
+  appName = sanitizeAppName(appName);
   BaseAppFork.delete({ appName });
   Seed.revert({ appName });
-  return <Text>Deleted App {appName}</Text>;
+  generateAppFiles();
+  return <Text>Deleted App {appName}.</Text>;
 };
 
 const App: FC<{ noDbUpdate?: boolean; command: "create" | "delete"; appName?: string }> = ({
@@ -187,6 +199,3 @@ const App: FC<{ noDbUpdate?: boolean; command: "create" | "delete"; appName?: st
 };
 module.exports = App;
 export default App;
-function getAppDirPath(appName: any) {
-  return path.join(appStoreDir, `${appName}`);
-}
