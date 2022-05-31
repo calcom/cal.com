@@ -14,7 +14,7 @@ import Shell from "@components/Shell";
 function AdminView() {
   const { t } = useLocale();
 
-  const usernameRef = useRef<HTMLInputElement>(null!);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="divide-y divide-gray-200 lg:col-span-9">
@@ -23,7 +23,7 @@ function AdminView() {
           className="mb-6 w-full sm:w-1/2"
           onSubmit={(e) => {
             e.preventDefault();
-            const enteredUsername = usernameRef.current.value.toLowerCase();
+            const enteredUsername = usernameRef.current?.value.toLowerCase();
             signIn("impersonation-auth", { username: enteredUsername }).then((res) => {
               console.log(res);
             });
@@ -55,11 +55,9 @@ export default function Admin() {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("profile")} subtitle={t("edit_profile_info_description")}>
-      <SettingsShell>
-        <AdminView />
-      </SettingsShell>
-    </Shell>
+    <SettingsShell heading={t("admin")}>
+      <AdminView />
+    </SettingsShell>
   );
 }
 
