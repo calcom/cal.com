@@ -466,10 +466,8 @@ const loggedInViewerRouter = createProtectedRouter()
       }
 
       let nextCursor: typeof skip | null = skip;
-      if (input.cursor === undefined && bookings.length + groupedRecurringBookings.length < take) {
-        nextCursor = null;
-      } else if (bookingsFetched > take) {
-        nextCursor += bookings.length;
+      if (bookingsFetched > take) {
+        nextCursor += bookingsFetched;
       } else {
         nextCursor = null;
       }
