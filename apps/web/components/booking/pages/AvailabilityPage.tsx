@@ -260,12 +260,6 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       )}
                       {eventType.locations.length === 1 && (
                         <p className="text-bookinglight mb-2 dark:text-white">
-                          <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                          {locationKeyToString(eventType.locations[0], t)}
-                        </p>
-                      )}
-                      {eventType.locations.length === 1 && (
-                        <p className="text-bookinglight mb-2 dark:text-white">
                           {Object.values(AppStoreLocationType).includes(
                             eventType.locations[0].type as unknown as AppStoreLocationType
                           ) ? (
@@ -278,12 +272,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                         </p>
                       )}
                       <p className="text-bookinglight mb-2 dark:text-white">
-                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+                        <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
-                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 dark:text-gray-400" />
+                        <div className="text-bookinglight dark:text-white">
+                          <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={eventType.price / 100.0}
@@ -388,7 +382,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
                     <div className="mb-3 text-gray-600 dark:text-white">
                       <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <p className="mb-1 -ml-2 inline px-2 py-1">
+                      <p className="text-bookinglight mb-1 -ml-2 inline px-2 py-1">
                         {t("every_for_freq", {
                           freq: t(
                             `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
@@ -405,7 +399,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           setRecurringEventCount(parseInt(event?.target.value));
                         }}
                       />
-                      <p className="inline text-gray-600 dark:text-white">
+                      <p className="text-bookinglight inline dark:text-white">
                         {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
                           count: recurringEventCount,
                         })}
@@ -413,7 +407,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="mb-1 -ml-2 px-2 py-1 text-gray-600 dark:text-white">
+                    <p className="text-bookinglight mb-1 -ml-2 px-2 py-1 dark:text-white">
                       <CreditCardIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                       <IntlProvider locale="en">
                         <FormattedNumber
@@ -496,7 +490,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   function TimezoneDropdown() {
     return (
       <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-        <Collapsible.Trigger className="min-w-32 mb-1 -ml-2 px-2 py-1 text-left text-gray-600 dark:text-white">
+        <Collapsible.Trigger className="min-w-32 text-bookinglight mb-1 -ml-2 px-2 py-1 text-left dark:text-white">
           <GlobeIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
           {timeZone()}
           {isTimeOptionsOpen ? (
