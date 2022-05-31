@@ -512,11 +512,11 @@ model WorkflowStep {
 }
 
 model Workflow {
-  id        Int                   @id @default(autoincrement())
-  name      String
-  userId    Int
-  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventypes EventType[]
-  trigger   WorkflowTriggerEvents
-  steps     WorkflowStep[]
+  id         Int                   @id @default(autoincrement())
+  name       String
+  userId     Int
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventTypes EventType[]
+  trigger    WorkflowTriggerEvents
+  steps      WorkflowStep[]
 }
