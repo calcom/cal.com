@@ -1,2 +1,2 @@
-export * from "./src/embed-iframe";
 export * from "./src/sdk-event";
+export * from "./src/embed";

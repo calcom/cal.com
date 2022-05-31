@@ -1,10 +1,10 @@
-import { CalWindow } from "@calcom/embed-snippet";
+import { CalWindow } from "./embed";
 
 const WEBAPP_URL =
-  import.meta.env.NEXT_PUBLIC_WEBAPP_URL || `https://${import.meta.env.NEXT_PUBLIC_VERCEL_URL}`;
-const EMBED_LIB_URL = import.meta.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
+const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
-(window as any).fingerprint = import.meta.env.NEXT_PUBLIC_EMBED_FINGER_PRINT as string;
+(window as any).fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
 // Install Cal Embed Code Snippet
 (function (C, A, L) {

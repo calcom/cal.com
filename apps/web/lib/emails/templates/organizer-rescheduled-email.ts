@@ -59,6 +59,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
     return `
 ${this.calEvent.organizer.language.translate("event_has_been_rescheduled")}
 ${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
+${this.calEvent.cancellationReason && this.getReason()}  
 ${this.getWhat()}
 ${this.getWhen()}
 ${this.getLocation()}
@@ -108,6 +109,7 @@ ${getCancelLink(this.calEvent)}
                         <tr>
                           <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:1;text-align:left;color:#3E3E3E;">
+                              ${this.calEvent.cancellationReason && this.getReason()}    
                               ${this.getWhat()}
                               ${this.getWhen()}
                               ${this.getWho()}
