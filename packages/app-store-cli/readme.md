@@ -1,5 +1,6 @@
 ## Steps to create an app
 
+- Any files that you add here are automatically copied to new app created through the cli.
 - Create a folder in packages/app-store/{APP_NAME} = {APP}
 - Fill it with a sample app
   - Modify {APP}/_metadata.ts with the data provided
@@ -11,6 +12,12 @@ Change name and description
 
 **PREFIXES**: 
 
-CLI_BASE__
+## TODO
 
-cli_base_
+- Credentials table doesn't get new entries with cli. Figure out how to do it.
+- App already exists check. Ask user to run edit/regenerate command
+- Allow deletion of App, cleaning up everything
+  - folder
+  - prisma credentials table
+  - seed.config.json
+- Using app/config.json -> Allow Editing App Details.

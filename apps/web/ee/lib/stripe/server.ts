@@ -1,6 +1,7 @@
 import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -17,8 +18,15 @@ export type PaymentInfo = {
   id?: string | null;
 };
 
-let paymentFeePercentage: number | undefined;
-let paymentFeeFixed: number | undefined;
+const stripeKeysSchema = z.object({
+  payment_fee_fixed: z.number(),
+  payment_fee_percentage: z.number(),
+});
+
+const stripeCredentialSchema = z.object({
+  stripe_user_id: z.string(),
+  stripe_publishable_key: z.string(),
+});
 
 export async function handlePayment(
   evt: CalendarEvent,
@@ -35,13 +43,10 @@ export async function handlePayment(
   }
 ) {
   const appKeys = await getAppKeysFromSlug("stripe");
-  if (typeof appKeys.payment_fee_fixed === "number") paymentFeePercentage = appKeys.payment_fee_fixed;
-  if (typeof appKeys.payment_fee_percentage === "number") paymentFeeFixed = appKeys.payment_fee_percentage;
+  const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
 
-  const paymentFee = Math.round(
-    selectedEventType.price * parseFloat(`${paymentFeePercentage}`) + parseInt(`${paymentFeeFixed}`)
-  );
-  const { stripe_user_id, stripe_publishable_key } = stripeCredential.key as Stripe.OAuthToken;
+  const paymentFee = Math.round(selectedEventType.price * payment_fee_percentage + payment_fee_fixed);
+  const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 
   const params: Stripe.PaymentIntentCreateParams = {
     amount: selectedEventType.price,

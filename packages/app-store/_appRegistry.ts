@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 import { App } from "@calcom/types/App";
 
-import "./CLI_BASE__APP_NAME/_metadata";
+import "./baseApp/_metadata";
 
 export async function getAppWithMetadata(app: { dirName: string }) {
   let appMetadata: App | null = null;

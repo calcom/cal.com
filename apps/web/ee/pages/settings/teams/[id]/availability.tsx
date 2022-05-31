@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
 import { Alert } from "@calcom/ui/Alert";
+import LicenseRequired from "@ee/components/LicenseRequired";
 import TeamAvailabilityScreen from "@ee/components/team/availability/TeamAvailabilityScreen";
 
 import { getPlaceholderAvatar } from "@lib/getPlaceholderAvatar";
@@ -49,17 +50,19 @@ export function TeamAvailabilityPage() {
           />
         )
       }>
-      {!!errorMessage && <Alert className="-mt-24 border" severity="error" title={errorMessage} />}
-      {isLoading && <Loader />}
-      {isFreeUser ? (
-        <Alert
-          className="-mt-24 border"
-          severity="warning"
-          title="This is a pro feature. Upgrade to pro to see your team's availability."
-        />
-      ) : (
-        TeamAvailability
-      )}
+      <LicenseRequired>
+        {!!errorMessage && <Alert className="-mt-24 border" severity="error" title={errorMessage} />}
+        {isLoading && <Loader />}
+        {isFreeUser ? (
+          <Alert
+            className="-mt-24 border"
+            severity="warning"
+            title="This is a pro feature. Upgrade to pro to see your team's availability."
+          />
+        ) : (
+          TeamAvailability
+        )}
+      </LicenseRequired>
     </Shell>
   );
 }

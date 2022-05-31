@@ -58,3 +58,4 @@ clientOutput.push(
 
 fs.writeFileSync(`${__dirname}/apps.generated.ts`, serverOutput.join("\n"));
 fs.writeFileSync(`${__dirname}/apps.components.generated.tsx`, clientOutput.join("\n"));
+console.log("Generated `apps.generated.ts` and `apps.components.generated.tsx`");
