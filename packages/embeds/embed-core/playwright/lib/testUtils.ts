@@ -66,7 +66,7 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   // The problem is that the Month Text changes instantly but we don't know when the corresponding dates are visible
 
   // Waiting for full month increment
-  await frame.waitForTimeout(2000);
+  await frame.waitForTimeout(1000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
   // TODO: Find out why the first day is always booked on tests
   await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
@@ -81,7 +81,14 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
       return !!url.pathname.match(new RegExp(`/${username}/.*$`));
     },
   });
+
+  // Let current month dates fully render.
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // This doesn't seem to be replicable with the speed of a person, only during automation.
+  // It would also allow correct snapshot to be taken for current month.
+  await frame.waitForTimeout(1000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
+
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForNavigation({
     url(url) {
