@@ -40,18 +40,20 @@ const components = {
               src={item}
               alt=""
               loading="eager"
-              layout="fill"
-              objectFit="cover"
-              objectPosition="center center"
+              layout="fixed"
+              objectFit="contain"
+              objectPosition={"center center"}
+              width={573}
               height={382}
             />
           ) : (
             <Image
               src={item}
               alt=""
-              layout="fill"
-              objectFit="cover"
-              objectPosition="center center"
+              layout="responsive"
+              objectFit="contain"
+              objectPosition={"center center"}
+              width={573}
               height={382}
             />
           )
