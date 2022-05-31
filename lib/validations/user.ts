@@ -93,7 +93,7 @@ const schemaUserEditParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional().nullable(),
-  metadata: jsonSchema.or(z.null()),
+  metadata: jsonSchema,
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
