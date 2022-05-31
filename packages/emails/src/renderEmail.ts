@@ -1,13 +1,13 @@
 import { ComponentProps } from "react";
 import * as ReactDOMServer from "react-dom/server";
 
-import templates from "./templates";
+import * as templates from "./templates";
 
-async function renderEmail<K extends keyof typeof templates>(
+function renderEmail<K extends keyof typeof templates>(
   template: K,
-  props: ComponentProps<Awaited<typeof templates[K]>["default"]>
+  props: ComponentProps<typeof templates[K]>
 ) {
-  const Component = (await templates[template]).default;
+  const Component = templates[template];
   return (
     ReactDOMServer.renderToStaticMarkup(Component(props))
       // Remove `<RawHtml />` injected scripts

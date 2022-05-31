@@ -7,6 +7,7 @@ import { createEvent, DateArray } from "ics";
 import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
+import { renderEmail } from "@calcom/emails";
 import { getCancelLink, getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -93,7 +94,11 @@ export default class AttendeeScheduledEmail extends BaseEmail {
           this.getInviteeStart().format("MMMM").toLowerCase()
         )} ${this.getInviteeStart().format("D")}, ${this.getInviteeStart().format("YYYY")}`,
       })}`,
-      html: this.getHtmlBody(),
+      html: renderEmail("AttendeeScheduledEmail", {
+        calEvent: this.calEvent,
+        attendee: this.attendee,
+        recurringEvent: this.recurringEvent,
+      }),
       text: this.getTextBody(),
     };
   }

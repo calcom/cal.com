@@ -4,7 +4,7 @@ import EmailBodyLogo from "./EmailBodyLogo";
 import EmailHead from "./EmailHead";
 import EmailScheduledBodyHeaderContent from "./EmailScheduledBodyHeaderContent";
 import EmailSchedulingBodyDivider from "./EmailSchedulingBodyDivider";
-import EmailSchedulingBodyHeader from "./EmailSchedulingBodyHeader";
+import EmailSchedulingBodyHeader, { BodyHeadType } from "./EmailSchedulingBodyHeader";
 import RawHtml from "./RawHtml";
 import Row from "./Row";
 
@@ -35,17 +35,20 @@ function GetManageLink(props: { attendee: any; calEvent: any }) {
   );
 }
 
-export const BaseEmailHtml = (props: { children: React.ReactNode }) => {
+export const BaseEmailHtml = (props: {
+  children: React.ReactNode;
+  headTitle: string;
+  title: string;
+  subtitle: string;
+  headerType: BodyHeadType;
+}) => {
   return (
     <Html>
-      <EmailHead title="Title" />
+      <EmailHead title={props.title} />
       <body style={{ wordSpacing: "normal", backgroundColor: "#F5F5F5" }}>
         <div style={{ backgroundColor: "#F5F5F5" }}>
-          <EmailSchedulingBodyHeader headerType="calendarCircle" />
-          <EmailScheduledBodyHeaderContent
-            title="meeting_awaiting_payment"
-            subtitle="emailed_you_and_any_other_attendees"
-          />
+          <EmailSchedulingBodyHeader headerType={props.headerType} />
+          <EmailScheduledBodyHeaderContent title={props.title} subtitle={props.subtitle} />
           <EmailSchedulingBodyDivider />
           <RawHtml
             html={`<!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" className="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
@@ -179,22 +182,5 @@ export const BaseEmailHtml = (props: { children: React.ReactNode }) => {
         </div>
       </body>
     </Html>
-  );
-};
-
-export const EmailHtml = () => {
-  return (
-    <BaseEmailHtml>
-      <p>what</p>
-      {/* 
-      ${this.getWhat()}
-      ${this.getWhen()}
-      ${this.getWho()}
-      ${this.getLocation()}
-      ${this.getDescription()}
-      ${this.getAdditionalNotes()}
-      ${this.getCustomInputs()}
-      */}
-    </BaseEmailHtml>
   );
 };

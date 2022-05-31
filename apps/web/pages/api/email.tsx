@@ -6,14 +6,33 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const t = await getTranslation("en", "common");
 
-  const dummyPerson = {
-    email: "a@a.com",
-    language: {
-      locale: "en",
-      translate: t,
+  const evt = {
+    type: "30min",
+    title: "30min between Pro Example and pro@example.com",
+    description: null,
+    additionalNotes: "asdasdas",
+    customInputs: {},
+    startTime: "2022-06-03T09:00:00-06:00",
+    endTime: "2022-06-03T09:30:00-06:00",
+    organizer: {
+      name: "Pro Example",
+      email: "pro@example.com",
+      timeZone: "Europe/London",
+      language: { translate: t, locale: "en" },
     },
-    timeZone: "America/Mazatlan",
-    name: "Name",
+    attendees: [
+      {
+        email: "pro@example.com",
+        name: "pro@example.com",
+        timeZone: "America/Chihuahua",
+        language: { translate: t, locale: "en" },
+      },
+    ],
+    location: "",
+    destinationCalendar: null,
+    hideCalendarNotes: false,
+    uid: "bwPWLpjYrx4rZf6MCZdKgE",
+    metadata: {},
   };
 
   req.statusCode = 200;
@@ -21,16 +40,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    await renderEmail("AttendeeScheduledEmail", {
-      calEvent: {
-        type: "type",
-        title: "Event Title",
-        startTime: "now",
-        organizer: dummyPerson,
-        endTime: "now",
-        attendees: [dummyPerson],
-      },
-      attendee: dummyPerson,
+    renderEmail("AttendeeScheduledEmail", {
+      calEvent: evt,
+      attendee: evt.attendees[0],
       recurringEvent: {},
     })
   );
