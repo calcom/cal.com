@@ -30,19 +30,18 @@ async function getAllorCreateUser(
   const isAdmin = await isAdminGuard(userId);
   if (method === "GET") {
     if (!isAdmin) {
-      const data = await prisma.user.findMany({
-        where: {
-          id: userId,
-        },
-      });
+      // If user is not ADMIN, return only his data.
+      const data = await prisma.user.findMany({ where: { id: userId } });
       const users = data.map((user) => schemaUserReadPublic.parse(user));
       if (users) res.status(200).json({ users });
     } else {
+      // If user is admin, return all users.
       const data = await prisma.user.findMany({});
       const users = data.map((user) => schemaUserReadPublic.parse(user));
       if (users) res.status(200).json({ users });
     }
   } else if (method === "POST") {
+    // If user is not ADMIN, return unauthorized.
     if (!isAdmin) res.status(401).json({ message: "You are not authorized" });
     else {
       const safeBody = schemaUserCreateBodyParams.safeParse(body);
