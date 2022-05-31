@@ -63,7 +63,7 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
   // Waiting for full month increment
-  await frame.waitForTimeout(1000);
+  await frame.waitForTimeout(2000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
   // TODO: Find out why the first day is always booked on tests
   await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
