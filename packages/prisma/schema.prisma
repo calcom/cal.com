@@ -74,6 +74,8 @@ model EventType {
   slotInterval            Int?
   metadata                Json?
   successRedirectUrl      String?
+  workflowId              Int?
+  workflow                Workflow?              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -487,4 +489,31 @@ model Feedback {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
   comment String?
+}
+
+enum WorkflowTriggerEvents {
+  BEFORE_EVENT
+  EVENT_CANCELLED
+  NEW_EVENT
+}
+
+enum WorkflowActions {
+  EMAIL_HOST
+  EMAIL_ATTENDEE
+}
+
+model WorkflowStep {
+  id         Int                   @id @default(autoincrement())
+  stepNumber Int
+  action     WorkflowTriggerEvents
+  workflowId Int
+  workflow   Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model Workflow {
+  id        Int             @id @default(autoincrement())
+  name      String
+  eventypes EventType[]
+  trigger   WorkflowActions
+  steps     WorkflowStep[]
 }

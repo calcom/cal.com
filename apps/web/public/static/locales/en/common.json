@@ -875,5 +875,16 @@
   "this_input_will_shown_booking_this_event": "This input will be shown when booking this event",
   "meeting_url_in_conformation_email": "Meeting url is in the confirmation email",
   "url_start_with_https": "URL needs to start with http:// or https://",
-  "number_provided": "Phone number will be provided"
+  "number_provided": "Phone number will be provided",
+  "before_event_trigger": "before event starts",
+  "event_cancelled_trigger": "when event is cancelled",
+  "new_event_trigger": "when new event is created",
+  "email_host_action": "send email to host",
+  "email_attendee_action": "send email to attendees",
+  "workflows": "Workflows",
+  "new_workflow_btn": "New workflow",
+  "add_new_workflow": "Add a new workflow",
+  "trigger": "Trigger",
+  "action": "Action",
+  "workflows_to_automate_notifications": "Create workflows to automate notifications and reminders"
 }

@@ -1,4 +1,4 @@
-import { SelectorIcon } from "@heroicons/react/outline";
+import { SelectorIcon, LightningBoltIcon } from "@heroicons/react/outline";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -144,6 +144,12 @@ const Layout = ({
       current: router.asPath.startsWith("/availability"),
     },
     {
+      name: t("workflows"),
+      href: "/workflows",
+      icon: LightningBoltIcon,
+      current: router.asPath.startsWith("/workflows"),
+    },
+    {
       name: t("apps"),
       href: "/apps",
       icon: ViewGridIcon,
@@ -250,7 +256,7 @@ const Layout = ({
                 </div>
                 <TrialBanner />
                 <div
-                  className="rounded-sm pb-2 pl-3 pt-2 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
+                  className="rounded-sm pt-2 pb-2 pl-3 pr-2 hover:bg-gray-100 lg:mx-2 lg:pl-2"
                   data-testid="user-dropdown-trigger">
                   <span className="hidden lg:inline">
                     <UserDropdown />
