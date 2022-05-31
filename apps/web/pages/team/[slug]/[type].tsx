@@ -7,7 +7,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
-import { AppStoreLocationType, locationHiddenFilter, LocationObject } from "@lib/location";
+import { locationHiddenFilter, LocationObject } from "@lib/location";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

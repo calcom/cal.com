@@ -19,7 +19,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { useIsEmbed } from "@calcom/embed-core";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import Dropdown, {
@@ -469,7 +469,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="rounded-full"
-                src={process.env.NEXT_PUBLIC_WEBSITE_URL + "/" + user?.username + "/avatar.png"}
+                src={WEBAPP_URL + "/" + user?.username + "/avatar.png"}
                 alt={user?.username || "Nameless User"}
               />
             }

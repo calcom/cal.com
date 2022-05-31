@@ -24,7 +24,11 @@ import { Frequency as RRuleFrequency } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { useEmbedNonStylesConfig, useIsBackgroundTransparent, useIsEmbed } from "@calcom/embed-core";
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -79,6 +83,7 @@ type BookingFormValues = {
   customInputs?: {
     [key: string]: string | boolean;
   };
+  rescheduleReason?: string;
 };
 
 const BookingPage = ({
@@ -252,6 +257,7 @@ const BookingPage = ({
       email: primaryAttendee.email || "",
       guests: guestListEmails,
       notes: booking.description || "",
+      rescheduleReason: "",
       customInputs: eventType.customInputs.reduce(
         (customInputs, input) => ({
           ...customInputs,
@@ -783,18 +789,31 @@ const BookingPage = ({
                     <label
                       htmlFor="notes"
                       className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("additional_notes")}
+                      {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
                     </label>
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
+                    {rescheduleUid ? (
+                      <textarea
+                        {...bookingForm.register("rescheduleReason")}
+                        id="rescheduleReason"
+                        name="rescheduleReason"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("reschedule_placeholder")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    ) : (
+                      <textarea
+                        {...bookingForm.register("notes")}
+                        id="notes"
+                        name="notes"
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={t("share_additional_notes")}
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
                   </div>
+
                   <div className="flex items-start space-x-2 rtl:space-x-reverse">
                     <Button
                       type="submit"
