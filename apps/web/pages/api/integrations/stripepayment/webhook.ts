@@ -1,1 +1,1 @@
-export { default, config } from "@ee/pages/api/integrations/stripepayment/webhook";
+export { config, default } from "@calcom/app-store/stripepayment/api/webhook";

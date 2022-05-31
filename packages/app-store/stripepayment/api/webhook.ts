@@ -5,16 +5,16 @@ import Stripe from "stripe";
 
 import EventManager from "@calcom/core/EventManager";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import stripe from "@calcom/stripe/server";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
-import { IS_PRODUCTION } from "@lib/config/constants";
-import { HttpError as HttpCode } from "@lib/core/http/error";
-import { sendScheduledEmails } from "@lib/emails/email-manager";
-
-import { getTranslation } from "@server/lib/i18n";
+// TODO: Figure an optimal way to share this code to app store (🤞 for circular dependencies)
+import { sendScheduledEmails } from "../../../../apps/web/lib/emails/email-manager";
 
 export const config = {
   api: {

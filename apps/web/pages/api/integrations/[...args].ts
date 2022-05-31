@@ -20,7 +20,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apiHandlers")).default;
     const handlers = await handlerMap[appName as keyof typeof handlerMap];
-    const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
+    const handler: NextApiHandler = handlers[apiEndpoint as keyof typeof handlers];
 
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
@@ -33,7 +33,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (error instanceof HttpError) {
       return res.status(error.statusCode).json({ message: error.message });
     }
-    return res.status(404).json({ message: `API handler not found` });
+    return res.status(500).json({ message: `Unkown error in apiHandlers` });
   }
 };
 
