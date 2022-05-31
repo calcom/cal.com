@@ -198,25 +198,23 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
   };
 
   const goToBillingPage = async () => {
-    async () => {
-      let url = "";
-      await saveIntentUsername();
+    let url = "";
+    await saveIntentUsername();
 
-      url = "/api/integrations/stripepayment/subscription";
-      const result = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: usernameChangeCondition?.toLowerCase(),
-          isPremiumUsername: premiumUsername,
-        }),
-        method: "POST",
-        mode: "cors",
-      });
-      const body = await result.json();
-      window.location.href = body.url;
-    };
+    url = "/api/integrations/stripepayment/subscription";
+    const result = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: usernameChangeCondition?.toLowerCase(),
+        isPremiumUsername: premiumUsername,
+      }),
+      method: "POST",
+      mode: "cors",
+    });
+    const body = await result.json();
+    window.location.href = body.url;
   };
 
   const saveUsername = () => {
