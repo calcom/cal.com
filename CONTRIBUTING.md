@@ -6,18 +6,23 @@ Contributions are what make the open source community such an amazing place to b
 
 ## Areas of expertise
 
+### Legend
+
+✅ = has knowledge 
+
+🥇 = is their main priority
+
+⚠️ = is the only one with knowledge 
+
+👀 = has no knowledge but wants to be onboarded 
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark=1">
+  <source media="(prefers-color-scheme: dark)" srcset="https://dynamic-svgs.vercel.app/image.svg?dark">
   <img alt="Areas of expertise table" src="https://dynamic-svgs.vercel.app/image.svg">
 </picture>
 
-### Legend
-Emoji | Meaning |
--- | -- |
-✅ | has knowledge |
-🥇 | is their main priority |
-⚠️ | is the only one with knowledge |
-👀 | has no knowledge but wants to be onboarded |
+
+
 
 ## Developing
 
