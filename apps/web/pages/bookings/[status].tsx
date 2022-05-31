@@ -4,7 +4,6 @@ import { Fragment } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Booking } from "@calcom/prisma/client";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 
@@ -61,13 +60,15 @@ export default function Bookings() {
   };
   const shownBookings: Record<string, boolean> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (!booking.recurringEventId) {
-      return true;
+    if (status === "recurring") {
+      if (!booking.recurringEventId) {
+        return true;
+      }
+      if (shownBookings[booking.recurringEventId]) {
+        return false;
+      }
+      shownBookings[booking.recurringEventId] = true;
     }
-    if (shownBookings[booking.recurringEventId]) {
-      return false;
-    }
-    shownBookings[booking.recurringEventId] = true;
     return true;
   };
   return (

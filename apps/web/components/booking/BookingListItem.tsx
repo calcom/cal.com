@@ -63,7 +63,7 @@ function BookingListItem(booking: BookingItemProps) {
        * Only pass down the recurring event id when we need to confirm the entire series, which happens in
        * the "Upcoming" tab, to support confirming discretionally in the "Recurring" tab.
        */
-      if (booking.listingStatus === "upcoming" && booking.recurringEventId !== null) {
+      if (booking.listingStatus === "recurring" && booking.recurringEventId !== null) {
         body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
       }
       const res = await fetch("/api/book/confirm", {
@@ -91,7 +91,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "reject",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("reject_all")
           : t("reject"),
       onClick: () => {
@@ -103,7 +103,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "confirm",
       label:
-        booking.listingStatus === "upcoming" && booking.recurringEventId !== null
+        booking.listingStatus === "recurring" && booking.recurringEventId !== null
           ? t("confirm_all")
           : t("confirm"),
       onClick: () => {
@@ -283,7 +283,7 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="text-sm text-gray-400">
               {booking.recurringCount &&
                 booking.eventType?.recurringEvent?.freq &&
-                booking.listingStatus === "upcoming" && (
+                booking.listingStatus === "recurring" && (
                   <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
                     <div className="flex">
                       <Tooltip

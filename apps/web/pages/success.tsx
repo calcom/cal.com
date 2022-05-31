@@ -618,7 +618,7 @@ function RecurringBookings({
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
-  return !isReschedule && recurringBookings && listingStatus === "upcoming" ? (
+  return !isReschedule && recurringBookings && listingStatus === "recurring" ? (
     <>
       {eventType.recurringEvent?.count &&
         recurringBookings.slice(0, 4).map((dateStr, idx) => (

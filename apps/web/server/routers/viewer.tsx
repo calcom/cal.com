@@ -327,11 +327,7 @@ const loggedInViewerRouter = createProtectedRouter()
             // handled separately for each occurrence
             OR: [
               {
-                AND: [
-                  { NOT: { recurringEventId: { equals: null } } },
-                  { confirmed: false },
-                  { NOT: { status: { equals: BookingStatus.REJECTED } } },
-                ],
+                AND: [{ NOT: { recurringEventId: { equals: null } } }, { confirmed: true }],
               },
               {
                 AND: [
@@ -348,6 +344,7 @@ const loggedInViewerRouter = createProtectedRouter()
             endTime: { gte: new Date() },
             AND: [
               { NOT: { recurringEventId: { equals: null } } },
+              { confirmed: false },
               { NOT: { status: { equals: BookingStatus.CANCELLED } } },
               { NOT: { status: { equals: BookingStatus.REJECTED } } },
             ],
