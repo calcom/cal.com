@@ -60,8 +60,11 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   await frame.click('[data-testid="incrementMonth"]');
+
   // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
+  // so it can click up on the right day, also when done, resolve other todos as well
+  // The problem is that the Month Text changes instantly but we don't know when the corresponding dates are visible
+
   // Waiting for full month increment
   await frame.waitForTimeout(2000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");

@@ -1,7 +1,5 @@
 name: E2E test - embed
 on:
-  push:
-    branches: [ tests/ci-embed ]
   pull_request_target: # So we can test on forks
     branches:
       - main
