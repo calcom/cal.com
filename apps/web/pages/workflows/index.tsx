@@ -3,12 +3,7 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
-import Dropdown, {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
+import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
 import { withQuery } from "@lib/QueryCell";
 import { inferQueryOutput } from "@lib/trpc";
@@ -23,7 +18,7 @@ export default function Workflows() {
   const { t } = useLocale();
 
   return (
-    <div>
+    <>
       <Shell
         heading={t("workflows")}
         subtitle={t("workflows_to_automate_notifications")}
@@ -31,7 +26,7 @@ export default function Workflows() {
         customLoader={<SkeletonLoader />}>
         <WithQuery success={({ data }) => <WorkflowList {...data} />} customLoader={<SkeletonLoader />} />
       </Shell>
-    </div>
+    </>
   );
 }
 
