@@ -16,7 +16,7 @@ on:
 jobs:
   test:
     timeout-minutes: 20
-    name:  Embed and booking flow(for non-embed as well)
+    name: Embed and booking flow(for non-embed as well)
     strategy:
       matrix:
         node: ["14.x"]
