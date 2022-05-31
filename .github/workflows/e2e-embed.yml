@@ -1,7 +1,5 @@
-name: E2E test - embed
+name: E2E test
 on:
-  push:
-    branches: [ tests/ci-embed ]
   pull_request_target: # So we can test on forks
     branches:
       - main
@@ -18,7 +16,7 @@ on:
 jobs:
   test:
     timeout-minutes: 20
-    name: Testing Embeds
+    name: Embed and booking flow(for non-embed as well)
     strategy:
       matrix:
         node: ["14.x"]
