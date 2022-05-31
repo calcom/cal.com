@@ -35,7 +35,7 @@ export const nextCollectBasicSettings: EventSinkOpts = {
       type: "jitsu",
       opts: {
         key: process.env.TELEMETRY_KEY,
-        // server: "https://t.calendso.com",
+        server: "https://t.calendso.com",
       },
     },
   ],
@@ -59,6 +59,7 @@ export const extendEventData = (req: NextApiRequest) => {
     title: "",
     ipAddress: "",
     queryString: "",
+    licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
     referrer: "",
     onVercel: !!req.headers["x-vercel-id"],
     isAuthorized: !!req.cookies["next-auth.session-token"],
