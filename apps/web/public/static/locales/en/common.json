@@ -894,5 +894,9 @@
   "delete_workflow_description": "Are you sure you want to delete this workflow?",
   "delete_workflow": "Delete Workflow",
   "confirm_delete_workflow": "Yes, delete workflow",
-  "workflow_deleted_successfully": "Workflow deleted successfully"
+  "workflow_deleted_successfully": "Workflow deleted successfully",
+  "how_long_before": "How long before event starts?",
+  "day_timeUnit": "Days",
+  "hour_timeUnit": "Hours",
+  "minute_timeUnit": "Minutes"
 }

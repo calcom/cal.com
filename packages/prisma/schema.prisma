@@ -518,5 +518,13 @@ model Workflow {
   user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventTypes EventType[]
   trigger    WorkflowTriggerEvents
+  time       Int?
+  timeUnit   TimeUnit?
   steps      WorkflowStep[]
+}
+
+enum TimeUnit {
+  DAY
+  HOUR
+  MINUTE
 }

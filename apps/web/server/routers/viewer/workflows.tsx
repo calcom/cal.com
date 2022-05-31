@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { WORKFLOW_TRIGGER_EVENTS } from "@lib/workflows/constants";
 import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
+import { TIME_UNIT } from "@lib/workflows/constants";
 
 import { createProtectedRouter } from "@server/createRouter";
 
@@ -21,9 +22,11 @@ export const workflowsRouter = createProtectedRouter()
       name: z.string(),
       trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
       action: z.enum(WORKFLOW_ACTIONS),
+      timeUnit: z.enum(TIME_UNIT).optional(),
+      time: z.number().optional(),
     }),
     async resolve({ ctx, input }) {
-      const { name, trigger, action } = input;
+      const { name, trigger, action, timeUnit, time } = input;
       const userId = ctx.user.id;
 
       try {
@@ -32,6 +35,8 @@ export const workflowsRouter = createProtectedRouter()
             name,
             trigger,
             userId,
+            timeUnit,
+            time,
           },
         });
 
