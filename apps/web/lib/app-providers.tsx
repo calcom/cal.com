@@ -16,7 +16,8 @@ const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.Rea
 ));
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = NextAppProps & {
+export type AppProps = Omit<NextAppProps, "Component"> & {
+  Component: NextAppProps["Component"] & { requiresLicense?: boolean };
   /** Will be defined only is there was an error */
   err?: Error;
 };

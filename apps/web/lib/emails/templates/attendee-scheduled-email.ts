@@ -428,12 +428,13 @@ ${getRichDescription(this.calEvent)}
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
       }</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${
-        (providerName === "Zoom" || providerName === "Google") &&
-        `
-          ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
-        `
-      }</p>
+      ${
+        providerName === "Zoom" || providerName === "Google"
+          ? `<p style="color: #494949; font-weight: 400; line-height: 24px;">
+              ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
+              </p>`
+          : ``
+      }
     </div>
     `;
   }
