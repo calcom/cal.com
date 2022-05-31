@@ -382,7 +382,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   {!rescheduleUid && eventType.recurringEvent?.count && eventType.recurringEvent?.freq && (
                     <div className="mb-3 text-gray-600 dark:text-white">
                       <RefreshIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4 text-gray-400" />
-                      <p className="mb-1 -ml-2 inline px-2 py-1">
+                      <p className="text-bookinglight mb-1 -ml-2 inline px-2 py-1">
                         {t("every_for_freq", {
                           freq: t(
                             `${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`
@@ -399,7 +399,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                           setRecurringEventCount(parseInt(event?.target.value));
                         }}
                       />
-                      <p className="inline text-gray-600 dark:text-white">
+                      <p className="text-bookinglight inline dark:text-white">
                         {t(`${RRuleFrequency[eventType.recurringEvent.freq].toString().toLowerCase()}`, {
                           count: recurringEventCount,
                         })}
