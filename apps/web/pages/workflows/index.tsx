@@ -1,15 +1,20 @@
 import { DotsHorizontalIcon, PencilIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
+import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 
 import { withQuery } from "@lib/QueryCell";
-import { inferQueryOutput } from "@lib/trpc";
+import { HttpError } from "@lib/core/http/error";
+import { inferQueryOutput, trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
+import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import { NewWorkflowButton } from "@components/workflows/NewWorkflowButton";
 
 const WithQuery = withQuery(["viewer.workflows.list"]);
@@ -32,6 +37,29 @@ export default function Workflows() {
 
 export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.list">): JSX.Element => {
   const { t } = useLocale();
+  const utils = trpc.useContext();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
+
+  const deleteMutation = trpc.useMutation("viewer.workflows.delete", {
+    onSuccess: async () => {
+      await utils.invalidateQueries(["viewer.workflows.list"]);
+      showToast(t("event_type_deleted_successfully"), "success");
+      setDeleteDialogOpen(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        setDeleteDialogOpen(false);
+      }
+    },
+  });
+
+  async function deleteEventTypeHandler(id: number) {
+    const payload = { id };
+    deleteMutation.mutate(payload);
+  }
 
   return (
     <div className="-mx-4 mb-16 overflow-hidden rounded-sm border border-gray-200 bg-white sm:mx-0">
@@ -73,7 +101,8 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                       <DropdownMenuItem>
                         <Button
                           onClick={() => {
-                            console.log("delete");
+                            setDeleteDialogOpen(true);
+                            setDeleteDialogTypeId(workflow.id);
                           }}
                           color="warn"
                           size="sm"
@@ -90,6 +119,20 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
           </li>
         ))}
       </ul>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          isLoading={deleteMutation.isLoading}
+          variety="danger"
+          title={t("delete_workflow")}
+          confirmBtnText={t("confirm_delete_workflow")}
+          loadingText={t("confirm_delete_workflow")}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteEventTypeHandler(deleteDialogTypeId);
+          }}>
+          {t("delete_workflow_description")}
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 };

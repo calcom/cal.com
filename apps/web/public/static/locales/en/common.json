@@ -890,5 +890,9 @@
   "workflows_to_automate_notifications": "Create workflows to automate notifications and reminders",
   "workflow_name": "Workflow name",
   "custom_workflow": "Custom workflow",
-  "workflow_created_successfully": "{{workflowName}} created successfully"
+  "workflow_created_successfully": "{{workflowName}} created successfully",
+  "delete_workflow_description": "Are you sure you want to delete this workflow?",
+  "delete_workflow": "Delete Workflow",
+  "confirm_delete_workflow": "Yes, delete workflow",
+  "workflow_deleted_successfully": "Workflow deleted successfully"
 }

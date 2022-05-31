@@ -47,4 +47,22 @@ export const workflowsRouter = createProtectedRouter()
         throw e;
       }
     },
+  })
+  .mutation("delete", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const { id } = input;
+
+      await ctx.prisma.workflow.deleteMany({
+        where: {
+          id,
+        },
+      });
+
+      return {
+        id,
+      };
+    },
   });
