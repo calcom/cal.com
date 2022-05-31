@@ -885,6 +885,7 @@
   "new_workflow_btn": "New workflow",
   "add_new_workflow": "Add a new workflow",
   "trigger": "Trigger",
+  "triggers": "Triggers",
   "action": "Action",
   "workflows_to_automate_notifications": "Create workflows to automate notifications and reminders"
 }

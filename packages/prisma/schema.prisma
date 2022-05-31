@@ -175,6 +175,7 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
+  workflows            Workflow[]
 
   Feedback Feedback[]
   @@map(name: "users")
@@ -503,17 +504,19 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id         Int                   @id @default(autoincrement())
+  id         Int             @id @default(autoincrement())
   stepNumber Int
-  action     WorkflowTriggerEvents
+  action     WorkflowActions
   workflowId Int
-  workflow   Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflow   Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
 
 model Workflow {
-  id        Int             @id @default(autoincrement())
+  id        Int                   @id @default(autoincrement())
   name      String
+  userId    Int
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventypes EventType[]
-  trigger   WorkflowActions
+  trigger   WorkflowTriggerEvents
   steps     WorkflowStep[]
 }
