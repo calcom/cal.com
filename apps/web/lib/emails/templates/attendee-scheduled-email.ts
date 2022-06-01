@@ -94,12 +94,14 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     };
   }
 
-  protected getTextBody(): string {
+  protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
     return `
 ${this.t(
-  this.recurringEvent?.count ? "your_event_has_been_scheduled_recurring" : "your_event_has_been_scheduled"
+  title || this.recurringEvent?.count
+    ? "your_event_has_been_scheduled_recurring"
+    : "your_event_has_been_scheduled"
 )}
-${this.t("emailed_you_and_any_other_attendees")}
+${this.t(subtitle)}
 
 ${getRichDescription(this.calEvent)}
 `.trim();
@@ -111,11 +113,19 @@ ${getRichDescription(this.calEvent)}
     return this.calEvent.attendees[0].timeZone;
   }
 
-  protected getInviteeStart(): Dayjs {
-    return dayjs(this.calEvent.startTime).tz(this.getTimezone());
+  protected getInviteeStart(): Dayjs;
+  protected getInviteeStart(format: string): string;
+  protected getInviteeStart(format?: string) {
+    const date = dayjs(this.calEvent.startTime).tz(this.getTimezone());
+    if (typeof format === "string") return date.format(format);
+    return date;
   }
 
-  protected getInviteeEnd(): Dayjs {
-    return dayjs(this.calEvent.endTime).tz(this.getTimezone());
+  protected getInviteeEnd(): Dayjs;
+  protected getInviteeEnd(format: string): string;
+  protected getInviteeEnd(format?: string) {
+    const date = dayjs(this.calEvent.endTime).tz(this.getTimezone());
+    if (typeof format === "string") return date.format(format);
+    return date;
   }
 }

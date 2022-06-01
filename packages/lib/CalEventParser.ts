@@ -116,23 +116,15 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
+export const getCancellationReason = (calEvent: CalendarEvent) => {
+  if (!calEvent.cancellationReason) return "";
+  return `
+${calEvent.organizer.language.translate("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
+};
+
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
-  // Only the original attendee can make changes to the event
-  // Guests cannot
-
-  if (attendee && attendee === calEvent.attendees[0]) {
-    return `
-${getWhat(calEvent)}
-${getWhen(calEvent)}
-${getWho(calEvent)}
-${calEvent.organizer.language.translate("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent)}
-${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
-  `.trim();
-  }
-
   return `
 ${getWhat(calEvent)}
 ${getWhen(calEvent)}
@@ -142,6 +134,11 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getCustomInputs(calEvent)}
-${getManageLink(calEvent)}
+${getCancellationReason(calEvent)}
+${
+  // Only the original attendee can make changes to the event
+  // Guests cannot
+  attendee && attendee.email === calEvent.attendees[0].email ? getManageLink(calEvent) : ""
+}
   `.trim();
 };
