@@ -254,19 +254,19 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                       </h1>
                       <div className="flex flex-col space-y-4">
                         {eventType?.description && (
-                          <p className="text-bookinglightdark:text-white">
+                          <p className="text-gray-600 dark:text-white">
                             <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                             {eventType.description}
                           </p>
                         )}
                         {eventType.locations.length === 1 && (
-                          <p className="text-bookinglight dark:text-white">
+                          <p className="text-gray-600 dark:text-white">
                             <LocationMarkerIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
                             {locationKeyToString(eventType.locations[0], t)}
                           </p>
                         )}
                         {eventType.locations.length === 1 && (
-                          <p className="text-bookinglight dark:text-white">
+                          <p className="text-gray-600 dark:text-white">
                             {Object.values(AppStoreLocationType).includes(
                               eventType.locations[0].type as unknown as AppStoreLocationType
                             ) ? (
@@ -278,7 +278,7 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                             {locationKeyToString(eventType.locations[0], t)}
                           </p>
                         )}
-                        <p className="text-bookinglight dark:text-white">
+                        <p className="text-gray-600 dark:text-white">
                           <ClockIcon className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                           {eventType.length} {t("minutes")}
                         </p>
