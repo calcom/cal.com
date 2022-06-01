@@ -186,11 +186,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
         });
-      // if (input.memberId)
-      // throw new TRPCError({
-      //   code: "FORBIDDEN",
-      //   message: "You can not remove yourself from a team you own.",
-      // });
       await ctx.prisma.membership.delete({
         where: {
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
