@@ -55,6 +55,8 @@ export const All = () => (
     </div>
     <h1>Destructive</h1>
     <ButtonComponent size="icon" color="destructive" StartIcon={Trash2} />
+    <h1>Tooltip</h1>
+    <ButtonComponent tooltip="Deletes EventTypes" size="icon" color="destructive" StartIcon={Trash2} />
   </div>
 );
 

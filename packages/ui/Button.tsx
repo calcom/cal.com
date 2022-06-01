@@ -1,19 +1,19 @@
 import Link, { LinkProps } from "next/link";
-import React, { forwardRef, Fragment } from "react";
+import React, { forwardRef } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
-import Tooltip from "./Tooltip";
+import { Tooltip } from "./Tooltip";
 
 export type ButtonBaseProps = {
   /* Primary: Signals most important actions at any given point in the application.
-     Secondary: Gives visual weight to actions that are important
-     Minimal: Used for actions that we want to give very little significane to */
+       Secondary: Gives visual weight to actions that are important
+       Minimal: Used for actions that we want to give very little significane to */
   color?: "primary" | "secondary" | "minimal" | "destructive";
   /**Default: H = 36px (default)
-     Large: H = 38px (Onboarding, modals)
-     Icon: Makes the button be an icon button */
+       Large: H = 38px (Onboarding, modals)
+       Icon: Makes the button be an icon button */
   size?: "base" | "lg" | "icon";
   /**Signals the button is loading */
   loading?: boolean;
@@ -135,13 +135,22 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {EndIcon && <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />}
     </>
   );
+
   return props.href ? (
     <Link passHref href={props.href} shallow={shallow && shallow}>
       {element}
     </Link>
   ) : (
-    element
+    <Wrapper tooltip={props.tooltip}>{element}</Wrapper>
   );
 });
+
+const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
+  if (!tooltip) {
+    return <>{children}</>;
+  }
+
+  return <Tooltip content={tooltip}>{children}</Tooltip>;
+};
 
 export default Button;
