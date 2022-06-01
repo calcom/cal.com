@@ -900,5 +900,6 @@
   "hour_timeUnit": "Hours",
   "minute_timeUnit": "Minutes",
   "new_workflow_heading": "Create your first workflow",
-  "new_workflow_description": "Workflows enable you to automate sending reminders and notifcations."
+  "new_workflow_description": "Workflows enable you to automate sending reminders and notifcations.",
+  "active_on": "Active on"
 }
