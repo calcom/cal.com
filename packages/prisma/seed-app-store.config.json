@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "name": "demo",
+    "dirName": "demo",
+    "categories": ["other"],
+    "type": "demo_other"
+  }
+]

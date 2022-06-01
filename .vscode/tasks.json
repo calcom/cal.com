@@ -16,8 +16,7 @@
         "Embed Core(3100)",
         "Embed React(3101)",
         "Prisma Studio(5555)",
-        "Maildev(587)",
-        "AppStoreCli:Watch"
+        "Maildev(587)"
       ],
       // Mark as the default build task so cmd/ctrl+shift+b will create them
       "group": {
@@ -76,9 +75,16 @@
       "problemMatcher": []
     },
     {
-      "label": "AppStoreCli:Watch",
+      "label": "AppStoreCli-build:watch",
       "type": "shell",
       "command": "cd packages/app-store-cli &&  yarn build:watch",
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "AppStoreWatch",
+      "type": "shell",
+      "command": "yarn app-store:watch",
       "isBackground": false,
       "problemMatcher": []
     }

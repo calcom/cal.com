@@ -17,7 +17,9 @@ export { getCalendar };
 
 export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
   const calendarCredentials = getApps(credentials)
-    .filter((app) => app.type.endsWith("_calendar"))
+    .filter((app) => {
+      return app.type.endsWith("_calendar");
+    })
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);

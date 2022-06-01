@@ -14,6 +14,9 @@ Change name and description
 
 ## TODO
 
+- Put lowercase and - restriction only on App name
+  - Add space restriction as well for Appname. Maybe look for valid dirname or slug regex
+- Merge app-store:watch and app-store commands, introduce app-store --watch
 - Get strong confirmation for deletion of app. Get the name of the app from user that he wants to delete
 - App Description Missing
 - Select Box for App Type

@@ -36,7 +36,7 @@ const BaseAppFork = {
     const appDirPath = getAppDirPath(appName);
     yield "Forking base app";
     execSync(`mkdir -p ${appDirPath}`);
-    execSync(`cp -r ${absolutePath("baseApp/*")} ${appDirPath}`);
+    execSync(`cp -r ${absolutePath("_baseApp/*")} ${appDirPath}`);
     updatePackageJson({ appName, appDirPath });
 
     let config = {
@@ -94,7 +94,7 @@ const Seed = {
 };
 
 const generateAppFiles = () => {
-  execSync(`cd ${appStoreDir} && node generate-apps.js`);
+  execSync(`cd ${appStoreDir} && node app-store.js`);
 };
 
 const CreateApp = ({ noDbUpdate }) => {
