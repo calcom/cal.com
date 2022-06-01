@@ -20,6 +20,11 @@ const tabs = [
     icon: UserIcon,
   },
   {
+    name: "teams",
+    href: "/settings/teams",
+    icon: UserGroupIcon,
+  },
+  {
     name: "security",
     href: "/settings/security",
     icon: KeyIcon,
@@ -28,11 +33,6 @@ const tabs = [
     name: "developer",
     href: "/settings/developer",
     icon: CodeIcon,
-  },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: UserGroupIcon,
   },
   {
     name: "billing",
