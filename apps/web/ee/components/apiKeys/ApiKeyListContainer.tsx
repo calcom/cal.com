@@ -11,6 +11,8 @@ import { QueryCell } from "@lib/QueryCell";
 import { trpc } from "@lib/trpc";
 
 import { List } from "@components/List";
+import { ShellSubHeading } from "@components/Shell";
+import SkeletonLoader from "@components/apps/SkeletonLoader";
 
 import LicenseRequired from "../LicenseRequired";
 
@@ -22,25 +24,28 @@ function ApiKeyListContainer() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | null>(null);
   return (
-    <>
-      <div className="flex flex-col justify-between truncate pl-2 pr-1 sm:flex-row">
-        <div className="mt-9">
-          <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">{t("api_keys")}</h2>
-          <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_keys_subtitle")}</p>
-        </div>
-        <div className="mb-9 sm:self-center">
-          <Button StartIcon={PlusIcon} color="secondary" onClick={() => setNewApiKeyModal(true)}>
-            {t("generate_new_api_key")}
-          </Button>
-        </div>
-      </div>
+    <div className="border-b border-gray-200 py-8 pl-2 pr-1">
+      <ShellSubHeading
+        className="mt-2"
+        title={t("api_keys")}
+        subtitle={t("api_keys_subtitle")}
+        actions={
+          <Button
+            color="secondary"
+            size="icon"
+            StartIcon={PlusIcon}
+            onClick={() => setNewApiKeyModal(true)}
+          />
+        }
+      />
       <LicenseRequired>
         <QueryCell
           query={query}
+          customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
               {data.length > 0 && (
-                <List className="pb-6">
+                <List className="mt-6">
                   {data.map((item) => (
                     <ApiKeyListItem
                       key={item.id}
@@ -80,7 +85,7 @@ function ApiKeyListContainer() {
           )}
         />
       </LicenseRequired>
-    </>
+    </div>
   );
 }
 
