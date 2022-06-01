@@ -1,5 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
+import { AlertCircle } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -17,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full rounded-sm border border-gray-300 py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
+        "my-2 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
         props.className
       )}
     />
@@ -76,7 +77,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            className={classNames(className, props.addOnLeading && "rounded-l-none")}
             {...passThrough}
             ref={ref}
           />
@@ -84,7 +85,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
-      {hint}
+      {hint && (
+        <div className="text-gray flex items-center text-xs text-gray-700">
+          <AlertCircle className="mr-1 h-3 w-3" />
+          {hint}
+        </div>
+      )}
       {methods?.formState?.errors[props.name] && (
         <Alert className="mt-1" severity="error" message={methods.formState.errors[props.name].message} />
       )}
