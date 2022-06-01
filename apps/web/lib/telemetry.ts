@@ -1,6 +1,7 @@
-import { NextApiRequest } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { EventSinkOpts, PageEvent } from "next-collect";
 import { useCollector } from "next-collect/client";
+import { NextRequest, NextResponse } from "next/server";
 
 export const telemetryEventTypes = {
   pageView: "page_view",
@@ -20,10 +21,11 @@ export function collectPageParameters(
   route?: string,
   extraData: Record<string, unknown> = {}
 ): Record<string, unknown> {
-  const host = document.location.hostname;
+  const host = document.location.host;
   const docPath = route ?? "";
   return {
     page_url: route,
+    doc_encoding: document.characterSet,
     url: document.location.protocol + "//" + host + (docPath ?? ""),
     ...extraData,
   };
@@ -45,6 +47,7 @@ export const nextCollectBasicSettings: EventSinkOpts = {
     { "*.webmanifest": null },
     { "*.json": null },
     { "*.svg": null },
+    { "*.map": null },
     { "*.png": null },
     { "*.gif": null },
     { "/api/collect-events": null },
@@ -55,18 +58,23 @@ export const nextCollectBasicSettings: EventSinkOpts = {
   ],
 };
 
-export const extendEventData = (req: NextApiRequest) => {
-  const pageOverwrite: Partial<PageEvent> & any = {
+export const extendEventData = (req: NextRequest | NextApiRequest, res: NextResponse | NextApiResponse, original: any) => {
+  const onVercel = typeof req.headers?.get === "function" ? !!req.headers.get("x-vercel-id") : !!(req.headers as any)?.["x-vercel-id"];
+  const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  return {
     title: "",
     ipAddress: "",
     queryString: "",
+    page_url: pageUrl,
     licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
+    isTeamBooking: original?.isTeamBooking === undefined ? (pageUrl?.includes("team/") || undefined) : original?.isTeamBooking,
     referrer: "",
-    onVercel: !!req.headers["x-vercel-id"],
-    isAuthorized: !!req.cookies["next-auth.session-token"],
+    onVercel,
+    isAuthorized: !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
     utc_time: new Date().toISOString(),
   };
-  return pageOverwrite;
 };
+
+
 
 export const useTelemetry = useCollector;

@@ -23,6 +23,7 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import { useRouter } from "next/router";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -32,13 +33,14 @@ function TeamPage({ team }: TeamPageProps) {
   useExposePlanGlobally("PRO");
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
+  const router = useRouter();
 
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry]);
+  }, [telemetry, router.asPath]);
 
   const eventTypes = (
     <ul className="space-y-3">
