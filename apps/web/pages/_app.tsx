@@ -1,3 +1,4 @@
+import { EventCollectionProvider } from "next-collect/client";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
@@ -16,7 +17,6 @@ import { loggerLink } from "@trpc/client/links/loggerLink";
 import { withTRPC } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react";
 import { Maybe } from "@trpc/server";
-import { EventCollectionProvider } from "next-collect/client";
 
 import { ContractsProvider } from "../contexts/contractsContext";
 import "../styles/fonts.css";
@@ -32,24 +32,25 @@ function MyApp(props: AppProps) {
   }
   return (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-    <ContractsProvider>
-      <AppProviders {...props}>
-        <DefaultSeo {...seoConfig.defaultNextSeo} />
-        <I18nLanguageHandler />
-        <Head>
-          <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        </Head>
-        {Component.requiresLicense ? (
-          <LicenseRequired>
+      <ContractsProvider>
+        <AppProviders {...props}>
+          <DefaultSeo {...seoConfig.defaultNextSeo} />
+          <I18nLanguageHandler />
+          <Head>
+            <script
+              dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}></script>
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+          </Head>
+          {Component.requiresLicense ? (
+            <LicenseRequired>
+              <Component {...pageProps} err={err} />
+            </LicenseRequired>
+          ) : (
             <Component {...pageProps} err={err} />
-          </LicenseRequired>
-        ) : (
-          <Component {...pageProps} err={err} />
-        )}
-      </AppProviders>
-    </ContractsProvider>
-      </EventCollectionProvider>
+          )}
+        </AppProviders>
+      </ContractsProvider>
+    </EventCollectionProvider>
   );
 }
 
