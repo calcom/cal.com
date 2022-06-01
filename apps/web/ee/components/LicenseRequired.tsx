@@ -3,8 +3,7 @@ import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, FC, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
-
-import EmptyScreen from "@components/EmptyScreen";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
