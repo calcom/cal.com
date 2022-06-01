@@ -98,6 +98,12 @@ if (isInWatchMode) {
         debouncedGenerateFiles();
       }
     })
+    .on("change", (filePath) => {
+      if (filePath.endsWith("config.json")) {
+        console.log("Config file changed");
+        debouncedGenerateFiles();
+      }
+    })
     .on("unlinkDir", (dirPath) => {
       const appName = getAppName(dirPath);
       if (appName) {

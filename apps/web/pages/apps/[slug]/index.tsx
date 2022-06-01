@@ -49,6 +49,7 @@ const components = {
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
+      slug={data.slug}
       name={data.name}
       isGlobal={data.isGlobal}
       type={data.type}

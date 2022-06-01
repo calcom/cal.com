@@ -1,7 +1,7 @@
 {
   "name": "demo",
   "title": "it's a demo app",
-  "type": "other",
+  "type": "demo_other",
   "slug": "demo",
   "imageSrc": "/api/app-store/demo/icon.svg",
   "logo": "/api/app-store/demo/icon.svg",

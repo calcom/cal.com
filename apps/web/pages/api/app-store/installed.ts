@@ -7,8 +7,9 @@ import { getSession } from "@lib/auth";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   req.session = await getSession({ req });
   if (req.method === "GET" && req.session && req.session.user.id && req.query) {
-    const { "app-credential-type": appCredentialType } = req.query;
-    if (!appCredentialType && Array.isArray(appCredentialType)) {
+    const { "app-credential-type": slug } = req.query;
+
+    if (!slug && Array.isArray(slug)) {
       return res.status(400);
     }
 
@@ -16,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const installedApp = await prisma.credential.findFirst({
         where: {
-          type: appCredentialType as string,
+          appId: slug as string,
           userId: userId,
         },
       });

@@ -113,7 +113,7 @@ const CreateApp = ({ noDbUpdate }) => {
   const fieldName = fields[inputIndex]?.name || "";
   const fieldValue = appInputData[fieldName] || "";
   const appName = appInputData["appName"];
-  const appType = appInputData["appType"];
+  const appType = `${appName}_${appInputData["appType"]}`;
   const appTitle = appInputData["appTitle"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];

@@ -8,11 +8,11 @@ import _package from "./package.json";
 export const metadata = {
   description: _package.description,
   category: "other",
+  installed: true,
   rating: 0,
   reviews: 0,
   trending: true,
   verified: true,
-  email: "CLI_BASE__PUBLISHER_EMAIL",
   ...config,
 } as App;
 

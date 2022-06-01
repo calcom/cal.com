@@ -14,16 +14,29 @@ Change name and description
 
 ## TODO
 
-- Put lowercase and - restriction only on App name
-  - Add space restriction as well for Appname. Maybe look for valid dirname or slug regex
-- Merge app-store:watch and app-store commands, introduce app-store --watch
-- Get strong confirmation for deletion of app. Get the name of the app from user that he wants to delete
-- App Description Missing
-- Select Box for App Type
-- Credentials table doesn't get new entries with cli. Figure out how to do it.
-- App already exists check. Ask user to run edit/regenerate command
-- Allow deletion of App, cleaning up everything
-  - folder
-  - prisma credentials table
-  - seed.config.json
-- Using app/config.json -> Allow Editing App Details.
+- Beta Release
+  - Handle legacy apps which have dirname as something else and type as something else. type is used to do lookups with key
+  - Add comment in config.json that this file shouldn't be modified manually.
+  - Install button not coming
+  - Put lowercase and - restriction only on slug. Keep App Name and others unchanged. Also, use slug instead of appName for dirNames
+    - Add space restriction as well for Appname. Maybe look for valid dirname or slug regex
+  - Get strong confirmation for deletion of app. Get the name of the app from user that he wants to delete
+  - App Description Missing
+  - Select Box for App Type
+    - App types Validations
+  - Credentials table doesn't get new entries with cli. Figure out how to do it.
+  - Using app/config.json -> Allow Editing App Details.
+    - Edit App Type, Description, Title, Publisher Name, Email - Name shouldn't be allowed to change as that is unique.
+  
+- Improvements
+  - Merge app-store:watch and app-store commands, introduce app-store --watch
+  - Allow inputs in non interactive way as well - That would allow easily copy pasting commands.
+  - Maybe get dx to run app-store:watch
+  - App already exists check. Ask user to run edit/regenerate command
+
+## Roadmap
+
+- Allow editing and updating app from the cal app itself - including assets uploading when developing locally.
+- Improvements in shared code across app
+  - Use baseApp/api/add.ts for all apps with configuration of credentials creation and redirection URL.
+  

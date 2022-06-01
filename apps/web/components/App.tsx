@@ -21,6 +21,7 @@ import Badge from "@components/ui/Badge";
 export default function App({
   name,
   type,
+  slug,
   logo,
   body,
   categories,
@@ -36,6 +37,7 @@ export default function App({
   privacy,
 }: {
   name: string;
+  slug: string;
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
@@ -60,6 +62,7 @@ export default function App({
     useGrouping: false,
   }).format(price);
   const [installedApp, setInstalledApp] = useState(false);
+
   useEffect(() => {
     async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
@@ -80,8 +83,9 @@ export default function App({
         }
       }
     }
-    getInstalledApp(type);
-  }, [type]);
+    getInstalledApp(slug);
+  }, [slug]);
+
   return (
     <>
       <Shell large isPublic>

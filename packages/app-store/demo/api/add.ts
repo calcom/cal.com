@@ -2,16 +2,18 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import appConfig from "../config.json";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   // TODO: Define appType once and import everywhere
-  const appType = "CLI_BASE__APP_NAME_CLI_BASE__APP_TYPE";
+  const slug = appConfig.slug;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
-        type: appType,
+        appId: slug,
         userId: req.session.user.id,
       },
     });
@@ -20,17 +22,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const installation = await prisma.credential.create({
       data: {
-        type: appType,
+        // TODO: Why do we need type in Credential? Why can't we simply use appId
+        type: slug,
         key: {},
         userId: req.session.user.id,
-        appId: "CLI_BASE__APP_NAME",
+        appId: slug,
       },
     });
     if (!installation) {
-      throw new Error("Unable to create user credential for CLI_BASE__APP_NAME");
+      throw new Error(`Unable to create user credential for ${slug}`);
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
+      console.error(error.message);
       return res.status(500).json({ message: error.message });
     }
     return res.status(500);
