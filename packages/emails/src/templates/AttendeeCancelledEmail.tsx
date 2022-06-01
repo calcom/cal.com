@@ -4,7 +4,7 @@ export const AttendeeCancelledEmail = (props: React.ComponentProps<typeof Attend
   <AttendeeScheduledEmail
     title="event_request_cancelled"
     headerType="xCircle"
-    headTitle="event_cancelled_subject"
+    subject="event_cancelled_subject"
     callToAction={null}
     {...props}
   />

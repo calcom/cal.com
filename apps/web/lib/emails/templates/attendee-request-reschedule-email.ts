@@ -112,7 +112,7 @@ ${getCancelLink(this.calEvent)}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 
-  protected getHtmlBody(): string {
+  public getHtmlBody(): string {
     const headerContent = this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,

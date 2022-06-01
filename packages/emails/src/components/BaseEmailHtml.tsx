@@ -18,7 +18,7 @@ const Html = (props: { children: React.ReactNode }) => (
 export const BaseEmailHtml = (props: {
   children: React.ReactNode;
   callToAction?: React.ReactNode;
-  headTitle: string;
+  subject: string;
   title: string;
   subtitle: string;
   headerType: BodyHeadType;
@@ -91,31 +91,32 @@ export const BaseEmailHtml = (props: {
           <RawHtml
             html={`<!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" className="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />
-          {props.callToAction && (
-            <div
-              style={{
-                background: "#FFFFFF",
-                backgroundColor: "#FFFFFF",
-                margin: "0px auto",
-                maxWidth: 600,
-              }}>
-              <Row
-                align="center"
-                border="0"
-                style={{ background: "#FFFFFF", backgroundColor: "#FFFFFF", width: "100%" }}>
-                <td
-                  style={{
-                    borderBottom: "1px solid #E1E1E1",
-                    borderLeft: "1px solid #E1E1E1",
-                    borderRight: "1px solid #E1E1E1",
-                    direction: "ltr",
-                    fontSize: 0,
-                    padding: 0,
-                    textAlign: "center",
-                  }}>
-                  <RawHtml
-                    html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td className="" style="vertical-align:top;width:598px;" ><![endif]-->`}
-                  />
+
+          <div
+            style={{
+              background: "#FFFFFF",
+              backgroundColor: "#FFFFFF",
+              margin: "0px auto",
+              maxWidth: 600,
+            }}>
+            <Row
+              align="center"
+              border="0"
+              style={{ background: "#FFFFFF", backgroundColor: "#FFFFFF", width: "100%" }}>
+              <td
+                style={{
+                  borderBottom: "1px solid #E1E1E1",
+                  borderLeft: "1px solid #E1E1E1",
+                  borderRight: "1px solid #E1E1E1",
+                  direction: "ltr",
+                  fontSize: 0,
+                  padding: 0,
+                  textAlign: "center",
+                }}>
+                <RawHtml
+                  html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td className="" style="vertical-align:top;width:598px;" ><![endif]-->`}
+                />
+                {props.callToAction && (
                   <div
                     className="mj-column-per-100 mj-outlook-group-fix"
                     style={{
@@ -155,11 +156,11 @@ export const BaseEmailHtml = (props: {
                       </tbody>
                     </BaseTable>
                   </div>
-                  <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
-                </td>
-              </Row>
-            </div>
-          )}
+                )}
+                <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
+              </td>
+            </Row>
+          </div>
           <EmailBodyLogo />
           <RawHtml html={`<!--[if mso | IE]></td></tr></table><![endif]-->`} />
         </div>

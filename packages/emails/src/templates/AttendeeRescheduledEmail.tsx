@@ -4,7 +4,7 @@ export const AttendeeRescheduledEmail = (props: React.ComponentProps<typeof Atte
   <AttendeeScheduledEmail
     title="event_has_been_rescheduled"
     headerType="calendarCircle"
-    headTitle="rescheduled_event_type_subject"
+    subject="rescheduled_event_type_subject"
     {...props}
   />
 );

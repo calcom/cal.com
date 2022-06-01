@@ -4,6 +4,7 @@ import timezone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
+import { TFunction } from "next-i18next";
 import rrule from "rrule";
 
 import { getAppName } from "@calcom/app-store/utils";
@@ -29,12 +30,14 @@ dayjs.extend(toArray);
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   recurringEvent: RecurringEvent;
+  t: TFunction;
 
   constructor(calEvent: CalendarEvent, recurringEvent: RecurringEvent) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.recurringEvent = recurringEvent;
+    this.t = this.calEvent.organizer.language.translate;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -105,18 +108,16 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     };
   }
 
-  protected getTextBody(): string {
+  protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
     return `
-${this.calEvent.organizer.language.translate(
-  this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
-)}
-${this.calEvent.organizer.language.translate("emailed_you_and_any_other_attendees")}
+${this.t(title || this.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled")}
+${this.t(subtitle)}
 
 ${getRichDescription(this.calEvent)}
 `.trim();
   }
 
-  protected getHtmlBody(): string {
+  public getHtmlBody(): string {
     const headerContent = this.calEvent.organizer.language.translate("confirmed_event_type_subject", {
       eventType: this.calEvent.type,
       name: this.calEvent.attendees[0].name,

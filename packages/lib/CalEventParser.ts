@@ -140,5 +140,12 @@ ${
   // Guests cannot
   attendee && attendee.email === calEvent.attendees[0].email ? getManageLink(calEvent) : ""
 }
+${
+  calEvent.paymentInfo &&
+  `
+${calEvent.organizer.language.translate("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+}
   `.trim();
 };
