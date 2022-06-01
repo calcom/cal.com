@@ -164,8 +164,10 @@ export default function Success(props: SuccessProps) {
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
-  const [locationFromEventType] = eventType.locations as Array<{ type: string }>;
-  const locationType = locationFromEventType?.type || "";
+  const locationFromEventType = !!eventType.locations
+    ? (eventType.locations as Array<{ type: string }>)[0]
+    : "";
+  const locationType = !!locationFromEventType ? locationFromEventType.type : "";
   const eventNameObject = {
     attendeeName,
     eventType: props.eventType.title,

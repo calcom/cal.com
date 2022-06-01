@@ -361,8 +361,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const seed = `${organizerUser.username}:${dayjs(req.body.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const [location] = eventType.locations as Array<{ type: string }>;
-  const locationType = location?.type || "";
+  const location = !!eventType.locations ? (eventType.locations as Array<{ type: string }>)[0] : "";
+  const locationType = !!location && location.type ? location.type : "";
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
     eventType: eventType.title,
