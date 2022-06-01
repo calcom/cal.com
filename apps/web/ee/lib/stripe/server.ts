@@ -12,12 +12,6 @@ import { CalendarEvent } from "@calcom/types/Calendar";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@lib/emails/email-manager";
 
-export type PaymentInfo = {
-  link?: string | null;
-  reason?: string | null;
-  id?: string | null;
-};
-
 const stripeKeysSchema = z.object({
   payment_fee_fixed: z.number(),
   payment_fee_percentage: z.number(),
