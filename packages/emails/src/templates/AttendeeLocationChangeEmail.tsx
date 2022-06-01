@@ -8,5 +8,3 @@ export const AttendeeLocationChangeEmail = (props: React.ComponentProps<typeof A
     {...props}
   />
 );
-
-export default AttendeeLocationChangeEmail;

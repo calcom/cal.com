@@ -16,5 +16,3 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
     {...props}
   />
 );
-
-export default AttendeeRequestEmail;

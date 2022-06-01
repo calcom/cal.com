@@ -116,16 +116,9 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
-export const getCancellationReason = (calEvent: CalendarEvent) => {
-  if (!calEvent.cancellationReason) return "";
-  return `
-${calEvent.organizer.language.translate("cancellation_reason")}:
-${calEvent.cancellationReason}
- `;
-};
-
 export const getRichDescription = (calEvent: CalendarEvent, attendee?: Person) => {
   return `
+${getCancellationReason(calEvent)}
 ${getWhat(calEvent)}
 ${getWhen(calEvent)}
 ${getWho(calEvent)}
@@ -134,7 +127,6 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getCustomInputs(calEvent)}
-${getCancellationReason(calEvent)}
 ${
   // Only the original attendee can make changes to the event
   // Guests cannot
@@ -148,4 +140,12 @@ ${calEvent.paymentInfo.link}
 `
 }
   `.trim();
+};
+
+export const getCancellationReason = (calEvent: CalendarEvent) => {
+  if (!calEvent.cancellationReason) return "";
+  return `
+${calEvent.organizer.language.translate("cancellation_reason")}:
+${calEvent.cancellationReason}
+ `;
 };

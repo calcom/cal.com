@@ -13,5 +13,3 @@ export const AttendeeScheduledEmail = (
     <BaseScheduledEmail timeZone={props.attendee.timeZone} t={props.attendee.language.translate} {...props} />
   );
 };
-
-export default AttendeeScheduledEmail;

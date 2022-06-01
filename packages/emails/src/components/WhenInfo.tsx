@@ -41,6 +41,7 @@ export function WhenInfo(props: {
     <div>
       <Info
         label={`${t("when")} ${getRecurringWhen(props)}`}
+        lineThrough={!!props.calEvent.cancellationReason}
         description={
           <>
             {props.recurringEvent?.count ? `${t("starting")} ` : ""}

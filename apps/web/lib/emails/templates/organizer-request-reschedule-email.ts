@@ -5,16 +5,9 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
-import { getCancelLink } from "@calcom/lib/CalEventParser";
+import { renderEmail } from "@calcom/emails";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
-import {
-  emailHead,
-  emailSchedulingBodyHeader,
-  emailBodyLogo,
-  emailScheduledBodyHeaderContent,
-  emailSchedulingBodyDivider,
-} from "./common";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 dayjs.extend(utc);
@@ -38,19 +31,28 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
+      subject: `${this.t("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
-        date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
-          "h:mma"
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart().format("dddd").toLowerCase()
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart().format("MMMM").toLowerCase()
-        )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
+        date: `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
+          this.getOrganizerStart("dddd").toLowerCase()
+        )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart(
+          "D"
+        )}, ${this.getOrganizerStart("YYYY")}`,
       })}`,
-      html: this.getHtmlBody(),
-      text: this.getTextBody(),
+      html: renderEmail("OrganizerScheduledEmail", {
+        calEvent: this.calEvent,
+        attendee: this.calEvent.organizer,
+        recurringEvent: this.recurringEvent,
+      }),
+      text: this.getTextBody(
+        this.t("request_reschedule_title_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        }),
+        this.t("request_reschedule_subtitle_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        })
+      ),
     };
   }
 
@@ -64,11 +66,18 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
-      title: this.calEvent.organizer.language.translate("ics_event_title", {
+      title: this.t("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       }),
-      description: this.getTextBody(),
+      description: this.getTextBody(
+        this.t("request_reschedule_title_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        }),
+        this.t("request_reschedule_subtitle_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        })
+      ),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
       attendees: this.calEvent.attendees.map((attendee: Person) => ({
@@ -82,111 +91,5 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
       throw icsEvent.error;
     }
     return icsEvent.value;
-  }
-  // @OVERRIDE
-  protected getWhen(): string {
-    return `
-    <p style="height: 6px"></p>
-    <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.calEvent.organizer.language.translate("when")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;text-decoration: line-through;">
-      ${this.calEvent.organizer.language.translate(
-        this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.organizer.language.translate(
-      this.getOrganizerStart().format("MMMM").toLowerCase()
-    )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format(
-      "YYYY"
-    )} | ${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
-      "h:mma"
-    )} <span style="color: #888888">(${this.getTimezone()})</span>
-      </p>
-    </div>`;
-  }
-
-  protected getTextBody(): string {
-    return `
-${this.calEvent.organizer.language.translate("request_reschedule_title_organizer", {
-  attendee: this.calEvent.attendees[0].name,
-})}
-${this.calEvent.organizer.language.translate("request_reschedule_subtitle_organizer", {
-  attendee: this.calEvent.attendees[0].name,
-})},
-${this.calEvent.cancellationReason && this.getReason()}
-${this.getWhat()}
-${this.getWhen()}
-${this.getLocation()}
-${this.getAdditionalNotes()}
-${this.getCustomInputs()}
-${this.calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
-${getCancelLink(this.calEvent)}
-`.replace(/(<([^>]+)>)/gi, "");
-  }
-
-  protected getHtmlBody(): string {
-    const headerContent = this.calEvent.organizer.language.translate("rescheduled_event_type_subject", {
-      eventType: this.calEvent.type,
-      name: this.calEvent.attendees[0].name,
-      date: `${this.getOrganizerStart().format("h:mma")} - ${this.getOrganizerEnd().format(
-        "h:mma"
-      )}, ${this.calEvent.organizer.language.translate(
-        this.getOrganizerStart().format("dddd").toLowerCase()
-      )}, ${this.calEvent.organizer.language.translate(
-        this.getOrganizerStart().format("MMMM").toLowerCase()
-      )} ${this.getOrganizerStart().format("D")}, ${this.getOrganizerStart().format("YYYY")}`,
-    });
-
-    return `
-    <!doctype html>
-    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-    ${emailHead(headerContent)}
-    <body style="word-spacing:normal;background-color:#F5F5F5;">
-      <div style="background-color:#F5F5F5;">
-        ${emailSchedulingBodyHeader("calendarCircle")}
-        ${emailScheduledBodyHeaderContent(
-          this.calEvent.organizer.language.translate("request_reschedule_title_organizer", {
-            attendee: this.calEvent.attendees[0].name,
-          }),
-          this.calEvent.organizer.language.translate("request_reschedule_subtitle_organizer", {
-            attendee: this.calEvent.attendees[0].name,
-          })
-        )}
-        ${emailSchedulingBodyDivider()}
-        <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-        <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;max-width:600px;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;">
-            <tbody>
-              <tr>
-                <td style="border-left:1px solid #E1E1E1;border-right:1px solid #E1E1E1;direction:ltr;font-size:0px;padding:0px;text-align:center;">
-                  <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:598px;" ><![endif]-->
-                  <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                      <tbody>
-                        <tr>
-                          <td align="left" style="font-size:0px;padding:10px 40px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:1;text-align:left;color:#3E3E3E;">
-                              ${this.calEvent.cancellationReason && this.getReason()}    
-                              ${this.getWhat()}
-                              ${this.getWhen()}
-                              ${this.getWho()}
-                              ${this.getAdditionalNotes()}
-                              ${this.getCustomInputs()}
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <!--[if mso | IE]></td></tr></table><![endif]-->
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        ${emailBodyLogo()}
-        <!--[if mso | IE]></td></tr></table><![endif]-->
-      </div>
-    </body>
-    </html>
-    `;
   }
 }

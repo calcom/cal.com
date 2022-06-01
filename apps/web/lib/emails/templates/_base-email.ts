@@ -1,10 +1,32 @@
+import dayjs, { Dayjs } from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import timezone from "dayjs/plugin/timezone";
+import toArray from "dayjs/plugin/toArray";
+import utc from "dayjs/plugin/utc";
 import nodemailer from "nodemailer";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(localizedFormat);
+dayjs.extend(toArray);
+
 export default class BaseEmail {
   name = "";
+
+  protected getTimezone() {
+    return "";
+  }
+
+  protected getRecipientTime(time: string): Dayjs;
+  protected getRecipientTime(time: string, format: string): string;
+  protected getRecipientTime(time: string, format?: string) {
+    const date = dayjs(time).tz(this.getTimezone());
+    if (typeof format === "string") return date.format(format);
+    return date;
+  }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};

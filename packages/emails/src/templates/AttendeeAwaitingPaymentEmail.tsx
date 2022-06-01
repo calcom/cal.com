@@ -34,5 +34,3 @@ export const AttendeeAwaitingPaymentEmail = (props: React.ComponentProps<typeof 
     {...props}
   />
 );
-
-export default AttendeeAwaitingPaymentEmail;

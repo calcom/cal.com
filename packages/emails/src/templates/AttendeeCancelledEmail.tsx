@@ -9,5 +9,3 @@ export const AttendeeCancelledEmail = (props: React.ComponentProps<typeof Attend
     {...props}
   />
 );
-
-export default AttendeeCancelledEmail;

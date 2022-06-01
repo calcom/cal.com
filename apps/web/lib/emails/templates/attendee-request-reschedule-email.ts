@@ -9,11 +9,11 @@ import { getCancelLink } from "@calcom/lib/CalEventParser";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import {
-  emailHead,
-  emailSchedulingBodyHeader,
   emailBodyLogo,
+  emailHead,
   emailScheduledBodyHeaderContent,
   emailSchedulingBodyDivider,
+  emailSchedulingBodyHeader,
 } from "./common";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 

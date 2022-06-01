@@ -5,6 +5,7 @@ export const Info = (props: {
   description: React.ReactNode | undefined | null;
   extraInfo?: React.ReactNode;
   withSpacer?: boolean;
+  lineThrough?: boolean;
 }) => {
   if (!props.description) return null;
   return (
@@ -12,7 +13,14 @@ export const Info = (props: {
       {props.withSpacer && <Spacer />}
       <div style={{ lineHeight: "6px" }}>
         <p style={{ color: "#494949" }}>{props.label}</p>
-        <p style={{ color: "#494949", fontWeight: 400, lineHeight: "24px", whiteSpace: "pre-wrap" }}>
+        <p
+          style={{
+            color: "#494949",
+            fontWeight: 400,
+            lineHeight: "24px",
+            whiteSpace: "pre-wrap",
+            textDecoration: props.lineThrough ? "line-through" : undefined,
+          }}>
           {props.description}
         </p>
         {props.extraInfo}

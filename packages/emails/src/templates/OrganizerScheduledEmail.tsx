@@ -20,5 +20,3 @@ export const OrganizerScheduledEmail = (
     />
   );
 };
-
-export default OrganizerScheduledEmail;

@@ -19,18 +19,40 @@ export const BaseEmailHtml = (props: {
   children: React.ReactNode;
   callToAction?: React.ReactNode;
   subject: string;
-  title: string;
-  subtitle: string;
-  headerType: BodyHeadType;
+  title?: string;
+  subtitle?: string;
+  headerType?: BodyHeadType;
 }) => {
   return (
     <Html>
-      <EmailHead title={props.title} />
+      <EmailHead title={props.subject} />
       <body style={{ wordSpacing: "normal", backgroundColor: "#F5F5F5" }}>
         <div style={{ backgroundColor: "#F5F5F5" }}>
-          <EmailSchedulingBodyHeader headerType={props.headerType} />
-          <EmailScheduledBodyHeaderContent title={props.title} subtitle={props.subtitle} />
-          <EmailSchedulingBodyDivider />
+          <RawHtml
+            html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
+          />
+          <div style={{ margin: "0px auto", maxWidth: 600 }}>
+            <Row align="center" border="0" style={{ width: "100%" }}>
+              <td
+                style={{
+                  direction: "ltr",
+                  fontSize: "0px",
+                  padding: "0px",
+                  paddingTop: "40px",
+                  textAlign: "center",
+                }}>
+                <RawHtml
+                  html={`<!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr></tr></table><![endif]-->`}
+                />
+              </td>
+            </Row>
+          </div>
+          {props.headerType && <EmailSchedulingBodyHeader headerType={props.headerType} />}
+          {props.title && props.subtitle && (
+            <EmailScheduledBodyHeaderContent title={props.title} subtitle={props.subtitle} />
+          )}
+          {(props.headerType || props.title || props.subtitle) && <EmailSchedulingBodyDivider />}
+
           <RawHtml
             html={`<!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" className="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />
