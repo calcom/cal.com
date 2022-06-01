@@ -347,10 +347,12 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
                   </h1>
                   <div className="flex flex-col space-y-4">
                     {eventType?.description && (
-                      <p className="text-gray-600 dark:text-white">
-                        <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
-                        {eventType.description}
-                      </p>
+                      <div className="flex text-gray-600 dark:text-white">
+                        <div>
+                          <InformationCircleIcon className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-400" />
+                        </div>
+                        <p>{eventType.description}</p>
+                      </div>
                     )}
                     {eventType.locations.length === 1 && (
                       <p className="text-gray-600  dark:text-white">
