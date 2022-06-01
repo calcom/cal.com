@@ -10592,10 +10592,10 @@ next-auth@^4.3.4:
     preact-render-to-string "^5.1.19"
     uuid "^8.3.2"
 
-next-collect@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/next-collect/-/next-collect-0.0.3.tgz#b9c965d708020d447bfc54b3e0307778f8db81f4"
-  integrity sha512-AfSZgUOWBkBs/D5pVgwf5kx+9jyL12/kcwzusplplfhndFq3U4slLfHtKTQ81460p1NMXGGELMnu/cP+T6x9UA==
+next-collect@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/next-collect/-/next-collect-0.0.4.tgz#7ae52c7491de697ef94969a8d5b564c413211e22"
+  integrity sha512-JRO8Gaqaog9SiDDfV8mkJrJgSBqYs0p2qiFRSZ6U5wu4JQVqtdv6HjTsOe27cMlz+TQPRRjb3wpvTt9ktPylxA==
   dependencies:
     cookie "^0.5.0"
 
