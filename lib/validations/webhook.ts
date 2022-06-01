@@ -26,7 +26,7 @@ const schemaWebhookBaseBodyParams = Webhook.pick({
 
 export const schemaWebhookCreateParams = z
   .object({
-    id: z.string(),
+    // id: z.string(),
     subscriberUrl: z.string().url(),
     eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
     active: z.boolean(),
