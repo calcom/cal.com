@@ -42,6 +42,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       state: { values },
       id: view_id,
     },
+    response_url,
   } = JSON.parse(req.body.payload);
   // This is a mess I have no idea why slack makes getting infomation this hard.
   const {
@@ -63,6 +64,9 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
       event_start_time: { selected_time },
     },
   } = values;
+
+  // Send a slack OK response
+  res.status(200).send("")
 
   // Im sure this query can be made more efficient... The JSON filtering wouldnt work when doing it directly on user.
   const foundUser = await db.credential
@@ -136,12 +140,21 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
     })
     .then((body) => {
       if (body.errorCode) {
-        client.views.update({
-          view_id,
-          view: ErrorModal(body.message),
-        });
+        fetch(response_url, {
+          method: "POST",
+          body: JSON.stringify({
+            replace_original: "true",
+            blocks: ErrorModal(body.message)
+          })
+        })
       } else {
-        client.views.update({ view_id, view: SucessModal() });
+        fetch(response_url, {
+          method: "POST",
+          body: JSON.stringify({
+            replace_original: "true",
+            blocks: SucessModal()
+          })
+        })
       }
     });
 }
@@ -149,6 +162,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
 const ErrorModal = (message: string) =>
   Modal({ title: "Create Event Error" })
     .blocks(
+
       Blocks.Section({ text: "Hey!" }),
       Blocks.Section({ text: ":warning: There appears to be an error" }),
       Blocks.Section({ text: message })
