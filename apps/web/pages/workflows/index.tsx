@@ -1,3 +1,4 @@
+import { CalendarIcon, LightningBoltIcon } from "@heroicons/react/outline";
 import { DotsHorizontalIcon, PencilIcon, TrashIcon } from "@heroicons/react/solid";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +13,7 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
+import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
@@ -29,11 +31,28 @@ export default function Workflows() {
         subtitle={t("workflows_to_automate_notifications")}
         CTA={<NewWorkflowButton />}
         customLoader={<SkeletonLoader />}>
-        <WithQuery success={({ data }) => <WorkflowList {...data} />} customLoader={<SkeletonLoader />} />
+        <WithQuery
+          success={({ data }) =>
+            data.workflows.length !== 0 ? <WorkflowList {...data} /> : <CreateFirstWorkflowView />
+          }
+          customLoader={<SkeletonLoader />}
+        />
       </Shell>
     </>
   );
 }
+
+const CreateFirstWorkflowView = () => {
+  const { t } = useLocale();
+
+  return (
+    <EmptyScreen
+      Icon={LightningBoltIcon}
+      headline={t("new_workflow_heading")}
+      description={t("new_workflow_description")}
+    />
+  );
+};
 
 export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.list">): JSX.Element => {
   const { t } = useLocale();
