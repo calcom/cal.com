@@ -15,6 +15,7 @@ Change name and description
 ## TODO
 
 - Beta Release
+  - Print slug after creation of app. Also, mention that it would be same as dir name
   - Handle legacy apps which have dirname as something else and type as something else. type is used to do lookups with key
   - Add comment in config.json that this file shouldn't be modified manually.
   - Install button not coming
@@ -34,9 +35,16 @@ Change name and description
   - Maybe get dx to run app-store:watch
   - App already exists check. Ask user to run edit/regenerate command
 
+### Why we shouldn't have appType
+
+- App can have multiple types and thus categories is more suitable for this.
+- The reason we seem to be using appType is to refer to an app uniquely but we already have app slug for that.
+
 ## Roadmap
 
 - Allow editing and updating app from the cal app itself - including assets uploading when developing locally.
 - Improvements in shared code across app
   - Use baseApp/api/add.ts for all apps with configuration of credentials creation and redirection URL.
+- Delete creation side effects if App creation fails - Might make debugging difficult
+  - This is so that web app doesn't break because of additional app folders or faulty db-seed
   

@@ -5,12 +5,20 @@ import TextInput from "ink-text-input";
 import path from "path";
 import React, { FC, useEffect, useRef, useState } from "react";
 
-function sanitizeAppName(value: string): string {
-  return value.toLowerCase().replace(/-/g, "_");
+const slugify = (str: string) => {
+  // It is to be a valid dir name, a valid JS variable name and a valid URL path
+  return str.replace(/[^a-zA-Z0-9-]/g, "_").toLowerCase();
+};
+
+function getSlugFromAppName(appName: string | null): string | null {
+  if (!appName) {
+    return appName;
+  }
+  return slugify(appName);
 }
 
-function getAppDirPath(appName: any) {
-  return path.join(appStoreDir, `${appName}`);
+function getAppDirPath(slug: any) {
+  return path.join(appStoreDir, `${slug}`);
 }
 
 const appStoreDir = path.resolve(__dirname, "..", "..", "app-store");
@@ -24,29 +32,30 @@ const execSync = (...args) => {
 function absolutePath(appRelativePath) {
   return path.join(appStoreDir, appRelativePath);
 }
-const updatePackageJson = ({ appName, appDirPath }) => {
+const updatePackageJson = ({ slug, appDirPath }) => {
   const packageJsonConfig = JSON.parse(fs.readFileSync(`${appDirPath}/package.json`).toString());
-  packageJsonConfig.name = `@calcom/${appName}`;
+  packageJsonConfig.name = `@calcom/${slug}`;
   // packageJsonConfig.description = `@calcom/${appName}`;
   fs.writeFileSync(`${appDirPath}/package.json`, JSON.stringify(packageJsonConfig, null, 2));
 };
 
 const BaseAppFork = {
-  create: function* ({ appType, appName, appTitle, publisherName, publisherEmail }) {
-    const appDirPath = getAppDirPath(appName);
+  create: function* ({ appType, appName, slug, appTitle, publisherName, publisherEmail }) {
+    const appDirPath = getAppDirPath(slug);
     yield "Forking base app";
     execSync(`mkdir -p ${appDirPath}`);
     execSync(`cp -r ${absolutePath("_baseApp/*")} ${appDirPath}`);
-    updatePackageJson({ appName, appDirPath });
+    updatePackageJson({ slug, appDirPath });
 
     let config = {
       name: appName,
       title: appTitle,
-      type: appType,
-      slug: appName,
-      imageSrc: `/api/app-store/${appName}/icon.svg`,
-      logo: `/api/app-store/${appName}/icon.svg`,
-      url: `https://cal.com/apps/${appName}`,
+      // @deprecated - It shouldn't exist.
+      type: slug,
+      slug: slug,
+      imageSrc: `/api/app-store/${slug}/icon.svg`,
+      logo: `/api/app-store/${slug}/icon.svg`,
+      url: `https://cal.com/apps/${slug}`,
       variant: appType,
       publisher: publisherName,
       email: publisherEmail,
@@ -59,22 +68,21 @@ const BaseAppFork = {
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
     yield "Forked base app";
   },
-  delete: function ({ appName }) {
-    const appDirPath = getAppDirPath(appName);
+  delete: function ({ slug }) {
+    const appDirPath = getAppDirPath(slug);
     execSync(`rm -rf ${appDirPath}`);
   },
 };
 
 const Seed = {
   seedConfigPath: absolutePath("../prisma/seed-app-store.config.json"),
-  update: function ({ appName, appType, noDbUpdate }) {
+  update: function ({ slug, appType, noDbUpdate }) {
     const seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
-    if (!seedConfig.find((app) => app.name === appName)) {
+    if (!seedConfig.find((app) => app.slug === slug)) {
       seedConfig.push({
-        name: appName,
-        dirName: appName,
+        dirName: slug,
         categories: [appType],
-        type: `${appName}_${appType}`,
+        slug: slug,
       });
     }
 
@@ -83,12 +91,12 @@ const Seed = {
       execSync(`cd ${workspaceDir} && yarn db-seed`);
     }
   },
-  revert: async function ({ appName, noDbUpdate }) {
+  revert: async function ({ slug, noDbUpdate }) {
     let seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
-    seedConfig = seedConfig.filter((app) => app.name !== appName);
+    seedConfig = seedConfig.filter((app) => app.slug !== slug);
     fs.writeFileSync(this.seedConfigPath, JSON.stringify(seedConfig, null, 2));
     if (!noDbUpdate) {
-      execSync(`yarn workspace @calcom/prisma delete-app ${appName}`);
+      execSync(`yarn workspace @calcom/prisma delete-app ${slug}`);
     }
   },
 };
@@ -113,23 +121,23 @@ const CreateApp = ({ noDbUpdate }) => {
   const fieldName = fields[inputIndex]?.name || "";
   const fieldValue = appInputData[fieldName] || "";
   const appName = appInputData["appName"];
-  const appType = `${appName}_${appInputData["appType"]}`;
+  const appType = appInputData["appType"];
   const appTitle = appInputData["appTitle"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
   const [result, setResult] = useState("...");
-  const { exit } = useApp();
+  const slug = getSlugFromAppName(appName);
   const allFieldsFilled = inputIndex === fields.length;
 
   useEffect(() => {
     // When all fields have been filled
     if (allFieldsFilled) {
-      const it = BaseAppFork.create({ appType, appName, appTitle, publisherName, publisherEmail });
+      const it = BaseAppFork.create({ appType, appName, slug, appTitle, publisherName, publisherEmail });
       for (const item of it) {
         setResult(item);
       }
 
-      Seed.update({ appName, appType, noDbUpdate });
+      Seed.update({ slug, appType, noDbUpdate });
 
       generateAppFiles();
 
@@ -162,9 +170,6 @@ const CreateApp = ({ noDbUpdate }) => {
           });
         }}
         onChange={(value) => {
-          if (value) {
-            value = sanitizeAppName(value);
-          }
           setAppInputData((appInputData) => {
             return {
               ...appInputData,
@@ -177,24 +182,23 @@ const CreateApp = ({ noDbUpdate }) => {
   );
 };
 
-const DeleteApp = ({ noDbUpdate, appName }) => {
-  appName = sanitizeAppName(appName);
-  BaseAppFork.delete({ appName });
-  Seed.revert({ appName });
+const DeleteApp = ({ noDbUpdate, slug }) => {
+  BaseAppFork.delete({ slug });
+  Seed.revert({ slug });
   generateAppFiles();
-  return <Text>Deleted App {appName}.</Text>;
+  return <Text>Deleted App {slug}.</Text>;
 };
 
-const App: FC<{ noDbUpdate?: boolean; command: "create" | "delete"; appName?: string }> = ({
+const App: FC<{ noDbUpdate?: boolean; command: "create" | "delete"; slug?: string }> = ({
   command,
   noDbUpdate,
-  appName,
+  slug,
 }) => {
   if (command === "create") {
     return <CreateApp noDbUpdate={noDbUpdate} />;
   }
   if (command === "delete") {
-    return <DeleteApp appName={appName} noDbUpdate={noDbUpdate} />;
+    return <DeleteApp slug={slug} noDbUpdate={noDbUpdate} />;
   }
 };
 module.exports = App;

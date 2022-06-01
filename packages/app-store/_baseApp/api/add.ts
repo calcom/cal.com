@@ -28,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const installation = await prisma.credential.create({
       data: {
         // TODO: Why do we need type in Credential? Why can't we simply use appId
+        // Using slug as type for new credentials so that we keep on using type in requests.
+        // `deriveAppKeyFromSlug` should be able to handle old type and new type which is equal to slug
         type: slug,
         key: {},
         userId: req.session.user.id,

@@ -18,7 +18,7 @@ const cli = meow(
       noDbUpdate: {
         type: "boolean",
       },
-      name: {
+      slug: {
         type: "string",
       },
     },
@@ -35,9 +35,9 @@ if (command !== "create" && command != "delete") {
   cli.showHelp();
 }
 
-let appName = null;
+let slug = null;
 
 if (command === "delete") {
-  appName = cli.flags.name;
+  slug = cli.flags.slug;
 }
-render(<App appName={appName} command={command} noDbUpdate={cli.flags.noDbUpdate} />);
+render(<App slug={slug} command={command} noDbUpdate={cli.flags.noDbUpdate} />);

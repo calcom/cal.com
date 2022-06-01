@@ -6,23 +6,21 @@
     "node": ">=10"
   },
   "scripts": {
-    "build:watch": "tsc --watch",
-    "build": "tsc && chmod +x dist/cli.js",
-    "start": "npm run build && dist/cli.js",
-    "pretest": "npm run build",
     "test": "ava",
-    "cli": "chmod +x dist/cli.js && dist/cli.js"
+    "cli": "ts-node --transpile-only src/cli.tsx"
   },
   "files": [
     "dist/cli.js"
   ],
   "dependencies": {
+    "@calcom/lib": "*",
     "ink": "^3.2.0",
     "ink-text-input": "^4.0.3",
     "meow": "^9.0.0",
     "react": "^17.0.2"
   },
   "devDependencies": {
+    "ts-node": "^10.6.0",
     "@ava/typescript": "^3.0.1",
     "@types/react": "^18.0.9",
     "ava": "^4.2.0",

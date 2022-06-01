@@ -25,6 +25,9 @@ function getAppName(candidatePath) {
 }
 
 function generateFiles() {
+  let clientOutput = [`import dynamic from "next/dynamic"`];
+  let serverOutput = [];
+
   fs.readdirSync(`${__dirname}`).forEach(function (dir) {
     if (fs.statSync(`${__dirname}/${dir}`).isDirectory()) {
       if (!getAppName(dir)) {
@@ -33,9 +36,6 @@ function generateFiles() {
       appDirs.push(dir);
     }
   });
-
-  let clientOutput = [`import dynamic from "next/dynamic"`];
-  let serverOutput = [];
 
   function forEachAppDir(callback) {
     for (let i = 0; i < appDirs.length; i++) {
@@ -98,12 +98,12 @@ if (isInWatchMode) {
         debouncedGenerateFiles();
       }
     })
-    .on("change", (filePath) => {
-      if (filePath.endsWith("config.json")) {
-        console.log("Config file changed");
-        debouncedGenerateFiles();
-      }
-    })
+    // .on("change", (filePath) => {
+    //   if (filePath.endsWith("config.json")) {
+    //     console.log("Config file changed");
+    //     debouncedGenerateFiles();
+    //   }
+    // })
     .on("unlinkDir", (dirPath) => {
       const appName = getAppName(dirPath);
       if (appName) {

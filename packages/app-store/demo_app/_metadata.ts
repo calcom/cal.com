@@ -8,6 +8,7 @@ import _package from "./package.json";
 export const metadata = {
   description: _package.description,
   category: "other",
+  // FIXME: Currently for an app to be shown as installed, it must have this variable set. Either hardcoded or if it depends on some env variable, that should be checked here
   installed: true,
   rating: 0,
   reviews: 0,

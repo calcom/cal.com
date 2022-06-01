@@ -1,28 +1,9 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
+import { deriveAppKeyFromSlug } from "@calcom/lib/deriveAppKeyFromSlug";
+
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-
-function getSlugFromLegacy(legacySlug) {
-  const oldTypes = ["video", "other", "calendar", "web3", "payment", "messaging"];
-
-  // There can be two types of legacy slug
-  // - zoom_video
-  // - zoomvideo
-
-  // Transform `zoom_video` to `zoomvideo`;
-  let slug = legacySlug.split("_").join("");
-
-  // Transform zoomvideo to zoom
-  oldTypes.some((type) => {
-    const matcher = new RegExp(`(.+)${type}$`);
-    if (legacySlug.match(matcher)) {
-      slug = legacySlug.replace(matcher, "$1");
-      return true;
-    }
-  });
-  return slug;
-}
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
@@ -34,13 +15,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ message: `API route not found` });
   }
 
-  const [_appName, apiEndpoint] = args;
-  const appName = getSlugFromLegacy(_appName);
+  const [appName, apiEndpoint] = args;
   try {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apps.generated")).apiHandlers;
-    const handlerKey = appName as keyof typeof handlerMap;
-    console.log(handlerKey);
+
+    const handlerKey = deriveAppKeyFromSlug(appName, handlerMap);
     const handlers = await handlerMap[handlerKey];
     const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
 

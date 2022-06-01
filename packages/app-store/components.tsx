@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { deriveAppKeyFromSlug } from "@calcom/lib/deriveAppKeyFromSlug";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import Button from "@calcom/ui/Button";
@@ -15,14 +16,8 @@ export const InstallAppButton = (
 ) => {
   const { status } = useSession();
   const { t } = useLocale();
-  let appName = props.type.replace(/_/g, "");
-  let InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
-  /** So we can either call it by simple name (ex. `slack`, `giphy`) instead of
-   * `slackmessaging`, `giphyother` while maintaining retro-compatibility. */
-  if (!InstallAppButtonComponent) {
-    [appName] = props.type.split("_");
-    InstallAppButtonComponent = InstallAppButtonMap[appName as keyof typeof InstallAppButtonMap];
-  }
+  const key = deriveAppKeyFromSlug(props.type, InstallAppButtonMap);
+  const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")
     return (

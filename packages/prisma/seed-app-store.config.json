@@ -1,14 +1,12 @@
 [
   {
-    "name": "demo",
-    "dirName": "demo",
+    "dirName": "demo app",
     "categories": ["other"],
-    "type": "demo_other"
+    "slug": "demo app"
   },
   {
-    "name": "demovideo",
-    "dirName": "demovideo",
-    "categories": ["video"],
-    "type": "demovideo_video"
+    "dirName": "demo_app",
+    "categories": ["other"],
+    "slug": "demo_app"
   }
 ]

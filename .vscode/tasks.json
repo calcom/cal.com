@@ -75,13 +75,6 @@
       "problemMatcher": []
     },
     {
-      "label": "AppStoreCli-build:watch",
-      "type": "shell",
-      "command": "cd packages/app-store-cli &&  yarn build:watch",
-      "isBackground": false,
-      "problemMatcher": []
-    },
-    {
       "label": "AppStoreWatch",
       "type": "shell",
       "command": "yarn app-store:watch",

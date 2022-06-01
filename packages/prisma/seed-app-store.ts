@@ -139,7 +139,7 @@ async function main() {
   );
   for (let i = 0; i < generatedApps.length; i++) {
     const generatedApp = generatedApps[i];
-    await createApp(generatedApp.name, generatedApp.dirName, generatedApp.categories, generatedApp.type);
+    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
   }
 }
 
