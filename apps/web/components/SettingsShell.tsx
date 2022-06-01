@@ -1,4 +1,11 @@
-import { CreditCardIcon, KeyIcon, LockClosedIcon, UserGroupIcon, UserIcon } from "@heroicons/react/solid";
+import {
+  CreditCardIcon,
+  KeyIcon,
+  LockClosedIcon,
+  UserGroupIcon,
+  UserIcon,
+  CodeIcon,
+} from "@heroicons/react/solid";
 import React, { ComponentProps } from "react";
 
 import ErrorBoundary from "@lib/ErrorBoundary";
@@ -13,14 +20,19 @@ const tabs = [
     icon: UserIcon,
   },
   {
+    name: "teams",
+    href: "/settings/teams",
+    icon: UserGroupIcon,
+  },
+  {
     name: "security",
     href: "/settings/security",
     icon: KeyIcon,
   },
   {
-    name: "teams",
-    href: "/settings/teams",
-    icon: UserGroupIcon,
+    name: "developer",
+    href: "/settings/developer",
+    icon: CodeIcon,
   },
   {
     name: "billing",
