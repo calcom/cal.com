@@ -1,7 +1,6 @@
 import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 
 import EmailCommonDivider from "./EmailCommonDivider";
-import RawHtml from "./RawHtml";
 import Row from "./Row";
 
 export type BodyHeadType = "checkCircle" | "xCircle" | "calendarCircle";

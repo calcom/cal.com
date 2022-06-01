@@ -1,6 +1,6 @@
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { Info } from "../components";
+import { Info } from "./Info";
 
 export function CustomInputs(props: { calEvent: CalendarEvent }) {
   const { customInputs } = props.calEvent;

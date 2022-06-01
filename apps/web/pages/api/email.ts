@@ -3,8 +3,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { renderEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
-import TeamInviteEmail from "@lib/emails/templates/team-invite-email";
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const t = await getTranslation("en", "common");
 
@@ -46,21 +44,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
-  const requestRescheduleEmail = new TeamInviteEmail({
-    language: t,
-    from: "teampro@example.com",
-    to: "pro@example.com",
-    teamName: "Team Pro",
-    joinLink: "https://cal.com",
-  });
   res.write(
-    // requestRescheduleEmail.getHtmlBody()
-    renderEmail("TeamInviteEmail", {
-      language: t,
-      from: "teampro@example.com",
-      to: "pro@example.com",
-      teamName: "Team Pro",
-      joinLink: "https://cal.com",
+    renderEmail("OrganizerScheduledEmail", {
+      calEvent: evt,
+      attendee: evt.organizer,
+      recurringEvent: {},
     })
   );
   res.end();
