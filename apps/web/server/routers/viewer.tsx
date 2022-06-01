@@ -449,10 +449,8 @@ const loggedInViewerRouter = createProtectedRouter()
       const bookingsFetched = bookings.length;
 
       let nextCursor: typeof skip | null = skip;
-
       if (bookingsFetched > take) {
-        bookings.shift();
-        nextCursor += bookings.length;
+        nextCursor += bookingsFetched;
       } else {
         nextCursor = null;
       }
