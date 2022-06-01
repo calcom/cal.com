@@ -38,6 +38,7 @@ export const nextCollectBasicSettings: EventSinkOpts = {
         server: "https://t.calendso.com",
       },
     },
+    process.env.TELEMETRY_DEBUG && { type: "echo", opts: { disableColor: true } },
   ],
   eventTypes: [
     { "*.ttf": null },
