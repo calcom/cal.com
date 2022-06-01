@@ -93,7 +93,13 @@ export const WorkflowList = ({ workflows }: inferQueryOutput<"viewer.workflows.l
                       {workflow.name}
                     </div>
                     <div className="max-w-52 md:max-w-96 truncate text-sm text-gray-500">
-                      {t("triggers")} {t(`${workflow.trigger.toLowerCase()}_trigger`)}
+                      {t("triggers") + " "}
+                      {workflow.timeUnit && (
+                        <span>
+                          {workflow.time} {t(`${workflow.timeUnit.toLowerCase()}_timeUnit`)}{" "}
+                        </span>
+                      )}
+                      <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
                     </div>
                   </div>
                 </a>

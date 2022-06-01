@@ -79,9 +79,7 @@ export function NewWorkflowButton() {
   return (
     <Dialog name="new-workflow" clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button data-testid={name} StartIcon={PlusIcon}>
-          {t("new_workflow_btn")}
-        </Button>
+        <Button StartIcon={PlusIcon}>{t("new_workflow_btn")}</Button>
       </DialogTrigger>
       <DialogContent>
         <div className="mb-4">
@@ -200,6 +198,7 @@ export function NewWorkflowButton() {
                 color="secondary"
                 onClick={() => {
                   setShowTimeSection(false);
+                  form.setValue("name", "");
                 }}>
                 {t("cancel")}
               </Button>
