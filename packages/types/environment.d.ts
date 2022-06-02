@@ -10,6 +10,8 @@ declare namespace NodeJS {
      * - Acquire a commercial license to remove these terms by visiting: cal.com/sales
      **/
     readonly NEXT_PUBLIC_LICENSE_CONSENT: "agree" | undefined;
+    /** Needed to enable enterprise-only features */
+    readonly CALCOM_LICENSE_KEY: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;

@@ -16,7 +16,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v3

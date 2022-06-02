@@ -18,7 +18,7 @@ export default function ModalContainer(props: Props) {
         <DialogContent>
           <div
             className={classNames(
-              "inline-block transform bg-white text-left align-bottom transition-all sm:align-middle",
+              "inline-block w-full transform bg-white text-left align-bottom transition-all sm:align-middle",
               {
                 "sm:w-full sm:max-w-lg ": !props.wide,
                 "sm:w-4xl sm:max-w-4xl": props.wide,

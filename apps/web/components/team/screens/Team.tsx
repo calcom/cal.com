@@ -5,13 +5,12 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 import React from "react";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import Button from "@calcom/ui/Button";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
 import Avatar from "@components/ui/Avatar";
-import Text from "@components/ui/Text";
 
 type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];
@@ -52,14 +51,14 @@ const Team = ({ team }: TeamPageProps) => {
           <div>
             <Avatar
               alt={member.name || ""}
-              imageSrc={WEBSITE_URL + "/" + member.username + "/avatar.png"}
+              imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
               className="-mt-4 h-12 w-12"
             />
-            <section className="mt-2 w-full space-y-1">
-              <Text variant="title">{member.name}</Text>
-              <Text variant="subtitle" className="">
+            <section className="line-clamp-4 mt-2 w-full space-y-1">
+              <p className="font-medium text-neutral-900 dark:text-white">{member.name}</p>
+              <p className="text-sm font-normal text-neutral-500 dark:text-white">
                 {member.bio || t("user_from_team", { user: member.name, team: team.name })}
-              </Text>
+              </p>
             </section>
           </div>
         </div>

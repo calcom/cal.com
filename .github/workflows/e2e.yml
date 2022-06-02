@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - public/static/locales/**
+      - apps/web/public/static/locales/**
 jobs:
   test:
     timeout-minutes: 20

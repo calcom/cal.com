@@ -2,12 +2,12 @@ import { ClockIcon } from "@heroicons/react/outline";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import { NewScheduleButton } from "@components/availability/NewScheduleButton";
 import { ScheduleListItem } from "@components/availability/ScheduleListItem";
