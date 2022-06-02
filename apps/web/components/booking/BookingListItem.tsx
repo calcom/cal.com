@@ -25,6 +25,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 
 import { HttpError } from "@lib/core/http/error";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import { linkValueToString } from "@lib/linkValueToString";
 import { LocationType } from "@lib/location";
 import { parseRecurringDates } from "@lib/parseDate";
 import { inferQueryInput, inferQueryOutput, trpc } from "@lib/trpc";
@@ -211,7 +212,7 @@ function BookingListItem(booking: BookingItemProps) {
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
         location: booking.location
           ? booking.location.includes("integration")
-            ? (t("web_conferencing_details_to_follow") as string)
+            ? linkValueToString(booking.location, t)
             : booking.location
           : "",
         eventName: booking.eventType.eventName || "",
