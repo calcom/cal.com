@@ -175,13 +175,17 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      // Only a team owner can remove another team owner.
+      if (
+        (await isTeamOwner(input.memberId, input.teamId)) &&
+        !(await isTeamOwner(ctx.user?.id, input.teamId))
+      )
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       if (ctx.user?.id === input.memberId)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
         });
-
       await ctx.prisma.membership.delete({
         where: {
           userId_teamId: { userId: input.memberId, teamId: input.teamId },
@@ -351,7 +355,9 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      // Only owners can award owner role.
+      if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       const memberships = await ctx.prisma.membership.findMany({
         where: {
           teamId: input.teamId,
