@@ -1,6 +1,6 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
-import { deriveAppKeyFromSlug } from "@calcom/lib/deriveAppKeyFromSlug";
+import { deriveAppKeyFromType } from "@calcom/lib/deriveAppKeyFromSlug";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
@@ -20,10 +20,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apps.generated")).apiHandlers;
 
-    const handlerKey = deriveAppKeyFromSlug(appName, handlerMap);
+    const handlerKey = deriveAppKeyFromType(appName, handlerMap);
+    console.log(handlerKey);
     const handlers = await handlerMap[handlerKey];
     const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
-
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
 

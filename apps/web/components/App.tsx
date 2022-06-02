@@ -83,8 +83,8 @@ export default function App({
         }
       }
     }
-    getInstalledApp(slug);
-  }, [slug]);
+    getInstalledApp(type);
+  }, [type]);
 
   return (
     <>

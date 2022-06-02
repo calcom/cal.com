@@ -1,16 +1,19 @@
 ## Steps to create an app
 
-- Any files that you add here are automatically copied to new app created through the cli.
 - Create a folder in packages/app-store/{APP_NAME} = {APP}
 - Fill it with a sample app
   - Modify {APP}/_metadata.ts with the data provided
-- ## package.json
 
-Change name and description 
+## Approach
 
-**Variables**
+- appType is derived from App Name(a slugify operation that makes a string that can be used as a director name, a variable name for imports and a URL path).
+- appType is then used to create the app directory. It becomes `config.type` of config.json. config.type is the value used to create an entry in App table and retrieve any apps or credentials. It also becomes App.dirName
+- dirnames that don't start with _ are considered apps in packages/app-store and based on those apps .generated.ts* files are created. This allows pre-cli apps to keep on working.
+- app directory is populated with app-store/_baseApp with newly updated config.json and package.json
+- `packages/prisma/seed-app-store.config.json` is updated with new app.
 
-**PREFIXES**: 
+NOTE: After app-store-cli is live, Credential.appId and Credential.type would be same for new apps. For old apps they would remain different. Credential.type would be used to identify credentials in integrations call and Credential.appId/App.slug would be used to identify apps.
+If we rename all existing apps to their slug names, we can remove type and then use just appId to refer to things everywhere. This can be done later on.
 
 ## TODO
 
@@ -34,6 +37,7 @@ Change name and description
   - Allow inputs in non interactive way as well - That would allow easily copy pasting commands.
   - Maybe get dx to run app-store:watch
   - App already exists check. Ask user to run edit/regenerate command
+  - An app created through CLI should be able to completely skip API validation for testing purposes. Credentials should be created with no API specified specific to the app. It would allow us to test any app end to end not worrying about the corresponding API endpoint.
 
 ### Why we shouldn't have appType
 

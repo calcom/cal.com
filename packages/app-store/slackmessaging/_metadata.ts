@@ -14,7 +14,7 @@ export const metadata = {
   slug: "slack",
   title: "Slack App",
   trending: true,
-  type: "slack_messaging",
+  type: "slack_app" as App["type"],
   url: "https://slack.com/",
   variant: "conferencing",
   verified: true,

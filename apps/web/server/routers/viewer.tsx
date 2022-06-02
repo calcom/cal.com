@@ -622,7 +622,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
-          credentialIds: credentials.filter((c) => c.appId === app.slug).map((c) => c.id),
+          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
       // `flatMap()` these work like `.filter()` but infers the types correctly

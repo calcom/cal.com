@@ -43,16 +43,20 @@ function generateFiles() {
     }
   }
 
-  function getObjectExporter(objectName, { dirName, importBuilder, entryBuilder }) {
+  function getObjectExporter(objectName, { fileToBeImported, importBuilder, entryBuilder }) {
     const output = [];
     forEachAppDir((dirName) => {
-      output.push(importBuilder(dirName));
+      if (fs.existsSync(path.join(dirName, fileToBeImported))) {
+        output.push(importBuilder(dirName));
+      }
     });
 
     output.push(`export const ${objectName} = {`);
 
     forEachAppDir((dirName) => {
-      output.push(entryBuilder(dirName));
+      if (fs.existsSync(path.join(dirName, fileToBeImported))) {
+        output.push(entryBuilder(dirName));
+      }
     });
 
     output.push(`};`);
@@ -61,6 +65,7 @@ function generateFiles() {
 
   serverOutput.push(
     ...getObjectExporter("appStoreMetadata", {
+      fileToBeImported: "_metadata.ts",
       importBuilder: (dirName) => `import { metadata as ${dirName}_meta } from "./${dirName}/_metadata";`,
       entryBuilder: (dirName) => `${dirName}:${dirName}_meta,`,
     })
@@ -68,6 +73,7 @@ function generateFiles() {
 
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
+      fileToBeImported: "api/index.ts",
       importBuilder: (dirName) => `const ${dirName}_api = import("./${dirName}/api");`,
       entryBuilder: (dirName) => `${dirName}:${dirName}_api,`,
     })
@@ -75,6 +81,7 @@ function generateFiles() {
 
   clientOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
+      fileToBeImported: "components/InstallAppButton.tsx",
       importBuilder: (dirName) =>
         `const ${dirName}_installAppButton = dynamic(() =>import("./${dirName}/components/InstallAppButton"));`,
       entryBuilder: (dirName) => `${dirName}:${dirName}_installAppButton,`,
