@@ -2,7 +2,6 @@ import { IdentityProvider } from "@prisma/client";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import ApiKeyListContainer from "@ee/components/apiKeys/ApiKeyListContainer";
 import SAMLConfiguration from "@ee/components/saml/Configuration";
 
 import { identityProviderNameMap } from "@lib/auth";
@@ -37,7 +36,6 @@ export default function Security() {
         ) : (
           <div className="space-y-2 divide-y">
             <ChangePasswordSection />
-            <ApiKeyListContainer />
             <TwoFactorAuthSection twoFactorEnabled={user?.twoFactorEnabled || false} />
             <DisableUserImpersonation disableImpersonation={user?.disableImpersonation ?? true} />
           </div>
