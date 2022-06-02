@@ -333,13 +333,10 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    if (top !== window) {
-      telemetry.event(
-        telemetryEventTypes.embedBookingConfirmed,
-        collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
-      );
-    }
-
+    telemetry.event(
+      top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
+      { isTeamBooking: document.URL.includes("team/") }
+    );
     // "metadata" is a reserved key to allow for connecting external users without relying on the email address.
     // <...url>&metadata[user_id]=123 will be send as a custom input field as the hidden type.
 
