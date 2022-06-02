@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const appDirs = [];
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
@@ -27,6 +26,7 @@ function getAppName(candidatePath) {
 function generateFiles() {
   let clientOutput = [`import dynamic from "next/dynamic"`];
   let serverOutput = [];
+  const appDirs = [];
 
   fs.readdirSync(`${__dirname}`).forEach(function (dir) {
     if (fs.statSync(`${__dirname}/${dir}`).isDirectory()) {
@@ -105,12 +105,12 @@ if (isInWatchMode) {
         debouncedGenerateFiles();
       }
     })
-    // .on("change", (filePath) => {
-    //   if (filePath.endsWith("config.json")) {
-    //     console.log("Config file changed");
-    //     debouncedGenerateFiles();
-    //   }
-    // })
+    .on("change", (filePath) => {
+      if (filePath.endsWith("config.json")) {
+        console.log("Config file changed");
+        debouncedGenerateFiles();
+      }
+    })
     .on("unlinkDir", (dirPath) => {
       const appName = getAppName(dirPath);
       if (appName) {

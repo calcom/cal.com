@@ -1,7 +1,16 @@
 [
   {
     "dirName": "demo_app",
-    "categories": ["other"],
+    "categories": [
+      "other"
+    ],
     "slug": "demo_app"
+  },
+  {
+    "dirName": "demo_app_for_video",
+    "categories": [
+      "video"
+    ],
+    "slug": "demo_app_for_video"
   }
 ]

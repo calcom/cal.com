@@ -1,0 +1,13 @@
+{
+  "name": "Demo App For Video",
+  "title": "Demo app forVideo",
+  "type": "demo_app_for_video",
+  "slug": "demo_app_for_video",
+  "imageSrc": "/api/app-store/demo_app_for_video/icon.svg",
+  "logo": "/api/app-store/demo_app_for_video/icon.svg",
+  "url": "https://cal.com/apps/demo_app_for_video",
+  "variant": "video",
+  "publisher": "hari",
+  "email": "hari@gmail.com",
+  "description": "Description Demo AppVideo"
+}

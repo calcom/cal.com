@@ -1,10 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "@calcom/demo_app",
+  "name": "@calcom/demo_app_for_video",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "it is a demo app",
+  "description": "Description Demo AppVideo",
   "dependencies": {
     "@calcom/lib": "*"
   },

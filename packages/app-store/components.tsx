@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { deriveAppKeyFromType } from "@calcom/lib/deriveAppKeyFromSlug";
+import { deriveAppKeyFromSlugOrType } from "@calcom/lib/deriveAppKeyFromSlugOrType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
 import Button from "@calcom/ui/Button";
@@ -11,12 +11,12 @@ import { InstallAppButtonProps } from "./types";
 
 export const InstallAppButton = (
   props: {
-    type: App["type"];
+    slug: App["slug"];
   } & InstallAppButtonProps
 ) => {
   const { status } = useSession();
   const { t } = useLocale();
-  const key = deriveAppKeyFromType(props.type, InstallAppButtonMap);
+  const key = deriveAppKeyFromSlugOrType(props.slug, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent) return null;
   if (status === "unauthenticated")

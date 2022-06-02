@@ -18,34 +18,18 @@ If we rename all existing apps to their slug names, we can remove type and then 
 ## TODO
 
 - Beta Release
-  - Print slug after creation of app. Also, mention that it would be same as dir name
-  - Handle legacy apps which have dirname as something else and type as something else. type is used to do lookups with key
-  - Add comment in config.json that this file shouldn't be modified manually.
-  - Install button not coming
-  - Put lowercase and - restriction only on slug. Keep App Name and others unchanged. Also, use slug instead of appName for dirNames
-    - Add space restriction as well for Appname. Maybe look for valid dirname or slug regex
-  - Get strong confirmation for deletion of app. Get the name of the app from user that he wants to delete
-  - App Description Missing
-  - Select Box for App Type
-    - App types Validations
-  - Credentials table doesn't get new entries with cli. Figure out how to do it.
-  - Using app/config.json -> Allow Editing App Details.
-    - Edit App Type, Description, Title, Publisher Name, Email - Name shouldn't be allowed to change as that is unique.
+  - Show a warning somewhere that app directory must not be renamed manually, edit command must be used.
   
 - Improvements
+  - Prefill fields in edit command
   - Merge app-store:watch and app-store commands, introduce app-store --watch
   - Allow inputs in non interactive way as well - That would allow easily copy pasting commands.
-  - Maybe get dx to run app-store:watch
   - App already exists check. Ask user to run edit/regenerate command
   - An app created through CLI should be able to completely skip API validation for testing purposes. Credentials should be created with no API specified specific to the app. It would allow us to test any app end to end not worrying about the corresponding API endpoint.
-
-### Why we shouldn't have appType
-
-- App can have multiple types and thus categories is more suitable for this.
-- The reason we seem to be using appType is to refer to an app uniquely but we already have app slug for that.
+  -  Require assets path relative to app dir.
 
 ## Roadmap
-
+- Someone can add wrong directory name(which doesn't satisfy slug requirements) manually. How to handle it.
 - Allow editing and updating app from the cal app itself - including assets uploading when developing locally.
 - Improvements in shared code across app
   - Use baseApp/api/add.ts for all apps with configuration of credentials creation and redirection URL.

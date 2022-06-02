@@ -30,8 +30,10 @@ if (cli.input.length !== 1) {
   cli.showHelp();
 }
 
-const command = cli.input[0] as "create" | "delete";
-if (command !== "create" && command != "delete") {
+const command = cli.input[0] as "create" | "delete" | "edit";
+const supportedCommands = ["create", "delete", "edit"];
+
+if (!supportedCommands.includes(command)) {
   cli.showHelp();
 }
 
