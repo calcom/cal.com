@@ -25,6 +25,8 @@
         "^build",
         "@calcom/prisma#build",
         "$CALENDSO_ENCRYPTION_KEY",
+        "$CALCOM_LICENSE_KEY",
+        "$CALCOM_TELEMETRY_DISABLED",
         "$CRON_API_KEY",
         "$DAILY_API_KEY",
         "$DAILY_SCALE_PLAN",
@@ -65,7 +67,6 @@
         "$TANDEM_BASE_URL",
         "$TANDEM_CLIENT_ID",
         "$TANDEM_CLIENT_SECRET",
-        "$TELEMETRY_KEY",
         "$ZOOM_CLIENT_ID",
         "$ZOOM_CLIENT_SECRET"
       ],
