@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -76,6 +76,7 @@
     "jimp": "^0.16.1",
     "libphonenumber-js": "^1.9.53",
     "lodash": "^4.17.21",
+    "memory-cache": "^0.2.0",
     "micro": "^9.3.4",
     "mime-types": "^2.1.35",
     "next": "^12.1.6",
@@ -125,6 +126,7 @@
     "@types/glidejs__glide": "^3.4.2",
     "@types/jest": "^27.5.1",
     "@types/lodash": "^4.14.182",
+    "@types/memory-cache": "^0.2.2",
     "@types/micro": "7.3.6",
     "@types/mime-types": "^2.1.1",
     "@types/module-alias": "^2.0.1",

@@ -21,6 +21,7 @@ export const metadata = {
   trending: false,
   url: "https://cal.com/",
   verified: true,
+  isGlobal: true,
   email: "help@cal.com",
   locationType: LocationType.GoogleMeet,
   locationLabel: "Google Meet",

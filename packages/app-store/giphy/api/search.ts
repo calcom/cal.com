@@ -32,8 +32,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
     const locale = user?.locale || "en";
     const { keyword, offset } = req.body;
-    const gifImageUrl = await GiphyManager.searchGiphy(locale, keyword, offset);
-    return res.status(200).json({ image: gifImageUrl });
+    const { gifImageUrl, total } = await GiphyManager.searchGiphy(locale, keyword, offset);
+    return res.status(200).json({
+      image: gifImageUrl,
+      // rotate results to 0 offset when no more gifs
+      nextOffset: total === offset + 1 ? 0 : offset + 1,
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ message: error.message });

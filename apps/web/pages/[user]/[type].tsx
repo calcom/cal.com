@@ -3,6 +3,7 @@ import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
+import { locationHiddenFilter, LocationObject } from "@calcom/app-store/locations";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecurringEvent } from "@calcom/types/Calendar";
@@ -84,6 +85,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: true,
     periodDays: true,
     periodCountCalendarDays: true,
+    locations: true,
     schedulingType: true,
     recurringEvent: true,
     schedule: {
@@ -100,6 +102,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     timeZone: true,
     metadata: true,
     slotInterval: true,
+    seatsPerTimeSlot: true,
     users: {
       select: {
         avatar: true,
@@ -253,12 +256,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
   }
+  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
 
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: (eventType.metadata || {}) as JSONObject,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: (eventType.recurringEvent || {}) as RecurringEvent,
+    locations: locationHiddenFilter(locations),
   });
 
   const schedule = eventType.schedule
@@ -302,11 +307,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         weekStart: "Sunday",
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
       }
     : {
         name: user.name || user.username,

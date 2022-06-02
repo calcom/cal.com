@@ -417,12 +417,13 @@ ${getRichDescription(this.calEvent)}
       <p style="color: #494949; font-weight: 400; line-height: 24px;">${
         providerName || this.calEvent.location
       }</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;">${
-        (providerName === "Zoom" || providerName === "Google") &&
-        `
-          ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
-        `
-      }</p>
+      ${
+        providerName === "Zoom" || providerName === "Google"
+          ? `<p style="color: #494949; font-weight: 400; line-height: 24px;">
+              ${this.calEvent.organizer.language.translate("meeting_url_provided_after_confirmed")}
+              </p>`
+          : ``
+      }
     </div>
     `;
   }
@@ -437,5 +438,13 @@ ${getRichDescription(this.calEvent)}
 
   protected getOrganizerEnd(): Dayjs {
     return dayjs(this.calEvent.endTime).tz(this.getTimezone());
+  }
+
+  protected getReason(): string {
+    return `
+    <div style="line-height: 6px; margin-bottom: 24px;">
+      <p style="color: #494949;">${this.calEvent.attendees[0].language.translate("reschedule_reason")}</p>
+      <p style="color: #494949; font-weight: 400; line-height: 24px;">${this.calEvent.cancellationReason}</p>
+    </div>`;
   }
 }

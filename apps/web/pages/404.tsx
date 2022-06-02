@@ -15,7 +15,7 @@ export default function Custom404() {
   const { t } = useLocale();
 
   const router = useRouter();
-  const username = router.asPath.replace("%20", "-").split(/[?#]/)[0];
+  const [username] = router.asPath.replace("%20", "-").split(/[?#]/);
 
   const links = [
     {
@@ -35,10 +35,11 @@ export default function Custom404() {
   const [url, setUrl] = useState("https://cal.com/signup?username=");
   useEffect(() => {
     setUrl(`https://cal.com/signup?username=${username.replace("/", "")}`);
-  }, [username, router.query]);
+  }, [username]);
 
-  const isSubpage = router.asPath.includes("/", 2);
-  const isSignup = router.asPath.includes("/signup");
+  const isSuccessPage = router.asPath.startsWith("/success");
+  const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
+  const isSignup = router.asPath.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
 
   return (
@@ -177,7 +178,7 @@ export default function Custom404() {
               <div className="text-center">
                 <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
                 <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
-                  {t("page_doesnt_exist")}
+                  {isSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
                 </h1>
                 {isSubpage ? (
                   <span className="mt-2 inline-block text-lg ">

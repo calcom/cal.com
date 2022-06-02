@@ -1,17 +1,19 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { TextArea } from "@calcom/ui/form/fields";
 
-import { useLocale } from "@lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
 import Badge from "@components/ui/Badge";
+
+import LicenseRequired from "../LicenseRequired";
 
 export default function SAMLConfiguration({
   teamsView,
@@ -92,7 +94,7 @@ export default function SAMLConfiguration({
   return (
     <>
       {isSAMLLoginEnabled ? (
-        <>
+        <LicenseRequired>
           <hr className="mt-8" />
           <div className="mt-6">
             <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
@@ -157,7 +159,7 @@ export default function SAMLConfiguration({
             </div>
             <hr className="mt-4" />
           </form>
-        </>
+        </LicenseRequired>
       ) : null}
     </>
   );
