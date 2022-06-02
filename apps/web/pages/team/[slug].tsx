@@ -3,6 +3,7 @@ import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -32,17 +33,15 @@ function TeamPage({ team }: TeamPageProps) {
   useExposePlanGlobally("PRO");
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
+  const router = useRouter();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        telemetryEventTypes.pageView,
-        collectPageParameters("/team/[slug]", {
-          isTeamBooking: true,
-        })
-      )
+    telemetry.event(
+      telemetryEventTypes.pageView,
+      collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
-  }, [telemetry]);
+  }, [telemetry, router.asPath]);
+
   const eventTypes = (
     <ul className="space-y-3">
       {team.eventTypes.map((type) => (
