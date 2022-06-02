@@ -58,13 +58,12 @@ const InputOption = ({
   );
 };
 
-export default function MultiSelectCheckboxes() {
+type MultiSelectionCheckboxesProps = {
+  options: { label: string; value: string }[];
+};
+
+export default function MultiSelectCheckboxes({ options }: MultiSelectionCheckboxesProps) {
   const [selected, setSelected] = React.useState<Option[]>([]);
-  const options: Option[] = [
-    { value: "Event Type 1", label: "Event Type 1" },
-    { value: "Event Type 2", label: "Event Type 2" },
-    { value: "Event Type 3", label: "Event Type 3" },
-  ];
 
   return (
     <Select

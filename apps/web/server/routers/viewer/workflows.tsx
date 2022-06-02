@@ -17,6 +17,33 @@ export const workflowsRouter = createProtectedRouter()
       return { workflows };
     },
   })
+  .query("get", {
+    input: z.object({
+      id: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      const workflow = await ctx.prisma.workflow.findFirst({
+        where: {
+          AND: [
+            {
+              userId: ctx.user.id,
+            },
+            {
+              id: input.id,
+            },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          eventTypes: true,
+          trigger: true,
+          steps: true,
+        },
+      });
+      return workflow;
+    },
+  })
   .mutation("create", {
     input: z.object({
       name: z.string(),
