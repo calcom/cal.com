@@ -1,17 +1,13 @@
-import { jitsuClient, JitsuClient } from "@jitsu/sdk-js";
-import React, { useContext } from "react";
+import { NextApiRequest, NextApiResponse } from "next";
+import { EventSinkOpts } from "next-collect";
+import { useCollector } from "next-collect/client";
+// it's ok to do this since we're importing only types which are harmless
+// eslint-disable-next-line  @next/next/no-server-import-in-page
+import type { NextRequest, NextResponse } from "next/server";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var jitsu: JitsuClient | undefined;
-}
-
-/**
- * Enumeration of all event types that are being sent
- * to telemetry collection.
- */
 export const telemetryEventTypes = {
   pageView: "page_view",
+  apiCall: "api_call",
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
   importSubmitted: "import_submitted",
@@ -23,93 +19,73 @@ export const telemetryEventTypes = {
   embedBookingConfirmed: "embed_booking_confirmed",
 };
 
-/**
- * Telemetry client
- */
-export type TelemetryClient = {
-  /**
-   * Use it as: withJitsu((jitsu) => {return jitsu.track()}). If telemetry is disabled, the callback will ignored
-   *
-   * ATTENTION: always return the value of jitsu.track() or id() call. Otherwise unhandled rejection can happen,
-   * which is handled in Next.js with a popup.
-   */
-  withJitsu: (callback: (jitsu: JitsuClient) => void | Promise<void>) => void;
-};
-
-const emptyClient: TelemetryClient = {
-  withJitsu: () => {
-    // empty
-  },
-};
-
-function useTelemetry(): TelemetryClient {
-  return useContext(TelemetryContext);
-}
-
-function isLocalhost(host: string) {
-  return "localhost" === host || "127.0.0.1" === host;
-}
-
-/**
- * Collects page parameters and makes sure no sensitive data made it to telemetry
- * @param route current next.js route
- */
 export function collectPageParameters(
   route?: string,
   extraData: Record<string, unknown> = {}
 ): Record<string, unknown> {
-  const host = document.location.hostname;
-  const maskedHost = isLocalhost(host) ? "localhost" : "masked";
-  //starts with ''
+  const host = document.location.host;
   const docPath = route ?? "";
   return {
     page_url: route,
-    page_title: "",
-    source_ip: "",
+    doc_encoding: document.characterSet,
     url: document.location.protocol + "//" + host + (docPath ?? ""),
-    doc_host: maskedHost,
-    doc_search: "",
-    doc_path: docPath,
-    referer: "",
     ...extraData,
   };
 }
 
-function createTelemetryClient(): TelemetryClient {
-  if (process.env.NEXT_PUBLIC_TELEMETRY_KEY) {
-    return {
-      withJitsu: (callback) => {
-        if (!process.env.NEXT_PUBLIC_TELEMETRY_KEY) {
-          //telemetry is disabled
-          return;
-        }
-        if (!window) {
-          console.warn("Jitsu has been called during SSR, this scenario isn't supported yet");
-          return;
-        } else if (!window["jitsu"]) {
-          window["jitsu"] = jitsuClient({
-            log_level: "ERROR",
-            tracking_host: "https://t.calendso.com",
-            key: process.env.NEXT_PUBLIC_TELEMETRY_KEY,
-            cookie_name: "__clnds",
-            capture_3rd_party_cookies: false,
-          });
-        }
-        const res = callback(window["jitsu"]);
-        if (res && typeof res["catch"] === "function") {
-          res.catch((e) => {
-            console.debug("Unable to send telemetry event", e);
-          });
-        }
+export const nextCollectBasicSettings: EventSinkOpts = {
+  drivers: [
+    process.env.TELEMETRY_KEY && {
+      type: "jitsu",
+      opts: {
+        key: process.env.TELEMETRY_KEY,
+        server: "https://t.calendso.com",
       },
-    };
-  } else {
-    return emptyClient;
-  }
-}
+    },
+    process.env.TELEMETRY_DEBUG && { type: "echo", opts: { disableColor: true } },
+  ],
+  eventTypes: [
+    { "*.ttf": null },
+    { "*.webmanifest": null },
+    { "*.json": null },
+    { "*.svg": null },
+    { "*.map": null },
+    { "*.png": null },
+    { "*.gif": null },
+    { "/api/collect-events": null },
+    { "/api*": null },
+    { "/img*": null },
+    { "/favicon*": null },
+    { "/*": telemetryEventTypes.pageView },
+  ],
+};
 
-const TelemetryContext = React.createContext<TelemetryClient>(emptyClient);
+export const extendEventData = (
+  req: NextRequest | NextApiRequest,
+  res: NextResponse | NextApiResponse,
+  original: any
+) => {
+  const onVercel =
+    typeof req.headers?.get === "function"
+      ? !!req.headers.get("x-vercel-id")
+      : !!(req.headers as any)?.["x-vercel-id"];
+  const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  return {
+    title: "",
+    ipAddress: "",
+    queryString: "",
+    page_url: pageUrl,
+    licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
+    isTeamBooking:
+      original?.isTeamBooking === undefined
+        ? pageUrl?.includes("team/") || undefined
+        : original?.isTeamBooking,
+    referrer: "",
+    onVercel,
+    isAuthorized:
+      !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
+    utc_time: new Date().toISOString(),
+  };
+};
 
-const TelemetryProvider = TelemetryContext.Provider;
-
-export { TelemetryContext, TelemetryProvider, createTelemetryClient, useTelemetry };
+export const useTelemetry = useCollector;

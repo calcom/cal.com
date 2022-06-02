@@ -74,7 +74,7 @@ export default function SAMLConfiguration({
     const rawMetadata = samlConfigRef.current.value;
 
     // track Google logins. Without personal data/payload
-    telemetry.withJitsu((jitsu) => jitsu.track(telemetryEventTypes.samlConfig, collectPageParameters()));
+    telemetry.event(telemetryEventTypes.samlConfig, collectPageParameters());
 
     mutation.mutate({
       encodedRawMetadata: Buffer.from(rawMetadata).toString("base64"),
