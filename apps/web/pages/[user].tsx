@@ -122,13 +122,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
-        collectPageParameters("/[user]")
-      )
-    );
-  }, [telemetry]);
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+    }
+  }, [telemetry, router.asPath]);
+
   return (
     <>
       <Theme />
