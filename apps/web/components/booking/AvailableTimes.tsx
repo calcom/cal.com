@@ -4,16 +4,13 @@ import dayjs, { Dayjs } from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
-
 import { nameOfDay } from "@calcom/lib/weekday";
-
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 import { useLocale } from "@lib/hooks/useLocale";
+import { useMeQuery } from "@lib/hooks/useMeQuery";
 import { useSlots } from "@lib/hooks/useSlots";
-
 import Loader from "@components/Loader";
-import { useMeQuery } from "@components/Shell";
 
 type AvailableTimesProps = {
   timeFormat: string;
@@ -62,10 +59,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     afterBufferTime,
     eventTypeId,
   });
+  const [brand, setBrand] = useState("#292929");
   const query = useMeQuery();
   const user = query.data;
-  const [brand, setBrand] = useState("#292929");
-
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
