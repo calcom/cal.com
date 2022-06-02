@@ -3,6 +3,7 @@ import { getSession } from "next-auth/react";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { intentUsername } = req.body;
@@ -14,12 +15,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const checkPremiumUsernameResult = await checkPremiumUsername(intentUsername);
 
     if (userId && user) {
-      await prisma.intentUsername.create({
+      const userWithMetadata = await prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          metadata: true,
+        },
+      });
+
+      const userMetadata =
+        userWithMetadata && !!userWithMetadata.metadata
+          ? (userWithMetadata.metadata as Prisma.JsonObject)
+          : {};
+
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
         data: {
-          userId,
-          currentUsername: user?.username || "",
-          intentUsername,
-          isIntentPremium: checkPremiumUsernameResult.premium,
+          metadata: {
+            ...userMetadata,
+            intentUsername,
+            isIntentPremium: checkPremiumUsernameResult.premium,
+          },
         },
       });
     }

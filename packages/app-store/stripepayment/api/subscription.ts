@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           subscription_update: {
             enabled: true,
-            proration_behavior: "create_prorations",
+            proration_behavior: "always_invoice",
             default_allowed_updates: ["price"],
             products: customProductsSession,
           },

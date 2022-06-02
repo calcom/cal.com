@@ -7,6 +7,7 @@ import { ComponentProps, FormEvent, RefObject, useEffect, useMemo, useRef, useSt
 import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { checkPremiumUsername } from "@calcom/ee/lib/core/checkPremiumUsername";
+import checkLicense from "@calcom/ee/server/checkLicense";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { Prisma } from "@calcom/prisma/client";
@@ -231,6 +232,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                     subscriptionId: user.subscriptionId,
                     onSuccessMutation,
                     onErrorMutation,
+                    isSelfHosted: user.isSelfHosted,
                   }}
                 />
               </div>
@@ -572,6 +574,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       // @TODO: report it to analytics
     }
   }
+  const isSelfHosted = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
   return {
     props: {
       user: {
@@ -579,6 +582,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
         subscriptionId,
         isPremiumUsername,
+        isSelfHosted,
       },
     },
   };

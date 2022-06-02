@@ -173,7 +173,6 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
-  intentUsernames    IntentUsername[]
 
   Feedback Feedback[]
   @@map(name: "users")
@@ -488,14 +487,4 @@ model Feedback {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating  String
   comment String?
-}
-
-model IntentUsername {
-  id                    String @id @default(cuid())
-  userId                Int
-  user                  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  currentUsername       String
-  intentUsername        String
-  isIntentPremium       Boolean
-  createdAt             DateTime @default(now())
 }

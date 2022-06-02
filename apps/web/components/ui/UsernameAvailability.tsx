@@ -22,7 +22,6 @@ const fetchUsername = async (username: string) => {
     },
     body: JSON.stringify({ username: username.trim() }),
     method: "POST",
-    mode: "cors",
   });
   const data = (await response.json()) as ResponseUsernameApi;
   return { response, data };
@@ -46,6 +45,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  isSelfHosted?: boolean;
 }
 
 const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
@@ -61,6 +61,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
     setPremiumUsername,
     onSuccessMutation,
     onErrorMutation,
+    isSelfHosted,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -211,7 +212,6 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
         isPremiumUsername: premiumUsername,
       }),
       method: "POST",
-      mode: "cors",
     });
     const body = await result.json();
     window.location.href = body.url;
@@ -342,7 +342,8 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
 
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             {/* redirect to checkout */}
-            {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
+            {(!isSelfHosted ||
+              usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
               usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) && (
               <Button
                 type="button"
@@ -355,7 +356,7 @@ const CustomUsernameTextfield = (props: ICustomUsernameProps) => {
               </Button>
             )}
             {/* Normal save */}
-            {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && (
+            {(isSelfHosted || usernameChangeCondition === UsernameChangeStatusEnum.NORMAL) && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}
