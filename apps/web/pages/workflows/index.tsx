@@ -8,12 +8,12 @@ import showToast from "@calcom/lib/notification";
 import { Button } from "@calcom/ui";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import EmptyScreen from "@calcom/ui/EmptyScreen";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 import { inferQueryOutput, trpc } from "@lib/trpc";
 
-import EmptyScreen from "@components/EmptyScreen";
 import Shell from "@components/Shell";
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 import ConfirmationDialogContent from "@components/dialog/ConfirmationDialogContent";
