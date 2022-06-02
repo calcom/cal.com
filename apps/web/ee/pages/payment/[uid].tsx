@@ -66,7 +66,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) throw Error("Payment not found");
+  if (!rawPayment) return { notFound: true };
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
@@ -74,7 +74,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as unknown as PaymentData,
   };
 
-  if (!_booking) throw Error("Booking not found");
+  if (!_booking) return { notFound: true };
 
   const { startTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -82,7 +82,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     startTime: startTime.toString(),
   };
 
-  if (!eventType) throw Error("Event not found");
+  if (!eventType) return { notFound: true };
 
   const [user] = eventType.users;
   if (!user) return { notFound: true };
