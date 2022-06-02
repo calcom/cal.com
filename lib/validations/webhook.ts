@@ -26,7 +26,6 @@ const schemaWebhookBaseBodyParams = Webhook.pick({
 
 export const schemaWebhookCreateParams = z
   .object({
-    id: z.string(),
     subscriberUrl: z.string().url(),
     eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
     active: z.boolean(),
@@ -52,6 +51,7 @@ export const schemaWebhookReadPublic = Webhook.pick({
   eventTypeId: true,
   payloadTemplate: true,
   eventTriggers: true,
+  /** @todo: find out how to properly add back and validate those. */
   // eventType: true,
   // app: true,
   appId: true,

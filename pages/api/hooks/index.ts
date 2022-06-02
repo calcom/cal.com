@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 
@@ -60,7 +61,7 @@ async function createOrlistAllWebhooks(
       res.status(400).json({ message: "Invalid request body" });
       return;
     }
-    const data = await prisma.webhook.create({ data: { ...safe.data, userId } });
+    const data = await prisma.webhook.create({ data: { id: uuidv4(), ...safe.data, userId } });
     if (data) res.status(201).json({ webhook: data, message: "Webhook created successfully" });
     else
       (error: Error) =>
