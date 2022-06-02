@@ -1,7 +1,7 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -23,6 +23,21 @@ export default function WorkflowPage() {
   const router = useRouter();
 
   const [editIcon, setEditIcon] = useState(true);
+  const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
+
+  const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
+
+  useEffect(() => {
+    if (data) {
+      let options: { value: string; label: string }[] = [];
+      data.eventTypeGroups.forEach((group) => {
+        options = group.eventTypes.map((eventType) => {
+          return { value: String(eventType.id), label: eventType.title };
+        });
+      });
+      setEventTypeOptions(options);
+    }
+  }, [isLoading]);
 
   const workflowId = router.query?.workflow as string;
   const query = trpc.useQuery([
@@ -89,7 +104,7 @@ export default function WorkflowPage() {
                     name="activeOn"
                     control={form.control}
                     render={() => {
-                      return <MultiSelectCheckboxes options={[{ label: "test", value: "asdf" }]} />;
+                      return <MultiSelectCheckboxes options={evenTypeOptions} isLoading={isLoading} />;
                     }}
                   />
                 </div>

@@ -60,9 +60,10 @@ const InputOption = ({
 
 type MultiSelectionCheckboxesProps = {
   options: { label: string; value: string }[];
+  isLoading: boolean;
 };
 
-export default function MultiSelectCheckboxes({ options }: MultiSelectionCheckboxesProps) {
+export default function MultiSelectCheckboxes({ options, isLoading }: MultiSelectionCheckboxesProps) {
   const [selected, setSelected] = React.useState<Option[]>([]);
 
   return (
@@ -75,6 +76,7 @@ export default function MultiSelectCheckboxes({ options }: MultiSelectionCheckbo
       isSearchable={false}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
+      isLoading={isLoading}
       components={{
         ValueContainer,
         Option: InputOption,
