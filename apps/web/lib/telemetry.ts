@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { EventSinkOpts, PageEvent } from "next-collect";
+import { EventSinkOpts } from "next-collect";
 import { useCollector } from "next-collect/client";
-import { NextRequest, NextResponse } from "next/server";
+// it's ok to do this since we're importing only types which are harmless
+// eslint-disable-next-line  @next/next/no-server-import-in-page
+import type { NextRequest, NextResponse } from "next/server";
 
 export const telemetryEventTypes = {
   pageView: "page_view",
@@ -58,8 +60,15 @@ export const nextCollectBasicSettings: EventSinkOpts = {
   ],
 };
 
-export const extendEventData = (req: NextRequest | NextApiRequest, res: NextResponse | NextApiResponse, original: any) => {
-  const onVercel = typeof req.headers?.get === "function" ? !!req.headers.get("x-vercel-id") : !!(req.headers as any)?.["x-vercel-id"];
+export const extendEventData = (
+  req: NextRequest | NextApiRequest,
+  res: NextResponse | NextApiResponse,
+  original: any
+) => {
+  const onVercel =
+    typeof req.headers?.get === "function"
+      ? !!req.headers.get("x-vercel-id")
+      : !!(req.headers as any)?.["x-vercel-id"];
   const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
   return {
     title: "",
@@ -67,14 +76,16 @@ export const extendEventData = (req: NextRequest | NextApiRequest, res: NextResp
     queryString: "",
     page_url: pageUrl,
     licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
-    isTeamBooking: original?.isTeamBooking === undefined ? (pageUrl?.includes("team/") || undefined) : original?.isTeamBooking,
+    isTeamBooking:
+      original?.isTeamBooking === undefined
+        ? pageUrl?.includes("team/") || undefined
+        : original?.isTeamBooking,
     referrer: "",
     onVercel,
-    isAuthorized: !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
+    isAuthorized:
+      !!req.cookies["next-auth.session-token"] || !!req.cookies["__Secure-next-auth.session-token"],
     utc_time: new Date().toISOString(),
   };
 };
-
-
 
 export const useTelemetry = useCollector;
