@@ -200,6 +200,18 @@ function BookingListItem(booking: BookingItemProps) {
     );
   }
 
+  let location = booking.location || "";
+
+  if (location.includes("integration")) {
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+      location = t("web_conference");
+    } else if (booking.confirmed) {
+      location = linkValueToString(booking.location, t);
+    } else {
+      location = t("web_conferencing_details_to_follow");
+    }
+  }
+
   const onClick = () => {
     router.push({
       pathname: "/success",
@@ -210,11 +222,7 @@ function BookingListItem(booking: BookingItemProps) {
         user: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: booking.location
-          ? booking.location.includes("integration")
-            ? linkValueToString(booking.location, t)
-            : booking.location
-          : "",
+        location: location,
         eventName: booking.eventType.eventName || "",
         bookingId: booking.id,
         recur: booking.recurringEventId,
