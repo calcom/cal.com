@@ -7,7 +7,6 @@ import DynamicHelpscoutProvider from "@ee/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@ee/lib/intercom/providerDynamic";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
-import { createTelemetryClient, TelemetryProvider } from "@lib/telemetry";
 
 import { trpc } from "./trpc";
 
@@ -51,17 +50,15 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <CustomI18nextProvider {...props}>{props.children}</CustomI18nextProvider>
     </SessionProvider>
   );
-  const telemetryClient = useMemo(createTelemetryClient, []);
+
+  if (isPublicPage) {
+    return RemainingProviders;
+  }
+
   return (
-    <TelemetryProvider value={telemetryClient}>
-      {isPublicPage ? (
-        RemainingProviders
-      ) : (
-        <DynamicHelpscoutProvider>
-          <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
-        </DynamicHelpscoutProvider>
-      )}
-    </TelemetryProvider>
+    <DynamicHelpscoutProvider>
+      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
+    </DynamicHelpscoutProvider>
   );
 };
 

@@ -37,7 +37,6 @@ import classNames from "@lib/classNames";
 import { WEBAPP_URL } from "@lib/config/constants";
 import { shouldShowOnboarding } from "@lib/getting-started";
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@lib/telemetry";
 import { trpc } from "@lib/trpc";
 
 import CustomBranding from "@components/CustomBranding";
@@ -415,16 +414,8 @@ type LayoutProps = {
 };
 
 export default function Shell(props: LayoutProps) {
-  const router = useRouter();
   const { loading, session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
   const { isRedirectingToOnboarding } = useRedirectToOnboardingIfNeeded();
-  const telemetry = useTelemetry();
-
-  useEffect(() => {
-    telemetry.withJitsu((jitsu) => {
-      return jitsu.track(telemetryEventTypes.pageView, collectPageParameters(router.asPath));
-    });
-  }, [telemetry, router.asPath]);
 
   const query = useMeQuery();
   const user = query.data;
