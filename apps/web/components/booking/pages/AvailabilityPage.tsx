@@ -143,12 +143,13 @@ const AvailabilityPage = ({ profile, plan, eventType, workingHours, previousPage
   useEffect(() => {
     handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
 
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(
+        telemetryEventTypes.embedView,
         collectPageParameters("/availability", { isTeamBooking: document.URL.includes("team/") })
-      )
-    );
+      );
+    }
   }, [telemetry]);
 
   const changeDate = useCallback(
