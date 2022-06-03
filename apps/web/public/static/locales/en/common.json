@@ -883,5 +883,8 @@
   "meeting_url_in_conformation_email": "Meeting url is in the confirmation email",
   "url_start_with_https": "URL needs to start with http:// or https://",
   "number_provided": "Phone number will be provided",
+  "remove_app": "Remove App",
+  "yes_remove_app": "Yes, remove app",
+  "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "web_conference": "Web conference"
 }
