@@ -4,7 +4,7 @@ import useAddAppMutation from "../../_utils/useAddAppMutation";
 import appConfig from "../config.json";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
-  const mutation = useAddAppMutation(appConfig.slug);
+  const mutation = useAddAppMutation(appConfig.type);
 
   return (
     <>

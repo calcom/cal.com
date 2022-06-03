@@ -15,6 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   // TODO: Define appType once and import everywhere
   const slug = appConfig.slug;
+  const appType = appConfig.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -27,17 +28,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const installation = await prisma.credential.create({
       data: {
-        // TODO: Why do we need type in Credential? Why can't we simply use appId
-        // Using slug as type for new credentials so that we keep on using type in requests.
-        // `deriveAppKeyFromSlug` should be able to handle old type and new type which is equal to slug
-        type: slug,
+        type: appType,
         key: {},
         userId: req.session.user.id,
         appId: slug,
       },
     });
     if (!installation) {
-      throw new Error(`Unable to create user credential for ${slug}`);
+      throw new Error(`Unable to create user credential for type ${type}`);
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

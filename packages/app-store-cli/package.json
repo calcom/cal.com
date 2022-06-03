@@ -7,7 +7,8 @@
   },
   "scripts": {
     "cli": "ts-node --transpile-only src/cli.tsx",
-    "type-check": "tsc --noEmit"
+    "watch": "ts-node --transpile-only src/app-store.ts --watch",
+    "generate": "ts-node --transpile-only src/app-store.ts"
   },
   "files": [
     "dist/cli.js"
@@ -21,6 +22,7 @@
     "react": "^17.0.2"
   },
   "devDependencies": {
+    "chokidar": "^3.5.3",
     "@types/react": "^18.0.9",
     "eslint-plugin-react": "^7.30.0",
     "eslint-plugin-react-hooks": "^4.5.0",

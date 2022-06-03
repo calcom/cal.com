@@ -8,10 +8,10 @@ import App from "./CliApp";
 const cli = meow(
   `
 	Usage
-	  $ app-store create/delete
+	  $ app-store create/delete/edit - Edit and Delete commands must be used on apps created using cli
 
 	Options
-		--noDbUpdate  Don't update DB. Just generate files.
+		[--slug]  Slug. This is the name of app dir for apps created with cli.
 `,
   {
     flags: {
@@ -39,7 +39,11 @@ if (!supportedCommands.includes(command)) {
 
 let slug = null;
 
-if (command === "delete") {
+if (command === "delete" || command === "edit") {
   slug = cli.flags.slug;
+  if (!slug) {
+    console.log("--slug is required");
+    cli.showHelp();
+  }
 }
 render(<App slug={slug} command={command} noDbUpdate={cli.flags.noDbUpdate} />);

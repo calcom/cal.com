@@ -73,13 +73,6 @@
       "command": "maildev -s 587",
       "isBackground": false,
       "problemMatcher": []
-    },
-    {
-      "label": "AppStoreWatch",
-      "type": "shell",
-      "command": "yarn app-store:watch",
-      "isBackground": false,
-      "problemMatcher": []
     }
   ]
 }

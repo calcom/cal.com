@@ -19,6 +19,7 @@ If we rename all existing apps to their slug names, we can remove type and then 
 
 - Beta Release
   - Show a warning somewhere that app directory must not be renamed manually, edit command must be used.
+  - edit command should ask for slug and verify if it exists
   
 - Improvements
   - Prefill fields in edit command
@@ -29,6 +30,7 @@ If we rename all existing apps to their slug names, we can remove type and then 
   -  Require assets path relative to app dir.
 
 ## Roadmap
+- Avoid delete and edit on apps created outside of cli
 - Someone can add wrong directory name(which doesn't satisfy slug requirements) manually. How to handle it.
 - Allow editing and updating app from the cal app itself - including assets uploading when developing locally.
 - Improvements in shared code across app

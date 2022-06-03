@@ -21,7 +21,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const handlerMap = (await import("@calcom/app-store/apps.generated")).apiHandlers;
 
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
-    const handlers = await handlerMap[handlerKey];
+    const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
     const handler = handlers[apiEndpoint as keyof typeof handlers] as NextApiHandler;
     if (typeof handler !== "function")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });

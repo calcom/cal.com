@@ -1,28 +1,38 @@
-export function deriveAppDictKeyFromType(type: string, map: Record<string, unknown>) {
-  let handlers = map[type];
+export function deriveAppDictKeyFromType(appType: string, dict: Record<string, unknown>) {
+  let handlers = dict[appType];
 
   if (handlers) {
-    return type;
+    return appType;
   }
 
-  // There can be two types of legacy types
-  // - zoom_video
-  // - zoomvideo
-  // Transform `zoom_video` to `zoomvideo`;
-  type = type.split("_").join("");
-  handlers = map[type];
-  if (handlers) {
-    return type;
-  }
-
-  // zoom_video if it exists as zoom
+  // Transforms zoom_video to zoom
   // Apps creates through cli would also meet this condition as their type would always be in the format {slug}_{category} and app dir name would be {slug}
-  type = type.split("_")[0];
-  handlers = map[type];
-
+  const appTypeVariant1 = appType.substring(0, appType.lastIndexOf("_"));
+  handlers = dict[appTypeVariant1];
   if (handlers) {
-    return type;
+    return appTypeVariant1;
   }
 
-  return type as keyof typeof map;
+  // Transform `zoom_video` to `zoomvideo`;
+  const appTypeVariant2 =
+    appType.substring(0, appType.lastIndexOf("_")) + appType.substring(appType.lastIndexOf("_") + 1);
+  handlers = dict[appTypeVariant2];
+  if (handlers) {
+    return appTypeVariant2;
+  }
+
+  return appType;
+
+  // const categories = ["video", "other", "calendar", "web3", "payment", "messaging"];
+
+  // // Instead of doing a blind split at _ and using the first part, apply this hack only on strings that match legacy type.
+  // // Transform zoomvideo to zoom
+  // categories.some((type) => {
+  //   const matcher = new RegExp(`(.+)${type}$`);
+  //   if (appType.match(matcher)) {
+  //     appType = appType.replace(matcher, "$1");
+  //     return true;
+  //   }
+  //   return appType;
+  // });
 }

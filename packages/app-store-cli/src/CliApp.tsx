@@ -8,7 +8,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 
 const slugify = (str: string) => {
   // It is to be a valid dir name, a valid JS variable name and a valid URL path
-  return str.replace(/[^a-zA-Z0-9-]/g, "_").toLowerCase();
+  return str.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
 };
 
 function getSlugFromAppName(appName: string | null): string | null {
@@ -78,6 +78,8 @@ const BaseAppFork = {
       publisher: publisherName,
       email: publisherEmail,
       description: appDescription,
+      // TODO: Use this to avoid edit and delete on the apps created outside of cli
+      __createdUsingCli: true,
     };
     const currentConfig = JSON.parse(fs.readFileSync(`${appDirPath}/config.json`).toString());
     config = {
@@ -100,6 +102,7 @@ const Seed = {
     const seedConfig = JSON.parse(fs.readFileSync(this.seedConfigPath).toString());
     if (!seedConfig.find((app) => app.slug === slug)) {
       seedConfig.push({
+        "/*": "This file is auto-generated and managed by `yarn app-store`. Don't edit manually but it is to be committed",
         dirName: slug,
         categories: [category],
         slug: slug,
@@ -123,10 +126,10 @@ const Seed = {
 };
 
 const generateAppFiles = () => {
-  execSync(`cd ${appStoreDir} && node app-store.js`);
+  execSync(`cd ${__dirname} && yarn ts-node --transpile-only src/app-store.ts`);
 };
 
-const CreateApp = ({ noDbUpdate, editMode = false }) => {
+const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   // AppName
   // Type of App - Other, Calendar, Video, Payment, Messaging, Web3
   const [appInputData, setAppInputData] = useState({});
@@ -162,7 +165,6 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
   const [result, setResult] = useState("...");
-  const slug = getSlugFromAppName(appName);
   const allFieldsFilled = inputIndex === fields.length;
 
   useEffect(() => {
@@ -195,11 +197,21 @@ const CreateApp = ({ noDbUpdate, editMode = false }) => {
     }
   });
 
+  if (!slug && editMode) {
+    return <Text>--slug is required</Text>;
+  }
+
+  if (!editMode) {
+    slug = getSlugFromAppName(appName);
+  }
+
   if (allFieldsFilled) {
     return (
       <>
         <Text>
-          Creating app with name "{appName}" of type "{category}"
+          {editMode
+            ? `Editing app with slug ${slug}`
+            : `Creating app with name '${appName}' of type '${category}'`}
         </Text>
         <Text>{result}</Text>
         <Text>
@@ -310,7 +322,7 @@ const App: FC<{ noDbUpdate?: boolean; command: "create" | "delete"; slug?: strin
     return <DeleteApp slug={slug} noDbUpdate={noDbUpdate} />;
   }
   if (command === "edit") {
-    return <CreateApp editMode={true} noDbUpdate={noDbUpdate} />;
+    return <CreateApp slug={slug} editMode={true} noDbUpdate={noDbUpdate} />;
   }
 };
 module.exports = App;
