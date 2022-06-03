@@ -13,6 +13,10 @@ const withTM = require("next-transpile-modules")([
 ]);
 const { i18n } = require("./next-i18next.config");
 
+if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
+if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
+if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
