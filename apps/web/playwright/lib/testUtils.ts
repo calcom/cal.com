@@ -70,6 +70,12 @@ export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { time
 }
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
+  // Let current month dates fully render.
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // This doesn't seem to be replicable with the speed of a person, only during automation.
+  // It would also allow correct snapshot to be taken for current month.
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
@@ -82,6 +88,12 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page) {
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
+  // Let current month dates fully render.
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // This doesn't seem to be replicable with the speed of a person, only during automation.
+  // It would also allow correct snapshot to be taken for current month.
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(1000);
   await page.click('[data-testid="incrementMonth"]');
   // @TODO: Find a better way to make test wait for full month change render to end
   // so it can click up on the right day, also when resolve remove other todos
@@ -95,7 +107,9 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
 
 export async function bookFirstEvent(page: Page) {
   // Click first event type
+
   await page.click('[data-testid="event-type-link"]');
+
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
 

@@ -34,9 +34,20 @@ export const getBooking = async (bookingId: string) => {
 export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname: string }) => {
   // FIXME: Need to wait for the iframe to be properly added to shadow dom. There should be a no time boundation way to do it.
   await new Promise((resolve) => {
-    setTimeout(resolve, 2000);
+    // Keep checking
+    const interval = setInterval(() => {
+      if (page.frame("cal-embed")) {
+        resolve(true);
+      }
+    }, 1000);
+
+    // Hard Timer
+    setTimeout(() => {
+      clearInterval(interval);
+      resolve(true);
+    }, 10000);
   });
-  let embedIframe = page.frame("cal-embed");
+  const embedIframe = page.frame("cal-embed");
   if (!embedIframe) {
     return null;
   }
@@ -49,8 +60,11 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
 
 async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
   await frame.click('[data-testid="incrementMonth"]');
+
   // @TODO: Find a better way to make test wait for full month change render to end
-  // so it can click up on the right day, also when resolve remove other todos
+  // so it can click up on the right day, also when done, resolve other todos as well
+  // The problem is that the Month Text changes instantly but we don't know when the corresponding dates are visible
+
   // Waiting for full month increment
   await frame.waitForTimeout(1000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
@@ -67,7 +81,14 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
       return !!url.pathname.match(new RegExp(`/${username}/.*$`));
     },
   });
+
+  // Let current month dates fully render.
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // This doesn't seem to be replicable with the speed of a person, only during automation.
+  // It would also allow correct snapshot to be taken for current month.
+  await frame.waitForTimeout(1000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
+
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForNavigation({
     url(url) {
@@ -83,7 +104,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   const responseObj = await response.json();
   const bookingId = responseObj.uid;
   // Make sure we're navigated to the success page
-  await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   expect(await page.screenshot()).toMatchSnapshot("success-page.png");
   return bookingId;
 }

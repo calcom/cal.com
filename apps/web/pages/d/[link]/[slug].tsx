@@ -7,6 +7,7 @@ import { RecurringEvent } from "@calcom/types/Calendar";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
+import { locationHiddenFilter, LocationObject } from "@lib/location";
 import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -41,6 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodCountCalendarDays: true,
     recurringEvent: true,
     schedulingType: true,
+    seatsPerTimeSlot: true,
     userId: true,
     schedule: {
       select: {
@@ -53,6 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     minimumBookingNotice: true,
     beforeEventBuffer: true,
     afterEventBuffer: true,
+    locations: true,
     timeZone: true,
     metadata: true,
     slotInterval: true,
@@ -131,6 +134,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     };
   }
+
+  const locations = hashedLink.eventType.locations
+    ? (hashedLink.eventType.locations as LocationObject[])
+    : [];
+
   const [user] = users;
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
     metadata: {} as JSONObject,
@@ -138,6 +146,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
     slug,
+    locations: locationHiddenFilter(locations),
   });
 
   const schedule = {

@@ -10,7 +10,12 @@ import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
-import { sdkActionManager, useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core";
+import {
+  sdkActionManager,
+  useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -117,13 +122,12 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    telemetry.withJitsu((jitsu) =>
-      jitsu.track(
-        top !== window ? telemetryEventTypes.embedView : telemetryEventTypes.pageView,
-        collectPageParameters("/[user]")
-      )
-    );
-  }, [telemetry]);
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
+    }
+  }, [telemetry, router.asPath]);
+
   return (
     <>
       <Theme />
@@ -337,11 +341,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         weekStart: "Sunday",
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: users.some((user) => {
+        allowDynamicBooking: !users.some((user) => {
           return !user.allowDynamicBooking;
-        })
-          ? false
-          : true,
+        }),
       }
     : {
         name: user.name || user.username,
