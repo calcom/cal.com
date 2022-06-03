@@ -13,7 +13,6 @@ const withTM = require("next-transpile-modules")([
 ]);
 const { i18n } = require("./next-i18next.config");
 
-if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 
@@ -35,6 +34,8 @@ if (!process.env.EMAIL_FROM) {
     "EMAIL_FROM environment variable is not set, this may indicate mailing is currently disabled. Please refer to the .env.example file."
   );
 }
+
+if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
 const validJson = (jsonString) => {
   try {
