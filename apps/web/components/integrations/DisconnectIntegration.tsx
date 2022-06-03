@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { Dialog } from "@calcom/ui/Dialog";
@@ -13,6 +14,7 @@ export default function DisconnectIntegration(props: {
   render: (renderProps: ButtonBaseProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
+  const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
   const mutation = useMutation(
     async () => {
@@ -43,13 +45,13 @@ export default function DisconnectIntegration(props: {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <ConfirmationDialogContent
           variety="danger"
-          title="Disconnect Integration"
-          confirmBtnText="Yes, disconnect integration"
+          title={t("remove_app")}
+          confirmBtnText={t("yes_remove_app")}
           cancelBtnText="Cancel"
           onConfirm={() => {
             mutation.mutate();
           }}>
-          Are you sure you want to disconnect this integration?
+          {t("are_you_sure_you_want_to_remove_this_app")}
         </ConfirmationDialogContent>
       </Dialog>
       {props.render({
