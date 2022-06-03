@@ -32,12 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     }
     try {
-      const installedApp = await prisma.credential.findFirst({
+      const installedApp = await prisma.credential.findMany({
         where,
       });
 
-      if (installedApp && !!installedApp.key) {
-        res.status(200);
+      if (installedApp && !!installedApp.length) {
+        res.json({ count: installedApp.length });
       } else {
         res.status(404);
       }
