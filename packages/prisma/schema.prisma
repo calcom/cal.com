@@ -479,8 +479,8 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id        String                             @id @default(cuid())
-  route     Json?                            
+  id        String                          @id @default(cuid())
+  route     Json?
   createdAt DateTime                        @default(now())
   updatedAt DateTime                        @updatedAt
   name      String
