@@ -1,6 +1,6 @@
 import EmailCommonDivider from "./EmailCommonDivider";
 
-const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle: string }) => (
+const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle?: string }) => (
   <EmailCommonDivider headStyles={{ padding: 0 }} mutipleRows>
     <tr>
       <td
@@ -25,21 +25,23 @@ const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle: strin
         </div>
       </td>
     </tr>
-    <tr>
-      <td align="center" style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
-        <div
-          style={{
-            fontFamily: "Roboto, Helvetica, sans-serif",
-            fontSize: 16,
-            fontWeight: 400,
-            lineHeight: "24px",
-            textAlign: "center",
-            color: "#494949",
-          }}>
-          {props.subtitle}
-        </div>
-      </td>
-    </tr>
+    {props.subtitle && (
+      <tr>
+        <td align="center" style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
+          <div
+            style={{
+              fontFamily: "Roboto, Helvetica, sans-serif",
+              fontSize: 16,
+              fontWeight: 400,
+              lineHeight: "24px",
+              textAlign: "center",
+              color: "#494949",
+            }}>
+            {props.subtitle}
+          </div>
+        </td>
+      </tr>
+    )}
   </EmailCommonDivider>
 );
 

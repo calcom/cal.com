@@ -48,9 +48,7 @@ export const BaseEmailHtml = (props: {
             </Row>
           </div>
           {props.headerType && <EmailSchedulingBodyHeader headerType={props.headerType} />}
-          {props.title && props.subtitle && (
-            <EmailScheduledBodyHeaderContent title={props.title} subtitle={props.subtitle} />
-          )}
+          {props.title && <EmailScheduledBodyHeaderContent title={props.title} subtitle={props.subtitle} />}
           {(props.headerType || props.title || props.subtitle) && <EmailSchedulingBodyDivider />}
 
           <RawHtml
