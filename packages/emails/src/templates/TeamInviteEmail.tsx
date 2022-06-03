@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { BaseEmailHtml, LinkIcon } from "../components";
+import { BaseEmailHtml, CallToAction } from "../components";
 
 type TeamInvite = {
   language: TFunction;
@@ -23,34 +23,7 @@ export const TeamInviteEmail = (props: TeamInvite & Partial<React.ComponentProps
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("calcom_explained")}</>
       </p>
-      <p
-        style={{
-          display: "inline-block",
-          background: "#292929",
-          color: "#292929",
-          fontFamily: "Roboto, Helvetica, sans-serif",
-          fontSize: "13px",
-          fontWeight: "normal",
-          lineHeight: "120%",
-          margin: "24px 0",
-          textDecoration: "none",
-          textTransform: "none",
-          padding: "10px 25px",
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          msoPaddingAlt: "0px",
-          borderRadius: "3px",
-        }}>
-        <a
-          href={props.joinLink}
-          target="_blank"
-          style={{ color: "#FFFFFF", textDecoration: "none" }}
-          rel="noreferrer">
-          <>
-            {props.language("accept_invitation")} <LinkIcon />
-          </>
-        </a>
-      </p>
+      <CallToAction label={props.language("accept_invitation")} href={props.joinLink} />
 
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>

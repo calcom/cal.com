@@ -154,9 +154,7 @@ export const BaseEmailHtml = (props: {
                             align="center"
                             vertical-align="middle"
                             style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
-                            <BaseTable border="0" style={{ borderCollapse: "separate", lineHeight: "100%" }}>
-                              {props.callToAction}
-                            </BaseTable>
+                            {props.callToAction}
                           </td>
                         </tr>
                         <tr>

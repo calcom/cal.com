@@ -3,6 +3,7 @@ export { AttendeeCancelledEmail } from "./AttendeeCancelledEmail";
 export { AttendeeDeclinedEmail } from "./AttendeeDeclinedEmail";
 export { AttendeeLocationChangeEmail } from "./AttendeeLocationChangeEmail";
 export { AttendeeRequestEmail } from "./AttendeeRequestEmail";
+export { AttendeeRequestRescheduledEmail } from "./AttendeeRequestRescheduledEmail";
 export { AttendeeRescheduledEmail } from "./AttendeeRescheduledEmail";
 export { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 export { FeedbackEmail } from "./FeedbackEmail";

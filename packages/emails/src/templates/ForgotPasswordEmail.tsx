@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { BaseEmailHtml, LinkIcon } from "../components";
+import { BaseEmailHtml, CallToAction } from "../components";
 
 export type PasswordReset = {
   language: TFunction;
@@ -21,34 +21,7 @@ export const ForgotPasswordEmail = (
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("someone_requested_password_reset")}</>
       </p>
-      <p
-        style={{
-          display: "inline-block",
-          background: "#292929",
-          color: "#292929",
-          fontFamily: "Roboto, Helvetica, sans-serif",
-          fontSize: "13px",
-          fontWeight: "normal",
-          lineHeight: "120%",
-          margin: "24px 0",
-          textDecoration: "none",
-          textTransform: "none",
-          padding: "10px 25px",
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          msoPaddingAlt: "0px",
-          borderRadius: "3px",
-        }}>
-        <a
-          href={props.resetLink}
-          target="_blank"
-          style={{ color: "#FFFFFF", textDecoration: "none" }}
-          rel="noreferrer">
-          <>
-            {props.language("change_password")} <LinkIcon />
-          </>
-        </a>
-      </p>
+      <CallToAction label={props.language("change_password")} href={props.resetLink} />
 
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
