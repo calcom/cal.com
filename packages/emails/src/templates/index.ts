@@ -7,6 +7,7 @@ export { AttendeeRescheduledEmail } from "./AttendeeRescheduledEmail";
 export { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 export { FeedbackEmail } from "./FeedbackEmail";
 export { ForgotPasswordEmail } from "./ForgotPasswordEmail";
+export { OrganizerCancelledEmail } from "./OrganizerCancelledEmail";
 export { OrganizerRequestRescheduledEmail } from "./OrganizerRequestRescheduledEmail";
 export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
