@@ -13,6 +13,15 @@ export interface App {
    * variables to determine if this is true or not.
    * */
   installed?: boolean;
+  /** The app type */
+  type:
+    | `${string}_calendar`
+    | `${string}_messaging`
+    | `${string}_payment`
+    | `${string}_video`
+    | `${string}_web3`
+    | `${string}_other`
+    | `${string}_other_calendar`;
   /** The display name for the app, TODO settle between this or name */
   title: string;
   /** The display name for the app */

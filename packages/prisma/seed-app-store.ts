@@ -22,7 +22,7 @@ async function createApp(
     update: { dirName, categories, keys },
   });
   await prisma.credential.updateMany({
-    where: { appId: slug },
+    where: { type },
     data: { appId: slug },
   });
   console.log(`📲 Upserted app: '${slug}'`);

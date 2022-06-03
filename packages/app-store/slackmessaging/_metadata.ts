@@ -14,7 +14,8 @@ export const metadata = {
   slug: "slack",
   title: "Slack App",
   trending: true,
-  type: "slack_app" as App["type"],
+  // DB has type slack_app. It is an inconsistency
+  type: "slack_messaging",
   url: "https://slack.com/",
   variant: "conferencing",
   verified: true,

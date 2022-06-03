@@ -23,7 +23,6 @@ import Badge from "@components/ui/Badge";
 export default function App({
   name,
   type,
-  slug,
   logo,
   body,
   categories,
@@ -39,7 +38,6 @@ export default function App({
   privacy,
 }: {
   name: string;
-  slug: string;
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
@@ -66,9 +64,9 @@ export default function App({
   const [installedApp, setInstalledApp] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    async function getInstalledApp(slug: string) {
+    async function getInstalledApp(appCredentialType: string) {
       const queryParam = new URLSearchParams();
-      queryParam.set("app-slug", slug);
+      queryParam.set("app-credential-type", appCredentialType);
       try {
         const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
           method: "GET",
@@ -89,9 +87,8 @@ export default function App({
         }
       }
     }
-    getInstalledApp(slug);
-  }, [slug]);
-
+    getInstalledApp(type);
+  }, [type]);
   return (
     <>
       <Shell large isPublic>
@@ -126,7 +123,7 @@ export default function App({
                           : t("globally_install")}
                       </Button>
                       <InstallAppButton
-                        slug={slug}
+                        type={type}
                         render={(buttonProps) => (
                           <Button StartIcon={PlusIcon} data-testid="install-app-button" {...buttonProps}>
                             {t("add_another")}
@@ -136,7 +133,7 @@ export default function App({
                     </div>
                   ) : (
                     <InstallAppButton
-                      slug={slug}
+                      type={type}
                       render={(buttonProps) => (
                         <Button data-testid="install-app-button" {...buttonProps}>
                           {t("install_app")}
