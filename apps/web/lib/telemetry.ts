@@ -1,9 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { EventSinkOpts } from "next-collect";
+import { EventHandler, EventSinkOpts } from "next-collect";
 import { useCollector } from "next-collect/client";
 // it's ok to do this since we're importing only types which are harmless
 // eslint-disable-next-line  @next/next/no-server-import-in-page
 import type { NextRequest, NextResponse } from "next/server";
+
+import { CONSOLE_URL } from "@calcom/lib/constants";
 
 export const telemetryEventTypes = {
   pageView: "page_view",
@@ -33,8 +35,24 @@ export function collectPageParameters(
   };
 }
 
+const reportUsage: EventHandler = async (event, { fetch }) => {
+  if (event.eventType === "booking") {
+    const key = process.env.CALCOM_LICENSE_KEY;
+    const url = `${CONSOLE_URL}/api/deployments/usage?key=${key}&quantity=1`;
+    try {
+      return fetch(url, { method: "POST", mode: "cors" });
+    } catch (e) {
+      console.error(`Error reporting booking for key: '${key}'`, e);
+      return Promise.resolve();
+    }
+  } else {
+    return Promise.resolve();
+  }
+};
+
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
+    process.env.CALCOM_LICENSE_KEY && reportUsage,
     process.env.CALCOM_TELEMETRY_DISABLED !== "1"
       ? {
           type: "jitsu",
