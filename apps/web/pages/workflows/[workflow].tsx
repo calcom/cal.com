@@ -1,26 +1,37 @@
 import { PencilIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { concatSeries } from "async";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
+import { Button } from "@calcom/ui";
+import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
+import { HttpError } from "@lib/core/http/error";
 import { trpc } from "@lib/trpc";
 
 import Shell from "@components/Shell";
 import MultiSelectCheckboxes from "@components/ui/form/MultiSelectCheckboxes";
 
 export type FormValues = {
-  name: string;
-  activeOn: { id: number; title: string; slug: string }[];
+  name?: string;
+  activeOn?: Option[];
+};
+
+export type Option = {
+  value: string;
+  label: string;
 };
 
 export default function WorkflowPage() {
   const { t } = useLocale();
   const router = useRouter();
+  const utils = trpc.useContext();
 
   const [editIcon, setEditIcon] = useState(true);
   const [evenTypeOptions, setEventTypeOptions] = useState<{ value: string; label: string }[]>([]);
@@ -48,11 +59,34 @@ export default function WorkflowPage() {
   ]);
 
   const formSchema = z.object({
-    name: z.string().nonempty(),
-    activeOn: z.object({ id: z.number(), title: z.string(), slug: z.string() }).array(),
+    name: z.string().nonempty().optional(),
+    activeOn: z.object({ value: z.string(), label: z.string() }).array().optional(),
   });
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema) });
+  const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>(
+    query.data?.activeOn.map((active) => {
+      return { value: String(active.eventType.id), label: active.eventType.title };
+    }) || []
+  );
+
+  const updateMutation = trpc.useMutation("viewer.workflows.update", {
+    onSuccess: async ({ workflow }) => {
+      await router.push("/workflows");
+      showToast(
+        t("workflow_updated_successfully", {
+          workflowName: workflow.name,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   return (
     <div>
@@ -96,18 +130,52 @@ export default function WorkflowPage() {
                 </div>
               }>
               <>
-                <div className="-mt-7 space-y-1">
-                  <label htmlFor="label" className="blocktext-sm mb-2 font-medium text-gray-700">
-                    {t("active_on")}:
-                  </label>
-                  <Controller
-                    name="activeOn"
-                    control={form.control}
-                    render={() => {
-                      return <MultiSelectCheckboxes options={evenTypeOptions} isLoading={isLoading} />;
-                    }}
-                  />
-                </div>
+                <Form
+                  form={form}
+                  handleSubmit={async (values) => {
+                    console.log(values);
+                    let activeOnEventTypes: number[] = [];
+                    if (values.activeOn) {
+                      activeOnEventTypes = values.activeOn.map((option) => {
+                        return parseInt(option.value, 10);
+                      });
+                    }
+                    updateMutation.mutate({
+                      id: parseInt(router.query.workflow as string, 10),
+                      name: values.name,
+                      activeOn: activeOnEventTypes,
+                    });
+                  }}>
+                  <div className="-mt-7 space-y-1">
+                    <label htmlFor="label" className="blocktext-sm mb-2 font-medium text-gray-700">
+                      {t("active_on")}:
+                    </label>
+                    <Controller
+                      name="activeOn"
+                      control={form.control}
+                      render={() => {
+                        return (
+                          <MultiSelectCheckboxes
+                            options={evenTypeOptions}
+                            isLoading={isLoading}
+                            setSelected={setSelectedEventTypes}
+                            selected={selectedEventTypes}
+                            setValue={(s: Option[]) => {
+                              form.setValue("activeOn", s);
+                            }}
+                          />
+                        );
+                      }}
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+                    <Button type="submit">
+                      {" "}
+                      {/*disabled={updateMutation.isLoading} */}
+                      {t("save")}
+                    </Button>
+                  </div>
+                </Form>
               </>
             </Shell>
           );

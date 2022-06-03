@@ -1,5 +1,6 @@
 import React from "react";
 import { components, GroupBase, OptionProps, ValueContainerProps } from "react-select";
+import { Props } from "react-select";
 
 import Select from "@calcom/ui/form/Select";
 
@@ -60,16 +61,26 @@ const InputOption = ({
 
 type MultiSelectionCheckboxesProps = {
   options: { label: string; value: string }[];
-  isLoading: boolean;
+  setSelected: any;
+  selected: any;
+  setValue: (s: Option[]) => unknown;
 };
 
-export default function MultiSelectCheckboxes({ options, isLoading }: MultiSelectionCheckboxesProps) {
-  const [selected, setSelected] = React.useState<Option[]>([]);
-
+export default function MultiSelectCheckboxes({
+  options,
+  isLoading,
+  selected,
+  setSelected,
+  setValue,
+  defaultValue,
+}: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   return (
     <Select
       value={selected}
-      onChange={(s: any) => setSelected(s)}
+      onChange={(s: any) => {
+        setSelected(s);
+        setValue(s);
+      }}
       options={options}
       isMulti
       className="w-64 text-sm"

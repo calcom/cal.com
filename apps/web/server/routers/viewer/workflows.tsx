@@ -5,6 +5,7 @@ import { WORKFLOW_ACTIONS } from "@lib/workflows/constants";
 import { TIME_UNIT } from "@lib/workflows/constants";
 
 import { createProtectedRouter } from "@server/createRouter";
+import { TRPCError } from "@trpc/server";
 
 export const workflowsRouter = createProtectedRouter()
   .query("list", {
@@ -36,7 +37,11 @@ export const workflowsRouter = createProtectedRouter()
         select: {
           id: true,
           name: true,
-          eventTypes: true,
+          activeOn: {
+            select: {
+              eventType: true,
+            },
+          },
           trigger: true,
           steps: true,
         },
@@ -95,6 +100,58 @@ export const workflowsRouter = createProtectedRouter()
 
       return {
         id,
+      };
+    },
+  })
+  .mutation("update", {
+    input: z.object({
+      id: z.number(),
+      name: z.string().optional(),
+      activeOn: z.number().array().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      const { user } = ctx;
+      const { id, name, activeOn } = input;
+
+      const userWorkflow = await ctx.prisma.workflow.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          userId: true,
+        },
+      });
+
+      if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      if (activeOn && activeOn.length) {
+        await ctx.prisma.workflowsOnEventTypes.deleteMany({
+          where: {
+            workflowId: id,
+          },
+        });
+
+        activeOn.forEach(async (eventTypeId) => {
+          await ctx.prisma.workflowsOnEventTypes.createMany({
+            data: {
+              workflowId: id,
+              eventTypeId,
+            },
+          });
+        });
+      }
+
+      const workflow = await ctx.prisma.workflow.update({
+        where: {
+          id,
+        },
+        data: {
+          name,
+        },
+      });
+
+      return {
+        workflow,
       };
     },
   });
