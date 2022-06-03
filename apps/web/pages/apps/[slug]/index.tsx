@@ -22,7 +22,7 @@ const components = {
       <a {...otherProps} />
     </Link>
   ),
-  img: ({ src = "", alt = "", placeholder, ...rest }: JSX.IntrinsicElements["img"]) => (
+  img: ({ src = "", alt = "", ...rest }: JSX.IntrinsicElements["img"]) => (
     <Image src={src} alt={alt} {...rest} />
   ),
   Slider: ({ items }: { items: string[] }) => {
