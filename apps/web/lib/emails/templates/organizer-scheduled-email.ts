@@ -45,7 +45,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
-      title: this.calEvent.organizer.language.translate("ics_event_title", {
+      title: this.t("ics_event_title", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       }),
@@ -83,16 +83,10 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizer.language.translate("confirmed_event_type_subject", {
+      subject: `${this.t("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
-        date: `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd(
-          "h:mma"
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart("dddd").toLowerCase()
-        )}, ${this.calEvent.organizer.language.translate(
-          this.getOrganizerStart("MMMM").toLowerCase()
-        )} ${this.getOrganizerStart("D, YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
@@ -122,5 +116,11 @@ ${getRichDescription(this.calEvent)}
 
   protected getOrganizerEnd(format: string) {
     return this.getRecipientTime(this.calEvent.endTime, format);
+  }
+
+  protected getFormattedDate() {
+    return `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
+      this.getOrganizerStart("dddd").toLowerCase()
+    )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart("D, YYYY")}`;
   }
 }

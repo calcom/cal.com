@@ -34,11 +34,7 @@ export default class OrganizerRequestRescheduledEmail extends OrganizerScheduled
       subject: `${this.t("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
-        date: `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
-          this.getOrganizerStart("dddd").toLowerCase()
-        )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart(
-          "D"
-        )}, ${this.getOrganizerStart("YYYY")}`,
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
