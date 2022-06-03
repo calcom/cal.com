@@ -56,10 +56,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const email = new AttendeeRequestRescheduledEmail(evt, { rescheduleLink: "string" }, {});
   // res.write(email.getHtmlBody());
   res.write(
-    renderEmail("OrganizerPaymentRefundFailedEmail", {
+    renderEmail("OrganizerRequestReminderEmail", {
       attendee: evt.attendees[0],
       calEvent: evt,
-      metadata: { rescheduleLink: "string" },
       recurringEvent: {},
     })
   );

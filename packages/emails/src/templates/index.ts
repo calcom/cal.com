@@ -12,6 +12,7 @@ export { OrganizerCancelledEmail } from "./OrganizerCancelledEmail";
 export { OrganizerLocationChangeEmail } from "./OrganizerLocationChangeEmail";
 export { OrganizerPaymentRefundFailedEmail } from "./OrganizerPaymentRefundFailedEmail";
 export { OrganizerRequestEmail } from "./OrganizerRequestEmail";
+export { OrganizerRequestReminderEmail } from "./OrganizerRequestReminderEmail";
 export { OrganizerRequestRescheduledEmail } from "./OrganizerRequestRescheduledEmail";
 export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";

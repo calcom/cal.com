@@ -17,7 +17,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.calEvent.organizer.language.translate("event_awaiting_approval_subject", {
+      subject: `${this.t("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
@@ -27,13 +27,17 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
         attendee: this.calEvent.organizer,
         recurringEvent: this.recurringEvent,
       }),
-      text: this.getTextBody(
-        "event_awaiting_approval",
-        "someone_requested_an_event",
-        "",
-        `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
-${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"`
-      ),
+      text: this.getTextBody("event_awaiting_approval"),
     };
+  }
+
+  protected getTextBody(title = "event_awaiting_approval"): string {
+    return super.getTextBody(
+      title,
+      "someone_requested_an_event",
+      "",
+      `${this.calEvent.organizer.language.translate("confirm_or_reject_request")}
+${process.env.NEXT_PUBLIC_WEBAPP_URL} + "/bookings/upcoming"`
+    );
   }
 }

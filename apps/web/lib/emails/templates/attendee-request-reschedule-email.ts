@@ -5,16 +5,10 @@ import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 import { createEvent, DateArray, Person } from "ics";
 
+import { renderEmail } from "@calcom/emails";
 import { getCancelLink } from "@calcom/lib/CalEventParser";
 import { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
-import {
-  emailBodyLogo,
-  emailHead,
-  emailScheduledBodyHeaderContent,
-  emailSchedulingBodyDivider,
-  emailSchedulingBodyHeader,
-} from "./common";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 dayjs.extend(utc);
@@ -42,7 +36,12 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       })}`,
-      html: this.getHtmlBody(),
+      html: renderEmail("AttendeeRequestRescheduledEmail", {
+        calEvent: this.calEvent,
+        attendee: this.calEvent.organizer,
+        metadata: this.metadata,
+        recurringEvent: this.recurringEvent,
+      }),
       text: this.getTextBody(),
     };
   }
@@ -102,96 +101,5 @@ ${this.getWhen()}
 ${this.t("need_to_reschedule_or_cancel")}
 ${getCancelLink(this.calEvent)}
 `.replace(/(<([^>]+)>)/gi, "");
-  }
-
-  public getHtmlBody(): string {
-    const headerContent = this.t("rescheduled_event_type_subject", {
-      eventType: this.calEvent.type,
-      name: this.calEvent.attendees[0].name,
-      date: `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd("h:mma")}, ${this.t(
-        this.getOrganizerStart("dddd").toLowerCase()
-      )}, ${this.t(this.getOrganizerStart("MMMM").toLowerCase())} ${this.getOrganizerStart(
-        "D"
-      )}, ${this.getOrganizerStart("YYYY")}`,
-    });
-
-    return `
-    <!doctype html>
-    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-    ${emailHead(headerContent)}
-    <body style="word-spacing:normal;background-color:#F5F5F5;">
-      <div style="background-color:#F5F5F5;">
-        ${emailSchedulingBodyHeader("calendarCircle")}
-        ${emailScheduledBodyHeaderContent(
-          this.t("request_reschedule_title_attendee"),
-          this.t("request_reschedule_subtitle", {
-            organizer: this.calEvent.organizer.name,
-          })
-        )}
-        ${emailSchedulingBodyDivider()}
-        <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-        <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;max-width:600px;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;">
-            <tbody>
-              <tr>
-                <td style="border-left:1px solid #E1E1E1;border-right:1px solid #E1E1E1;direction:ltr;font-size:0px;padding:0px;text-align:center;">
-                  <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:598px;" ><![endif]-->
-                  <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                      <tbody>
-                        <tr>
-                          <td align="left" style="font-size:0px;padding:10px 40px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;line-height:1;text-align:left;color:#3E3E3E;">
-                              ${this.getWhen()}
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <!--[if mso | IE]></td></tr></table><![endif]-->
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        ${emailSchedulingBodyDivider()}
-        <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" bgcolor="#FFFFFF" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
-        <div style="background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;max-width:600px;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;background-color:#FFFFFF;width:100%;">
-            <tbody>
-              <tr>
-                <td style="border-bottom:1px solid #E1E1E1;border-left:1px solid #E1E1E1;border-right:1px solid #E1E1E1;direction:ltr;font-size:0px;padding:0px;text-align:center;">
-                  <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:598px;" ><![endif]-->
-                  <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                      <tbody>
-                        <tr>
-                          <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                            <div style="font-family:Roboto, Helvetica, sans-serif;font-size:16px;font-weight:500;text-align:center;color:#3E3E3E;">
-                            <a style="padding: 8px 16px;background-color: #292929;color: white;border-radius: 2px;display: inline-block;margin-bottom: 16px;"
-                              href="${this.metadata.rescheduleLink}" target="_blank"
-                            >
-                              Book a new time
-                              <img src="https://app.cal.com/emails/linkIcon.png" style="width:16px; margin-left: 5px;filter: brightness(0) invert(1); vertical-align: top;" />
-                              </a>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <!--[if mso | IE]></td></tr></table><![endif]-->
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        ${emailBodyLogo()}
-        <!--[if mso | IE]></td></tr></table><![endif]-->
-      </div>
-    </body>
-    </html>
-    `;
   }
 }

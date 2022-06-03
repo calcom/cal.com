@@ -3,7 +3,11 @@ import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => (
   <OrganizerScheduledEmail
-    title={props.recurringEvent?.count ? "event_awaiting_approval_recurring" : "event_awaiting_approval"}
+    title={
+      props.title || props.recurringEvent?.count
+        ? "event_awaiting_approval_recurring"
+        : "event_awaiting_approval"
+    }
     subtitle="someone_requested_an_event"
     headerType="calendarCircle"
     subject="event_awaiting_approval_subject"
